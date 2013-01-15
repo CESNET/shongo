@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -177,30 +178,20 @@ public class ResourceManager extends AbstractManager
     public <T extends Capability> List<T> listCapabilities(Class<T> capabilityType)
     {
         List<T> capabilities = entityManager.createQuery("SELECT capability"
-                + " FROM " + capabilityType.getSimpleName() + " capability"
-                + " WHERE capability.resource IS NOT NULL", capabilityType)
+                + " FROM " + capabilityType.getSimpleName() + " capability", capabilityType)
                 .getResultList();
         return capabilities;
     }
 
     /**
-     * @param aliasProviderCapabilityId
-     * @param interval
-     * @return list of all {@link AliasReservation}s for alias provider with given {@code aliasProviderCapabilityId}
-     *         which intersects given {@code interval}
+     * @return list of all {@link ValueProvider}s
      */
-    public List<AliasReservation> listAliasReservationsInInterval(Long aliasProviderCapabilityId, Interval interval)
+    public List<ValueProvider> listValueProviders()
     {
-        List<AliasReservation> aliasReservations = entityManager.createQuery("SELECT reservation"
-                + " FROM AliasReservation reservation"
-                + " WHERE reservation.aliasProviderCapability.id = :id"
-                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
-                + " ORDER BY reservation.slotStart", AliasReservation.class)
-                .setParameter("id", aliasProviderCapabilityId)
-                .setParameter("start", interval.getStart())
-                .setParameter("end", interval.getEnd())
+        List<ValueProvider> valueProviders = entityManager.createQuery("SELECT valueProvider"
+                + " FROM ValueProvider valueProvider", ValueProvider.class)
                 .getResultList();
-        return aliasReservations;
+        return valueProviders;
     }
 
     /**
@@ -221,5 +212,45 @@ public class ResourceManager extends AbstractManager
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return resourceReservations;
+    }
+
+    /**
+     * @param valueProviderId
+     * @param interval
+     * @return list of all {@link ValueReservation}s for value provider with given {@code valueProviderId}
+     *         which intersects given {@code interval}
+     */
+    public List<ValueReservation> listValueReservationsInInterval(Long valueProviderId, Interval interval)
+    {
+        List<ValueReservation> valueReservations = entityManager.createQuery("SELECT reservation"
+                + " FROM ValueReservation reservation"
+                + " WHERE reservation.valueProvider.id = :id"
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", ValueReservation.class)
+                .setParameter("id", valueProviderId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return valueReservations;
+    }
+
+    /**
+     * @param aliasProviderCapabilityId
+     * @param interval
+     * @return list of all {@link AliasReservation}s for alias provider with given {@code aliasProviderCapabilityId}
+     *         which intersects given {@code interval}
+     */
+    public List<AliasReservation> listAliasReservationsInInterval(Long aliasProviderCapabilityId, Interval interval)
+    {
+        List<AliasReservation> aliasReservations = entityManager.createQuery("SELECT reservation"
+                + " FROM AliasReservation reservation"
+                + " WHERE reservation.aliasProviderCapability.id = :id"
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", AliasReservation.class)
+                .setParameter("id", aliasProviderCapabilityId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return aliasReservations;
     }
 }

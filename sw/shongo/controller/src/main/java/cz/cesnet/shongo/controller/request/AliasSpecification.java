@@ -3,13 +3,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.cache.AvailableAlias;
-import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -17,12 +11,10 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.AliasReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -75,8 +67,8 @@ public class AliasSpecification extends Specification implements ReservationTask
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #technology}
-     * @param aliasProviderCapability   sets the {@link #aliasProviderCapability}
+     * @param technology              sets the {@link #technology}
+     * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
      */
     public AliasSpecification(Technology technology, AliasProviderCapability aliasProviderCapability)
     {

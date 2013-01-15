@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
@@ -15,55 +16,49 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasCache extends AbstractReservationCache<AliasProviderCapability, AliasReservation>
+public class ValueCache extends AbstractReservationCache<ValueProvider, ValueReservation>
 {
-    private static Logger logger = LoggerFactory.getLogger(AliasCache.class);
+    private static Logger logger = LoggerFactory.getLogger(ValueCache.class);
 
     /**
-     * Map of {@link AliasProviderCapability}s by resource id (used for removing all capabilities
-     * of a given resource).
+     * Map of {@link ValueProvider}s by resource id (used for removing all value providers of a given resource).
      */
-    private Map<Long, Set<AliasProviderCapability>> aliasProviderCapabilitiesByResourceId =
-            new HashMap<Long, Set<AliasProviderCapability>>();
+    private Map<Long, Set<ValueProvider>> valueProviderByResourceId = new HashMap<Long, Set<ValueProvider>>();
 
     @Override
     public void loadObjects(EntityManager entityManager)
     {
-        logger.debug("Loading alias providers...");
+        logger.debug("Loading value providers...");
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AliasProviderCapability> aliasProviders = resourceManager.listCapabilities(AliasProviderCapability.class);
-        for (AliasProviderCapability aliasProvider : aliasProviders) {
-            addObject(aliasProvider, entityManager);
+        List<ValueProvider> valueProviders = resourceManager.listValueProviders();
+        for (ValueProvider valueProvider : valueProviders) {
+            addObject(valueProvider, entityManager);
         }
     }
 
     @Override
-    public void addObject(AliasProviderCapability aliasProviderCapability, EntityManager entityManager)
+    public void addObject(ValueProvider valueProvider, EntityManager entityManager)
     {
-        Resource resource = aliasProviderCapability.getResource();
+        Resource resource = valueProvider.getCapabilityResource();
         Long resourceId = resource.getId();
 
         // Load lazy collections
-        aliasProviderCapability.getAliases().size();
-        if (true) {
-            throw new TodoImplementException("fix following line");
-        }
-        //aliasProviderCapability.getPatterns().size();
+        valueProvider.getPatterns().size();
 
         // Store capability for removing by resource
-        Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);
+        Set<ValueProvider> aliasProviderCapabilities = valueProviderByResourceId.get(resourceId);
         if (aliasProviderCapabilities == null) {
-            aliasProviderCapabilities = new HashSet<AliasProviderCapability>();
-            aliasProviderCapabilitiesByResourceId.put(resourceId, aliasProviderCapabilities);
+            aliasProviderCapabilities = new HashSet<ValueProvider>();
+            valueProviderByResourceId.put(resourceId, aliasProviderCapabilities);
         }
-        aliasProviderCapabilities.add(aliasProviderCapability);
+        aliasProviderCapabilities.add(valueProvider);
 
-        super.addObject(aliasProviderCapability, entityManager);
+        super.addObject(valueProvider, entityManager);
     }
 
     @Override
-    public void removeObject(AliasProviderCapability object)
+    public void removeObject(ValueProvider object)
     {
         super.removeObject(object);
     }
@@ -71,55 +66,54 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
     @Override
     public void clear()
     {
-        aliasProviderCapabilitiesByResourceId.clear();
+        valueProviderByResourceId.clear();
         super.clear();
     }
 
     /**
-     * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link AliasCache}.
+     * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link ValueCache}.
      *
      * @param resource
      */
-    public void removeAliasProviders(Resource resource)
+    public void removeValueProviders(Resource resource)
     {
         Long resourceId = resource.getId();
 
         // Remove all states for alias providers
-        Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);
-        if (aliasProviderCapabilities != null) {
-            for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                removeObject(aliasProviderCapability);
+        Set<ValueProvider> valueProviders = valueProviderByResourceId.get(resourceId);
+        if (valueProviders != null) {
+            for (ValueProvider valueProvider : valueProviders) {
+                removeObject(valueProvider);
             }
-            aliasProviderCapabilities.clear();
+            valueProviders.clear();
         }
     }
 
     @Override
-    protected void updateObjectState(AliasProviderCapability object, Interval workingInterval,
-            EntityManager entityManager)
+    protected void updateObjectState(ValueProvider object, Interval workingInterval, EntityManager entityManager)
     {
-        // Get all allocated aliases for the alias provider and add them to the device state
+        // Get all allocated values for the value provider and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AliasReservation> aliasReservations = resourceManager.listAliasReservationsInInterval(object.getId(),
+        List<ValueReservation> valueReservations = resourceManager.listValueReservationsInInterval(object.getId(),
                 getWorkingInterval());
-        for (AliasReservation aliasReservation : aliasReservations) {
-            addReservation(object, aliasReservation);
+        for (ValueReservation valueReservation : valueReservations) {
+            addReservation(object, valueReservation);
         }
     }
 
     /**
      * Find available alias in given {@code aliasProviderCapability}.
      *
-     * @param aliasProviderCapability
+     * @param valueProvider
      * @param interval
      * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, String requestedValue,
+    public AvailableValue getAvailableAlias(ValueProvider valueProvider, String requestedValue,
             Interval interval, Transaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
-        Resource resource = aliasProviderCapability.getResource();
+        Resource resource = valueProvider.getResource();
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return null;
         }
@@ -130,7 +124,7 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         AliasReservation aliasReservation = null;
 
         // Preferably use  provided alias
-        Set<AliasReservation> aliasReservations = transaction.getProvidedReservations(aliasProviderCapability.getId());
+        Set<AliasReservation> aliasReservations = transaction.getProvidedReservations(valueProvider.getId());
         if (aliasReservations.size() > 0) {
             if (requestedValue != null) {
                 for (AliasReservation possibleAliasReservation : aliasReservations) {
@@ -148,7 +142,7 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         }
         // Else use generated alias
         if (aliasValue == null) {
-            ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(aliasProviderCapability);
+            ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(valueProvider);
             Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
 
             if (true) {
@@ -170,18 +164,18 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         if (aliasValue == null) {
             return null;
         }
-        AvailableAlias availableAlias = new AvailableAlias();
-        availableAlias.setAliasProviderCapability(aliasProviderCapability);
-        availableAlias.setAliasValue(aliasValue);
-        availableAlias.setAliasReservation(aliasReservation);
+        AvailableValue availableAlias = new AvailableValue();
+        availableAlias.setValueProvider(valueProvider);
+        availableAlias.setValue(aliasValue);
+        availableAlias.setValueReservation(aliasReservation);
         return availableAlias;
     }
 
     /**
-     * Transaction for {@link AliasCache}.
+     * Transaction for {@link ValueCache}.
      */
     public static class Transaction
-            extends AbstractReservationCache.Transaction<AliasReservation>
+            extends AbstractReservationCache.Transaction<ValueReservation>
     {
     }
 }

@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.annotation.Transient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,27 +17,36 @@ public class AliasReservation extends ResourceReservation
     /**
      * {@link Alias} which is allocated.
      */
-    private String aliasValue;
+    private ValueReservation valueReservation;
 
     /**
-     * List of {@link Alias}es which are allocated by the {@link #aliasValue}.
+     * List of {@link Alias}es which are allocated by the {@link #valueReservation}.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
 
     /**
-     * @return {@link #aliasValue}
+     * @return {@link #valueReservation}
      */
-    public String getAliasValue()
+    public ValueReservation getValueReservation()
     {
-        return aliasValue;
+        return valueReservation;
     }
 
     /**
-     * @param aliasValue sets the {@link #aliasValue}
+     * @param valueReservation sets the {@link #valueReservation}
      */
-    public void setAliasValue(String aliasValue)
+    public void setValueReservation(ValueReservation valueReservation)
     {
-        this.aliasValue = aliasValue;
+        this.valueReservation = valueReservation;
+    }
+
+    /**
+     * @return {@link #valueReservation#getValue()}
+     */
+    @Transient
+    public String getValue()
+    {
+        return valueReservation.getValue();
     }
 
     /**

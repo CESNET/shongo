@@ -218,9 +218,6 @@ public class Scheduler extends Component implements Component.NotificationManage
 
             // Update cache
             cache.addReservation(reservation);
-            for (Reservation childReservation : reservation.getChildReservations()) {
-                cache.addReservation(childReservation);
-            }
 
             // Update reservation request
             reservationRequest.setReservation(reservation);

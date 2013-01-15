@@ -338,7 +338,7 @@ public class ExecutorTest extends AbstractControllerTest
                 new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
         assertEquals("Alias should not be allocated from the fake connect server.",
-                "test", aliasReservation.getAliasValue());
+                "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setName("roomReservation");

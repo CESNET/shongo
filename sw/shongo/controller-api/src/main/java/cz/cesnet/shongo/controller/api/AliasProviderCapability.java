@@ -52,7 +52,7 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
-        setValueProvider(new ValueProviderCapability(pattern));
+        setValueProvider(new ValueProvider(pattern));
         addAlias(new Alias(type, "{value}"));
     }
 

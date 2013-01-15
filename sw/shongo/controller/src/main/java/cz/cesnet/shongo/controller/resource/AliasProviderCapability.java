@@ -258,8 +258,7 @@ public class AliasProviderCapability extends Capability
         for (Alias alias : aliases) {
             apiAliasProvider.addAlias(alias.toApi());
         }
-        ValueProviderCapability valueProviderCapability = valueProvider.getValueProviderCapability();
-        Resource valueProviderResource = valueProviderCapability.getResource();
+        Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getResource()) {
             apiAliasProvider.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
         }
@@ -297,7 +296,7 @@ public class AliasProviderCapability extends Capability
             }
             else {
                 if (this.valueProvider == null) {
-                    this.valueProvider = new ValueProvider();
+                    this.valueProvider = new ValueProvider(this);
                 }
                 this.valueProvider.fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider);
             }

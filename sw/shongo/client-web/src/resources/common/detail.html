@@ -39,7 +39,7 @@
     [%- IF aliasReservation %]
 
     <dt>Room Alias:</dt>
-    <dd><a href="[% location %]/detail?id=[% aliasReservation.reservationRequestId %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
+    <dd><a href="[% location %]/detail?id=[% valueReservation.reservationRequestId %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
     [% END %]
 
     <dt>Number of participants:</dt>

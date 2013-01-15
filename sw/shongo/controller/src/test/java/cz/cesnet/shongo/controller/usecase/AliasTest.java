@@ -37,7 +37,7 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_NAME).withValue("test_1"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be allocated.", "test_1", aliasReservation.getAliasValue());
+        assertEquals("Requested value should be allocated.", "test_1", aliasReservation.getValue());
     }
 
     /**
@@ -68,6 +68,6 @@ public class AliasTest extends AbstractControllerTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
-        assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getAliasValue());
+        assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
     }
 }

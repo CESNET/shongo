@@ -139,7 +139,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
-        assertEquals(aliasReservation.getAliasValue(), "950000001");
+        assertEquals(aliasReservation.getValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-06-22T14:00", "PT2H");

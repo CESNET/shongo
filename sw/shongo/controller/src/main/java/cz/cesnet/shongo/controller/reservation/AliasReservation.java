@@ -26,9 +26,9 @@ public class AliasReservation extends Reservation
     private AliasProviderCapability aliasProviderCapability;
 
     /**
-     * Alias value that is allocated.
+     * {@link ValueReservation} for value which is used for the {@link #aliasProviderCapability#getAliases()}
      */
-    private String aliasValue;
+    private ValueReservation valueReservation;
 
     /**
      * Constructor.
@@ -56,29 +56,38 @@ public class AliasReservation extends Reservation
     }
 
     /**
-     * @return {@link #aliasValue}
+     * @return {@link #valueReservation}
      */
-    @Column(nullable = false)
-    public String getAliasValue()
+    @ManyToOne(optional = false)
+    @Access(AccessType.FIELD)
+    public ValueReservation getValueReservation()
     {
-        return aliasValue;
+        return valueReservation;
     }
 
     /**
-     * @param aliasValue sets the {@link #aliasValue}
+     * @param valueReservation sets the {@link #valueReservation}
      */
-    public void setAliasValue(String aliasValue)
+    public void setValueReservation(ValueReservation valueReservation)
     {
-        this.aliasValue = aliasValue;
+        this.valueReservation = valueReservation;
     }
 
     /**
-     * @param alias to be evaluated by the {@link #aliasValue} and {@link #aliasProviderCapability}
+     * @return {@link #valueReservation#getValue()}
+     */
+    public String getValue()
+    {
+        return valueReservation.getValue();
+    }
+
+    /**
+     * @param alias to be evaluated by the {@link #valueReservation} and {@link #aliasProviderCapability}
      */
     private void evaluateAlias(Alias alias)
     {
         String aliasValue = alias.getValue();
-        aliasValue = aliasValue.replace("{value}", this.aliasValue);
+        aliasValue = aliasValue.replace("{value}", valueReservation.getValue());
         alias.setValue(aliasValue);
         if (aliasProviderCapability.isRestrictedToResource()) {
             Resource resource = aliasProviderCapability.getResource();
@@ -90,7 +99,7 @@ public class AliasReservation extends Reservation
     }
 
     /**
-     * @return collection of {@link Alias}es which are allocated by the {@link #aliasValue}
+     * @return collection of {@link Alias}es which are allocated by the {@link #valueReservation}
      */
     @Transient
     public Collection<Alias> getAliases()
@@ -135,7 +144,7 @@ public class AliasReservation extends Reservation
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
         aliasReservationApi.setResourceId(Domain.getLocalDomain().formatId(aliasProviderCapability.getResource()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
-        aliasReservationApi.setAliasValue(getAliasValue());
+        aliasReservationApi.setValueReservation(valueReservation.toApi());
         for (Alias alias : getAliases()) {
             aliasReservationApi.addAlias(alias.toApi());
         }

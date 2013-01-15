@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -27,9 +26,9 @@ public class ValueProvider extends PersistentObject
     private List<String> patterns = new ArrayList<String>();
 
     /**
-     * {@link AliasProviderCapability} in which the {@link ValueProvider} is defined.
+     * {@link Capability} which owns the{@link ValueProvider}.
      */
-    private ValueProviderCapability valueProviderCapability;
+    private Capability capability;
 
     /**
      * Constructor.
@@ -41,11 +40,11 @@ public class ValueProvider extends PersistentObject
     /**
      * Constructor.
      *
-     * @param valueProviderCapability sets the {@link #valueProviderCapability}
+     * @param capability sets the {@link #capability}
      */
-    public ValueProvider(ValueProviderCapability valueProviderCapability)
+    public ValueProvider(Capability capability)
     {
-        this.valueProviderCapability = valueProviderCapability;
+        this.capability = capability;
     }
 
     /**
@@ -85,13 +84,22 @@ public class ValueProvider extends PersistentObject
     }
 
     /**
-     * @return {@link #valueProviderCapability}
+     * @return {@link #capability}
      */
-    @OneToOne(mappedBy = "valueProvider")
+    @OneToOne(optional = false)
     @Access(AccessType.FIELD)
-    public ValueProviderCapability getValueProviderCapability()
+    public Capability getCapability()
     {
-        return valueProviderCapability;
+        return capability;
+    }
+
+    /**
+     * @return {@link Resource} from {@link #capability}
+     */
+    @Transient
+    public Resource getCapabilityResource()
+    {
+        return capability.getResource();
     }
 
     /**

@@ -44,14 +44,19 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private ResourceCache resourceCache = new ResourceCache();
 
     /**
-     * @see AliasCache
+     * @see cz.cesnet.shongo.controller.cache.ValueCache
      */
-    private AliasCache aliasCache = new AliasCache();
+    private ValueCache valueCache = new ValueCache();
 
     /**
      * @see ReusedReservationCache
      */
     private ReusedReservationCache reusedReservationCache = new ReusedReservationCache();
+
+    /**
+     * Set of existing {@link AliasProviderCapability}.
+     */
+    private Map<Long, AliasProviderCapability> aliasProviderById = new HashMap<Long, AliasProviderCapability>();
 
     /**
      * Working interval for which are loaded allocated virtual rooms.
@@ -112,11 +117,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @return {@link #aliasCache}
+     * @return {@link #valueCache}
      */
-    public AliasCache getAliasCache()
+    public ValueCache getValueCache()
     {
-        return aliasCache;
+        return valueCache;
     }
 
     /**
@@ -148,7 +153,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             Interval aliasWorkingInterval = new Interval(
                     workingInterval.getStart().minus(aliasReservationMaximumDuration),
                     workingInterval.getEnd().plus(aliasReservationMaximumDuration));
-            aliasCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
+            valueCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
 
             Interval maxWorkingInterval = new Interval(
                     TemporalHelper.min(resourceWorkingInterval.getStart(), aliasWorkingInterval.getStart()),
@@ -198,11 +203,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public void reset()
     {
         resourceCache.clear();
-        aliasCache.clear();
+        valueCache.clear();
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             resourceCache.loadObjects(entityManager);
-            aliasCache.loadObjects(entityManager);
+            valueCache.loadObjects(entityManager);
             reusedReservationCache.loadObjects(entityManager);
             entityManager.close();
         }
@@ -241,12 +246,28 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         checkPersisted(resource);
         resourceCache.addObject(resource, entityManager);
 
-        // Add all alias provider capabilities to alias manager
-        List<AliasProviderCapability> aliasProviderCapabilities =
-                resource.getCapabilities(AliasProviderCapability.class);
-        for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-            checkPersisted(aliasProviderCapability);
-            aliasCache.addObject(aliasProviderCapability, entityManager);
+        // Add value provider
+        ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
+        if (valueProviderCapability != null) {
+            ValueProvider valueProvider = valueProviderCapability.getValueProvider();
+            checkPersisted(valueProvider);
+            valueCache.addObject(valueProvider);
+        }
+
+        // Process all alias providers in the resource
+        List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            // Load lazy collections
+            aliasProvider.getAliases().size();
+            // Add alias provider to the set of existing alias providers
+            aliasProviderById.put(aliasProvider.getId(), aliasProvider);
+
+            // Add new value provider (but only when the alias provider owns the value provider)
+            ValueProvider valueProvider = aliasProvider.getValueProvider();
+            if (valueProvider.getCapability().equals(aliasProvider))  {
+                checkPersisted(valueProvider);
+                valueCache.addObject(valueProvider, entityManager);
+            }
         }
     }
 
@@ -285,8 +306,15 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         // Remove resource from resource cache
         resourceCache.removeObject(resource);
 
-        // Remove all alias providers for the resource
-        aliasCache.removeAliasProviders(resource);
+        // Remove all value providers for the resource
+        valueCache.removeValueProviders(resource);
+
+        // Process all alias providers in the resource
+        List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            // Remove alias provider from the set of existing alias providers
+            aliasProviderById.remove(aliasProvider.getId());
+        }
     }
 
     /**
@@ -309,9 +337,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             resourceCache.addReservation(resourceReservation.getResource(), resourceReservation);
         }
-        else if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            aliasCache.addReservation(aliasReservation.getAliasProviderCapability(), aliasReservation);
+        else if (reservation instanceof ValueReservation) {
+            ValueReservation valueReservation = (ValueReservation) reservation;
+            valueCache.addReservation(valueReservation.getValueProvider(), valueReservation);
+        }
+
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            addReservation(childReservation, entityManager);
         }
     }
 
@@ -336,10 +368,18 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             resourceCache.removeReservation(resourceReservation.getResource(), resourceReservation);
         }
-        else if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            aliasCache.removeReservation(aliasReservation.getAliasProviderCapability(), aliasReservation);
+        else if (reservation instanceof ValueReservation) {
+            ValueReservation valueReservation = (ValueReservation) reservation;
+            valueCache.removeReservation(valueReservation.getValueProvider(), valueReservation);
         }
+    }
+
+    /**
+     * @return collection of existing {@link AliasProviderCapability}s
+     */
+    public Collection<AliasProviderCapability> getAliasProviders()
+    {
+        return aliasProviderById.values();
     }
 
     /**
@@ -453,14 +493,20 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private ResourceCache.Transaction resourceCacheTransaction = new ResourceCache.Transaction();
 
         /**
-         * @see {@link AliasCache.Transaction}
+         * @see {@link cz.cesnet.shongo.controller.cache.ValueCache.Transaction}
          */
-        private AliasCache.Transaction aliasCacheTransaction = new AliasCache.Transaction();
+        private ValueCache.Transaction valueProviderCacheTransaction = new ValueCache.Transaction();
 
         /**
          * Map of provided {@link Executable}s by {@link Reservation} which allocates them.
          */
         private Map<Executable, Reservation> providedReservationByExecutable = new HashMap<Executable, Reservation>();
+
+        /**
+         * Map of provided {@link Executable}s by {@link Reservation} which allocates them.
+         */
+        private Map<Long, Set<AliasReservation>> providedReservationsByAliasProviderId =
+                new HashMap<Long, Set<AliasReservation>>();
 
         /**
          * Constructor.
@@ -498,10 +544,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     resourceCacheTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
                     addReferencedResource(resource);
                 }
-                else if (reservation instanceof AliasReservation) {
-                    AliasReservation aliasReservation = (AliasReservation) reservation;
-                    aliasCacheTransaction.addAllocatedReservation(
-                            aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+                else if (reservation instanceof ValueReservation) {
+                    ValueReservation valueReservation = (ValueReservation) reservation;
+                    valueProviderCacheTransaction.addAllocatedReservation(
+                            valueReservation.getValueProvider().getId(), valueReservation);
                 }
             }
         }
@@ -529,10 +575,20 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     resourceCacheTransaction.addProvidedReservation(
                             resourceReservation.getResource().getId(), resourceReservation);
                 }
+                else if (reservation instanceof ValueReservation) {
+                    ValueReservation valueReservation = (ValueReservation) reservation;
+                    valueProviderCacheTransaction.addProvidedReservation(
+                            valueReservation.getValueProvider().getId(), valueReservation);
+                }
                 else if (reservation instanceof AliasReservation) {
                     AliasReservation aliasReservation = (AliasReservation) reservation;
-                    aliasCacheTransaction.addProvidedReservation(
-                            aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+                    Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
+                    Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
+                    if (aliasReservations == null) {
+                        aliasReservations = new HashSet<AliasReservation>();
+                        providedReservationsByAliasProviderId.put(aliasProviderId, aliasReservations);
+                    }
+                    aliasReservations.add(aliasReservation);
                 }
             }
 
@@ -559,10 +615,18 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 resourceCacheTransaction.removeProvidedReservation(
                         resourceReservation.getResource().getId(), resourceReservation);
             }
+            else if (reservation instanceof ValueReservation) {
+                ValueReservation aliasReservation = (ValueReservation) reservation;
+                valueProviderCacheTransaction.removeProvidedReservation(
+                        aliasReservation.getValueProvider().getId(), aliasReservation);
+            }
             else if (reservation instanceof AliasReservation) {
                 AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasCacheTransaction.removeProvidedReservation(
-                        aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+                Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
+                Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
+                if (aliasReservations != null) {
+                    aliasReservations.remove(aliasReservation);
+                }
             }
         }
 
@@ -595,6 +659,20 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
 
         /**
+         * @param aliasProvider
+         * @return collection of provided {@link AliasReservation}
+         */
+        public Collection<AliasReservation> getProvidedAliasReservations(AliasProviderCapability aliasProvider)
+        {
+            Long aliasProviderId = aliasProvider.getId();
+            Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
+            if (aliasReservations != null) {
+                return aliasReservations;
+            }
+            return Collections.emptyList();
+        }
+
+        /**
          * @return {@link #resourceCacheTransaction}
          */
         public ResourceCache.Transaction getResourceCacheTransaction()
@@ -612,11 +690,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
 
         /**
-         * @return {@link #aliasCacheTransaction}
+         * @return {@link #valueProviderCacheTransaction}
          */
-        public AliasCache.Transaction getAliasCacheTransaction()
+        public ValueCache.Transaction getValueCacheTransaction()
         {
-            return aliasCacheTransaction;
+            return valueProviderCacheTransaction;
         }
 
         /**

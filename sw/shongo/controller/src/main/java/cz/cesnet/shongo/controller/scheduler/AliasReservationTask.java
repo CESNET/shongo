@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.AliasCache;
-import cz.cesnet.shongo.controller.cache.AvailableAlias;
+import cz.cesnet.shongo.controller.cache.AvailableValue;
+import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -120,12 +120,9 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
-        Cache.Transaction cacheTransaction = getCacheTransaction();
-        AvailableAlias availableAlias = null;
-
         Interval interval = getInterval();
-        AliasCache aliasCache = getCache().getAliasCache();
-        AliasCache.Transaction aliasCacheTransaction = getCacheTransaction().getAliasCacheTransaction();
+        Cache cache = getCache();
+        Cache.Transaction cacheTransaction = getCacheTransaction();
 
         // Get alias providers
         Collection<AliasProviderCapability> aliasProviders;
@@ -135,7 +132,7 @@ public class AliasReservationTask extends ReservationTask
         }
         else {
             // Use all alias providers from the cache
-            aliasProviders = aliasCache.getObjects();
+            aliasProviders = cache.getAliasProviders();
         }
 
         // If target resource for which the alias will be used is not specified,
@@ -161,8 +158,10 @@ public class AliasReservationTask extends ReservationTask
             aliasProviders = aliasProviderList;
         }
 
-        // Find available alias in the alias providers
+        // Find available value in the alias providers
+        AvailableValue availableValue = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
+            // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
                 // Skip alias providers which cannot be used for specified target resource
                 if (!aliasProvider.getResource().getId().equals(targetResource.getId())) {
@@ -175,17 +174,46 @@ public class AliasReservationTask extends ReservationTask
             if (aliasType != null && !aliasProvider.providesAliasType(aliasType)) {
                 continue;
             }
-            availableAlias = aliasCache.getAvailableAlias(aliasProvider, value, interval, aliasCacheTransaction);
-            if (availableAlias != null) {
+
+            // Preferably reuse provided alias reservation
+            Collection<AliasReservation> providedAliasReservations =
+                    cacheTransaction.getProvidedAliasReservations(aliasProvider);
+            if (providedAliasReservations.size() > 0) {
+                AliasReservation providedAliasReservation = null;
+                if (value != null) {
+                    for (AliasReservation possibleProvidedAliasReservation : providedAliasReservations) {
+                        if (possibleProvidedAliasReservation.getValue().equals(value)) {
+                            providedAliasReservation = possibleProvidedAliasReservation;
+                        }
+                    }
+                }
+                else {
+                    providedAliasReservation = providedAliasReservations.iterator().next();
+                }
+                // Reuse existing alias reservation
+                if (providedAliasReservation != null) {
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(getInterval());
+                    existingReservation.setReservation(providedAliasReservation);
+                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                    return existingReservation;
+                }
+            }
+
+            // Get new available value
+            ValueCache valueCache = getCache().getValueCache();
+            availableValue = valueCache.getAvailableAlias(aliasProvider.getValueProvider(), value, interval,
+                    cacheTransaction.getValueCacheTransaction());
+            if (availableValue != null) {
                 break;
             }
         }
-        if (availableAlias == null) {
+        if (availableValue == null) {
             throw new NoAvailableAliasReport(technologies, aliasType, value).exception();
         }
 
         // Reuse existing reservation
-        AliasReservation providedAliasReservation = availableAlias.getAliasReservation();
+        AliasReservation providedAliasReservation = availableValue.getValueReservation();
         if (providedAliasReservation != null) {
             ExistingReservation existingReservation = new ExistingReservation();
             existingReservation.setSlot(getInterval());
@@ -194,13 +222,13 @@ public class AliasReservationTask extends ReservationTask
             return existingReservation;
         }
 
-        AliasProviderCapability aliasProviderCapability = availableAlias.getAliasProviderCapability();
+        AliasProviderCapability aliasProviderCapability = availableValue.getValueProvider();
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
         aliasReservation.setAliasProviderCapability(aliasProviderCapability);
-        aliasReservation.setAliasValue(availableAlias.getAliasValue());
+        aliasReservation.setAliasValue(availableValue.getValue());
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).

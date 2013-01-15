@@ -23,7 +23,7 @@ public abstract class Capability extends PersistentObject
     /**
      * @return {@link #resource}
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public Resource getResource()
     {
