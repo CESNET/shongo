@@ -90,11 +90,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        super.toApi(executableApi, domain);
+        super.toApi(executableApi);
 
-        roomEndpoint.toApi(executableApi, domain);
+        roomEndpoint.toApi(executableApi);
 
         if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.ResourceRoom) {
             RoomConfiguration mergedRoomConfiguration = getMergedRoomConfiguration();

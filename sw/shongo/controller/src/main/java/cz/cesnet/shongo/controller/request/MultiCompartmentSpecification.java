@@ -149,19 +149,18 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) specificationApi;
         for (CompartmentSpecification specification : getSpecifications()) {
-            multiCompartmentSpecificationApi.addSpecification(specification.toApi(domain));
+            multiCompartmentSpecificationApi.addSpecification(specification.toApi());
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
@@ -172,11 +171,11 @@ public class MultiCompartmentSpecification extends Specification
                 multiCompartmentSpecificationApi.getSpecifications()) {
             if (multiCompartmentSpecificationApi.isPropertyItemMarkedAsNew(
                     multiCompartmentSpecificationApi.SPECIFICATIONS, specApi)) {
-                addChildSpecification(Specification.createFromApi(specApi, entityManager, domain));
+                addChildSpecification(Specification.createFromApi(specApi, entityManager));
             }
             else {
                 Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-                specification.fromApi(specApi, entityManager, domain);
+                specification.fromApi(specApi, entityManager);
             }
         }
         // Delete specifications
@@ -187,7 +186,7 @@ public class MultiCompartmentSpecification extends Specification
             removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
 
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

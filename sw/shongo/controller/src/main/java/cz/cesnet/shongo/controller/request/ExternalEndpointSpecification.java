@@ -182,7 +182,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
@@ -197,12 +197,11 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
                 throw new TodoImplementException("Allow multiple aliases in external endpoint specification in API.");
             }
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
@@ -226,7 +225,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
             alias.fromApi(externalEndpointSpecificationApi.getAlias());
             addAlias(alias);
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

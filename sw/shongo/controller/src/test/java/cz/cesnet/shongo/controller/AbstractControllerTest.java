@@ -158,8 +158,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         Interval interval = Interval.parse("0/9999");
 
         EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager(),
-                controller.getDomain());
+        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager());
         entityManagerForScheduler.close();
     }
 

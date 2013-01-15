@@ -393,10 +393,10 @@ public class Resource extends PersistentObject
      * @return converted capability to API
      * @throws FaultException
      */
-    public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager, Domain domain)
+    public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.Resource api = createApi();
-        toApi(api, entityManager, domain);
+        toApi(api, entityManager);
         return api;
     }
 
@@ -406,13 +406,14 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * @param domain
      * @return converted resource to API
      * @throws FaultException
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager)
     {
-        resource.setId(domain.formatId(getId()));
+        Domain localDomain = Domain.getLocalDomain();
+
+        resource.setId(localDomain.formatId(this));
         resource.setUserId(getUserId());
         resource.setName(getName());
         resource.setAllocatable(isAllocatable());
@@ -433,7 +434,7 @@ public class Resource extends PersistentObject
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resource.setParentResourceId(domain.formatId(parentResource.getId()));
+            resource.setParentResourceId(localDomain.formatId(parentResource));
         }
 
         for (Capability capability : getCapabilities()) {
@@ -445,18 +446,17 @@ public class Resource extends PersistentObject
         }
 
         for (Resource childResource : getChildResources()) {
-            resource.addChildResourceId(domain.formatId(childResource.getId()));
+            resource.addChildResourceId(localDomain.formatId(childResource));
         }
     }
 
     /**
      * @param api
      * @param entityManager
-     * @param domain
      * @return resource converted from API
      */
-    public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
+            throws FaultException
     {
         Resource resource;
         if (api instanceof cz.cesnet.shongo.controller.api.DeviceResource) {
@@ -465,7 +465,7 @@ public class Resource extends PersistentObject
         else {
             resource = new Resource();
         }
-        resource.fromApi(api, entityManager, domain);
+        resource.fromApi(api, entityManager);
         return resource;
     }
 
@@ -476,7 +476,7 @@ public class Resource extends PersistentObject
      * @param entityManager
      * @throws FaultException
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager, Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
             throws FaultException
     {
         // Modify attributes
@@ -492,7 +492,7 @@ public class Resource extends PersistentObject
         if (api.isPropertyFilled(api.PARENT_RESOURCE_ID)) {
             Long newParentResourceId = null;
             if (api.getParentResourceId() != null) {
-                newParentResourceId = domain.parseId(api.getParentResourceId());
+                newParentResourceId = Domain.getLocalDomain().parseId(api.getParentResourceId());
             }
             Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
             if ((newParentResourceId == null && oldParentResourceId != null)

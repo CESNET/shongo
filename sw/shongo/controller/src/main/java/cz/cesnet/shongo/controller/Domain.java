@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.api.Status;
 
 import java.util.regex.Pattern;
@@ -83,11 +84,12 @@ public class Domain
     }
 
     /**
-     * @param id
-     * @return formatted shongo-id from given database id
+     * @param persistentObject
+     * @return formatted shongo-id from given {@code persistentObject}
      */
-    public String formatId(Long id)
+    public String formatId(PersistentObject persistentObject)
     {
+        Long id = persistentObject.getId();
         if (id == null) {
             throw new IllegalArgumentException("Cannot format identifier because id is null!");
         }
@@ -121,5 +123,32 @@ public class Domain
         apiDomain.setOrganization(getOrganization());
         apiDomain.setStatus(Status.AVAILABLE);
         return apiDomain;
+    }
+
+    /**
+     * Local domain of {@link Controller#instance}.
+     */
+    private static Domain localDomain = null;
+
+    /**
+     * @return {@link #localDomain}
+     */
+    public static void setLocalDomain(Domain domain)
+    {
+        if (localDomain != null) {
+            throw new IllegalStateException("Local domain is already defined.");
+        }
+        localDomain = domain;
+    }
+
+    /**
+     * @return {@link #localDomain}
+     */
+    public static Domain getLocalDomain()
+    {
+        if (localDomain == null) {
+            throw new IllegalStateException("No local domain is defined.");
+        }
+        return localDomain;
     }
 }

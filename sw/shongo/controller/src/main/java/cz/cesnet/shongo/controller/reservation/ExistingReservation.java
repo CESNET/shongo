@@ -62,11 +62,11 @@ public class ExistingReservation extends Reservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
         cz.cesnet.shongo.controller.api.ExistingReservation existingReservationApi =
                 (cz.cesnet.shongo.controller.api.ExistingReservation) api;
-        existingReservationApi.setReservation(getReservation().toApi(domain));
-        super.toApi(api, domain);
+        existingReservationApi.setReservation(getReservation().toApi());
+        super.toApi(api);
     }
 }

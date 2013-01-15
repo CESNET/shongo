@@ -155,7 +155,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;
@@ -163,12 +163,11 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         for (Technology technology : getTechnologies()) {
             externalEndpointSetSpecificationApi.addTechnology(technology);
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
@@ -189,7 +188,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         if (externalEndpointSetSpecificationApi.isPropertyFilled(externalEndpointSetSpecificationApi.COUNT)) {
             setCount(externalEndpointSetSpecificationApi.getCount());
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

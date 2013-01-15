@@ -230,7 +230,7 @@ public class ReservationRequestSet extends NormalReservationRequest
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
@@ -239,14 +239,13 @@ public class ReservationRequestSet extends NormalReservationRequest
             reservationRequestSetApi.addSlot(slot.toApi());
         }
         for (ReservationRequest reservationRequest : getReservationRequests()) {
-            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(domain));
+            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi());
         }
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
@@ -269,7 +268,7 @@ public class ReservationRequestSet extends NormalReservationRequest
             removeSlot(getSlotById(slotApi.notNullIdAsLong()));
         }
 
-        super.fromApi(api, entityManager, domain);
+        super.fromApi(api, entityManager);
     }
 
     @Override

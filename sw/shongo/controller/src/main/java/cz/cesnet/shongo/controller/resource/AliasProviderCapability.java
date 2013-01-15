@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -20,6 +20,11 @@ import java.util.*;
 public class AliasProviderCapability extends Capability
 {
     /**
+     * {@link ValueProvider} which is used
+     */
+    private ValueProvider valueProvider;
+
+    /**
      * Type of aliases.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
@@ -33,15 +38,6 @@ public class AliasProviderCapability extends Capability
      * Cache for provided {@link AliasType}s.
      */
     private Set<AliasType> cachedProvidedAliasTypes;
-
-    /**
-     * List of pattern for aliases.
-     * <p/>
-     * Examples:
-     * 1) "95{digit:3}"     will generate 95001, 95002, 95003, ...
-     * 2) "95{digit:2}2{digit:2}" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
-     */
-    private List<String> patterns = new ArrayList<String>();
 
     /**
      * Specifies whether the {@link AliasProviderCapability} can be allocated as {@link Alias}es only for
@@ -65,28 +61,45 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param type    to be added as {@link Alias} to {@link #aliases}
-     * @param pattern to be added to the {@link #patterns}
+     * @param pattern for construction of {@link cz.cesnet.shongo.controller.resource.ValueProvider}
+     * @param type    to be added as {@link cz.cesnet.shongo.controller.resource.Alias} to {@link #aliases}
      */
-    public AliasProviderCapability(AliasType type, String pattern)
+    public AliasProviderCapability(String pattern, AliasType type)
     {
+        setValueProvider(new ValueProvider(pattern));
         addAlias(new Alias(type, "{value}"));
-        addPattern(pattern);
     }
 
     /**
      * Constructor.
      *
-     * @param type                 to be added as {@link Alias} to {@link #aliases}
-     * @param pattern              to be added to the {@link #patterns}
+     * @param pattern              for construction of {@link cz.cesnet.shongo.controller.resource.ValueProvider}
+     * @param type                 to be added as {@link cz.cesnet.shongo.controller.resource.Alias} to {@link #aliases}
      * @param restrictedToResource sets the {@link #restrictedToResource}
      */
-    public AliasProviderCapability(AliasType type, String pattern,
-            boolean restrictedToResource)
+    public AliasProviderCapability(String pattern, AliasType type, boolean restrictedToResource)
     {
+        setValueProvider(new ValueProvider(pattern));
         addAlias(new Alias(type, "{value}"));
-        this.addPattern(pattern);
         this.restrictedToResource = restrictedToResource;
+    }
+
+    /**
+     * @return {@link #valueProvider}
+     */
+    @ManyToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public ValueProvider getValueProvider()
+    {
+        return valueProvider;
+    }
+
+    /**
+     * @param valueProvider sets the {@link #valueProvider}
+     */
+    public void setValueProvider(ValueProvider valueProvider)
+    {
+        this.valueProvider = valueProvider;
     }
 
     /**
@@ -136,32 +149,6 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
-    }
-
-    /**
-     * @return {@link #patterns}
-     */
-    @ElementCollection
-    @Access(AccessType.FIELD)
-    public List<String> getPatterns()
-    {
-        return Collections.unmodifiableList(patterns);
-    }
-
-    /**
-     * @param pattern to be added to the {@link #patterns}
-     */
-    public void addPattern(String pattern)
-    {
-        this.patterns.add(pattern);
-    }
-
-    /**
-     * @param pattern to be removed from the {@link #patterns}
-     */
-    public void removePattern(String pattern)
-    {
-        this.patterns.remove(pattern);
     }
 
     /**
@@ -271,8 +258,13 @@ public class AliasProviderCapability extends Capability
         for (Alias alias : aliases) {
             apiAliasProvider.addAlias(alias.toApi());
         }
-        for (String pattern : patterns) {
-            apiAliasProvider.addPattern(pattern);
+        ValueProviderCapability valueProviderCapability = valueProvider.getValueProviderCapability();
+        Resource valueProviderResource = valueProviderCapability.getResource();
+        if (valueProviderResource != getResource()) {
+            apiAliasProvider.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
+        }
+        else {
+            apiAliasProvider.setValueProvider(valueProvider.toApi());
         }
         apiAliasProvider.setRestrictedToResource(isRestrictedToResource());
         apiAliasProvider.setPermanentRoom(isPermanentRoom());
@@ -290,6 +282,25 @@ public class AliasProviderCapability extends Capability
         }
         if (apiAliasProvider.isPropertyFilled(apiAliasProvider.PERMANENT_ROOM)) {
             setPermanentRoom(apiAliasProvider.getPermanentRoom());
+        }
+        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.VALUE_PROVIDER)) {
+            Object valueProvider = apiAliasProvider.getValueProvider();
+            if (valueProvider instanceof String) {
+                Long resourceId = Domain.getLocalDomain().parseId((String) valueProvider);
+                ResourceManager resourceManager = new ResourceManager(entityManager);
+                Resource resource = resourceManager.get(resourceId);
+                ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
+                if (valueProviderCapability == null) {
+                    throw new FaultException("Resource '%s' doesn't have value provider capability.", valueProvider);
+                }
+                setValueProvider(valueProviderCapability.getValueProvider());
+            }
+            else {
+                if (this.valueProvider == null) {
+                    this.valueProvider = new ValueProvider();
+                }
+                this.valueProvider.fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider);
+            }
         }
 
         // Create/modify aliases
@@ -311,26 +322,6 @@ public class AliasProviderCapability extends Capability
             removeAlias(getAliasById(apiAlias.notNullIdAsLong()));
         }
 
-        // Create patterns
-        for (String pattern : apiAliasProvider.getPatterns()) {
-            if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS,
-                    pattern)) {
-                addPattern(pattern);
-            }
-        }
-        // Delete patterns
-        Set<String> patternsToDelete =
-                api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS);
-        for (String pattern : patternsToDelete) {
-            removePattern(pattern);
-        }
-
         super.fromApi(api, entityManager);
-    }
-
-    @Transient
-    public AliasGenerator getAliasGenerator()
-    {
-        return new AliasPatternGenerator(getPatterns());
     }
 }

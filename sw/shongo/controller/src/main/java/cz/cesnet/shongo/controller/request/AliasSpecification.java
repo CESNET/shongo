@@ -203,7 +203,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
@@ -211,14 +211,14 @@ public class AliasSpecification extends Specification implements ReservationTask
         aliasSpecificationApi.setAliasType(getAliasType());
         aliasSpecificationApi.setValue(getValue());
         if (getAliasProviderCapability() != null) {
-            aliasSpecificationApi.setResourceId(domain.formatId(getAliasProviderCapability().getResource().getId()));
+            aliasSpecificationApi.setResourceId(
+                    Domain.getLocalDomain().formatId(getAliasProviderCapability().getResource()));
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
@@ -237,7 +237,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                 setAliasProviderCapability(null);
             }
             else {
-                Long resourceId = domain.parseId(aliasSpecificationApi.getResourceId());
+                Long resourceId = Domain.getLocalDomain().parseId(aliasSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 Resource resource = resourceManager.get(resourceId);
                 AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
@@ -248,7 +248,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                 setAliasProviderCapability(aliasProviderCapability);
             }
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

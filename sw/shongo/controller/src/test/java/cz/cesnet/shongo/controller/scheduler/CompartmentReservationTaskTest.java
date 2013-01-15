@@ -98,8 +98,8 @@ public class CompartmentReservationTaskTest
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
         deviceResource.addCapability(new RoomProviderCapability(100));
-        deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
-        deviceResource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "950000001@cesnet.cz", true));
+        deviceResource.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
+        deviceResource.addCapability(new AliasProviderCapability("950000001@cesnet.cz", AliasType.SIP_URI, true));
         cache.addResource(deviceResource);
 
         ReservationTask.Context context;
@@ -138,7 +138,7 @@ public class CompartmentReservationTaskTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(100));
-        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95{digit:1}"));
+        mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
         cache.addResource(mcu);
 
         DeviceResource terminal = new DeviceResource();
@@ -171,8 +171,8 @@ public class CompartmentReservationTaskTest
 
         Resource resource = new Resource();
         resource.setAllocatable(true);
-        resource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95{digit:1}"));
-        resource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "001@cesnet.cz"));
+        resource.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
+        resource.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
         cache.addResource(resource);
 
         ReservationTask.Context context;

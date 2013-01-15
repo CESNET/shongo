@@ -117,9 +117,9 @@ public class AliasReservation extends Reservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.AliasReservation toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.AliasReservation toApi()
     {
-        return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi();
     }
 
     @Override
@@ -129,17 +129,16 @@ public class AliasReservation extends Reservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
         cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
-        aliasReservationApi.setResourceId(
-                domain.formatId(aliasProviderCapability.getResource().getId()));
+        aliasReservationApi.setResourceId(Domain.getLocalDomain().formatId(aliasProviderCapability.getResource()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
         aliasReservationApi.setAliasValue(getAliasValue());
         for (Alias alias : getAliases()) {
             aliasReservationApi.addAlias(alias.toApi());
         }
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 }

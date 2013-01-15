@@ -137,7 +137,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
@@ -147,12 +147,12 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         else {
             throw new TodoImplementException();
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
@@ -160,7 +160,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
             technologies.clear();
             addTechnology(lookupEndpointSpecificationApi.getTechnology());
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

@@ -192,10 +192,10 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
      * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(Domain domain) throws FaultException
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws FaultException
     {
         cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
-        toApi(api, domain);
+        toApi(api);
         return api;
     }
 
@@ -207,8 +207,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @throws FaultException
      */
     public static AbstractReservationRequest createFromApi(
-            cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
-            Domain domain) throws FaultException
+            cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
+            throws FaultException
     {
         AbstractReservationRequest reservationRequest;
         if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
@@ -223,7 +223,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }
-        reservationRequest.fromApi(api, entityManager, domain);
+        reservationRequest.fromApi(api, entityManager);
         return reservationRequest;
     }
 
@@ -234,12 +234,11 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
 
     /**
      * @param api    {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
-     * @param domain
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
-        api.setId(domain.formatId(getId()));
+        api.setId(Domain.getLocalDomain().formatId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setName(getName());
@@ -254,8 +253,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @param entityManager
      * @throws FaultException
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
+            throws FaultException
     {
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.NAME)) {
             setName(api.getName());

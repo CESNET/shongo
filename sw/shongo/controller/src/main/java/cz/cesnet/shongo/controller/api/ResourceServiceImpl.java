@@ -35,7 +35,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ResourceServiceImpl extends Component
-        implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware,
+        implements ResourceService, Component.EntityManagerFactoryAware,
         Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);
@@ -49,11 +49,6 @@ public class ResourceServiceImpl extends Component
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
-
-    /**
-     * @see cz.cesnet.shongo.controller.Domain
-     */
-    private cz.cesnet.shongo.controller.Domain domain;
 
     /**
      * @see cz.cesnet.shongo.controller.Authorization
@@ -75,12 +70,6 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
-    {
-        this.domain = domain;
-    }
-
-    @Override
     public void setAuthorization(Authorization authorization)
     {
         this.authorization = authorization;
@@ -91,7 +80,6 @@ public class ResourceServiceImpl extends Component
     {
         checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
-        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
@@ -115,7 +103,7 @@ public class ResourceServiceImpl extends Component
         cz.cesnet.shongo.controller.resource.Resource resourceImpl;
         try {
             // Create resource from API
-            resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
+            resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager);
             resourceImpl.setUserId(authorization.getUserId(token));
 
             // Save it
@@ -142,7 +130,7 @@ public class ResourceServiceImpl extends Component
         }
 
         // Return resource shongo-id
-        return domain.formatId(resourceImpl.getId());
+        return cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl);
     }
 
     @Override
@@ -150,7 +138,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long resourceId = domain.parseId(resource.getId());
+        Long resourceId = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resource.getId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -162,7 +150,7 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
             // Synchronize from API
-            resourceImpl.fromApi(resource, entityManager, domain);
+            resourceImpl.fromApi(resource, entityManager);
 
             resourceManager.update(resourceImpl);
 
@@ -191,7 +179,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = domain.parseId(resourceId);
+        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -239,6 +227,8 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -248,7 +238,7 @@ public class ResourceServiceImpl extends Component
         List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
         for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
             ResourceSummary summary = new ResourceSummary();
-            summary.setId(domain.formatId(resource.getId()));
+            summary.setId(localDomain.formatId(resource));
             summary.setUserId(resource.getUserId());
             summary.setName(resource.getName());
             if (resource instanceof DeviceResource) {
@@ -263,7 +253,7 @@ public class ResourceServiceImpl extends Component
             }
             cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
             if (parentResource != null) {
-                summary.setParentResourceId(domain.formatId(parentResource.getId()));
+                summary.setParentResourceId(localDomain.formatId(parentResource));
             }
             summaryList.add(summary);
         }
@@ -278,13 +268,13 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = domain.parseId(resourceId);
+        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
-        Resource resourceApi = resourceImpl.toApi(entityManager, domain);
+        Resource resourceApi = resourceImpl.toApi(entityManager);
 
         entityManager.close();
 
@@ -297,7 +287,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = domain.parseId(resourceId);
+        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -323,7 +313,7 @@ public class ResourceServiceImpl extends Component
         } else {
             resourceAllocation = new ResourceAllocation();
         }
-        resourceAllocation.setId(domain.formatId(id));
+        resourceAllocation.setId(cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl));
         resourceAllocation.setName(resourceImpl.getName());
         resourceAllocation.setInterval(interval);
 
@@ -331,7 +321,7 @@ public class ResourceServiceImpl extends Component
         Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
                 resourceManager.listResourceReservationsInInterval(id, interval);
         for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
-            resourceAllocation.addReservation(resourceReservation.toApi(domain));
+            resourceAllocation.addReservation(resourceReservation.toApi());
         }
 
         // Fill alias allocations
@@ -341,7 +331,7 @@ public class ResourceServiceImpl extends Component
             List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
                     resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
             for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
-                resourceAllocation.addReservation(aliasReservation.toApi(domain));
+                resourceAllocation.addReservation(aliasReservation.toApi());
             }
         }
 

@@ -31,14 +31,9 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ResourceControlServiceImpl extends Component
-        implements ResourceControlService, Component.DomainAware, Component.ControllerAgentAware,
+        implements ResourceControlService, Component.ControllerAgentAware,
                    Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {
-    /**
-     * @see Domain
-     */
-    private Domain domain;
-
     /**
      * @see ControllerAgent
      */
@@ -53,12 +48,6 @@ public class ResourceControlServiceImpl extends Component
      * @see cz.cesnet.shongo.controller.Authorization
      */
     private Authorization authorization;
-
-    @Override
-    public void setDomain(Domain domain)
-    {
-        this.domain = domain;
-    }
 
     @Override
     public void setControllerAgent(ControllerAgent controllerAgent)
@@ -81,7 +70,6 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public void init(Configuration configuration)
     {
-        checkDependency(domain, Domain.class);
         checkDependency(controllerAgent, ControllerAgent.class);
         checkDependency(authorization, Authorization.class);
         super.init(configuration);
@@ -379,7 +367,7 @@ public class ResourceControlServiceImpl extends Component
     private String getAgentName(String deviceResourceId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Long id = domain.parseId(deviceResourceId);
+        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(deviceResourceId);
         ResourceManager resourceManager = new ResourceManager(entityManager);
         DeviceResource deviceResource = resourceManager.getDevice(id);
         entityManager.close();

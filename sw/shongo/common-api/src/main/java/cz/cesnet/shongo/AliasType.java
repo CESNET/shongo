@@ -6,6 +6,11 @@ package cz.cesnet.shongo;
 public enum AliasType
 {
     /**
+     * Represents an unique room name.
+     */
+    ROOM_NAME(Technology.ALL, AliasValueType.STRING),
+
+    /**
      * @see cz.cesnet.shongo.Technology#H323
      * @see cz.cesnet.shongo.AliasValueType#E164
      */

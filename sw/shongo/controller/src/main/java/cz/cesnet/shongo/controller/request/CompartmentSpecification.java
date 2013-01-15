@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -251,26 +250,25 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.CompartmentSpecification toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.CompartmentSpecification toApi()
     {
-        return (cz.cesnet.shongo.controller.api.CompartmentSpecification)super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.CompartmentSpecification) super.toApi();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
         for (ParticipantSpecification specification : getSpecifications()) {
-            compartmentSpecificationApi.addSpecification(specification.toApi(domain));
+            compartmentSpecificationApi.addSpecification(specification.toApi());
         }
         compartmentSpecificationApi.setCallInitiation(getCallInitiation());
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
@@ -283,11 +281,11 @@ public class CompartmentSpecification extends Specification
         for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
             if (compartmentSpecificationApi.isPropertyItemMarkedAsNew(
                     compartmentSpecificationApi.SPECIFICATIONS, specApi)) {
-                addChildSpecification(Specification.createFromApi(specApi, entityManager, domain));
+                addChildSpecification(Specification.createFromApi(specApi, entityManager));
             }
             else {
                 Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-                specification.fromApi(specApi, entityManager, domain);
+                specification.fromApi(specApi, entityManager);
             }
         }
         // Delete specifications
@@ -301,7 +299,7 @@ public class CompartmentSpecification extends Specification
         // Update current technologies
         updateTechnologies();
 
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

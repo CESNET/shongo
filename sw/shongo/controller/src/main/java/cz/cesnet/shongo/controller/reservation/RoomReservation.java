@@ -61,11 +61,11 @@ public class RoomReservation extends EndpointReservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
         roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 }

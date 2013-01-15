@@ -74,7 +74,7 @@ public class ReservationNotification extends Notification
     @Override
     public String getName()
     {
-        return type.getName() + " reservation " + getNotificationManager().getDomain().formatId(reservation.getId());
+        return type.getName() + " reservation " + Domain.getLocalDomain().formatId(reservation);
     }
 
     @Override
@@ -85,17 +85,16 @@ public class ReservationNotification extends Notification
                 reservationRequestManager.getByReservation(reservation.getId());
         String content = null;
         try {
-            Domain domain = getNotificationManager().getDomain();
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi = null;
             if (reservationRequest != null) {
-                reservationRequestApi = reservationRequest.toApi(domain);
+                reservationRequestApi = reservationRequest.toApi();
             }
             cz.cesnet.shongo.controller.api.Specification specificationApi = getSpecification(reservationRequestApi);
 
 
             Map<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("type", type);
-            parameters.put("reservation", reservation.toApi(domain));
+            parameters.put("reservation", reservation.toApi());
             parameters.put("reservationRequest", reservationRequestApi);
             parameters.put("specification", specificationApi);
 

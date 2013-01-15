@@ -27,13 +27,12 @@ public abstract class ParticipantSpecification extends Specification
     }
 
     /**
-     * @param domain
      * @return {@link cz.cesnet.shongo.controller.request.ParticipantSpecification} converted to
      *         {@link cz.cesnet.shongo.controller.api.ParticipantSpecification}
      */
     @Override
-    public cz.cesnet.shongo.controller.api.ParticipantSpecification toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.ParticipantSpecification toApi()
     {
-        return (cz.cesnet.shongo.controller.api.ParticipantSpecification) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.ParticipantSpecification) super.toApi();
     }
 }

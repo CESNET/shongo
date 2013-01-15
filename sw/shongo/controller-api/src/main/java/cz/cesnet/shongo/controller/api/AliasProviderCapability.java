@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.List;
@@ -14,18 +15,15 @@ import java.util.List;
 public class AliasProviderCapability extends Capability
 {
     /**
+     * Identifier of resource with {@link ValueProviderCapability} or instance of the {@link ValueProvider}.
+     * The value provider will be used for allocation of alias values.
+     */
+    public static final String VALUE_PROVIDER = "valueProvider";
+
+    /**
      * Type of aliases.
      */
     public static final String ALIASES = "aliases";
-
-    /**
-     * Pattern for aliases.
-     * <p/>
-     * Examples:
-     * 1) "95{digit:3}"     will generate 95001, 95002, 95003, ...
-     * 2) "95{digit:2}2{digit:2}" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
-     */
-    public static final String PATTERNS = "patterns";
 
     /**
      * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
@@ -49,25 +47,25 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param pattern to be added to the {@link #PATTERNS}
+     * @param pattern for construction of {@link ValueProvider}
      * @param type    to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
+        setValueProvider(new ValueProviderCapability(pattern));
         addAlias(new Alias(type, "{value}"));
-        addPattern(pattern);
     }
 
     /**
      * Constructor.
      *
-     * @param type                      to be added as {@link Alias} to {@link #ALIASES}
-     * @param pattern                   to be added to the {@link #PATTERNS}
+     * @param pattern for construction of {@link ValueProvider}
+     * @param type    to be added as {@link Alias} to {@link #ALIASES}
      */
     public AliasProviderCapability(String pattern, AliasType type, String value)
     {
+        setValueProvider(new ValueProviderCapability(pattern));
         addAlias(new Alias(type, value));
-        addPattern(pattern);
     }
 
     /**
@@ -86,6 +84,24 @@ public class AliasProviderCapability extends Capability
     {
         setPermanentRoom(true);
         return this;
+    }
+
+    /**
+     * @return {@link #VALUE_PROVIDER}
+     */
+    @Required
+    @AllowedTypes({String.class, ValueProvider.class})
+    public Object getValueProvider()
+    {
+        return getPropertyStorage().getValue(VALUE_PROVIDER);
+    }
+
+    /**
+     * @param valueProvider sets the {@link #VALUE_PROVIDER}
+     */
+    public void setValueProvider(Object valueProvider)
+    {
+        getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
     }
 
     /**
@@ -119,39 +135,6 @@ public class AliasProviderCapability extends Capability
     public void removeAlias(Alias alias)
     {
         getPropertyStorage().removeCollectionItem(ALIASES, alias);
-    }
-
-    /**
-     * @return {@link #PATTERNS}
-     */
-    @Required
-    public List<String> getPatterns()
-    {
-        return getPropertyStorage().getCollection(PATTERNS, List.class);
-    }
-
-    /**
-     * @param patterns sets the {@link #PATTERNS}
-     */
-    public void setPatterns(List<String> patterns)
-    {
-        getPropertyStorage().setValue(PATTERNS, patterns);
-    }
-
-    /**
-     * @param pattern to be added to the {@link #PATTERNS}
-     */
-    public void addPattern(String pattern)
-    {
-        getPropertyStorage().addCollectionItem(PATTERNS, pattern, List.class);
-    }
-
-    /**
-     * @param pattern to be removed from the {@link #PATTERNS}
-     */
-    public void removePattern(String pattern)
-    {
-        getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
     }
 
     /**

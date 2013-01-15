@@ -192,7 +192,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.PermanentReservationRequest permanentReservationRequestApi =
@@ -200,17 +200,16 @@ public class PermanentReservationRequest extends AbstractReservationRequest
         for (DateTimeSlotSpecification slot : getSlots()) {
             permanentReservationRequestApi.addSlot(slot.toApi());
         }
-        permanentReservationRequestApi.setResourceId(domain.formatId(getResource().getId()));
+        permanentReservationRequestApi.setResourceId(Domain.getLocalDomain().formatId(getResource()));
         permanentReservationRequestApi.setReport(getReportText());
         for (ResourceReservation resourceReservation : getResourceReservations()) {
-            permanentReservationRequestApi.addResourceReservation(resourceReservation.toApi(domain));
+            permanentReservationRequestApi.addResourceReservation(resourceReservation.toApi());
         }
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.PermanentReservationRequest permanentReservationRequestApi =
@@ -239,13 +238,13 @@ public class PermanentReservationRequest extends AbstractReservationRequest
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseId(permanentReservationRequestApi.getResourceId());
+                Long resourceId = Domain.getLocalDomain().parseId(permanentReservationRequestApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }
         }
 
-        super.fromApi(api, entityManager, domain);
+        super.fromApi(api, entityManager);
     }
 
     @Override

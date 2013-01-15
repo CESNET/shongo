@@ -260,7 +260,7 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.DeviceResource deviceResource =
                 (cz.cesnet.shongo.controller.api.DeviceResource) resource;
@@ -277,11 +277,11 @@ public class DeviceResource extends Resource
         else {
             deviceResource.setMode(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE);
         }
-        super.toApi(resource, entityManager, domain);
+        super.toApi(resource, entityManager);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager, Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) api;
@@ -336,7 +336,7 @@ public class DeviceResource extends Resource
                         cz.cesnet.shongo.controller.api.DeviceResource.MODE, api.getClass(), mode);
             }
         }
-        super.fromApi(api, entityManager, domain);
+        super.fromApi(api, entityManager);
     }
 
     /**

@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
-import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -30,7 +29,7 @@ public class ReportTest
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addCapability(new RoomProviderCapability(100));
-        deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
+        deviceResource.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
         cache.addResource(deviceResource);
 
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));

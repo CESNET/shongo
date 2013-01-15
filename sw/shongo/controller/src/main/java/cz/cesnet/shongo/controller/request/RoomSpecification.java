@@ -247,12 +247,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         if (deviceResource != null) {
-            roomSpecificationApi.setResourceId(domain.formatId(deviceResource.getId()));
+            roomSpecificationApi.setResourceId(Domain.getLocalDomain().formatId(deviceResource));
         }
         for (Technology technology : getTechnologies()) {
             roomSpecificationApi.addTechnology(technology);
@@ -262,12 +262,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         for (RoomSetting roomSetting : getRoomSettings()) {
             roomSpecificationApi.addRoomSetting(roomSetting.toApi());
         }
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
@@ -282,7 +282,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = domain.parseId(roomSpecificationApi.getResourceId());
+                Long resourceId = Domain.getLocalDomain().parseId(roomSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));
             }
@@ -318,6 +318,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             removeTechnology(technology);
         }
 
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 }

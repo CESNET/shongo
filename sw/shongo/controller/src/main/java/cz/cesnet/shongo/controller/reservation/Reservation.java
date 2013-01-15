@@ -356,10 +356,10 @@ public class Reservation extends PersistentObject
     /**
      * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
      */
-    public cz.cesnet.shongo.controller.api.Reservation toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Reservation toApi()
     {
         cz.cesnet.shongo.controller.api.Reservation api = createApi();
-        toApi(api, domain);
+        toApi(api);
         return api;
     }
 
@@ -372,25 +372,26 @@ public class Reservation extends PersistentObject
     }
 
     /**
-     * @param api    {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
-     * @param domain
+     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
-        api.setId(domain.formatId(getId()));
+        cz.cesnet.shongo.controller.Domain localDomain = Domain.getLocalDomain();
+
+        api.setId(localDomain.formatId(this));
         api.setUserId(getUserId());
         if (getReservationRequest() != null) {
-            api.setReservationRequestId(domain.formatId(getReservationRequest().getId()));
+            api.setReservationRequestId(localDomain.formatId(getReservationRequest()));
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
-            api.setExecutable(getExecutable().toApi(domain));
+            api.setExecutable(getExecutable().toApi());
         }
         if (getParentReservation() != null) {
-            api.setParentReservationId(domain.formatId(getParentReservation().getId()));
+            api.setParentReservationId(localDomain.formatId(getParentReservation()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationId(domain.formatId(childReservation.getId()));
+            api.addChildReservationId(localDomain.formatId(childReservation));
         }
     }
 

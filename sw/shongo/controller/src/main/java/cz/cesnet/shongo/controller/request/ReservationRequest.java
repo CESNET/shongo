@@ -321,13 +321,13 @@ public class ReservationRequest extends NormalReservationRequest
     }
 
     @Override
-    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Domain domain) throws FaultException
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi() throws FaultException
     {
-        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi();
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
@@ -336,14 +336,13 @@ public class ReservationRequest extends NormalReservationRequest
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
         if (getReservation() != null) {
-            reservationRequestApi.setReservationId(domain.formatId(getReservation().getId()));
+            reservationRequestApi.setReservationId(Domain.getLocalDomain().formatId(getReservation()));
         }
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
@@ -351,7 +350,7 @@ public class ReservationRequest extends NormalReservationRequest
         if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
             setSlot(reservationRequestApi.getSlot());
         }
-        super.fromApi(api, entityManager, domain);
+        super.fromApi(api, entityManager);
     }
 
     /**

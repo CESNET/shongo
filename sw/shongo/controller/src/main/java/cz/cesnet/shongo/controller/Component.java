@@ -62,17 +62,6 @@ public abstract class Component
     }
 
     /**
-     * {@link Component} which contains reference to current {@link Domain}.
-     */
-    public static interface DomainAware
-    {
-        /**
-         * @param domain sets the {@link Domain} to the component
-         */
-        public void setDomain(Domain domain);
-    }
-
-    /**
      * Class extending {@link Component} can implement this interface to be aware of {@link ControllerAgent}.
      */
     public static interface ControllerAgentAware

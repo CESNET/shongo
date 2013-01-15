@@ -10,6 +10,11 @@ import java.util.*;
 public enum Technology
 {
     /**
+     * Represents all technologies.
+     */
+    ALL("All"),
+
+    /**
      * @see <a href="http://en.wikipedia.org/wiki/H.323">H.323</a>
      */
     H323("H.323"),
@@ -61,6 +66,22 @@ public enum Technology
     public String getName()
     {
         return name;
+    }
+
+    /**
+     * @param technology
+     * @return true whether this {@link Technology} is compatible with given {@code technology},
+     *         false otherwise
+     */
+    public boolean isCompatibleWith(Technology technology)
+    {
+        if (equals(technology)) {
+            return true;
+        }
+        if (equals(ALL) || technology.equals(ALL)) {
+            return true;
+        }
+        return false;
     }
 
     /**

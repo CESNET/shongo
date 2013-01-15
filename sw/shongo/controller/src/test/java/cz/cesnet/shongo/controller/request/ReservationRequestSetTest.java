@@ -58,7 +58,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             deviceResource.setName("MCU");
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new RoomProviderCapability(100));
-            deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
+            deviceResource.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
             deviceResource.setAllocatable(true);
             cache.addResource(deviceResource, entityManager);
 
@@ -166,7 +166,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         {
             EntityManager entityManager = getEntityManager();
 
-            Scheduler.createAndRun(interval, entityManager, cache, null, null);
+            Scheduler.createAndRun(interval, entityManager, cache, null);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -204,7 +204,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
 
-            Scheduler.createAndRun(interval, entityManager, cache, null, null);
+            Scheduler.createAndRun(interval, entityManager, cache, null);
 
             // Checks allocation failed
             ReservationRequest reservationRequest = reservationRequestManager
@@ -224,7 +224,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache, null, null);
+            Scheduler.createAndRun(interval, entityManager, cache, null);
 
             // Checks allocated
             entityManager.refresh(reservationRequest);
@@ -251,7 +251,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Pre-process and schedule
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache, null, null);
+            Scheduler.createAndRun(interval, entityManager, cache, null);
 
             entityManager.close();
         }

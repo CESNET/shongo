@@ -90,22 +90,21 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public Executable.ResourceRoom toApi(Domain domain)
+    public Executable.ResourceRoom toApi()
     {
-        return (Executable.ResourceRoom) super.toApi(domain);
+        return (Executable.ResourceRoom) super.toApi();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        super.toApi(executableApi, domain);
+        super.toApi(executableApi);
 
         Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
-        resourceRoomEndpointApi.setId(domain.formatId(getId()));
         resourceRoomEndpointApi.setSlot(getSlot());
         resourceRoomEndpointApi.setState(getState().toApi());
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
-        resourceRoomEndpointApi.setResourceId(domain.formatId(getDeviceResource().getId()));
+        resourceRoomEndpointApi.setResourceId(Domain.getLocalDomain().formatId(getDeviceResource()));
         for (Technology technology : getTechnologies()) {
             resourceRoomEndpointApi.addTechnology(technology);
         }

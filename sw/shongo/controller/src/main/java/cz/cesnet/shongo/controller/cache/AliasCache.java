@@ -46,7 +46,10 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
 
         // Load lazy collections
         aliasProviderCapability.getAliases().size();
-        aliasProviderCapability.getPatterns().size();
+        if (true) {
+            throw new TodoImplementException("fix following line");
+        }
+        //aliasProviderCapability.getPatterns().size();
 
         // Store capability for removing by resource
         Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);
@@ -147,9 +150,13 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         if (aliasValue == null) {
             ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(aliasProviderCapability);
             Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
-            AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
+
+            if (true) {
+                throw new TodoImplementException();
+            }
+            ValueGenerator aliasGenerator = null;//aliasProviderCapability.getAliasGenerator();
             for (AliasReservation allocatedAliasReservation : allocatedAliases) {
-                aliasGenerator.addAliasValue(allocatedAliasReservation.getAliasValue());
+                aliasGenerator.addValue(allocatedAliasReservation.getAliasValue());
             }
             if (requestedValue != null) {
                 if (aliasGenerator.isValueAvailable(requestedValue)) {

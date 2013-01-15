@@ -8,12 +8,12 @@ import cz.cesnet.shongo.Technology;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AliasGenerator
+public abstract class ValueGenerator
 {
     /**
      * Constructor.
      */
-    public AliasGenerator()
+    public ValueGenerator()
     {
     }
 
@@ -22,7 +22,7 @@ public abstract class AliasGenerator
      *
      * @param alias which is already used
      */
-    public abstract void addAliasValue(String alias);
+    public abstract void addValue(String alias);
 
     /**
      * @return new generated {@link Alias}

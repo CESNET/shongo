@@ -96,17 +96,17 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
-        resourceSpecificationApi.setResourceId(domain.formatId(resource.getId()));
-        super.toApi(specificationApi, domain);
+        resourceSpecificationApi.setResourceId(Domain.getLocalDomain().formatId(resource));
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
@@ -115,11 +115,11 @@ public class ResourceSpecification extends Specification implements ReservationT
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseId(resourceSpecificationApi.getResourceId());
+                Long resourceId = Domain.getLocalDomain().parseId(resourceSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 }

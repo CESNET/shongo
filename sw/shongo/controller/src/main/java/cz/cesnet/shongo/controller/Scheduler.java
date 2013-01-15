@@ -31,7 +31,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Scheduler extends Component implements Component.DomainAware, Component.NotificationManagerAware
+public class Scheduler extends Component implements Component.NotificationManagerAware
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
@@ -39,11 +39,6 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
      * @see Cache
      */
     private Cache cache;
-
-    /**
-     * @see Domain
-     */
-    private Domain domain;
 
     /**
      * @see NotificationManager
@@ -56,12 +51,6 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
     public void setCache(Cache cache)
     {
         this.cache = cache;
-    }
-
-    @Override
-    public void setDomain(Domain domain)
-    {
-        this.domain = domain;
     }
 
     @Override
@@ -270,11 +259,10 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
      * @param interval
      */
     public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache,
-            NotificationManager notificationManager, Domain domain) throws FaultException
+            NotificationManager notificationManager) throws FaultException
     {
         Scheduler scheduler = new Scheduler();
         scheduler.setCache(cache);
-        scheduler.setDomain(domain);
         scheduler.setNotificationManager(notificationManager);
         scheduler.init();
         scheduler.run(interval, entityManager);

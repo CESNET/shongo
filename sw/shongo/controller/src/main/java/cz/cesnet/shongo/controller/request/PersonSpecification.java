@@ -167,17 +167,16 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.PersonSpecification personSpecification =
                 (cz.cesnet.shongo.controller.api.PersonSpecification) specificationApi;
         personSpecification.setPerson(getPerson().toApi());
-        super.toApi(specificationApi, domain);
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.PersonSpecification personSpecificationApi =
@@ -198,7 +197,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         if (invitationState == null) {
             invitationState = InvitationState.NOT_SENT;
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 
     @Override

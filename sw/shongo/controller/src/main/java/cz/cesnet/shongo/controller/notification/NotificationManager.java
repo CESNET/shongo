@@ -18,14 +18,9 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotificationManager extends Component implements Component.DomainAware, Component.AuthorizationAware
+public class NotificationManager extends Component implements Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
-    /**
-     * @see cz.cesnet.shongo.controller.Domain
-     */
-    private Domain domain;
 
     /**
      * @see cz.cesnet.shongo.controller.Authorization
@@ -46,12 +41,6 @@ public class NotificationManager extends Component implements Component.DomainAw
     }
 
     @Override
-    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
-    {
-        this.domain = domain;
-    }
-
-    @Override
     public void setAuthorization(Authorization authorization)
     {
         this.authorization = authorization;
@@ -60,7 +49,6 @@ public class NotificationManager extends Component implements Component.DomainAw
     @Override
     public void init(Configuration configuration)
     {
-        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(authorization, Authorization.class);
         super.init(configuration);
 
@@ -68,14 +56,6 @@ public class NotificationManager extends Component implements Component.DomainAw
         for (NotificationExecutor notificationExecutor : notificationExecutors) {
             notificationExecutor.init(configuration);
         }
-    }
-
-    /**
-     * @return {@link #domain}
-     */
-    public Domain getDomain()
-    {
-        return domain;
     }
 
     /**

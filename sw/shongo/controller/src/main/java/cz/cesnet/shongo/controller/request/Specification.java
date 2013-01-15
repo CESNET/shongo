@@ -57,13 +57,12 @@ public abstract class Specification extends PersistentObject
     }
 
     /**
-     * @param domain
      * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
      */
-    public cz.cesnet.shongo.controller.api.Specification toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Specification toApi()
     {
         cz.cesnet.shongo.controller.api.Specification api = createApi();
-        toApi(api, domain);
+        toApi(api);
         return api;
     }
 
@@ -72,7 +71,7 @@ public abstract class Specification extends PersistentObject
      * @return new instance of {@link Specification} for given {@code api}
      */
     public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
-            EntityManager entityManager, Domain domain) throws FaultException
+            EntityManager entityManager) throws FaultException
     {
         Specification specification = null;
         if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
@@ -108,7 +107,7 @@ public abstract class Specification extends PersistentObject
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }
-        specification.fromApi(api, entityManager, domain);
+        specification.fromApi(api, entityManager);
         return specification;
     }
 
@@ -121,9 +120,8 @@ public abstract class Specification extends PersistentObject
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Specification}.
      *
      * @param specificationApi which should be filled from this {@link cz.cesnet.shongo.controller.request.Specification}
-     * @param domain
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         specificationApi.setId(getId());
     }
@@ -133,10 +131,9 @@ public abstract class Specification extends PersistentObject
      *
      * @param specificationApi from which this {@link Specification} should be filled
      * @param entityManager
-     * @param domain
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+            throws FaultException
     {
     }
 }

@@ -196,13 +196,12 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
-     * @param domain
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public cz.cesnet.shongo.controller.api.Executable toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Executable toApi()
     {
         cz.cesnet.shongo.controller.api.Executable api = createApi();
-        toApi(api, domain);
+        toApi(api);
         return api;
     }
 
@@ -218,11 +217,10 @@ public abstract class Executable extends PersistentObject
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
      *
      * @param executableApi which should be filled from this {@link cz.cesnet.shongo.controller.executor.Executable}
-     * @param domain
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        executableApi.setId(domain.formatId(getId()));
+        executableApi.setId(Domain.getLocalDomain().formatId(this));
         executableApi.setUserId(getUserId());
     }
 

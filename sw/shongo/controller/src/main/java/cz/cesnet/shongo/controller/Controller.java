@@ -44,11 +44,6 @@ public class Controller
     private Configuration configuration;
 
     /**
-     * Domain for which the controller is running.
-     */
-    private Domain domain = new Domain();
-
-    /**
      * Entity manager factory.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -160,14 +155,12 @@ public class Controller
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default controller configuration!", exception);
         }
-    }
 
-    /**
-     * @return {@link #domain}
-     */
-    public Domain getDomain()
-    {
-        return domain;
+        // Initialize domain
+        Domain localDomain = new Domain();
+        localDomain.setName(this.configuration.getString(Configuration.DOMAIN_NAME));
+        localDomain.setOrganization(this.configuration.getString(Configuration.DOMAIN_ORGANIZATION));
+        Domain.setLocalDomain(localDomain);
     }
 
     /**
@@ -178,8 +171,9 @@ public class Controller
      */
     public void setDomain(String name, String organization)
     {
-        domain.setName(name);
-        domain.setOrganization(organization);
+        Domain localDomain = Domain.getLocalDomain();
+        localDomain.setName(name);
+        localDomain.setOrganization(organization);
     }
 
     /**
@@ -343,31 +337,16 @@ public class Controller
             WebServerXmlLogger.setEnabled(true);
         }
 
-        // Initialize domain
-        if (domain == null) {
-            throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
-        }
-        if (domain.getName() == null) {
-            domain.setName(configuration.getString(Configuration.DOMAIN_NAME));
-        }
-        if (domain.getOrganization() == null) {
-            domain.setOrganization(configuration.getString(Configuration.DOMAIN_ORGANIZATION));
-        }
-
         // Initialize authorization
         authorization = Authorization.createInstance(configuration);
 
-        logger.info("Controller for domain '{}' is starting...", domain.getName());
+        logger.info("Controller for domain '{}' is starting...", Domain.getLocalDomain().getName());
 
         // Add common components
         addComponent(notificationManager);
 
         // Initialize components
         for (Component component : components) {
-            if (component instanceof Component.DomainAware) {
-                Component.DomainAware domainAware = (Component.DomainAware) component;
-                domainAware.setDomain(domain);
-            }
             if (component instanceof Component.EntityManagerFactoryAware) {
                 Component.EntityManagerFactoryAware entityManagerFactoryAware = (Component.EntityManagerFactoryAware) component;
                 entityManagerFactoryAware.setEntityManagerFactory(entityManagerFactory);

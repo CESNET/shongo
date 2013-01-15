@@ -18,18 +18,13 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class CommonServiceImpl extends Component
-        implements CommonService, Component.EntityManagerFactoryAware, Component.DomainAware,
+        implements CommonService, Component.EntityManagerFactoryAware,
                    Component.ControllerAgentAware, Component.AuthorizationAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
-
-    /**
-     * @see cz.cesnet.shongo.controller.Domain
-     */
-    private cz.cesnet.shongo.controller.Domain domain;
 
     /**
      * @see ControllerAgent
@@ -48,12 +43,6 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
-    {
-        this.domain = domain;
-    }
-
-    @Override
     public void setControllerAgent(ControllerAgent controllerAgent)
     {
         this.controllerAgent = controllerAgent;
@@ -69,7 +58,6 @@ public class CommonServiceImpl extends Component
     public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
-        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(controllerAgent, ControllerAgent.class);
         checkDependency(authorization, Authorization.class);
         super.init(configuration);
@@ -85,7 +73,7 @@ public class CommonServiceImpl extends Component
     public Controller getController()
     {
         Controller controller = new Controller();
-        controller.setDomain(domain.toApi());
+        controller.setDomain(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
         return controller;
     }
 
@@ -95,7 +83,7 @@ public class CommonServiceImpl extends Component
         authorization.validate(token);
 
         List<Domain> domainList = new ArrayList<Domain>();
-        domainList.add(domain.toApi());
+        domainList.add(cz.cesnet.shongo.controller.Domain.getLocalDomain().toApi());
         return domainList;
     }
 
@@ -103,6 +91,8 @@ public class CommonServiceImpl extends Component
     public Collection<Connector> listConnectors(SecurityToken token)
     {
         authorization.validate(token);
+
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -125,7 +115,7 @@ public class CommonServiceImpl extends Component
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
-                connector.setResourceId(domain.formatId(deviceResource.getId()));
+                connector.setResourceId(localDomain.formatId(deviceResource));
                 deviceResourceMap.remove(agentName);
             }
 
@@ -135,7 +125,7 @@ public class CommonServiceImpl extends Component
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());
-            connector.setResourceId(domain.formatId(entry.getValue().getId()));
+            connector.setResourceId(localDomain.formatId(entry.getValue()));
             connector.setStatus(Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }

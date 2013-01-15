@@ -116,17 +116,17 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        existingEndpointSpecificationApi.setResourceId(domain.formatId(resource.getId()));
-        super.toApi(specificationApi, domain);
+        existingEndpointSpecificationApi.setResourceId(Domain.getLocalDomain().formatId(resource));
+        super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
@@ -135,11 +135,11 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseId(existingEndpointSpecificationApi.getResourceId());
+                Long resourceId = Domain.getLocalDomain().parseId(existingEndpointSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }
         }
-        super.fromApi(specificationApi, entityManager, domain);
+        super.fromApi(specificationApi, entityManager);
     }
 }

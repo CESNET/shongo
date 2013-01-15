@@ -52,9 +52,9 @@ public class ResourceReservation extends Reservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.ResourceReservation toApi()
     {
-        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi();
     }
 
     @Override
@@ -64,12 +64,12 @@ public class ResourceReservation extends Reservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
-        resourceReservationApi.setResourceId(domain.formatId(getResource().getId()));
+        resourceReservationApi.setResourceId(Domain.getLocalDomain().formatId(getResource()));
         resourceReservationApi.setResourceName(getResource().getName());
-        super.toApi(api, domain);
+        super.toApi(api);
     }
 }
