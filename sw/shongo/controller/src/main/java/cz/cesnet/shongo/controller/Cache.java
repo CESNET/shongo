@@ -64,6 +64,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private Interval workingInterval;
 
     /**
+     * Represents a reference data time which is a rounded now().
+     */
+    private DateTime referenceDateTime;
+
+    /**
      * {@link EntityManagerFactory} used to load resources in {@link #init(Configuration)} method.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -133,6 +138,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
+     * @return {@link #referenceDateTime}
+     */
+    public DateTime getReferenceDateTime()
+    {
+        if (referenceDateTime == null) {
+            return DateTime.now();
+        }
+        return referenceDateTime;
+    }
+
+    /**
      * @param workingInterval sets the {@link #workingInterval}
      * @param entityManager   used for reloading allocations of resources for the new interval
      */
@@ -143,7 +159,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     TemporalHelper.formatInterval(workingInterval));
             this.workingInterval = workingInterval;
 
-            DateTime referenceDateTime = workingInterval.getStart();
+            referenceDateTime = workingInterval.getStart();
 
             Interval resourceWorkingInterval = new Interval(
                     workingInterval.getStart().minus(resourceReservationMaximumDuration),
@@ -260,6 +276,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             // Load lazy collections
             aliasProvider.getAliases().size();
             // Add alias provider to the set of existing alias providers
+            checkPersisted(aliasProvider);
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);
 
             // Add new value provider (but only when the alias provider owns the value provider)
@@ -342,6 +359,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             valueCache.addReservation(valueReservation.getValueProvider(), valueReservation);
         }
 
+        // Add child reservations
         for (Reservation childReservation : reservation.getChildReservations()) {
             addReservation(childReservation, entityManager);
         }
@@ -356,7 +374,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @param reservation to be removed from the cache
+     * @param reservation to be removed from the cache (and all child reservations)
      */
     public void removeReservation(Reservation reservation)
     {
@@ -371,6 +389,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         else if (reservation instanceof ValueReservation) {
             ValueReservation valueReservation = (ValueReservation) reservation;
             valueCache.removeReservation(valueReservation.getValueProvider(), valueReservation);
+        }
+
+        // Remove child reservations
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            removeReservation(childReservation);
         }
     }
 

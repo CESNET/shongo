@@ -18,6 +18,34 @@ import static junit.framework.Assert.assertEquals;
 public class AliasTest extends AbstractControllerTest
 {
     /**
+     * Test allocation of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void test() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequestFirst = new ReservationRequest();
+        reservationRequestFirst.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestFirst.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequestFirst);
+        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+
+        ReservationRequest reservationRequestSecond = new ReservationRequest();
+        reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSecond.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        allocateAndCheckFailed(reservationRequestSecond);
+    }
+
+    /**
      * Test allocation of requested alias value.
      *
      * @throws Exception

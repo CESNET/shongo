@@ -126,6 +126,14 @@ public class Controller
     }
 
     /**
+     * Destroy the controller.
+     */
+    public void destroy()
+    {
+        Domain.setLocalDomain(null);
+    }
+
+    /**
      * @return {@link #configuration}
      */
     public Configuration getConfiguration()
@@ -412,7 +420,8 @@ public class Controller
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
         if (jadeContainer.start() == false) {
-            throw new IllegalStateException("Failed to start JADE container.");
+            throw new IllegalStateException(
+                    "Failed to start JADE container. Is not the port used by any other program?");
         }
         addJadeAgent("Controller", jadeAgent);
     }
@@ -769,6 +778,7 @@ public class Controller
         controller.run();
         logger.info("Stopping controller...");
         controller.stop();
+        controller.destroy();
 
         Container.killAllJadeThreads();
     }

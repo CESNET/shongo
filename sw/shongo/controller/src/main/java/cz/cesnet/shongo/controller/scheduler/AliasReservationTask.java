@@ -10,8 +10,10 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -160,6 +162,7 @@ public class AliasReservationTask extends ReservationTask
 
         // Find available value in the alias providers
         AvailableValue availableValue = null;
+        AliasProviderCapability availableValueAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
@@ -200,10 +203,18 @@ public class AliasReservationTask extends ReservationTask
                 }
             }
 
+            // Check whether alias provider can be allocated
+            Resource resource = aliasProvider.getResource();
+            DateTime referenceDateTime = cache.getReferenceDateTime();
+            if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+                continue;
+            }
+
             // Get new available value
             ValueCache valueCache = getCache().getValueCache();
             availableValue = valueCache.getAvailableAlias(aliasProvider.getValueProvider(), value, interval,
                     cacheTransaction.getValueCacheTransaction());
+            availableValueAliasProvider = aliasProvider;
             if (availableValue != null) {
                 break;
             }
@@ -212,29 +223,44 @@ public class AliasReservationTask extends ReservationTask
             throw new NoAvailableAliasReport(technologies, aliasType, value).exception();
         }
 
-        // Reuse existing reservation
-        AliasReservation providedAliasReservation = availableValue.getValueReservation();
-        if (providedAliasReservation != null) {
-            ExistingReservation existingReservation = new ExistingReservation();
-            existingReservation.setSlot(getInterval());
-            existingReservation.setReservation(providedAliasReservation);
-            cacheTransaction.removeProvidedReservation(providedAliasReservation);
-            return existingReservation;
-        }
+        // Create value reservation
+        ValueReservation valueReservation = null;
 
-        AliasProviderCapability aliasProviderCapability = availableValue.getValueProvider();
+        // Reuse existing value reservation
+        ValueReservation providedValueReservation = availableValue.getValueReservation();
+        if (providedValueReservation != null) {
+            ExistingReservation existingValueReservation = new ExistingReservation();
+            existingValueReservation.setSlot(getInterval());
+            existingValueReservation.setReservation(providedValueReservation);
+            addChildReservation(existingValueReservation);
+            cacheTransaction.removeProvidedReservation(providedValueReservation);
+
+            // Use the existing value reservation
+            valueReservation = providedValueReservation;
+        }
+        // Allocate new value reservation
+        else {
+            ValueReservation newValueReservation = new ValueReservation();
+            newValueReservation.setSlot(getInterval());
+            newValueReservation.setValueProvider(availableValue.getValueProvider());
+            newValueReservation.setValue(availableValue.getValue());
+            addChildReservation(newValueReservation);
+
+            // Use the new value reservation
+            valueReservation = newValueReservation;
+        }
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
-        aliasReservation.setAliasProviderCapability(aliasProviderCapability);
-        aliasReservation.setAliasValue(availableValue.getValue());
+        aliasReservation.setAliasProviderCapability(availableValueAliasProvider);
+        aliasReservation.setValueReservation(valueReservation);
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).
         // The permanent room should not be created if the alias will used for any specified target resource.
-        if (aliasProviderCapability.isPermanentRoom() && targetResource == null) {
-            Resource resource = aliasProviderCapability.getResource();
+        if (availableValueAliasProvider.isPermanentRoom() && targetResource == null) {
+            Resource resource = availableValueAliasProvider.getResource();
             if (!resource.hasCapability(RoomProviderCapability.class)) {
                 throw new IllegalStateException("Permanent room should be enabled only for device resource"
                         + " with room provider capability.");

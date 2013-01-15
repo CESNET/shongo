@@ -52,8 +52,10 @@ public class ValueProvider extends PersistentObject
      *
      * @param pattern to be added to the {@link #patterns}
      */
-    public ValueProvider(String pattern)
+    public ValueProvider(Capability capability, String pattern)
     {
+        this(capability);
+
         addPattern(pattern);
     }
 

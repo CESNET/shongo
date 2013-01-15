@@ -121,6 +121,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public void after()
     {
         controller.stop();
+        controller.destroy();
 
         super.after();
     }

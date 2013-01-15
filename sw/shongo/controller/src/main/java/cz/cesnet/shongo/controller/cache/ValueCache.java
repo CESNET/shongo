@@ -105,69 +105,66 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
      * Find available alias in given {@code aliasProviderCapability}.
      *
      * @param valueProvider
+     * @param requestedValue
      * @param interval
      * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableValue getAvailableAlias(ValueProvider valueProvider, String requestedValue,
-            Interval interval, Transaction transaction)
+    public AvailableValue getAvailableAlias(ValueProvider valueProvider, String requestedValue, Interval interval,
+            Transaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
-        Resource resource = valueProvider.getResource();
+        Resource resource = valueProvider.getCapabilityResource();
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return null;
         }
 
         // Find available alias value
-        String aliasValue = null;
-        // Provided alias reservation by which the alias value is already allocated
-        AliasReservation aliasReservation = null;
+        String value = null;
+        // Provided value reservation by which the value is already allocated
+        ValueReservation valueReservation = null;
 
         // Preferably use  provided alias
-        Set<AliasReservation> aliasReservations = transaction.getProvidedReservations(valueProvider.getId());
-        if (aliasReservations.size() > 0) {
+        Set<ValueReservation> valueReservations = transaction.getProvidedReservations(valueProvider.getId());
+        if (valueReservations.size() > 0) {
             if (requestedValue != null) {
-                for (AliasReservation possibleAliasReservation : aliasReservations) {
-                    if (possibleAliasReservation.getAliasValue().equals(requestedValue)) {
-                        aliasReservation = possibleAliasReservation;
-                        aliasValue = aliasReservation.getAliasValue();
+                for (ValueReservation possibleValueReservation : valueReservations) {
+                    if (possibleValueReservation.getValue().equals(requestedValue)) {
+                        valueReservation = possibleValueReservation;
+                        value = valueReservation.getValue();
                         break;
                     }
                 }
             }
             else {
-                aliasReservation = aliasReservations.iterator().next();
-                aliasValue = aliasReservation.getAliasValue();
+                valueReservation = valueReservations.iterator().next();
+                value = valueReservation.getValue();
             }
         }
-        // Else use generated alias
-        if (aliasValue == null) {
-            ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(valueProvider);
-            Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
-
-            if (true) {
-                throw new TodoImplementException();
-            }
-            ValueGenerator aliasGenerator = null;//aliasProviderCapability.getAliasGenerator();
-            for (AliasReservation allocatedAliasReservation : allocatedAliases) {
-                aliasGenerator.addValue(allocatedAliasReservation.getAliasValue());
+        // Else use generated value
+        if (value == null) {
+            ObjectState<ValueReservation> valueProviderState = getObjectStateRequired(valueProvider);
+            Set<ValueReservation> allocatedValues = valueProviderState.getReservations(interval, transaction);
+            ValueGenerator valueGenerator = valueProvider.getValueGenerator();
+            for (ValueReservation allocatedValueReservation : allocatedValues) {
+                valueGenerator.addValue(allocatedValueReservation.getValue());
             }
             if (requestedValue != null) {
-                if (aliasGenerator.isValueAvailable(requestedValue)) {
-                    aliasValue = requestedValue;
+                if (valueGenerator.isValueAvailable(requestedValue)) {
+                    value = requestedValue;
                 }
             }
             else {
-                aliasValue = aliasGenerator.generateValue();
+                value = valueGenerator.generateValue();
             }
         }
-        if (aliasValue == null) {
+        if (value == null) {
             return null;
         }
         AvailableValue availableAlias = new AvailableValue();
         availableAlias.setValueProvider(valueProvider);
-        availableAlias.setValue(aliasValue);
-        availableAlias.setValueReservation(aliasReservation);
+        availableAlias.setValue(value);
+        availableAlias.setValueReservation(valueReservation);
         return availableAlias;
     }
 

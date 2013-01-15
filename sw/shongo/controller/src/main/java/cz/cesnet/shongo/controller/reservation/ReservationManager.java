@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -18,9 +17,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for {@link Reservation}.
@@ -54,14 +51,48 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
+     * Process given {@code reservation} before deletion (recursive).
+     *
+     * @param reservation            to be processed
+     * @param additionalReservations collection of {@link Reservation} which should be also deleted in the end
+     */
+    public void onBeforeDelete(Reservation reservation, Collection<Reservation> additionalReservations)
+    {
+        // Remove value reservation at first
+        if (reservation instanceof AliasReservation) {
+            AliasReservation aliasReservation = (AliasReservation) reservation;
+            ValueReservation valueReservation = aliasReservation.getValueReservation();
+
+            // Search child reservation for the value reservation
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                // The value reservation should be deleted in the end (and not automatically by cascade)
+                if (childReservation.equals(valueReservation)) {
+                    valueReservation.setParentReservation(null);
+                    additionalReservations.add(valueReservation);
+                    break;
+                }
+            }
+        }
+        else {
+            // Process all child reservations
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                onBeforeDelete(childReservation, additionalReservations);
+            }
+        }
+    }
+
+    /**
      * @param reservation to be deleted in the database
      */
     public void delete(Reservation reservation, Cache cache)
     {
+        Collection<Reservation> additionalReservations = new ArrayList<Reservation>();
+        onBeforeDelete(reservation, additionalReservations);
+
         Executable executable = reservation.getExecutable();
         if (executable != null) {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
-            if (executable.getState().equals(Compartment.State.STARTED)) {
+            if (executable.getState().equals(Executable.State.STARTED)) {
                 if (executable.getSlotEnd().isAfter(DateTime.now())) {
                     DateTime newSlotEnd = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
                     if (newSlotEnd.isBefore(executable.getSlotStart())) {
@@ -72,14 +103,21 @@ public class ReservationManager extends AbstractManager
                 }
             }
         }
-        // Remove reservation from cache
+
+        // Remove the reservation from cache (and also all child reservations)
         cache.removeReservation(reservation);
-        // Remove also all child reservations
-        List<Reservation> childReservations = reservation.getChildReservations();
-        for (Reservation childReservation : childReservations) {
-            cache.removeReservation(childReservation);
-        }
+
+        // Delete the reservation
         super.delete(reservation);
+
+        // Delete also all additional reservations
+        for (Reservation additionalReservation : additionalReservations) {
+            // Remove additional reservation from the cache
+            cache.removeReservation(additionalReservation);
+
+            // Delete additional reservation
+            super.delete(additionalReservation);
+        }
     }
 
     /**
@@ -250,7 +288,7 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                + " LEFT JOIN reservation.reservationRequest reservationRequest"
+                        + " LEFT JOIN reservation.reservationRequest reservationRequest"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
                         + " AND (reservationRequest IS NULL OR reservationRequest.state != :state)",

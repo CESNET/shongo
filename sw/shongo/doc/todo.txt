@@ -1,9 +1,8 @@
 * 2 paragraphs of shongo features
 
 * String aliases
-  -ValueProviderCapability - patterns
-  -AliasProvideCapability - reference to ValueProviderCapability (in API it can be also resourceId)
-  -ROOM_IDENTIFIER (null technology)
+  -add requiredAliases to RoomProviderCapability
+  -use ROOM_NAME value in Room#name
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

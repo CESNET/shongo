@@ -66,7 +66,7 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
-        setValueProvider(new ValueProvider(pattern));
+        setValueProvider(new ValueProvider(this, pattern));
         addAlias(new Alias(type, "{value}"));
     }
 
@@ -79,7 +79,7 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability(String pattern, AliasType type, boolean restrictedToResource)
     {
-        setValueProvider(new ValueProvider(pattern));
+        setValueProvider(new ValueProvider(this, pattern));
         addAlias(new Alias(type, "{value}"));
         this.restrictedToResource = restrictedToResource;
     }

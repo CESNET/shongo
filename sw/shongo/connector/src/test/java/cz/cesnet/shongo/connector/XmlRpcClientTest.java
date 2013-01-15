@@ -27,7 +27,7 @@ public class XmlRpcClientTest
     @Before
     public void before() throws Exception
     {
-        webServer = new WebServer(8585);
+        webServer = new WebServer(8888);
         XmlRpcServer xmlRpcServer = webServer.getXmlRpcServer();
 
         PropertyHandlerMapping phm = new PropertyHandlerMapping();
@@ -48,16 +48,16 @@ public class XmlRpcClientTest
     {
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
 
-        config.setServerURL(new URL("http", "127.0.0.1", 8585, "/test"));
+        config.setServerURL(new URL("http", "127.0.0.1", 8888, "/test"));
         XmlRpcClient client = new XmlRpcClient();
         client.setTransportFactory(new KeepAliveTransportFactory(client));
         client.setConfig(config);
         Object[] params = new Object[]{};
         for (int index = 0; index < 3; index++) {
             client.execute("test.test", params);
-            Thread.sleep(3000);
+            Thread.sleep(100);
         }
-        Thread.sleep(5000);
+        Thread.sleep(200);
     }
 
     public static class TestService

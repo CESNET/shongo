@@ -240,7 +240,6 @@ public class RoomReservationTask extends ReservationTask
             Reservation providedReservation =
                     cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
             ExistingReservation existingReservation = new ExistingReservation();
-            existingReservation.setUserId(getContext().getUserId());
             existingReservation.setSlot(getInterval());
             existingReservation.setReservation(providedReservation);
             addChildReservation(existingReservation);

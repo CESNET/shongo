@@ -76,6 +76,7 @@ public class AliasReservation extends Reservation
     /**
      * @return {@link #valueReservation#getValue()}
      */
+    @Transient
     public String getValue()
     {
         return valueReservation.getValue();
