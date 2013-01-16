@@ -31,11 +31,6 @@ public class RoomSpecification extends Specification
     public static final String PARTICIPANT_COUNT = "participantCount";
 
     /**
-     * Specifies whether {@link Alias} should be acquired for each {@link Technology} from {@link #TECHNOLOGIES}.
-     */
-    public static final String WITH_ALIAS = "withAlias";
-
-    /**
      * {@link cz.cesnet.shongo.api.RoomSetting}s for the virtual room.
      */
     public static final String ROOM_SETTINGS = "roomSettings";
@@ -57,7 +52,6 @@ public class RoomSpecification extends Specification
     {
         setParticipantCount(participantCount);
         addTechnology(technology);
-        setWithAlias(true);
     }
 
     /**
@@ -72,7 +66,6 @@ public class RoomSpecification extends Specification
         setParticipantCount(participantCount);
         addTechnology(technology);
         setResourceId(resourceId);
-        setWithAlias(true);
     }
 
     /**
@@ -87,7 +80,6 @@ public class RoomSpecification extends Specification
         for (Technology technology : technologies) {
             addTechnology(technology);
         }
-        setWithAlias(true);
     }
 
     /**
@@ -154,22 +146,6 @@ public class RoomSpecification extends Specification
     public void setParticipantCount(Integer participantCount)
     {
         getPropertyStorage().setValue(PARTICIPANT_COUNT, participantCount);
-    }
-
-    /**
-     * @return {@link #WITH_ALIAS}
-     */
-    public Boolean getWithAlias()
-    {
-        return getPropertyStorage().getValue(WITH_ALIAS);
-    }
-
-    /**
-     * @param withAlias sets the {@link #WITH_ALIAS}
-     */
-    public void setWithAlias(Boolean withAlias)
-    {
-        getPropertyStorage().setValue(WITH_ALIAS, withAlias);
     }
 
     /**

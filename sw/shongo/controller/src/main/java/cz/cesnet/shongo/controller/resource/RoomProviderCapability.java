@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.fault.FaultException;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
+import javax.persistence.*;
+import java.util.*;
 
 /**
  * Capability tells that the {@link DeviceResource} can host one or more {@link cz.cesnet.shongo.controller.common.RoomConfiguration}s.
@@ -18,6 +19,14 @@ public class RoomProviderCapability extends DeviceCapability
      * Number of available ports.
      */
     private Integer licenseCount;
+
+    /**
+     * Set of {@link AliasType} which are required for each created room.
+     * If multiple technologies are supported by the owner {@link DeviceResource} and the room is created only
+     * for a subset of the technologies, only alias {@link AliasType}s which are compatible with this technology subset
+     * are required.
+     */
+    private Set<AliasType> requiredAliasTypes = new HashSet<AliasType>();
 
     /**
      * Constructor.
@@ -53,6 +62,33 @@ public class RoomProviderCapability extends DeviceCapability
         this.licenseCount = licenseCount;
     }
 
+    /**
+     * @return {@link #requiredAliasTypes}
+     */
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
+    public Set<AliasType> getRequiredAliasTypes()
+    {
+        return Collections.unmodifiableSet(requiredAliasTypes);
+    }
+
+    /**
+     * @param requiredAliasType to be added to the {@link #requiredAliasTypes}
+     */
+    public void addRequiredAliasType(AliasType requiredAliasType)
+    {
+        requiredAliasTypes.add(requiredAliasType);
+    }
+
+    /**
+     * @param requiredAliasType to be removed from the {@link #requiredAliasTypes}
+     */
+    public void removeRequiredAliasType(AliasType requiredAliasType)
+    {
+        requiredAliasTypes.remove(requiredAliasType);
+    }
+
     @Override
     public cz.cesnet.shongo.controller.api.Capability createApi()
     {
@@ -66,6 +102,9 @@ public class RoomProviderCapability extends DeviceCapability
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
         roomProviderCapabilityApi.setId(getId());
         roomProviderCapabilityApi.setLicenseCount(getLicenseCount());
+        for (AliasType requiredAliasType : getRequiredAliasTypes()) {
+            roomProviderCapabilityApi.addRequiredAliasType(requiredAliasType);
+        }
         super.toApi(api);
     }
 
@@ -78,6 +117,19 @@ public class RoomProviderCapability extends DeviceCapability
         if (roomProviderCapabilityApi.isPropertyFilled(roomProviderCapabilityApi.LICENSE_COUNT)) {
             setLicenseCount(roomProviderCapabilityApi.getLicenseCount());
         }
+
+        // Create required alias types
+        for (AliasType requiredAliasType : roomProviderCapabilityApi.getRequiredAliasTypes()) {
+            if (api.isPropertyItemMarkedAsNew(roomProviderCapabilityApi.REQUIRED_ALIAS_TYPES, requiredAliasType)) {
+                addRequiredAliasType(requiredAliasType);
+            }
+        }
+        // Delete required alias types
+        Set<AliasType> aliasTypes = api.getPropertyItemsMarkedAsDeleted(roomProviderCapabilityApi.REQUIRED_ALIAS_TYPES);
+        for (AliasType requiredAliasType : aliasTypes) {
+            removeRequiredAliasType(requiredAliasType);
+        }
+
         super.fromApi(api, entityManager);
     }
 }

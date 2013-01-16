@@ -110,7 +110,6 @@ sub parse_room_specification
     my $specification = {
         'class' => 'RoomSpecification',
         'participantCount' => $params->{'participantCount'},
-        'withAlias' => 1,
         'technologies' => $technologies
     };
     return $specification;
@@ -274,9 +273,6 @@ sub get_reservation_request
         $self->error("Reservation request should have specification defined.");
     }
     if ( $specification->{'class'} eq 'RoomSpecification' ) {
-        if ( !$specification->{'withAlias'} ) {
-            $self->error("Reservation request should request virtual room with aliases.");
-        }
         $request->{'participantCount'} = $specification->{'participantCount'};
     }
     elsif ( $specification->{'class'} eq 'AliasSpecification' ) {

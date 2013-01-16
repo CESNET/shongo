@@ -3,6 +3,9 @@
 * String aliases
   -add requiredAliases to RoomProviderCapability
   -use ROOM_NAME value in Room#name
+  -remove H323_IDENTIFIER
+  -rename {resource.address} to {device.address}
+  -remove reservation request name
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 
@@ -19,8 +22,13 @@
 
 * log all connector actions
 
-* Update API reservation->reservationRequestId
-* Update API controller configuration
+* Update API
+  -reservation->reservationRequestId
+  -controller configuratio
+  -ValueProvider, AliasProvider
+  -RoomProviderCapability->requiredAliasTypes
+  -AliasType.ROOM_NAME
+  -remove RoomSpecification.withAlias
 
 * check H.323 prefix for shongo (01 doesn't work, "shongo-test" has it assigned)
 

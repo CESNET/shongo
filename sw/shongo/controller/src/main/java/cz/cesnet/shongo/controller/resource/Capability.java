@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -79,11 +80,14 @@ public abstract class Capability extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
             capability = new TerminalCapability();
         }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ValueProviderCapability) {
+            capability = new ValueProviderCapability();
+        }
         else if (api instanceof cz.cesnet.shongo.controller.api.AliasProviderCapability) {
             capability = new AliasProviderCapability();
         }
         else {
-            throw new TodoImplementException();
+            throw new TodoImplementException(api.getClass().getName());
         }
         capability.fromApi(api, entityManager);
         return capability;

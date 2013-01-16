@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -42,6 +43,54 @@ public class AliasTest extends AbstractControllerTest
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSecond.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        allocateAndCheckFailed(reservationRequestSecond);
+    }
+
+    /**
+     * Test allocation of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSharedValueProvider() throws Exception
+    {
+        Resource valueProvider = new Resource();
+        valueProvider.setName("valueProvider");
+        valueProvider.setAllocatable(true);
+        valueProvider.addCapability(new ValueProviderCapability("test"));
+        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+
+        Resource firstAliasProvider = new Resource();
+        firstAliasProvider.setName("firstAliasProvider");
+        firstAliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(valueProviderId);
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        firstAliasProvider.addCapability(aliasProviderCapability);
+        String firstAliasProviderId = getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+
+        Resource secondAliasProvider = new Resource();
+        secondAliasProvider.setName("secondAliasProvider");
+        secondAliasProvider.setAllocatable(true);
+        aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(valueProviderId);
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        secondAliasProvider.addCapability(aliasProviderCapability);
+        String secondAliasProviderId = getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        firstReservationRequest.setSpecification(
+                new AliasSpecification(AliasType.ROOM_NAME).withResourceId(firstAliasProviderId));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(firstReservationRequest);
+        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+
+        ReservationRequest reservationRequestSecond = new ReservationRequest();
+        reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequestSecond.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSecond.setSpecification(
+                new AliasSpecification(AliasType.ROOM_NAME).withResourceId(secondAliasProviderId));
         allocateAndCheckFailed(reservationRequestSecond);
     }
 

@@ -85,6 +85,28 @@ public enum Technology
     }
 
     /**
+     * @param technologies
+     * @return true whether this {@link Technology} is compatible with given {@code technologies},
+     *         false otherwise
+     */
+    public boolean isCompatibleWith(Set<Technology> technologies)
+    {
+        if (technologies.size() == 0) {
+            return true;
+        }
+        if (equals(ALL)) {
+            return true;
+        }
+        if (technologies.contains(this)) {
+            return true;
+        }
+        if (technologies.contains(ALL)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return list of all known technologies.
      */
     public static List<Technology> getValues()

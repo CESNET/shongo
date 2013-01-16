@@ -245,10 +245,6 @@ sub on_init()
                 'type' => 'int',
                 'required' => 1
             });
-            $self->add_attribute('withAlias', {
-                'title' => 'With Alias(es)',
-                'type' => 'bool'
-            });
             $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern

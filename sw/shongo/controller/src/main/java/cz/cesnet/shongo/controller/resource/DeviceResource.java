@@ -104,9 +104,9 @@ public class DeviceResource extends Resource
     /**
      * @return {@link #technologies}
      */
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
+        @ElementCollection
+        @Enumerated(EnumType.STRING)
+        @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
     {
         return Collections.unmodifiableSet(technologies);

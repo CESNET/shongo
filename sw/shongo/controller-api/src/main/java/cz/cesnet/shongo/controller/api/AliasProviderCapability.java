@@ -48,11 +48,22 @@ public class AliasProviderCapability extends Capability
      * Constructor.
      *
      * @param pattern for construction of {@link ValueProvider}
+     */
+    public AliasProviderCapability(String pattern)
+    {
+        setValueProvider(new ValueProvider(pattern));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param pattern for construction of {@link ValueProvider}
      * @param type    to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
-        setValueProvider(new ValueProvider(pattern));
+        this(pattern);
+
         addAlias(new Alias(type, "{value}"));
     }
 
@@ -64,7 +75,8 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability(String pattern, AliasType type, String value)
     {
-        setValueProvider(new ValueProvider(pattern));
+        this(pattern);
+
         addAlias(new Alias(type, value));
     }
 

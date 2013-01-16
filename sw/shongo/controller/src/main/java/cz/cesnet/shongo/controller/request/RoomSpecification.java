@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -39,12 +38,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      * Number of participants which shall be able to join to the virtual room.
      */
     private int participantCount = 0;
-
-    /**
-     * Specifies whether {@link Alias} should be allocated for each {@link Technology}
-     * from {@link #technologies}.
-     */
-    private boolean withAlias;
 
     /**
      * List of {@link cz.cesnet.shongo.controller.common.RoomSetting}s for the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}
@@ -132,23 +125,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @return {@link #withAlias}
-     */
-    @Column(nullable = false)
-    public boolean isWithAlias()
-    {
-        return withAlias;
-    }
-
-    /**
-     * @param withAlias sets the {@link #withAlias}
-     */
-    public void setWithAlias(boolean withAlias)
-    {
-        this.withAlias = withAlias;
-    }
-
-    /**
      * @return {@link #roomSettings}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -209,11 +185,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
 
         boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectUtils.equals(getParticipantCount(), roomSpecification.getParticipantCount());
-        modified |= !ObjectUtils.equals(isWithAlias(), roomSpecification.isWithAlias());
         modified |= !ObjectUtils.equals(getDeviceResource(), roomSpecification.getDeviceResource());
 
         setParticipantCount(roomSpecification.getParticipantCount());
-        setWithAlias(roomSpecification.isWithAlias());
         setDeviceResource(roomSpecification.getDeviceResource());
 
         if (!technologies.equals(roomSpecification.getTechnologies())) {
@@ -235,8 +209,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         RoomReservationTask roomReservationTask = new RoomReservationTask(context, getParticipantCount());
         roomReservationTask.addTechnologyVariant(getTechnologies());
         roomReservationTask.addRoomSettings(getRoomSettings());
+        roomReservationTask.setWithRequiredAliases(true);
         roomReservationTask.setDeviceResource(getDeviceResource());
-        roomReservationTask.setWithAlias(isWithAlias());
         return roomReservationTask;
     }
 
@@ -258,7 +232,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             roomSpecificationApi.addTechnology(technology);
         }
         roomSpecificationApi.setParticipantCount(getParticipantCount());
-        roomSpecificationApi.setWithAlias(isWithAlias());
         for (RoomSetting roomSetting : getRoomSettings()) {
             roomSpecificationApi.addRoomSetting(roomSetting.toApi());
         }
@@ -273,9 +246,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.PARTICIPANT_COUNT)) {
             setParticipantCount(roomSpecificationApi.getParticipantCount());
-        }
-        if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.WITH_ALIAS)) {
-            setWithAlias(roomSpecificationApi.getWithAlias());
         }
         if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.RESOURCE_ID)) {
             if (roomSpecificationApi.getResourceId() == null) {

@@ -291,18 +291,17 @@ public class ProvidedReservationTest extends AbstractControllerTest
         connectServerFirst.setAllocatable(true);
         connectServerFirst.setAddress("127.0.0.1");
         connectServerFirst.addTechnology(Technology.ADOBE_CONNECT);
-        connectServerFirst.addCapability(new RoomProviderCapability(10));
+        connectServerFirst.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
         // Generates only single "test" alias for this connect server
-        connectServerFirst.addCapability(
-                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}")
-                        .withRestrictedToResource());
+        connectServerFirst.addCapability(new AliasProviderCapability(
+                "test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}").withRestrictedToResource());
         String connectServerFirstId = getResourceService().createResource(SECURITY_TOKEN, connectServerFirst);
 
         DeviceResource connectServerSecond = new DeviceResource();
         connectServerSecond.setName("connectServerSecond");
         connectServerSecond.setAllocatable(true);
         connectServerSecond.addTechnology(Technology.ADOBE_CONNECT);
-        connectServerSecond.addCapability(new RoomProviderCapability(10));
+        connectServerSecond.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
         String connectServerSecondId = getResourceService().createResource(SECURITY_TOKEN, connectServerSecond);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
@@ -314,8 +313,8 @@ public class ProvidedReservationTest extends AbstractControllerTest
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        firstReservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT,
-                connectServerSecondId));
+        firstReservationRequest.setSpecification(
+                new RoomSpecification(10, Technology.ADOBE_CONNECT, connectServerSecondId));
         firstReservationRequest.addProvidedReservationId(aliasReservation.getId());
         // Should not be allocated because the provided alias is restricted to the first server
         allocateAndCheckFailed(firstReservationRequest);
