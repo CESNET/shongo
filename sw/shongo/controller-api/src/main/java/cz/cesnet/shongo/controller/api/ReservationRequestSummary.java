@@ -28,11 +28,6 @@ public class ReservationRequestSummary extends IdentifiedObject
     private Type type;
 
     /**
-     * @see ReservationRequest#NAME
-     */
-    private String name;
-
-    /**
      * @see ReservationRequest#PURPOSE
      */
     private ReservationRequestPurpose purpose;
@@ -114,22 +109,6 @@ public class ReservationRequestSummary extends IdentifiedObject
     public void setPurpose(ReservationRequestPurpose purpose)
     {
         this.purpose = purpose;
-    }
-
-    /**
-     * @return {@link #name}
-     */
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * @param name sets the {@link #name}
-     */
-    public void setName(String name)
-    {
-        this.name = name;
     }
 
     /**

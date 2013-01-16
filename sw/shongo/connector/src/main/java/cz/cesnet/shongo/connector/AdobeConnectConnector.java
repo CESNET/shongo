@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.regex.Matcher;
 
 
 /**
@@ -389,16 +390,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             attributes.put("folder-id",
                     (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
             attributes.put("type", "meeting");
-            attributes.put("date-begin", URLEncoder
-                    .encode(DateTime.now().toString(), "UTF8"));//DateTime.now().toString());"2013-01-11T10:44:03+01:00"
-            attributes.put("name", URLEncoder.encode(room.getCode(), "UTF8"));
-            if (room.getName() != null) {
-                attributes.put("description", URLEncoder.encode(room.getName(), "UTF8"));
-            }
-            if (room.getAlias(AliasType.ADOBE_CONNECT_NAME) != null) {
-                attributes.put("url-path", room.getAlias(AliasType.ADOBE_CONNECT_NAME).getValue());
-            }
+            attributes.put("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
 
+            // Room unique name is create from the unique room code
+            if (room.getCode() == null) {
+                throw new IllegalStateException("Room code should be filled for the new room.");
+            }
+            attributes.put("name", URLEncoder.encode(room.getCode(), "UTF8"));
+
+            // Set room attributes
+            setRoomAttributes(attributes, room);
 
             Element respose = request("sco-update", attributes);
             String scoId = respose.getChild("sco").getAttributeValue("sco-id");
@@ -431,15 +432,52 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
+    private void setRoomAttributes(HashMap<String, String> attributes, Room room) throws UnsupportedEncodingException
+    {
+        // Set the description
+        if (room.getDescription() != null) {
+            attributes.put("description", URLEncoder.encode(room.getDescription(), "UTF8"));
+        }
+
+        // Create/Update aliases
+        if (room.getAliases() != null) {
+            for (Alias alias : room.getAliases()) {
+                // Create new alias
+                if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
+                    switch (alias.getType()) {
+                        case ROOM_NAME:
+                            attributes.put("name", URLEncoder.encode(alias.getValue(), "UTF8"));
+                            break;
+                        case ADOBE_CONNECT_URI:
+                            attributes.put("url-path", alias.getValue());
+                            break;
+                        default:
+                            throw new IllegalStateException("Unrecognized alias: " + alias.toString());
+                    }
+                }
+                // Modify existing alias
+                else {
+                    throw new IllegalStateException("TODO: Implement room alias modification.");
+                }
+            }
+        }
+        // Delete aliases
+        Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
+        for (Alias alias : aliasesToDelete) {
+            throw new IllegalStateException("TODO: Implement room alias deletion.");
+        }
+    }
+
     @java.lang.Override
     public String modifyRoom(Room room) throws CommandException
     {
         try {
             HashMap<String, String> attributes = new HashMap<String, String>();
             attributes.put("sco-id", room.getId());
-            if (room.isPropertyFilled(Room.NAME)) {
-                attributes.put("description", URLEncoder.encode(room.getName(), "UTF8"));
-            }
+
+            // Set room attributes
+            setRoomAttributes(attributes, room);
+
             request("sco-update", attributes);
             return room.getId();
         }
@@ -833,7 +871,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             acc.connect(address, "admin", "cip9skovi3t2");
 
 /*            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
-            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"testi")); }});
+            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_URI,"xxx/testi")); }});
             room.setOption(Room.Option.PARTICIPANTS,new ArrayList<String>() {{ add("pavelka@cesnet.cz"); }});
 
             String scoId = acc.createRoom(room);

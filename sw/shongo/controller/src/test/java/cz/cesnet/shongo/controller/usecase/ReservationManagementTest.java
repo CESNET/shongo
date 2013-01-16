@@ -34,7 +34,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setName("request");
+        reservationRequest.setDescription("request");
         reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -43,11 +43,11 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check created reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("request", reservationRequest.getName());
+        assertEquals("request", reservationRequest.getDescription());
         assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
 
         // Modify reservation request by retrieved instance of reservation request
-        reservationRequest.setName("requestModified");
+        reservationRequest.setDescription("requestModified");
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Modify reservation request by new instance of reservation request
@@ -59,7 +59,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check modified reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("requestModified", reservationRequest.getName());
+        assertEquals("requestModified", reservationRequest.getDescription());
         assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
@@ -90,7 +90,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
-        reservationRequest.setName("request");
+        reservationRequest.setDescription("request");
         reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -99,11 +99,11 @@ public class ReservationManagementTest extends AbstractControllerTest
 
         // Check created reservation request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        assertEquals("request", reservationRequest.getName());
+        assertEquals("request", reservationRequest.getDescription());
         assertEquals(1, reservationRequest.getReservationRequests().size());
 
         // Modify reservation request by retrieved instance of reservation request
-        reservationRequest.setName("requestModified");
+        reservationRequest.setDescription("requestModified");
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Modify reservation request by new instance of reservation request
@@ -114,7 +114,7 @@ public class ReservationManagementTest extends AbstractControllerTest
 
         // Check modified reservation request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        assertEquals("requestModified", reservationRequest.getName());
+        assertEquals("requestModified", reservationRequest.getDescription());
         assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
@@ -145,7 +145,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         PermanentReservationRequest reservationRequest = new PermanentReservationRequest();
-        reservationRequest.setName("request");
+        reservationRequest.setDescription("request");
         reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setResourceId(resourceId);
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
@@ -154,11 +154,11 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check created reservation request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("request", reservationRequest.getName());
+        assertEquals("request", reservationRequest.getDescription());
         assertEquals(1, reservationRequest.getResourceReservations().size());
 
         // Modify reservation request by retrieved instance of reservation request
-        reservationRequest.setName("requestModified");
+        reservationRequest.setDescription("requestModified");
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Modify reservation request by new instance of reservation request
@@ -171,7 +171,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check modified reservation request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("requestModified", reservationRequest.getName());
+        assertEquals("requestModified", reservationRequest.getDescription());
         assertEquals(2, reservationRequest.getResourceReservations().size());
 
         // Delete reservation request
@@ -199,7 +199,6 @@ public class ReservationManagementTest extends AbstractControllerTest
     public void testListReservationRequests() throws Exception
     {
         ReservationRequest reservationRequest1 = new ReservationRequest();
-        reservationRequest1.setName("request");
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setSpecification(
@@ -207,7 +206,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
-        reservationRequest2.setName("request");
         reservationRequest2.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setSpecification(
@@ -215,7 +213,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
 
         ReservationRequestSet reservationRequest3 = new ReservationRequestSet();
-        reservationRequest3.setName("request");
         reservationRequest3.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification3 = new CompartmentSpecification();
@@ -224,7 +221,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest3);
 
         ReservationRequest reservationRequest4 = new ReservationRequest();
-        reservationRequest4.setName("request");
         reservationRequest4.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest4.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest4.setSpecification(
@@ -232,7 +228,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest4);
 
         ReservationRequestSet reservationRequest5 = new ReservationRequestSet();
-        reservationRequest5.setName("request");
         reservationRequest5.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest5.setSpecification(
@@ -240,7 +235,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest5);
 
         ReservationRequest reservationRequest6 = new ReservationRequest();
-        reservationRequest6.setName("request");
         reservationRequest6.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest6.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification6 = new CompartmentSpecification();

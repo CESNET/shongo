@@ -15,20 +15,19 @@ use Shongo::ClientCli::API::DeviceResource;
 
 # Enumeration of alias types
 our $Type = ordered_hash(
+    'ROOM_NAME' => 'Room Name',
     'H323_E164' => 'H.323 Phone Number',
-    'H323_IDENTIFIER' => 'H.323 Identifier',
     'H323_URI' => 'H.323 URI',
     'SIP_URI' => 'SIP URI',
-    'ADOBE_CONNECT_NAME' => 'Adobe Connect Room Name',
     'ADOBE_CONNECT_URI' => 'Adobe Connect URI'
 );
 
 # Regular expression patters for type values
 our $TypePattern = {
+    'ROOM_NAME' => '.*',
     'H323_E164' => '\\d+',
-    'H323_IDENTIFIER' => '.+',
+    'H323_URI' => '.*',
     'SIP_URI' => '.+@.+',
-    'ADOBE_CONNECT_NAME' => '.*',
     'ADOBE_CONNECT_URI' => '.+@.+'
 };
 

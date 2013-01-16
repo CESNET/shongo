@@ -21,11 +21,6 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     private DateTime created;
 
     /**
-     * Name of the reservation request.
-     */
-    public static final String NAME = "name";
-
-    /**
      * Description of the reservation request.
      */
     public static final String DESCRIPTION = "description";
@@ -67,22 +62,6 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     public void setCreated(DateTime created)
     {
         this.created = created;
-    }
-
-    /**
-     * @return {@link #NAME}
-     */
-    public String getName()
-    {
-        return getPropertyStorage().getValue(NAME);
-    }
-
-    /**
-     * @param name sets the {@link #NAME}
-     */
-    public void setName(String name)
-    {
-        getPropertyStorage().setValue(NAME, name);
     }
 
     /**

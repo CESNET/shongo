@@ -50,7 +50,6 @@ public class NotifyReservationTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setName("Testing request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));

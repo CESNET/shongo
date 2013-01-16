@@ -23,9 +23,9 @@ public abstract class RoomEndpoint extends Endpoint
     private RoomConfiguration roomConfiguration = new RoomConfiguration();
 
     /**
-     * Name of the room which can be displayed to the user.
+     * Description of the room which can be displayed to the user.
      */
-    private String roomName;
+    private String roomDescription;
 
     /**
      * @return {@link #roomConfiguration}
@@ -46,19 +46,19 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     /**
-     * @return {@link #roomName}
+     * @return {@link #roomDescription}
      */
-    public String getRoomName()
+    public String getRoomDescription()
     {
-        return roomName;
+        return roomDescription;
     }
 
     /**
-     * @param roomName sets the {@link #roomName}
+     * @param roomDescription sets the {@link #roomDescription}
      */
-    public void setRoomName(String roomName)
+    public void setRoomDescription(String roomDescription)
     {
-        this.roomName = roomName;
+        this.roomDescription = roomDescription;
     }
 
     @Override
@@ -77,10 +77,13 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * Modify this {@link RoomEndpoint}.
      *
+     * @param roomDescription
+     * @param roomConfiguration
+     * @param roomAliases
      * @param executor thread which is executing
      * @return new {@link State}
      */
-    public boolean modifyRoom(String roomName, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
+    public boolean modifyRoom(String roomDescription, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
             Executor executor)
     {
         return true;

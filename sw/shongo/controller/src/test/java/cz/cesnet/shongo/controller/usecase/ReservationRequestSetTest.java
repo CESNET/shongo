@@ -34,7 +34,6 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
-        reservationRequest.setName("test");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.addSlot(new DateTimeSlot(
                 new PeriodicDateTime("2012-01-01T00:00", "P1W", "2012-01-01"), Period.parse("PT1H")));

@@ -42,9 +42,6 @@ sub new()
         'type' => 'datetime',
         'editable' => 0
     });
-    $self->add_attribute('name', {
-        'required' => 1
-    });
     $self->add_attribute('description');
 
     return $self;

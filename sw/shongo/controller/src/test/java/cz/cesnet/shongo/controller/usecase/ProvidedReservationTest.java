@@ -294,7 +294,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         connectServerFirst.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.ADOBE_CONNECT_URI}));
         // Generates only single "test" alias for this connect server
         connectServerFirst.addCapability(new AliasProviderCapability(
-                "test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}").withRestrictedToResource());
+                "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withRestrictedToResource());
         String connectServerFirstId = getResourceService().createResource(SECURITY_TOKEN, connectServerFirst);
 
         DeviceResource connectServerSecond = new DeviceResource();

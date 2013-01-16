@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -192,7 +191,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStart(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(getRoomName(), getMergedRoomConfiguration(), getAliases(), executor)) {
+        if (roomEndpoint.modifyRoom(getRoomDescription(), getMergedRoomConfiguration(), getAliases(), executor)) {
             return State.STARTED;
         }
         else {
@@ -204,7 +203,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomName(), roomEndpoint.getRoomConfiguration(),
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomDescription(), roomEndpoint.getRoomConfiguration(),
                 roomEndpoint.getAliases(), executor)) {
             return State.STOPPED;
         }

@@ -36,11 +36,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     private DateTime created;
 
     /**
-     * Name of the reservation that is shown to users.
-     */
-    private String name;
-
-    /**
      * Description of the reservation that is shown to users.
      */
     private String description;
@@ -79,24 +74,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @return {@link #name}
-     */
-    @Column
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * @param name sets the {@link #name}
-     */
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    /**
-     * @return {@link #name}
+     * @return {@link #description}
      */
     @Column
     public String getDescription()
@@ -172,9 +150,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      */
     public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
-        boolean modified = !ObjectUtils.equals(getName(), abstractReservationRequest.getName())
-                || !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription());
-        setName(abstractReservationRequest.getName());
+        boolean modified = !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription());
         setDescription(abstractReservationRequest.getDescription());
         return modified;
     }
@@ -241,7 +217,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         api.setId(Domain.getLocalDomain().formatId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
-        api.setName(getName());
         api.setDescription(getDescription());
     }
 
@@ -256,9 +231,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException
     {
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.NAME)) {
-            setName(api.getName());
-        }
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.DESCRIPTION)) {
             setDescription(api.getDescription());
         }
@@ -270,6 +242,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         super.fillDescriptionMap(map);
 
         map.put("created", getCreated());
-        map.put("name", getName());
+        map.put("description", getDescription());
     }
 }

@@ -17,11 +17,6 @@ public enum AliasType
     H323_E164(Technology.H323, AliasValueType.E164),
 
     /**
-     * Represents {@link cz.cesnet.shongo.Technology#H323} string identifiers.
-     */
-    H323_IDENTIFIER(Technology.H323, AliasValueType.STRING),
-
-    /**
      * Represents {@link cz.cesnet.shongo.Technology#H323} URI (like an IP address).
      */
     H323_URI(Technology.H323, AliasValueType.URI),
@@ -31,11 +26,6 @@ public enum AliasType
      * @see cz.cesnet.shongo.AliasValueType#URI
      */
     SIP_URI(Technology.SIP, AliasValueType.URI),
-
-    /**
-     * Represents room name for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
-     */
-    ADOBE_CONNECT_NAME(Technology.ADOBE_CONNECT, AliasValueType.STRING),
 
     /**
      * Represents room URL for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
@@ -70,5 +60,13 @@ public enum AliasType
     public Technology getTechnology()
     {
         return technology;
+    }
+
+    /**
+     * @return {@link #valueType}
+     */
+    public AliasValueType getValueType()
+    {
+        return valueType;
     }
 }

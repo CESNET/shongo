@@ -146,7 +146,7 @@ sub process_reservation_alias
 
     my $value = $reservation_alias->{'aliasValue'};
     foreach my $alias (@{$reservation_alias->{'aliases'}}) {
-        if ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
+        if ( $alias->{'type'} eq 'ROOM_NAME' ) {
             $value = $alias->{'value'};
         }
     }

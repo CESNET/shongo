@@ -269,7 +269,7 @@ public class AliasReservationTask extends ReservationTask
             roomEndpoint.setUserId(getContext().getUserId());
             roomEndpoint.setSlot(getInterval());
             roomEndpoint.setDeviceResource((DeviceResource) resource);
-            roomEndpoint.setRoomName(getContext().getReservationRequest().getName());
+            roomEndpoint.setRoomDescription(getContext().getReservationRequest().getDescription());
             roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
             Set<Technology> technologies = roomEndpoint.getTechnologies();
             for (Alias alias : aliasReservation.getAliases()) {

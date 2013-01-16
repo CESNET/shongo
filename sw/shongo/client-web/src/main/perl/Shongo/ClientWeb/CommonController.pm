@@ -392,7 +392,7 @@ sub format_aliases
     my $aliases_text = '';
     my $aliases_description = '';
     foreach my $alias (@{$aliases}) {
-        if ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
+        if ( $alias->{'type'} eq 'ROOM_NAME' ) {
             next;
         }
         if ( length($aliases_text) > 0 ) {
@@ -403,11 +403,6 @@ sub format_aliases
 
             $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
             $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
-        }
-        elsif ( $alias->{'type'} eq 'H323_IDENTIFIER' ) {
-            $aliases_text .= $alias->{'value'};
-
-            $aliases_description .= '<dt>H.323 Identifier:</dt><dd>' . $alias->{'value'} . '</dd>';
         }
         elsif ( $alias->{'type'} eq 'H323_URI' ) {
             $aliases_text .= $alias->{'value'};

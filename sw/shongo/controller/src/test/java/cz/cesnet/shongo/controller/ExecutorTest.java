@@ -210,8 +210,8 @@ public class ExecutorTest extends AbstractControllerTest
         connectServer.setAddress("127.0.0.1");
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
         connectServer.addCapability(new RoomProviderCapability(10));
-        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
-                "{resource.address}/{value}").withPermanentRoom());
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
         connectServer.setAllocatable(true);
         connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
@@ -313,8 +313,8 @@ public class ExecutorTest extends AbstractControllerTest
         connectServerFake.setName("connectServerFake");
         connectServerFake.addTechnology(Technology.ADOBE_CONNECT);
         connectServerFake.addCapability(new RoomProviderCapability(10));
-        connectServerFake.addCapability(new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_NAME,
-                "{resource.address}/{value}").withPermanentRoom());
+        connectServerFake.addCapability(new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
         connectServerFake.setAllocatable(true);
         connectServerFake.setMode(new ManagedMode(connectServerAgent.getName()));
         getResourceService().createResource(SECURITY_TOKEN, connectServerFake);
@@ -324,14 +324,13 @@ public class ExecutorTest extends AbstractControllerTest
         connectServer.setAddress("127.0.0.1");
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
         connectServer.addCapability(new RoomProviderCapability(10));
-        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
-                "{resource.address}/{value}").withPermanentRoom());
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
         connectServer.setAllocatable(true);
         connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
         String connectServerId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
-        aliasReservationRequest.setName("aliasReservation");
         aliasReservationRequest.setSlot(dateTime, duration);
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
@@ -341,7 +340,6 @@ public class ExecutorTest extends AbstractControllerTest
                 "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setName("roomReservation");
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));

@@ -16,7 +16,6 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableRoomReport;
@@ -342,7 +341,7 @@ public class RoomReservationTask extends ReservationTask
         // Setup abstract room endpoint
         roomEndpoint.setUserId(getContext().getUserId());
         roomEndpoint.setSlot(getInterval());
-        roomEndpoint.setRoomName(getContext().getReservationRequest().getName());
+        roomEndpoint.setRoomDescription(getContext().getReservationRequest().getDescription());
         roomEndpoint.setRoomConfiguration(roomConfiguration);
         roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
 

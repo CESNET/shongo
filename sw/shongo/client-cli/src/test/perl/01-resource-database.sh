@@ -12,7 +12,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             class: 'AliasProviderCapability', \
             aliases: [ \
                 { type: 'H323_E164', value: '9500872{value}' }, \
-                { type: 'H323_URI', value: '{resource.address}#9500872{value}' }, \
+                { type: 'H323_URI', value: '{device.address}#9500872{value}' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
             patterns: ['{digit:2}'], \
@@ -78,7 +78,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             class: 'AliasProviderCapability', \
             aliases: [ \
                 { type: 'ADOBE_CONNECT_NAME', value: '{value}' }, \
-                { type: 'ADOBE_CONNECT_URI', value: '{resource.address}/{value}' }, \
+                { type: 'ADOBE_CONNECT_URI', value: '{device.address}/{value}' }, \
             ], \
             patterns: ['{string}'], \
             permanentRoom: 1 \

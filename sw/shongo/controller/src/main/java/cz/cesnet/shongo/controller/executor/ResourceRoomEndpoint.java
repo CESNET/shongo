@@ -206,8 +206,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onStart(Executor executor)
     {
-        executor.getLogger().debug("Starting room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), getRoomName(), getLicenseCount()});
+        executor.getLogger().debug("Starting room '{}' for {} licenses.", new Object[]{getId(), getLicenseCount()});
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
             executor.getLogger().debug("Room '{}' has allocated alias '{}'.", getId(), alias.getValue());
@@ -220,9 +219,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setCode(String.format("shongo-%d", getId()));
-            room.setName(getRoomName());
             room.setTechnologies(getTechnologies());
             room.setLicenseCount(getLicenseCount());
+            room.setDescription(getRoomDescription());
             for (RoomSetting roomSetting : getRoomSettings()) {
                 room.fillOptions(roomSetting.toApi());
             }
@@ -245,11 +244,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public boolean modifyRoom(String roomName, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
+    public boolean modifyRoom(String roomDescription, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
             Executor executor)
     {
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), roomName, roomConfiguration.getLicenseCount()});
+                new Object[]{getId(), roomDescription, roomConfiguration.getLicenseCount()});
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
@@ -258,7 +257,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setId(roomId);
-            room.setName(roomName);
+            room.setDescription(roomDescription);
             room.setTechnologies(roomConfiguration.getTechnologies());
             room.setLicenseCount(roomConfiguration.getLicenseCount());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {

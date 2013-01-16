@@ -340,7 +340,7 @@ public class DeviceResource extends Resource
     }
 
     /**
-     * Evaluate alias value (and modify it if it contains e.g., "{resource.address}").
+     * Evaluate alias value (and modify it if it contains e.g., "{device.address}").
      *
      * @param assignedAlias to be evaluated
      */
@@ -351,7 +351,7 @@ public class DeviceResource extends Resource
         int end = -1;
         while ((start = value.indexOf('{')) != -1 && (end = value.indexOf('}')) != -1) {
             String component = value.substring(start + 1, end);
-            if (component.equals("resource.address")) {
+            if (component.equals("device.address")) {
                 if (getAddress() != null) {
                     component = getAddress().getValue();
                 }

@@ -106,13 +106,13 @@ public class AliasTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("{string}", AliasType.ADOBE_CONNECT_NAME));
+                new AliasProviderCapability("{string}", AliasType.ADOBE_CONNECT_URI));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_NAME).withValue("test_1"));
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test_1"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
         assertEquals("Requested value should be allocated.", "test_1", aliasReservation.getValue());
     }
@@ -130,20 +130,20 @@ public class AliasTest extends AbstractControllerTest
         connectServer.setAllocatable(true);
         connectServer.addTechnology(Technology.ADOBE_CONNECT);
         connectServer.addCapability(
-                new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_NAME).withRestrictedToResource());
+                new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI).withRestrictedToResource());
         getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME));
+                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_NAME));
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
         assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
     }

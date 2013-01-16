@@ -96,7 +96,7 @@ public class RoomTest extends AbstractControllerTest
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
         AliasProviderCapability aliasProviderCapability = new AliasProviderCapability("1-{digit:1}");
-        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{resource.address}/{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}/{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
@@ -106,7 +106,7 @@ public class RoomTest extends AbstractControllerTest
         secondAliasProvider.setName("secondAliasProvider");
         aliasProviderCapability = new AliasProviderCapability("2-{digit:1}");
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
-        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{resource.address}#{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}#{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
@@ -116,7 +116,7 @@ public class RoomTest extends AbstractControllerTest
         thirdAliasProvider.setName("thirdAliasProvider");
         aliasProviderCapability = new AliasProviderCapability("3-{digit:1}");
         aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "{value}"));
-        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{resource.address}/{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}/{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         thirdAliasProvider.addCapability(aliasProviderCapability);
         thirdAliasProvider.setAllocatable(true);

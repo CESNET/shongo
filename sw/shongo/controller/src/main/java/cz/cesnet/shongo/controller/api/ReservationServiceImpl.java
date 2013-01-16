@@ -299,7 +299,6 @@ public class ReservationServiceImpl extends Component
             }
 
             summary.setCreated(abstractReservationRequest.getCreated());
-            summary.setName(abstractReservationRequest.getName());
             if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.NormalReservationRequest) {
                 cz.cesnet.shongo.controller.request.NormalReservationRequest normalReservationRequest =
                         (cz.cesnet.shongo.controller.request.NormalReservationRequest) abstractReservationRequest;
