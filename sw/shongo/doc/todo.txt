@@ -2,15 +2,8 @@
 
 * String aliases
   -connect alias (ValueProvider should allocated url_encoded value)
-  -AliasProviderCapability.roomProvider:
-      API:
-      -AbstractValueProvider
-      -ValueProvider
-      -FilteredValueProvider
-      -ExistingValueProvider
-      Impl:
-      -ValueProvider
-      -FilteredValueProvider
+  -load lazy collections in overridden method
+  -implement FilteredValueProvider and corresponding API object
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

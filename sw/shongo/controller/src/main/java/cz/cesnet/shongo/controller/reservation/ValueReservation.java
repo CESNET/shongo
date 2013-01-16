@@ -2,11 +2,13 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 
 import javax.persistence.*;
 
 /**
- * Represents a {@link Reservation} for a value from {@link ValueProvider}.
+ * Represents a {@link Reservation} for a value from {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -14,7 +16,7 @@ import javax.persistence.*;
 public class ValueReservation extends Reservation
 {
     /**
-     * {@link ValueProvider} from which the value is allocated.
+     * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} from which the value is allocated.
      */
     private ValueProvider valueProvider;
 

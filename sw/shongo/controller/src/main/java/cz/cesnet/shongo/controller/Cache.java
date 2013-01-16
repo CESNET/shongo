@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.cache.*;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -265,7 +267,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         // Add value provider
         ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
         if (valueProviderCapability != null) {
-            ValueProvider valueProvider = valueProviderCapability.getValueProvider();
+            PatternValueProvider valueProvider = valueProviderCapability.getValueProvider();
             checkPersisted(valueProvider);
             valueCache.addObject(valueProvider);
         }
@@ -274,8 +276,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Load lazy collections
-            aliasProvider.getAliases().size();
-            aliasProvider.getValueProvider().getPatterns().size();
+            aliasProvider.loadLazyCollections();
             // Add alias provider to the set of existing alias providers
             checkPersisted(aliasProvider);
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);

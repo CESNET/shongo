@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueGenerator;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,7 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
     private static Logger logger = LoggerFactory.getLogger(ValueCache.class);
 
     /**
-     * Map of {@link ValueProvider}s by resource id (used for removing all value providers of a given resource).
+     * Map of {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}s by resource id (used for removing all value providers of a given resource).
      */
     private Map<Long, Set<ValueProvider>> valueProviderByResourceId = new HashMap<Long, Set<ValueProvider>>();
 
@@ -44,7 +46,7 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         Long resourceId = resource.getId();
 
         // Load lazy collections
-        valueProvider.getPatterns().size();
+        valueProvider.loadLazyCollections();
 
         // Store capability for removing by resource
         Set<ValueProvider> aliasProviderCapabilities = valueProviderByResourceId.get(resourceId);

@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -12,9 +14,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Manager for {@link Resource}.
@@ -184,7 +184,7 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @return list of all {@link ValueProvider}s
+     * @return list of all {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}s
      */
     public List<ValueProvider> listValueProviders()
     {

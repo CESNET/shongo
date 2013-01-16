@@ -1,6 +1,7 @@
-package cz.cesnet.shongo.controller.resource;
+package cz.cesnet.shongo.controller.resource.value;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.resource.Capability;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,10 +15,10 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ValueProvider extends PersistentObject
+public class PatternValueProvider extends ValueProvider
 {
     /**
-     * List of pattern for value generation.
+     * List of patterns for value generation.
      * <p/>
      * Examples:
      * 1) "95{digit:3}"     will generate 95001, 95002, 95003, ...
@@ -26,14 +27,9 @@ public class ValueProvider extends PersistentObject
     private List<String> patterns = new ArrayList<String>();
 
     /**
-     * {@link Capability} which owns the{@link ValueProvider}.
-     */
-    private Capability capability;
-
-    /**
      * Constructor.
      */
-    public ValueProvider()
+    public PatternValueProvider()
     {
     }
 
@@ -42,9 +38,9 @@ public class ValueProvider extends PersistentObject
      *
      * @param capability sets the {@link #capability}
      */
-    public ValueProvider(Capability capability)
+    public PatternValueProvider(Capability capability)
     {
-        this.capability = capability;
+        super(capability);
     }
 
     /**
@@ -52,7 +48,7 @@ public class ValueProvider extends PersistentObject
      *
      * @param pattern to be added to the {@link #patterns}
      */
-    public ValueProvider(Capability capability, String pattern)
+    public PatternValueProvider(Capability capability, String pattern)
     {
         this(capability);
 
@@ -85,52 +81,49 @@ public class ValueProvider extends PersistentObject
         this.patterns.remove(pattern);
     }
 
-    /**
-     * @return {@link #capability}
-     */
-    @OneToOne(optional = false)
-    @Access(AccessType.FIELD)
-    public Capability getCapability()
+    @Override
+    public void loadLazyCollections()
     {
-        return capability;
+        super.loadLazyCollections();
+
+        getPatterns().size();
     }
 
-    /**
-     * @return {@link Resource} from {@link #capability}
-     */
-    @Transient
-    public Resource getCapabilityResource()
+    @Override
+    protected cz.cesnet.shongo.controller.api.ValueProvider createApi()
     {
-        return capability.getResource();
+        return new cz.cesnet.shongo.controller.api.ValueProvider.Pattern();
     }
 
-    /**
-     * @return converted {@link ValueProvider} to API
-     */
-    public cz.cesnet.shongo.controller.api.ValueProvider toApi()
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi)
     {
-        cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi =
-                new cz.cesnet.shongo.controller.api.ValueProvider();
-        valueProviderApi.setId(getId());
+        super.toApi(valueProviderApi);
+
+        cz.cesnet.shongo.controller.api.ValueProvider.Pattern patternValueProviderApi =
+                (cz.cesnet.shongo.controller.api.ValueProvider.Pattern) valueProviderApi;
         for (String pattern : patterns) {
-            valueProviderApi.addPattern(pattern);
+            patternValueProviderApi.addPattern(pattern);
         }
-        return valueProviderApi;
     }
 
-    /**
-     * @param valueProviderApi from which the {@link ValueProvider} should be filled
-     */
-    public void fromApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi)
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi, EntityManager entityManager)
+            throws FaultException
     {
+        super.fromApi(valueProviderApi, entityManager);
+
+        cz.cesnet.shongo.controller.api.ValueProvider.Pattern patternValueProviderApi =
+                (cz.cesnet.shongo.controller.api.ValueProvider.Pattern) valueProviderApi;
         // Create patterns
-        for (String pattern : valueProviderApi.getPatterns()) {
-            if (valueProviderApi.isPropertyItemMarkedAsNew(valueProviderApi.PATTERNS, pattern)) {
+        for (String pattern : patternValueProviderApi.getPatterns()) {
+            if (valueProviderApi.isPropertyItemMarkedAsNew(patternValueProviderApi.PATTERNS, pattern)) {
                 addPattern(pattern);
             }
         }
         // Delete patterns
-        Set<String> patternsToDelete = valueProviderApi.getPropertyItemsMarkedAsDeleted(valueProviderApi.PATTERNS);
+        Set<String> patternsToDelete =
+                valueProviderApi.getPropertyItemsMarkedAsDeleted(patternValueProviderApi.PATTERNS);
         for (String pattern : patternsToDelete) {
             removePattern(pattern);
         }

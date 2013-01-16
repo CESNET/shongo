@@ -51,7 +51,7 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability(String pattern)
     {
-        setValueProvider(new ValueProvider(pattern));
+        setValueProvider(new ValueProvider.Pattern(pattern));
     }
 
     /**

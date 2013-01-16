@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -14,9 +15,9 @@ import java.util.*;
 public class ValueProviderCapability extends Capability
 {
     /**
-     * {@link ValueProvider} which will be used for generating values.
+     * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} which will be used for generating values.
      */
-    private ValueProvider valueProvider = new ValueProvider(this);
+    private PatternValueProvider valueProvider = new PatternValueProvider(this);
 
     /**
      * Constructor.
@@ -40,7 +41,7 @@ public class ValueProviderCapability extends Capability
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
-    public ValueProvider getValueProvider()
+    public PatternValueProvider getValueProvider()
     {
         return valueProvider;
     }

@@ -1,17 +1,18 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
-import cz.cesnet.shongo.controller.resource.ValueProvider;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 
 /**
- * Represents an available value in a {@link ValueProvider}.
+ * Represents an available value in a {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AvailableValue
 {
     /**
-     * {@link ValueProvider} in which the {@link #value} is available.
+     * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} in which the {@link #value} is available.
      */
     private ValueProvider valueProvider;
 

@@ -1,10 +1,7 @@
-package cz.cesnet.shongo.controller.resource;
-
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
+package cz.cesnet.shongo.controller.resource.value;
 
 /**
- * Object used for generating not-used {@link Alias}es.
+ * Object used for generating not-used {@link cz.cesnet.shongo.controller.resource.Alias}es.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -25,7 +22,7 @@ public abstract class ValueGenerator
     public abstract void addValue(String alias);
 
     /**
-     * @return new generated {@link Alias}
+     * @return new generated {@link cz.cesnet.shongo.controller.resource.Alias}
      */
     public abstract String generateValue();
 

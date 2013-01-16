@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.controller.resource.value.PatternValueGenerator;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Tests for {@link PatternValueGenerator}.
+ * Tests for {@link cz.cesnet.shongo.controller.resource.value.PatternValueGenerator}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

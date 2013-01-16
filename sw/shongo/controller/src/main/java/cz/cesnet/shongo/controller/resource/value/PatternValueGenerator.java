@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.resource;
+package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.RandomStringUtils;

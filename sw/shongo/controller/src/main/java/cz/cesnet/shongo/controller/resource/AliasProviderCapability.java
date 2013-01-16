@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -20,7 +22,7 @@ import java.util.*;
 public class AliasProviderCapability extends Capability
 {
     /**
-     * {@link ValueProvider} which is used
+     * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} which is used
      */
     private ValueProvider valueProvider;
 
@@ -61,25 +63,25 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param pattern for construction of {@link cz.cesnet.shongo.controller.resource.ValueProvider}
+     * @param pattern for construction of {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}
      * @param type    to be added as {@link cz.cesnet.shongo.controller.resource.Alias} to {@link #aliases}
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
-        setValueProvider(new ValueProvider(this, pattern));
+        setValueProvider(new PatternValueProvider(this, pattern));
         addAlias(new Alias(type, "{value}"));
     }
 
     /**
      * Constructor.
      *
-     * @param pattern              for construction of {@link cz.cesnet.shongo.controller.resource.ValueProvider}
+     * @param pattern              for construction of {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}
      * @param type                 to be added as {@link cz.cesnet.shongo.controller.resource.Alias} to {@link #aliases}
      * @param restrictedToResource sets the {@link #restrictedToResource}
      */
     public AliasProviderCapability(String pattern, AliasType type, boolean restrictedToResource)
     {
-        setValueProvider(new ValueProvider(this, pattern));
+        setValueProvider(new PatternValueProvider(this, pattern));
         addAlias(new Alias(type, "{value}"));
         this.restrictedToResource = restrictedToResource;
     }
@@ -97,7 +99,7 @@ public class AliasProviderCapability extends Capability
     /**
      * @param valueProvider sets the {@link #valueProvider}
      */
-    public void setValueProvider(ValueProvider valueProvider)
+    public void setValueProvider(PatternValueProvider valueProvider)
     {
         this.valueProvider = valueProvider;
     }
@@ -245,6 +247,15 @@ public class AliasProviderCapability extends Capability
     }
 
     @Override
+    public void loadLazyCollections()
+    {
+        super.loadLazyCollections();
+
+        getAliases().size();
+        getValueProvider().loadLazyCollections();
+    }
+
+    @Override
     protected cz.cesnet.shongo.controller.api.Capability createApi()
     {
         return new cz.cesnet.shongo.controller.api.AliasProviderCapability();
@@ -296,9 +307,10 @@ public class AliasProviderCapability extends Capability
             }
             else {
                 if (this.valueProvider == null) {
-                    this.valueProvider = new ValueProvider(this);
+                    this.valueProvider = ValueProvider.createFromApi(
+                            (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider, this, entityManager);
                 }
-                this.valueProvider.fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider);
+                this.valueProvider.fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider, entityManager);
             }
         }
 

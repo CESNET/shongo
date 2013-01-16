@@ -113,6 +113,13 @@ public abstract class PersistentObject extends PrintableObject
         }
     }
 
+    /**
+     * Load all lazy collections.
+     */
+    public void loadLazyCollections()
+    {
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
