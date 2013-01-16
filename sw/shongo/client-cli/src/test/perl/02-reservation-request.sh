@@ -4,7 +4,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "\
     create-reservation-request { \
         class: 'ReservationRequest', \
-        name: 'test', \
+        description: 'test', \
         purpose: 'SCIENCE', \
         slot: '`date +"%Y-%m-%d"`T12:00/PT1H', \
         specification: { \
@@ -16,7 +16,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "\
     create-reservation-request { \
         class: 'ReservationRequest', \
-        name: 'test', \
+        description: 'test', \
         purpose: 'SCIENCE', \
         slot: '`date +"%Y-%m-%d"`T12:00/PT1H', \
         specification: { \

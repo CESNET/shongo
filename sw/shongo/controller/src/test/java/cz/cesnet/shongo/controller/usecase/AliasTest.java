@@ -92,6 +92,13 @@ public class AliasTest extends AbstractControllerTest
         reservationRequestSecond.setSpecification(
                 new AliasSpecification(AliasType.ROOM_NAME).withResourceId(secondAliasProviderId));
         allocateAndCheckFailed(reservationRequestSecond);
+
+        // Test also without resource id
+        ReservationRequest reservationRequestThird = new ReservationRequest();
+        reservationRequestThird.setSlot("2013-01-01T00:00", "P1Y");
+        reservationRequestThird.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestThird.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        allocateAndCheck(reservationRequestThird);
     }
 
     /**

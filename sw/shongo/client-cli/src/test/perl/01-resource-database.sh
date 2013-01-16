@@ -4,17 +4,12 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "\
     create-resource { \
         class: 'Resource', \
-        name: 'gatekeeper', \
-        description: 'Alias provider for H.323/SIP MCUs', \
+        name: 'namingService', \
+        description: 'Naming service for all technologies', \
         allocatable: 1, \
         maximumFuture: 'P4M', \
         capabilities: [{ \
-            class: 'AliasProviderCapability', \
-            aliases: [ \
-                { type: 'H323_E164', value: '9500872{value}' }, \
-                { type: 'H323_URI', value: '{device.address}#9500872{value}' }, \
-                { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
-            ], \
+            class: 'ValueProviderCapability', \
             patterns: ['{digit:2}'], \
         }] \
     }" \
@@ -32,7 +27,27 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         }, \
         capabilities: [{ \
             class: 'RoomProviderCapability', \
-            licenseCount: 20 \
+            licenseCount: 20, \
+            requiredAliasTypes: ['ROOM_NAME', 'H323_E164'], \
+        },{ \
+            class: 'AliasProviderCapability', \
+            valueProvider: '1', \
+            aliases: [ \
+                { type: 'ROOM_NAME', value: '{value}' }, \
+                { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
+            ], \
+            restrictedToResource: 1, \
+        },{ \
+            class: 'AliasProviderCapability', \
+            valueProvider: { \
+                patterns: ['{digit:2}'], \
+            }, \
+            aliases: [ \
+                { type: 'H323_E164', value: '9500872{value}' }, \
+                { type: 'H323_URI', value: '{device.address}#9500872{value}' }, \
+                { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
+            ], \
+            restrictedToResource: 1, \
         }], \
         administrators: [ \
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \
@@ -53,7 +68,8 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         }, \
         capabilities: [{ \
             class: 'RoomProviderCapability', \
-            licenseCount: 10 \
+            licenseCount: 10, \
+            requiredAliasTypes: ['ROOM_NAME', 'H323_E164'], \
         }], \
         administrators: [ \
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \
@@ -73,15 +89,16 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         }, \
         capabilities: [{ \
             class: 'RoomProviderCapability', \
-            licenseCount: 10 \
-        }, { \
+            licenseCount: 10, \
+            requiredAliasTypes: ['ROOM_NAME'], \
+        },{ \
             class: 'AliasProviderCapability', \
+            valueProvider: '1', \
             aliases: [ \
-                { type: 'ADOBE_CONNECT_NAME', value: '{value}' }, \
-                { type: 'ADOBE_CONNECT_URI', value: '{device.address}/{value}' }, \
+                { type: 'ROOM_NAME', value: '{value}' }, \
+                { type: 'ADOBE_CONNECT_URI', value: '{device.address}/{value}' } \
             ], \
-            patterns: ['{string}'], \
-            permanentRoom: 1 \
+            permanentRoom: 1, \
         }], \
         administrators: [ \
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \

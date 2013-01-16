@@ -1,8 +1,16 @@
 * 2 paragraphs of shongo features
 
 * String aliases
-  -add requiredAliases to RoomProviderCapability
-  -use ROOM_NAME value in Room#name
+  -connect alias (ValueProvider should allocated url_encoded value)
+  -AliasProviderCapability.roomProvider:
+      API:
+      -AbstractValueProvider
+      -ValueProvider
+      -FilteredValueProvider
+      -ExistingValueProvider
+      Impl:
+      -ValueProvider
+      -FilteredValueProvider
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 
@@ -32,6 +40,9 @@
 * Adobe Connector
  - single connection
  - thread safety
+
+* Clien-CLI Shell.pm in parse_attributes the resulting hash should be processed and all json
+  bool objects should be converted to 1/0
 
 * Use HangUp instead of HangUpAll
 

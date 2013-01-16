@@ -275,6 +275,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Load lazy collections
             aliasProvider.getAliases().size();
+            aliasProvider.getValueProvider().getPatterns().size();
             // Add alias provider to the set of existing alias providers
             checkPersisted(aliasProvider);
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);
