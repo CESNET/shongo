@@ -267,7 +267,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         // Add value provider
         ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
         if (valueProviderCapability != null) {
-            PatternValueProvider valueProvider = valueProviderCapability.getValueProvider();
+            ValueProvider valueProvider = valueProviderCapability.getValueProvider();
             checkPersisted(valueProvider);
             valueCache.addObject(valueProvider);
         }

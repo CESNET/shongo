@@ -85,21 +85,11 @@ sub on_init()
             });
         }
         case 'ValueProviderCapability' {
-            $self->add_attribute('patterns', {
-                'type' => 'collection',
-                    'item' => {
-                    'title' => 'Pattern',
-                    'add' => sub {
-                        console_read_value('Pattern', 1);
-                    }
-                },
-                'display-empty' => 1,
-                'complex' => 0,
+            $self->add_attribute('valueProvider', {
+                'title' => 'Value Provider',
+                'type' => 'class',
+                'class' => 'Shongo::ClientCli::API::ValueProvider',
                 'required' => 1
-            });
-            $self->add_attribute('allowAnyRequestedValue', {
-                'title' => 'Allow All Values',
-                'type' => 'bool'
             });
         }
         case 'AliasProviderCapability' {

@@ -1,9 +1,8 @@
 * 2 paragraphs of shongo features
 
 * String aliases
-  -add ValueProvider to ValueProviderCapability API (to allow filtering inside the capability)
   -add AliasSpecifications to RoomSpecification
-  -Multiple alias specification
+  -Multiple alias specification (results into one reservation wiht multiple alias reservations)
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

@@ -10,8 +10,11 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         maximumFuture: 'P1Y', \
         capabilities: [{ \
             class: 'ValueProviderCapability', \
-            patterns: ['shongo-{hash}'], \
-            allowAnyRequestedValue: 1, \
+            valueProvider: { \
+                class: 'ValueProvider.Pattern', \
+                patterns: ['shongo-{hash}'], \
+                allowAnyRequestedValue: 1, \
+            }, \
         }] \
     }" \
 --cmd "\

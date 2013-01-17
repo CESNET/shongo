@@ -793,7 +793,7 @@ sub modify_attribute_value
     }
     elsif ( $attribute->{'type'} eq 'class' ) {
         if ( !defined($attribute_value) ) {
-            $attribute_value = Shongo::ClientCli::API::Specification->create();
+            $attribute_value = eval($attribute->{'class'} . '->create()');
         } else {
             $attribute_value->modify();
         }

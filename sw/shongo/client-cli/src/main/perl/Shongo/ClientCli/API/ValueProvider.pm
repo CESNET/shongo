@@ -71,7 +71,7 @@ sub on_init()
                 'required' => 1
             });
             $self->add_attribute('allowAnyRequestedValue', {
-                'title' => 'Allow All Values',
+                'title' => 'Allow Any Requested Value',
                 'type' => 'bool'
             });
         }

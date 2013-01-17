@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -17,7 +18,7 @@ public class ValueProviderCapability extends Capability
     /**
      * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} which will be used for generating values.
      */
-    private PatternValueProvider valueProvider = new PatternValueProvider(this);
+    private ValueProvider valueProvider;
 
     /**
      * Constructor.
@@ -27,23 +28,21 @@ public class ValueProviderCapability extends Capability
     }
 
     /**
-     * Constructor.
-     *
-     * @param pattern to be added to the {@link #valueProvider#patterns}
-     */
-    public ValueProviderCapability(String pattern)
-    {
-        valueProvider.addPattern(pattern);
-    }
-
-    /**
      * @return {@link #valueProvider}
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
-    public PatternValueProvider getValueProvider()
+    public ValueProvider getValueProvider()
     {
         return valueProvider;
+    }
+
+    /**
+     * @param valueProvider sets the {@link #valueProvider}
+     */
+    public void setValueProvider(ValueProvider valueProvider)
+    {
+        this.valueProvider = valueProvider;
     }
 
     @Override
@@ -57,10 +56,7 @@ public class ValueProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.ValueProviderCapability valueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProviderCapability) api;
-        for (String pattern : valueProvider.getPatterns()) {
-            valueProviderApi.addPattern(pattern);
-        }
-        valueProviderApi.setAllowAnyRequestedValue(valueProvider.isAllowAnyRequestedValue());
+        valueProviderApi.setValueProvider(valueProvider.toApi());
         super.toApi(api);
     }
 
@@ -70,23 +66,8 @@ public class ValueProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.ValueProviderCapability valueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProviderCapability) api;
-        if (valueProviderApi.isPropertyFilled(valueProviderApi.ALLOW_ANY_REQUESTED_VALUE)) {
-            valueProvider.setAllowAnyRequestedValue(valueProviderApi.getAllowAnyRequestedValue());
-        }
-
-        // Create patterns
-        for (String pattern : valueProviderApi.getPatterns()) {
-            if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.ValueProviderCapability.PATTERNS,
-                    pattern)) {
-                valueProvider.addPattern(pattern);
-            }
-        }
-        // Delete patterns
-        Set<String> patternsToDelete =
-                api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.ValueProviderCapability.PATTERNS);
-        for (String pattern : patternsToDelete) {
-            valueProvider.removePattern(pattern);
-        }
+        setValueProvider(ValueProvider.modifyFromApi(
+                valueProviderApi.getValueProvider(), this.valueProvider, this, entityManager));
 
         super.fromApi(api, entityManager);
     }

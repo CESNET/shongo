@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.List;
@@ -12,19 +13,9 @@ import java.util.List;
 public class ValueProviderCapability extends Capability
 {
     /**
-     * Pattern for aliases.
-     * <p/>
-     * Examples:
-     * 1) "95{digit:3}"           will generate 95001, 95002, 95003, ...
-     * 2) "95{digit:2}2{digit:2}" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
+     * Instance of the {@link ValueProvider}.
      */
-    public static final String PATTERNS = "patterns";
-
-    /**
-     * Option specifying whether any requested values are allowed event those which doesn't
-     * match the {@link #PATTERNS}.
-     */
-    public static final String ALLOW_ANY_REQUESTED_VALUE = "allowAnyRequestedValue";
+    public static final String VALUE_PROVIDER = "valueProvider";
 
     /**
      * Constructor.
@@ -36,69 +27,37 @@ public class ValueProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param pattern to be added to the {@link #PATTERNS}
+     * @param pattern for construction of {@link ValueProvider}
      */
     public ValueProviderCapability(String pattern)
     {
-        addPattern(pattern);
+        setValueProvider(new ValueProvider.Pattern(pattern));
     }
 
     /**
-     * @return this {@link ValueProviderCapability} with
+     * @return this {@link ValueProviderCapability} with {@link #VALUE_PROVIDER} which has
      *         {@link ValueProvider.Pattern#ALLOW_ANY_REQUESTED_VALUE} set to true
      */
     public ValueProviderCapability withAllowedAnyRequestedValue()
     {
-        setAllowAnyRequestedValue(true);
+        ((ValueProvider.Pattern)getValueProvider()).setAllowAnyRequestedValue(true);
         return this;
     }
 
     /**
-     * @return {@link #PATTERNS}
+     * @return {@link #VALUE_PROVIDER}
      */
     @Required
-    public List<String> getPatterns()
+    public ValueProvider getValueProvider()
     {
-        return getPropertyStorage().getCollection(PATTERNS, List.class);
+        return getPropertyStorage().getValue(VALUE_PROVIDER);
     }
 
     /**
-     * @param patterns sets the {@link #PATTERNS}
+     * @param valueProvider sets the {@link #VALUE_PROVIDER}
      */
-    public void setPatterns(List<String> patterns)
+    public void setValueProvider(ValueProvider valueProvider)
     {
-        getPropertyStorage().setValue(PATTERNS, patterns);
-    }
-
-    /**
-     * @param pattern to be added to the {@link #PATTERNS}
-     */
-    public void addPattern(String pattern)
-    {
-        getPropertyStorage().addCollectionItem(PATTERNS, pattern, List.class);
-    }
-
-    /**
-     * @param pattern to be removed from the {@link #PATTERNS}
-     */
-    public void removePattern(String pattern)
-    {
-        getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
-    }
-
-    /**
-     * @return {@link #ALLOW_ANY_REQUESTED_VALUE}
-     */
-    public Boolean getAllowAnyRequestedValue()
-    {
-        return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE);
-    }
-
-    /**
-     * @param allowAnyRequestedValue sets the {@link #ALLOW_ANY_REQUESTED_VALUE}
-     */
-    public void setAllowAnyRequestedValue(Boolean allowAnyRequestedValue)
-    {
-        getPropertyStorage().setValue(ALLOW_ANY_REQUESTED_VALUE, allowAnyRequestedValue);
+        getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
     }
 }
