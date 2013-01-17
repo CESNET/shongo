@@ -115,7 +115,7 @@ public class AliasTest extends AbstractControllerTest
         Resource valueProvider = new Resource();
         valueProvider.setName("valueProvider");
         valueProvider.setAllocatable(true);
-        valueProvider.addCapability(new ValueProviderCapability("{string}"));
+        valueProvider.addCapability(new ValueProviderCapability("shongo-{hash:6}").withAllowedAnyRequestedValue());
         String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
 
         Resource aliasProvider = new Resource();
@@ -161,15 +161,15 @@ public class AliasTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("{string}", AliasType.ADOBE_CONNECT_URI));
+                new AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI).withAllowedAnyRequestedValue());
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test_1"));
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be allocated.", "test_1", aliasReservation.getValue());
+        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
     }
 
     /**

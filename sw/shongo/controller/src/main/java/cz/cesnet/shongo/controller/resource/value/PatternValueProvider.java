@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 /**
  * Object which can allocate unique values based on the specified patterns.
@@ -26,6 +27,12 @@ public class PatternValueProvider extends ValueProvider
      * 2) "95{digit:2}2{digit:2}" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
      */
     private List<String> patterns = new ArrayList<String>();
+
+    /**
+     * Option specifying whether any requested values are allowed event those which doesn't
+     * match the {@link #patterns}, i.e., {@link #getRequestedValuePattern()}.
+     */
+    private boolean allowAnyRequestedValue;
 
     /**
      * Constructor.
@@ -88,6 +95,23 @@ public class PatternValueProvider extends ValueProvider
         }
     }
 
+    /**
+     * @return {@link #allowAnyRequestedValue}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isAllowAnyRequestedValue()
+    {
+        return allowAnyRequestedValue;
+    }
+
+    /**
+     * @param allowAnyRequestedValue sets the {@link #allowAnyRequestedValue}
+     */
+    public void setAllowAnyRequestedValue(boolean allowAnyRequestedValue)
+    {
+        this.allowAnyRequestedValue = allowAnyRequestedValue;
+    }
+
     @Override
     public void loadLazyCollections()
     {
@@ -112,6 +136,7 @@ public class PatternValueProvider extends ValueProvider
         for (String pattern : patterns) {
             patternValueProviderApi.addPattern(pattern);
         }
+        patternValueProviderApi.setAllowAnyRequestedValue(isAllowAnyRequestedValue());
     }
 
     @Override
@@ -134,6 +159,9 @@ public class PatternValueProvider extends ValueProvider
         for (String pattern : patternsToDelete) {
             removePattern(pattern);
         }
+        if (patternValueProviderApi.isPropertyFilled(patternValueProviderApi.ALLOW_ANY_REQUESTED_VALUE)) {
+            setAllowAnyRequestedValue(patternValueProviderApi.getAllowAnyRequestedValue());
+        }
     }
 
     /**
@@ -142,12 +170,17 @@ public class PatternValueProvider extends ValueProvider
     private List<Pattern> parsedPatterns;
 
     /**
+     * {@link java.util.regex.Pattern} for matching requested values.
+     */
+    private java.util.regex.Pattern requestedValuePattern;
+
+    /**
      * @return initialized {@link #parsedPatterns}
      */
     @Transient
     private List<Pattern> getParsedPatterns()
     {
-        if ( parsedPatterns == null) {
+        if (parsedPatterns == null) {
             parsedPatterns = new ArrayList<Pattern>();
             for (String pattern : patterns) {
                 Pattern parsedPattern = new Pattern();
@@ -157,6 +190,27 @@ public class PatternValueProvider extends ValueProvider
         }
         return parsedPatterns;
     }
+
+    @Transient
+    private java.util.regex.Pattern getRequestedValuePattern()
+    {
+        if (requestedValuePattern == null) {
+            StringBuilder patternBuilder = new StringBuilder();
+            for (Pattern pattern : getParsedPatterns()) {
+                if (patternBuilder.length() > 0) {
+                    patternBuilder.append("|");
+                }
+                patternBuilder.append("(");
+                for (Pattern.PatternComponent patternComponent : pattern) {
+                    patternBuilder.append(patternComponent.getRegexPattern());
+                }
+                patternBuilder.append(")");
+            }
+            requestedValuePattern = java.util.regex.Pattern.compile(patternBuilder.toString());
+        }
+        return requestedValuePattern;
+    }
+
 
     @Override
     public String generateValue(Set<String> usedValues)
@@ -182,25 +236,15 @@ public class PatternValueProvider extends ValueProvider
     @Transient
     public String generateValue(Set<String> usedValues, String requestedValue)
     {
-        for (Pattern pattern : getParsedPatterns()) {
-            if (pattern.size() == 1) {
-                Pattern.PatternComponent patternComponent = pattern.get(0);
-                if (patternComponent instanceof Pattern.StringPatternComponent) {
-                    if (Pattern.StringPatternComponent.VALUE_PATTERN.matcher(requestedValue).matches()) {
-                        if (!usedValues.contains(requestedValue)) {
-                            return requestedValue;
-                        }
-                    }
-                }
-                else {
-                    throw new TodoImplementException("PatternValueGenerator.isValueAvailable for %s.",
-                            patternComponent.getClass().getSimpleName());
-                }
-            }
-            else {
-                throw new TodoImplementException("PatternValueGenerator.isValueAvailable for multiple components.");
+        if (!isAllowAnyRequestedValue()) {
+            Matcher matcher = getRequestedValuePattern().matcher(requestedValue);
+            if (!matcher.matches()) {
+                return null;
             }
         }
-        return null;
+        if (usedValues.contains(requestedValue)) {
+            return null;
+        }
+        return requestedValue;
     }
 }

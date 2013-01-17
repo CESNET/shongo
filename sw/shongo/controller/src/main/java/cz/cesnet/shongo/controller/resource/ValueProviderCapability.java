@@ -55,11 +55,12 @@ public class ValueProviderCapability extends Capability
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        cz.cesnet.shongo.controller.api.ValueProviderCapability apiValueProvider =
+        cz.cesnet.shongo.controller.api.ValueProviderCapability valueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProviderCapability) api;
         for (String pattern : valueProvider.getPatterns()) {
-            apiValueProvider.addPattern(pattern);
+            valueProviderApi.addPattern(pattern);
         }
+        valueProviderApi.setAllowAnyRequestedValue(valueProvider.isAllowAnyRequestedValue());
         super.toApi(api);
     }
 
@@ -67,11 +68,14 @@ public class ValueProviderCapability extends Capability
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.ValueProviderCapability apiValueProvider =
+        cz.cesnet.shongo.controller.api.ValueProviderCapability valueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProviderCapability) api;
+        if (valueProviderApi.isPropertyFilled(valueProviderApi.ALLOW_ANY_REQUESTED_VALUE)) {
+            valueProvider.setAllowAnyRequestedValue(valueProviderApi.getAllowAnyRequestedValue());
+        }
 
         // Create patterns
-        for (String pattern : apiValueProvider.getPatterns()) {
+        for (String pattern : valueProviderApi.getPatterns()) {
             if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.ValueProviderCapability.PATTERNS,
                     pattern)) {
                 valueProvider.addPattern(pattern);

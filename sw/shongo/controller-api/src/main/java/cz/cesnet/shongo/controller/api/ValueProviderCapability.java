@@ -21,6 +21,12 @@ public class ValueProviderCapability extends Capability
     public static final String PATTERNS = "patterns";
 
     /**
+     * Option specifying whether any requested values are allowed event those which doesn't
+     * match the {@link #PATTERNS}.
+     */
+    public static final String ALLOW_ANY_REQUESTED_VALUE = "allowAnyRequestedValue";
+
+    /**
      * Constructor.
      */
     public ValueProviderCapability()
@@ -35,6 +41,16 @@ public class ValueProviderCapability extends Capability
     public ValueProviderCapability(String pattern)
     {
         addPattern(pattern);
+    }
+
+    /**
+     * @return this {@link ValueProviderCapability} with
+     *         {@link ValueProvider.Pattern#ALLOW_ANY_REQUESTED_VALUE} set to true
+     */
+    public ValueProviderCapability withAllowedAnyRequestedValue()
+    {
+        setAllowAnyRequestedValue(true);
+        return this;
     }
 
     /**
@@ -68,5 +84,21 @@ public class ValueProviderCapability extends Capability
     public void removePattern(String pattern)
     {
         getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
+    }
+
+    /**
+     * @return {@link #ALLOW_ANY_REQUESTED_VALUE}
+     */
+    public Boolean getAllowAnyRequestedValue()
+    {
+        return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE);
+    }
+
+    /**
+     * @param allowAnyRequestedValue sets the {@link #ALLOW_ANY_REQUESTED_VALUE}
+     */
+    public void setAllowAnyRequestedValue(Boolean allowAnyRequestedValue)
+    {
+        getPropertyStorage().setValue(ALLOW_ANY_REQUESTED_VALUE, allowAnyRequestedValue);
     }
 }

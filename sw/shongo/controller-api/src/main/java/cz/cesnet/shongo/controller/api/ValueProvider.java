@@ -29,6 +29,12 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         public static final String PATTERNS = "patterns";
 
         /**
+         * Option specifying whether any requested values are allowed event those which doesn't
+         * match the {@link #PATTERNS}.
+         */
+        public static final String ALLOW_ANY_REQUESTED_VALUE = "allowAnyRequestedValue";
+
+        /**
          * Constructor.
          */
         public Pattern()
@@ -76,6 +82,22 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         public void removePattern(String pattern)
         {
             getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
+        }
+
+        /**
+         * @return {@link #ALLOW_ANY_REQUESTED_VALUE}
+         */
+        public Boolean getAllowAnyRequestedValue()
+        {
+            return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE);
+        }
+
+        /**
+         * @param allowAnyRequestedValue sets the {@link #ALLOW_ANY_REQUESTED_VALUE}
+         */
+        public void setAllowAnyRequestedValue(Boolean allowAnyRequestedValue)
+        {
+            getPropertyStorage().setValue(ALLOW_ANY_REQUESTED_VALUE, allowAnyRequestedValue);
         }
     }
 

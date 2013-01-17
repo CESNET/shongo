@@ -13,19 +13,14 @@ import java.util.regex.Matcher;
 public class Pattern extends ArrayList<Pattern.PatternComponent>
 {
     /**
-     * Length of automatic generated strings by "{string}" pattern.
-     */
-    public static final int STRING_PATTERN_LENGTH = 8;
-
-    /**
      * Regex for {@link Pattern.NumberPatternComponent}.
      */
     private static final java.util.regex.Pattern NUMBER_PATTERN = java.util.regex.Pattern.compile("digit:(\\d+)");
 
     /**
-     * Regex for {@link Pattern.StringPatternComponent}
+     * Regex for {@link cz.cesnet.shongo.controller.resource.value.Pattern.HashPatternComponent}
      */
-    private static final java.util.regex.Pattern STRING_PATTERN = java.util.regex.Pattern.compile("string");
+    private static final java.util.regex.Pattern HASH_PATTERN = java.util.regex.Pattern.compile("hash(:(\\d+))?");
 
     /**
      * Single value pattern.
@@ -52,11 +47,14 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
             }
             String component = pattern.substring(start + 1, end);
             Matcher numberMatcher = NUMBER_PATTERN.matcher(component);
+            Matcher hashMatcher = HASH_PATTERN.matcher(component);
             if (numberMatcher.matches()) {
                 add(new Pattern.NumberPatternComponent(Integer.valueOf(numberMatcher.group(1))));
             }
-            else if (STRING_PATTERN.matcher(component).matches()) {
-                add(new Pattern.StringPatternComponent());
+            else if (hashMatcher.matches()) {
+                add(new HashPatternComponent((hashMatcher.group(2) != null
+                                                      ? Integer.valueOf(hashMatcher.group(2))
+                                                      : HashPatternComponent.DEFAULT_LENGTH)));
             }
             else {
                 throw new IllegalArgumentException("Component '{" + component + "}' is in wrong format.");
@@ -107,7 +105,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
                     generatedPatternComponent.reset();
                 }
             }
-            builder.insert(0, patternComponent.getComponent());
+            builder.insert(0, patternComponent.getConstant());
         }
 
         if (performNextComponent && (!singleValuePattern || generatedCount > 0)) {
@@ -125,40 +123,51 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         /**
          * @return new value for pattern component if possible, null otherwise
          */
-        public String getComponent();
+        public String getConstant();
+
+        /**
+         * @return regex pattern for allowed values
+         */
+        public String getRegexPattern();
     }
 
     /**
      * {@link PatternComponent} which returns always same string.
      */
-    static class ConstantPatternComponent implements PatternComponent
+    public static class ConstantPatternComponent implements PatternComponent
     {
         /**
          * Same string which is returned
          */
-        private String component;
+        private String constant;
 
         /**
          * Constructor.
          *
-         * @param component sets the {@link #component}
+         * @param constant sets the {@link #constant}
          */
-        public ConstantPatternComponent(String component)
+        public ConstantPatternComponent(String constant)
         {
-            this.component = component;
+            this.constant = constant;
         }
 
         @Override
-        public String getComponent()
+        public String getConstant()
         {
-            return component;
+            return constant;
+        }
+
+        @Override
+        public String getRegexPattern()
+        {
+            return java.util.regex.Pattern.quote(constant);
         }
     }
 
     /**
      * {@link PatternComponent} which returns generated component.
      */
-    static interface GeneratedPatternComponent extends PatternComponent
+    public static interface GeneratedPatternComponent extends PatternComponent
     {
         /**
          * Reset generating.
@@ -179,8 +188,13 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
     /**
      * {@link PatternComponent} which returns increasing numbers of given length.
      */
-    static class NumberPatternComponent implements GeneratedPatternComponent
+    public static class NumberPatternComponent implements GeneratedPatternComponent
     {
+        /**
+         * Maximum length.
+         */
+        private int length;
+
         /**
          * Format for numbers.
          */
@@ -206,6 +220,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
             if (length < 1 || length > 10) {
                 throw new IllegalArgumentException("Length of number component should be in range from 1 to 10.");
             }
+            this.length = length;
             this.format = "%0" + Integer.valueOf(length).toString() + "d";
             this.maxValue = (int) Math.pow(10, length) - 1;
             reset();
@@ -218,7 +233,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         }
 
         @Override
-        public String getComponent()
+        public String getConstant()
         {
             if (currentValue > maxValue) {
                 return null;
@@ -237,18 +252,32 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         {
             return currentValue <= maxValue;
         }
+
+        @Override
+        public String getRegexPattern()
+        {
+            StringBuilder regexPatternBuilder = new StringBuilder();
+            regexPatternBuilder.append("\\d{");
+            regexPatternBuilder.append(length - 1);
+            regexPatternBuilder.append("}");
+            return regexPatternBuilder.toString();
+        }
     }
 
     /**
-     * {@link PatternComponent} which returns increasing numbers of given length.
+     * {@link PatternComponent} which returns alphanumeric string of given length
      */
-    static class StringPatternComponent implements GeneratedPatternComponent
+    public static class HashPatternComponent implements GeneratedPatternComponent
     {
         /**
-         * Pattern for matching correct values.
+         * Default hash length (if the length isn't explicitly specified).
          */
-        static final java.util.regex.Pattern VALUE_PATTERN =
-                java.util.regex.Pattern.compile("^\\p{Alpha}[\\p{Alnum}_-]*$");
+        public static int DEFAULT_LENGTH = 6;
+
+        /**
+         * Length of the string.
+         */
+        private int length;
 
         /**
          * Current number.
@@ -258,8 +287,12 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         /**
          * Constructor.
          */
-        public StringPatternComponent()
+        public HashPatternComponent(int length)
         {
+            if (length <= 0) {
+                throw new IllegalArgumentException("Hash length must be greater than zero.");
+            }
+            this.length = length;
             reset();
         }
 
@@ -267,11 +300,11 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         public void nextComponent()
         {
             currentValue = RandomStringUtils.randomAlphabetic(1).toLowerCase();
-            currentValue += RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH - 1).toLowerCase();
+            currentValue += RandomStringUtils.randomAlphanumeric(length - 1).toLowerCase();
         }
 
         @Override
-        public String getComponent()
+        public String getConstant()
         {
             return currentValue;
         }
@@ -285,6 +318,17 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         public boolean available()
         {
             return true;
+        }
+
+        @Override
+        public String getRegexPattern()
+        {
+            StringBuilder regexPatternBuilder = new StringBuilder();
+            regexPatternBuilder.append("\\p{Alpha}");
+            regexPatternBuilder.append("[\\p{Alnum}_-]{");
+            regexPatternBuilder.append(length - 1);
+            regexPatternBuilder.append("}");
+            return regexPatternBuilder.toString();
         }
     }
 }

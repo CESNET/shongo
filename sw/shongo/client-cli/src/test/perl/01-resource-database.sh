@@ -7,10 +7,11 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         name: 'namingService', \
         description: 'Naming service for all technologies', \
         allocatable: 1, \
-        maximumFuture: 'P4M', \
+        maximumFuture: 'P1Y', \
         capabilities: [{ \
             class: 'ValueProviderCapability', \
-            patterns: ['{string}'], \
+            patterns: ['shongo-{hash}'], \
+            allowAnyRequestedValue: 1, \
         }] \
     }" \
 --cmd "\
@@ -40,6 +41,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         },{ \
             class: 'AliasProviderCapability', \
             valueProvider: { \
+                class: 'ValueProvider.Pattern', \
                 patterns: ['{digit:2}'], \
             }, \
             aliases: [ \

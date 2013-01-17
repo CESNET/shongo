@@ -81,6 +81,16 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
+     * @return this {@link AliasProviderCapability} with {@link #VALUE_PROVIDER} which has
+     *         {@link ValueProvider.Pattern#ALLOW_ANY_REQUESTED_VALUE} set to true
+     */
+    public AliasProviderCapability withAllowedAnyRequestedValue()
+    {
+        ((ValueProvider.Pattern)getValueProvider()).setAllowAnyRequestedValue(true);
+        return this;
+    }
+
+    /**
      * @return this {@link AliasProviderCapability} with {@link #RESTRICTED_TO_RESOURCE} set to {@code true}
      */
     public AliasProviderCapability withRestrictedToResource()

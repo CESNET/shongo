@@ -1,6 +1,7 @@
 * 2 paragraphs of shongo features
 
 * String aliases
+  -add AliasSpecifications to RoomSpecification
   -connect alias (ValueProvider should allocated url_encoded value)
   -load lazy collections in overridden method
   -check add new pattern to value provider

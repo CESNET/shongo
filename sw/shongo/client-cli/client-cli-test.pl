@@ -36,12 +36,18 @@ if ( scalar(@scripts) == 0 ) {
 # Sort scripts
 @scripts = sort(@scripts);
 
+# Open controller log
+my $controller_log="client-cli/controller-test.log";
+unlink $controller_log;
+open(CONTROLLER_LOG, ">>$controller_log") || die("Cannot open $controller_log.");
+
 # Start controller
 my $prefix = ">>";
 my $started = 0;
 print("$prefix Starting controller...\n");
 my $pid = open2(\*CONTROLLER_READER, \*CONTROLLER_WRITER, "bin/controller.sh --config client-cli/src/test/resources/controller-test.cfg.xml");
 while ( $started == 0 && defined(my $line = <CONTROLLER_READER>)  ) {
+    print CONTROLLER_LOG "$line";
     if ( $line =~ /Controller successfully started/ ) {
         $started = 1;
     }
@@ -72,6 +78,7 @@ foreach my $file (@scripts) {
 print("\n$prefix Stopping controller...\n");
 print CONTROLLER_WRITER "exit\n";
 while ( defined(my $line = <CONTROLLER_READER>)  ) {
+    print CONTROLLER_LOG "$line";
     if ( $started == 0 ) {
         print "$prefix $line";
     }
@@ -82,5 +89,6 @@ while ( defined(my $line = <CONTROLLER_READER>)  ) {
 print("$prefix Controller successfully stopped.\n");
 close(CONTROLLER_READER);
 close(CONTROLLER_WRITER);
+close(CONTROLLER_LOG);
 
 system("rm -R data-test/");
