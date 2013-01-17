@@ -9,7 +9,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         slot: '`date +"%Y-%m-%d"`T12:00/PT1H', \
         specification: { \
             class: 'RoomSpecification', \
-            technologies: ['H323'], \
+            technologies: ['H323', 'SIP'], \
             participantCount: 5 \
         } \
     }" \

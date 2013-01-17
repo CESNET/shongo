@@ -161,7 +161,7 @@ public class AliasReservationTask extends ReservationTask
         }
 
         // Find available value in the alias providers
-        AvailableValue availableValue = null;
+        ValueReservation availableValueReservation = null;
         AliasProviderCapability availableValueAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Check whether alias provider matches the criteria
@@ -211,50 +211,23 @@ public class AliasReservationTask extends ReservationTask
             }
 
             // Get new available value
-            ValueCache valueCache = getCache().getValueCache();
-            availableValue = valueCache.getAvailableAlias(aliasProvider.getValueProvider(), value, interval,
-                    cacheTransaction.getValueCacheTransaction());
-            availableValueAliasProvider = aliasProvider;
-            if (availableValue != null) {
+            Reservation valueReservation = ValueReservationTask.createReservation(
+                    aliasProvider.getValueProvider(), value, interval, cache.getValueCache(), cacheTransaction);
+            if (valueReservation != null) {
+                availableValueReservation = addChildReservation(valueReservation, ValueReservation.class);
+                availableValueAliasProvider = aliasProvider;
                 break;
             }
         }
-        if (availableValue == null) {
+        if (availableValueReservation == null) {
             throw new NoAvailableAliasReport(technologies, aliasType, value).exception();
-        }
-
-        // Create value reservation
-        ValueReservation valueReservation = null;
-
-        // Reuse existing value reservation
-        ValueReservation providedValueReservation = availableValue.getValueReservation();
-        if (providedValueReservation != null) {
-            ExistingReservation existingValueReservation = new ExistingReservation();
-            existingValueReservation.setSlot(getInterval());
-            existingValueReservation.setReservation(providedValueReservation);
-            addChildReservation(existingValueReservation);
-            cacheTransaction.removeProvidedReservation(providedValueReservation);
-
-            // Use the existing value reservation
-            valueReservation = providedValueReservation;
-        }
-        // Allocate new value reservation
-        else {
-            ValueReservation newValueReservation = new ValueReservation();
-            newValueReservation.setSlot(getInterval());
-            newValueReservation.setValueProvider(availableValue.getValueProvider());
-            newValueReservation.setValue(availableValue.getValue());
-            addChildReservation(newValueReservation);
-
-            // Use the new value reservation
-            valueReservation = newValueReservation;
         }
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
         aliasReservation.setAliasProviderCapability(availableValueAliasProvider);
-        aliasReservation.setValueReservation(valueReservation);
+        aliasReservation.setValueReservation(availableValueReservation);
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).

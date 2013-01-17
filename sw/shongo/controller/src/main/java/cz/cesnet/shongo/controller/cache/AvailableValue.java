@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 
 /**
- * Represents an available value in a {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}.
+ * Represents an available value in a {@link ValueProvider}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -25,22 +25,6 @@ public class AvailableValue
      *  Provided {@link ValueReservation} by which the {@link AvailableValue} is already allocated.
      */
     private ValueReservation valueReservation;
-
-    /**
-     * @return {@link #valueProvider}
-     */
-    public ValueProvider getValueProvider()
-    {
-        return valueProvider;
-    }
-
-    /**
-     * @param valueProvider sets the {@link #valueProvider}
-     */
-    public void setValueProvider(ValueProvider valueProvider)
-    {
-        this.valueProvider = valueProvider;
-    }
 
     /**
      * @return {@link #value}

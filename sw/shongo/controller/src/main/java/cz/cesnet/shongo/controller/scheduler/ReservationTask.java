@@ -135,11 +135,24 @@ public abstract class ReservationTask
 
     /**
      * @param reservation to be added to the {@link #childReservations}
+     * @return given {@code reservation} or {@link ExistingReservation#getTargetReservation()}
      */
-    public void addChildReservation(Reservation reservation)
+    public Reservation addChildReservation(Reservation reservation)
     {
         childReservations.add(reservation);
         getCacheTransaction().addAllocatedReservation(reservation);
+        return reservation.getTargetReservation();
+    }
+
+    /**
+     * @param reservation to be added to the {@link #childReservations}
+     * @return given {@code reservation} or {@link ExistingReservation#getTargetReservation()}
+     */
+    public final <R extends Reservation> R  addChildReservation(Reservation reservation, Class<R> reservationClass)
+    {
+        childReservations.add(reservation);
+        getCacheTransaction().addAllocatedReservation(reservation);
+        return reservationClass.cast(reservation.getTargetReservation());
     }
 
     /**
@@ -151,12 +164,7 @@ public abstract class ReservationTask
             throws ReportException
     {
         Reservation reservation = reservationTask.perform();
-        addChildReservation(reservation);
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            reservation = existingReservation.getTargetReservation();
-        }
-        return reservation;
+        return addChildReservation(reservation);
     }
 
     /**

@@ -136,15 +136,14 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     @Override
-    public void addChildReservation(Reservation reservation)
+    public Reservation addChildReservation(Reservation reservation)
     {
-        super.addChildReservation(reservation);
-
-        reservation = reservation.getTargetReservation();
+        reservation = super.addChildReservation(reservation);
         if (reservation instanceof EndpointProvider) {
             EndpointProvider endpointProvider = (EndpointProvider) reservation;
             addEndpoint(endpointProvider.getEndpoint());
         }
+        return reservation;
     }
 
     /**

@@ -3,13 +3,15 @@
 * String aliases
   -connect alias (ValueProvider should allocated url_encoded value)
   -load lazy collections in overridden method
-  -implement FilteredValueProvider and corresponding API object
+  -check add new pattern to value provider
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 
 * info mails
   -implement for aliases
   -hide identifiers (move to end)
+
+* Improve value generation performance
 
 * Web client
   -now button in date picker
@@ -20,7 +22,7 @@
 
 * log all connector actions
 
-* Update API
+* Update API                                   -
   -reservation - reservationRequestId, name
   -controller configuratio
   -ValueProvider, AliasProvider

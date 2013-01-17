@@ -10,7 +10,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         maximumFuture: 'P4M', \
         capabilities: [{ \
             class: 'ValueProviderCapability', \
-            patterns: ['{digit:2}'], \
+            patterns: ['{string}'], \
         }] \
     }" \
 --cmd "\

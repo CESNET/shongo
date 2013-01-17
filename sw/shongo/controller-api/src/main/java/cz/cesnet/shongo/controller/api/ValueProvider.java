@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.controller.FilterType;
 
 import java.util.List;
 
@@ -77,20 +79,74 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         }
     }
 
+    /**
+     * {@link ValueProvider} which allocates filtered values from different {@link ValueProvider}.
+     */
     public static class Filtered extends ValueProvider
     {
         /**
-         * {@link ValueProvider} which is filtered.
+         * Identifier of resource with {@link ValueProviderCapability} or instance of the {@link ValueProvider}.
+         * {@link ValueProvider} from which the values are allocated.
          */
-        private ValueProvider valueProvider;
+        public static final String VALUE_PROVIDER = "valueProvider";
 
-        private FilterType filterType;
+        /**
+         * Filtration type.
+         */
+        public static final String TYPE = "type";
 
-        public static enum FilterType
+        /**
+         * Constructor.
+         */
+        public Filtered()
         {
-            NONE,
+        }
 
-            CONVERT_TO_URL
+        /**
+         * Constructor.
+         *
+         * @param type       sets the {@link #TYPE}
+         * @param resourceId sets the {@link #VALUE_PROVIDER}
+         */
+        public Filtered(FilterType type, String resourceId)
+        {
+            setType(type);
+            setValueProvider(resourceId);
+        }
+
+        /**
+         * @return {@link #VALUE_PROVIDER}
+         */
+        @Required
+        @AllowedTypes({String.class, ValueProvider.class})
+        public Object getValueProvider()
+        {
+            return getPropertyStorage().getValue(VALUE_PROVIDER);
+        }
+
+        /**
+         * @param valueProvider sets the {@link #VALUE_PROVIDER}
+         */
+        public void setValueProvider(Object valueProvider)
+        {
+            getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
+        }
+
+        /**
+         * @return {@link #TYPE}
+         */
+        @Required
+        public FilterType getType()
+        {
+            return getPropertyStorage().getValue(TYPE);
+        }
+
+        /**
+         * @param type sets the {@link #TYPE}
+         */
+        public void setType(FilterType type)
+        {
+            getPropertyStorage().setValue(TYPE, type);
         }
     }
 }

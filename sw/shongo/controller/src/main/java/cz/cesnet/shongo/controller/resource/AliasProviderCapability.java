@@ -282,19 +282,19 @@ public class AliasProviderCapability extends Capability
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Capability capabilityApi, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.AliasProviderCapability apiAliasProvider =
-                (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_RESOURCE)) {
-            setRestrictedToResource(apiAliasProvider.getRestrictedToResource());
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderApi =
+                (cz.cesnet.shongo.controller.api.AliasProviderCapability) capabilityApi;
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.RESTRICTED_TO_RESOURCE)) {
+            setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
         }
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.PERMANENT_ROOM)) {
-            setPermanentRoom(apiAliasProvider.getPermanentRoom());
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.PERMANENT_ROOM)) {
+            setPermanentRoom(aliasProviderApi.getPermanentRoom());
         }
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.VALUE_PROVIDER)) {
-            Object valueProvider = apiAliasProvider.getValueProvider();
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.VALUE_PROVIDER)) {
+            Object valueProvider = aliasProviderApi.getValueProvider();
             if (valueProvider instanceof String) {
                 Long resourceId = Domain.getLocalDomain().parseId((String) valueProvider);
                 ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -315,8 +315,8 @@ public class AliasProviderCapability extends Capability
         }
 
         // Create/modify aliases
-        for (cz.cesnet.shongo.api.Alias apiAlias : apiAliasProvider.getAliases()) {
-            if (api.isPropertyItemMarkedAsNew(apiAliasProvider.ALIASES, apiAlias)) {
+        for (cz.cesnet.shongo.api.Alias apiAlias : aliasProviderApi.getAliases()) {
+            if (capabilityApi.isPropertyItemMarkedAsNew(aliasProviderApi.ALIASES, apiAlias)) {
                 Alias alias = new Alias();
                 alias.fromApi(apiAlias);
                 addAlias(alias);
@@ -328,11 +328,11 @@ public class AliasProviderCapability extends Capability
         }
         // Delete aliases
         Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases =
-                api.getPropertyItemsMarkedAsDeleted(apiAliasProvider.ALIASES);
+                capabilityApi.getPropertyItemsMarkedAsDeleted(aliasProviderApi.ALIASES);
         for (cz.cesnet.shongo.api.Alias apiAlias : apiDeletedAliases) {
             removeAlias(getAliasById(apiAlias.notNullIdAsLong()));
         }
 
-        super.fromApi(api, entityManager);
+        super.fromApi(capabilityApi, entityManager);
     }
 }

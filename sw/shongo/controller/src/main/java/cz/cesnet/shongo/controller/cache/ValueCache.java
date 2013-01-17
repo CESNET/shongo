@@ -4,8 +4,6 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
-import cz.cesnet.shongo.controller.resource.value.ValueGenerator;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,13 +63,6 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         super.removeObject(object);
     }
 
-    @Override
-    public void clear()
-    {
-        valueProviderByResourceId.clear();
-        super.clear();
-    }
-
     /**
      * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link ValueCache}.
      *
@@ -89,6 +80,13 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
             }
             valueProviders.clear();
         }
+    }
+
+    @Override
+    public void clear()
+    {
+        valueProviderByResourceId.clear();
+        super.clear();
     }
 
     @Override
@@ -112,7 +110,7 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
      * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableValue getAvailableAlias(ValueProvider valueProvider, String requestedValue, Interval interval,
+    public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue, Interval interval,
             Transaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
@@ -145,26 +143,23 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         }
         // Else use generated value
         if (value == null) {
-            ObjectState<ValueReservation> valueProviderState = getObjectStateRequired(valueProvider);
+            ObjectState<ValueReservation> valueProviderState = (ObjectState) getObjectStateRequired(valueProvider);
             Set<ValueReservation> allocatedValues = valueProviderState.getReservations(interval, transaction);
-            ValueGenerator valueGenerator = valueProvider.getValueGenerator();
-            for (ValueReservation allocatedValueReservation : allocatedValues) {
-                valueGenerator.addValue(allocatedValueReservation.getValue());
+            Set<String> usedValues = new HashSet<String>();
+            for (ValueReservation allocatedValue : allocatedValues) {
+                usedValues.add(allocatedValue.getValue());
             }
             if (requestedValue != null) {
-                if (valueGenerator.isValueAvailable(requestedValue)) {
-                    value = requestedValue;
-                }
+                value = valueProvider.generateValue(usedValues, requestedValue);
             }
             else {
-                value = valueGenerator.generateValue();
+                value = valueProvider.generateValue(usedValues);
             }
         }
         if (value == null) {
             return null;
         }
         AvailableValue availableAlias = new AvailableValue();
-        availableAlias.setValueProvider(valueProvider);
         availableAlias.setValue(value);
         availableAlias.setValueReservation(valueReservation);
         return availableAlias;

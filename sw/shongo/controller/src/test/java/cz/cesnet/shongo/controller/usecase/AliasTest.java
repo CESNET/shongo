@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
@@ -99,6 +100,38 @@ public class AliasTest extends AbstractControllerTest
         reservationRequestThird.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestThird.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         allocateAndCheck(reservationRequestThird);
+    }
+
+    /**
+     * Test allocation of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testFilteredValue() throws Exception
+    {
+        Resource valueProvider = new Resource();
+        valueProvider.setName("valueProvider");
+        valueProvider.setAllocatable(true);
+        valueProvider.addCapability(new ValueProviderCapability("{string}"));
+        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("firstAliasProvider");
+        aliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(
+                new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "127.0.0.1/{value}"));
+        aliasProvider.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("Test Test"));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals("Requested value should be allocated as url.", "test-test", aliasReservation.getValue());
     }
 
     /**

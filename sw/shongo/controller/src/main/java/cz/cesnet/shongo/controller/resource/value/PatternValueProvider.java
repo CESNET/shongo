@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -71,6 +72,9 @@ public class PatternValueProvider extends ValueProvider
     public void addPattern(String pattern)
     {
         this.patterns.add(pattern);
+        if (this.parsedPatterns != null) {
+            throw new TodoImplementException("Add parsed pattern.");
+        }
     }
 
     /**
@@ -79,6 +83,9 @@ public class PatternValueProvider extends ValueProvider
     public void removePattern(String pattern)
     {
         this.patterns.remove(pattern);
+        if (this.parsedPatterns != null) {
+            throw new TodoImplementException("Remove parsed pattern.");
+        }
     }
 
     @Override
@@ -129,9 +136,71 @@ public class PatternValueProvider extends ValueProvider
         }
     }
 
+    /**
+     * Patterns for the generating.
+     */
+    private List<Pattern> parsedPatterns;
+
+    /**
+     * @return initialized {@link #parsedPatterns}
+     */
     @Transient
-    public ValueGenerator getValueGenerator()
+    private List<Pattern> getParsedPatterns()
     {
-        return new PatternValueGenerator(getPatterns());
+        if ( parsedPatterns == null) {
+            parsedPatterns = new ArrayList<Pattern>();
+            for (String pattern : patterns) {
+                Pattern parsedPattern = new Pattern();
+                parsedPattern.parse(pattern);
+                parsedPatterns.add(parsedPattern);
+            }
+        }
+        return parsedPatterns;
+    }
+
+    @Override
+    public String generateValue(Set<String> usedValues)
+    {
+        String value = null;
+        for (Pattern pattern : getParsedPatterns()) {
+            pattern.reset();
+            do {
+                value = pattern.generate();
+            } while (value != null && usedValues.contains(value));
+            if (value != null) {
+                break;
+            }
+        }
+        if (value == null) {
+            return null;
+        }
+
+        return value;
+    }
+
+    @Override
+    @Transient
+    public String generateValue(Set<String> usedValues, String requestedValue)
+    {
+        for (Pattern pattern : getParsedPatterns()) {
+            if (pattern.size() == 1) {
+                Pattern.PatternComponent patternComponent = pattern.get(0);
+                if (patternComponent instanceof Pattern.StringPatternComponent) {
+                    if (Pattern.StringPatternComponent.VALUE_PATTERN.matcher(requestedValue).matches()) {
+                        if (!usedValues.contains(requestedValue)) {
+                            return requestedValue;
+                        }
+                    }
+                }
+                else {
+                    throw new TodoImplementException("PatternValueGenerator.isValueAvailable for %s.",
+                            patternComponent.getClass().getSimpleName());
+                }
+            }
+            else {
+                throw new TodoImplementException("PatternValueGenerator.isValueAvailable for multiple components.");
+            }
+        }
+        return null;
     }
 }

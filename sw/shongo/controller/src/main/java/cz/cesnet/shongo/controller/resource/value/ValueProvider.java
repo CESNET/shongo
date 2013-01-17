@@ -1,12 +1,14 @@
 package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * Object which can allocate unique values.
@@ -117,8 +119,40 @@ public abstract class ValueProvider extends PersistentObject
     }
 
     /**
-     * @return {@link ValueGenerator} which can be used for generating unique values
+     * @param usedValues set of already used values (which should not be generated)
+     * @return new generated value if available,
+     *         null otherwise
+     */
+    public abstract String generateValue(Set<String> usedValues);
+
+    /**
+     *
+     * @param usedValues     set of already used values (which should not be generated)
+     * @param requestedValue which should be generated
+     * @return new generated value based on {@code value} if available,
+     *         null otherwise
      */
     @Transient
-    public abstract ValueGenerator getValueGenerator();
+    public abstract String generateValue(Set<String> usedValues, String requestedValue);
+
+    /**
+     * @param usedValues set of already used values (which should not be generated)
+     * @return new generated value and append the value to the {@code usedValues}
+     */
+    public final String generateAddedValue(Set<String> usedValues)
+    {
+        String generatedValue = generateValue(usedValues);
+        usedValues.add(generatedValue);
+        return generatedValue;
+    }
+
+    /**
+     * @return {@link ValueProvider} which should be used in {@link ValueReservation}s for values generated
+     *         by this {@link ValueProvider}.
+     */
+    @Transient
+    public ValueProvider getTargetValueProvider()
+    {
+        return this;
+    }
 }
