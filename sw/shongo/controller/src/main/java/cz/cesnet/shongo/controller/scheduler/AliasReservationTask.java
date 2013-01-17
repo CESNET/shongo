@@ -246,7 +246,7 @@ public class AliasReservationTask extends ReservationTask
             roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
             Set<Technology> technologies = roomEndpoint.getTechnologies();
             for (Alias alias : aliasReservation.getAliases()) {
-                if (technologies.contains(alias.getTechnology())) {
+                if (alias.getTechnology().isCompatibleWith(technologies)) {
                     roomEndpoint.addAssignedAlias(alias);
                 }
             }

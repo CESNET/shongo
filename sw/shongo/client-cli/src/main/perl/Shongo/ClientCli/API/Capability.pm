@@ -97,20 +97,23 @@ sub on_init()
                 'complex' => 0,
                 'required' => 1
             });
+            $self->add_attribute('allowAnyRequestedValue', {
+                'title' => 'Allow All Values',
+                'type' => 'bool'
+            });
         }
         case 'AliasProviderCapability' {
-            $self->add_attribute(
-                'aliases', {
-                    'type' => 'collection',
-                    'item' => {
-                        'title' => 'Alias',
-                        'class' => 'Shongo::ClientCli::API::Alias',
-                        'short' => 1
-                    }
+            $self->add_attribute('aliases', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Alias',
+                    'class' => 'Shongo::ClientCli::API::Alias',
+                    'short' => 1
                 }
-            );
+            });
             $self->add_attribute('valueProvider', {
                 'title' => 'Value Provider',
+                'complex' => 1,
                 'format' => sub {
                     my ($valueProvider) = @_;
                     if ( ref($valueProvider) ) {
@@ -122,23 +125,28 @@ sub on_init()
                 },
                 'modify' => sub {
                     my ($attribute_value) = @_;
-                    my $valueProvider = undef;
+                    my $value_provider = undef;
                     if ( ref($attribute_value) ) {
-                        $valueProvider = 1;
+                        $value_provider = $attribute_value->{'class'};
                     }
                     elsif ( defined($attribute_value) ) {
-                        $valueProvider = 0;
+                        $value_provider = NULL();
                     }
 
-                    $valueProvider = console_edit_enum('Select type of value provider', ordered_hash(
-                        0 => 'Other Resource',
-                        1 => 'Definition'), $valueProvider
+                    my $new_value_provider = console_edit_enum('Select type of value provider',
+                        ordered_hash_merge({ NULL() => 'Other Resource' }, $Shongo::ClientCli::API::ValueProvider::Type),
+                        $value_provider
                     );
-                    if ( $valueProvider == 0 ) {
+                    if ( $new_value_provider ne $value_provider ) {
+                        $attribute_value = undef;
+                        $value_provider = $new_value_provider;
+                    }
+                    if ( $value_provider eq NULL() ) {
                         $attribute_value = console_edit_value('Resource identifier', 1, $Shongo::Common::IdPattern, $attribute_value);
-                    } else {
+                    }
+                    else {
                         if ( !defined($attribute_value) ) {
-                            $attribute_value = Shongo::ClientCli::API::ValueProvider->create();
+                            $attribute_value = Shongo::ClientCli::API::ValueProvider->create({'class' => $value_provider});
                         }
                         else {
                             $attribute_value->modify();
@@ -148,18 +156,14 @@ sub on_init()
                 },
                 'required' => 1
             });
-            $self->add_attribute(
-                'restrictedToResource', {
-                    'title' => 'Restricted to Owner',
-                    'type' => 'bool'
-                }
-            );
-            $self->add_attribute(
-                'permanentRoom', {
-                    'title' => 'Permanent Room',
-                    'type' => 'bool'
-                }
-            );
+            $self->add_attribute('restrictedToResource', {
+                'title' => 'Restricted to Owner',
+                'type' => 'bool'
+            });
+            $self->add_attribute('permanentRoom', {
+                'title' => 'Permanent Room',
+                'type' => 'bool'
+            });
         }
     }
 }

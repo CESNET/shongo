@@ -282,7 +282,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);
 
             // Add new value provider (but only when the alias provider owns the value provider)
-            ValueProvider valueProvider = aliasProvider.getValueProvider();
+            ValueProvider valueProvider = aliasProvider.getValueProvider().getTargetValueProvider();
             if (valueProvider.getCapability().equals(aliasProvider))  {
                 checkPersisted(valueProvider);
                 valueCache.addObject(valueProvider, entityManager);

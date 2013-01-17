@@ -95,9 +95,13 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             requiredAliasTypes: ['ROOM_NAME'], \
         },{ \
             class: 'AliasProviderCapability', \
-            valueProvider: '1', \
+            valueProvider: { \
+                class: 'ValueProvider.Filtered', \
+                type: 'CONVERT_TO_URL', \
+                valueProvider: '1', \
+            }, \
             aliases: [ \
-                { type: 'ROOM_NAME', value: '{value}' }, \
+                { type: 'ROOM_NAME', value: '{requested-value}' }, \
                 { type: 'ADOBE_CONNECT_URI', value: '{device.address}/{value}' } \
             ], \
             permanentRoom: 1, \

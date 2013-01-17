@@ -44,7 +44,7 @@ public abstract class ValueProvider extends PersistentObject
     /**
      * @return {@link #capability}
      */
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public Capability getCapability()
     {

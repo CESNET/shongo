@@ -150,6 +150,73 @@ public class AliasTest extends AbstractControllerTest
     }
 
     /**
+     * Test allocation of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testFilteredWithInner() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("firstAliasProvider");
+        aliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(
+                new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, new ValueProvider.Pattern("{hash}")));
+
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
+        aliasProvider.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals(2, aliasReservation.getAliases().size());
+        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+                aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
+    }
+
+    /**
+     * Test allocation of aliases.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testMultipleFiltered() throws Exception
+    {
+        Resource valueProvider = new Resource();
+        valueProvider.setName("valueProvider");
+        valueProvider.setAllocatable(true);
+        valueProvider.addCapability(new ValueProviderCapability("{hash}").withAllowedAnyRequestedValue());
+        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("firstAliasProvider");
+        aliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(
+                new ValueProvider.Filtered(FilterType.CONVERT_TO_URL,
+                        new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId)));
+
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
+        aliasProvider.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals(2, aliasReservation.getAliases().size());
+        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+                aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
+    }
+
+    /**
      * Test allocation of requested alias value.
      *
      * @throws Exception

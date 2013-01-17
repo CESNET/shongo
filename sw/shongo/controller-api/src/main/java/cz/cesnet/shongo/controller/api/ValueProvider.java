@@ -137,6 +137,18 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         }
 
         /**
+         * Constructor.
+         *
+         * @param type          sets the {@link #TYPE}
+         * @param valueProvider sets the {@link #VALUE_PROVIDER}
+         */
+        public Filtered(FilterType type, ValueProvider valueProvider)
+        {
+            setType(type);
+            setValueProvider(valueProvider);
+        }
+
+        /**
          * @return {@link #VALUE_PROVIDER}
          */
         @Required

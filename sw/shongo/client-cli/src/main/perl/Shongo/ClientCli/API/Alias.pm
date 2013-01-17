@@ -45,25 +45,21 @@ sub new()
 
     $self->set_object_class('Alias');
     $self->set_object_name('Alias');
-    $self->add_attribute(
-        'type', {
-            'required' => 1,
-            'type' => 'enum',
-            'enum' =>  $Type
-        }
-    );
-    $self->add_attribute(
-        'value', {
-            'required' => 1,
-            'type' => 'string',
-            'string-pattern' => sub {
-                if ( !defined($self->get('type')) ) {
-                    return undef;
-                }
-                return $TypePattern->{$self->get('type')};
+    $self->add_attribute('type', {
+        'required' => 1,
+        'type' => 'enum',
+        'enum' =>  $Type
+    });
+    $self->add_attribute('value', {
+        'required' => 1,
+        'type' => 'string',
+        'string-pattern' => sub {
+            if ( !defined($self->get('type')) ) {
+                return undef;
             }
+            return $TypePattern->{$self->get('type')};
         }
-    );
+    });
 
     return $self;
 }

@@ -143,7 +143,8 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         }
         // Else use generated value
         if (value == null) {
-            ObjectState<ValueReservation> valueProviderState = getObjectStateRequired(valueProvider);
+            ObjectState<ValueReservation> valueProviderState =
+                    getObjectStateRequired(valueProvider.getTargetValueProvider());
             Set<ValueReservation> allocatedValues = valueProviderState.getReservations(interval, transaction);
             Set<String> usedValues = new HashSet<String>();
             for (ValueReservation allocatedValue : allocatedValues) {

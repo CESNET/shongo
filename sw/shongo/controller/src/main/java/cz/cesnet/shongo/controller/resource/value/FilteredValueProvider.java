@@ -51,7 +51,7 @@ public class FilteredValueProvider extends ValueProvider
     /**
      * @return {@link #valueProvider}
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     public ValueProvider getValueProvider()
     {
         return valueProvider;
@@ -141,13 +141,24 @@ public class FilteredValueProvider extends ValueProvider
                 setValueProvider(valueProviderCapability.getValueProvider());
             }
             else {
-                if (this.valueProvider == null) {
-                    this.valueProvider =
-                            ValueProvider.createFromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider,
-                                    getCapability(), entityManager);
+                cz.cesnet.shongo.controller.api.ValueProvider targetValueProviderApi =
+                        (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider;
+                // Create new value provider from API
+                ValueProvider newValueProvider =
+                        ValueProvider.createFromApi(valueProviderApi, getCapability(), entityManager);
+
+                // Clear value provider if it is set by the resource id
+                if (this.valueProvider.getCapability() != getCapability()) {
+                    this.valueProvider = null;
                 }
-                this.valueProvider
-                        .fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider, entityManager);
+                // If value provider is not set or if the new value provider is of different type
+                if (this.valueProvider == null || !this.valueProvider.getClass().equals(newValueProvider.getClass())) {
+                    this.valueProvider = newValueProvider;
+                }
+                // Otherwise discard the new vlaue provider and modify the existing one
+                else {
+                    this.valueProvider.fromApi(valueProviderApi, entityManager);
+                }
             }
         }
     }
@@ -155,7 +166,11 @@ public class FilteredValueProvider extends ValueProvider
     @Override
     public String generateValue(Set<String> usedValues)
     {
-        return FilterType.applyFilter(valueProvider.generateValue(usedValues), type);
+        String value = valueProvider.generateValue(usedValues);
+        if (value != null) {
+            value = FilterType.applyFilter(value, type);
+        }
+        return value;
     }
 
     @Override

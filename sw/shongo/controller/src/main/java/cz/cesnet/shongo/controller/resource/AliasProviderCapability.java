@@ -306,11 +306,24 @@ public class AliasProviderCapability extends Capability
                 setValueProvider(valueProviderCapability.getValueProvider());
             }
             else {
-                if (this.valueProvider == null) {
-                    this.valueProvider = ValueProvider.createFromApi(
-                            (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider, this, entityManager);
+                cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi =
+                        (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider;
+
+                // Create new value provider from API
+                ValueProvider newValueProvider = ValueProvider.createFromApi(valueProviderApi, this, entityManager);
+
+                // Clear value provider if it is set by the resource id
+                if (this.valueProvider.getCapability() != this) {
+                    this.valueProvider = null;
                 }
-                this.valueProvider.fromApi((cz.cesnet.shongo.controller.api.ValueProvider) valueProvider, entityManager);
+                // If value provider is not set or if the new value provider is of different type
+                if (this.valueProvider == null || !this.valueProvider.getClass().equals(newValueProvider.getClass())) {
+                    this.valueProvider = newValueProvider;
+                }
+                // Otherwise discard the new vlaue provider and modify the existing one
+                else {
+                    this.valueProvider.fromApi(valueProviderApi, entityManager);
+                }
             }
         }
 
