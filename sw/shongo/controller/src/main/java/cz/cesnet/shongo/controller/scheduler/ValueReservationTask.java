@@ -59,6 +59,7 @@ public class ValueReservationTask
             cacheTransaction.removeProvidedReservation(providedValueReservation);
             return existingValueReservation;
         }
+
         // Allocate new value reservation
         ValueReservation valueReservation;
         if (valueProvider instanceof FilteredValueProvider) {

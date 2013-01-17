@@ -4,6 +4,7 @@
   -connect alias (ValueProvider should allocated url_encoded value)
   -load lazy collections in overridden method
   -check add new pattern to value provider
+  -Multiple alias specification
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

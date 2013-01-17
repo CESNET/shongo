@@ -88,7 +88,7 @@ public class AliasReservation extends Reservation
     private void evaluateAlias(Alias alias)
     {
         String aliasValue = alias.getValue();
-        aliasValue = aliasValue.replace("{value}", valueReservation.getValue());
+        aliasValue = valueReservation.evaluateValue(aliasValue);
         alias.setValue(aliasValue);
         if (aliasProviderCapability.isRestrictedToResource()) {
             Resource resource = aliasProviderCapability.getResource();

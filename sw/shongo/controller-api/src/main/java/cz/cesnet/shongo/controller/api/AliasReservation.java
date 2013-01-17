@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
@@ -55,6 +56,21 @@ public class AliasReservation extends ResourceReservation
     public List<Alias> getAliases()
     {
         return aliases;
+    }
+
+    /**
+     * @param aliasType
+     * @return {@link Alias} with given {@code aliasType}
+     */
+    @Transient
+    public Alias getAlias(AliasType aliasType)
+    {
+        for (Alias alias : aliases) {
+            if (alias.getType().equals(aliasType)) {
+                return alias;
+            }
+        }
+        throw new IllegalArgumentException(aliasType.toString() + " alias doesn't exist.");
     }
 
     /**

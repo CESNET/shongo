@@ -155,7 +155,7 @@ public class FilteredValueProvider extends ValueProvider
     @Override
     public String generateValue(Set<String> usedValues)
     {
-        return valueProvider.generateValue(usedValues);
+        return FilterType.applyFilter(valueProvider.generateValue(usedValues), type);
     }
 
     @Override

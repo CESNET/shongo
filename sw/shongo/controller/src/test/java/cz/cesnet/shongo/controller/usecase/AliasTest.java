@@ -9,6 +9,8 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
+import java.util.List;
+
 import static junit.framework.Assert.assertEquals;
 
 /**
@@ -122,16 +124,29 @@ public class AliasTest extends AbstractControllerTest
         AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
         aliasProviderCapability.setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId));
-        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "127.0.0.1/{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("Test Test"));
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be allocated as url.", "test-test", aliasReservation.getValue());
+        assertEquals(2, aliasReservation.getAliases().size());
+        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+                aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
+
+        reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("Test Test"));
+        aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals("Requested value should be filtered.", "test-test", aliasReservation.getValue());
+        assertEquals(2, aliasReservation.getAliases().size());
+        assertEquals("Test Test", aliasReservation.getAlias(AliasType.ROOM_NAME).getValue());
+        assertEquals("test-test", aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
     }
 
     /**

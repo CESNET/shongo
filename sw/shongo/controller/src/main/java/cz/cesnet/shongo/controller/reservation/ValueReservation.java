@@ -90,4 +90,14 @@ public class ValueReservation extends Reservation
         valueReservationApi.setValue(getValue());
         super.toApi(api);
     }
+
+    /**
+     * @param value to be evaluated
+     * @return evaluated value
+     */
+    public String evaluateValue(String value)
+    {
+        value = value.replace("{value}", this.value);
+        return value;
+    }
 }

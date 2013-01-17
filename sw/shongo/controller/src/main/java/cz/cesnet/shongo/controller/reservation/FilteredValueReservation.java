@@ -39,7 +39,7 @@ public class FilteredValueReservation extends ValueReservation
     /**
      * @return {@link #value}
      */
-    @Column(nullable = false)
+    @Column()
     public String getRequestedValue()
     {
         return requestedValue;
@@ -51,5 +51,12 @@ public class FilteredValueReservation extends ValueReservation
     public void setRequestedValue(String value)
     {
         this.requestedValue = value;
+    }
+
+    @Override
+    public String evaluateValue(String value)
+    {
+        value = value.replace("{requested-value}", (requestedValue != null ? requestedValue : "{value}"));
+        return super.evaluateValue(value);
     }
 }
