@@ -7,10 +7,8 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
-import java.text.Normalizer;
 import java.util.Set;
 
 /**
@@ -51,7 +49,7 @@ public class FilteredValueProvider extends ValueProvider
     /**
      * @return {@link #valueProvider}
      */
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = CascadeType.ALL)
     public ValueProvider getValueProvider()
     {
         return valueProvider;
@@ -130,36 +128,7 @@ public class FilteredValueProvider extends ValueProvider
         }
         if (valueProviderApi.isPropertyFilled(filteredValueProviderApi.VALUE_PROVIDER)) {
             Object valueProvider = filteredValueProviderApi.getValueProvider();
-            if (valueProvider instanceof String) {
-                Long resourceId = Domain.getLocalDomain().parseId((String) valueProvider);
-                ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource resource = resourceManager.get(resourceId);
-                ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
-                if (valueProviderCapability == null) {
-                    throw new FaultException("Resource '%s' doesn't have value provider capability.", valueProvider);
-                }
-                setValueProvider(valueProviderCapability.getValueProvider());
-            }
-            else {
-                cz.cesnet.shongo.controller.api.ValueProvider targetValueProviderApi =
-                        (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider;
-                // Create new value provider from API
-                ValueProvider newValueProvider =
-                        ValueProvider.createFromApi(valueProviderApi, getCapability(), entityManager);
-
-                // Clear value provider if it is set by the resource id
-                if (this.valueProvider.getCapability() != getCapability()) {
-                    this.valueProvider = null;
-                }
-                // If value provider is not set or if the new value provider is of different type
-                if (this.valueProvider == null || !this.valueProvider.getClass().equals(newValueProvider.getClass())) {
-                    this.valueProvider = newValueProvider;
-                }
-                // Otherwise discard the new vlaue provider and modify the existing one
-                else {
-                    this.valueProvider.fromApi(valueProviderApi, entityManager);
-                }
-            }
+            setValueProvider(ValueProvider.modifyFromApi(valueProvider, this.valueProvider, getCapability(), entityManager));
         }
     }
 

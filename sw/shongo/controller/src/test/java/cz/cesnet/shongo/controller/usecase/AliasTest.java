@@ -200,7 +200,6 @@ public class AliasTest extends AbstractControllerTest
         aliasProviderCapability.setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL,
                         new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId)));
-
         aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.ADOBE_CONNECT_URI, "{value}"));
         aliasProvider.addCapability(aliasProviderCapability);

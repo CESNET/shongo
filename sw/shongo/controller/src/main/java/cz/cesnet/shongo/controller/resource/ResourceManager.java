@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;

@@ -4,8 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -99,7 +99,7 @@ public class AliasProviderCapability extends Capability
     /**
      * @param valueProvider sets the {@link #valueProvider}
      */
-    public void setValueProvider(PatternValueProvider valueProvider)
+    public void setValueProvider(ValueProvider valueProvider)
     {
         this.valueProvider = valueProvider;
     }
@@ -294,37 +294,8 @@ public class AliasProviderCapability extends Capability
             setPermanentRoom(aliasProviderApi.getPermanentRoom());
         }
         if (aliasProviderApi.isPropertyFilled(aliasProviderApi.VALUE_PROVIDER)) {
-            Object valueProvider = aliasProviderApi.getValueProvider();
-            if (valueProvider instanceof String) {
-                Long resourceId = Domain.getLocalDomain().parseId((String) valueProvider);
-                ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource resource = resourceManager.get(resourceId);
-                ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
-                if (valueProviderCapability == null) {
-                    throw new FaultException("Resource '%s' doesn't have value provider capability.", valueProvider);
-                }
-                setValueProvider(valueProviderCapability.getValueProvider());
-            }
-            else {
-                cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi =
-                        (cz.cesnet.shongo.controller.api.ValueProvider) valueProvider;
-
-                // Create new value provider from API
-                ValueProvider newValueProvider = ValueProvider.createFromApi(valueProviderApi, this, entityManager);
-
-                // Clear value provider if it is set by the resource id
-                if (this.valueProvider.getCapability() != this) {
-                    this.valueProvider = null;
-                }
-                // If value provider is not set or if the new value provider is of different type
-                if (this.valueProvider == null || !this.valueProvider.getClass().equals(newValueProvider.getClass())) {
-                    this.valueProvider = newValueProvider;
-                }
-                // Otherwise discard the new vlaue provider and modify the existing one
-                else {
-                    this.valueProvider.fromApi(valueProviderApi, entityManager);
-                }
-            }
+            Object valueProviderApi = aliasProviderApi.getValueProvider();
+            setValueProvider(ValueProvider.modifyFromApi(valueProviderApi, this.valueProvider, this, entityManager));
         }
 
         // Create/modify aliases
