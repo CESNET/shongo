@@ -280,6 +280,7 @@ public class RoomReservationTask extends ReservationTask
         // Allocate aliases from alias specifications
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(getContext());
+            aliasReservationTask.setTargetResource(deviceResource);
             AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
             // Assign allocated aliases to the room
             for (Alias alias : aliasReservation.getAliases()) {

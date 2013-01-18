@@ -257,7 +257,7 @@ sub add_attribute
         if ( defined($attribute->{'item'}->{'class'}) ) {
             # Generate callbacks for given class
             $attribute->{'item'}->{'add'} = sub {
-                my $item = get_perl_class($attribute->{'item'}->{'class'})->create();
+                my $item = get_perl_class($attribute->{'item'}->{'class'})->create({'class' => $attribute->{'item'}->{'class'}});
                 return $item;
             };
             $attribute->{'item'}->{'modify'} = sub {

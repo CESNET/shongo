@@ -366,7 +366,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 requestedTechnologies.add(aliasApi.getAliasType().getTechnology());
             }
             for (Technology requestedTechnology : requestedTechnologies) {
-                if (!this.technologies.contains(requestedTechnology)) {
+                if (!requestedTechnology.isCompatibleWith(this.technologies)) {
                     throw new IllegalStateException(
                             "Cannot request alias in technology which the room doesn't support.");
                 }

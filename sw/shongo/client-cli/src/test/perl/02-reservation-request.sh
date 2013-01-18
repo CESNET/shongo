@@ -23,7 +23,11 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         specification: { \
             class: 'RoomSpecification', \
             technologies: ['H323', 'SIP'], \
-            participantCount: 5 \
+            participantCount: 5, \
+            aliasSpecifications: [{ \
+                aliasType: 'ROOM_NAME', \
+                value: 'Testing Testing', \
+            }] \
         } \
     }" \
 --cmd "\

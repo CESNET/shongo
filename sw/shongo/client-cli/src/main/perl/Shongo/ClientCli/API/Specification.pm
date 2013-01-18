@@ -49,6 +49,7 @@ our $CallInitiation = ordered_hash(
 #
 # Alias type for specification
 #
+our $Technology = ordered_hash(NULL() => 'Any', $Shongo::ClientCli::API::DeviceResource::Technology);
 our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::ClientCli::API::Alias::Type);
 
 #
@@ -214,7 +215,7 @@ sub on_init()
         case 'AliasSpecification' {
             $self->add_attribute('technology', {
                 'type' => 'enum',
-                'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
+                'enum' => $Technology
             });
             $self->add_attribute('aliasType', {
                 'title' => 'Alias Type',
@@ -248,6 +249,15 @@ sub on_init()
             $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
+            });
+            $self->add_attribute('aliasSpecifications', {
+                'title' => 'Aliases',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'alias',
+                    'class' => 'AliasSpecification',
+                },
+                'complex' => 1
             });
         }
     }
