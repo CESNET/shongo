@@ -218,7 +218,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setCode(String.format("shongo-%d", getId()));
             room.setTechnologies(getTechnologies());
             room.setLicenseCount(getLicenseCount());
             room.setDescription(getRoomDescription());

@@ -25,7 +25,7 @@ public class CreateRoom extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Creating room {}", room.getCode());
+        logger.info("Creating room {}", room.getDescription());
         return getMultipoint(connector).createRoom(room);
     }
 

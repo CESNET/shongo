@@ -392,14 +392,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             attributes.put("type", "meeting");
             attributes.put("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
 
-            // Room unique name is create from the unique room code
-            if (room.getCode() == null) {
-                throw new IllegalStateException("Room code should be filled for the new room.");
-            }
-            attributes.put("name", URLEncoder.encode(room.getCode(), "UTF8"));
-
             // Set room attributes
             setRoomAttributes(attributes, room);
+
+            // Room name must be filled
+            if (attributes.get("name") == null) {
+                throw new IllegalStateException("Room name must be filled for the new room.");
+            }
 
             Element respose = request("sco-update", attributes);
             String scoId = respose.getChild("sco").getAttributeValue("sco-id");

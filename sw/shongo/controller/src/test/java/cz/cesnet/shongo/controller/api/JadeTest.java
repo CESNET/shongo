@@ -54,8 +54,7 @@ public class JadeTest extends AbstractControllerTest
                 assertEquals("1", roomId);
                 Room room = new Room();
                 room.setId("1");
-                room.setCode("Fixed Testing Room (TODO: Remove it)");
-                room.setName("room description");
+                room.setName("room");
                 room.setLicenseCount(5);
                 room.addAlias(new Alias(AliasType.H323_E164, "9501"));
                 return room;
@@ -91,8 +90,7 @@ public class JadeTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
-        room.setCode("room");
-        room.setName(null);
+        room.setName("room");
         room.setOption(Room.Option.PIN, "1234");
         getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, room);
     }
@@ -118,7 +116,7 @@ public class JadeTest extends AbstractControllerTest
             ModifyRoom modifyRoom = (ModifyRoom) action;
             Room room = modifyRoom.getRoom();
             assertEquals("1", room.getId());
-            assertEquals("room", room.getCode());
+            assertEquals("room", room.getName());
             assertEquals(new HashSet<Room.Option>()
             {{
                     add(Room.Option.PIN);

@@ -53,7 +53,7 @@ public class XmlRpcTypeMapTest
     {
         Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
         assertEquals("1", room.getId());
-        assertEquals("room", room.getCode());
+        assertEquals("room", room.getName());
         assertEquals(5, room.getLicenseCount());
 
         room.setLicenseCount(10);
@@ -87,8 +87,7 @@ public class XmlRpcTypeMapTest
 
             Room room = new Room();
             room.setId("1");
-            room.setCode("room");
-            room.setName("room description");
+            room.setName("room");
             room.setLicenseCount(5);
             room.addAlias(new Alias(AliasType.H323_E164, "9501"));
             return room;

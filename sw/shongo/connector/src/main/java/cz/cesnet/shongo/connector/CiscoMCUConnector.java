@@ -801,14 +801,14 @@ ParamsLoop:
 
         Room room = new Room();
         room.setId((String) result.get("conferenceName"));
-        room.setCode((String) result.get("conferenceName"));
+        room.setName((String) result.get("conferenceName"));
         if (result.containsKey("maximumVideoPorts")) {
             room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
         }
         room.addTechnology(Technology.H323);
 
         if (result.containsKey("description") && !result.get("description").equals("")) {
-            room.setName((String) result.get("description"));
+            room.setDescription((String) result.get("description"));
         }
 
         // aliases
@@ -855,12 +855,12 @@ ParamsLoop:
         cmd.setParameter("startLocked", Boolean.FALSE);
         cmd.setParameter("conferenceMeEnabled", Boolean.FALSE);
 
-        // Room unique name is create from the unique room code
-        if (room.getCode() == null) {
-            throw new IllegalStateException("Room code should be filled for the new room.");
-        }
-        cmd.setParameter("conferenceName", truncateString(room.getCode()));
         setConferenceParametersByRoom(cmd, room);
+
+        // Room name must be filled
+        if (cmd.getParameterValue("conferenceName") == null) {
+            throw new IllegalStateException("Room name must be filled for the new room.");
+        }
 
         exec(cmd);
 
@@ -935,7 +935,7 @@ ParamsLoop:
                     }
 
                     if (roomNumber != null) {
-                        // check we are not already assigning a different number to the room
+                        // Check we are not already assigning a different number to the room
                         final Object oldRoomNumber = cmd.getParameterValue("numericId");
                         if (!oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
                             // multiple number aliases
@@ -946,8 +946,8 @@ ParamsLoop:
                     }
 
                     if (roomName != null) {
-                        // check that more aliases do not request different room name
-                        final String oldRoomName = (String) cmd.getParameterValue("conferenceName");
+                        // Check that more aliases do not request different room name
+                        final Object oldRoomName = cmd.getParameterValue("conferenceName");
                         if (oldRoomName != null && !oldRoomName.equals(roomName)) {
                             throw new CommandException(String.format(
                                     "The connector supports only one room name, requested another: %s", alias));
