@@ -16,7 +16,10 @@ import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.request.Specification} for a person.
@@ -27,14 +30,15 @@ import java.util.Map;
 public class AliasSpecification extends Specification implements ReservationTaskProvider
 {
     /**
-     * {@link Technology} for the {@link Alias}.
+     * Requests allocation of {@link Alias}es for each {@link AliasType}s.
      */
-    private Technology technology;
+    private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
-     * {@link AliasType} for the {@link Alias}.
+     * Restricts {@link Technology} of the {@link AliasType}s or if {@link #aliasTypes} is empty it requests
+     * allocation of {@link Alias}es for each {@link Technology}.
      */
-    private AliasType aliasType;
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Requested {@link String} value for the {@link Alias}.
@@ -56,71 +60,107 @@ public class AliasSpecification extends Specification implements ReservationTask
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #technology}
-     * @param aliasType  sets the {@link #aliasType}
+     * @param technology to be added to the {@link #technologies}
+     * @param aliasType  to be added to the {@link #aliasTypes}
      */
     public AliasSpecification(Technology technology, AliasType aliasType)
     {
-        this.setTechnology(technology);
-        this.setAliasType(aliasType);
+        addTechnology(technology);
+        addAliasType(aliasType);
     }
 
     /**
      * Constructor.
      *
-     * @param technology              sets the {@link #technology}
+     * @param technology to be added to the {@link #technologies}
      * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
      */
     public AliasSpecification(Technology technology, AliasProviderCapability aliasProviderCapability)
     {
-        this.setTechnology(technology);
-        this.setAliasProviderCapability(aliasProviderCapability);
+        addTechnology(technology);
+        setAliasProviderCapability(aliasProviderCapability);
     }
 
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #technology}
+     * @param technology to be added to the {@link #technologies}
      */
     public AliasSpecification(Technology technology)
     {
-        this.setTechnology(technology);
+        addTechnology(technology);
     }
 
     /**
-     * @return {@link #technology}
+     * @return {@link #technologies}
      */
-    @Column
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    public Technology getTechnology()
+    @Access(AccessType.FIELD)
+    public Set<Technology> getTechnologies()
     {
-        return technology;
+        return Collections.unmodifiableSet(technologies);
     }
 
     /**
-     * @param technology sets the {@link #technology}
+     * @param technologies sets the {@link #technologies}
      */
-    public void setTechnology(Technology technology)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        this.technology = technology;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
     }
 
     /**
-     * @return {@link #aliasType}
+     * @param technology technology to be added to the set of technologies that the device support.
      */
-    @Column
+    public void addTechnology(Technology technology)
+    {
+        technologies.add(technology);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #technologies}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        technologies.remove(technology);
+    }
+
+    /**
+     * @return {@link #technologies}
+     */
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    public AliasType getAliasType()
+    @Access(AccessType.FIELD)
+    public Set<AliasType> getAliasTypes()
     {
-        return aliasType;
+        return Collections.unmodifiableSet(aliasTypes);
     }
 
     /**
-     * @param aliasType sets the {@link #aliasType}
+     * @param aliasTypes sets the {@link #aliasTypes}
      */
-    public void setAliasType(AliasType aliasType)
+    public void setAliasTypes(Set<AliasType> aliasTypes)
     {
-        this.aliasType = aliasType;
+        this.aliasTypes.clear();
+        this.aliasTypes.addAll(aliasTypes);
+    }
+
+    /**
+     * @param aliasType to be added to the {@link #aliasTypes}
+     */
+    public void addAliasType(AliasType aliasType)
+    {
+        aliasTypes.add(aliasType);
+    }
+
+    /**
+     * @param aliasType to be removed from the {@link #aliasTypes}
+     */
+    public void removeAliasType(AliasType aliasType)
+    {
+        aliasTypes.remove(aliasType);
     }
 
     /**
@@ -163,13 +203,13 @@ public class AliasSpecification extends Specification implements ReservationTask
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
         boolean modified = false;
-        modified |= !ObjectUtils.equals(getTechnology(), aliasSpecification.getTechnology())
-                || !ObjectUtils.equals(getAliasType(), aliasSpecification.getAliasType())
+        modified |= !ObjectUtils.equals(getTechnologies(), aliasSpecification.getTechnologies())
+                || !ObjectUtils.equals(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectUtils.equals(getValue(), aliasSpecification.getValue())
                 || !ObjectUtils.equals(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
-        setTechnology(aliasSpecification.getTechnology());
-        setAliasType(aliasSpecification.getAliasType());
+        setTechnologies(aliasSpecification.getTechnologies());
+        setAliasTypes(aliasSpecification.getAliasTypes());
         setValue(aliasSpecification.getValue());
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
 
@@ -180,8 +220,8 @@ public class AliasSpecification extends Specification implements ReservationTask
     public AliasSpecification clone()
     {
         AliasSpecification aliasSpecification = new AliasSpecification();
-        aliasSpecification.setTechnology(getTechnology());
-        aliasSpecification.setAliasType(getAliasType());
+        aliasSpecification.setTechnologies(getTechnologies());
+        aliasSpecification.setAliasTypes(getAliasTypes());
         aliasSpecification.setValue(getValue());
         aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
         return aliasSpecification;
@@ -191,10 +231,12 @@ public class AliasSpecification extends Specification implements ReservationTask
     public AliasReservationTask createReservationTask(ReservationTask.Context context)
     {
         AliasReservationTask aliasReservationTask = new AliasReservationTask(context);
-        if (technology != null) {
+        for (Technology technology : getTechnologies()) {
             aliasReservationTask.addTechnology(technology);
         }
-        aliasReservationTask.setAliasType(aliasType);
+        for (AliasType aliasType : getAliasTypes()) {
+            aliasReservationTask.addAliasType(aliasType);
+        }
         aliasReservationTask.setValue(value);
         if (aliasProviderCapability != null) {
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
@@ -219,8 +261,12 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
-        aliasSpecificationApi.setTechnology(getTechnology());
-        aliasSpecificationApi.setAliasType(getAliasType());
+        for (Technology technology : getTechnologies()) {
+            aliasSpecificationApi.addTechnology(technology);
+        }
+        for (AliasType aliasType : getAliasTypes()) {
+            aliasSpecificationApi.addAliasType(aliasType);
+        }
         aliasSpecificationApi.setValue(getValue());
         if (getAliasProviderCapability() != null) {
             aliasSpecificationApi.setResourceId(
@@ -235,12 +281,6 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
-        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.TECHNOLOGY)) {
-            setTechnology(aliasSpecificationApi.getTechnology());
-        }
-        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.ALIAS_TYPE)) {
-            setAliasType(aliasSpecificationApi.getAliasType());
-        }
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.VALUE)) {
             setValue(aliasSpecificationApi.getValue());
         }
@@ -260,6 +300,33 @@ public class AliasSpecification extends Specification implements ReservationTask
                 setAliasProviderCapability(aliasProviderCapability);
             }
         }
+
+        // Create technologies
+        for (Technology technology : aliasSpecificationApi.getTechnologies()) {
+            if (aliasSpecificationApi.isPropertyItemMarkedAsNew(aliasSpecificationApi.TECHNOLOGIES, technology)) {
+                addTechnology(technology);
+            }
+        }
+        // Delete technologies
+        Set<Technology> technologiesToDelte =
+                aliasSpecificationApi.getPropertyItemsMarkedAsDeleted(aliasSpecificationApi.TECHNOLOGIES);
+        for (Technology technology : technologiesToDelte) {
+            removeTechnology(technology);
+        }
+
+        // Create alias types
+        for (AliasType aliasType : aliasSpecificationApi.getAliasTypes()) {
+            if (aliasSpecificationApi.isPropertyItemMarkedAsNew(aliasSpecificationApi.ALIAS_TYPES, aliasType)) {
+                addAliasType(aliasType);
+            }
+        }
+        // Delete alias types
+        Set<AliasType> aliasTypesToDelete =
+                aliasSpecificationApi.getPropertyItemsMarkedAsDeleted(aliasSpecificationApi.ALIAS_TYPES);
+        for (AliasType aliasType : aliasTypesToDelete) {
+            removeAliasType(aliasType);
+        }
+
         super.fromApi(specificationApi, entityManager);
     }
 
@@ -268,7 +335,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         super.fillDescriptionMap(map);
 
-        map.put("technology", technology);
-        map.put("aliasType", aliasType);
+        map.put("technologies", technologies);
+        map.put("aliasTypes", aliasTypes);
     }
 }

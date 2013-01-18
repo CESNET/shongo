@@ -192,7 +192,7 @@ public class AliasProviderCapability extends Capability
      * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
      *         for given {@code technology}, false otherwise
      */
-    public boolean providesAliasTechnologies(Set<Technology> technologies)
+    public boolean providesAliasTechnology(Set<Technology> technologies)
     {
         if (cachedProvidedTechnologies == null) {
             cachedProvidedTechnologies = new HashSet<Technology>();

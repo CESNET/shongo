@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -273,7 +274,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         roomReservationTask.addTechnologyVariant(getTechnologies());
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());
-        roomReservationTask.setWithRequiredAliases(true);
         roomReservationTask.setDeviceResource(getDeviceResource());
         return roomReservationTask;
     }
@@ -359,11 +359,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
                 roomSpecificationApi.getAliasSpecifications()) {
             Set<Technology> requestedTechnologies = new HashSet<Technology>();
-            if (aliasApi.getTechnology() != null) {
-                requestedTechnologies.add(aliasApi.getTechnology());
+            for (Technology technology : aliasApi.getTechnologies()) {
+                requestedTechnologies.add(technology);
             }
-            if (aliasApi.getAliasType() != null) {
-                requestedTechnologies.add(aliasApi.getAliasType().getTechnology());
+            for (AliasType aliasType : aliasApi.getAliasTypes()) {
+                requestedTechnologies.add(aliasType.getTechnology());
             }
             for (Technology requestedTechnology : requestedTechnologies) {
                 if (!requestedTechnology.isCompatibleWith(this.technologies)) {

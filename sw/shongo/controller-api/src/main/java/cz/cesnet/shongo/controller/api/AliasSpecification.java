@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 
+import java.util.Set;
+
 /**
  * Represents a {@link Specification} for an {@link Alias}.
  *
@@ -12,14 +14,15 @@ import cz.cesnet.shongo.api.Alias;
 public class AliasSpecification extends Specification
 {
     /**
-     * Technology of the resource.
+     * Requests allocation of {@link Alias}es for each {@link AliasType}s.
      */
-    public static final String TECHNOLOGY = "technology";
+    public static final String ALIAS_TYPES = "aliasTypes";
 
     /**
-     * Alias type.
+     * Restricts {@link Technology} of the {@link AliasType}s or if {@link #ALIAS_TYPES} is empty it requests
+     * allocation of {@link Alias}es for each {@link Technology}.
      */
-    public static final String ALIAS_TYPE = "aliasType";
+    public static final String TECHNOLOGIES = "technologies";
 
     /**
      * Alias value.
@@ -41,21 +44,33 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @param technology to be added to the {@link #TECHNOLOGIES}
      */
     public AliasSpecification(Technology technology)
     {
-        setTechnology(technology);
+        addTechnology(technology);
     }
 
     /**
      * Constructor.
      *
-     * @param aliasType  sets the {@link #ALIAS_TYPE}
+     * @param aliasType to be added to the {@link #ALIAS_TYPES}
      */
     public AliasSpecification(AliasType aliasType)
     {
-        setAliasType(aliasType);
+        addAliasType(aliasType);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param aliasTypes sets the {@link #ALIAS_TYPES}
+     */
+    public AliasSpecification(AliasType[] aliasTypes)
+    {
+        for (AliasType aliasType : aliasTypes) {
+            addAliasType(aliasType);
+        }
     }
 
     /**
@@ -79,35 +94,67 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @return {@link #TECHNOLOGY}
+     * @return {@link #TECHNOLOGIES}
      */
-    public Technology getTechnology()
+    public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getValue(TECHNOLOGY);
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
     }
 
     /**
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @param technologies sets the {@link #TECHNOLOGIES}
      */
-    public void setTechnology(Technology technology)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setValue(TECHNOLOGY, technology);
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
     }
 
     /**
-     * @return {@link #ALIAS_TYPE}
+     * @param technology technology to be added to the {@link #TECHNOLOGIES}
      */
-    public AliasType getAliasType()
+    public void addTechnology(Technology technology)
     {
-        return getPropertyStorage().getValue(ALIAS_TYPE);
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
     }
 
     /**
-     * @param aliasType sets the {@link #ALIAS_TYPE}
+     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
      */
-    public void setAliasType(AliasType aliasType)
+    public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().setValue(ALIAS_TYPE, aliasType);
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+    }
+
+    /**
+     * @return {@link #ALIAS_TYPES}
+     */
+    public Set<AliasType> getAliasTypes()
+    {
+        return getPropertyStorage().getCollection(ALIAS_TYPES, Set.class);
+    }
+
+    /**
+     * @param aliasTypes sets the {@link #ALIAS_TYPES}
+     */
+    public void setAliasTypes(Set<AliasType> aliasTypes)
+    {
+        getPropertyStorage().setCollection(ALIAS_TYPES, aliasTypes);
+    }
+
+    /**
+     * @param aliasType to be added to the {@link #ALIAS_TYPES}
+     */
+    public void addAliasType(AliasType aliasType)
+    {
+        getPropertyStorage().addCollectionItem(ALIAS_TYPES, aliasType, Set.class);
+    }
+
+    /**
+     * @param aliasType to be removed from the {@link #ALIAS_TYPES}
+     */
+    public void removeAliasType(AliasType aliasType)
+    {
+        getPropertyStorage().removeCollectionItem(ALIAS_TYPES, aliasType);
     }
 
     /**

@@ -1,8 +1,7 @@
 * 2 paragraphs of shongo features
 
 * String aliases
-  -add AliasSpecifications to RoomSpecification
-  -Multiple alias specification (results into one reservation wiht multiple alias reservations)
+  -test connectors with ROOM_NAME alias (require ROOM_NAME alias and remove code attribute from Room)
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

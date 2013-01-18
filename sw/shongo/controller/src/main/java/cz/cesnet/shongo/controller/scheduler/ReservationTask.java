@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -177,6 +178,30 @@ public abstract class ReservationTask
     {
         Reservation reservation = addChildReservation(reservationTask);
         return reservationClass.cast(reservation);
+    }
+
+    /**
+     * Add child {@link Reservation} to the task allocated by given {@code reservationTask}.
+     *
+     * @param reservationTask used for allocation of {@link Reservation}
+     */
+    public final <R extends Reservation> Collection<R> addMultiChildReservation(ReservationTask reservationTask,
+            Class<R> reservationClass) throws ReportException
+    {
+        Reservation reservation = reservationTask.perform();
+        List<R> reservations = new ArrayList<R>();
+        Reservation targetReservation = reservation.getTargetReservation();
+        if (reservationClass.isInstance(targetReservation)) {
+            childReservations.add(reservation);
+            reservations.add(reservationClass.cast(targetReservation));
+        }
+        else {
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                childReservations.add(childReservation);
+                reservations.add(childReservation.getTargetReservation(reservationClass));
+            }
+        }
+        return reservations;
     }
 
     /**

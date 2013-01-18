@@ -268,4 +268,34 @@ public class AliasTest extends AbstractControllerTest
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
         assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
     }
+
+    /**
+     * Test allocation of requested alias value.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testMultiAliasSpecification() throws Exception
+    {
+        Resource firstAliasProvider = new Resource();
+        firstAliasProvider.setName("firstAliasProvider");
+        firstAliasProvider.setAllocatable(true);
+        firstAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.H323_URI));
+        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+
+        Resource secondAliasProvider = new Resource();
+        secondAliasProvider.setName("secondAliasProvider");
+        secondAliasProvider.setAllocatable(true);
+        secondAliasProvider.addCapability(new AliasProviderCapability("{hash}", AliasType.SIP_URI));
+        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new AliasSpecification(new AliasType[]{AliasType.H323_URI, AliasType.SIP_URI}));
+        Reservation reservation = allocateAndCheck(reservationRequest);
+        assertEquals("Reservation should have two child alias reservations.",
+                2, reservation.getChildReservationIds().size());
+    }
 }

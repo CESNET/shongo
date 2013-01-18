@@ -213,14 +213,24 @@ sub on_init()
             });
         }
         case 'AliasSpecification' {
-            $self->add_attribute('technology', {
-                'type' => 'enum',
-                'enum' => $Technology
+            $self->add_attribute('aliasTypes', {
+                'title' => 'Alias Types',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Alias Type',
+                    'enum' => $AliasType
+                },
+                'complex' => 0,
+                'required' => 1
             });
-            $self->add_attribute('aliasType', {
-                'title' => 'Alias Type',
-                'type' => 'enum',
-                'enum' => $AliasType
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Technology',
+                    'enum' => $Technology
+                },
+                'complex' => 0,
+                'required' => 1
             });
             $self->add_attribute('resourceId', {
                 'title' => 'Alias Provider Resource Identifier',

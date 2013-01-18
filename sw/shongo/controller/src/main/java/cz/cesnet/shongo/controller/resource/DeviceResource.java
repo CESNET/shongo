@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityValidationException;
@@ -104,9 +103,9 @@ public class DeviceResource extends Resource
     /**
      * @return {@link #technologies}
      */
-        @ElementCollection
-        @Enumerated(EnumType.STRING)
-        @Access(AccessType.FIELD)
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
     {
         return Collections.unmodifiableSet(technologies);
@@ -302,9 +301,9 @@ public class DeviceResource extends Resource
             }
         }
         // Delete technologies
-        Set<Technology> technologies =
+        Set<Technology> technologiesToDelete =
                 api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
-        for (Technology technology : technologies) {
+        for (Technology technology : technologiesToDelete) {
             removeTechnology(technology);
         }
 

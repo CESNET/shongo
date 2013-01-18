@@ -9,8 +9,8 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         slot: '`date +"%Y-%m-%d"`T00:00/P1D', \
         specification: { \
             class: 'AliasSpecification', \
-            technology: 'ADOBE_CONNECT', \
-            aliasType: 'ROOM_NAME', \
+            technologies: ['ADOBE_CONNECT'], \
+            aliasTypes: ['ROOM_NAME'], \
             value: 'Test Test', \
         } \
     }" \
@@ -25,7 +25,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             technologies: ['H323', 'SIP'], \
             participantCount: 5, \
             aliasSpecifications: [{ \
-                aliasType: 'ROOM_NAME', \
+                aliasTypes: ['ROOM_NAME'], \
                 value: 'Testing Testing', \
             }] \
         } \

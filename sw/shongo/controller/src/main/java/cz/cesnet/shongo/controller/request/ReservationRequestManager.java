@@ -273,8 +273,8 @@ public class ReservationRequestManager extends AbstractManager
                     + ") OR request IN ("
                     + "  SELECT reservationRequest"
                     + "  FROM AbstractReservationRequest reservationRequest, AliasSpecification specification"
-                    + "  WHERE reservationRequest.specification = specification AND "
-                    + "         specification.technology IN(:technologies)"
+                    + "  LEFT JOIN specification.technologies technology"
+                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
                     + ")");
             filter.addFilterParameter("technologies", technologies);
         }
