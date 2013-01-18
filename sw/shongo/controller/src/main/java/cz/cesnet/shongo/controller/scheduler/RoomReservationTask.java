@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -44,6 +45,11 @@ public class RoomReservationTask extends ReservationTask
      * Collection of {@link RoomSetting} for allocated {@link RoomReservation}.
      */
     private Collection<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
+
+    /**
+     * Collection of {@link AliasSpecification} for {@link Alias}es which shoudl be allocated for the room.
+     */
+    private Collection<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
      * Specifies whether {@link Alias} should be acquired for each {@link RoomProviderCapability#requiredAliasTypes}.
@@ -89,11 +95,11 @@ public class RoomReservationTask extends ReservationTask
     }
 
     /**
-     * @param roomSetting to be added to the {@link #roomSettings}
+     * @param aliasSpecifications to be added to the {@link #aliasSpecifications}
      */
-    public void addRoomSetting(RoomSetting roomSetting)
+    public void addAliasSpecifications(Collection<AliasSpecification> aliasSpecifications)
     {
-        roomSettings.add(roomSetting);
+        this.aliasSpecifications.addAll(aliasSpecifications);
     }
 
     /**
@@ -268,10 +274,25 @@ public class RoomReservationTask extends ReservationTask
             roomEndpoint = usedRoomEndpoint;
         }
 
+        // Set of technologies which are supported in the room
+        Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
+
+        // Allocate aliases from alias specifications
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(getContext());
+            AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
+            // Assign allocated aliases to the room
+            for (Alias alias : aliasReservation.getAliases()) {
+                // Assign only aliases which can be assigned to the room (according to room technologies)
+                Technology aliasTechnology = alias.getTechnology();
+                if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
+                    roomEndpoint.addAssignedAlias(alias);
+                }
+            }
+        }
+
         // Allocate aliases for the room
         if (withRequiredAliases || withTechnologyAliases) {
-            // Set of technologies which are supported in the room
-            Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
             // Set of alias types which should be supported in the room
             RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
             Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();

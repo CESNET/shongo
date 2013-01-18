@@ -4,6 +4,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -164,17 +165,30 @@ public class AliasSpecification extends Specification implements ReservationTask
         boolean modified = false;
         modified |= !ObjectUtils.equals(getTechnology(), aliasSpecification.getTechnology())
                 || !ObjectUtils.equals(getAliasType(), aliasSpecification.getAliasType())
+                || !ObjectUtils.equals(getValue(), aliasSpecification.getValue())
                 || !ObjectUtils.equals(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
         setTechnology(aliasSpecification.getTechnology());
         setAliasType(aliasSpecification.getAliasType());
+        setValue(aliasSpecification.getValue());
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
 
         return modified;
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public AliasSpecification clone()
+    {
+        AliasSpecification aliasSpecification = new AliasSpecification();
+        aliasSpecification.setTechnology(getTechnology());
+        aliasSpecification.setAliasType(getAliasType());
+        aliasSpecification.setValue(getValue());
+        aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
+        return aliasSpecification;
+    }
+
+    @Override
+    public AliasReservationTask createReservationTask(ReservationTask.Context context)
     {
         AliasReservationTask aliasReservationTask = new AliasReservationTask(context);
         if (technology != null) {
@@ -192,6 +206,12 @@ public class AliasSpecification extends Specification implements ReservationTask
     protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
         return new cz.cesnet.shongo.controller.api.AliasSpecification();
+    }
+
+    @Override
+    public cz.cesnet.shongo.controller.api.AliasSpecification toApi()
+    {
+        return (cz.cesnet.shongo.controller.api.AliasSpecification) super.toApi();
     }
 
     @Override

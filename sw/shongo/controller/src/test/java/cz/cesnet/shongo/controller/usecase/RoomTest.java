@@ -186,6 +186,65 @@ public class RoomTest extends AbstractControllerTest
                 reservationRoom.getAliases());
     }
 
+    /**
+     * Test allocation of aliases for a room.
+     */
+    @Test
+    public void testRequestAlias() throws Exception
+    {
+        Resource firstAliasProvider = new Resource();
+        firstAliasProvider.setName("firstAliasProvider");
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability("1-{digit:1}");
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}#{value}"));
+        firstAliasProvider.addCapability(aliasProviderCapability);
+        firstAliasProvider.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+
+        Resource secondAliasProvider = new Resource();
+        secondAliasProvider.setName("secondAliasProvider");
+        aliasProviderCapability = new AliasProviderCapability("2-{digit:1}");
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_URI, "{device.address}/{value}"));
+        secondAliasProvider.addCapability(aliasProviderCapability);
+        secondAliasProvider.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, secondAliasProvider);
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(15, new AliasType[]{AliasType.H323_URI}));
+        mcu.setAllocatable(true);
+        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+        RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
+        Executable.ResourceRoom reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
+
+        reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "2-5"));
+        reservation = (RoomReservation) allocateAndCheck(reservationRequest);
+        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        checkAliasTypes(new AliasType[]{AliasType.H323_E164, AliasType.H323_URI}, reservationRoom.getAliases());
+
+        reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "1-5"));
+        reservation = (RoomReservation) allocateAndCheck(reservationRequest);
+        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
+    }
+
     private void checkAliasTypes(AliasType[] requiredAliasTypes, Collection<Alias> givenAliases)
     {
         Map<AliasType, Integer> requiredAliasTypeCount = new HashMap<AliasType, Integer>();

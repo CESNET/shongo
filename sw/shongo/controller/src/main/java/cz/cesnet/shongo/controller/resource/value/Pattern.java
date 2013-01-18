@@ -258,7 +258,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         {
             StringBuilder regexPatternBuilder = new StringBuilder();
             regexPatternBuilder.append("\\d{");
-            regexPatternBuilder.append(length - 1);
+            regexPatternBuilder.append(length);
             regexPatternBuilder.append("}");
             return regexPatternBuilder.toString();
         }
