@@ -26,18 +26,6 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
     private Map<Long, Set<ValueProvider>> valueProviderByResourceId = new HashMap<Long, Set<ValueProvider>>();
 
     @Override
-    public void loadObjects(EntityManager entityManager)
-    {
-        logger.debug("Loading value providers...");
-
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<ValueProvider> valueProviders = resourceManager.listValueProviders();
-        for (ValueProvider valueProvider : valueProviders) {
-            addObject(valueProvider, entityManager);
-        }
-    }
-
-    @Override
     public void addObject(ValueProvider valueProvider, EntityManager entityManager)
     {
         Resource resource = valueProvider.getCapabilityResource();

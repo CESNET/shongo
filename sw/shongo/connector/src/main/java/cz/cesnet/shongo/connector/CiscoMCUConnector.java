@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.api.xmlrpc.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.apache.commons.lang.StringUtils;
@@ -836,6 +837,13 @@ ParamsLoop:
     @Override
     public String createRoom(Room room) throws CommandException
     {
+        try {
+            room.setupNewEntity();
+        }
+        catch (FaultException exception) {
+            throw new IllegalStateException(exception);
+        }
+
         Command cmd = new Command("conference.create");
 
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);

@@ -224,8 +224,18 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         valueCache.clear();
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            resourceCache.loadObjects(entityManager);
-            valueCache.loadObjects(entityManager);
+
+            logger.debug("Loading resources...");
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            List<Resource> resourceList = resourceManager.list(null);
+            for (Resource resource : resourceList) {
+                try {
+                    addResource(resource, entityManager);
+                }
+                catch (FaultException exception) {
+                    throw new IllegalStateException(exception);
+                }
+            }
             reusedReservationCache.loadObjects(entityManager);
             entityManager.close();
         }

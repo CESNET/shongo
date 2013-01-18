@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -385,6 +386,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public String createRoom(Room room) throws CommandException
     {
+        try {
+            room.setupNewEntity();
+        }
+        catch (FaultException exception) {
+            throw new IllegalStateException(exception);
+        }
+
         try {
             HashMap<String, String> attributes = new HashMap<String, String>();
             attributes.put("folder-id",

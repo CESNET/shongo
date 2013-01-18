@@ -20,7 +20,6 @@ public class ReusedReservationCache extends AbstractReservationCache<Reservation
 {
     private static Logger logger = LoggerFactory.getLogger(ValueCache.class);
 
-    @Override
     public void loadObjects(EntityManager entityManager)
     {
         logger.debug("Loading reused reservations...");

@@ -21,13 +21,6 @@ public abstract class AbstractCache<T extends PersistentObject>
     private Map<Long, T> objectById = new HashMap<Long, T>();
 
     /**
-     * Load cached objects from the database.
-     *
-     * @param entityManager
-     */
-    public abstract void loadObjects(EntityManager entityManager);
-
-    /**
      * @param objectId id of a cached object
      * @return cached object with given {@code objectId}
      */

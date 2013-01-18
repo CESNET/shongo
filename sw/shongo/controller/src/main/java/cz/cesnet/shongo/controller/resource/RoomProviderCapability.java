@@ -90,6 +90,14 @@ public class RoomProviderCapability extends DeviceCapability
     }
 
     @Override
+    public void loadLazyCollections()
+    {
+        super.loadLazyCollections();
+
+        requiredAliasTypes.size();
+    }
+
+    @Override
     public cz.cesnet.shongo.controller.api.Capability createApi()
     {
         return new cz.cesnet.shongo.controller.api.RoomProviderCapability();

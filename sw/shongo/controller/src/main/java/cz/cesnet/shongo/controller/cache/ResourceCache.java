@@ -54,23 +54,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         return deviceTopology;
     }
 
-    /**
-     * Load resources from the database.
-     *
-     * @param entityManager
-     */
-    @Override
-    public void loadObjects(EntityManager entityManager)
-    {
-        logger.debug("Loading resources...");
-
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<Resource> resourceList = resourceManager.list(null);
-        for (Resource resource : resourceList) {
-            addObject(resource, entityManager);
-        }
-    }
-
     @Override
     public void addObject(Resource resource, EntityManager entityManager)
     {
@@ -93,6 +76,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             // If device resource has virtual rooms capability, add it to managed capabilities
             RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
             if (roomProviderCapability != null) {
+                roomProviderCapability.loadLazyCollections();
                 addResourceCapability(roomProviderCapability);
 
                 // Add virtual room state

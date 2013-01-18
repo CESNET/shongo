@@ -237,8 +237,7 @@ sub on_init()
                 'string-pattern' => $Shongo::Common::IdPattern
             });
             $self->add_attribute('value', {
-                'title' => 'Requested Value',
-                'string-pattern' => '^[[:alpha:]][[:alnum:]_-]*$'
+                'title' => 'Requested Value'
             });
         }
         case 'RoomSpecification' {
