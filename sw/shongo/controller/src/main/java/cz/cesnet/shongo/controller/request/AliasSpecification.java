@@ -37,7 +37,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     /**
      * Restricts {@link Technology} for allocation of {@link Alias}.
      */
-    private Set<Technology> technologies = new HashSet<Technology>();
+    private Set<Technology> aliasTechnologies = new HashSet<Technology>();
 
     /**
      * Requested {@link String} value for the {@link Alias}.
@@ -74,7 +74,7 @@ public class AliasSpecification extends Specification implements ReservationTask
      */
     public AliasSpecification(Technology technology, AliasType aliasType)
     {
-        addTechnology(technology);
+        addAliasTechnology(technology);
         addAliasType(aliasType);
     }
 
@@ -86,7 +86,7 @@ public class AliasSpecification extends Specification implements ReservationTask
      */
     public AliasSpecification(Technology technology, AliasProviderCapability aliasProviderCapability)
     {
-        addTechnology(technology);
+        addAliasTechnology(technology);
         setAliasProviderCapability(aliasProviderCapability);
     }
 
@@ -97,43 +97,7 @@ public class AliasSpecification extends Specification implements ReservationTask
      */
     public AliasSpecification(Technology technology)
     {
-        addTechnology(technology);
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies.clear();
-        this.technologies.addAll(technologies);
-    }
-
-    /**
-     * @param technology technology to be added to the set of technologies that the device support.
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
+        addAliasTechnology(technology);
     }
 
     /**
@@ -173,6 +137,42 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     /**
+     * @return {@link #technologies}
+     */
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
+    public Set<Technology> getAliasTechnologies()
+    {
+        return Collections.unmodifiableSet(aliasTechnologies);
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setAliasTechnologies(Set<Technology> technologies)
+    {
+        this.aliasTechnologies.clear();
+        this.aliasTechnologies.addAll(technologies);
+    }
+
+    /**
+     * @param technology technology to be added to the set of technologies that the device support.
+     */
+    public void addAliasTechnology(Technology technology)
+    {
+        aliasTechnologies.add(technology);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #technologies}
+     */
+    public void removeAliasTechnology(Technology technology)
+    {
+        aliasTechnologies.remove(technology);
+    }
+
+    /**
      * @return {@link #value}
      */
     @Column
@@ -207,17 +207,27 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     @Override
+    public void updateTechnologies()
+    {
+        clearTechnologies();
+        addTechnologies(aliasTechnologies);
+        for (AliasType aliasType : aliasTypes) {
+            addTechnology(aliasType.getTechnology());
+        }
+    }
+
+    @Override
     public boolean synchronizeFrom(Specification specification)
     {
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
-        boolean modified = false;
-        modified |= !ObjectUtils.equals(getTechnologies(), aliasSpecification.getTechnologies())
+        boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectUtils.equals(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectUtils.equals(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectUtils.equals(getValue(), aliasSpecification.getValue())
                 || !ObjectUtils.equals(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
-        setTechnologies(aliasSpecification.getTechnologies());
+        setAliasTechnologies(aliasSpecification.getAliasTechnologies());
         setAliasTypes(aliasSpecification.getAliasTypes());
         setValue(aliasSpecification.getValue());
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
@@ -229,10 +239,11 @@ public class AliasSpecification extends Specification implements ReservationTask
     public AliasSpecification clone()
     {
         AliasSpecification aliasSpecification = new AliasSpecification();
-        aliasSpecification.setTechnologies(getTechnologies());
+        aliasSpecification.setAliasTechnologies(getAliasTechnologies());
         aliasSpecification.setAliasTypes(getAliasTypes());
         aliasSpecification.setValue(getValue());
         aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
+        aliasSpecification.updateTechnologies();
         return aliasSpecification;
     }
 
@@ -240,7 +251,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     public AliasReservationTask createReservationTask(ReservationTask.Context context)
     {
         AliasReservationTask aliasReservationTask = new AliasReservationTask(context);
-        for (Technology technology : getTechnologies()) {
+        for (Technology technology : getAliasTechnologies()) {
             aliasReservationTask.addTechnology(technology);
         }
         for (AliasType aliasType : getAliasTypes()) {
@@ -270,7 +281,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
-        for (Technology technology : getTechnologies()) {
+        for (Technology technology : getAliasTechnologies()) {
             aliasSpecificationApi.addTechnology(technology);
         }
         for (AliasType aliasType : getAliasTypes()) {
@@ -313,14 +324,14 @@ public class AliasSpecification extends Specification implements ReservationTask
         // Create technologies
         for (Technology technology : aliasSpecificationApi.getTechnologies()) {
             if (aliasSpecificationApi.isPropertyItemMarkedAsNew(aliasSpecificationApi.TECHNOLOGIES, technology)) {
-                addTechnology(technology);
+                addAliasTechnology(technology);
             }
         }
         // Delete technologies
-        Set<Technology> technologiesToDelte =
+        Set<Technology> technologiesToDelete =
                 aliasSpecificationApi.getPropertyItemsMarkedAsDeleted(aliasSpecificationApi.TECHNOLOGIES);
-        for (Technology technology : technologiesToDelte) {
-            removeTechnology(technology);
+        for (Technology technology : technologiesToDelete) {
+            removeAliasTechnology(technology);
         }
 
         // Create alias types
@@ -344,7 +355,6 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         super.fillDescriptionMap(map);
 
-        map.put("technologies", technologies);
         map.put("aliasTypes", aliasTypes);
     }
 }

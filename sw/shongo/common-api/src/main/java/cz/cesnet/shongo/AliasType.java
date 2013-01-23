@@ -1,5 +1,6 @@
 package cz.cesnet.shongo;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -85,5 +86,20 @@ public enum AliasType
             builder.append(aliasType.toString());
         }
         return builder.toString();
+    }
+
+    /**
+     * @param technologies
+     * @return set of {@link AliasType}s for given {@link #technology}s
+     */
+    public static Set<AliasType> getAliasTypesForTechnologies(Set<Technology> technologies)
+    {
+        Set<AliasType> aliasTypes = new HashSet<AliasType>();
+        for (AliasType aliasType : AliasType.class.getEnumConstants()) {
+            if (technologies.contains(aliasType.getTechnology())) {
+                aliasTypes.add(aliasType);
+            }
+        }
+        return aliasTypes;
     }
 }

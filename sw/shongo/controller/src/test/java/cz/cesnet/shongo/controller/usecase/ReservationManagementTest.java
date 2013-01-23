@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.usecase;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -201,53 +202,50 @@ public class ReservationManagementTest extends AbstractControllerTest
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest1.setSpecification(
-                new RoomSpecification(5, new Technology[]{Technology.SIP}));
+        reservationRequest1.setSpecification(new AliasSpecification(AliasType.H323_E164));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
         reservationRequest2.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest2.setSpecification(
-                new RoomSpecification(5, new Technology[]{Technology.H323}));
+        reservationRequest2.setSpecification(new AliasGroupSpecification(AliasType.SIP_URI));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
 
-        ReservationRequestSet reservationRequest3 = new ReservationRequestSet();
-        reservationRequest3.addSlot("2012-01-01T12:00", "PT2H");
+        ReservationRequest reservationRequest3 = new ReservationRequest();
+        reservationRequest3.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification3 = new CompartmentSpecification();
-        compartmentSpecification3.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 5));
-        reservationRequest3.setSpecification(compartmentSpecification3);
+        reservationRequest3.setSpecification(
+                new RoomSpecification(5, new Technology[]{Technology.ADOBE_CONNECT}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest3);
 
-        ReservationRequest reservationRequest4 = new ReservationRequest();
-        reservationRequest4.setSlot("2012-01-01T12:00", "PT2H");
+        ReservationRequestSet reservationRequest4 = new ReservationRequestSet();
+        reservationRequest4.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest4.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest4.setSpecification(
-                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+        CompartmentSpecification compartmentSpecification3 = new CompartmentSpecification();
+        compartmentSpecification3.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 5));
+        reservationRequest4.setSpecification(compartmentSpecification3);
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest4);
 
-        ReservationRequestSet reservationRequest5 = new ReservationRequestSet();
-        reservationRequest5.addSlot("2012-01-01T12:00", "PT2H");
+        ReservationRequest reservationRequest5 = new ReservationRequest();
+        reservationRequest5.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest5.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest5);
 
-        ReservationRequest reservationRequest6 = new ReservationRequest();
-        reservationRequest6.setSlot("2012-01-01T12:00", "PT2H");
+        ReservationRequestSet reservationRequest6 = new ReservationRequestSet();
+        reservationRequest6.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest6.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification6 = new CompartmentSpecification();
-        compartmentSpecification6.addSpecification(new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 5));
-        reservationRequest6.setSpecification(compartmentSpecification6);
+        reservationRequest6.setSpecification(
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest6);
 
         Assert.assertEquals(6, getReservationService().listReservationRequests(SECURITY_TOKEN, null).size());
 
-        Assert.assertEquals(3, getReservationService().listReservationRequests(SECURITY_TOKEN,
-                buildFilter(new Technology[]{Technology.SIP})).size());
         Assert.assertEquals(4, getReservationService().listReservationRequests(SECURITY_TOKEN,
                 buildFilter(new Technology[]{Technology.H323})).size());
+        Assert.assertEquals(3, getReservationService().listReservationRequests(SECURITY_TOKEN,
+                buildFilter(new Technology[]{Technology.SIP})).size());
         Assert.assertEquals(5, getReservationService().listReservationRequests(SECURITY_TOKEN,
                 buildFilter(new Technology[]{Technology.H323, Technology.SIP})).size());
         Assert.assertEquals(1, getReservationService().listReservationRequests(SECURITY_TOKEN,

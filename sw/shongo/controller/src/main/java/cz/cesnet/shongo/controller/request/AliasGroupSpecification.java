@@ -92,6 +92,15 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     }
 
     @Override
+    public void updateTechnologies()
+    {
+        clearTechnologies();
+        for (AliasSpecification specification : aliasSpecifications) {
+            addTechnologies(specification.getTechnologies());
+        }
+    }
+
+    @Override
     public boolean synchronizeFrom(Specification specification)
     {
         AliasGroupSpecification roomSpecification = (AliasGroupSpecification) specification;
@@ -119,16 +128,16 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     @Override
     protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        return new cz.cesnet.shongo.controller.api.RoomSpecification();
+        return new cz.cesnet.shongo.controller.api.AliasGroupSpecification();
     }
 
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
-                (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.AliasGroupSpecification aliasGroupSpecificationApi =
+                (cz.cesnet.shongo.controller.api.AliasGroupSpecification) specificationApi;
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
-            roomSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
+            aliasGroupSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
         }
         super.toApi(specificationApi);
     }

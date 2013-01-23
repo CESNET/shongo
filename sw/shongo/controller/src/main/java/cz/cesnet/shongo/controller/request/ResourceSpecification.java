@@ -120,6 +120,7 @@ public class ResourceSpecification extends Specification implements ReservationT
                 setResource(resourceManager.get(resourceId));
             }
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 }

@@ -1,6 +1,7 @@
 #!/usr/bin/sh
+CONTROLLER=127.0.0.1:8686
 
-bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
+bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "\
     create-resource { \
         class: 'Resource', \
@@ -58,7 +59,9 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \
             { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'} \
         ] \
-    }" \
+    }"
+
+bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "\
     create-resource { \
         class: 'DeviceResource', \
@@ -134,7 +137,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         }] \
     }"
 
-bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
+bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "list-resources" \
 --cmd "get-resource 1" \
 --cmd "get-resource 2" \

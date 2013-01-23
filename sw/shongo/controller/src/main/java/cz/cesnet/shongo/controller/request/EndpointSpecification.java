@@ -95,7 +95,7 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     {
         EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
 
-        boolean modified = false;
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectUtils.equals(getCallInitiation(), endpointSpecification.getCallInitiation());
 
         setCallInitiation(endpointSpecification.getCallInitiation());

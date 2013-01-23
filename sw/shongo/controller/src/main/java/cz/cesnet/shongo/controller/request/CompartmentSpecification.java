@@ -36,11 +36,6 @@ public class CompartmentSpecification extends Specification
     private CallInitiation callInitiation;
 
     /**
-     * Set of technologies which are used inside the {@link CompartmentSpecification}.
-     */
-    private Set<Technology> technologies = new HashSet<Technology>();
-
-    /**
      * Constructor.
      */
     public CompartmentSpecification()
@@ -185,25 +180,12 @@ public class CompartmentSpecification extends Specification
         this.callInitiation = callInitiation;
     }
 
-    /**
-     * @return {@link #technologies}
-     */
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * Update {@link #technologies} by current {@link #specifications}.
-     */
+    @Override
     public void updateTechnologies()
     {
-        technologies.clear();
+        clearTechnologies();
         for (ParticipantSpecification specification : specifications) {
-            technologies.addAll(specification.getTechnologies());
+            addTechnologies(specification.getTechnologies());
         }
     }
 
@@ -229,7 +211,7 @@ public class CompartmentSpecification extends Specification
     {
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
 
-        boolean modified = false;
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectUtils.equals(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());
@@ -295,9 +277,6 @@ public class CompartmentSpecification extends Specification
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
             removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
-
-        // Update current technologies
-        updateTechnologies();
 
         super.fromApi(specificationApi, entityManager);
     }

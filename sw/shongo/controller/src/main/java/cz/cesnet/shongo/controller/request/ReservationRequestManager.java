@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -259,22 +260,13 @@ public class ReservationRequestManager extends AbstractManager
         filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {
-            // List only reservation requests which specifies given technologies in virtual room or compartment
+            // List only reservation requests which specifies given technologies
             filter.addFilter("request IN ("
                     + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
+                    + "  FROM AbstractReservationRequest reservationRequest"
+                    + "  LEFT JOIN reservationRequest.specification specification"
                     + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
-                    + ") OR request IN ("
-                    + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
-                    + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
-                    + ") OR request IN ("
-                    + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest, AliasSpecification specification"
-                    + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
+                    + "  WHERE technology IN(:technologies)"
                     + ")");
             filter.addFilterParameter("technologies", technologies);
         }

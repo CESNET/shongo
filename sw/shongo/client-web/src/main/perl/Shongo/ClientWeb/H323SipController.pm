@@ -107,10 +107,14 @@ sub create_alias_action
         });
         if ( !%{$params->{'error'}} ) {
             my $specification = {
-                'class' => 'AliasSpecification',
-                'aliasTypes' => ['ROOM_NAME'],
-                'technologies' => ['H323', 'SIP'],
-                'value' => $params->{'roomName'}
+                'class' => 'AliasGroupSpecification',
+                'aliasSpecifications' => [{
+                    'aliasTypes' => ['ROOM_NAME'],
+                    'technologies' => ['H323', 'SIP'],
+                    'value' => $params->{'roomName'}
+                },{
+                    'aliasTypes' => ['H323_E164']
+                }]
             };
             my $reservation_request = $self->parse_reservation_request($params, $specification);
             $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);

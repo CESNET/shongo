@@ -132,7 +132,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
     {
         PersonSpecification personSpecification = (PersonSpecification) specification;
 
-        boolean modified = false;
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectUtils.equals(getPerson(), personSpecification.getPerson());
 
         setPerson(personSpecification.getPerson());
@@ -197,6 +197,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         if (invitationState == null) {
             invitationState = InvitationState.NOT_SENT;
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 

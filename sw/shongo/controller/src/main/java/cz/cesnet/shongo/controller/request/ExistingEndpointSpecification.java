@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -17,8 +16,6 @@ import org.apache.commons.lang.ObjectUtils;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
-import javax.persistence.Transient;
-import java.util.Set;
 
 /**
  * Represents a specific existing resource in the compartment.
@@ -68,13 +65,13 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    @Transient
-    public Set<Technology> getTechnologies()
+    public void updateTechnologies()
     {
+        clearTechnologies();
         if (resource instanceof DeviceResource) {
-            return ((DeviceResource) resource).getTechnologies();
+            DeviceResource deviceResource = (DeviceResource) resource;
+            addTechnologies(deviceResource.getTechnologies());
         }
-        return super.getTechnologies();
     }
 
     @Override
@@ -140,6 +137,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 setResource(resourceManager.get(resourceId));
             }
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 }

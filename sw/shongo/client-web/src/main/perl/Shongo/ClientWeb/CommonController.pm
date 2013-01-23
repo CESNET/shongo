@@ -61,7 +61,7 @@ sub list_reservation_requests
     # Alias requests
     my $alias_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
-        'specificationClass' => 'AliasSpecification'
+        'specificationClass' => ['AliasSpecification', 'AliasGroupSpecification']
     });
     foreach my $request_alias (@{$alias_requests}) {
         $self->process_reservation_request_summary($request_alias);

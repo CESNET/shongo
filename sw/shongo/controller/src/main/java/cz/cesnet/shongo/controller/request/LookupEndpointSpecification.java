@@ -25,61 +25,10 @@ import java.util.*;
 public class LookupEndpointSpecification extends EndpointSpecification implements ReservationTaskProvider
 {
     /**
-     * Set of technologies which the resource must support.
-     */
-    private Set<Technology> technologies = new HashSet<Technology>();
-
-    /**
      * Constructor.
      */
     public LookupEndpointSpecification()
     {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param technology
-     */
-    public LookupEndpointSpecification(Technology technology)
-    {
-        addTechnology(technology);
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    @Override
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
-    }
-
-    /**
-     * @param technology technology to be added to the {@link #technologies}
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
     }
 
     @Override
@@ -141,6 +90,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     {
         cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
+        Set<Technology> technologies = getTechnologies();
         if (technologies.size() == 1) {
             lookupEndpointSpecificationApi.setTechnology(technologies.iterator().next());
         }
@@ -157,17 +107,10 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
         if (lookupEndpointSpecificationApi.isPropertyFilled(lookupEndpointSpecificationApi.TECHNOLOGY)) {
-            technologies.clear();
+            clearTechnologies();
             addTechnology(lookupEndpointSpecificationApi.getTechnology());
         }
+
         super.fromApi(specificationApi, entityManager);
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("technologies", technologies);
     }
 }

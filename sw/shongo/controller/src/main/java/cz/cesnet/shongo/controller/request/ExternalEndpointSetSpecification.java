@@ -29,11 +29,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     private int count = 1;
 
     /**
-     * Set of technologies for external endpoints.
-     */
-    private Set<Technology> technologies = new HashSet<Technology>();
-
-    /**
      * Constructor.
      */
     public ExternalEndpointSetSpecification()
@@ -79,50 +74,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         this.count = count;
     }
 
-    /**
-     * @return {@link #technologies}
-     */
-    @Override
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
-    }
-
-    /**
-     * @param technology technology to be added to the {@link #technologies}
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
-    }
-
-    /**
-     * Remove all technologies from the specification.
-     */
-    public void removeAllTechnologies()
-    {
-        technologies.clear();
-    }
-
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
@@ -132,10 +83,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount());
 
-        if (!technologies.equals(externalEndpointSpecification.getTechnologies())) {
-            setTechnologies(externalEndpointSpecification.getTechnologies());
-            modified = true;
-        }
         setCount(externalEndpointSpecification.getCount());
 
         return modified;
@@ -188,6 +135,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         if (externalEndpointSetSpecificationApi.isPropertyFilled(externalEndpointSetSpecificationApi.COUNT)) {
             setCount(externalEndpointSetSpecificationApi.getCount());
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 
@@ -196,7 +144,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     {
         super.fillDescriptionMap(map);
 
-        map.put("technologies", technologies);
         map.put("count", count);
     }
 }

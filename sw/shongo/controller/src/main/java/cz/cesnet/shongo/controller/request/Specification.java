@@ -1,17 +1,18 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
+import javax.persistence.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
@@ -23,6 +24,70 @@ import java.util.Map;
 public abstract class Specification extends PersistentObject
 {
     /**
+     * Set of {@link Technology}s which are required/supported by this {@link Specification}.
+     */
+    private Set<Technology> technologies = new HashSet<Technology>();
+
+    /**
+     * @return {@link #technologies}
+     */
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
+    public Set<Technology> getTechnologies()
+    {
+        return Collections.unmodifiableSet(technologies);
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
+    }
+
+    /**
+     * Clear the {@link #technologies}
+     */
+    public void clearTechnologies()
+    {
+        technologies.clear();
+    }
+
+    /**
+     * @param technologies to be added to the {@link #technologies}
+     */
+    public void addTechnologies(Set<Technology> technologies)
+    {
+        this.technologies.addAll(technologies);
+    }
+
+    /**
+     * @param technology technology to be added to the {@link #technologies}
+     */
+    public void addTechnology(Technology technology)
+    {
+        technologies.add(technology);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #technologies}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        technologies.remove(technology);
+    }
+
+    /**
+     * Update {@link #technologies} for this {@link Specification}.
+     */
+    public void updateTechnologies()
+    {
+    }
+
+    /**
      * Synchronize properties from given {@code specification}.
      *
      * @param specification from which will be copied all properties values to
@@ -31,7 +96,12 @@ public abstract class Specification extends PersistentObject
      */
     public boolean synchronizeFrom(Specification specification)
     {
-        return false;
+        boolean modified = false;
+        if (!technologies.equals(specification.getTechnologies())) {
+            setTechnologies(specification.getTechnologies());
+            modified = true;
+        }
+        return modified;
     }
 
     /**
@@ -139,5 +209,17 @@ public abstract class Specification extends PersistentObject
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
+        // Update current technologies
+        updateTechnologies();
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, Object> map)
+    {
+        super.fillDescriptionMap(map);
+
+        if (technologies.size() > 0) {
+            map.put("technologies", technologies);
+        }
     }
 }

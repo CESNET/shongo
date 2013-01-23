@@ -22,11 +22,6 @@ import java.util.*;
 public class ExternalEndpointSpecification extends EndpointSpecification implements EndpointProvider
 {
     /**
-     * Set of technologies for external endpoints.
-     */
-    private Set<Technology> technologies = new HashSet<Technology>();
-
-    /**
      * List of aliases that can be used to reference the external endpoint.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
@@ -66,50 +61,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         addTechnology(technology);
 
         addAlias(alias);
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    @Override
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
-    }
-
-    /**
-     * @param technology technology to be added to the {@link #technologies}
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
-    }
-
-    /**
-     * Remove all technologies from the specification.
-     */
-    public void removeAllTechnologies()
-    {
-        technologies.clear();
     }
 
     /**
@@ -156,10 +107,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
 
         boolean modified = super.synchronizeFrom(specification);
 
-        if (!technologies.equals(externalEndpointSpecification.getTechnologies())) {
-            setTechnologies(externalEndpointSpecification.getTechnologies());
-            modified = true;
-        }
         if (!ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases())) {
             setAliases(externalEndpointSpecification.getAliases());
             modified = true;
@@ -225,6 +172,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
             alias.fromApi(externalEndpointSpecificationApi.getAlias());
             addAlias(alias);
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 
@@ -233,7 +181,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     {
         super.fillDescriptionMap(map);
 
-        map.put("technologies", technologies);
         map.put("aliases", aliases);
     }
 }

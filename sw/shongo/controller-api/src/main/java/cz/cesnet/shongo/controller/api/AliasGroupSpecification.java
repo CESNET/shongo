@@ -29,6 +29,16 @@ public class AliasGroupSpecification extends Specification
     }
 
     /**
+     * Constructor.
+     *
+     * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #ALIAS_SPECIFICATIONS}
+     */
+    public AliasGroupSpecification(AliasType aliasType)
+    {
+        addAliasSpecification(new AliasSpecification(aliasType));
+    }
+
+    /**
      * @return {@link #ALIAS_SPECIFICATIONS}
      */
     public List<AliasSpecification> getAliasSpecifications()

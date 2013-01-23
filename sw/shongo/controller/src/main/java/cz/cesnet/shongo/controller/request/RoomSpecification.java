@@ -32,11 +32,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     private DeviceResource deviceResource;
 
     /**
-     * Set of technologies which the virtual room shall support.
-     */
-    private Set<Technology> technologies = new HashSet<Technology>();
-
-    /**
      * Number of participants which shall be able to join to the virtual room.
      */
     private int participantCount = 0;
@@ -74,44 +69,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     public void setDeviceResource(DeviceResource deviceResource)
     {
         this.deviceResource = deviceResource;
-    }
-
-    /**
-     * @return {@link #technologies}
-     */
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
-    @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
-    {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies.clear();
-        for (Technology technology : technologies) {
-            this.technologies.add(technology);
-        }
-    }
-
-    /**
-     * @param technology technology to be added to the set of technologies that the device support.
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
     }
 
     /**
@@ -249,11 +206,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         setParticipantCount(roomSpecification.getParticipantCount());
         setDeviceResource(roomSpecification.getDeviceResource());
 
-        if (!technologies.equals(roomSpecification.getTechnologies())) {
-            setTechnologies(roomSpecification.getTechnologies());
-            modified = true;
-        }
-
         if (!roomSettings.equals(roomSpecification.getRoomSettings())) {
             setRoomSettings(roomSpecification.getRoomSettings());
             modified = true;
@@ -332,9 +284,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             }
         }
         // Delete technologies
-        Set<Technology> technologies =
+        Set<Technology> technologiesToDelete =
                 specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.TECHNOLOGIES);
-        for (Technology technology : technologies) {
+        for (Technology technology : technologiesToDelete) {
             removeTechnology(technology);
         }
 
@@ -356,6 +308,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
 
         // Create/update alias specifications
+        Set<Technology> technologies = getTechnologies();
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
                 roomSpecificationApi.getAliasSpecifications()) {
             Set<Technology> requestedTechnologies = new HashSet<Technology>();
@@ -366,7 +319,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 requestedTechnologies.add(aliasType.getTechnology());
             }
             for (Technology requestedTechnology : requestedTechnologies) {
-                if (!requestedTechnology.isCompatibleWith(this.technologies)) {
+                if (!requestedTechnology.isCompatibleWith(technologies)) {
                     throw new IllegalStateException(
                             "Cannot request alias in technology which the room doesn't support.");
                 }

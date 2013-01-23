@@ -26,6 +26,7 @@ our $RootType = ordered_hash(
     'CompartmentSpecification' => 'Compartment',
     'MultiCompartmentSpecification' => 'Multi-Compartment',
     'AliasSpecification' => 'Alias',
+    'AliasGroupSpecification' => 'Alias Group',
     'RoomSpecification' => 'Virtual Room'
 );
 our $ParticipantType = ordered_hash(
@@ -49,8 +50,8 @@ our $CallInitiation = ordered_hash(
 #
 # Alias type for specification
 #
-our $Technology = ordered_hash(NULL() => 'Any', $Shongo::ClientCli::API::DeviceResource::Technology);
-our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::ClientCli::API::Alias::Type);
+our $Technology = ordered_hash($Shongo::ClientCli::API::DeviceResource::Technology);
+our $AliasType = ordered_hash($Shongo::ClientCli::API::Alias::Type);
 
 #
 # Create a new instance of specification
@@ -238,6 +239,18 @@ sub on_init()
             });
             $self->add_attribute('value', {
                 'title' => 'Requested Value'
+            });
+        }
+        case 'AliasGroupSpecification' {
+            $self->add_attribute('aliasSpecifications', {
+                'title' => 'Aliases',
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'alias',
+                    'class' => 'AliasSpecification',
+                },
+                'complex' => 1,
+                'required' => 1
             });
         }
         case 'RoomSpecification' {
