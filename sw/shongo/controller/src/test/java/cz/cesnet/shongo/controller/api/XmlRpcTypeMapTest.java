@@ -7,12 +7,9 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.RpcClient;
 import cz.cesnet.shongo.controller.api.xmlrpc.RpcServer;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashSet;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for serializing changes in {@link java.util.Map} through XML-RPC.
@@ -52,9 +49,9 @@ public class XmlRpcTypeMapTest
     public void test() throws Exception
     {
         Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
-        assertEquals("1", room.getId());
-        assertEquals("room", room.getName());
-        assertEquals(5, room.getLicenseCount());
+        Assert.assertEquals("1", room.getId());
+        Assert.assertEquals("room", room.getName());
+        Assert.assertEquals(5, room.getLicenseCount());
 
         room.setLicenseCount(10);
         room.setOption(Room.Option.PIN, "100");
@@ -83,7 +80,7 @@ public class XmlRpcTypeMapTest
         @Override
         public Room getRoom(SecurityToken token, String roomId)
         {
-            assertEquals("1", roomId);
+            Assert.assertEquals("1", roomId);
 
             Room room = new Room();
             room.setId("1");
@@ -96,16 +93,9 @@ public class XmlRpcTypeMapTest
         @Override
         public void modifyRoom(SecurityToken token, Room room)
         {
-            assertEquals("1", room.getId());
-            assertEquals(10, room.getLicenseCount());
-            assertEquals(new HashSet<Room.Option>()
-            {{
-                    add(Room.Option.PIN);
-                }}, room.getPropertyItemsMarkedAsNew(Room.OPTIONS));
-//            assertEquals(new HashSet<Room.Option>()
-//            {{
-//                    add(Room.Option.DESCRIPTION);
-//                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
+            Assert.assertEquals("1", room.getId());
+            Assert.assertEquals(10, room.getLicenseCount());
+            Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, Room.Option.PIN));
         }
     }
 }

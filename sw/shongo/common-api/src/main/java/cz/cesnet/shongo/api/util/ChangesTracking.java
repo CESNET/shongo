@@ -42,7 +42,8 @@ public class ChangesTracking implements Concept
     public static class CollectionChanges
     {
         /**
-         * Set of collection items marked as new
+         * Set of collection items marked as new (or {@link IdentifiedObject#getId()} because JADE serialize
+         * same instances as different abstract objects which results into multiple instances).
          */
         public Set<Object> newItems = new HashSet<Object>();
 
@@ -57,6 +58,71 @@ public class ChangesTracking implements Concept
         public boolean isEmpty()
         {
             return newItems.size() == 0 && deletedItems.size() == 0;
+        }
+
+        /**
+         * @param item to be checked if it is new
+         * @return true if given {@code item} is new
+         */
+        public boolean isItemNew(Object item)
+        {
+            if (item instanceof IdentifiedObject) {
+                IdentifiedObject identifiedObject = (IdentifiedObject) item;
+                String itemIdentifier = identifiedObject.getId();
+                return itemIdentifier == null || newItems.contains(itemIdentifier);
+            }
+            else {
+                return newItems.contains(item);
+            }
+        }
+
+        /**
+         * @param item to be checked if it is new
+         * @return true if given {@code item} is new
+         */
+        public boolean isItemDeleted(Object item)
+        {
+            return deletedItems.contains(item);
+        }
+
+        /**
+         * @return {@link #deletedItems}
+         */
+        public Collection<Object> getDeletedItems()
+        {
+            return deletedItems;
+        }
+
+        /**
+         * @param item to be added to the {@link #newItems}
+         */
+        public void addNewItem(Object item)
+        {
+            if (item instanceof IdentifiedObject) {
+                IdentifiedObject identifiedObject = (IdentifiedObject) item;
+                if (identifiedObject.getId() != null) {
+                    newItems.add(identifiedObject.getId());
+                }
+            }
+            else {
+                newItems.add(item);
+            }
+        }
+
+        /**
+         * @param item to be removed from the {@link #newItems}
+         */
+        public void removeNewItem(Object item)
+        {
+            if (item instanceof IdentifiedObject) {
+                IdentifiedObject identifiedObject = (IdentifiedObject) item;
+                if (identifiedObject.getId() != null) {
+                    newItems.remove(identifiedObject.getId());
+                }
+            }
+            else {
+                newItems.remove(item);
+            }
         }
     }
 
@@ -115,7 +181,7 @@ public class ChangesTracking implements Concept
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
-        collectionChanges.newItems.add(item);
+        collectionChanges.addNewItem(item);
     }
 
     /**
@@ -131,8 +197,8 @@ public class ChangesTracking implements Concept
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
-        if (collectionChanges.newItems.contains(item)) {
-            collectionChanges.newItems.remove(item);
+        if (collectionChanges.isItemNew(item)) {
+            collectionChanges.removeNewItem(item);
         }
         else {
             collectionChanges.deletedItems.add(item);
@@ -149,26 +215,9 @@ public class ChangesTracking implements Concept
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges != null) {
-            return collectionChanges.newItems.contains(item);
+            return collectionChanges.isItemNew(item);
         }
         return collectionItemIsByDefaultNew;
-    }
-
-    /**
-     * @param property
-     * @return set of items from given collection which are marked as deleted
-     */
-    public <T> Set<T> getPropertyItemsMarkedAsNew(String property)
-    {
-        CollectionChanges collectionChanges = collectionChangesMap.get(property);
-        if (collectionChanges != null) {
-            @SuppressWarnings("unchecked")
-            Set<T> newItems = (Set) collectionChanges.newItems;
-            return newItems;
-        }
-        else {
-            return new HashSet<T>();
-        }
     }
 
     /**
@@ -295,6 +344,7 @@ public class ChangesTracking implements Concept
         out.writeObject(replaceChanges);
     }
 
+    @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException
     {

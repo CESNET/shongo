@@ -412,23 +412,26 @@ public class Converter
         // Store collection changes into map
         if (collectionChanges != null) {
             // Find all modified items (not marked items are by default modified)
+            List<Object> newItems = new ArrayList<Object>();
             for (Object item : items) {
-                if (collectionChanges.newItems.contains(item)) {
-                    continue;
+                if (collectionChanges.isItemNew(item)) {
+                    newItems.add(item);
                 }
-                if (collectionChanges.deletedItems.contains(item)) {
+                else if (collectionChanges.isItemDeleted(item)) {
                     throw new IllegalStateException(
                             "Item has been marked as delete but not removed from the collection.");
                 }
-                modifiedItems.add(item);
+                else {
+                    modifiedItems.add(item);
+                }
             }
-            if (collectionChanges.newItems.size() > 0) {
-                mapValueItemChanges.put(ChangesTracking.COLLECTION_NEW,
-                        Converter.convertToBasic(collectionChanges.newItems, options));
+            if (newItems.size() > 0) {
+                mapValueItemChanges.put(ChangesTracking.COLLECTION_NEW, Converter.convertToBasic(newItems, options));
             }
-            if (collectionChanges.deletedItems.size() > 0) {
+            Collection<Object> deletedItems = collectionChanges.getDeletedItems();
+            if (deletedItems.size() > 0) {
                 mapValueItemChanges.put(ChangesTracking.COLLECTION_DELETED,
-                        Converter.convertToBasic(collectionChanges.deletedItems, options));
+                        Converter.convertToBasic(deletedItems, options));
             }
         }
         else {

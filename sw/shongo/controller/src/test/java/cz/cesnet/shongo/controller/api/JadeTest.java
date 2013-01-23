@@ -7,21 +7,22 @@ import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for serializing API classes for JADE.
@@ -51,7 +52,7 @@ public class JadeTest extends AbstractControllerTest
             public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
                     throws FaultException
             {
-                assertEquals("1", roomId);
+                Assert.assertEquals("1", roomId);
                 Room room = new Room();
                 room.setId("1");
                 room.setName("room");
@@ -68,6 +69,32 @@ public class JadeTest extends AbstractControllerTest
         super.onStart();
 
         getController().startJade();
+    }
+
+    /**
+     * Test serialization of {@link Room} in {@link ResourceControlService#modifyRoom(SecurityToken, String, Room)}.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testCreateRoom() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        getController().waitForJadeAgentsToStart();
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        Room room = new Room();
+        room.setName("room");
+        room.setOption(Room.Option.PIN, "1234");
+        room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
+        getResourceControlService().createRoom(SECURITY_TOKEN, mcuId, room);
     }
 
     /**
@@ -113,19 +140,28 @@ public class JadeTest extends AbstractControllerTest
         public Object handleAgentAction(AgentAction action, AID sender)
                 throws UnknownAgentActionException, CommandException, CommandUnsupportedException
         {
-            ModifyRoom modifyRoom = (ModifyRoom) action;
-            Room room = modifyRoom.getRoom();
-            assertEquals("1", room.getId());
-            assertEquals("room", room.getName());
-            assertEquals(new HashSet<Room.Option>()
-            {{
-                    add(Room.Option.PIN);
-                }}, room.getPropertyItemsMarkedAsNew(Room.OPTIONS));
-            assertEquals("1234", room.getOption(Room.Option.PIN));
-//            assertEquals(new HashSet<Room.Option>()
-//            {{
-//                    add(Room.Option.DESCRIPTION);
-//                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
+            if (action instanceof CreateRoom) {
+                CreateRoom createRoom = (CreateRoom) action;
+                Room room = createRoom.getRoom();
+                try {
+                    room.setupNewEntity();
+                }
+                catch (FaultException exception) {
+                    throw new IllegalStateException(exception);
+                }
+                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));
+            }
+            else if (action instanceof ModifyRoom) {
+                ModifyRoom modifyRoom = (ModifyRoom) action;
+                Room room = modifyRoom.getRoom();
+                Assert.assertEquals("1", room.getId());
+                Assert.assertEquals("room", room.getName());
+                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, Room.Option.PIN));
+                Assert.assertEquals("1234", room.getOption(Room.Option.PIN));
+            }
+            else {
+                throw new TodoImplementException(action.getClass().getName());
+            }
             return null;
         }
     }

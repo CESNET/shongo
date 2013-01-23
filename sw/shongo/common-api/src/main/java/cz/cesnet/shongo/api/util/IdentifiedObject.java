@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
+import jade.content.onto.annotations.SuppressSlot;
 
 /**
  * Represents a type for a API that can be serialized
@@ -35,6 +37,7 @@ public abstract class IdentifiedObject implements StructType, Concept
     /**
      * @param id sets the {@link #id}
      */
+    @SuppressSlot
     public void setId(Long id)
     {
         this.id = (id != null ? id.toString() : null);
