@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import junitx.framework.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -275,7 +276,7 @@ public class AliasTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testMultiAliasSpecification() throws Exception
+    public void testAliasGroupSpecification() throws Exception
     {
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
@@ -292,10 +293,49 @@ public class AliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new AliasSpecification(new AliasType[]{AliasType.H323_URI, AliasType.SIP_URI}));
+        AliasGroupSpecification aliasGroupSpecification = new AliasGroupSpecification();
+        aliasGroupSpecification.addAliasSpecification(new AliasSpecification(AliasType.H323_URI));
+        aliasGroupSpecification.addAliasSpecification(new AliasSpecification(AliasType.SIP_URI));
+        reservationRequest.setSpecification(aliasGroupSpecification);
         Reservation reservation = allocateAndCheck(reservationRequest);
-        assertEquals("Reservation should have two child alias reservations.",
-                2, reservation.getChildReservationIds().size());
+        List<String> childReservationIds = reservation.getChildReservationIds();
+        assertEquals("Reservation should have two child alias reservations.", 2, childReservationIds.size());
+        AliasReservation reservationFirst = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
+                childReservationIds.get(0));
+        assertEquals(firstAliasProvider.getName(), reservationFirst.getValueReservation().getResourceName());
+        AliasReservation reservationSecond = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
+                childReservationIds.get(1));
+        assertEquals(secondAliasProvider.getName(), reservationSecond.getValueReservation().getResourceName());
+    }
+
+    /**
+     * Test allocation of requested alias value.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testVariantTechnology() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability =
+                new AliasProviderCapability("{hash}").withAllowedAnyRequestedValue();
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{requested-value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}"));
+        aliasProvider.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        AliasSpecification aliasSpecification = new AliasSpecification();
+        aliasSpecification.addAliasType(AliasType.ROOM_NAME);
+        aliasSpecification.addTechnology(Technology.H323);
+        aliasSpecification.addTechnology(Technology.SIP);
+        aliasSpecification.setValue("test");
+        reservationRequest.setSpecification(aliasSpecification);
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals("Room name alias for H.323 or SIP should be allocated.", "test", aliasReservation.getValue());
     }
 }

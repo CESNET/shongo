@@ -19,8 +19,8 @@
     <dt>Identifier:</dt>
     <dd>[% request.id %]</dd>
 
-    <dt>Name:</dt>
-    <dd>[% request.name %]</dd>
+    <dt>Description:</dt>
+    <dd>[% request.description %]</dd>
 
     <dt>Purpose:</dt>
     <dd>[% request.purpose %]</dd>
@@ -47,12 +47,13 @@
 
 [%- ELSIF request.specification.class == 'AliasSpecification' -%]
 
+    [% childRequest = request.childRequests.0 -%]
+
     <dt>Validity:</dt>
     <dd>[% util.format_date(request.start) %]/[% util.format_date(request.end) %]</dd>
 
     <dt>State:</dt>
     <dd>
-        [%- childRequest = request.childRequests.0 %]
         [%- IF childRequest.stateReport -%]
             [% childRequest.stateReport = '<pre>' _ childRequest.stateReport _ '</pre>' %]
         [%- END -%]
@@ -65,10 +66,13 @@
         -%]
     </dd>
 
-    <dt>Allocated Alias:</dt>
+    <dt>Room Name:</dt>
+    <dd>[% childRequest.reservation.roomName %]</dd>
+
+    <dt>Allocated Alias(es):</dt>
     <dd>
         [% INCLUDE common/text_with_tooltip.html
-                text         = childRequest.reservation.value
+                text         = childRequest.reservation.aliases
                 tooltipId    = 'aliases-description-' _ loop.index
                 tooltipClass = 'aliases-description'
                 tooltipText  = childRequest.reservation.aliasesDescription

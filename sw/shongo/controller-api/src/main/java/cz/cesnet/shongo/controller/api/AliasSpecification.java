@@ -14,18 +14,17 @@ import java.util.Set;
 public class AliasSpecification extends Specification
 {
     /**
-     * Requests allocation of {@link Alias}es for each {@link AliasType}s.
+     * Restricts {@link AliasType} for allocation of {@link Alias}.
      */
     public static final String ALIAS_TYPES = "aliasTypes";
 
     /**
-     * Restricts {@link Technology} of the {@link AliasType}s or if {@link #ALIAS_TYPES} is empty it requests
-     * allocation of {@link Alias}es for each {@link Technology}.
+     * Restricts {@link Technology} for allocation of {@link Alias}.
      */
     public static final String TECHNOLOGIES = "technologies";
 
     /**
-     * Alias value.
+     * Restricts {@link Alias#value}.
      */
     public static final String VALUE = "value";
 

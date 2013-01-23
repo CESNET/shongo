@@ -1,5 +1,7 @@
 package cz.cesnet.shongo;
 
+import java.util.Set;
+
 /**
  * Enumeration for available types of aliases.
  */
@@ -68,5 +70,20 @@ public enum AliasType
     public AliasValueType getValueType()
     {
         return valueType;
+    }
+
+    /**
+     * @return formatted given {@code aliasTypes} as string
+     */
+    public static String formatAliasTypes(Set<AliasType> aliasTypes)
+    {
+        StringBuilder builder = new StringBuilder();
+        for (AliasType aliasType : aliasTypes) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(aliasType.toString());
+        }
+        return builder.toString();
     }
 }

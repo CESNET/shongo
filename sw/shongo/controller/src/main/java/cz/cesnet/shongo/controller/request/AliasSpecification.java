@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents a {@link cz.cesnet.shongo.controller.request.Specification} for a person.
+ * Represents a {@link Specification} for an {@link Alias}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -30,13 +30,12 @@ import java.util.Set;
 public class AliasSpecification extends Specification implements ReservationTaskProvider
 {
     /**
-     * Requests allocation of {@link Alias}es for each {@link AliasType}s.
+     * Restricts {@link AliasType} for allocation of {@link Alias}.
      */
     private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
-     * Restricts {@link Technology} of the {@link AliasType}s or if {@link #aliasTypes} is empty it requests
-     * allocation of {@link Alias}es for each {@link Technology}.
+     * Restricts {@link Technology} for allocation of {@link Alias}.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
 
@@ -55,6 +54,16 @@ public class AliasSpecification extends Specification implements ReservationTask
      */
     public AliasSpecification()
     {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param aliasType  to be added to the {@link #aliasTypes}
+     */
+    public AliasSpecification(AliasType aliasType)
+    {
+        addAliasType(aliasType);
     }
 
     /**

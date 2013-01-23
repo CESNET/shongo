@@ -38,7 +38,7 @@ sub create_action
     if ( defined($self->get_param('confirmed')) ) {
         $params->{'error'} = $self->validate_form($params, {
             required => [
-                'name',
+                'description',
                 'purpose',
                 'start',
                 'durationCount',
@@ -93,7 +93,8 @@ sub create_alias_action
     if ( defined($self->get_param('confirmed')) ) {
         $params->{'error'} = $self->validate_form($params, {
             required => [
-                'name',
+                'roomName',
+                'description',
                 'purpose',
                 'start',
                 'end',
@@ -107,7 +108,9 @@ sub create_alias_action
         if ( !%{$params->{'error'}} ) {
             my $specification = {
                 'class' => 'AliasSpecification',
-                'technology' => 'H323'
+                'aliasTypes' => ['ROOM_NAME'],
+                'technologies' => ['H323', 'SIP'],
+                'value' => $params->{'roomName'}
             };
             my $reservation_request = $self->parse_reservation_request($params, $specification);
             $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);

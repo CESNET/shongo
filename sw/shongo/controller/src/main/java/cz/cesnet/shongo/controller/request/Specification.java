@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -97,6 +98,9 @@ public abstract class Specification extends PersistentObject
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
             specification = new AliasSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasGroupSpecification) {
+            specification = new AliasGroupSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
             specification = new ResourceSpecification();

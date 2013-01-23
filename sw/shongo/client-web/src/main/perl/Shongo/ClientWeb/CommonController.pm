@@ -162,7 +162,7 @@ sub parse_reservation_request
     }
 
     # Setup request
-    $request->{'name'} = $params->{'name'};
+    $request->{'description'} = $params->{'description'};
     $request->{'purpose'} = $params->{'purpose'};
     $request->{'specification'} = $specification;
     if ( !defined($params->{'periodicity'}) || $params->{'periodicity'} eq 'none') {
@@ -393,6 +393,7 @@ sub format_aliases
     my $aliases_description = '';
     foreach my $alias (@{$aliases}) {
         if ( $alias->{'type'} eq 'ROOM_NAME' ) {
+            $reference->{'roomName'} = $alias->{'value'};
             next;
         }
         if ( length($aliases_text) > 0 ) {

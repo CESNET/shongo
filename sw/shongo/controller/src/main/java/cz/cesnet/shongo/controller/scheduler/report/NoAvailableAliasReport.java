@@ -22,9 +22,9 @@ public class NoAvailableAliasReport extends Report
     private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
-     * {@link AliasType} for the {@link Alias}.
+     * {@link AliasType}s for the {@link Alias}.
      */
-    private AliasType aliasType;
+    private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
      * Value for the {@link Alias}.
@@ -42,12 +42,12 @@ public class NoAvailableAliasReport extends Report
      * Constructor.
      *
      * @param technologies
-     * @param aliasType
+     * @param aliasTypes
      */
-    public NoAvailableAliasReport(Set<Technology> technologies, AliasType aliasType, String value)
+    public NoAvailableAliasReport(Set<Technology> technologies, Set<AliasType> aliasTypes, String value)
     {
         setTechnologies(technologies);
-        setAliasType(aliasType);
+        setAliasTypes(aliasTypes);
         setValue(value);
     }
 
@@ -72,21 +72,22 @@ public class NoAvailableAliasReport extends Report
     }
 
     /**
-     * @return {@link #aliasType}
+     * @return {@link #aliasTypes}
      */
-    @Column
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    public AliasType getAliasType()
+    @Access(AccessType.FIELD)
+    public Set<AliasType> getAliasTypes()
     {
-        return aliasType;
+        return aliasTypes;
     }
 
     /**
-     * @param aliasType sets the {@link #aliasType}
+     * @param aliasTypes sets the {@link #aliasTypes}
      */
-    public void setAliasType(AliasType aliasType)
+    public void setAliasTypes(Set<AliasType> aliasTypes)
     {
-        this.aliasType = aliasType;
+        this.aliasTypes = aliasTypes;
     }
 
     /**
@@ -115,7 +116,7 @@ public class NoAvailableAliasReport extends Report
                 + " Alias Type: %s\n"
                 + " Value: %s",
                 (technologies.size() > 0 ? Technology.formatTechnologies(technologies) : "Any"),
-                (aliasType != null ? aliasType.toString() : "Any"),
+                (aliasTypes .size() > 0 ? AliasType.formatAliasTypes(aliasTypes ) : "Any"),
                 (value != null ? value : "Any"));
     }
 }

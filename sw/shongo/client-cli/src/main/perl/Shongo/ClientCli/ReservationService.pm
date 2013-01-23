@@ -266,10 +266,10 @@ sub get_reservation_for_request()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
-        'Reservation.listReservations',
-        {'reservationRequestId' => $id}
-    );
+    my $result = Shongo::ClientCli->instance()->secure_request('Reservation.listReservations', {
+        'reservationRequestId' => $id,
+        'userId' => '*'
+    });
     if ( $result->is_fault ) {
         return;
     }

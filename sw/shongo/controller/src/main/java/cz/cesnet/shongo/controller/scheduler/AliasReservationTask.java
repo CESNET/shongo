@@ -121,120 +121,15 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
-        // Build set of technologies and alias types which are missing
-        Set<Technology> missingTechnologies = new HashSet<Technology>();
-        Set<AliasType> missingAliasTypes = new HashSet<AliasType>();
-        missingTechnologies.addAll(technologies);
-        missingAliasTypes.addAll(aliasTypes);
-
-        // Required alias providers
-        List<AliasProviderCapability> requiredAliasProviderCapabilities = aliasProviderCapabilities;
-
-        // List of created reservations
-        List<Reservation> createdReservations = new ArrayList<Reservation>();
-        List<AliasReservation> aliasReservations = new ArrayList<AliasReservation>();
-        while (true) {
-            // Allocate missing alias
-            Reservation reservation;
-            if (missingAliasTypes.size() > 0) {
-                AliasType aliasType = missingAliasTypes.iterator().next();
-                reservation = createSingleReservation(technologies, aliasType, requiredAliasProviderCapabilities);
-            }
-            else if (missingTechnologies.size() > 0) {
-                Set<Technology> technologies = new HashSet<Technology>();
-                technologies.add(missingTechnologies.iterator().next());
-                reservation = createSingleReservation(technologies, null, requiredAliasProviderCapabilities);
-            }
-            else {
-                // No more aliases are missing
-                break;
-            }
-
-            // Process create alias reservation
-            AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
-
-            // If alias should be allocated as permanent room, the next aliases must be in the same alias provider
-            AliasProviderCapability aliasProviderCapability = aliasReservation.getAliasProviderCapability();
-            if (aliasProviderCapability.isPermanentRoom()) {
-                requiredAliasProviderCapabilities = new ArrayList<AliasProviderCapability>();
-                requiredAliasProviderCapabilities.add(aliasProviderCapability);
-            }
-
-            // Remove missing technologies and alias type
-            for (Alias alias : aliasReservation.getAliases()) {
-                missingTechnologies.remove(alias.getTechnology());
-                missingAliasTypes.remove(alias.getType());
-            }
-            createdReservations.add(reservation);
-            aliasReservations.add(aliasReservation);
-        }
-
-        AliasProviderCapability aliasProviderCapability = null;
-        if (requiredAliasProviderCapabilities.size() == 1) {
-            aliasProviderCapability = requiredAliasProviderCapabilities.get(0);
-        }
-
-        // If alias should be allocated as permanent room, create room endpoint with zero licenses
-        // (so we don't need reservation for the room).
-        // The permanent room should not be created if the alias will used for any specified target resource.
-        if (aliasProviderCapability != null && aliasProviderCapability.isPermanentRoom() && targetResource == null) {
-            Resource resource = aliasProviderCapability.getResource();
-            if (!resource.hasCapability(RoomProviderCapability.class)) {
-                throw new IllegalStateException("Permanent room should be enabled only for device resource"
-                        + " with room provider capability.");
-            }
-            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setUserId(getContext().getUserId());
-            roomEndpoint.setSlot(getInterval());
-            roomEndpoint.setDeviceResource((DeviceResource) resource);
-            roomEndpoint.setRoomDescription(getContext().getReservationRequest().getDescription());
-            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-            Set<Technology> technologies = roomEndpoint.getTechnologies();
-            for (AliasReservation aliasReservation : aliasReservations) {
-                for (Alias alias : aliasReservation.getAliases()) {
-                    if (alias.getTechnology().isCompatibleWith(technologies)) {
-                        roomEndpoint.addAssignedAlias(alias);
-                    }
-                }
-                aliasReservation.setExecutable(roomEndpoint);
-            }
-        }
-
-        if (createdReservations.size() == 1) {
-            return createdReservations.get(0);
-        }
-        else {
-            // Create compound reservation request
-            Reservation reservation = new Reservation();
-            reservation.setSlot(getInterval());
-            for (Reservation createdReservation : createdReservations) {
-                addChildReservation(createdReservation);
-            }
-            return reservation;
-        }
-    }
-
-    /**
-     * Create single {@link AliasReservation}.
-     *
-     * @param technologies
-     * @param aliasType
-     * @param requiredAliasProviderCapabilities
-     * @return allocated {@link AliasReservation}
-     * @throws ReportException
-     */
-    private Reservation createSingleReservation(Set<Technology> technologies, AliasType aliasType,
-            List<AliasProviderCapability> requiredAliasProviderCapabilities) throws ReportException
-    {
         Interval interval = getInterval();
         Cache cache = getCache();
         Cache.Transaction cacheTransaction = getCacheTransaction();
 
         // Get alias providers
         Collection<AliasProviderCapability> aliasProviders;
-        if (requiredAliasProviderCapabilities.size() > 0) {
+        if (aliasProviderCapabilities.size() > 0) {
             // Use only specified alias providers
-            aliasProviders = requiredAliasProviderCapabilities;
+            aliasProviders = aliasProviderCapabilities;
         }
         else {
             // Use all alias providers from the cache
@@ -266,7 +161,7 @@ public class AliasReservationTask extends ReservationTask
 
         // Find available value in the alias providers
         Reservation availableValueReservation = null;
-        AliasProviderCapability availableValueAliasProvider = null;
+        AliasProviderCapability availableAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
@@ -278,7 +173,7 @@ public class AliasReservationTask extends ReservationTask
             if (technologies.size() > 0 && !aliasProvider.providesAliasTechnology(technologies)) {
                 continue;
             }
-            if (aliasType != null && !aliasProvider.providesAliasType(aliasType)) {
+            if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
                 continue;
             }
 
@@ -319,24 +214,45 @@ public class AliasReservationTask extends ReservationTask
                     aliasProvider.getValueProvider(), value, interval, cache.getValueCache(), cacheTransaction);
             if (valueReservation != null) {
                 availableValueReservation = valueReservation;
-                availableValueAliasProvider = aliasProvider;
+                availableAliasProvider = aliasProvider;
                 break;
             }
         }
         if (availableValueReservation == null) {
-            throw new NoAvailableAliasReport(technologies, aliasType, value).exception();
+            throw new NoAvailableAliasReport(technologies, aliasTypes, value).exception();
         }
+
+        ValueReservation valueReservation = addChildReservation(availableValueReservation, ValueReservation.class);
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
-        aliasReservation.setAliasProviderCapability(availableValueAliasProvider);
-        aliasReservation.setValueReservation(availableValueReservation.getTargetReservation(ValueReservation.class));
+        aliasReservation.setAliasProviderCapability(availableAliasProvider);
+        aliasReservation.setValueReservation(valueReservation);
 
-        // Add value reservation as child
-        availableValueReservation.setUserId(getContext().getUserId());
-        aliasReservation.addChildReservation(availableValueReservation);
-        getCacheTransaction().addAllocatedReservation(availableValueReservation);
+        // If alias should be allocated as permanent room, create room endpoint with zero licenses
+        // (so we don't need reservation for the room).
+        // The permanent room should not be created if the alias will be used for any specified target resource.
+        if (availableAliasProvider.isPermanentRoom() && targetResource == null) {
+            Resource resource = availableAliasProvider.getResource();
+            if (!resource.hasCapability(RoomProviderCapability.class)) {
+                throw new IllegalStateException("Permanent room should be enabled only for device resource"
+                        + " with room provider capability.");
+            }
+            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+            roomEndpoint.setUserId(getContext().getUserId());
+            roomEndpoint.setSlot(getInterval());
+            roomEndpoint.setDeviceResource((DeviceResource) resource);
+            roomEndpoint.setRoomDescription(getContext().getReservationRequest().getDescription());
+            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+            Set<Technology> technologies = roomEndpoint.getTechnologies();
+            for (Alias alias : aliasReservation.getAliases()) {
+                if (alias.getTechnology().isCompatibleWith(technologies)) {
+                    roomEndpoint.addAssignedAlias(alias);
+                }
+            }
+            aliasReservation.setExecutable(roomEndpoint);
+        }
 
         return aliasReservation;
     }

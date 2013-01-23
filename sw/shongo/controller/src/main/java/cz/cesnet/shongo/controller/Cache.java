@@ -544,6 +544,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 new HashMap<Long, Set<AliasReservation>>();
 
         /**
+         * Set of allocated {@link Reservation}s.
+         */
+        private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
+
+        /**
          * Constructor.
          */
         public Transaction(Interval interval)
@@ -572,6 +577,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
          */
         public void addAllocatedReservation(Reservation reservation)
         {
+            if (!allocatedReservations.add(reservation)) {
+                // Reservation is already added as allocated to the transaction
+                return;
+            }
+
             if (reservation.getSlot().contains(getInterval())) {
                 if (reservation instanceof ResourceReservation) {
                     ResourceReservation resourceReservation = (ResourceReservation) reservation;

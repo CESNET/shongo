@@ -119,7 +119,7 @@ public enum Technology
     }
 
     /**
-     * @return formatted given {@code #technologies} as string
+     * @return formatted given {@code technologies} as string
      */
     public static String formatTechnologies(Set<Technology> technologies)
     {

@@ -497,7 +497,7 @@ public class Controller
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
-        shell.addCommand("log", "Toggle logging of [rpc|sql]", new CommandHandler()
+        shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)

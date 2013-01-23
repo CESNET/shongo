@@ -1,6 +1,6 @@
 <script type="text/javascript">
     $(function() {
-        [% util.tooltip('inputName', resources.tooltip.reservation.name) %]
+        [% util.tooltip('inputDescription', resources.tooltip.reservation.description) %]
         $("#inputStart").datetimepicker({
             changeMonth: true,
             changeYear: true,
@@ -19,10 +19,10 @@
 <form class="form-horizontal" action="[% location %]/create?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
     <div class="control-group">
-        <label class="control-label" for="inputName">Name:</label>
+        <label class="control-label" for="inputDescription">Description:</label>
         <div class="controls">
-            <input id="inputName" name="name" type="text" value="[% name %]"/>
-            [% error.name %]
+            <input id="inputDescription" name="description" type="text" value="[% description %]"/>
+            [% error.description %]
         </div>
     </div>
 
