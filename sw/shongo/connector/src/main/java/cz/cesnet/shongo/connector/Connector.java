@@ -165,7 +165,7 @@ public class Connector
         // Configure agents
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
-            if (instCfg.getProperty("device.connectorClass") != null) {
+            if (instCfg.getProperty("device.connector-class") != null) {
                 ConnectorOptions connectorOptions = new ConnectorOptions();
                 if (!instCfg.configurationsAt("device.options").isEmpty()) {
                     SubnodeConfiguration conf = instCfg.configurationAt("device.options");
@@ -177,7 +177,7 @@ public class Connector
 
                 // command the agent to manage a device
                 ManageCommand cmd = new ManageCommand(
-                        instCfg.getString("device.connectorClass"),
+                        instCfg.getString("device.connector-class"),
                         instCfg.getString("device.host"),
                         instCfg.getInt("device.port", Address.DEFAULT_PORT),
                         instCfg.getString("device.auth.username"),

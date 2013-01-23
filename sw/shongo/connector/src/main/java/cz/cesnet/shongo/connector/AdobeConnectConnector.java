@@ -28,6 +28,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -42,10 +43,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
     /**
+     * Options for the {@link CiscoMCUConnector}.
+     */
+    public static final String URL_PATH_EXTRACTION_FROM_URI = "url-path-extraction-from-uri";
+
+    /**
+     * Patterns for options.
+     */
+    private Pattern urlPathExtractionFromUri = null;
+
+    /**
      * Root folder for meetings
      */
     protected String meetingsFolderID;
-
 
     /**
      * This is the user log in name, typically the user email address.
@@ -89,6 +99,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.info.setDeviceAddress(address);
         this.login = username;
         this.password = password;
+
+        // Setup options
+        this.urlPathExtractionFromUri = options.getPattern(URL_PATH_EXTRACTION_FROM_URI);
 
         this.login();
 
@@ -374,12 +387,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         room.setAliases(aliasList);
 
-
-        // TODO: technology
-        // TODO: roomInfo.setOwner();
-        // TODO: roomInfo.setCreation();
-        // TODO: roomInfo.setReservation();
-
         return room;
     }
 
@@ -439,7 +446,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
-    private void setRoomAttributes(HashMap<String, String> attributes, Room room) throws UnsupportedEncodingException
+    private void setRoomAttributes(HashMap<String, String> attributes, Room room) throws UnsupportedEncodingException, CommandException
     {
         // Set the description
         if (room.getDescription() != null) {
@@ -456,7 +463,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                             attributes.put("name", URLEncoder.encode(alias.getValue(), "UTF8"));
                             break;
                         case ADOBE_CONNECT_URI:
-                            attributes.put("url-path", alias.getValue());
+                            if (urlPathExtractionFromUri == null) {
+                                throw new CommandException(String.format(
+                                        "Cannot set Adobe Connect Url Path - missing connector device option '%s'",
+                                        URL_PATH_EXTRACTION_FROM_URI));
+                            }
+                            Matcher matcher = urlPathExtractionFromUri.matcher(alias.getValue());
+                            if (!matcher.find()) {
+                                throw new CommandException("Invalid Adobe Connect URI: " + alias.getValue());
+                            }
+                            attributes.put("url-path", matcher.group(1));
                             break;
                         default:
                             throw new IllegalStateException("Unrecognized alias: " + alias.toString());

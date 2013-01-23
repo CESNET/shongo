@@ -46,6 +46,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
 
+    /**
+     * Options for the {@link CiscoMCUConnector}.
+     */
+    public static final String ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER = "room-number-extraction-from-h323-number";
+    public static final String ROOM_NUMBER_EXTRACTION_FROM_SIP_URI = "room-number-extraction-from-sip-uri";
+
+    /**
+     * Maximum length of string which can be sent to the device.
+     */
     private static final int STRING_MAX_LENGTH = 31;
 
     /**
@@ -59,182 +68,24 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private static final int ENUMERATE_PAGES_LIMIT = 1000;
 
     /**
-     * An example of interaction with the device.
-     * <p/>
-     * Just for debugging purposes.
-     *
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
-    {
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
-        final String address;
-        final String username;
-        final String password;
-
-        if (args.length > 0) {
-            address = args[0];
-        }
-        else {
-            System.out.print("address: ");
-            address = in.readLine();
-        }
-
-        if (args.length > 1) {
-            username = args[1];
-        }
-        else {
-            System.out.print("username: ");
-            username = in.readLine();
-        }
-
-        if (args.length > 2) {
-            password = args[2];
-        }
-        else {
-            System.out.print("password: ");
-            password = in.readLine();
-        }
-
-        CiscoMCUConnector conn = new CiscoMCUConnector();
-        conn.connect(Address.parseAddress(address), username, password);
-
-        // gatekeeper status
-//        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
-//        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
-
-        // test of getRoomList() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
-//                    room.getStartDateTime(), room.getOwner());
-//        }
-
-        // test that the second enumeration query fills data that has not changed and therefore were not transferred
-//        Command enumParticipantsCmd = new Command("participant.enumerate");
-//        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
-//        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
-//        List<Map<String, Object>> participants = conn.execEnumerate(enumParticipantsCmd, "participants");
-//        List<Map<String, Object>> participants2 = conn.execEnumerate(enumParticipantsCmd, "participants");
-
-        // test that the second enumeration query fills data that has not changed and therefore were not transferred
-//        Command enumConfCmd = new Command("conference.enumerate");
-//        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
-//        enumConfCmd.setParameter("enumerateFilter", "completed");
-//        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
-//        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
-
-        // test of getRoom() command
-//        Room shongoTestRoom = conn.getRoom("shongo-test");
-//        System.out.println("shongo-test room:");
-//        System.out.println(shongoTestRoom);
-
-        // test of deleteRoom() command
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-//        System.out.println("Deleting 'shongo-test'");
-//        conn.deleteRoom("shongo-test");
-//        roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-
-        // test of createRoom() method
-//        Room newRoom = new Room("shongo-test9", 5);
-//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087209"));
-//        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
-//        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
-//        String newRoomId = conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoomId);
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
-
-        // test of bad caching
-//        Room newRoom = new Room("shongo-testX", 5);
-//        String newRoomId = conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoomId);
-//        Collection<RoomSummary> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomSummary roomSummary : roomList) {
-//            System.out.println(roomSummary);
-//        }
-//        conn.deleteRoom(newRoomId);
-//        System.out.println("Deleted room " + newRoomId);
-//        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-testing");
-//        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
-//        Collection<RoomSummary> newRoomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomSummary roomSummary : newRoomList) {
-//            System.out.println(roomSummary);
-//        }
-//        atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-test");
-//        conn.modifyRoom(changedRoomId, atts, null);
-
-        // test of modifyRoom() method
-//        System.out.println("Modifying shongo-test");
-//        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put(Room.NAME, "shongo-testing");
-//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
-//        opts.put(Room.Option.LISTED_PUBLICLY, false);
-//        opts.put(Room.Option.PIN, "1234");
-//        conn.modifyRoom("shongo-test", atts, opts);
-//        Map<String, Object> atts2 = new HashMap<String, Object>();
-//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-//        atts2.put(Room.NAME, "shongo-test");
-//        conn.modifyRoom("shongo-testing", atts2, null);
-
-        // test of listParticipants() method
-//        System.out.println("Listing shongo-test room:");
-//        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
-//        for (RoomUser ru : shongoUsers) {
-//            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
-//        }
-//        System.out.println("Listing done");
-
-        // user connect by alias
-//        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
-//        System.out.println("Added user " + ruId);
-        // user connect by address
-//        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
-        // user disconnect
-//        conn.disconnectParticipant("shongo-test", "participant1");
-
-//        System.out.println("All done, disconnecting");
-
-        // test of modifyParticipant
-//        Map<String, Object> attributes = new HashMap<String, Object>();
-//        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
-//        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
-//        conn.modifyParticipant("shongo-test", "3447", attributes);
-
-        Room room = conn.getRoom("shongo-test");
-
-        conn.disconnect();
-    }
-
-
-    /**
      * The default port number to connect to.
      */
     public static final int DEFAULT_PORT = 443;
 
+    /**
+     * {@link XmlRpcClient} used for the communication with the device.
+     */
     private XmlRpcClient client;
 
+    /**
+     * Authentication for the device.
+     */
     private String authUsername;
     private String authPassword;
 
+    /**
+     * Patterns for options.
+     */
     private Pattern roomNumberFromH323Number = null;
     private Pattern roomNumberFromSIPURI = null;
 
@@ -335,11 +186,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             return;
         }
 
-        String h323Number = options.getString(ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        String h323Number = options.getString(ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
         if (h323Number != null) {
             roomNumberFromH323Number = Pattern.compile(h323Number);
         }
-        String sipNumber = options.getString(ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
+        String sipNumber = options.getString(ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
         if (sipNumber != null) {
             roomNumberFromSIPURI = Pattern.compile(sipNumber);
         }
@@ -908,7 +759,7 @@ ParamsLoop:
                             if (roomNumberFromH323Number == null) {
                                 throw new CommandException(String.format(
                                         "Cannot set H.323 E164 number - missing connector device option '%s'",
-                                        ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
+                                        ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
                             }
                             m = roomNumberFromH323Number.matcher(alias.getValue());
                             if (!m.find()) {
@@ -920,7 +771,7 @@ ParamsLoop:
                             if (roomNumberFromSIPURI == null) {
                                 throw new CommandException(String.format(
                                         "Cannot set SIP URI to room - missing connector device option '%s'",
-                                        ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
+                                        ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
                             }
                             m = roomNumberFromSIPURI.matcher(alias.getValue());
                             if (m.find()) {
@@ -1456,5 +1307,171 @@ ParamsLoop:
     }
 
     //</editor-fold>
+
+    /**
+     * An example of interaction with the device.
+     * <p/>
+     * Just for debugging purposes.
+     *
+     * @param args
+     * @throws IOException
+     */
+    public static void main(String[] args) throws IOException, CommandException, CommandUnsupportedException
+    {
+        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+
+        final String address;
+        final String username;
+        final String password;
+
+        if (args.length > 0) {
+            address = args[0];
+        }
+        else {
+            System.out.print("address: ");
+            address = in.readLine();
+        }
+
+        if (args.length > 1) {
+            username = args[1];
+        }
+        else {
+            System.out.print("username: ");
+            username = in.readLine();
+        }
+
+        if (args.length > 2) {
+            password = args[2];
+        }
+        else {
+            System.out.print("password: ");
+            password = in.readLine();
+        }
+
+        CiscoMCUConnector conn = new CiscoMCUConnector();
+        conn.connect(Address.parseAddress(address), username, password);
+
+        // gatekeeper status
+//        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
+//        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
+
+        // test of getRoomList() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
+//                    room.getStartDateTime(), room.getOwner());
+//        }
+
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
+//        Command enumParticipantsCmd = new Command("participant.enumerate");
+//        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
+//        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
+//        List<Map<String, Object>> participants = conn.execEnumerate(enumParticipantsCmd, "participants");
+//        List<Map<String, Object>> participants2 = conn.execEnumerate(enumParticipantsCmd, "participants");
+
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
+//        Command enumConfCmd = new Command("conference.enumerate");
+//        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
+//        enumConfCmd.setParameter("enumerateFilter", "completed");
+//        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
+//        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
+
+        // test of getRoom() command
+//        Room shongoTestRoom = conn.getRoom("shongo-test");
+//        System.out.println("shongo-test room:");
+//        System.out.println(shongoTestRoom);
+
+        // test of deleteRoom() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+//        System.out.println("Deleting 'shongo-test'");
+//        conn.deleteRoom("shongo-test");
+//        roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+
+        // test of createRoom() method
+//        Room newRoom = new Room("shongo-test9", 5);
+//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087209"));
+//        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
+//        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+
+        // test of bad caching
+//        Room newRoom = new Room("shongo-testX", 5);
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
+//        Collection<RoomSummary> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : roomList) {
+//            System.out.println(roomSummary);
+//        }
+//        conn.deleteRoom(newRoomId);
+//        System.out.println("Deleted room " + newRoomId);
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
+//        Collection<RoomSummary> newRoomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : newRoomList) {
+//            System.out.println(roomSummary);
+//        }
+//        atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom(changedRoomId, atts, null);
+
+        // test of modifyRoom() method
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
+//        opts.put(Room.Option.LISTED_PUBLICLY, false);
+//        opts.put(Room.Option.PIN, "1234");
+//        conn.modifyRoom("shongo-test", atts, opts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2, null);
+
+        // test of listParticipants() method
+//        System.out.println("Listing shongo-test room:");
+//        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
+//        for (RoomUser ru : shongoUsers) {
+//            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
+//        }
+//        System.out.println("Listing done");
+
+        // user connect by alias
+//        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        System.out.println("Added user " + ruId);
+        // user connect by address
+//        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
+        // user disconnect
+//        conn.disconnectParticipant("shongo-test", "participant1");
+
+//        System.out.println("All done, disconnecting");
+
+        // test of modifyParticipant
+//        Map<String, Object> attributes = new HashMap<String, Object>();
+//        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+//        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
+//        conn.modifyParticipant("shongo-test", "3447", attributes);
+
+        Room room = conn.getRoom("shongo-test");
+
+        conn.disconnect();
+    }
 
 }

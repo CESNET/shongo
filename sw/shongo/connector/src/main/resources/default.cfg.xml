@@ -25,7 +25,7 @@
             <name>c90agent</name>
             # Device to be managed
             <device>
-                <connectorClass>cz.cesnet.shongo.connector.CodecC90Connector</connectorClass>
+                <connector-class>cz.cesnet.shongo.connector.CodecC90Connector</connector-class>
                 <host>147.251.54.102</host>
                 <port>22</port>
                 <auth>

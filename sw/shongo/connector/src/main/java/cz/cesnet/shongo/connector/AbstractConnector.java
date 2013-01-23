@@ -29,7 +29,10 @@ abstract public class AbstractConnector implements CommonService
 {
     private static Logger logger = LoggerFactory.getLogger(AbstractConnector.class);
 
-    protected ConnectorOptions options = null;
+    /**
+     * {@link ConnectorOptions}.
+     */
+    protected ConnectorOptions options = new ConnectorOptions();
 
     /**
      * Info about the connector and the device.
