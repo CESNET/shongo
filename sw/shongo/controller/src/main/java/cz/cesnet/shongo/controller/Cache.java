@@ -153,7 +153,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param workingInterval sets the {@link #workingInterval}
      * @param entityManager   used for reloading allocations of resources for the new interval
      */
-    public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
+    public synchronized void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
     {
         if (!workingInterval.equals(this.workingInterval)) {
             logger.info("Setting new working interval '{}' to cache...",
@@ -188,13 +188,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     @Override
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    public synchronized void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
         this.entityManagerFactory = entityManagerFactory;
     }
 
     @Override
-    public void init(Configuration configuration)
+    public synchronized void init(Configuration configuration)
     {
         super.init(configuration);
 
@@ -207,7 +207,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     @Override
-    public void destroy()
+    public synchronized void destroy()
     {
         logger.debug("Stopping cache...");
 
@@ -217,7 +217,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * Reload cache from given {@code entityManager}.
      */
-    public void reset()
+    public synchronized void reset()
     {
         resourceCache.clear();
         valueCache.clear();
@@ -262,7 +262,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param entityManager
      * @throws FaultException when the creating in the database fails
      */
-    public void addResource(Resource resource, EntityManager entityManager) throws FaultException
+    public synchronized void addResource(Resource resource, EntityManager entityManager) throws FaultException
     {
         // Create resource in the database if it wasn't created yet
         if (entityManager != null && !resource.isPersisted()) {
@@ -303,7 +303,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @see {@link #addResource(Resource, EntityManager)}
      */
-    public void addResource(Resource resource) throws FaultException
+    public synchronized void addResource(Resource resource) throws FaultException
     {
         addResource(resource, null);
     }
@@ -314,7 +314,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param resource
      * @param entityManager entity manager used for loading of resource allocations from the database
      */
-    public void updateResource(Resource resource, EntityManager entityManager)
+    public synchronized void updateResource(Resource resource, EntityManager entityManager)
     {
         removeResource(resource);
         try {
@@ -330,7 +330,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      *
      * @param resource to be removed
      */
-    public void removeResource(Resource resource)
+    public synchronized void removeResource(Resource resource)
     {
         // Remove resource from resource cache
         resourceCache.removeObject(resource);
@@ -349,7 +349,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @param reservation to be added to the {@link Cache}
      */
-    public void addReservation(Reservation reservation, EntityManager entityManager)
+    public synchronized void addReservation(Reservation reservation, EntityManager entityManager)
     {
         // Create reservation in the database if it wasn't created yet
         if (entityManager != null && !reservation.isPersisted()) {
@@ -380,7 +380,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @see {@link #addResource(Resource, EntityManager)}
      */
-    public void addReservation(Reservation reservation)
+    public synchronized void addReservation(Reservation reservation)
     {
         addReservation(reservation, null);
     }
@@ -388,7 +388,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @param reservation to be removed from the cache (and all child reservations)
      */
-    public void removeReservation(Reservation reservation)
+    public synchronized void removeReservation(Reservation reservation)
     {
         if (reservation instanceof ExistingReservation) {
             ExistingReservation existingReservation = (ExistingReservation) reservation;
@@ -412,7 +412,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @return collection of existing {@link AliasProviderCapability}s
      */
-    public Collection<AliasProviderCapability> getAliasProviders()
+    public synchronized Collection<AliasProviderCapability> getAliasProviders()
     {
         return aliasProviderById.values();
     }

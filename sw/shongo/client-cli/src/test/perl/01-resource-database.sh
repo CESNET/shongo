@@ -8,7 +8,6 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
         name: 'namingService', \
         description: 'Naming service for all technologies', \
         allocatable: 1, \
-        maximumFuture: 'P1Y', \
         capabilities: [{ \
             class: 'ValueProviderCapability', \
             valueProvider: { \
@@ -41,6 +40,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
                 { type: 'ROOM_NAME', value: '{value}' }, \
                 { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
             ], \
+            maximumFuture: 'P1Y', \
             restrictedToResource: 1, \
         },{ \
             class: 'AliasProviderCapability', \
@@ -53,6 +53,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
                 { type: 'H323_URI', value: '{device.address}#2{value}' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
+            maximumFuture: 'P1Y', \
             restrictedToResource: 1, \
         }], \
         administrators: [ \
@@ -111,6 +112,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
                 { type: 'ROOM_NAME', value: '{requested-value}' }, \
                 { type: 'ADOBE_CONNECT_URI', value: '{device.address}/{value}' } \
             ], \
+            maximumFuture: 'P1Y', \
             permanentRoom: 1, \
         }], \
         administrators: [ \

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.joda.time.DateTime;
 
 import javax.persistence.*;
 
@@ -48,6 +49,17 @@ public abstract class Capability extends PersistentObject
                 this.resource.addCapability(this);
             }
         }
+    }
+
+    /**
+     * @param dateTime          date/time which is checked for availability
+     * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
+     * @return true if the {@link Capability} (or the {@link #resource}) is available at given {@code dateTime},
+     *         false otherwise
+     */
+    public boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
+    {
+        return resource.isAvailableInFuture(dateTime, referenceDateTime);
     }
 
     /**

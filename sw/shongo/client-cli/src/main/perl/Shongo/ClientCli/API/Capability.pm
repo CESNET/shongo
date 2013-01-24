@@ -146,6 +146,10 @@ sub on_init()
                 },
                 'required' => 1
             });
+            $self->add_attribute('maximumFuture', {
+                'title' => 'Maximum Future',
+                'type' => 'period'
+            });
             $self->add_attribute('restrictedToResource', {
                 'title' => 'Restricted to Owner',
                 'type' => 'bool'

@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import java.util.List;
 
@@ -24,6 +26,11 @@ public class AliasProviderCapability extends Capability
      * Type of aliases.
      */
     public static final String ALIASES = "aliases";
+
+    /**
+     * Specifies the maximum future for which the {@link AliasProviderCapability} can be scheduled.
+     */
+    public static final String MAXIMUM_FUTURE = "maximumFuture";
 
     /**
      * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
@@ -157,6 +164,23 @@ public class AliasProviderCapability extends Capability
     public void removeAlias(Alias alias)
     {
         getPropertyStorage().removeCollectionItem(ALIASES, alias);
+    }
+
+    /**
+     * @return {@link #MAXIMUM_FUTURE}
+     */
+    @AllowedTypes({DateTime.class, Period.class})
+    public Object getMaximumFuture()
+    {
+        return getPropertyStorage().getValue(MAXIMUM_FUTURE);
+    }
+
+    /**
+     * @param maximumFuture sets the {@link #MAXIMUM_FUTURE}
+     */
+    public void setMaximumFuture(Object maximumFuture)
+    {
+        getPropertyStorage().setValue(MAXIMUM_FUTURE, maximumFuture);
     }
 
     /**

@@ -205,7 +205,7 @@ public class AliasReservationTask extends ReservationTask
             // Check whether alias provider can be allocated
             Resource resource = aliasProvider.getResource();
             DateTime referenceDateTime = cache.getReferenceDateTime();
-            if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+            if (!resource.isAllocatable() || !aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
                 continue;
             }
 

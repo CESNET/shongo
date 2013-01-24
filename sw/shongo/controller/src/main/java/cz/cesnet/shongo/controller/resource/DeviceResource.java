@@ -259,10 +259,10 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager)
+    public void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.DeviceResource deviceResource =
-                (cz.cesnet.shongo.controller.api.DeviceResource) resource;
+                (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
         if (address != null) {
             deviceResource.setAddress(address.getValue());
         }
@@ -276,15 +276,15 @@ public class DeviceResource extends Resource
         else {
             deviceResource.setMode(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE);
         }
-        super.toApi(resource, entityManager);
+        super.toApi(resourceApi, entityManager);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) api;
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
+        cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
+        if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
             if (apiDevice.getAddress() == null) {
                 setAddress(null);
             }
@@ -295,19 +295,19 @@ public class DeviceResource extends Resource
 
         // Create technologies
         for (Technology technology : apiDevice.getTechnologies()) {
-            if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
+            if (resourceApi.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
                     technology)) {
                 addTechnology(technology);
             }
         }
         // Delete technologies
         Set<Technology> technologiesToDelete =
-                api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+                resourceApi.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
         for (Technology technology : technologiesToDelete) {
             removeTechnology(technology);
         }
 
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.MODE)) {
+        if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.MODE)) {
             Object mode = apiDevice.getMode();
             if (mode instanceof String) {
                 if (mode.equals(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE)) {
@@ -315,7 +315,7 @@ public class DeviceResource extends Resource
                 }
                 else {
                     throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
-                            cz.cesnet.shongo.controller.api.DeviceResource.MODE, api.getClass(), mode);
+                            cz.cesnet.shongo.controller.api.DeviceResource.MODE, resourceApi.getClass(), mode);
                 }
             }
             else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
@@ -332,10 +332,10 @@ public class DeviceResource extends Resource
             }
             else {
                 throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
-                        cz.cesnet.shongo.controller.api.DeviceResource.MODE, api.getClass(), mode);
+                        cz.cesnet.shongo.controller.api.DeviceResource.MODE, resourceApi.getClass(), mode);
             }
         }
-        super.fromApi(api, entityManager);
+        super.fromApi(resourceApi, entityManager);
     }
 
     /**

@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
@@ -36,9 +37,10 @@ public class ValueReservationTask
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
 
         // Check whether target value provider can be allocated
-        Resource resource = targetValueProvider.getCapabilityResource();
+        Capability capability = targetValueProvider.getCapability();
+        Resource resource = capability.getResource();
         DateTime referenceDateTime = valueCache.getReferenceDateTime();
-        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+        if (!resource.isAllocatable() || !capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
             return null;
         }
 

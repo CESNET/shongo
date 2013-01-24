@@ -6,7 +6,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
         class: 'ReservationRequest', \
         description: 'test', \
         purpose: 'SCIENCE', \
-        slot: '`date +"%Y-%m-%d"`T00:00/P1D', \
+        slot: '`date +"%Y-%m-%d"`T00:00/P1Y', \
         specification: { \
             class: 'AliasSpecification', \
             technologies: ['ADOBE_CONNECT'], \

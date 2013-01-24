@@ -3,8 +3,6 @@
 * String aliases
   -create SpecificationSummary and add it to ReservationRequestSummary
 
-* Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
-
 * info mails
   -implement for aliases
   -hide identifiers (move to end)
@@ -15,9 +13,15 @@
   -now button in date picker
   -sort week days in date/time pickers (Mo Thu ...)
   -use one getReservations instead of multiple getReservation requests
+  -implement better "back button"
 
 * Improve allocation failed reports
   -Max-future
+
+* Executor
+  -Store starting failed reports
+  -Try to start executables in starting failed state (e.g., when agent was offline) or send info emails
+   to administrators
 
 * log all connector actions
 
@@ -42,8 +46,6 @@
   bool objects should be converted to 1/0
 
 * Use HangUp instead of HangUpAll
-
-* Implement better web client "back button"
 
 * Alias specification - request H323 and SIP too
 

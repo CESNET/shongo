@@ -3,11 +3,17 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -32,14 +38,10 @@ public class AliasProviderCapability extends Capability
     private List<Alias> aliases = new ArrayList<Alias>();
 
     /**
-     * Cache for provided {@link Technology}s.
+     * Defines a maximum future to which the {@link AliasProviderCapability} is allocatable (e.g., can be set
+     * as relative date/time which means that it can be always scheduled only e.g., to four month ahead).
      */
-    private Set<Technology> cachedProvidedTechnologies;
-
-    /**
-     * Cache for provided {@link AliasType}s.
-     */
-    private Set<AliasType> cachedProvidedAliasTypes;
+    private DateTimeSpecification maximumFuture;
 
     /**
      * Specifies whether the {@link AliasProviderCapability} can be allocated as {@link Alias}es only for
@@ -52,6 +54,16 @@ public class AliasProviderCapability extends Capability
      * should represent permanent rooms (should get allocated {@link RoomEndpoint}).
      */
     private boolean permanentRoom;
+
+    /**
+     * Cache for provided {@link Technology}s.
+     */
+    private Set<Technology> cachedProvidedTechnologies;
+
+    /**
+     * Cache for provided {@link AliasType}s.
+     */
+    private Set<AliasType> cachedProvidedAliasTypes;
 
     /**
      * Constructor.
@@ -151,6 +163,34 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
+    }
+
+    /**
+     * @return {@link #maximumFuture}
+     */
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    public DateTimeSpecification getMaximumFuture()
+    {
+        return maximumFuture;
+    }
+
+    @Override
+    public final boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
+    {
+        if (maximumFuture != null) {
+            DateTime earliestDateTime = maximumFuture.getEarliest(referenceDateTime);
+            return !dateTime.isAfter(earliestDateTime);
+        }
+        return super.isAvailableInFuture(dateTime, referenceDateTime);
+    }
+
+    /**
+     * @param maximumFuture sets the {@link #maximumFuture}
+     */
+    public void setMaximumFuture(DateTimeSpecification maximumFuture)
+    {
+        this.maximumFuture = maximumFuture;
     }
 
     /**
@@ -266,20 +306,36 @@ public class AliasProviderCapability extends Capability
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        cz.cesnet.shongo.controller.api.AliasProviderCapability apiAliasProvider =
+        cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderApi =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
+
         for (Alias alias : aliases) {
-            apiAliasProvider.addAlias(alias.toApi());
+            aliasProviderApi.addAlias(alias.toApi());
         }
+
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getResource()) {
-            apiAliasProvider.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
+            aliasProviderApi.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
         }
         else {
-            apiAliasProvider.setValueProvider(valueProvider.toApi());
+            aliasProviderApi.setValueProvider(valueProvider.toApi());
         }
-        apiAliasProvider.setRestrictedToResource(isRestrictedToResource());
-        apiAliasProvider.setPermanentRoom(isPermanentRoom());
+
+        DateTimeSpecification maximumFuture = getMaximumFuture();
+        if (maximumFuture != null) {
+            if (maximumFuture instanceof AbsoluteDateTimeSpecification) {
+                aliasProviderApi.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
+            }
+            else if (maximumFuture instanceof RelativeDateTimeSpecification) {
+                aliasProviderApi.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
+            }
+            else {
+                throw new TodoImplementException();
+            }
+        }
+
+        aliasProviderApi.setRestrictedToResource(isRestrictedToResource());
+        aliasProviderApi.setPermanentRoom(isPermanentRoom());
         super.toApi(api);
     }
 
@@ -289,12 +345,7 @@ public class AliasProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderApi =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) capabilityApi;
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.RESTRICTED_TO_RESOURCE)) {
-            setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
-        }
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.PERMANENT_ROOM)) {
-            setPermanentRoom(aliasProviderApi.getPermanentRoom());
-        }
+
         if (aliasProviderApi.isPropertyFilled(aliasProviderApi.VALUE_PROVIDER)) {
             Object valueProviderApi = aliasProviderApi.getValueProvider();
             setValueProvider(ValueProvider.modifyFromApi(valueProviderApi, this.valueProvider, this, entityManager));
@@ -317,6 +368,28 @@ public class AliasProviderCapability extends Capability
                 capabilityApi.getPropertyItemsMarkedAsDeleted(aliasProviderApi.ALIASES);
         for (cz.cesnet.shongo.api.Alias apiAlias : apiDeletedAliases) {
             removeAlias(getAliasById(apiAlias.notNullIdAsLong()));
+        }
+
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.MAXIMUM_FUTURE)) {
+            Object maximumFuture = aliasProviderApi.getMaximumFuture();
+            if (maximumFuture == null) {
+                setMaximumFuture(null);
+            }
+            else if (maximumFuture instanceof DateTime) {
+                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maximumFuture));
+            }
+            else if (maximumFuture instanceof Period) {
+                setMaximumFuture(new RelativeDateTimeSpecification((Period) maximumFuture));
+            }
+            else {
+                throw new TodoImplementException(maximumFuture.getClass().getName());
+            }
+        }
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.RESTRICTED_TO_RESOURCE)) {
+            setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
+        }
+        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.PERMANENT_ROOM)) {
+            setPermanentRoom(aliasProviderApi.getPermanentRoom());
         }
 
         super.fromApi(capabilityApi, entityManager);

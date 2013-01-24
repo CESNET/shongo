@@ -332,7 +332,7 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #maximumFuture}
      */
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
     public DateTimeSpecification getMaximumFuture()
     {
@@ -345,7 +345,7 @@ public class Resource extends PersistentObject
      * @return true if resource is available at given {@code dateTime},
      *         false otherwise
      */
-    public boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
+    public final boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
     {
         if (maximumFuture == null) {
             return true;
@@ -409,23 +409,23 @@ public class Resource extends PersistentObject
      * @return converted resource to API
      * @throws FaultException
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager)
+    protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
         Domain localDomain = Domain.getLocalDomain();
 
-        resource.setId(localDomain.formatId(this));
-        resource.setUserId(getUserId());
-        resource.setName(getName());
-        resource.setAllocatable(isAllocatable());
-        resource.setDescription(getDescription());
+        resourceApi.setId(localDomain.formatId(this));
+        resourceApi.setUserId(getUserId());
+        resourceApi.setName(getName());
+        resourceApi.setAllocatable(isAllocatable());
+        resourceApi.setDescription(getDescription());
 
         DateTimeSpecification maximumFuture = getMaximumFuture();
         if (maximumFuture != null) {
             if (maximumFuture instanceof AbsoluteDateTimeSpecification) {
-                resource.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
+                resourceApi.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
             }
             else if (maximumFuture instanceof RelativeDateTimeSpecification) {
-                resource.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
+                resourceApi.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
             }
             else {
                 throw new TodoImplementException();
@@ -434,65 +434,65 @@ public class Resource extends PersistentObject
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resource.setParentResourceId(localDomain.formatId(parentResource));
+            resourceApi.setParentResourceId(localDomain.formatId(parentResource));
         }
 
         for (Capability capability : getCapabilities()) {
-            resource.addCapability(capability.toApi());
+            resourceApi.addCapability(capability.toApi());
         }
 
         for (Person person : getAdministrators()) {
-            resource.addAdministrator(person.toApi());
+            resourceApi.addAdministrator(person.toApi());
         }
 
         for (Resource childResource : getChildResources()) {
-            resource.addChildResourceId(localDomain.formatId(childResource));
+            resourceApi.addChildResourceId(localDomain.formatId(childResource));
         }
     }
 
     /**
-     * @param api
+     * @param resourceApi
      * @param entityManager
      * @return resource converted from API
      */
-    public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
-            throws FaultException
+    public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource resourceApi,
+            EntityManager entityManager) throws FaultException
     {
         Resource resource;
-        if (api instanceof cz.cesnet.shongo.controller.api.DeviceResource) {
+        if (resourceApi instanceof cz.cesnet.shongo.controller.api.DeviceResource) {
             resource = new DeviceResource();
         }
         else {
             resource = new Resource();
         }
-        resource.fromApi(api, entityManager);
+        resource.fromApi(resourceApi, entityManager);
         return resource;
     }
 
     /**
      * Synchronize resource from API
      *
-     * @param api
+     * @param resourceApi
      * @param entityManager
      * @throws FaultException
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
             throws FaultException
     {
         // Modify attributes
-        if (api.isPropertyFilled(api.NAME)) {
-            setName(api.getName());
+        if (resourceApi.isPropertyFilled(resourceApi.NAME)) {
+            setName(resourceApi.getName());
         }
-        if (api.isPropertyFilled(api.DESCRIPTION)) {
-            setDescription(api.getDescription());
+        if (resourceApi.isPropertyFilled(resourceApi.DESCRIPTION)) {
+            setDescription(resourceApi.getDescription());
         }
-        if (api.isPropertyFilled(api.ALLOCATABLE)) {
-            setAllocatable(api.getAllocatable());
+        if (resourceApi.isPropertyFilled(resourceApi.ALLOCATABLE)) {
+            setAllocatable(resourceApi.getAllocatable());
         }
-        if (api.isPropertyFilled(api.PARENT_RESOURCE_ID)) {
+        if (resourceApi.isPropertyFilled(resourceApi.PARENT_RESOURCE_ID)) {
             Long newParentResourceId = null;
-            if (api.getParentResourceId() != null) {
-                newParentResourceId = Domain.getLocalDomain().parseId(api.getParentResourceId());
+            if (resourceApi.getParentResourceId() != null) {
+                newParentResourceId = Domain.getLocalDomain().parseId(resourceApi.getParentResourceId());
             }
             Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
             if ((newParentResourceId == null && oldParentResourceId != null)
@@ -503,8 +503,8 @@ public class Resource extends PersistentObject
                 setParentResource(parentResource);
             }
         }
-        if (api.isPropertyFilled(api.MAXIMUM_FUTURE)) {
-            Object maximumFuture = api.getMaximumFuture();
+        if (resourceApi.isPropertyFilled(resourceApi.MAXIMUM_FUTURE)) {
+            Object maximumFuture = resourceApi.getMaximumFuture();
             if (maximumFuture == null) {
                 setMaximumFuture(null);
             }
@@ -515,13 +515,13 @@ public class Resource extends PersistentObject
                 setMaximumFuture(new RelativeDateTimeSpecification((Period) maximumFuture));
             }
             else {
-                throw new TodoImplementException();
+                throw new TodoImplementException(maximumFuture.getClass().getName());
             }
         }
 
         // Create/modify capabilities
-        for (cz.cesnet.shongo.controller.api.Capability apiCapability : api.getCapabilities()) {
-            if (api.isPropertyItemMarkedAsNew(api.CAPABILITIES, apiCapability)) {
+        for (cz.cesnet.shongo.controller.api.Capability apiCapability : resourceApi.getCapabilities()) {
+            if (resourceApi.isPropertyItemMarkedAsNew(resourceApi.CAPABILITIES, apiCapability)) {
                 addCapability(Capability.createFromApi(apiCapability, entityManager));
             }
             else {
@@ -531,14 +531,14 @@ public class Resource extends PersistentObject
         }
         // Delete capabilities
         Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
-                api.getPropertyItemsMarkedAsDeleted(api.CAPABILITIES);
+                resourceApi.getPropertyItemsMarkedAsDeleted(resourceApi.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
             removeCapability(getCapabilityById(apiCapability.notNullIdAsLong()));
         }
 
         // Create/modify administrators
-        for (cz.cesnet.shongo.controller.api.Person personApi : api.getAdministrators()) {
-            if (api.isPropertyItemMarkedAsNew(api.ADMINISTRATORS, personApi)) {
+        for (cz.cesnet.shongo.controller.api.Person personApi : resourceApi.getAdministrators()) {
+            if (resourceApi.isPropertyItemMarkedAsNew(resourceApi.ADMINISTRATORS, personApi)) {
                 addAdministrator(Person.createFromApi(personApi));
             }
             else {
@@ -548,7 +548,7 @@ public class Resource extends PersistentObject
         }
         // Delete administrators
         Set<cz.cesnet.shongo.controller.api.Person> deletedAdministrators =
-                api.getPropertyItemsMarkedAsDeleted(api.ADMINISTRATORS);
+                resourceApi.getPropertyItemsMarkedAsDeleted(resourceApi.ADMINISTRATORS);
         for (cz.cesnet.shongo.controller.api.Person personApi : deletedAdministrators) {
             removeAdministrator(getAdministratorById(personApi.notNullIdAsLong()));
         }

@@ -102,8 +102,9 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
             Transaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
-        Resource resource = valueProvider.getCapabilityResource();
-        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
+        Capability capability = valueProvider.getCapability();
+        Resource resource = capability.getResource();
+        if (!resource.isAllocatable() || !capability.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return null;
         }
 
