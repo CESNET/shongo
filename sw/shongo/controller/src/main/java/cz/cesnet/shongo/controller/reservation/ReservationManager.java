@@ -182,14 +182,16 @@ public class ReservationManager extends AbstractManager
         if (reservationClasses != null && reservationClasses.size() > 0) {
 
             if (reservationClasses.contains(AliasReservation.class)) {
-                // List only reservations of given classes
+                // List only reservations of given classes or simple reservations which have alias reservation as child
                 filter.addFilter("reservation IN ("
-                        + "   SELECT reservation FROM Reservation reservation"
-                        + "   LEFT JOIN reservation.childReservations childReservation"
-                        + "   WHERE TYPE(reservation) IN(:classes) OR TYPE(childReservation) = :aliasReservationClass"
+                        + "   SELECT mainReservation FROM Reservation mainReservation"
+                        + "   LEFT JOIN mainReservation.childReservations childReservation"
+                        + "   WHERE TYPE(mainReservation) IN(:classes)"
+                        + "      OR (TYPE(mainReservation) = :mainClass AND TYPE(childReservation) = :aliasClass)"
                         + " )");
                 filter.addFilterParameter("classes", reservationClasses);
-                filter.addFilterParameter("aliasReservationClass", AliasReservation.class);
+                filter.addFilterParameter("aliasClass", AliasReservation.class);
+                filter.addFilterParameter("mainClass", Reservation.class);
             }
             else {
                 // List only reservations of given classes

@@ -7,13 +7,11 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.api.xmlrpc.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-import org.apache.xmlrpc.client.XmlRpcCommonsTransportFactory;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +149,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 throw new CommandException(String.format(
                         "Device API %.1f too old. The connector only works with API 2.9 or higher.",
                         apiVersion
-                        ));
+                ));
             }
         }
         catch (NullPointerException e) {
@@ -396,7 +394,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                     if (it == null) {
                         throw new CommandException(
                                 "Item reported as not changed by the device, but was not found in the cache: " + item
-                                );
+                        );
                     }
                     iterator.set(it);
                 }
@@ -818,9 +816,6 @@ ParamsLoop:
                 // Modify existing alias
                 else {
                     switch (alias.getType()) {
-                        case ROOM_NAME:
-                            cmd.setParameter("conferenceName", truncateString(alias.getValue()));
-                            break;
                         case H323_E164:
                             cmd.setParameter("numericId", truncateString(alias.getValue()));
                             break;

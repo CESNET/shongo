@@ -9,7 +9,7 @@ import org.apache.xmlrpc.client.*;
 */
 public class KeepAliveTransportFactory extends XmlRpcSun15HttpTransportFactory
 {
-    private static XmlRpcTransport transport;
+    private XmlRpcTransport transport;
 
     /**
      * Creates a new instance.
