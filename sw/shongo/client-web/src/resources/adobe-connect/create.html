@@ -1,18 +1,8 @@
 <script type="text/javascript">
     $(function() {
         [% util.tooltip('inputDescription', resources.tooltip.reservation.description) %]
-        $("#inputStart").datetimepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd',
-            timeFormat: 'HH:mm',
-            separator: 'T'
-        });
-        $("#inputPeriodicityEnd").datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd'
-        });
+        $("#inputStart").datetimepicker();
+        $("#inputPeriodicityEnd").datepicker();
     });
 </script>
 <h1>New reservation request for Adobe Connect conference</h1>

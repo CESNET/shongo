@@ -2,16 +2,8 @@
     $(function() {
         [% util.tooltip('inputDescription', resources.tooltip.reservation.description) %]
         [% util.tooltip('inputRoomName', 'Name for the Adobe Connect room (and also for the room url path)') %]
-        $("#inputStart").datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd'
-        });
-        $("#inputEnd").datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd'
-        });
+        $("#inputStart").datepicker();
+        $("#inputEnd").datepicker();
     });
 </script>
 <h1>New reservation request for Adobe Connect alias</h1>

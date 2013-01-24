@@ -1367,6 +1367,7 @@
 		var now = new Date();
 		this._setTime(inst, now);
 		$('.ui-datepicker-today', $dp).click();
+		$('#ui-datepicker-div').toggle();
 	};
 
 	/*

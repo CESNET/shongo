@@ -2,16 +2,8 @@
     $(function() {
         [% util.tooltip('inputDescription', resources.tooltip.reservation.description) %]
         [% util.tooltip('inputRoomName', 'H.323/SIP identifier') %]
-        $("#inputStart").datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd'
-        });
-        $("#inputEnd").datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'yy-mm-dd'
-        });
+        $("#inputStart").datepicker();
+        $("#inputEnd").datepicker();
     });
 </script>
 <h1>New reservation request for H.323/SIP alias</h1>

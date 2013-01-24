@@ -10,8 +10,6 @@
 * Improve value generation performance
 
 * Web client
-  -now button in date picker
-  -sort week days in date/time pickers (Mo Thu ...)
   -use one getReservations instead of multiple getReservation requests
   -implement better "back button"
 
