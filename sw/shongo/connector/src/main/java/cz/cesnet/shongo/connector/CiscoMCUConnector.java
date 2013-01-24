@@ -306,12 +306,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     private static RoomSummary extractRoomSummary(Map<String, Object> conference)
     {
-        RoomSummary info = new RoomSummary();
-        info.setId((String) conference.get("conferenceName"));
-        info.setName((String) conference.get("description"));
+        RoomSummary roomSummary = new RoomSummary();
+        roomSummary.setId((String) conference.get("conferenceName"));
+        roomSummary.setName((String) conference.get("conferenceName"));
+        roomSummary.setDescription((String) conference.get("description"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
-        info.setStartDateTime(new DateTime(conference.get(timeField)));
-        return info;
+        roomSummary.setStartDateTime(new DateTime(conference.get(timeField)));
+        return roomSummary;
     }
 
 
@@ -796,7 +797,7 @@ ParamsLoop:
                     if (roomNumber != null) {
                         // Check we are not already assigning a different number to the room
                         final Object oldRoomNumber = cmd.getParameterValue("numericId");
-                        if (!oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
+                        if (oldRoomNumber != null && !oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
                             // multiple number aliases
                             throw new CommandException(String.format(
                                     "The connector supports only one number for a room, requested another: %s", alias));
@@ -807,7 +808,7 @@ ParamsLoop:
                     if (roomName != null) {
                         // Check that more aliases do not request different room name
                         final Object oldRoomName = cmd.getParameterValue("conferenceName");
-                        if (oldRoomName != null && !oldRoomName.equals(roomName)) {
+                        if (oldRoomName != null && !oldRoomName.equals("") && !oldRoomName.equals(roomName)) {
                             throw new CommandException(String.format(
                                     "The connector supports only one room name, requested another: %s", alias));
                         }
@@ -816,7 +817,17 @@ ParamsLoop:
                 }
                 // Modify existing alias
                 else {
-                    throw new IllegalStateException("TODO: Implement room alias modification.");
+                    switch (alias.getType()) {
+                        case ROOM_NAME:
+                            cmd.setParameter("conferenceName", truncateString(alias.getValue()));
+                            break;
+                        case H323_E164:
+                            cmd.setParameter("numericId", truncateString(alias.getValue()));
+                            break;
+                        default:
+                            throw new IllegalStateException("TODO: Implement modification of "
+                                    + alias.getType().toString() + " alias.");
+                    }
                 }
             }
         }

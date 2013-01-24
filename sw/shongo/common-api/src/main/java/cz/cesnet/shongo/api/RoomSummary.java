@@ -20,6 +20,11 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     private String name;
 
     /**
+     * User readable description of the room.
+     */
+    private String description;
+
+    /**
      * Date/time when the room was started.
      */
     private DateTime startDateTime;
@@ -45,6 +50,22 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #description}
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * @param description sets the {@link #description}
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
 
     /**

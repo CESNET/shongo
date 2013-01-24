@@ -861,11 +861,12 @@ sub resource_list_rooms
     if ( $response->is_fault() ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Start date/time', \' |');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Start date/time', \' |');
     foreach my $room (@{$response->value()}) {
         $table->add(
             $room->{'id'},
             $room->{'name'},
+            $room->{'description'},
             format_datetime($room->{'startDateTime'})
         );
     }

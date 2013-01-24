@@ -50,8 +50,8 @@ our $CallInitiation = ordered_hash(
 #
 # Alias type for specification
 #
-our $Technology = ordered_hash($Shongo::ClientCli::API::DeviceResource::Technology);
-our $AliasType = ordered_hash($Shongo::ClientCli::API::Alias::Type);
+our $Technology = $Shongo::ClientCli::API::DeviceResource::Technology;
+our $AliasType = $Shongo::ClientCli::API::Alias::Type;
 
 #
 # Create a new instance of specification

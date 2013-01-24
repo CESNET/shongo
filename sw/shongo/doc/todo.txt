@@ -2,7 +2,10 @@
 
 * String aliases
   -test connectors with ROOM_NAME alias (require ROOM_NAME alias and remove code attribute from Room)
-  -remove shongo-test room from mcu (or changes its number to the last from the assigned interval)
+  -reservation request state color in cmd-line client
+  -create SpecificationSummary and add it to ReservationRequestSummary
+  -hide reservation in web client when in "not-allocated" state
+  -maximum duration of alias reservations -> value reservations
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 
@@ -35,6 +38,9 @@
 * Adobe Connector
  - single connection
  - thread safety
+
+* Connector
+ - test reconnecting of connectors when a device is restarted
 
 * Clien-CLI Shell.pm in parse_attributes the resulting hash should be processed and all json
   bool objects should be converted to 1/0

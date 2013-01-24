@@ -4,7 +4,7 @@
     <thead>
     <tr>
         <th>Identifier</th>
-        <th>Name</th>
+        <th>Description</th>
         <th>Purpose</th>
         <th>Validity</th>
         <th>State</th>
@@ -15,7 +15,7 @@
     [%- FOREACH aliasRequest IN aliasRequests %]
     <tr>
         <td><a href="[% location %]/detail?id=[% aliasRequest.id %]">[% aliasRequest.id %]</a></td>
-        <td>[% aliasRequest.name %]</td>
+        <td>[% aliasRequest.description %]</td>
         <td>[% aliasRequest.purpose %]</td>
         <td>[% util.format_interval_date(aliasRequest.earliestSlot) %]</td>
         <td><a href="[% location %]/detail?id=[% aliasRequest.id %]" class="state-[% aliasRequest.stateCode %]">[% aliasRequest.state %]</a></td>
@@ -36,7 +36,7 @@
     <thead>
     <tr>
         <th>Identifier</th>
-        <th>Name</th>
+        <th>Description</th>
         <th>Purpose</th>
         <th>Starting date/time</th>
         <th>Duration</th>
@@ -48,7 +48,7 @@
     [%- FOREACH roomRequest IN roomRequests %]
     <tr>
         <td><a href="[% location %]/detail?id=[% roomRequest.id %]">[% roomRequest.id %]</a></td>
-        <td>[% roomRequest.name %]</td>
+        <td>[% roomRequest.description %]</td>
         <td>[% roomRequest.purpose %]</td>
         <td>[% util.format_datetime(roomRequest.start) %]</td>
         <td>[% util.format_period(roomRequest.duration) %]</td>

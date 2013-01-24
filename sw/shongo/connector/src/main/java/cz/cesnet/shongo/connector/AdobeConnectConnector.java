@@ -352,6 +352,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             RoomSummary roomSummary = new RoomSummary();
             roomSummary.setId(room.getAttributeValue("sco-id"));
             roomSummary.setName(room.getChildText("name"));
+            roomSummary.setDescription(room.getChildText("description"));
 
             String dateCreated = room.getChildText("date-created");
             if (dateCreated != null) {

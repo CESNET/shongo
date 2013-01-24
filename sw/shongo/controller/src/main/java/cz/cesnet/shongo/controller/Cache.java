@@ -222,6 +222,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         resourceCache.clear();
         valueCache.clear();
+        reusedReservationCache.clear();
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
 

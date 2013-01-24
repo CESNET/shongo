@@ -182,7 +182,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     public void setOptions(Map<Option, Object> options)
     {
         for (Map.Entry<Option, Object> entry : options.entrySet()) {
-            validateOption(entry.getKey(), entry.getValue());
+            entry.setValue(validateOption(entry.getKey(), entry.getValue()));
         }
         getPropertyStorage().setMap(OPTIONS, options);
     }
@@ -235,7 +235,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
             removeOption(option);
         }
         else {
-            validateOption(option, value);
+            value = validateOption(option, value);
             getPropertyStorage().addMapItem(OPTIONS, option, value);
         }
     }
@@ -257,14 +257,19 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      * @param value  value to be set
      * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
-    private static void validateOption(Option option, Object value)
+    private static Object validateOption(Option option, Object value)
     {
-        if (!option.getValueClass().isInstance(value)) {
+        Class requiredClass = option.getValueClass();
+        if (value instanceof Integer && requiredClass.equals(Boolean.class)) {
+            return (((Integer) value) != 0);
+        }
+        if (!requiredClass.isInstance(value)) {
             throw new IllegalArgumentException(String.format(
                     "Option %s requires value of class %s, but %s given",
                     option, option.getValueClass().getName(), value.getClass().getName()
             ));
         }
+        return value;
     }
 
     /**

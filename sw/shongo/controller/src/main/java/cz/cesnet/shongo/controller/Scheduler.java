@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
@@ -89,9 +90,12 @@ public class Scheduler extends Component implements Component.NotificationManage
             Set<Reservation> modifiedReservations = new HashSet<Reservation>();
             Set<Reservation> deletedReservations = new HashSet<Reservation>();
 
-            // Get all reservations which should be deleted
-            Set<Reservation> toDeleteReservations = new HashSet<Reservation>();
-            toDeleteReservations.addAll(reservationManager.getReservationsForDeletion());
+            // Get all reservations which should be deleted, and store theirs reservation request
+            Map<Reservation, AbstractReservationRequest> toDeleteReservations =
+                    new HashMap<Reservation, AbstractReservationRequest>();
+            for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
+                toDeleteReservations.put(reservation, reservation.getReservationRequest());
+            }
 
             // Get all reservation requests which should be allocated
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
@@ -100,30 +104,20 @@ public class Scheduler extends Component implements Component.NotificationManage
 
             // TODO: Apply some other priority to reservation requests
 
-            // Delete all old reservations from reservation requests
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            Map<ReservationRequest, Reservation> oldReservations = new HashMap<ReservationRequest, Reservation>();
-            for (ReservationRequest reservationRequest : reservationRequests) {
-                Reservation oldReservation = reservationRequest.getReservation();
-                if (oldReservation != null) {
-                    reservationRequest.setReservation(null);
-                    reservationRequestManager.update(reservationRequest);
-                    reservationManager.delete(oldReservation, cache);
-                    toDeleteReservations.remove(oldReservation);
-                    oldReservations.put(reservationRequest, oldReservation);
-                }
-            }
+            // Keep track of old reservations for reservation requests (for determination of modified reservations)
+            Map<AbstractReservationRequest, Reservation> oldReservations =
+                    new HashMap<AbstractReservationRequest, Reservation>();
 
-            // Delete all reservations which have not be deleted yet but should be
-            for (Reservation reservation : toDeleteReservations) {
-                ReservationRequest reservationRequest =
-                        reservationRequestManager.getReservationRequestByReservation(reservation);
+            // Delete all reservations which should be deleted
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            for (Reservation reservation : toDeleteReservations.keySet()) {
+                AbstractReservationRequest reservationRequest = toDeleteReservations.get(reservation);
                 if (reservationRequest != null) {
-                    reservationRequest.setReservation(null);
+                    reservationRequest.removeReservation(reservation);
                     reservationRequestManager.update(reservationRequest);
                 }
                 reservationManager.delete(reservation, cache);
-                deletedReservations.add(reservation);
+                oldReservations.put(reservationRequest, reservation);
             }
 
             // Allocate all reservation requests
@@ -131,6 +125,7 @@ public class Scheduler extends Component implements Component.NotificationManage
                 Reservation oldReservation = oldReservations.get(reservationRequest);
                 Reservation newReservation = allocateReservationRequest(reservationRequest, entityManager);
                 if (oldReservation != null) {
+                    oldReservations.remove(reservationRequest);
                     if (newReservation != null) {
                         modifiedReservations.add(newReservation);
                     }
@@ -141,6 +136,11 @@ public class Scheduler extends Component implements Component.NotificationManage
                 else if (newReservation != null) {
                     newReservations.add(newReservation);
                 }
+            }
+
+            // All remaining old reservation must be considered as deleted
+            for (Reservation reservation : oldReservations.values()) {
+                deletedReservations.add(reservation);
             }
 
             // Notify about new reservations
@@ -156,7 +156,12 @@ public class Scheduler extends Component implements Component.NotificationManage
         }
         catch (Exception exception) {
             transaction.rollback();
-            cache.reset();
+            try {
+                cache.reset();
+            }
+            catch (Exception resettingException) {
+                logger.error("Cache resetting failed", resettingException);
+            }
             throw new IllegalStateException("Scheduler failed", exception);
         }
     }

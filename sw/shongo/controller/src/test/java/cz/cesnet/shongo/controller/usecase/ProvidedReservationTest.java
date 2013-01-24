@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import org.junit.Test;
 
@@ -152,9 +153,9 @@ public class ProvidedReservationTest extends AbstractControllerTest
         allocateAndCheck(compartmentReservationRequest);
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
-            fail("Exception that reservation request is still referenced should be thrown");
+            fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (EntityToDeleteIsReferencedException exception) {
+        catch (ReservationRequestNotModifiableException exception) {
         }
     }
 
