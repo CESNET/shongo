@@ -2,6 +2,7 @@
 
 * String aliases
   -test connectors with ROOM_NAME alias (require ROOM_NAME alias and remove code attribute from Room)
+  -remove shongo-test room from mcu (or changes its number to the last from the assigned interval)
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 
@@ -14,6 +15,7 @@
 * Web client
   -now button in date picker
   -sort week days in date/time pickers (Mo Thu ...)
+  -use one getReservations instead of multiple getReservation requests
 
 * Improve allocation failed reports
   -Max-future

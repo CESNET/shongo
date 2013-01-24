@@ -116,11 +116,19 @@ div.not-available {
     font-weight: bold;
 }
 
-/** empty table */
+/** Empty style */
+span.empty {
+    color: #888888;
+}
 td.empty {
     background-color: transparent !important;
     text-align: center;
     color: #AAAAAA;
+}
+
+/** Span without line breaks */
+span.nowrap {
+    white-space: nowrap;
 }
 
 pre {

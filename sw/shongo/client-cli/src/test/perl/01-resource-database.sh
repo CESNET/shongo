@@ -50,7 +50,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
             }, \
             aliases: [ \
                 { type: 'H323_E164', value: '9500872{value}' }, \
-                { type: 'H323_URI', value: '{device.address}#9500872{value}' }, \
+                { type: 'H323_URI', value: '{device.address}#2{value}' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
             restrictedToResource: 1, \

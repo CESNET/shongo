@@ -80,9 +80,6 @@ sub create_action
         'jquery' => 1
     };
     $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['H323', 'SIP']);
-    foreach my $alias_reservation (@{$params->{'aliasReservations'}}) {
-        $self->process_reservation_alias($alias_reservation);
-    }
     $self->render_page('New reservation request', 'h323-sip/create.html', $params);
 }
 
@@ -144,7 +141,7 @@ sub detail_action
             $request->{'pin'} = $roomSetting->{'pin'};
         }
         if ( !defined($request->{'pin'}) || $request->{'pin'} eq '' ) {
-            $request->{'pin'} = 'none';
+            $request->{'pin'} = '<span class="empty">None</span>';
         }
         push(@{$request->{'attributes'}}, {'name' => 'PIN', 'value' => $request->{'pin'}});
     }
@@ -153,22 +150,6 @@ sub detail_action
         'technologies' => 'H.323/SIP',
         'request' => $request,
     });
-}
-
-# @Override
-sub process_reservation_alias
-{
-    my ($self, $reservation_alias, $available) = @_;
-
-    my $value = $reservation_alias->{'aliasValue'};
-    foreach my $alias (@{$reservation_alias->{'aliases'}}) {
-        if ( $alias->{'type'} eq 'H323_E164' ) {
-            $value = $alias->{'value'};
-        }
-    }
-    $reservation_alias->{'value'} = $value;
-
-    $self->SUPER::process_reservation_alias($reservation_alias, $available);
 }
 
 1;

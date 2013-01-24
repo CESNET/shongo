@@ -88,7 +88,7 @@
             <select id="selectAlias" name="alias" [% "disabled" IF get.alias %]>
                 <option value="none">&lt;Ad-Hoc Room Name&gt;</option>
                 [%- FOREACH aliasReservation IN aliasReservations %]
-                <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.value %] ([% aliasReservation.id %])</option>
+                <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.roomName %] ([% aliasReservation.id %])</option>
                 [% END %]
             </select>
             [% IF !get.alias %]<a class="btn" href="[% location %]/create-alias">Create new Alias</a>[% END %]

@@ -276,10 +276,11 @@ sub get_reservation_request
         $request->{'participantCount'} = $specification->{'participantCount'};
     }
     elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
-        # TODO: fill some attributes
+    }
+    elsif ( $specification->{'class'} eq 'AliasGroupSpecification' ) {
     }
     else {
-        $self->error("Reservation request should have room specification but '$specification->{'class'}' was present.");
+        $self->error("Reservation request has unknown specification '$specification->{'class'}'.");
     }
     $request->{'specification'} = $specification;
 
@@ -287,9 +288,7 @@ sub get_reservation_request
     $request->{'providedReservations'} = [];
     foreach my $provided_reservation_id (@{$request->{'providedReservationIds'}}) {
         my $provided_reservation = $self->{'application'}->secure_request('Reservation.getReservation', $provided_reservation_id);
-        if ( $provided_reservation->{'class'} eq 'AliasReservation') {
-            $self->process_reservation_alias($provided_reservation);
-        }
+        $self->process_reservation($provided_reservation);
         push(@{$request->{'providedReservations'}}, $provided_reservation);
     }
 
@@ -310,18 +309,9 @@ sub get_reservation_request
         # Allocated reservation
         if ( defined($child_request->{'reservationId'}) ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation', $child_request->{'reservationId'});
-            if ( $specification->{'class'} eq 'RoomSpecification' ) {
-                if ( !($reservation->{'class'} eq 'RoomReservation') ) {
-                    $self->error("Allocated reservation should be room but '$reservation->{'class'}' was present.");
-                }
-                $self->format_aliases($reservation, $reservation->{'executable'}->{'aliases'}, $state_code eq 'started');
-            }
-            elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
-                if ( !($reservation->{'class'} eq 'AliasReservation') ) {
-                    $self->error("Allocated reservation should be alias but '$reservation->{'class'}' was present.");
-                }
-                $self->process_reservation_alias($reservation, $state_code eq 'started');
+            $self->process_reservation($reservation, $state_code eq 'started');
 
+            if ( $specification->{'class'} eq 'AliasSpecification' || $specification->{'class'} eq 'AliasGroupSpecification') {
                 my $aliasUsageRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
                     'providedReservationId' => $request->{'reservationId'}
                 });
@@ -352,6 +342,9 @@ sub get_reservations
         $filter->{'technology'} = $technology;
     }
     my $reservations = $self->{'application'}->secure_request('Reservation.listReservations', $filter);
+    foreach my $reservation (@{$reservations}) {
+        $self->process_reservation($reservation);
+    }
     return $reservations;
 }
 
@@ -373,12 +366,38 @@ sub process_reservation_request_summary
 }
 
 #
-# @param $reservation_alias to be processed
+# @param $reservation to be processed
 #
-sub process_reservation_alias
+sub process_reservation
 {
-    my ($self, $reservation_alias, $available) = @_;
-    $self->format_aliases($reservation_alias, $reservation_alias->{'aliases'}, $available);
+    my ($self, $reservation, $available) = @_;
+    if ( $reservation->{'class'} eq 'AliasReservation' ) {
+        $self->format_aliases($reservation, $reservation->{'aliases'}, $available);
+    }
+    elsif ( $reservation->{'class'} eq 'RoomReservation' ) {
+        $self->format_aliases($reservation, $reservation->{'executable'}->{'aliases'}, $available);
+    }
+    elsif ( $reservation->{'class'} eq 'ExistingReservation' ) {
+        my $reusedReservation = $reservation->{'reservation'};
+        $self->process_reservation($reusedReservation, $available);
+        delete $reservation->{'reservation'};
+        for my $key (keys %{$reusedReservation}) {
+            $reservation->{$key} = $reusedReservation->{$key};
+        }
+    }
+    else {
+        my $aliases = [];
+        foreach my $child_reservation_id (@{$reservation->{'childReservationIds'}}) {
+            my $child_reservation = $self->{'application'}->secure_request('Reservation.getReservation', $child_reservation_id);
+            if ( $child_reservation->{'class'} eq 'AliasReservation' ) {
+                push(@{$aliases}, @{$child_reservation->{'aliases'}});
+            }
+        }
+
+        if ( scalar(@{$aliases}) > 0 ) {
+            $self->format_aliases($reservation, $aliases, $available);
+        }
+    }
 }
 
 #
@@ -429,7 +448,7 @@ sub format_aliases
         }
     }
     if ( !$available ) {
-        $aliases_text .= " <span class='muted'>(not available now)</span>";
+        $aliases_text .= " <span class='muted nowrap'>(not available now)</span>";
     }
     if ( length($aliases_description) == 0 ){
         $aliases_description = undef;

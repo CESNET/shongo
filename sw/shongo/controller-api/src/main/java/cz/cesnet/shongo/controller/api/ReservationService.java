@@ -83,6 +83,16 @@ public interface ReservationService extends Service
 
     /**
      * @param token
+     * @param reservationIds
+     * @return collection of {@link Reservation}s with given identifiers
+     * @throws FaultException
+     */
+    @API
+    public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds)
+            throws FaultException;
+
+    /**
+     * @param token
      * @param filter attributes for filtering reservations (map of name => value pairs)::
      *               -{@code userId}                restricts reservation owner by his user-id
      *               -{@code reservationRequestId}  restricts reservation request for which the {@link Reservation} is allocated

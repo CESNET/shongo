@@ -180,9 +180,22 @@ public class ReservationManager extends AbstractManager
         DatabaseFilter filter = new DatabaseFilter("reservation");
         filter.addUserId(userId);
         if (reservationClasses != null && reservationClasses.size() > 0) {
-            // List only reservations of given classes
-            filter.addFilter("TYPE(reservation) IN(:classes)");
-            filter.addFilterParameter("classes", reservationClasses);
+
+            if (reservationClasses.contains(AliasReservation.class)) {
+                // List only reservations of given classes
+                filter.addFilter("reservation IN ("
+                        + "   SELECT reservation FROM Reservation reservation"
+                        + "   LEFT JOIN reservation.childReservations childReservation"
+                        + "   WHERE TYPE(reservation) IN(:classes) OR TYPE(childReservation) = :aliasReservationClass"
+                        + " )");
+                filter.addFilterParameter("classes", reservationClasses);
+                filter.addFilterParameter("aliasReservationClass", AliasReservation.class);
+            }
+            else {
+                // List only reservations of given classes
+                filter.addFilter("TYPE(reservation) IN(:classes)");
+                filter.addFilterParameter("classes", reservationClasses);
+            }
         }
         if (reservationRequestId != null) {
             // List only reservations which are allocated for request with given id
@@ -223,8 +236,28 @@ public class ReservationManager extends AbstractManager
                         iterator.remove();
                     }
                 }
+                else if (reservation.getClass().equals(Reservation.class)){
+                    boolean technologyFound = false;
+                    for (Reservation childReservation : reservation.getChildReservations()) {
+                        if (childReservation instanceof AliasReservation) {
+                            AliasReservation childAliasReservation = (AliasReservation) childReservation;
+                            for (Alias alias : childAliasReservation.getAliases()) {
+                                if (technologies.contains(alias.getTechnology())) {
+                                    technologyFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else {
+                            throw new TodoImplementException(childReservation.getClass().getName());
+                        }
+                    }
+                    if (!technologyFound) {
+                        iterator.remove();
+                    }
+                }
                 else {
-                    throw new TodoImplementException();
+                    throw new TodoImplementException(reservation.getClass().getName());
                 }
             }
         }

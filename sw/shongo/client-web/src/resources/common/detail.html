@@ -1,6 +1,6 @@
 <h1>Detail of reservation request for [%- technologies -%]
 [%- IF request.specification.class == 'RoomSpecification' %] room capacity
-[%- ELSIF request.specification.class == 'AliasSpecification' %] alias
+[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' %] alias
 [%- END -%]
 </h1>
 
@@ -39,13 +39,13 @@
     [%- IF aliasReservation %]
 
     <dt>Room Alias:</dt>
-    <dd><a href="[% location %]/detail?id=[% valueReservation.reservationRequestId %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
+    <dd><a href="[% location %]/detail?id=[% aliasReservation.reservationRequestId %]">[% aliasReservation.roomName %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
     [% END %]
 
     <dt>Number of participants:</dt>
     <dd>[% request.participantCount %]</dd>
 
-[%- ELSIF request.specification.class == 'AliasSpecification' -%]
+[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
 
     [% childRequest = request.childRequests.0 -%]
 
@@ -67,7 +67,7 @@
     </dd>
 
     <dt>Room Name:</dt>
-    <dd>[% childRequest.reservation.roomName %]</dd>
+    <dd>[% childRequest.reservation.roomName %][% '<span class="empty">None</span>' IF !childRequest.reservation.roomName %]</dd>
 
     <dt>Allocated Alias(es):</dt>
     <dd>
@@ -77,7 +77,7 @@
                 tooltipClass = 'aliases-description'
                 tooltipText  = childRequest.reservation.aliasesDescription
         -%]
-        [% 'None' IF !childRequest.reservation.aliases %]
+        [% '<span class="empty">None</span>' IF !childRequest.reservation.aliases %]
     </dd>
 
 [%- END -%]
@@ -95,13 +95,13 @@
 [% INCLUDE common/detail_room.html %]
 [% END -%]
 
-[%- IF request.specification.class == 'AliasSpecification' -%]
+[%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
 [% INCLUDE common/detail_alias.html %]
 [% END -%]
 
 <div class="pull-right">
     <a class="btn btn-primary" href="[% location %]/list">Back</a>
-    [%- IF request.specification.class == 'AliasSpecification' -%]
+    [%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
     [% IF request.reservationId %]
     <a class="btn" href="[% location %]/create?alias=[% request.reservationId %]">Request Room Capacity</a>
     [% ELSE %]
