@@ -273,7 +273,7 @@ public class ReservationRequest extends NormalReservationRequest
                     throw new IllegalStateException("Allocated reservation request should have a reservation.");
                 }
                 Executable executable = reservation.getExecutable();
-                if ( executable != null) {
+                if (executable != null) {
                     switch (executable.getState()) {
                         case STARTED:
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
@@ -291,6 +291,16 @@ public class ReservationRequest extends NormalReservationRequest
             default:
                 throw new TodoImplementException();
         }
+    }
+
+    /**
+     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservation} is filled
+     *         false otherwise
+     */
+    @Transient
+    private boolean isReservationAllocated()
+    {
+        return getState().equals(State.ALLOCATED) && getReservation() != null;
     }
 
     @PrePersist
@@ -335,7 +345,7 @@ public class ReservationRequest extends NormalReservationRequest
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
-        if (getReservation() != null) {
+        if (isReservationAllocated()) {
             reservationRequestApi.setReservationId(Domain.getLocalDomain().formatId(getReservation()));
         }
         super.toApi(api);

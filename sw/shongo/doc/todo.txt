@@ -1,10 +1,7 @@
 * 2 paragraphs of shongo features
 
 * String aliases
-  -reservation request state color in cmd-line client
   -create SpecificationSummary and add it to ReservationRequestSummary
-  -hide reservation in web client when in "not-allocated" state
-  -maximum duration of alias reservations -> value reservations
 
 * Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
 

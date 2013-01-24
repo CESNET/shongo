@@ -132,9 +132,7 @@ public class ReservationServiceImpl extends Component
             }
 
             if (modifiable) {
-                cz.cesnet.shongo.controller.reservation.Reservation reservation =
-                        reservationRequestImpl.getReservation();
-                if (reservationManager.getExistingReservations(reservation).size() > 0) {
+                if (reservationManager.isProvided(reservationRequestImpl.getReservation())) {
                     modifiable = false;
                 }
             }
@@ -144,9 +142,7 @@ public class ReservationServiceImpl extends Component
                     (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequestImpl;
             for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
                     reservationRequestSetImpl.getReservationRequests()) {
-                cz.cesnet.shongo.controller.reservation.Reservation reservation =
-                        reservationRequestImpl.getReservation();
-                if (reservationManager.getExistingReservations(reservation).size() > 0) {
+                if (reservationManager.isProvided(reservationRequestImpl.getReservation())) {
                     modifiable = false;
                     break;
                 }

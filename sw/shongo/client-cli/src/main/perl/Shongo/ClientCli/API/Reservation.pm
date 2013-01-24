@@ -19,6 +19,7 @@ use Shongo::Console;
 our $Type = ordered_hash(
     'ResourceReservation' => 'Resource Reservation',
     'RoomReservation' => 'Virtual Room Reservation',
+    'ValueReservation' => 'Value Reservation',
     'AliasReservation' => 'Alias Reservation',
     'ExistingReservation' => 'Existing Reservation'
 );
@@ -95,6 +96,9 @@ sub on_init
             $self->add_attribute('licenseCount', {
                 'title' => 'License Count'
             });
+        }
+        case 'ValueReservation' {
+            $self->add_attribute('value');
         }
         case 'AliasReservation' {
             $self->add_attribute_preserve('resourceName');

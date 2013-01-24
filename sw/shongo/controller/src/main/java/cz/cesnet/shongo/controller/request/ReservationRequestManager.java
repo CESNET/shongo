@@ -112,7 +112,7 @@ public class ReservationRequestManager extends AbstractManager
             Reservation reservation = abstractReservationRequest.getReservations().get(0);
             // Check if reservation can be deleted
             ReservationManager reservationManager = new ReservationManager(entityManager);
-            if (!reservationManager.isProvided(reservation)) {
+            if (reservationManager.isProvided(reservation)) {
                 throw new EntityToDeleteIsReferencedException(abstractReservationRequest.getClass(),
                         abstractReservationRequest.getId());
             }

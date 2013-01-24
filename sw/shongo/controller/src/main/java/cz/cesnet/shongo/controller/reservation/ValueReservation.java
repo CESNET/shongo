@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import cz.cesnet.shongo.util.TemporalHelper;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 
@@ -65,6 +68,16 @@ public class ValueReservation extends Reservation
     public void setValue(String value)
     {
         this.value = value;
+    }
+
+    @Override
+    public void validate(cz.cesnet.shongo.controller.Cache cache) throws ReportException
+    {
+        Period duration = getSlot().toPeriod();
+        Period maxDuration = cache.getValueReservationMaximumDuration();
+        if (TemporalHelper.isPeriodLongerThan(duration, maxDuration)) {
+            throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
+        }
     }
 
     @Override

@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.cache.*;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -38,7 +37,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * Maximum duration of a {@link AliasReservation}.
      */
-    private Period aliasReservationMaximumDuration;
+    private Period valueReservationMaximumDuration;
 
     /**
      * @see ResourceCache
@@ -108,11 +107,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @return {@link #aliasReservationMaximumDuration}
+     * @return {@link #valueReservationMaximumDuration}
      */
-    public Period getAliasReservationMaximumDuration()
+    public Period getValueReservationMaximumDuration()
     {
-        return aliasReservationMaximumDuration;
+        return valueReservationMaximumDuration;
     }
 
     /**
@@ -169,8 +168,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
 
             Interval aliasWorkingInterval = new Interval(
-                    workingInterval.getStart().minus(aliasReservationMaximumDuration),
-                    workingInterval.getEnd().plus(aliasReservationMaximumDuration));
+                    workingInterval.getStart().minus(valueReservationMaximumDuration),
+                    workingInterval.getEnd().plus(valueReservationMaximumDuration));
             valueCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
 
             Interval maxWorkingInterval = new Interval(
@@ -200,7 +199,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         super.init(configuration);
 
         resourceReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_RESOURCE_MAX_DURATION);
-        aliasReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_ALIAS_MAX_DURATION);
+        valueReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_VALUE_MAX_DURATION);
 
         logger.debug("Starting cache...");
 
@@ -280,7 +279,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (valueProviderCapability != null) {
             ValueProvider valueProvider = valueProviderCapability.getValueProvider();
             checkPersisted(valueProvider);
-            valueCache.addObject(valueProvider);
+            valueCache.addObject(valueProvider, entityManager);
         }
 
         // Process all alias providers in the resource

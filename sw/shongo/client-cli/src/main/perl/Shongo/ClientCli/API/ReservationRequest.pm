@@ -15,13 +15,13 @@ use Shongo::ClientCli::API::Specification;
 
 # Enumeration of state
 our $State = ordered_hash(
-    'NOT_COMPLETE' => 'Not Complete',
-    'NOT_ALLOCATED' => 'Not Allocated',
-    'ALLOCATED' => 'Allocated',
-    'ALLOCATION_FAILED' => 'Allocation Failed',
-    'STARTED' => 'Started',
-    'STARTING_FAILED' => 'Starting Failed',
-    'FINISHED' => 'Finished'
+    'NOT_COMPLETE' => {'title' => 'Not Complete', 'color' => 'yellow'},
+    'NOT_ALLOCATED' => {'title' => 'Not Allocated', 'color' => 'yellow'},
+    'ALLOCATED' => {'title' => 'Allocated', 'color' => 'green'},
+    'ALLOCATION_FAILED' => {'title' => 'Allocation Failed', 'color' => 'red'},
+    'STARTED' => {'title' => 'Started', 'color' => 'green'},
+    'STARTING_FAILED' => {'title' => 'Starting Failed', 'color' => 'red'},
+    'FINISHED' => {'title' => 'Finished', 'color' => 'blue'},
 );
 
 #
@@ -81,19 +81,8 @@ sub get_state
     if ( !defined($self->{'state'}) ) {
         return undef;
     }
-    my $state = $State->{$self->{'state'}};
-    if ( $self->{'state'} eq 'NOT_COMPLETE' ) {
-        $state = colored($state, 'yellow')
-    }
-    elsif ( $self->{'state'} eq 'ALLOCATED' ) {
-        $state = colored($state, 'green')
-    }
-    elsif ( $self->{'state'} eq 'ALLOCATION_FAILED' ) {
-        $state = colored($state, 'red')
-    }
-    else {
-        $state = colored($state, 'blue');
-    }
+    my $state = $State->{$self->{'state'}}->{'title'};
+    $state = colored($state, $State->{$self->{'state'}}->{'color'});
     return '[' . $state . ']';
 }
 

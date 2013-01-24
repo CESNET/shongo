@@ -348,7 +348,7 @@ public class ReservationManager extends AbstractManager
                 .setParameter("reservation", reservation)
                 .getResultList();
         if (reservations.size() > 0) {
-            return false;
+            return true;
         }
         // Checks whether reservation isn't referenced in existing reservation requests
         List reservationRequests = entityManager.createQuery(
@@ -357,8 +357,8 @@ public class ReservationManager extends AbstractManager
                 .setParameter("reservation", reservation)
                 .getResultList();
         if (reservationRequests.size() > 0) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 }

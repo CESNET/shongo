@@ -26,7 +26,7 @@ public class Configuration extends CompositeConfiguration
     public static final String WORKER_PERIOD = "worker.period";
     public static final String WORKER_INTERVAL = "worker.interval";
     public static final String RESERVATION_RESOURCE_MAX_DURATION = "reservation.resource.max-duration";
-    public static final String RESERVATION_ALIAS_MAX_DURATION = "reservation.alias.max-duration";
+    public static final String RESERVATION_VALUE_MAX_DURATION = "reservation.value.max-duration";
 
     /**
      * Database configuration
@@ -63,7 +63,7 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_EXECUTABLE_END = "executor.executable.end";
 
     /**
-     * Duration which {@link cz.cesnet.shongo.controller.executor.Executor} waits for virtual rooms to be created.
+     * Duration which {@link cz.cesnet.shongo.controller.Executor} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_STARTINT_DURATION_ROOM = "executor.starting-duration.room";
 

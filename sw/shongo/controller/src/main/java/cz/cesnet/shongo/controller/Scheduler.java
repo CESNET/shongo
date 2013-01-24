@@ -117,6 +117,7 @@ public class Scheduler extends Component implements Component.NotificationManage
                     reservationRequestManager.update(reservationRequest);
                 }
                 reservationManager.delete(reservation, cache);
+
                 oldReservations.put(reservationRequest, reservation);
             }
 

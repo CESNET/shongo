@@ -328,4 +328,56 @@ public class ProvidedReservationTest extends AbstractControllerTest
         secondReservationRequest.addProvidedReservationId(aliasReservation.getId());
         allocateAndCheck(secondReservationRequest);
     }
+
+    /**
+     * Test that a reservation request with {@link AliasGroupSpecification} cannot be modified when the allocated
+     * {@link AliasReservation}s are reused in other reservation request (e.g., {@link RoomReservation}).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProvidedAliasGroupNotModifiable() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new RoomProviderCapability(100, new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(
+                new AliasGroupSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        checkAllocated(aliasReservationRequestId);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+        reservationRequest.addProvidedReservationId(aliasReservationRequestId);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        try {
+            getReservationService().modifyReservationRequest(SECURITY_TOKEN,
+                    getReservationService().getReservationRequest(SECURITY_TOKEN, aliasReservationRequestId));
+            fail("Exception that reservation request cannot be modified should be thrown");
+        }
+        catch (ReservationRequestNotModifiableException exception) {
+        }
+
+        try {
+            getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
+            fail("Exception that reservation request cannot be deleted should be thrown");
+        }
+        catch (ReservationRequestNotModifiableException exception) {
+        }
+    }
 }

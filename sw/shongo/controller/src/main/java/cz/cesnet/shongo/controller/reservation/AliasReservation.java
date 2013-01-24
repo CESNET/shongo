@@ -117,16 +117,6 @@ public class AliasReservation extends Reservation
     }
 
     @Override
-    public void validate(cz.cesnet.shongo.controller.Cache cache) throws ReportException
-    {
-        Period duration = getSlot().toPeriod();
-        Period maxDuration = cache.getAliasReservationMaximumDuration();
-        if (TemporalHelper.isPeriodLongerThan(duration, maxDuration)) {
-            throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
-        }
-    }
-
-    @Override
     public cz.cesnet.shongo.controller.api.AliasReservation toApi()
     {
         return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi();
