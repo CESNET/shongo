@@ -2,11 +2,9 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Template;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -20,7 +18,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * Represents a notification.
@@ -106,45 +103,40 @@ public abstract class Notification
      * Render given {@code notificationTemplateFileName} with specified {@code parameters}.
      *
      * @param notificationTemplateFileName to be rendered
-     * @param parameters to be rendered
+     * @param parameters                   to be rendered
      * @return rendered string
      */
     public String renderTemplate(String notificationTemplateFileName, Map<String, Object> parameters)
     {
-        VelocityEngine velocityEngine = getVelocityEngine();
-        Template template = velocityEngine.getTemplate("notification/" + notificationTemplateFileName);
-        VelocityContext context = new VelocityContext();
-        context.put("template", getTemplateHelper());
-        if (parameters != null) {
-            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-                context.put(entry.getKey(), entry.getValue());
-            }
-        }
+        try {
+            Template template = getConfiguration().getTemplate("notification/" + notificationTemplateFileName);
 
-        StringWriter stringWriter = new StringWriter();
-        template.merge(context, stringWriter);
-        return stringWriter.toString();
+            StringWriter stringWriter = new StringWriter();
+            parameters.put("template", getTemplateHelper());
+            template.process(parameters, stringWriter);
+            return stringWriter.toString();
+        }
+        catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
     /**
-     * Single instance of {@link VelocityEngine}.
+     * Single instance of {@link Configuration}.
      */
-    private static VelocityEngine velocityEngine;
+    private static Configuration configuration;
 
     /**
-     * @return {@link #velocityEngine}
+     * @return {@link #configuration}
      */
-    private static VelocityEngine getVelocityEngine()
+    private static Configuration getConfiguration()
     {
-        if (velocityEngine == null) {
-            Properties properties = new Properties();
-            properties.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
-            properties.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-            velocityEngine = new VelocityEngine();
-            velocityEngine.setProperty(velocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger());
-            velocityEngine.init(properties);
+        if (configuration == null) {
+            configuration = new Configuration();
+            configuration.setObjectWrapper(new DefaultObjectWrapper());
+            configuration.setClassForTemplateLoading(Notification.class, "/");
         }
-        return velocityEngine;
+        return configuration;
     }
 
     /**

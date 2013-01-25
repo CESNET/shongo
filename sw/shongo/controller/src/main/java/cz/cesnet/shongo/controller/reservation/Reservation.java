@@ -14,6 +14,8 @@ import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -247,6 +249,22 @@ public class Reservation extends PersistentObject
     @Access(AccessType.FIELD)
     public List<Reservation> getChildReservations()
     {
+        return childReservations;
+    }
+
+    /**
+     * @param reservationClass
+     * @return {@link #childReservations} of given {@code reservationClass}
+     */
+    @Transient
+    public <T extends Reservation> Collection<T> getChildReservations(Class<T> reservationClass)
+    {
+        List<T> childReservations = new LinkedList<T>();
+        for (Reservation childReservation : this.childReservations) {
+            if (reservationClass.isInstance(childReservation)) {
+                childReservations.add(reservationClass.cast(childReservation));
+            }
+        }
         return childReservations;
     }
 

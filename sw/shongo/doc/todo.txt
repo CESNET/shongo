@@ -3,10 +3,6 @@
 * String aliases
   -create SpecificationSummary and add it to ReservationRequestSummary
 
-* info mails
-  -implement for aliases
-  -hide identifiers (move to end)
-
 * Improve value generation performance
 
 * Web client

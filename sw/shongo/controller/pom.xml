@@ -115,11 +115,11 @@
             <version>1.4.5</version>
         </dependency>
 
-        <!-- Templating for sent mails -->
+        <!-- Template engine for sending mails -->
         <dependency>
-            <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity</artifactId>
-            <version>1.7</version>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.19</version>
         </dependency>
     </dependencies>
 

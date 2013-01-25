@@ -5,12 +5,12 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 
 import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * {@link Notification} for a {@link Reservation}.
@@ -66,6 +66,12 @@ public class ReservationNotification extends Notification
                 addRecipient(person);
             }
         }
+        if (reservation instanceof AliasReservation) {
+            AliasReservation aliasReservation = (AliasReservation) reservation;
+            for (Person person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
+                addRecipient(person);
+            }
+        }
         for (Reservation childReservation : reservation.getChildReservations()) {
             addRecipientByReservation(childReservation);
         }
@@ -81,6 +87,7 @@ public class ReservationNotification extends Notification
     public String getContent()
     {
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
         AbstractReservationRequest reservationRequest =
                 reservationRequestManager.getByReservation(reservation.getId());
         String content = null;
@@ -89,36 +96,35 @@ public class ReservationNotification extends Notification
             if (reservationRequest != null) {
                 reservationRequestApi = reservationRequest.toApi();
             }
-            cz.cesnet.shongo.controller.api.Specification specificationApi = getSpecification(reservationRequestApi);
-
 
             Map<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("type", type);
-            parameters.put("reservation", reservation.toApi());
             parameters.put("reservationRequest", reservationRequestApi);
-            parameters.put("specification", specificationApi);
+            parameters.put("reservation", reservation.toApi());
 
-            content = renderTemplate("reservation-mail.vm", parameters);
+            List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
+                    new ArrayList<cz.cesnet.shongo.controller.api.AliasReservation>();
+            if (reservation.getClass().equals(Reservation.class)) {
+                Collection<AliasReservation> childAliasReservations =
+                        reservation.getChildReservations(AliasReservation.class);
+                if (childAliasReservations.size() > 0) {
+                    for (AliasReservation aliasReservation : childAliasReservations) {
+                        aliasReservations.add(aliasReservation.toApi());
+                    }
+                }
+            }
+            else if (reservation instanceof  AliasReservation) {
+                AliasReservation aliasReservation = (AliasReservation) reservation;
+                aliasReservations.add(aliasReservation.toApi());
+            }
+            parameters.put("aliasReservations", aliasReservations);
+
+            content = renderTemplate("reservation-mail.ftl", parameters);
         }
         catch (Exception exception) {
             logger.error("Failed to notify about new reservations.", exception);
         }
         return content;
-    }
-
-    /**
-     * @param reservationRequestApi
-     * @return specification from given reservation request
-     */
-    private cz.cesnet.shongo.controller.api.Specification getSpecification(
-            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
-    {
-        if (reservationRequestApi instanceof cz.cesnet.shongo.controller.api.NormalReservationRequest) {
-            cz.cesnet.shongo.controller.api.NormalReservationRequest normalReservationRequestApi =
-                    (cz.cesnet.shongo.controller.api.NormalReservationRequest) reservationRequestApi;
-            return normalReservationRequestApi.getSpecification();
-        }
-        return null;
     }
 
     /**
