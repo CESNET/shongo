@@ -10,9 +10,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * {@link NotificationExecutor} for sending mails.
@@ -78,7 +76,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
             return;
         }
 
-        List<String> recipients = new ArrayList<String>();
+        Set<String> recipients = new HashSet<String>();
         for (Person person : notification.getRecipients()) {
             String email = person.getInformation().getPrimaryEmail();
             if (email != null) {

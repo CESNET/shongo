@@ -15,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a notification.
@@ -36,7 +34,7 @@ public abstract class Notification
     /**
      * Notification recipients.
      */
-    private List<Person> recipients = new ArrayList<Person>();
+    private Set<Person> recipients = new HashSet<Person>();
 
     /**
      * Constructor.
@@ -59,7 +57,7 @@ public abstract class Notification
     /**
      * @return {@link #recipients}
      */
-    public List<Person> getRecipients()
+    public Collection<Person> getRecipients()
     {
         return recipients;
     }
