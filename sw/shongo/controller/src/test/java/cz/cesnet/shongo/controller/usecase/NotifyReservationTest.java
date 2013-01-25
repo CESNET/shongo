@@ -45,7 +45,9 @@ public class NotifyReservationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new RoomProviderCapability(10, new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        mcu.addCapability(new RoomProviderCapability(10,
+                new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164, AliasType.SIP_URI}));
+        mcu.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
         mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
         mcu.setAllocatable(true);

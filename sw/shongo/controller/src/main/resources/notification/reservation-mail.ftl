@@ -44,6 +44,17 @@ RESERVATION:
   Participants:     ${reservationRequest.specification.participantCount}
     </#if>
     <#if reservation.executable.aliases?has_content>
+        <#-- Find room name -->
+        <#list reservation.executable.aliases as alias>
+            <#if alias.type == "ROOM_NAME">
+                <#assign roomName = alias.value>
+            </#if>
+        </#list>
+        <#-- Print room name if it was found -->
+        <#if roomName??>
+
+  Room name:        ${roomName}
+        </#if>
 
   How to reach:
         <#list reservation.executable.aliases as alias>
@@ -104,17 +115,17 @@ DETAILS (for administrators):
 <#macro formatAlias alias>
     <#if alias.type == "H323_E164">
 
-    * H.323 GDS number: 00420${alias.value}
+   * H.323 GDS number: 00420${alias.value}
 
-    * PSTN dial in: +420${alias.value}
+   * PSTN dial in: +420${alias.value}
     <#elseif alias.type == "H323_URI">
 
-    * H323 IP: ${alias.value}
+   * H323 IP: ${alias.value}
     <#elseif alias.type == "SIP_URI">
 
-    * SIP: sip:${alias.value}
+   * SIP: sip:${alias.value}
     <#elseif alias.type == "ADOBE_CONNECT_URI">
 
-    * URL: ${alias.value}
+   * URL: ${alias.value}
     </#if>
 </#macro>

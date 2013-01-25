@@ -419,24 +419,24 @@ sub format_aliases
             $aliases_text .= ', ';
         }
         if ( $alias->{'type'} eq 'H323_E164' ) {
-            $aliases_text .= $alias->{'value'};
+            $aliases_text .= "<span class='nowrap'>" . $alias->{'value'} . "</span>";
 
             $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
             $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
         }
         elsif ( $alias->{'type'} eq 'H323_URI' ) {
-            $aliases_text .= $alias->{'value'};
+            $aliases_text .= "<span class='nowrap'>" . $alias->{'value'} . "</span>";
 
             $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
         }
         elsif ( $alias->{'type'} eq 'SIP_URI' ) {
-            $aliases_text .= 'sip:' . $alias->{'value'};
+            $aliases_text .= "<span class='nowrap'>sip:" . $alias->{'value'} . "</span>";
             $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
             my $url = $alias->{'value'};
             if ( $available ) {
-                $aliases_text .= "<a href=\"$url\">$url</a>";
+                $aliases_text .= "<a class='nowrap' href=\"$url\">$url</a>";
             }
             else {
                 $aliases_text .= "$url";
