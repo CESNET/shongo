@@ -297,9 +297,14 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
                 userInformation = Authorization.UserInformation.getInstance((SecurityToken) pArgs[0]);
             }
-            Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
-                    new Object[]{requestId, className, methodName,
-                            userInformation.getFullName(), userInformation.getUserId()});
+            if (userInformation != null) {
+                Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
+                        new Object[]{requestId, className, methodName,
+                                userInformation.getFullName(), userInformation.getUserId()});
+            }
+            else {
+                Controller.apiLogger.info("Request:{} {}.{}", new Object[]{requestId, className, methodName});
+            }
 
             String requestState = "OK";
             try {
