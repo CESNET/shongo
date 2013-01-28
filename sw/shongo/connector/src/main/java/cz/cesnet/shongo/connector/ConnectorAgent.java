@@ -95,6 +95,11 @@ public class ConnectorAgent extends Agent
         }
     }
 
+    /**
+     * {@link Logger} for all performed actions.
+     */
+    private static Logger actionLogger = LoggerFactory.getLogger(Connector.class.getName() + ".Action");
+
     @Override
     public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownAgentActionException, CommandException, CommandUnsupportedException
@@ -127,9 +132,4 @@ public class ConnectorAgent extends Agent
         }
         return super.handleAgentAction(action, sender);
     }
-
-    /**
-     * {@link Logger} for all performed actions.
-     */
-    private static Logger actionLogger = LoggerFactory.getLogger(ConnectorAgent.class.getName() + ".Action");
 }

@@ -327,6 +327,11 @@ public class Authorization
             return data.get("email");
         }
 
+        public static UserInformation getInstance(SecurityToken securityToken)
+        {
+            return Authorization.getInstance().getUserInformation(securityToken);
+        }
+
         public static UserInformation getInstance(String userId)
         {
             return Authorization.getInstance().getUserInformation(userId);
