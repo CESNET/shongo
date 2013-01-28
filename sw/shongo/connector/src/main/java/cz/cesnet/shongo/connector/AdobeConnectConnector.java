@@ -567,12 +567,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public String dialParticipant(String roomId, String address) throws CommandException, CommandUnsupportedException
-    {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @java.lang.Override
     public String dialParticipant(String roomId, Alias alias) throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
@@ -739,12 +733,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Document doc = new SAXBuilder().build(resultStream);
 
             if (this.isError(doc)) {
-                logger.info(String.format("Login to server %s failed", info.getDeviceAddress()));
+                logger.error(String.format("Login to server %s failed", info.getDeviceAddress()));
 
                 throw new RuntimeException("Login to server " + info.getDeviceAddress() + " failed");
             }
             else {
-                logger.info(String.format("Login to server %s succeeded", info.getDeviceAddress()));
+                logger.debug(String.format("Login to server %s succeeded", info.getDeviceAddress()));
             }
         }
         catch (Exception exception) {
@@ -838,12 +832,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     }
                 }
 
-                logger.info(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
+                logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
 
                 throw new RuntimeException(errorMsg + ". URL: " + url);
             }
             else {
-                logger.info(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
+                logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
             }
             return doc.getRootElement();
         }
@@ -870,7 +864,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Element response = this.request("common-info", null);
 
             if (response.getChild("common").getChild("user") == null) {
-                logger.info(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+                logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
             }
             this.breezesession = null;
             this.login();

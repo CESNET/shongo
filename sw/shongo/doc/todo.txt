@@ -1,11 +1,16 @@
 * 2 paragraphs of shongo features
 
+* Fix the freezing of Connectors (sometimes after few requests the connector is in "Active" state and doesn't respond)
+
 * String aliases
+  - all labels should be room name (and not identifier)
   -create SpecificationSummary and add it to ReservationRequestSummary
+  -add room name to list page in web client
 
 * Improve value generation performance
 
 * Web client
+  -catch and format errors (e.g., request cannot be modifed or deleted)
   -use one getReservations instead of multiple getReservation requests
   -implement better "back button"
 
@@ -16,8 +21,6 @@
   -Store starting failed reports
   -Try to start executables in starting failed state (e.g., when agent was offline) or send info emails
    to administrators
-
-* log all connector actions
 
 * Update API                                   -
   -reservation - reservationRequestId, name

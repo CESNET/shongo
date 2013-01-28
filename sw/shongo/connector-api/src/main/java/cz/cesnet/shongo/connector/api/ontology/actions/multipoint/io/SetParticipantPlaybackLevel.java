@@ -58,6 +58,8 @@ public class SetParticipantPlaybackLevel extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Setting playback level to {} for participant {} in room {}",
+                new Object[]{level, roomUserId, roomId});
         getMultipoint(connector).setParticipantPlaybackLevel(roomId, roomUserId, level);
         return null;
     }
@@ -65,7 +67,7 @@ public class SetParticipantPlaybackLevel extends ConnectorAgentAction
     @Override
     public String toString()
     {
-        return String.format("SetParticipantPlaybackLevel agent action (roomId: %s, roomUserId: %s, level: %d)",
-                roomId, roomUserId, level);
+        return String.format(SetParticipantPlaybackLevel.class.getSimpleName()
+                + " (roomId: %s, roomUserId: %s, level: %d)", roomId, roomUserId, level);
     }
 }

@@ -46,12 +46,13 @@ public class ShowMessage extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Showing message {} for {}", text, duration);
         getEndpoint(connector).showMessage(duration, text);
         return null;
     }
 
     public String toString()
     {
-        return String.format("ShowMessage agent action (duration: %d, text: '%s')", duration, text);
+        return String.format(ShowMessage.class.getSimpleName() + " (duration: %d, text: '%s')", duration, text);
     }
 }

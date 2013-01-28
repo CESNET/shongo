@@ -117,7 +117,7 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
                 di.getName(), di.getDescription(), di.getSerialNumber(), di.getSoftwareVersion());
 
         System.out.println("Dialing...");
-        String callId = conn.dial("950087201");
+        String callId = conn.dial(new Alias(AliasType.H323_E164, "950087201"));
         System.out.printf("Dialing... (call id: %s)\n", callId);
 
         System.out.println("Sleeping for 10 seconds...");
@@ -902,10 +902,10 @@ Reading:
 
     // ENDPOINT SERVICE
 
-
     @Override
-    public String dial(String address) throws CommandException
+    public String dial(Alias alias) throws CommandException
     {
+        String address = alias.getValue();
         EndpointDeviceState deviceState = (EndpointDeviceState) info.getDeviceState();
 
         // get a snapshot of calls
@@ -936,12 +936,6 @@ Reading:
 
         // the call has not appeared so far, sorry...
         return null;
-    }
-
-    @Override
-    public String dial(Alias alias) throws CommandException
-    {
-        return dial(alias.getValue());
     }
 
     @Override

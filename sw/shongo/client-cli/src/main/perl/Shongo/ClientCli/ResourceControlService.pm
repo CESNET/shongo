@@ -98,10 +98,9 @@ sub control_resource()
         $shell->add_commands({
             "dial" => {
                 desc => "Dial a number or address",
-                minargs => 1, args => "[number/address]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_dial($resourceId, $args[0]);
+                    resource_dial($resourceId);
                 }
             }
         });
@@ -494,12 +493,13 @@ sub resource_get_supported_methods
 
 sub resource_dial
 {
-    my ($resourceId, $target) = @_;
+    my ($resourceId) = @_;
+    my $alias = Shongo::ClientCli::API::Alias->create()->to_xml();
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.dial',
         RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($target)
+        RPC::XML::string->new($alias)
     );
     my $callId = $result->value();
     if ( !defined($callId) ) {
@@ -687,28 +687,13 @@ sub resource_dial_participant
     my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $target = $attributes->{'target'};
-    if ( !defined($target) ) {
-        my $targetType = console_read_enum('Select target type', ordered_hash(
-            'address' => 'Address',
-            'alias' => 'Alias',
-        ));
-        if ( $targetType eq 'address' ) {
-            $target = console_read_value('Address', 1, undef);
-        } else {
-            $target = Shongo::ClientCli::API::Alias->create();
-        }
-    }
-
-    if ( ref($target) ) {
-        $target = $target->to_xml();
-    }
+    my $alias = Shongo::ClientCli::API::Alias->create()->to_xml();
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.dialParticipant',
         RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
-        $target
+        $alias
     );
     if ( $result->is_fault ) {
         return;

@@ -13,17 +13,10 @@ import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
  */
 public class Dial extends ConnectorAgentAction
 {
-    // either alias or address will be used
     private Alias alias = null;
-    private String address = null;
 
     public Dial()
     {
-    }
-
-    public Dial(String address)
-    {
-        this.address = address;
     }
 
     public Dial(Alias alias)
@@ -41,45 +34,17 @@ public class Dial extends ConnectorAgentAction
         this.alias = alias;
     }
 
-    public String getAddress()
-    {
-        return address;
-    }
-
-    public void setAddress(String address)
-    {
-        this.address = address;
-    }
-
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        if (alias != null && address != null) {
-            throw new IllegalStateException("Both alias and address set for the Dial command - should be just one.");
+        if (alias == null) {
+            throw new IllegalStateException("Alias should be set.");
         }
-
-        if (alias != null) {
-            logger.info("Dialing alias {}", alias);
-            return getEndpoint(connector).dial(alias);
-        }
-        else {
-            logger.info("Dialing address {}", address);
-            return getEndpoint(connector).dial(address);
-        }
+        logger.debug("Dialing {}", alias);
+        return getEndpoint(connector).dial(alias);
     }
 
     public String toString()
     {
-        if (alias != null && address != null) {
-            throw new IllegalStateException("Both alias and address set for the Dial command - should be just one.");
-        }
-
-        String target;
-        if (alias != null) {
-            target = "alias: " + alias;
-        }
-        else {
-            target = "address: " + address;
-        }
-        return String.format("Dial agent action (%s)", target);
+        return String.format(Dial.class.getSimpleName() + " (alias: %s)", alias.toString());
     }
 }

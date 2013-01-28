@@ -15,12 +15,8 @@ public class StandBy extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Standbying the device");
         getEndpoint(connector).standBy();
         return null;
-    }
-
-    public String toString()
-    {
-        return "Standby agent action";
     }
 }

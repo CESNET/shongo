@@ -15,10 +15,4 @@ public class GetDeviceLoadInfo extends ConnectorAgentAction
     {
         return connector.getDeviceLoadInfo();
     }
-
-    @Override
-    public String toString()
-    {
-        return "GetDeviceLoadInfo agent action";
-    }
 }

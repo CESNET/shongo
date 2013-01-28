@@ -16,13 +16,8 @@ public class HangUpAll extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Hanging up all calls");
+        logger.debug("Hanging up all calls");
         getEndpoint(connector).hangUpAll();
         return null;
-    }
-
-    public String toString()
-    {
-        return "HangUpAll agent action";
     }
 }

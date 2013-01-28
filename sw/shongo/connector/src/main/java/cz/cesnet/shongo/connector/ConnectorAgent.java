@@ -105,8 +105,31 @@ public class ConnectorAgent extends Agent
             // FIXME: return something (an exception is thrown by super.handleAgentAction())
         }
         else if (action instanceof ConnectorAgentAction) {
-            return ((ConnectorAgentAction) action).exec(connector);
+            ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) action;
+            actionLogger.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
+            Object result = null;
+            String resultState = "OK";
+            try {
+                result = ((ConnectorAgentAction) action).exec(connector);
+            }
+            catch (CommandException exception) {
+                resultState = String.format("FAILED: %s", exception.getMessage());
+                throw exception;
+            }
+            catch (CommandUnsupportedException exception) {
+                resultState = "NOT-SUPPORTED";
+                throw exception;
+            }
+            finally {
+                actionLogger.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
+            }
+            return result;
         }
         return super.handleAgentAction(action, sender);
     }
+
+    /**
+     * {@link Logger} for all performed actions.
+     */
+    private static Logger actionLogger = LoggerFactory.getLogger(ConnectorAgent.class.getName() + ".Action");
 }

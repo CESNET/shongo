@@ -37,12 +37,13 @@ public class SetMicrophoneLevel extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Setting microphone level {}", level);
         getEndpoint(connector).setMicrophoneLevel(level);
         return null;
     }
 
     public String toString()
     {
-        return String.format("SetMicrophoneLevel agent action (level: %d)", level);
+        return String.format(SetMicrophoneLevel.class.getSimpleName() + " (level: %d)", level);
     }
 }

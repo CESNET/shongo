@@ -15,7 +15,7 @@ public class StopPresentation extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Stopping presentation");
+        logger.debug("Stopping presentation");
         getEndpoint(connector).stopPresentation();
         return null;
     }

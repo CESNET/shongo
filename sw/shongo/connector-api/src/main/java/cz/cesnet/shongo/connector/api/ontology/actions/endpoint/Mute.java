@@ -15,12 +15,8 @@ public class Mute extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Muting the device");
         getEndpoint(connector).mute();
         return null;
-    }
-
-    public String toString()
-    {
-        return "Mute agent action";
     }
 }

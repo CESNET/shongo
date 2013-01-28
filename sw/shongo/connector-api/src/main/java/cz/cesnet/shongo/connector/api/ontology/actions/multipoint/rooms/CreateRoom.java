@@ -22,18 +22,6 @@ public class CreateRoom extends ConnectorAgentAction
         this.room = room;
     }
 
-    @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
-    {
-        logger.info("Creating room {}", room.getDescription());
-        return getMultipoint(connector).createRoom(room);
-    }
-
-    public String toString()
-    {
-        return "CreateRoom agent action";
-    }
-
     public Room getRoom()
     {
         return room;
@@ -42,5 +30,17 @@ public class CreateRoom extends ConnectorAgentAction
     public void setRoom(Room room)
     {
         this.room = room;
+    }
+
+    @Override
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    {
+        logger.debug("Creating room {}", room);
+        return getMultipoint(connector).createRoom(room);
+    }
+
+    public String toString()
+    {
+        return String.format(CreateRoom.class.getSimpleName() + " (room: %s)", room.toString());
     }
 }

@@ -37,9 +37,6 @@ public interface ResourceControlService extends Service
     public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public String dial(SecurityToken token, String deviceResourceId, String address) throws FaultException;
-
-    @API
     public String dial(SecurityToken token, String deviceResourceId, Alias alias) throws FaultException;
 
     @API
@@ -79,10 +76,6 @@ public interface ResourceControlService extends Service
 
     @API
     public void stopPresentation(SecurityToken token, String deviceResourceId) throws FaultException;
-
-    @API
-    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, String address)
-            throws FaultException;
 
     @API
     public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)

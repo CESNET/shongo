@@ -55,7 +55,7 @@ BEGIN {
 }
 
 # Initialize logger
-my $logger_file = $config_directory . '/data/log/client-web.log';
+my $logger_file = $config_directory . '/log/client-web.log';
 my $logger_configuration = "";
 $logger_configuration .= "log4perl.rootLogger = DEBUG,  FILE\n";
 $logger_configuration .= "log4perl.appender.FILE = Log::Log4perl::Appender::File\n";

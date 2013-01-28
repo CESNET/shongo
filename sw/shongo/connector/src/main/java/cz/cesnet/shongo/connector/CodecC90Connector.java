@@ -335,8 +335,10 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
     // ENDPOINT SERVICE
 
     @Override
-    public String dial(String address) throws CommandException
+    public String dial(Alias alias) throws CommandException
     {
+        String address = alias.getValue();
+
         Command command = new Command("xCommand Dial");
         command.setParameter("Number", address);
         // NOTE: the BookingId parameter could be used to identify the reservation for which this dial is issued in call
@@ -349,12 +351,6 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         catch (XPathExpressionException e) {
             throw new CommandException("Program error in parsing the command result.", e);
         }
-    }
-
-    @Override
-    public String dial(Alias alias) throws CommandException
-    {
-        return dial(alias.getValue());
     }
 
     @Override

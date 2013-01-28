@@ -140,12 +140,6 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
     }
 
     @Override
-    public String dial(String address) throws CommandException, CommandUnsupportedException
-    {
-        return null; // TODO: see dial command, and possibly mcupassword
-    }
-
-    @Override
     public String dial(Alias alias) throws CommandException, CommandUnsupportedException
     {
         return null; // TODO: see dial command, and possibly mcupassword

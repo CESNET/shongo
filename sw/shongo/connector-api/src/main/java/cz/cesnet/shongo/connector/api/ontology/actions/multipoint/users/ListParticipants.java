@@ -34,11 +34,12 @@ public class ListParticipants extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Getting list of all participants in room {}", roomId);
         return getMultipoint(connector).listParticipants(roomId);
     }
 
     public String toString()
     {
-        return String.format("ListParticipants agent action (roomId: %s)", roomId);
+        return String.format(ListParticipants.class.getSimpleName() + " (roomId: %s)", roomId);
     }
 }

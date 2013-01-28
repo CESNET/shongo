@@ -46,6 +46,7 @@ public class DisableParticipantVideo extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Disabling video for participant {} in room {}", roomUserId, roomId);
         getMultipoint(connector).disableParticipantVideo(roomId, roomUserId);
         return null;
     }
@@ -53,6 +54,7 @@ public class DisableParticipantVideo extends ConnectorAgentAction
     @Override
     public String toString()
     {
-        return String.format("DisableParticipantVideo agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format(DisableParticipantVideo.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
+                roomId, roomUserId);
     }
 }

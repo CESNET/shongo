@@ -11,20 +11,20 @@
 cd `dirname $0`/../
 
 # Setup data directory
-mkdir -p data/log/
-touch data/log/client-web.log
+mkdir -p log/
+touch log/client-web.log
 chown -R shongo:shongo data
 
 # Deny all access for group and other
 sudo chmod -R go-rwx ../../
 
 # Allow access to client web for "www-data" user
-sudo chown :www-data client-common client-web ./ ../ ../../ data data/log
-sudo chmod g+rx client-common client-web ./ ../ ../../ data data/log
+sudo chown :www-data client-common client-web ./ ../ ../../ log
+sudo chmod g+rx client-common client-web ./ ../ ../../ log
 
 # Allow access to client-web log and configuration
-sudo chown :www-data data/log/client-web.log
-sudo chmod g+rw data/log/client-web.log
+sudo chown :www-data log/client-web.log
+sudo chmod g+rw log/client-web.log
 if [ -f client-web.cfg.xml ];
 then
   chown :www-data client-web.cfg.xml

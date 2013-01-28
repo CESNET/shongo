@@ -34,13 +34,13 @@ public class GetRoom extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Getting room {}", roomId);
+        logger.debug("Getting room {}", roomId);
         return getMultipoint(connector).getRoom(roomId);
     }
 
     @Override
     public String toString()
     {
-        return String.format("GetRoom agent action (roomId: %s)", roomId);
+        return String.format(GetRoom.class.getSimpleName() + " (roomId: %s)", roomId);
     }
 }

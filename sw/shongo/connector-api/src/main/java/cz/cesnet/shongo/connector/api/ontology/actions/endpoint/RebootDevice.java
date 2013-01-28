@@ -16,13 +16,8 @@ public class RebootDevice extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Rebooting the device");
+        logger.debug("Rebooting the device");
         getEndpoint(connector).rebootDevice();
         return null;
-    }
-
-    public String toString()
-    {
-        return "RebootDevice agent action";
     }
 }

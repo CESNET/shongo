@@ -46,6 +46,7 @@ public class UnmuteParticipant extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Unmuting participant {} in room {}", roomUserId, roomId);
         getMultipoint(connector).unmuteParticipant(roomId, roomUserId);
         return null;
     }
@@ -53,6 +54,7 @@ public class UnmuteParticipant extends ConnectorAgentAction
     @Override
     public String toString()
     {
-        return String.format("UnmuteParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format(UnmuteParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
+                roomId, roomUserId);
     }
 }

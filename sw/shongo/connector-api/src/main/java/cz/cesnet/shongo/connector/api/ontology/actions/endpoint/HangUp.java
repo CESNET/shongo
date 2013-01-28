@@ -36,13 +36,13 @@ public class HangUp extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Hanging up call {}", callId);
+        logger.debug("Hanging up call {}", callId);
         getEndpoint(connector).hangUp(callId);
         return null;
     }
 
     public String toString()
     {
-        return String.format("HangUp agent action (callId: %s)", callId);
+        return String.format(HangUp.class.getSimpleName() + " (callId: %s)", callId);
     }
 }

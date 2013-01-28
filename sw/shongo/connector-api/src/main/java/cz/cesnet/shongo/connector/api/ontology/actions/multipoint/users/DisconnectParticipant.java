@@ -23,18 +23,6 @@ public class DisconnectParticipant extends ConnectorAgentAction
         this.roomUserId = roomUserId;
     }
 
-    @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
-    {
-        getMultipoint(connector).disconnectParticipant(roomId, roomUserId);
-        return null;
-    }
-
-    public String toString()
-    {
-        return String.format("DisconnectParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
-    }
-
     public String getRoomId()
     {
         return roomId;
@@ -53,5 +41,19 @@ public class DisconnectParticipant extends ConnectorAgentAction
     public void setRoomUserId(String roomUserId)
     {
         this.roomUserId = roomUserId;
+    }
+
+    @Override
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    {
+        logger.debug("Disconnecting participant {} from the room {}", roomUserId, roomId);
+        getMultipoint(connector).disconnectParticipant(roomId, roomUserId);
+        return null;
+    }
+
+    public String toString()
+    {
+        return String.format(DisconnectParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
+                roomId, roomUserId);
     }
 }

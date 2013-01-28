@@ -60,7 +60,7 @@ public class ModifyParticipant extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Modifying participant {} in room {}", roomUserId, roomId);
+        logger.debug("Modifying participant {} in room {}", roomUserId, roomId);
         if (attributes != null) {
             for (Map.Entry<String, Object> entry : attributes.entrySet()) {
                 logger.info("  - setting attribute '{}' to '{}'", entry.getKey(), entry.getValue());
@@ -74,6 +74,7 @@ public class ModifyParticipant extends ConnectorAgentAction
     @Override
     public String toString()
     {
-        return String.format("ModifyParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format(ModifyParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
+                roomId, roomUserId);
     }
 }

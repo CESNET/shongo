@@ -967,12 +967,6 @@ ParamsLoop:
     @Override
     public String dialParticipant(String roomId, Alias alias) throws CommandException
     {
-        return dialParticipant(roomId, alias.getValue());
-    }
-
-    @Override
-    public String dialParticipant(String roomId, String address) throws CommandException
-    {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 
         // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
@@ -982,7 +976,7 @@ ParamsLoop:
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", truncateString(roomId));
 //        cmd.setParameter("participantName", truncateString(roomUserId));
-        cmd.setParameter("address", truncateString(address));
+        cmd.setParameter("address", truncateString(alias.getValue()));
         cmd.setParameter("participantType", "ad_hoc");
         cmd.setParameter("addResponse", Boolean.TRUE);
 

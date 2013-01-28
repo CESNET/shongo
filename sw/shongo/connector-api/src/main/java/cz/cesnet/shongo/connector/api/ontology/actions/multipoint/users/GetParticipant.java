@@ -48,13 +48,14 @@ public class GetParticipant extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Getting participant info in room {}, participant {}", roomId, roomUserId);
+        logger.debug("Getting participant info for {} in room {}", roomUserId, roomId);
         return getMultipoint(connector).getParticipant(roomId, roomUserId);
     }
 
     @Override
     public String toString()
     {
-        return String.format("GetParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format(GetParticipant.class.getSimpleName() + " (roomId: %s, roomUserId: %s)",
+                roomId, roomUserId);
     }
 }

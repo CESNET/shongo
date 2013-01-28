@@ -15,13 +15,8 @@ public class EnableVideo extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Enabling video");
+        logger.debug("Enabling video");
         getEndpoint(connector).enableVideo();
         return null;
-    }
-
-    public String toString()
-    {
-        return "EnableVideo agent action";
     }
 }

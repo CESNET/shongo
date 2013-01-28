@@ -15,12 +15,8 @@ public class Unmute extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Unmuting the device");
         getEndpoint(connector).unmute();
         return null;
-    }
-
-    public String toString()
-    {
-        return "Unmute agent action";
     }
 }

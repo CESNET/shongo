@@ -24,6 +24,27 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     protected static Logger logger = LoggerFactory.getLogger(ConnectorAgentAction.class);
 
     /**
+     * Unique identifier of the action which is automatically generated.
+     */
+    private Long id = null;
+
+    /**
+     * Used for generating {@link #id}.
+     */
+    private static long lastGeneratedId = 0;
+
+    /**
+     * @return {@link #id}
+     */
+    public Long getId()
+    {
+        if (this.id == null) {
+            this.id = ++lastGeneratedId;
+        }
+        return this.id;
+    }
+
+    /**
      * Executes the action on a given connector.
      *
      * @param connector a connector on which the action should be executed
@@ -76,5 +97,11 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     public Ontology getOntology()
     {
         return ConnectorOntology.getInstance();
+    }
+
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName();
     }
 }

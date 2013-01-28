@@ -17,9 +17,4 @@ public class GetSupportedMethods extends ConnectorAgentAction
     {
         return connector.getSupportedMethods();
     }
-
-    public String toString()
-    {
-        return "GetSupportedMethods agent action";
-    }
 }

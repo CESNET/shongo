@@ -21,19 +21,6 @@ public class DeleteRoom extends ConnectorAgentAction
         this.roomId = roomId;
     }
 
-    @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
-    {
-        logger.info("Deleting room {}", roomId);
-        getMultipoint(connector).deleteRoom(roomId);
-        return null;
-    }
-
-    public String toString()
-    {
-        return String.format("DeleteRoom agent action (roomId: %s)", roomId);
-    }
-
     public String getRoomId()
     {
         return roomId;
@@ -42,5 +29,18 @@ public class DeleteRoom extends ConnectorAgentAction
     public void setRoomId(String roomId)
     {
         this.roomId = roomId;
+    }
+
+    @Override
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    {
+        logger.debug("Deleting room {}", roomId);
+        getMultipoint(connector).deleteRoom(roomId);
+        return null;
+    }
+
+    public String toString()
+    {
+        return String.format(DeleteRoom.class.getSimpleName() + " (roomId: %s)", roomId);
     }
 }

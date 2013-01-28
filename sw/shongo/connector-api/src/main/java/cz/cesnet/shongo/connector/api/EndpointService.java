@@ -15,14 +15,6 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 public interface EndpointService extends CommonService
 {
     /**
-     * Dials a server by address.
-     *
-     * @param address address of server to dial
-     * @return call ID (suitable for further control of the call)
-     */
-    String dial(String address) throws CommandException, CommandUnsupportedException;
-
-    /**
      * Dials a server by alias.
      *
      * @param alias alias of server to dial

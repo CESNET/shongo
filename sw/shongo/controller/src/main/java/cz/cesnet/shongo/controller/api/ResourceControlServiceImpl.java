@@ -97,13 +97,6 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceId, String address) throws FaultException
-    {
-        authorization.validate(token);
-        return (String) commandDevice(deviceResourceId, new Dial(address));
-    }
-
-    @Override
     public String dial(SecurityToken token, String deviceResourceId, Alias alias) throws FaultException
     {
         authorization.validate(token);
@@ -193,14 +186,6 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         commandDevice(deviceResourceId, new StopPresentation());
-    }
-
-    @Override
-    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, String address)
-            throws FaultException
-    {
-        authorization.validate(token);
-        return (String) commandDevice(deviceResourceId, new DialParticipant(roomId, address));
     }
 
     @Override

@@ -37,12 +37,13 @@ public class SetPlaybackLevel extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        logger.debug("Setting playback level {}", level);
         getEndpoint(connector).setPlaybackLevel(level);
         return null;
     }
 
     public String toString()
     {
-        return String.format("SetPlaybackLevel agent action (level: %d)", level);
+        return String.format(SetPlaybackLevel.class.getSimpleName() + " (level: %d)", level);
     }
 }

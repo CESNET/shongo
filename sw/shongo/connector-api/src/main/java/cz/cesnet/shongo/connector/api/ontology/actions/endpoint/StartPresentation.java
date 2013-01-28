@@ -19,9 +19,4 @@ public class StartPresentation extends ConnectorAgentAction
         getEndpoint(connector).startPresentation();
         return null;
     }
-
-    public String toString()
-    {
-        return "StartPresentation agent action";
-    }
 }

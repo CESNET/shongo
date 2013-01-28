@@ -17,13 +17,7 @@ public class ListRooms extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("GetRoomList agent action");
+        logger.debug("Getting list of all rooms");
         return getMultipoint(connector).getRoomList();
-    }
-
-    @Override
-    public String toString()
-    {
-        return "ListRooms agent action";
     }
 }
