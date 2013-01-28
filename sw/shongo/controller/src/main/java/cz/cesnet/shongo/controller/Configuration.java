@@ -48,11 +48,6 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_PERIOD = "executor.period";
 
     /**
-     * Duration for which the {@link Executor} looks ahead for compartments to be executed.
-     */
-    public static final String EXECUTOR_LOOKUP_AHEAD = "executor.lookup-ahead";
-
-    /**
      * Duration to modify {@link Executable} starting date/time.
      */
     public static final String EXECUTOR_EXECUTABLE_START = "executor.executable.start";
@@ -71,6 +66,17 @@ public class Configuration extends CompositeConfiguration
      * Authorization server.
      */
     public static final String SECURITY_AUTHORIZATION_SERVER = "security.authorization-server";
+
+    /**
+     * Specifies expiration of cache for user-id by access-token.
+     */
+    public static final String SECURITY_USER_ID_CACHE_EXPIRATION = "security.user-id-cache-expiration";
+
+    /**
+     * Specifies expiration of cache for user information by user-id.
+     */
+    public static final String SECURITY_USER_INFORMATION_CACHE_EXPIRATION =
+            "security.user-information-cache-expiration";
 
     /**
      * Specifies access token which won't be verified and can be used for testing purposes.

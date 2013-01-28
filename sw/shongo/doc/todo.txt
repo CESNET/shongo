@@ -3,7 +3,6 @@
 * Fix the freezing of Connectors (sometimes after few requests the connector is in "Active" state and doesn't respond)
 
 * String aliases
-  - all labels should be room name (and not identifier)
   -create SpecificationSummary and add it to ReservationRequestSummary
   -add room name to list page in web client
 
@@ -16,6 +15,7 @@
 
 * Improve allocation failed reports
   -Max-future
+  -Value already reserved
 
 * Executor
   -Store starting failed reports
@@ -24,13 +24,11 @@
 
 * Update API                                   -
   -reservation - reservationRequestId, name
-  -controller configuratio
+  -controller configuration
   -ValueProvider, AliasProvider
   -RoomProviderCapability->requiredAliasTypes
   -AliasType.ROOM_NAME
   -remove RoomSpecification.withAlias
-
-* check H.323 prefix for shongo (01 doesn't work, "shongo-test" has it assigned)
 
 * Adobe Connector
  - single connection
@@ -39,7 +37,7 @@
 * Connector
  - test reconnecting of connectors when a device is restarted
 
-* Clien-CLI Shell.pm in parse_attributes the resulting hash should be processed and all json
+* Client-CLI Shell.pm in parse_attributes the resulting hash should be processed and all json
   bool objects should be converted to 1/0
 
 * Use HangUp instead of HangUpAll
@@ -61,8 +59,6 @@
 
 * Make Cache thread safe (Scheduler and ResourceServiceImpl can cause reset() which reloads cache, and while
   the cache is reloading no one can use it)
-
-* Create expiring user cache in the controller
 
 * Implement allocation failed state to permanent reservations
 

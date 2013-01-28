@@ -28,6 +28,17 @@ public class SecurityException extends RuntimeException implements Fault
         this(String.format(format, objects));
     }
 
+    /**
+     * Constructor.
+     *
+     * @param format  format for description
+     * @param objects parameters for format
+     */
+    public SecurityException(Throwable throwable, String format, Object... objects)
+    {
+        super(String.format(format, objects), throwable);
+    }
+
     @Override
     public int getCode()
     {

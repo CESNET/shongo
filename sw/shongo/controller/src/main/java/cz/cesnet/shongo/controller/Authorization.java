@@ -12,6 +12,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +38,7 @@ public class Authorization
     /**
      * Root user {@link cz.cesnet.shongo.controller.common.Person}.
      */
-    public static final UserInformation ROOT_USER_PERSON = new UserInformation(null)
+    public static final UserInformation ROOT_USER_PERSON = new UserInformation()
     {
         @Override
         public String getUserId()
@@ -55,6 +57,16 @@ public class Authorization
      * URL to authorization server.
      */
     private String authorizationServer;
+
+    /**
+     * Specifies expiration for the {@link #userIdCache}.
+     */
+    private Duration userIdCacheExpiration;
+
+    /**
+     * Specifies expiration for the {@link #userInformationCache}.
+     */
+    private Duration userInformationCacheExpiration;
 
     /**
      * Access token which won't be verified and can be used for testing purposes.
@@ -77,6 +89,9 @@ public class Authorization
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
+        userIdCacheExpiration = configuration.getDuration(Configuration.SECURITY_USER_ID_CACHE_EXPIRATION);
+        userInformationCacheExpiration =
+                configuration.getDuration(Configuration.SECURITY_USER_INFORMATION_CACHE_EXPIRATION);
         testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
 
     }
@@ -133,8 +148,8 @@ public class Authorization
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
-            throw new cz.cesnet.shongo.fault.SecurityException(SecurityToken.class.getSimpleName()
-                    + " should not be empty.");
+            throw new cz.cesnet.shongo.fault.SecurityException(
+                    SecurityToken.class.getSimpleName() + " should not be empty.");
         }
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
@@ -145,12 +160,12 @@ public class Authorization
         // Validate access token by getting user info
         try {
             UserInformation person = getUserInformation(securityToken);
-            logger.debug("Access token '{}' is valid for {} <{}>.",
-                    new Object[]{securityToken.getAccessToken(), person.getFullName(), person.getPrimaryEmail()});
+            logger.debug("Access token '{}' is valid for {} (id: {}).",
+                    new Object[]{securityToken.getAccessToken(), person.getFullName(), person.getUserId()});
         }
         catch (Exception exception) {
-            throw new SecurityException("Access token '" + securityToken.getAccessToken()
-                    + "' cannot be validated. " + exception.getMessage(), exception);
+            throw new SecurityException(exception, "Access token '%s' cannot be validated. %s",
+                    securityToken.getAccessToken(), exception.getMessage());
         }
     }
 
@@ -160,44 +175,58 @@ public class Authorization
      */
     public UserInformation getUserInformation(SecurityToken securityToken) throws IllegalStateException
     {
+        String accessToken = securityToken.getAccessToken();
+
         // Testing security token represents root user
-        if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
+        if (testingAccessToken != null && accessToken.equals(testingAccessToken)) {
             return ROOT_USER_PERSON;
         }
 
-        logger.debug("Retrieving user information by access token '{}'...", securityToken.getAccessToken());
+        // Try to use the user-id from access token cache to get the user information
+        String userId = getCachedUserIdByAccessToken(accessToken);
+        if (userId != null) {
+            logger.debug("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
+            return getUserInformation(userId);
+        }
+        else {
+            logger.debug("Retrieving user information by access token '{}'...", accessToken);
 
-        Map<String, Object> content = null;
-        try {
-            // Build url
-            URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
-            uriBuilder.setParameter("schema", "openid");
-            String url = uriBuilder.build().toString();
+            Map<String, Object> content = null;
+            try {
+                // Build url
+                URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
+                uriBuilder.setParameter("schema", "openid");
+                String url = uriBuilder.build().toString();
 
-            // Perform request
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.setHeader("Authorization", "Bearer " + securityToken.getAccessToken());
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                content = mapper.readValue(inputStream, Map.class);
-                inputStream.close();
-            }
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                String error = "Error";
-                if (content != null) {
-                    error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
+                // Perform request
+                HttpGet httpGet = new HttpGet(url);
+                httpGet.setHeader("Authorization", "Bearer " + accessToken);
+                HttpClient httpClient = new DefaultHttpClient();
+                HttpResponse response = httpClient.execute(httpGet);
+                HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    InputStream inputStream = entity.getContent();
+                    ObjectMapper mapper = new ObjectMapper();
+                    content = mapper.readValue(inputStream, Map.class);
+                    inputStream.close();
                 }
-                throw new Exception(error);
+                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    String error = "Error";
+                    if (content != null) {
+                        error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
+                    }
+                    throw new Exception(error);
+                }
             }
+            catch (Exception exception) {
+                throw new IllegalStateException(exception);
+            }
+            UserInformation userInformation = new UserInformation(content);
+            userId = userInformation.getUserId();
+            putCachedUserIdByAccessToken(accessToken, userId);
+            putCachedUserInformationByUserId(userId, userInformation);
+            return userInformation;
         }
-        catch (Exception exception) {
-            throw new IllegalStateException(exception);
-        }
-        return new UserInformation(content);
     }
 
     /**
@@ -228,33 +257,43 @@ public class Authorization
             return ROOT_USER_PERSON;
         }
 
-        logger.debug("Retrieving user information by user-id '{}'...", userId);
-
-        Map<String, Object> content = null;
-        try {
-            // Build url
-            URIBuilder uriBuilder = new URIBuilder("https://hroch.cesnet.cz/perun-ws/resource/user/" + userId);
-            String url = uriBuilder.build().toString();
-
-            // Perform request
-            HttpGet httpGet = new HttpGet(url);
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                content = mapper.readValue(inputStream, Map.class);
-                inputStream.close();
-            }
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new Exception("Error while retrieving user info by id.");
-            }
+        // Try to use the user information from the cache
+        UserInformation userInformation = getCachedUserInformationByUserId(userId);
+        if (userInformation != null) {
+            logger.debug("Using cached user information for user-id '{}'...", userId);
+            return userInformation;
         }
-        catch (Exception exception) {
-            throw new IllegalStateException(exception);
+        else {
+            logger.debug("Retrieving user information by user-id '{}'...", userId);
+
+            Map<String, Object> content = null;
+            try {
+                // Build url
+                URIBuilder uriBuilder = new URIBuilder("https://hroch.cesnet.cz/perun-ws/resource/user/" + userId);
+                String url = uriBuilder.build().toString();
+
+                // Perform request
+                HttpGet httpGet = new HttpGet(url);
+                HttpClient httpClient = new DefaultHttpClient();
+                HttpResponse response = httpClient.execute(httpGet);
+                HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    InputStream inputStream = entity.getContent();
+                    ObjectMapper mapper = new ObjectMapper();
+                    content = mapper.readValue(inputStream, Map.class);
+                    inputStream.close();
+                }
+                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                    throw new Exception("Error while retrieving user info by id.");
+                }
+            }
+            catch (Exception exception) {
+                throw new IllegalStateException(exception);
+            }
+            userInformation = new UserInformation(content);
+            putCachedUserInformationByUserId(userId, userInformation);
+            return userInformation;
         }
-        return new UserInformation(content);
     }
 
     /**
@@ -277,6 +316,10 @@ public class Authorization
          */
         private Map<String, String> data = new HashMap<String, String>();
 
+        private UserInformation()
+        {
+        }
+
         /**
          * Constructor.
          *
@@ -284,12 +327,17 @@ public class Authorization
          */
         public UserInformation(Map<String, Object> data)
         {
+            if (!data.containsKey("id")) {
+                throw new IllegalStateException("User information must contains identifier.");
+            }
+            if (!data.containsKey("given_name") || !data.containsKey("family_name")) {
+                throw new IllegalStateException("User information must contains given and family name.");
+            }
+
             // Add all not null entries
-            if (data != null) {
-                for (Map.Entry<String, Object> entry : data.entrySet()) {
-                    if (entry.getValue() != null) {
-                        this.data.put(entry.getKey(), (String) entry.getValue());
-                    }
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                if (entry.getValue() != null) {
+                    this.data.put(entry.getKey(), (String) entry.getValue());
                 }
             }
         }
@@ -299,9 +347,6 @@ public class Authorization
          */
         public String getUserId()
         {
-            if (!data.containsKey("id")) {
-                throw new IllegalStateException("User information must contains identifier.");
-            }
             return data.get("id");
         }
 
@@ -336,5 +381,108 @@ public class Authorization
         {
             return Authorization.getInstance().getUserInformation(userId);
         }
+    }
+
+
+    /**
+     * Entry for {@link Authorization#userIdCache} and {@link Authorization#userInformationCache}.
+     */
+    private class CacheEntry<T>
+    {
+        private DateTime expirationDateTime;
+
+        private T cachedObject;
+
+    }
+
+    /**
+     * Cache of user-id by access token.
+     */
+    private Map<String, CacheEntry<String>> userIdCache = new HashMap<String, CacheEntry<String>>();
+
+    /**
+     * Cache of {@link UserInformation} by user-id.
+     */
+    private Map<String, CacheEntry<UserInformation>> userInformationCache =
+            new HashMap<String, CacheEntry<UserInformation>>();
+
+    /**
+     * @param accessToken
+     * @return user-id by given {@code accessToken}
+     */
+    private String getCachedUserIdByAccessToken(String accessToken)
+    {
+        CacheEntry<String> entry = userIdCache.get(accessToken);
+        if (entry != null) {
+            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
+                return entry.cachedObject;
+            }
+            else {
+                userIdCache.remove(accessToken);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Put given {@code userId} to the cache by the given {@code accessToken}.
+     *
+     * @param accessToken
+     * @param userId
+     */
+    private void putCachedUserIdByAccessToken(String accessToken, String userId)
+    {
+        CacheEntry<String> entry = userIdCache.get(accessToken);
+        if (entry == null) {
+            entry = new CacheEntry<String>();
+            userIdCache.put(accessToken, entry);
+        }
+        if (userIdCacheExpiration != null) {
+            entry.expirationDateTime = DateTime.now().plus(userIdCacheExpiration);
+        }
+        else {
+            entry.expirationDateTime = null;
+        }
+        entry.cachedObject = userId;
+    }
+
+    /**
+     * @param userId
+     * @return {@link UserInformation} by given {@code userId}
+     */
+    public UserInformation getCachedUserInformationByUserId(String userId)
+    {
+        CacheEntry<UserInformation> entry = userInformationCache.get(userId);
+        if (entry != null) {
+            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
+                return entry.cachedObject;
+            }
+            else {
+                userIdCache.remove(userId);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Put given {@code userInformation} to the cache by the given {@code userId}.
+     *
+     * @param userId
+     * @param userInformation
+     */
+    public void putCachedUserInformationByUserId(String userId, UserInformation userInformation)
+    {
+        CacheEntry<UserInformation> entry = userInformationCache.get(userId);
+        if (entry == null) {
+            entry = new CacheEntry<UserInformation>();
+            userInformationCache.put(userId, entry);
+        }
+        if (userInformationCacheExpiration != null) {
+            entry.expirationDateTime = DateTime.now().plus(userInformationCacheExpiration);
+        }
+        else {
+            entry.expirationDateTime = null;
+        }
+        entry.cachedObject = userInformation;
     }
 }
