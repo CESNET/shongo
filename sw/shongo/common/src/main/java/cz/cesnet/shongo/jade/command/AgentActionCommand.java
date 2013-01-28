@@ -45,6 +45,14 @@ public class AgentActionCommand extends Command
         this.action = action;
     }
 
+    /**
+     * @return {@link #action}
+     */
+    public AgentAction getAction()
+    {
+        return action;
+    }
+
     @Override
     public String getName()
     {

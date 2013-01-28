@@ -2,6 +2,7 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.fault.jade.CommandAgentNotStartedException;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.CommandBehaviour;
 import jade.content.AgentAction;
@@ -54,7 +55,8 @@ public class Agent extends jade.core.Agent
     public Command performCommand(Command command)
     {
         if (isStarted() == false) {
-            logger.error("Cannot perform command when the agent is not started.");
+            command.setState(Command.State.FAILED);
+            command.setFailed(new CommandAgentNotStartedException(getAID().getLocalName()));
             return command;
         }
         try {
@@ -62,27 +64,13 @@ public class Agent extends jade.core.Agent
             // this.putO2AObject(command, ,AgentController.SYNC);
             // This works (it will pass tests)
             this.putO2AObject(command, false);
-            command.waitForProcessed();
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
-        return command;
-    }
-
-    /**
-     * Perform command on local agent and wait for it to be processed
-     *
-     * @param command command to be performed
-     * @return command (potentially modified)
-     */
-    public Command performCommandAndWait(Command command)
-    {
-        performCommand(command);
         command.waitForProcessed();
         return command;
     }
-
 
     /**
      * Constructor.

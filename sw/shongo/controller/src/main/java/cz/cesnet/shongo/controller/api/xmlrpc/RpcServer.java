@@ -194,10 +194,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         return ++lastRequestId;
     }
 
-    /**
-     * {@link Logger} for all performed requests.
-     */
-    private static Logger apiLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Api");
+
 
     /**
      * {@link ReflectiveXmlRpcHandler} with conversion of {@link cz.cesnet.shongo.fault.Fault} to {@link XmlRpcException}.
@@ -300,8 +297,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
                 userInformation = Authorization.UserInformation.getInstance((SecurityToken) pArgs[0]);
             }
-            apiLogger.info("Request:{} {}.{} by {} (userId: {})", new Object[]{requestId, className, methodName,
-                    userInformation.getFullName(), userInformation.getUserId()});
+            Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
+                    new Object[]{requestId, className, methodName,
+                            userInformation.getFullName(), userInformation.getUserId()});
 
             String requestState = "OK";
             try {
@@ -343,7 +341,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             }
             finally {
                 long duration = requestTimer.stop();
-                apiLogger.info("Request:{} Done in {} ms ({}).", new Object[]{requestId, duration, requestState});
+                Controller.apiLogger.info("Request:{} Done in {} ms ({}).",
+                        new Object[]{requestId, duration, requestState});
             }
         }
     }

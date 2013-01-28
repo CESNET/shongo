@@ -31,6 +31,11 @@ public class Connector
 {
     private static Logger logger = LoggerFactory.getLogger(Connector.class);
 
+    /**
+     * {@link Logger} for all performed actions.
+     */
+    public static Logger actionLogger = LoggerFactory.getLogger(Connector.class.getName() + ".Action");
+
     public static final String DEFAULT_CONFIGURATION_FILENAME = "connector.cfg.xml";
 
     /**

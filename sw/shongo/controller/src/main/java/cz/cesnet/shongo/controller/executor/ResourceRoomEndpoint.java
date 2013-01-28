@@ -227,7 +227,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName,
+            Command command = controllerAgent.performCommand(new AgentActionCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() == Command.State.SUCCESSFUL) {
                 setRoomId((String) command.getResult());
@@ -265,7 +265,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             for (Alias alias : roomAliases) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommandAndWait(
+            Command command = controllerAgent.performCommand(
                     new AgentActionCommand(agentName, new ModifyRoom(room)));
             return command.getState() == Command.State.SUCCESSFUL;
         }
@@ -288,7 +288,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
             Command command = controllerAgent
-                    .performCommandAndWait(new AgentActionCommand(agentName, new DeleteRoom(roomId)));
+                    .performCommand(new AgentActionCommand(agentName, new DeleteRoom(roomId)));
             if (command.getState() == Command.State.SUCCESSFUL) {
                 return State.STOPPED;
             }

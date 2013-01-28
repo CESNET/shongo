@@ -9,7 +9,6 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
@@ -331,7 +330,7 @@ public class ResourceControlServiceImpl extends Component
     private Object commandDevice(String deviceResourceId, ConnectorAgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceId);
-        Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName, action));
+        Command command = controllerAgent.performCommand(new AgentActionCommand(agentName, action));
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
         }

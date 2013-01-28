@@ -89,6 +89,10 @@ public class CommonFault
      * @see cz.cesnet.shongo.fault.jade.CommandConnectorNotFoundException
      */
     public static final int JADE_COMMAND_CONNECTOR_NOT_FOUND = 65;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandAgentNotStartedException
+     */
+    public static final int JADE_COMMAND_AGENT_NOT_STARTED = 66;
 
     /**
      * @see TodoImplementException

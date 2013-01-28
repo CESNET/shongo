@@ -31,18 +31,7 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     /**
      * Used for generating {@link #id}.
      */
-    private static long lastGeneratedId = 0;
-
-    /**
-     * @return {@link #id}
-     */
-    public Long getId()
-    {
-        if (this.id == null) {
-            this.id = ++lastGeneratedId;
-        }
-        return this.id;
-    }
+    private static Long lastGeneratedId = Long.valueOf(0);
 
     /**
      * Executes the action on a given connector.
@@ -91,6 +80,28 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
             throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
         }
         return (MultipointService) connector;
+    }
+
+    @Override
+    public Long getId()
+    {
+        synchronized (lastGeneratedId) {
+            if (this.id == null) {
+                this.id = ++lastGeneratedId;
+            }
+        }
+        return this.id;
+    }
+
+    @Override
+    public void setId(Long id)
+    {
+        synchronized (lastGeneratedId) {
+            if (id > lastGeneratedId) {
+                lastGeneratedId = id;
+            }
+        }
+        this.id = id;
     }
 
     @Override

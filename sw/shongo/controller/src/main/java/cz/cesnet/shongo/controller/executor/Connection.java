@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -142,11 +141,11 @@ public class Connection extends Executable
             Command command = null;
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
-                command = controllerAgent.performCommandAndWait(new AgentActionCommand(
+                command = controllerAgent.performCommand(new AgentActionCommand(
                         agentName, new DialParticipant(roomEndpoint.getRoomId(), getAlias().toApi())));
             }
             else {
-                command = controllerAgent.performCommandAndWait(new AgentActionCommand(
+                command = controllerAgent.performCommand(new AgentActionCommand(
                         agentName, new Dial(getAlias().toApi())));
             }
             if (command.getState() == Command.State.SUCCESSFUL) {

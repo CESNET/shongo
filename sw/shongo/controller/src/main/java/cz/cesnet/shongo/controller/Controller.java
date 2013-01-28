@@ -39,6 +39,16 @@ public class Controller
     private static Logger logger = LoggerFactory.getLogger(Controller.class);
 
     /**
+     * {@link Logger} for all performed requests.
+     */
+    public static Logger apiLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Api");
+
+    /**
+     * {@link Logger} for all performed actions to connectors.
+     */
+    public static Logger connectorLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Connector");
+
+    /**
      * Configuration of the controller.
      */
     private Configuration configuration;

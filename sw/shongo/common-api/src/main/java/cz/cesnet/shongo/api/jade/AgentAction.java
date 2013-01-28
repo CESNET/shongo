@@ -10,6 +10,16 @@ import jade.content.onto.Ontology;
 public interface AgentAction extends jade.content.AgentAction
 {
     /**
+     * @return action unique identifier
+     */
+    public Long getId();
+
+    /**
+     * @param id sets the action unique identifier
+     */
+    public void setId(Long id);
+
+    /**
      * @return {@link Ontology} for this {@link AgentAction}
      */
     public Ontology getOntology();

@@ -95,11 +95,6 @@ public class ConnectorAgent extends Agent
         }
     }
 
-    /**
-     * {@link Logger} for all performed actions.
-     */
-    private static Logger actionLogger = LoggerFactory.getLogger(Connector.class.getName() + ".Action");
-
     @Override
     public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownAgentActionException, CommandException, CommandUnsupportedException
@@ -111,7 +106,7 @@ public class ConnectorAgent extends Agent
         }
         else if (action instanceof ConnectorAgentAction) {
             ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) action;
-            actionLogger.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
+            Connector.actionLogger.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
             Object result = null;
             String resultState = "OK";
             try {
@@ -126,7 +121,7 @@ public class ConnectorAgent extends Agent
                 throw exception;
             }
             finally {
-                actionLogger.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
+                Connector.actionLogger.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
             }
             return result;
         }
