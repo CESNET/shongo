@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,9 +11,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,23 +21,50 @@ import java.util.Set;
  */
 public class HostTrustManager implements X509TrustManager
 {
+    private static Logger logger = LoggerFactory.getLogger(HostTrustManager.class);
+
+    /**
+     * SSL and certificates constants.
+     */
     private static final String JAVA_CA_CERT_FILE_NAME = "cacerts";
     private static final String CLASSIC_JAVA_CA_CERT_FILE_NAME = "jssecacerts";
     private static final int DEFAULT_HTTPS_PORT = 443;
 
-    private static Set<String> hostsToTrust = new HashSet<String>();
-    private char[] defaultCAKeystorePassphrase = "changeit".toCharArray();
+    /**
+     * Set of hosts which should be trusted.
+     */
+    private Set<String> hostsToTrust = new HashSet<String>();
+
+    /**
+     * Store of certificates.
+     */
     private KeyStore certificateTrustStore;
+
+    /**
+     * Default trust manager.
+     */
     private X509TrustManager defaultTrustManager;
 
-    public static void initSsl()
+    /**
+     * Single instance of {@link HostTrustManager}.
+     */
+    private static HostTrustManager trustManager;
+
+    /**
+     * @return {@link #trustManager}
+     */
+    public static synchronized HostTrustManager getInstance()
     {
-        synchronized (hostsToTrust) {
+        if (trustManager == null) {
             try {
+                // Create trust manager
+                trustManager = new HostTrustManager();
+
+                // Set it to the SSL context
                 SSLContext context = SSLContext.getInstance("TLS");
-                context.init(null, new TrustManager[]{new HostTrustManager()}, new SecureRandom());
+                context.init(null, new TrustManager[]{trustManager}, new SecureRandom());
                 HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
-                HostnameVerifier hv = new HostnameVerifier()
+                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier()
                 {
                     public boolean verify(String arg0, SSLSession arg1)
                     {
@@ -45,77 +73,83 @@ public class HostTrustManager implements X509TrustManager
                         // We don't want to always return true
                         // return true;
                     }
-                };
-                HttpsURLConnection.setDefaultHostnameVerifier(hv);
+                });
             }
-            catch (Exception e) {
-                throw new RuntimeException(e);
+            catch (Exception exception) {
+                throw new IllegalStateException(exception);
             }
+
         }
+        return trustManager;
     }
 
-    public static void addTrustedHost(String host)
+    /**
+     * Constructor.
+     *
+     * @throws Exception
+     */
+    public HostTrustManager() throws Exception
     {
-        synchronized (hostsToTrust) {
-            hostsToTrust.add(host);
-            HostTrustManager.initSsl();
-        }
+        File javaTrustStoreFile = findJavaTrustStoreFile();
+        InputStream inputStream = new FileInputStream(javaTrustStoreFile);
+        certificateTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+        certificateTrustStore.load(inputStream, null);
+        inputStream.close();
+        initDefaultTrustManager();
     }
 
-    public HostTrustManager()
-    {
-        try {
-            initTrustStore();
-            addTrustedHosts();
-            initDefaultTrustManager();
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    @Override
     public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException
     {
         defaultTrustManager.checkClientTrusted(chain, authType);
     }
 
+    @Override
     public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException
     {
         defaultTrustManager.checkServerTrusted(chain, authType);
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers()
     {
         return defaultTrustManager.getAcceptedIssuers();
     }
 
-    private void initTrustStore() throws Exception
+    /**
+     * @param host to be added as trusted to the {@link HostTrustManager}
+     */
+    public synchronized void addTrustedHost(String host)
     {
-        File javaTrustStoreFile = findJavaTrustStoreFile();
-        InputStream inputStream = new FileInputStream(javaTrustStoreFile);
-        certificateTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        certificateTrustStore.load(inputStream, defaultCAKeystorePassphrase);
-        inputStream.close();
-    }
-
-    private void addTrustedHosts() throws Exception
-    {
-        SSLContext tempConnectContext = SSLContext.getInstance("TLS");
-        ExtractX509CertTrustManager getX509CertTrustManager = new ExtractX509CertTrustManager();
-        tempConnectContext.init(null, new TrustManager[]{getX509CertTrustManager}, null);
-        SSLSocketFactory socketFactory = tempConnectContext.getSocketFactory();
-        for (String host : hostsToTrust) {
-            SSLSocket socket = (SSLSocket) socketFactory.createSocket(host, DEFAULT_HTTPS_PORT);
-            // connect the socket to set the cert chain in getX509CertTrustManager
-            socket.startHandshake();
-            for (X509Certificate cert : getX509CertTrustManager.getCurrentChain()) {
-                if (!certificateTrustStore.isCertificateEntry(host)) {
-                    certificateTrustStore.setCertificateEntry(host, cert);
+        if (hostsToTrust.add(host)) {
+            try {
+                SSLContext tempConnectContext = SSLContext.getInstance("TLS");
+                ExtractX509CertTrustManager x509CertTrustManager = new ExtractX509CertTrustManager();
+                tempConnectContext.init(null, new TrustManager[]{x509CertTrustManager}, null);
+                SSLSocketFactory socketFactory = tempConnectContext.getSocketFactory();
+                SSLSocket socket = (SSLSocket) socketFactory.createSocket(host, DEFAULT_HTTPS_PORT);
+                socket.setSoTimeout(10000);
+                socket.startHandshake();
+                for (X509Certificate cert : x509CertTrustManager.getCurrentChain()) {
+                    if (!certificateTrustStore.isCertificateEntry(host)) {
+                        certificateTrustStore.setCertificateEntry(host, cert);
+                    }
                 }
+                initDefaultTrustManager();
+                logger.info("Host '{}' has been added to the list of trusted hosts.", host);
+            }
+            catch (Exception exception) {
+                logger.error(String.format("Host '%s' failed to be added to the list of trusted hosts.", host),
+                        exception);
             }
         }
     }
 
+    /**
+     * (Re-)initialize {@link #defaultTrustManager}.
+     *
+     * @throws Exception
+     */
     private void initDefaultTrustManager() throws Exception
     {
         TrustManagerFactory trustManagerFactory = TrustManagerFactory
@@ -158,7 +192,10 @@ public class HostTrustManager implements X509TrustManager
         }
     }
 
-    private File findJavaTrustStoreFile()
+    /**
+     * @return {@link File} for trusted certificates
+     */
+    private static File findJavaTrustStoreFile()
     {
         File javaHome = new File(
                 System.getProperty("java.home") + File.separatorChar + "lib" + File.separatorChar + "security");

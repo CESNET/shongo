@@ -717,7 +717,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             logout();
         }
 
-        HostTrustManager.addTrustedHost(info.getDeviceAddress().getHost());
+        HostTrustManager.getInstance().addTrustedHost(info.getDeviceAddress().getHost());
 
         HashMap<String, String> loginAtributes = new HashMap<String, String>();
         loginAtributes.put("login", this.login);
@@ -800,11 +800,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     login();
                 }
             }
-            else {
-                if (!action.equals("common-info")) {
-                    this.reconnect();
-                }
-            }
 
             URL url = breezeUrl(action, attributes);
 
@@ -861,13 +856,22 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     private void reconnect() throws CommandException
     {
         if (this.getConnectorInfo().getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED) {
-            Element response = this.request("common-info", null);
-
-            if (response.getChild("common").getChild("user") == null) {
-                logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+            boolean needReconnect = false;
+            try {
+                Element response = this.request("common-info", null);
+                if (response.getChild("common").getChild("user") == null) {
+                    needReconnect = true;
+                }
+            } catch (Exception exception) {
+                needReconnect = true;
             }
-            this.breezesession = null;
-            this.login();
+
+            // Reconnect only when it is needed
+            if (needReconnect) {
+                logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+                this.breezesession = null;
+                this.login();
+            }
         }
     }
 

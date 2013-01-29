@@ -124,7 +124,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             client.setTransportFactory(new KeepAliveTransportFactory(client));
 
             // FIXME: remove, the production code should not trust any certificate
-            HostTrustManager.addTrustedHost(getDeviceURL().getHost());
+            HostTrustManager.getInstance().addTrustedHost(getDeviceURL().getHost());
 
             initDeviceInfo();
         }
