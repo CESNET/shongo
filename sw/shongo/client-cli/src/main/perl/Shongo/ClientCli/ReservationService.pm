@@ -218,7 +218,7 @@ sub list_reservation_requests()
         \' | ', 'Owner',
         \' | ', 'Created',
         \' | ', 'Type',
-        \' | ', 'Name',
+        \' | ', 'Description',
         #\' | ', 'Purpose',
         \' | ', 'Earliest Slot', \' |'
     );
@@ -232,7 +232,7 @@ sub list_reservation_requests()
             $application->format_user($reservation_request->{'userId'}),
             format_datetime($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
-            $reservation_request->{'name'},
+            $reservation_request->{'description'},
             #$Shongo::ClientCli::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})
         );
