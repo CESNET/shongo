@@ -281,6 +281,8 @@ public class ReservationRequest extends NormalReservationRequest
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTING_FAILED;
                         case STOPPED:
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.FINISHED;
+                        case STOPPING_FAILED:
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
                         default:
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATED;
                     }

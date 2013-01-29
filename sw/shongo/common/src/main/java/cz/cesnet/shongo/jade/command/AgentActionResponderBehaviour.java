@@ -88,33 +88,6 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
                 fillMessage(reply, ACLMessage.INFORM, response);
             }
-            catch (CommandException e) {
-                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
-                    String message = e.getMessage();
-                if (e.getCause() != null) {
-                    message += " (" + e.getCause().getMessage() + ")";
-                }
-                ContentElement response = new Result(act, new CommandError(message));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-            catch (ClassCastException e) {
-                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
-                String message = e.getMessage();
-                if (e.getCause() != null) {
-                    message += " (" + e.getCause().getMessage() + ")";
-                }
-                ContentElement response = new Result(act, new CommandError(message));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-            catch (RuntimeException e) {
-                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
-                String message = e.getMessage();
-                if (e.getCause() != null) {
-                    message += " (" + e.getCause().getMessage() + ")";
-                }
-                ContentElement response = new Result(act, new CommandError(message));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
             catch (CommandUnsupportedException e) {
                 logger.error("Unsupported command requested by " + request.getSender().getName(), e);
                 ContentElement response = new Result(act, new CommandNotSupported(e.getMessage()));
@@ -123,6 +96,15 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
             catch (UnknownAgentActionException e) {
                 logger.error("Unknown action requested by " + request.getSender().getName(), e);
                 reply.setPerformative(ACLMessage.REFUSE);
+            }
+            catch (Exception e) {
+                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
+                    String message = e.getMessage();
+                if (e.getCause() != null) {
+                    message += " (" + e.getCause().getMessage() + ")";
+                }
+                ContentElement response = new Result(act, new CommandError(message));
+                fillMessage(reply, ACLMessage.FAILURE, response);
             }
         }
         catch (Codec.CodecException e) {
@@ -138,6 +120,10 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
         catch (ClassCastException e) {
             logger.error(String.format("Received a request which the agent did not understand (wrong content type): %s",
                     request), e);
+            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+        }
+        catch (Exception e) {
+            logger.error(String.format("Received a request which the agent did not understand: %s", request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
 
