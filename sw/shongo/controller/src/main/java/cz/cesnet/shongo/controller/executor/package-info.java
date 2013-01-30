@@ -1,5 +1,5 @@
 /**
- * Package contains the implementation of {@link Compartment}s.
+ * Package contains the implementation of {@link Executable}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

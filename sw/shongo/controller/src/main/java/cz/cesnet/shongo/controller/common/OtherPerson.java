@@ -15,11 +15,6 @@ import javax.persistence.Transient;
 public class OtherPerson extends Person implements PersonInformation
 {
     /**
-     * User-id of the {@link cz.cesnet.shongo.controller.common.OtherPerson}.
-     */
-    private String userId;
-
-    /**
      * Full name of the person.
      */
     private String name;
@@ -56,23 +51,6 @@ public class OtherPerson extends Person implements PersonInformation
     {
         setName(name);
         setEmail(email);
-    }
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
     }
 
     /**

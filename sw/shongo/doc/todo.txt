@@ -13,6 +13,7 @@
   -catch and format errors (e.g., request cannot be modifed or deleted)
   -use one getReservations instead of multiple getReservation requests
   -implement better "back button"
+  -permissions (accessing reservation requests)
 
 * Improve allocation failed reports
   -Max-future
