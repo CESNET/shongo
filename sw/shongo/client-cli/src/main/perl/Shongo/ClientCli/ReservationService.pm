@@ -219,21 +219,24 @@ sub list_reservation_requests()
         \' | ', 'Created',
         \' | ', 'Type',
         \' | ', 'Description',
-        #\' | ', 'Purpose',
         \' | ', 'Earliest Slot', \' |'
     );
     my $Type = {
-        'NORMAL' => 'Normal',
-        'PERMANENT' => 'Permanent'
+        'ReservationRequestSummary.PermanentType' => 'Permanent',
+        'ReservationRequestSummary.RoomType' => 'Room',
+        'ReservationRequestSummary.AliasType' => 'Alias'
     };
     foreach my $reservation_request (@{$response->value()}) {
+        my $type = 'Other';
+        if ( defined($reservation_request->{'type'}) && defined($reservation_request->{'type'}->{'class'}) ) {
+            $type = $Type->{$reservation_request->{'type'}->{'class'}};
+        }
         $table->add(
             $reservation_request->{'id'},
             $application->format_user($reservation_request->{'userId'}),
             format_datetime($reservation_request->{'created'}),
-            $Type->{$reservation_request->{'type'}},
+            $type,
             $reservation_request->{'description'},
-            #$Shongo::ClientCli::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})
         );
     }
