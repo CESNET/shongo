@@ -1,10 +1,13 @@
 * 2 paragraphs of shongo features
 
-* String aliases
-  -create SpecificationSummary and add it to ReservationRequestSummary
-  -add room name to list page in web client
-
-* Improve value generation performance
+* Update API                                   -
+  -reservation - reservationRequestId, name
+  -controller configuration
+  -ValueProvider, AliasProvider
+  -RoomProviderCapability->requiredAliasTypes
+  -AliasType.ROOM_NAME
+  -remove RoomSpecification.withAlias
+  -reservationrequestsummary
 
 * Web client
   -catch and format errors (e.g., request cannot be modifed or deleted)
@@ -20,13 +23,7 @@
   -Try to start executables in starting failed state (e.g., when agent was offline) or send info emails
    to administrators
 
-* Update API                                   -
-  -reservation - reservationRequestId, name
-  -controller configuration
-  -ValueProvider, AliasProvider
-  -RoomProviderCapability->requiredAliasTypes
-  -AliasType.ROOM_NAME
-  -remove RoomSpecification.withAlias
+* Improve value generation performance
 
 * Adobe Connector
  - single connection

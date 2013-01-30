@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.PersonInformation;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
@@ -16,10 +15,10 @@ import javax.persistence.Transient;
 public abstract class Person extends PersistentObject implements Cloneable
 {
     /**
-     * @return {@link Information} for the {@link Person}
+     * @return {@link cz.cesnet.shongo.PersonInformation} for the {@link Person}
      */
     @Transient
-    public abstract Information getInformation();
+    public abstract PersonInformation getInformation();
 
     /**
      * @return person converted to API
@@ -56,24 +55,4 @@ public abstract class Person extends PersistentObject implements Cloneable
     @Override
     public abstract Person clone();
 
-    /**
-     * Information about {@link Person}.
-     */
-    public static interface Information
-    {
-        /**
-         * @return full name of the {@link Person}
-         */
-        public String getFullName();
-
-        /**
-         * @return root organization of the {@link Person}
-         */
-        public String getRootOrganization();
-
-        /**
-         * @return primary email of the {@link Person}
-         */
-        public String getPrimaryEmail();
-    }
 }

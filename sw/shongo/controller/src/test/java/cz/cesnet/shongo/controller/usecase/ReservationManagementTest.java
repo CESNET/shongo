@@ -202,7 +202,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest1.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        reservationRequest1.setSpecification(new AliasSpecification(AliasType.H323_E164).withValue("001"));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
@@ -240,7 +240,9 @@ public class ReservationManagementTest extends AbstractControllerTest
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest6);
 
-        Assert.assertEquals(6, getReservationService().listReservationRequests(SECURITY_TOKEN, null).size());
+        Collection<ReservationRequestSummary> reservationRequests =
+                getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals(6, reservationRequests.size());
 
         Assert.assertEquals(4, getReservationService().listReservationRequests(SECURITY_TOKEN,
                 buildFilter(new Technology[]{Technology.H323})).size());

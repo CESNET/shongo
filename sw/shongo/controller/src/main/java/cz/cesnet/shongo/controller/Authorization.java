@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.fault.SecurityException;
 import org.apache.http.HttpEntity;
@@ -175,6 +175,10 @@ public class Authorization
      */
     public UserInformation getUserInformation(SecurityToken securityToken) throws IllegalStateException
     {
+        PersonInformation personInformation = securityToken.getCachedPersonInformation();
+        if (personInformation instanceof UserInformation) {
+            return (UserInformation) personInformation;
+        }
         String accessToken = securityToken.getAccessToken();
 
         // Testing security token represents root user
@@ -186,7 +190,12 @@ public class Authorization
         String userId = getCachedUserIdByAccessToken(accessToken);
         if (userId != null) {
             logger.debug("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
-            return getUserInformation(userId);
+            UserInformation userInformation = getUserInformation(userId);
+
+            // Store the user information inside the security token
+            securityToken.setCachedPersonInformation(userInformation);
+
+            return userInformation;
         }
         else {
             logger.debug("Retrieving user information by access token '{}'...", accessToken);
@@ -225,6 +234,10 @@ public class Authorization
             userId = userInformation.getUserId();
             putCachedUserIdByAccessToken(accessToken, userId);
             putCachedUserInformationByUserId(userId, userInformation);
+
+            // Store the user information inside the security token
+            securityToken.setCachedPersonInformation(userInformation);
+
             return userInformation;
         }
     }
@@ -309,13 +322,16 @@ public class Authorization
     /**
      * Represents an information about user.
      */
-    public static class UserInformation implements Person.Information
+    public static class UserInformation implements PersonInformation
     {
         /**
          * Data returned from the authorization server.
          */
         private Map<String, String> data = new HashMap<String, String>();
 
+        /**
+         * Constructor.
+         */
         private UserInformation()
         {
         }

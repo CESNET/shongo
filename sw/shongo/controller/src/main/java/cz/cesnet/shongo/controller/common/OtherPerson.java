@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.PersonInformation;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -10,7 +12,7 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class OtherPerson extends Person implements Person.Information
+public class OtherPerson extends Person implements PersonInformation
 {
     /**
      * User-id of the {@link cz.cesnet.shongo.controller.common.OtherPerson}.
@@ -235,7 +237,7 @@ public class OtherPerson extends Person implements Person.Information
 
     @Override
     @Transient
-    public Information getInformation()
+    public PersonInformation getInformation()
     {
         return this;
     }

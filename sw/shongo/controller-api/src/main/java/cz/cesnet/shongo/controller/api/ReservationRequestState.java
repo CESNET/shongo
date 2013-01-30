@@ -18,7 +18,7 @@ public enum ReservationRequestState
     NOT_ALLOCATED,
 
     /**
-     * The earliest reservation has been allocated for the request and none has failed.
+     * The earliest reservation has been allocated for the request.
      */
     ALLOCATED,
 

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -127,7 +127,7 @@ public class UserPerson extends Person
 
     @Override
     @Transient
-    public Information getInformation()
+    public PersonInformation getInformation()
     {
         if (userInformation == null) {
             userInformation = Authorization.UserInformation.getInstance(userId);

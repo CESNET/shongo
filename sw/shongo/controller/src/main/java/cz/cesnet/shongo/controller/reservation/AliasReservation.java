@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
@@ -114,6 +115,24 @@ public class AliasReservation extends Reservation
             aliases.add(alias);
         }
         return aliases;
+    }
+
+    /**
+     * @return collection of {@link Alias}es which are allocated by the {@link #valueReservation}
+     */
+    @Transient
+    public Alias getAlias(AliasType aliasType)
+    {
+        for ( Alias aliasTemplate : aliasProviderCapability.getAliases() ) {
+            if (aliasTemplate.getType().equals(aliasType)) {
+                Alias alias = new Alias();
+                alias.setType(aliasTemplate.getType());
+                alias.setValue(aliasTemplate.getValue());
+                evaluateAlias(alias);
+                return alias;
+            }
+        }
+        return null;
     }
 
     @Override

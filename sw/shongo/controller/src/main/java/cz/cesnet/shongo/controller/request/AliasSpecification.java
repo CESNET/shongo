@@ -4,7 +4,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -59,7 +58,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     /**
      * Constructor.
      *
-     * @param aliasType  to be added to the {@link #aliasTypes}
+     * @param aliasType to be added to the {@link #aliasTypes}
      */
     public AliasSpecification(AliasType aliasType)
     {
@@ -81,7 +80,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     /**
      * Constructor.
      *
-     * @param technology to be added to the {@link #technologies}
+     * @param technology              to be added to the {@link #technologies}
      * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
      */
     public AliasSpecification(Technology technology, AliasProviderCapability aliasProviderCapability)
@@ -109,6 +108,16 @@ public class AliasSpecification extends Specification implements ReservationTask
     public Set<AliasType> getAliasTypes()
     {
         return Collections.unmodifiableSet(aliasTypes);
+    }
+
+    /**
+     * @param aliasType
+     * @return true if the {@link #aliasTypes} contains the given {@code aliasType},
+     *         false otherwise
+     */
+    public boolean hasAliasType(AliasType aliasType)
+    {
+        return aliasTypes.contains(aliasType);
     }
 
     /**
