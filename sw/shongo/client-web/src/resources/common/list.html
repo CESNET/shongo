@@ -40,6 +40,7 @@
         <th>Purpose</th>
         <th>Starting date/time</th>
         <th>Duration</th>
+        <th style="text-align: right;">Participants</th>
         <th>State</th>
         <th>Action</th>
     </tr>
@@ -52,6 +53,7 @@
         <td>[% roomRequest.purpose %]</td>
         <td>[% util.format_datetime(roomRequest.start) %]</td>
         <td>[% util.format_period(roomRequest.duration) %]</td>
+        <td style="text-align: right;">[% roomRequest.type.participantCount %]</td>
         <td><a href="[% location %]/detail?id=[% roomRequest.id %]" class="state-[% roomRequest.stateCode %]">[% roomRequest.state %]</a></td>
         <td><a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a></td>
     </tr>
