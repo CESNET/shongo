@@ -57,7 +57,7 @@ RESERVATION:
         </#if>
 
   How to reach:
-        <#list reservation.executable.aliases as alias>
+        <#list reservation.executable.aliases?sort_by(['type']) as alias>
             <@formatAlias alias=alias/>
         </#list>
     </#if>
@@ -81,10 +81,14 @@ RESERVATION:
     </#if>
 
   Aliases:
+    <#assign aliases = []>
     <#list aliasReservations as aliasReservation>
         <#list aliasReservation.aliases as alias>
-            <@formatAlias alias=alias/>
+            <#assign aliases = aliases + [alias]>
         </#list>
+    </#list>
+    <#list aliases?sort_by(['type']) as alias>
+        <@formatAlias alias=alias/>
     </#list>
 </#if>
 

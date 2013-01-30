@@ -111,6 +111,9 @@ public class ConnectorAgent extends Agent
             String resultState = "OK";
             try {
                 result = ((ConnectorAgentAction) action).exec(connector);
+                if (result != null && result instanceof String) {
+                    resultState = String.format("OK: %s", result);
+                }
             }
             catch (CommandException exception) {
                 resultState = String.format("FAILED: %s", exception.getMessage());

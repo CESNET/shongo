@@ -1,6 +1,6 @@
 * 2 paragraphs of shongo features
 
-* Update API                                   -
+* Update API
   -reservation - reservationRequestId, name
   -controller configuration
   -ValueProvider, AliasProvider

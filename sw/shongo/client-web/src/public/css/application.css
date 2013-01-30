@@ -19,6 +19,9 @@ p { font-size: 16px;}
     margin-left: 210px;
     margin-right: 5px;
 }
+.popup {
+    padding-right: 20px;
+}
 .popup .dl-horizontal {
     margin: 0px;
 }

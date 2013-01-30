@@ -410,45 +410,51 @@ sub format_aliases
     my ($self, $reference, $aliases, $available) = @_;
     my $aliases_text = '';
     my $aliases_description = '';
-    foreach my $alias (@{$aliases}) {
+    my $previous_type = '';
+    my @sorted_aliases = sort { $a->{'type'} cmp $b->{'type'} } @{$aliases};
+    foreach my $alias (@sorted_aliases) {
         if ( $alias->{'type'} eq 'ROOM_NAME' ) {
             $reference->{'roomName'} = $alias->{'value'};
             next;
         }
         if ( length($aliases_text) > 0 ) {
-            $aliases_text .= ', ';
+            $aliases_text .= $self->format_selectable(',&nbsp;');
         }
-        if ( $alias->{'type'} eq 'H323_E164' ) {
-            $aliases_text .= "<span class='nowrap'>" . $alias->{'value'} . "</span>";
 
-            $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
-            $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
+        my $aliasValue = $self->format_selectable($alias->{'value'}, 'nowrap');
+        if ( $alias->{'type'} eq 'H323_E164' ) {
+            $aliases_text .= $aliasValue;
+
+            $aliases_description .= '<dt>PSTN/phone:</dt><dd>' . $self->format_selectable('+420' . $alias->{'value'}) . '&nbsp;</dd>';
+            $aliases_description .= '<dt>H.323 GDS number:</dt><dd>' . $self->format_selectable('(00420)' . $alias->{'value'}) . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'H323_URI' ) {
-            $aliases_text .= "<span class='nowrap'>" . $alias->{'value'} . "</span>";
+            $aliases_text .= $aliasValue;
 
-            $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
+            $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $aliasValue . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'SIP_URI' ) {
-            $aliases_text .= "<span class='nowrap'>sip:" . $alias->{'value'} . "</span>";
-            $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
+            $aliasValue = $self->format_selectable('sip:' . $alias->{'value'});
+            $aliases_text .= $aliasValue;
+            $aliases_description .= '<dt>SIP URI:</dt>';
+            $aliases_description .= '<dd>' . $aliasValue . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
-            my $url = $alias->{'value'};
             if ( $available ) {
-                $aliases_text .= "<a class='nowrap' href=\"$url\">$url</a>";
+                $aliases_text .= '<a class="nowrap" href="' . $alias->{'value'} . '">' . $alias->{'value'} . '</a>';
             }
             else {
-                $aliases_text .= "$url";
+                $aliases_text .= $aliasValue;
             }
-            $aliases_description .= '<dt>Room URL:</dt><dd>' . $alias->{'value'} . '</dd>';
+            $aliases_description .= '<dt>Room URL:</dt><dd>' . $self->format_selectable($alias->{'value'}) . '&nbsp;</dd>';
         }
         else {
             $self->error("Unknown alias type '$alias->{'type'}'.");
         }
+        $previous_type = $alias->{'type'};
     }
     if ( !$available ) {
-        $aliases_text .= " <span class='muted nowrap'>(not available now)</span>";
+        $aliases_text .= "<span class='muted nowrap' style='float:left'>&nbsp;(not available now)</span>";
     }
     if ( length($aliases_description) == 0 ){
         $aliases_description = undef;
@@ -458,6 +464,12 @@ sub format_aliases
     }
     $reference->{'aliases'} = $aliases_text;
     $reference->{'aliasesDescription'} = $aliases_description;
+}
+
+sub format_selectable
+{
+    my ($self, $text, $class) = @_;
+    return '<span style="float:left" class="' . $class . '"">' . $text . '</span>';
 }
 
 1;

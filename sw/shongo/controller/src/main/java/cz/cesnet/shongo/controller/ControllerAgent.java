@@ -66,7 +66,13 @@ public class ControllerAgent extends Agent
             String commandState;
             switch (command.getState()) {
                 case SUCCESSFUL:
-                    commandState = "OK";
+                    Object result = command.getResult();
+                    if (result != null && result instanceof String) {
+                        commandState = String.format("OK: %s", result);
+                    }
+                    else  {
+                        commandState = "OK";
+                    }
                     break;
                 case FAILED:
                     commandState = String.format("FAILED: %s", command.getFailure().getMessage());

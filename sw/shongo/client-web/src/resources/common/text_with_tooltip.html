@@ -6,12 +6,27 @@
     @param tooltipText   Text to be rendered into tooltip
 -%]
 [% IF tooltipText -%]
-<span onmouseover="javascript: window.showNode('[% tooltipId %]', true);"
-      onmouseout="javascript: window.showNode('[% tooltipId %]', false);"
-      class="[% class %]">[% text %]</span>
-<div id='[% tooltipId %]' class="[% tooltipClass %]">
+<div id='[% tooltipId %]' class="[% class %]" style="display: table;">[% text %]</div>
+<div id='[% tooltipId %]-content' class="[% tooltipClass %]">
     [% tooltipText -%]
 </div>
+<script type="text/javascript">
+    $(function(){
+        var timeout;
+        $("#[% tooltipId %], #[% tooltipId %]-content").bind({
+            mouseover: function(){
+                $(this).next().fadeIn();
+                clearInterval(timeout);
+            },
+            mouseleave: function(){
+                timeout = setTimeout(function(){
+                    $(this).next().fadeOut();
+                    $("#[% tooltipId %]-content").fadeOut();
+                }, 200);
+            }
+        });
+    });
+</script>
 [%- ELSE -%]
 <span class="[% class %]">[% text %]</span>
 [%- END %]

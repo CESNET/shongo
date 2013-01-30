@@ -123,15 +123,18 @@ public class NotifyReservationTest extends AbstractControllerTest
     {
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
-        firstAliasProvider.addCapability(new AliasProviderCapability("001", AliasType.H323_E164));
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability("test");
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
+        firstAliasProvider.addCapability(aliasProviderCapability);
         firstAliasProvider.setAllocatable(true);
         firstAliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
         getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
 
         Resource secondAliasProvider = new Resource();
         secondAliasProvider.setName("secondAliasProvider");
-        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability("test");
-        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        aliasProviderCapability = new AliasProviderCapability("001");
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "{value}"));
         aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
         secondAliasProvider.addCapability(aliasProviderCapability);
         secondAliasProvider.setAllocatable(true);
@@ -143,7 +146,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
-                new AliasGroupSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+                new AliasGroupSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
