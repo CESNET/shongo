@@ -1,5 +1,7 @@
 * 2 paragraphs of shongo features
 
+* Do not log requests/actions/commands for testing controller and client
+
 * Web client
   -catch and format errors (e.g., request cannot be modified or deleted)
   -use one getReservations instead of multiple getReservation requests
@@ -32,8 +34,6 @@
   bool objects should be converted to 1/0
 
 * Use HangUp instead of HangUpAll
-
-* Alias specification - request H323 and SIP too
 
 * H.323 room endtime
 
