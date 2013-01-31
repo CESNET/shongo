@@ -38,6 +38,7 @@ sub new
     $self->{'url'} = 'https://hroch.cesnet.cz/phpid-server/oic/';
     $self->{'client_id'} = $client_id;
     $self->{'redirect_uri'} = $redirect_uri;
+    $self->{'secret-string'} = 'testclientsecret';
     $self->{'state'} = $state;
 
     return $self;
@@ -176,6 +177,10 @@ sub authentication_token
     my ($self, $authorization_code) = @_;
     my $request = HTTP::Request->new(POST => $self->get_url() . 'token');
     $request->content_type('application/x-www-form-urlencoded');
+    if ( defined($self->{'secret-string'}) ) {
+        my $secret_string = $self->{'secret-string'};
+        $request->header('Authorization' => "secret auth=$secret_string");
+    }
     $request->content($self->escape_hash(
         'client_id' => $self->get_client_id(),
         'redirect_uri' => $self->get_redirect_uri(),

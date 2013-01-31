@@ -130,7 +130,9 @@ sub authentication_authorize
     # Retrieve access token
     console_print_debug("Retrieving access token for authorization code '$authorization_code'...");
     my $access_token = $self->authentication_token($authorization_code);
-    console_print_debug("Access token: $access_token");
+    if ( defined($access_token) ) {
+        console_print_debug("Access token: $access_token");
+    }
 
     return $access_token;
 }
