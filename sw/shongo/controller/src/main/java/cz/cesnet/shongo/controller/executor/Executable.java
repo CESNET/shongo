@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -19,7 +20,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject
+public abstract class Executable extends ReportablePersistentObject
 {
     /**
      * User-id of an user who is owner of the {@link Executable}.
@@ -229,7 +230,7 @@ public abstract class Executable extends PersistentObject
      *
      * @param executor which is executing
      */
-    public final void start(Executor executor, EntityManager entityManager)
+    public final void start(Executor executor)
     {
         if (!STATES_FOR_STARTING.contains(getState())) {
             throw new IllegalStateException(
@@ -244,7 +245,7 @@ public abstract class Executable extends PersistentObject
      *
      * @param executor which is executing
      */
-    public final void stop(Executor executor, EntityManager entityManager)
+    public final void stop(Executor executor)
     {
         if (!STATES_FOR_STOPPING.contains(getState())) {
             throw new IllegalStateException(

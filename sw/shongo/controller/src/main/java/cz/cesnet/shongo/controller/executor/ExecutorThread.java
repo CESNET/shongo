@@ -39,7 +39,7 @@ public class ExecutorThread extends Thread
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
                     Executable executable = executableManager.get(this.executable.getId());
                     entityManager.getTransaction().begin();
-                    executable.start(executor, entityManager);
+                    executable.start(executor);
                     if (executable.getState().equals(Executable.State.STARTED)) {
                         if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
                             executor.getStartingDurationRoom();
@@ -66,7 +66,7 @@ public class ExecutorThread extends Thread
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
                     Executable executable = executableManager.get(this.executable.getId());
                     entityManager.getTransaction().begin();
-                    executable.stop(executor, entityManager);
+                    executable.stop(executor);
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 } catch (FaultException exception) {

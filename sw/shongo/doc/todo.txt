@@ -1,22 +1,22 @@
 * 2 paragraphs of shongo features
 
-* Update API
-  -authentication/authorization
-
 * Web client
-  -catch and format errors (e.g., request cannot be modifed or deleted)
+  -catch and format errors (e.g., request cannot be modified or deleted)
   -use one getReservations instead of multiple getReservation requests
   -implement better "back button"
   -permissions (accessing reservation requests)
-
-* Improve allocation failed reports
-  -Max-future
-  -Value already reserved
 
 * Executor
   -Store starting failed reports
   -Try to start executables in starting failed state (e.g., when agent was offline) or send info emails
    to administrators
+
+* Update API
+  -authentication/authorization
+
+* Improve allocation failed reports
+  -Max-future
+  -Value already reserved
 
 * Improve value generation performance
 
