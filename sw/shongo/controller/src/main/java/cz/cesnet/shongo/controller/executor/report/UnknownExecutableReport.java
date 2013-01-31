@@ -30,11 +30,11 @@ public class UnknownExecutableReport extends ExecutableReport
     /**
      * Constructor.
      *
-     * @param dateTime sets the {@link #dateTime}
+     * @param message sets the {@link #message}
      */
-    public UnknownExecutableReport(DateTime dateTime, String message)
+    public UnknownExecutableReport(String message)
     {
-        setDateTime(dateTime);
+        super(DateTime.now());
         setMessage(message);
     }
 

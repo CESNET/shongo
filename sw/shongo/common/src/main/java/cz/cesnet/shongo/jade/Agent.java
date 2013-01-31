@@ -2,7 +2,7 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.fault.jade.CommandAgentNotStartedException;
+import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.CommandBehaviour;
 import jade.content.AgentAction;
@@ -12,7 +12,6 @@ import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.wrapper.AgentController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +54,7 @@ public class Agent extends jade.core.Agent
     public Command performCommand(Command command)
     {
         if (isStarted() == false) {
-            command.setState(Command.State.FAILED);
-            command.setFailed(new CommandAgentNotStartedException(getAID().getLocalName()));
+            command.setFailed(new CommandAgentNotStarted(getAID().getLocalName()));
             return command;
         }
         try {

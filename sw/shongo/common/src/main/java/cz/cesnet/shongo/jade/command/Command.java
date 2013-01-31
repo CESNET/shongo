@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.jade.command;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.fault.jade.CommandFailureException;
-import cz.cesnet.shongo.fault.jade.CommandTimeoutException;
+import cz.cesnet.shongo.fault.jade.CommandFailure;
+import cz.cesnet.shongo.fault.jade.CommandTimeout;
+import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.jade.Agent;
-import org.slf4j.LoggerFactory;
 
 /**
  * Represents a command which can be processed on a JADE agent.
@@ -26,9 +26,9 @@ public abstract class Command
     private State state;
 
     /**
-     * {@link CommandFailureException}.
+     * {@link cz.cesnet.shongo.fault.jade.CommandFailure}.
      */
-    private CommandFailureException failure;
+    private CommandFailure failure;
 
     /**
      * Result of the command.
@@ -81,7 +81,7 @@ public abstract class Command
      *
      * @param failure sets the {@link #failure}
      */
-    public void setFailed(CommandFailureException failure)
+    public void setFailed(CommandFailure failure)
     {
         this.state = State.FAILED;
         this.failure = failure;
@@ -91,10 +91,14 @@ public abstract class Command
     }
 
     /**
-     * @return {@link #failure}
+     * @return {@link #failure} or {@link CommandUnknownFailure}
+     *         when the {@link #failure} is null and the {@link #state} is {@link State#FAILED}
      */
-    public CommandFailureException getFailure()
+    public CommandFailure getFailure()
     {
+        if (failure == null && this.state == State.FAILED) {
+            return new CommandUnknownFailure();
+        }
         return failure;
     }
 
@@ -140,7 +144,7 @@ public abstract class Command
             }
         }
         if (getState() == Command.State.UNKNOWN) {
-            setFailed(new CommandTimeoutException());
+            setFailed(new CommandTimeout());
         }
     }
 

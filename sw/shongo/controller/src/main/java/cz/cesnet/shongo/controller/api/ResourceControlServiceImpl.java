@@ -14,7 +14,9 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
+import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
 
@@ -334,11 +336,7 @@ public class ResourceControlServiceImpl extends Component
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
         }
-        CommandFailureException exception = command.getFailure();
-        if (exception == null) {
-            exception = new CommandFailureException();
-        }
-        throw exception;
+        throw new CommandFailureException(command.getFailure());
     }
 
     /**

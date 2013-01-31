@@ -6,17 +6,17 @@ import cz.cesnet.shongo.fault.CommonFault;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public class CommandTimeoutException extends CommandFailureException
+public class CommandNotUnderstood extends CommandFailure
 {
     @Override
     public int getCode()
     {
-        return CommonFault.JADE_COMMAND_TIMEOUT;
+        return CommonFault.JADE_COMMAND_NOT_UNDERSTOOD;
     }
 
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Jade command doesn't receive a response in specified period of time.");
+        return CommonFault.formatMessage("The requested command was not understood by the connector.");
     }
 }

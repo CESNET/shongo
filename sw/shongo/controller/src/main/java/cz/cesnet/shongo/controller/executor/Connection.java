@@ -6,6 +6,7 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DialPart
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
@@ -153,6 +154,7 @@ public class Connection extends Executable
                 return State.STARTED;
             }
             else {
+                addReport(new CommandFailureReport(command.getFailure()));
                 return State.STARTING_FAILED;
             }
         }
@@ -185,6 +187,7 @@ public class Connection extends Executable
                 return State.STOPPED;
             }
             else {
+                addReport(new CommandFailureReport(command.getFailure()));
                 return State.STOPPING_FAILED;
             }
         }

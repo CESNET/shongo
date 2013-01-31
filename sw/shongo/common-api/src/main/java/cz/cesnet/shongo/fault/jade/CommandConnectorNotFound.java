@@ -6,7 +6,7 @@ import cz.cesnet.shongo.fault.CommonFault;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public class CommandConnectorNotFoundException extends CommandFailureException
+public class CommandConnectorNotFound extends CommandFailure
 {
     /**
      * Agent name for connector.
@@ -18,7 +18,7 @@ public class CommandConnectorNotFoundException extends CommandFailureException
      *
      * @param connectorAgentName sets the {@link #connectorAgentName}
      */
-    public CommandConnectorNotFoundException(String connectorAgentName)
+    public CommandConnectorNotFound(String connectorAgentName)
     {
         this.connectorAgentName = connectorAgentName;
     }

@@ -6,7 +6,7 @@ import cz.cesnet.shongo.fault.CommonFault;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public class CommandAgentNotStartedException extends CommandFailureException
+public class CommandAgentNotStarted extends CommandFailure
 {
     /**
      * Agent name of Jade agent.
@@ -18,7 +18,7 @@ public class CommandAgentNotStartedException extends CommandFailureException
      *
      * @param agentName sets the {@link #agentName}
      */
-    public CommandAgentNotStartedException(String agentName)
+    public CommandAgentNotStarted(String agentName)
     {
         this.agentName = agentName;
     }

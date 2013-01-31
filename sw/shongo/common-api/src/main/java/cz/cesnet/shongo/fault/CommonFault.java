@@ -66,31 +66,31 @@ public class CommonFault
     public static final int SECURITY_UNKNOWN = 50;
 
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandFailureException
+     * @see cz.cesnet.shongo.fault.jade.CommandFailure
      */
     public static final int JADE_COMMAND_UNKNOWN = 60;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandTimeoutException
+     * @see cz.cesnet.shongo.fault.jade.CommandTimeout
      */
     public static final int JADE_COMMAND_TIMEOUT = 61;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandResultDecodingException
+     * @see cz.cesnet.shongo.fault.jade.CommandResultDecoding
      */
     public static final int JADE_COMMAND_RESULT_DECODING = 62;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandNotUnderstoodException
+     * @see cz.cesnet.shongo.fault.jade.CommandNotUnderstood
      */
     public static final int JADE_COMMAND_NOT_UNDERSTOOD = 63;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandRefusedException
+     * @see cz.cesnet.shongo.fault.jade.CommandRefused
      */
     public static final int JADE_COMMAND_REFUSED = 64;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandConnectorNotFoundException
+     * @see cz.cesnet.shongo.fault.jade.CommandConnectorNotFound
      */
     public static final int JADE_COMMAND_CONNECTOR_NOT_FOUND = 65;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandAgentNotStartedException
+     * @see cz.cesnet.shongo.fault.jade.CommandAgentNotStarted
      */
     public static final int JADE_COMMAND_AGENT_NOT_STARTED = 66;
 

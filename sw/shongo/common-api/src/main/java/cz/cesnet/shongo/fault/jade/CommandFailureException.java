@@ -4,15 +4,16 @@ import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 
 /**
+ * Represents a {@link FaultException} for a {@link CommandFailure}.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #getMessage()}
  */
 public class CommandFailureException extends FaultException
 {
     /**
-     * Command which failed.
+     * {@link CommandFailure} which is the cause
      */
-    private String command;
+    private CommandFailure commandFailure;
 
     /**
      * Constructor.
@@ -23,36 +24,37 @@ public class CommandFailureException extends FaultException
 
     /**
      * Constructor.
-     */
-    public CommandFailureException(String message)
-    {
-        super(message);
-    }
-
-    /**
-     * Constructor.
      *
-     * @param throwable
+     * @param commandFailure
      */
-    public CommandFailureException(Throwable throwable)
+    public CommandFailureException(CommandFailure commandFailure)
     {
-        super(throwable);
+        if (commandFailure == null) {
+            throw new IllegalArgumentException("Command failure should not be null.");
+        }
+        setCommandFailure(commandFailure);
     }
 
     /**
-     * @return {@link #command}
+     * @return {@link #commandFailure}
      */
-    public String getCommand()
+    public CommandFailure getCommandFailure()
     {
-        return command;
+        return commandFailure;
     }
 
     /**
-     * @param command sets the {@link #command}
+     * @param commandFailure sets the {@link #commandFailure}
      */
-    public void setCommand(String command)
+    public void setCommandFailure(CommandFailure commandFailure)
     {
-        this.command = command;
+        this.commandFailure = commandFailure;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return commandFailure.getMessage();
     }
 
     @Override

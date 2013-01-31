@@ -10,11 +10,13 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.executor.report.UnknownExecutableReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import org.joda.time.DateTime;
@@ -231,14 +233,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
             Command command = controllerAgent.performCommand(new AgentActionCommand(agentName,
                     new CreateRoom(room)));
-            if (command.getFailure() != null) {
-                addReport(new UnknownExecutableReport(DateTime.now(), command.getFailure().getMessage()));
-            }
             if (command.getState() == Command.State.SUCCESSFUL) {
                 setRoomId((String) command.getResult());
                 return State.STARTED;
             }
             else {
+                addReport(new CommandFailureReport(command.getFailure()));
                 return State.STARTING_FAILED;
             }
         }
@@ -270,12 +270,14 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             for (Alias alias : roomAliases) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommand(
-                    new AgentActionCommand(agentName, new ModifyRoom(room)));
-            if (command.getFailure() != null) {
-                addReport(new UnknownExecutableReport(DateTime.now(), command.getFailure().getMessage()));
+            Command command = controllerAgent.performCommand(new AgentActionCommand(agentName, new ModifyRoom(room)));
+            if (command.getState() == Command.State.SUCCESSFUL) {
+                return true;
             }
-            return command.getState() == Command.State.SUCCESSFUL;
+            else {
+                addReport(new CommandFailureReport(command.getFailure()));
+                return false;
+            }
         }
         else {
             throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
@@ -297,13 +299,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
             Command command = controllerAgent.performCommand(
                     new AgentActionCommand(agentName, new DeleteRoom(roomId)));
-            if (command.getFailure() != null) {
-                addReport(new UnknownExecutableReport(DateTime.now(), command.getFailure().getMessage()));
-            }
             if (command.getState() == Command.State.SUCCESSFUL) {
                 return State.STOPPED;
             }
             else {
+                addReport(new CommandFailureReport(command.getFailure()));
                 return State.STOPPING_FAILED;
             }
         }

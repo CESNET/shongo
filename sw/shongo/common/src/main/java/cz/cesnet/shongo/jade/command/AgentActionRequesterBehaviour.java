@@ -94,13 +94,13 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
             }
         }
         catch (Codec.CodecException e) {
-            command.setFailed(new CommandResultDecodingException(e));
+            command.setFailed(new CommandResultDecoding(e));
         }
         catch (OntologyException e) {
-            command.setFailed(new CommandResultDecodingException(e));
+            command.setFailed(new CommandResultDecoding(e));
         }
         catch (ClassCastException e) {
-            command.setFailed(new CommandResultDecodingException(e));
+            command.setFailed(new CommandResultDecoding(e));
         }
     }
 
@@ -110,7 +110,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of the command failed: {}", msg);
-        command.setFailed(new CommandNotUnderstoodException());
+        command.setFailed(new CommandNotUnderstood());
     }
 
     @Override
@@ -128,7 +128,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of the command failed: {}", msg);
-        command.setFailed(new CommandRefusedException());
+        command.setFailed(new CommandRefused());
     }
 
     /**
@@ -148,7 +148,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
      * @param msg an error, should contain a Result with value of type CommandError or CommandNotSupported
      * @return error message found in the message, or null if it was not there
      */
-    private CommandFailureException getFailure(ACLMessage msg)
+    private CommandFailure getFailure(ACLMessage msg)
     {
         String content = msg.getContent();
         if (msg.getSender().equals(myAgent.getAMS())) {
@@ -159,7 +159,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
             Matcher agentNotFoundMatcher = PATTERN_AGENT_NOT_FOUND.matcher(content);
             if (agentNotFoundMatcher.find()) {
                 String connectorAgentName = agentNotFoundMatcher.group(1);
-                return new CommandConnectorNotFoundException(connectorAgentName);
+                return new CommandConnectorNotFound(connectorAgentName);
             }
         }
         else {
@@ -179,6 +179,6 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
                 logger.error("Contents of the error message could not be decoded for message " + msg, exception);
             }
         }
-        return new CommandFailureException(content);
+        return new CommandUnknownFailure(content);
     }
 }

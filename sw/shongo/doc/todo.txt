@@ -1,5 +1,8 @@
 * 2 paragraphs of shongo features
 
+* Persist CommandFailure in CommandFailureReport
+  - propagate executable reports through api
+
 * Do not log requests/actions/commands for testing controller and client
 
 * Web client
