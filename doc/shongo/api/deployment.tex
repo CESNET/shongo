@@ -16,7 +16,7 @@ This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
 
 You must install \gls{g:shongo} to each machine where you want to launch a \textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}. To install \gls{g:shongo} you need to get the source code. To get the \gls{g:shongo} source code you need to have Git\footnote{Git fast version control \url{http://git-scm.com/}} installed and use the following command:
 \begin{verbatim}
-git clone username@homeproj.cesnet.cz:shongo
+git clone <username>@homeproj.cesnet.cz:shongo
 \end{verbatim}
 To get an username and password ask at \href{mailto:martin.srom@cesnet.cz}{\texttt{martin.srom@cesnet.cz}}. 
 
@@ -34,6 +34,7 @@ mvn package
 \subsection{Client CLI}
 To launch \textbf{command-line client} you need to have Perl\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
 \begin{compactenum}
+\item Term::ReadLine::Gnu
 \item RPC::XML
 \item XML::Twig
 \item Text::Table
@@ -44,9 +45,9 @@ To launch \textbf{command-line client} you need to have Perl\footnote{Perl \url{
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 \begin{verbatim}
-sudo apt-get install librpc-xml-perl libxml-twig-perl \
-        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl \
-        liblwp-protocol-https-perl
+sudo apt-get install libterm-readline-gnu-perl librpc-xml-perl libxml-twig-perl \
+        libtext-table-perl libdatetime-format-iso8601-perl \
+        libjson-perl liblwp-protocol-https-perl
 \end{verbatim}
 All applications (\textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}) can be launched by entering the following directory:
 \begin{verbatim}
@@ -90,12 +91,15 @@ controller.
 </rpc>
 \end{verbatim}
 
-\item Configuration of XML-RPC authentication and authorization. An \code{authorization-server} can be specified.
+\item Configuration of XML-RPC authentication and authorization. An \code{authorization-server} URL can be specified. Also the expiration intervals for user-id (by access token) and user information (by user-id) caches can be specified. The last option is \code{testing-access-token} that contains access token which is always successfully validated (it is useful for testing purposes).
 \begin{verbatim}
 <security>
     <authorization-server>
         https://hroch.cesnet.cz/phpid-server/oic/
     </authorization-server>
+    <user-id-cache-expiration>PT30M</user-id-cache-expiration>
+    <user-information-cache-expiration>PT5M</user-information-cache-expiration>
+    <testing-access-token>(access-token)</testing-access-token>
 </security>
 \end{verbatim}
 
@@ -113,9 +117,9 @@ controller.
     <resource>
         <max-duration>P6D</max-duration>
     </resource>
-    <alias>
+    <value>
         <max-duration>P1Y</max-duration>
-    </alias>
+    </value>
 </reservation>
 \end{verbatim}
 
@@ -127,23 +131,33 @@ controller.
 </worker>
 \end{verbatim}
 
-\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:executable} (e.g., \glspl{g:compartment}) and executes them. A \code{period} can be configured in which the executor performs checking and also the \code{lookup-ahead} which is used when searching for allocated \glspl{g:compartment} to be executed (the executor executes only \glspl{g:compartment} which take place in interval starting at current date/time and with length of \code{lookup-ahead}). Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:executable} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:executable} will be started and ended 30 seconds beforehand). Periods \code{waiting-start} and \code{waiting-end} specify how often the \gls{g:executor} checks whether the \gls{g:executable} should actually be started or stopped. Option \code{waiting-virtual-room} specifies how long should the \gls{g:executor} wait after it send commands for creating all \glspl{g:device-virtual-room} in a \gls{g:compartment} before it connects all allocated endpoints to proper \glspl{g:device-virtual-room}.
+\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:executable} (e.g., \glspl{g:compartment}) and executes them. A \code{period} can be configured in which the executor performs checking for \glspl{g:executable} to be executed. Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:executable} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:executable} will be started and ended 30 seconds beforehand). Option \code{room} in \code{starting-duration} specifies how long should the \gls{g:executor} wait after it sent commands for creating all \glspl{g:device-virtual-room} in a \gls{g:compartment} before it connects all allocated endpoints to proper \glspl{g:device-virtual-room}.
 \begin{verbatim}
 <executor>
     <period>PT15S</period>
-    <lookup-ahead>PT3M</lookup-ahead>
     <executable>
         <start>PT-30S</start>
         <end>PT-30S</end>
-        <waiting-start>PT10S</waiting-start>
-        <waiting-end>PT10S</waiting-end>
     </executable>
-    <compartment>
-        <waiting-virtual-room>PT10S</waiting-virtual-room>
-    </compartment>
+    <starting-duration>
+        <room>PT10S</room>
+    </starting-duration>
 </executor>
 \end{verbatim}
+
+\item Configuration of SMTP server for sending info emails.
+\begin{verbatim}
+<smtp>
+    <sender>no-reply@shongo.cz</sender>
+    <host>rs.cesnet.cz</host>
+    <port>25</port>
+    <username>(username)</username>
+    <password>(password)</password>
+</smtp>
+\end{verbatim}
+
 \end{itemize}
+
 
 \section{Connector}
 Connector by default connects to the controller on \codeValue{127.0.0.1:8282} through Jade middle-ware and the connector runs Jade middle-ware on \codeValue{127.0.0.1:8383}. To change the default settings command-line attributes can be used:
@@ -194,7 +208,7 @@ Example of \gls{g:connector-agent} configuration for Tandberg Codec C90:
 <instance>
     <name>c90</name>
     <device>
-        <connectorClass>cz.cesnet.shongo.connector.CodecC90Connector</connectorClass>
+        <connector-class>cz.cesnet.shongo.connector.CodecC90Connector</connector-class>
         <host>147.251.54.102</host>
         <port>22</port>
         <auth>
@@ -210,7 +224,7 @@ Example of \gls{g:connector-agent} configuration for Codian MCU 4515:
 <instance>
     <name>mcu</name>
     <device>
-        <connectorClass>cz.cesnet.shongo.connector.CiscoMCUConnector</connectorClass>
+        <connector-class>cz.cesnet.shongo.connector.CiscoMCUConnector</connector-class>
         <host>mcuc.cesnet.cz</host>
         <auth>
             <username>(username)</username>

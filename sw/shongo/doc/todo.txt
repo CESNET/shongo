@@ -1,7 +1,6 @@
 * 2 paragraphs of shongo features
 
 * Update API
-  -controller configuration
   -authentication/authorization
 
 * Web client
