@@ -1,13 +1,8 @@
 * 2 paragraphs of shongo features
 
 * Update API
-  -reservation - reservationRequestId, name
   -controller configuration
-  -ValueProvider, AliasProvider
-  -RoomProviderCapability->requiredAliasTypes
-  -AliasType.ROOM_NAME
-  -remove RoomSpecification.withAlias
-  -reservationrequestsummary
+  -authentication/authorization
 
 * Web client
   -catch and format errors (e.g., request cannot be modifed or deleted)
@@ -32,6 +27,7 @@
 
 * Connector
  - test reconnecting of connectors when a device is restarted
+ - authentication
 
 * Client-CLI Shell.pm in parse_attributes the resulting hash should be processed and all json
   bool objects should be converted to 1/0

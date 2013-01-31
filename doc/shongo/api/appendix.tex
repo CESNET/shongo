@@ -27,7 +27,10 @@ shongo> create-resource { \
         licenseCount: 100 \
     }, { \
         class: 'AliasProviderCapability', \
-        patterns: ['9500872[dd]'], \
+        valueProvider: { \
+          class: 'ValueProvider.Pattern', \
+          patterns: ['9500872{digit:2}'], \
+        }, \
         aliases: [{type: 'H323_E164', value: '{value}'}], \
         restrictedToOwnerResource: 1 \
     }] \
