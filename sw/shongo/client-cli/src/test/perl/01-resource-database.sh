@@ -12,7 +12,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
             class: 'ValueProviderCapability', \
             valueProvider: { \
                 class: 'ValueProvider.Pattern', \
-                patterns: ['shongo-{hash}'], \
+                patterns: ['ZZ-shongo-{hash}'], \
                 allowAnyRequestedValue: 1, \
             }, \
         }] \
@@ -46,11 +46,13 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
             class: 'AliasProviderCapability', \
             valueProvider: { \
                 class: 'ValueProvider.Pattern', \
-                patterns: ['{digit:2}'], \
+                patterns: ['{digit:2:min:max}', '{digit:2:min:max}', '{digit:2:min:max}'], \
             }, \
             aliases: [ \
                 { type: 'H323_E164', value: '9500872{value}' }, \
-                { type: 'H323_URI', value: '{device.address}#2{value}' }, \
+                { type: 'H323_URI', value: '9500872{value}@195.113.222.60' }, \
+                { type: 'H323_IP', value: '195.113.222.60 2{value}#' }, \
+                { type: 'SIP_IP', value: '195.113.222.60 2{value}#' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
             maximumFuture: 'P1Y', \
@@ -59,6 +61,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
         administrators: [ \
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \
             { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'} \
+            { class: 'OtherPerson', name: 'Milos', email: '...'} \
         ] \
     }"
 

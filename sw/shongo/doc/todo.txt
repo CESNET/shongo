@@ -1,15 +1,61 @@
 * 2 paragraphs of shongo features
 
+* Send mail about permissions:
+ - Permissions for reservation requests:
+   - view
+   - modify/delete
+   - reuse (provide the allocated reservations to another reservation requests)
+ - User roles for reservation requests:
+   - ownership (view, modify/delete, reuse)
+   - reusage (view, reuse)
+
+* Fix adobe connect reconnecting
+
+* Infrastructure
+ - Change string identifier to "ZZ-shongo-hash"
+ - Create H323_IP, SIP_IP alis types
+ - Modify H323_URI to number@ip
+ - Add pattern {range:min:max}
+
+* Implement permissions
+
+* Fix passing of user identity from authorization server through controller to adobe connect connector
+
+* Web client
+  - catch and format errors (e.g., request cannot be modified or deleted)
+  - format request state errors
+  - format executables state errors
+  - improve scheduler error reports (alias allocation -> multiple providers what to show?)
+  - permissions (accessing reservation requests)
+  - document all possible errors and set reactions (for request and executor)
+  * hide url parameters
+  * do not allow to delete requests whose allocated reservations was provided to another request
+
+* Executor
+  - Retry in some error states (based on document)
+  - Send info mails to resource admins (when resource fails)
+  - Send info mails to shongo admin (when controller/connector throws unhandled exception)
+
+* Permanent reservation request
+  - Delete current permanent reservation request
+  - Add forced option or higher priority (or mainstanance option
+  - Executable should not be created, only empty reservation
+  - Allow to not specify begin or end (infinite reservations)
+
+* Reformat cmd-line client script to use the following style:
+  cat <<EOF
+    Test 1
+    Test 2
+  EOF
+
 * Persist CommandFailure in CommandFailureReport
   - propagate executable reports through api
 
 * Do not log requests/actions/commands for testing controller and client
 
 * Web client
-  -catch and format errors (e.g., request cannot be modified or deleted)
   -use one getReservations instead of multiple getReservation requests
   -implement better "back button"
-  -permissions (accessing reservation requests)
 
 * Executor
   -Store starting failed reports
