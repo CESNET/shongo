@@ -102,7 +102,7 @@ history_load($history_file);
 # Create shell
 my $shell = Shongo::ClientCli::Shell->new();
 
-# Run single commands
+# Run command from argument
 if ( defined($cmd) ) {
     foreach my $item (@{$cmd}) {
         $shell->command($item);
@@ -117,6 +117,23 @@ elsif ( defined($file) ) {
         $shell->command($line);
     }
     close(FILE);
+}
+# Run from standard input
+elsif ( $scripting ) {
+    my $command = '';
+    while ( my $line = <STDIN> ) {
+        if ( $line =~ /^\s*$/ ) {
+            if ( !($command =~ /^\s*$/) ) {
+                $shell->command($command);
+                $command = '';
+            }
+        }
+        else {
+            $line =~ s/^\s+//;
+            $line =~ s/\s+$//;
+            $command .= $line;
+        }
+    }
 }
 # Run shell
 else {

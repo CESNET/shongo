@@ -80,6 +80,32 @@ public class PatternValueProviderTest
     }
 
     @Test
+    public void testDigitRange() throws Exception
+    {
+        PatternValueProvider generator = new PatternValueProvider();
+        generator.addPattern("{number:5:45}");
+        generator.addPattern("{number:050:120}");
+        generator.addPattern("{number:150:200}");
+        Set<String> generatedValues = new HashSet<String>();
+        for (int index = 5; index <= 45; index++) {
+            Assert.assertEquals(String.format("%d", index), generator.generateAddedValue(generatedValues));
+        }
+        for (int index = 50; index <= 120; index++) {
+            Assert.assertEquals(String.format("%03d", index), generator.generateAddedValue(generatedValues));
+        }
+        for (int index = 150; index <= 200; index++) {
+            Assert.assertEquals(String.format("%d", index), generator.generateAddedValue(generatedValues));
+        }
+
+        generator = new PatternValueProvider();
+        generator.addPattern("{number:000:999}");
+        generatedValues = new HashSet<String>();
+        for (int index = 0; index <= 999; index++) {
+            Assert.assertEquals(String.format("%03d", index), generator.generateAddedValue(generatedValues));
+        }
+    }
+
+    @Test
     public void testHashPatternLength() throws Exception
     {
         PatternValueProvider generator = new PatternValueProvider(null, "{hash:6}");
@@ -97,10 +123,14 @@ public class PatternValueProviderTest
         PatternValueProvider generator = new PatternValueProvider();
         generator.addPattern("test1 {hash:4}");
         generator.addPattern("test2 {hash:5}");
+        generator.addPattern("test3 {number:85:98}");
         Assert.assertEquals("test1 xxxx", generator.generateValue(new HashSet<String>(), "test1 xxxx"));
         Assert.assertEquals("test2 yyyyy", generator.generateValue(new HashSet<String>(), "test2 yyyyy"));
+        Assert.assertEquals("test3 90", generator.generateValue(new HashSet<String>(), "test3 90"));
         Assert.assertNull(generator.generateValue(new HashSet<String>(), "test1 xxxxx"));
         Assert.assertNull(generator.generateValue(new HashSet<String>(), "test2 xxxx"));
         Assert.assertNull(generator.generateValue(new HashSet<String>(), "test yyyyy"));
+        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test3 84"));
+        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test3 99"));
     }
 }

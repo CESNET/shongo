@@ -124,10 +124,16 @@ DETAILS (for administrators):
    * PSTN dial in: +420${alias.value}
     <#elseif alias.type == "H323_URI">
 
+   * H323 URI: ${alias.value}
+    <#elseif alias.type == "H323_IP">
+
    * H323 IP: ${alias.value}
     <#elseif alias.type == "SIP_URI">
 
    * SIP: sip:${alias.value}
+    <#elseif alias.type == "SIP_IP">
+
+   * SIP IP: ${alias.value}
     <#elseif alias.type == "ADOBE_CONNECT_URI">
 
    * URL: ${alias.value}

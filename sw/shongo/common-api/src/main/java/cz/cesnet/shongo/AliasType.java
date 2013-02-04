@@ -20,15 +20,25 @@ public enum AliasType
     H323_E164(Technology.H323, AliasValueType.E164),
 
     /**
-     * Represents {@link cz.cesnet.shongo.Technology#H323} URI (like an IP address).
+     * Represents {@link cz.cesnet.shongo.Technology#H323} URI (like an "<number>@<ip-address>").
      */
     H323_URI(Technology.H323, AliasValueType.URI),
+
+    /**
+     * Represents {@link cz.cesnet.shongo.Technology#H323} IP (like an "<ip-address> <number>#").
+     */
+    H323_IP(Technology.H323, AliasValueType.IP),
 
     /**
      * @see cz.cesnet.shongo.Technology#SIP
      * @see cz.cesnet.shongo.AliasValueType#URI
      */
     SIP_URI(Technology.SIP, AliasValueType.URI),
+
+    /**
+     * Represents {@link cz.cesnet.shongo.Technology#SIP} IP (like an "<ip-address> <number>#").
+     */
+    SIP_IP(Technology.H323, AliasValueType.IP),
 
     /**
      * Represents room URL for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.

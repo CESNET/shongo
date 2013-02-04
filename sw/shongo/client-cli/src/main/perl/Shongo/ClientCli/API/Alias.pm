@@ -18,7 +18,9 @@ our $Type = ordered_hash(
     'ROOM_NAME' => 'Room Name',
     'H323_E164' => 'H.323 Phone Number',
     'H323_URI' => 'H.323 URI',
+    'H323_IP' => 'H.323 IP',
     'SIP_URI' => 'SIP URI',
+    'SIP_URI' => 'SIP IP',
     'ADOBE_CONNECT_URI' => 'Adobe Connect URI'
 );
 
@@ -27,7 +29,9 @@ our $TypePattern = {
     'ROOM_NAME' => '.*',
     'H323_E164' => '\\d+',
     'H323_URI' => '.*',
+    'H323_IP' => '.*',
     'SIP_URI' => '.+@.+',
+    'SIP_IP' => '.*',
     'ADOBE_CONNECT_URI' => '.+@.+'
 };
 

@@ -786,6 +786,8 @@ ParamsLoop:
                             }
                             break;
                         case H323_URI:
+                        case H323_IP:
+                        case SIP_IP:
                             // TODO: Check the alias value
                             break;
                         default:

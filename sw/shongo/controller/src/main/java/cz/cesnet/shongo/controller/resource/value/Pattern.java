@@ -13,9 +13,15 @@ import java.util.regex.Matcher;
 public class Pattern extends ArrayList<Pattern.PatternComponent>
 {
     /**
-     * Regex for {@link Pattern.NumberPatternComponent}.
+     * Regex for {@link cz.cesnet.shongo.controller.resource.value.Pattern.DigitPatternComponent}.
      */
-    private static final java.util.regex.Pattern NUMBER_PATTERN = java.util.regex.Pattern.compile("digit:(\\d+)");
+    private static final java.util.regex.Pattern DIGIT_PATTERN = java.util.regex.Pattern.compile("digit:(\\d+)");
+
+    /**
+     * Regex for {@link cz.cesnet.shongo.controller.resource.value.Pattern.DigitPatternComponent}.
+     */
+    private static final java.util.regex.Pattern NUMBER_RANGE_PATTERN =
+            java.util.regex.Pattern.compile("number:(\\d+):(\\d+)");
 
     /**
      * Regex for {@link cz.cesnet.shongo.controller.resource.value.Pattern.HashPatternComponent}
@@ -46,10 +52,14 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
                 add(new Pattern.ConstantPatternComponent(pattern.substring(0, start)));
             }
             String component = pattern.substring(start + 1, end);
-            Matcher numberMatcher = NUMBER_PATTERN.matcher(component);
+            Matcher numberMatcher = DIGIT_PATTERN.matcher(component);
+            Matcher numberRangeMatcher = NUMBER_RANGE_PATTERN.matcher(component);
             Matcher hashMatcher = HASH_PATTERN.matcher(component);
             if (numberMatcher.matches()) {
-                add(new Pattern.NumberPatternComponent(Integer.valueOf(numberMatcher.group(1))));
+                add(new DigitPatternComponent(Integer.valueOf(numberMatcher.group(1))));
+            }
+            else if (numberRangeMatcher.matches()) {
+                add(new NumberRangePatternComponent(numberRangeMatcher.group(1), numberRangeMatcher.group(2)));
             }
             else if (hashMatcher.matches()) {
                 add(new HashPatternComponent((hashMatcher.group(2) != null
@@ -129,6 +139,12 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
          * @return regex pattern for allowed values
          */
         public String getRegexPattern();
+
+        /**
+         * @param value which has already passed by the pattern from the {@link #getRegexPattern()}
+         * @return true if given {@code value} is valid, false otherwise
+         */
+        boolean isValueValid(String value);
     }
 
     /**
@@ -162,6 +178,12 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         {
             return java.util.regex.Pattern.quote(constant);
         }
+
+        @Override
+        public boolean isValueValid(String value)
+        {
+            return true;
+        }
     }
 
     /**
@@ -188,7 +210,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
     /**
      * {@link PatternComponent} which returns increasing numbers of given length.
      */
-    public static class NumberPatternComponent implements GeneratedPatternComponent
+    public static class DigitPatternComponent implements GeneratedPatternComponent
     {
         /**
          * Maximum length.
@@ -215,7 +237,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
          *
          * @param length maximum returned number length
          */
-        public NumberPatternComponent(int length)
+        public DigitPatternComponent(int length)
         {
             if (length < 1 || length > 10) {
                 throw new IllegalArgumentException("Length of number component should be in range from 1 to 10.");
@@ -261,6 +283,101 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
             regexPatternBuilder.append(length);
             regexPatternBuilder.append("}");
             return regexPatternBuilder.toString();
+        }
+
+        @Override
+        public boolean isValueValid(String value)
+        {
+            return true;
+        }
+    }
+
+    /**
+     * {@link PatternComponent} which returns increasing numbers of given length.
+     */
+    public static class NumberRangePatternComponent implements GeneratedPatternComponent
+    {
+        /**
+         * Min value.
+         */
+        private int minValue;
+
+        /**
+         * Max value.
+         */
+        private int maxValue;
+
+        /**
+         * Format for numbers.
+         */
+        private String format;
+
+        /**
+         * Current number.
+         */
+        private int currentValue;
+
+        /**
+         * Constructor.
+         *
+         * @param minValue sets the {@link #minValue}
+         * @param maxValue sets the {@link #maxValue}
+         */
+        public NumberRangePatternComponent(String minValue, String maxValue)
+        {
+            this.minValue = Integer.valueOf(minValue);
+            this.maxValue = Integer.valueOf(maxValue);
+            if (this.minValue > this.maxValue) {
+                throw new IllegalArgumentException("Min value must be greater than max value.");
+            }
+            this.format = "%0" + Integer.valueOf(minValue.length()).toString() + "d";
+            reset();
+        }
+
+        @Override
+        public void nextComponent()
+        {
+            currentValue++;
+        }
+
+        @Override
+        public String getConstant()
+        {
+            if (currentValue > maxValue) {
+                return null;
+            }
+            return String.format(format, currentValue);
+        }
+
+        @Override
+        public void reset()
+        {
+            currentValue = minValue - 1;
+        }
+
+        @Override
+        public boolean available()
+        {
+            return currentValue <= maxValue;
+        }
+
+        @Override
+        public String getRegexPattern()
+        {
+            StringBuilder regexPatternBuilder = new StringBuilder();
+            regexPatternBuilder.append("\\d{");
+            regexPatternBuilder.append(String.valueOf(minValue).length());
+            regexPatternBuilder.append(",");
+            regexPatternBuilder.append(String.valueOf(maxValue).length());
+            regexPatternBuilder.append("}");
+            return regexPatternBuilder.toString();
+        }
+
+        @Override
+        public boolean isValueValid(String value)
+        {
+            Integer parsedValue = Integer.valueOf(value);
+            return parsedValue >= minValue && parsedValue <= maxValue;
         }
     }
 
@@ -329,6 +446,12 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
             regexPatternBuilder.append(length - 1);
             regexPatternBuilder.append("}");
             return regexPatternBuilder.toString();
+        }
+
+        @Override
+        public boolean isValueValid(String value)
+        {
+            return true;
         }
     }
 }

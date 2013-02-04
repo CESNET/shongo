@@ -202,7 +202,9 @@ public class PatternValueProvider extends ValueProvider
                 }
                 patternBuilder.append("(");
                 for (Pattern.PatternComponent patternComponent : pattern) {
+                    patternBuilder.append("(");
                     patternBuilder.append(patternComponent.getRegexPattern());
+                    patternBuilder.append(")");
                 }
                 patternBuilder.append(")");
             }
@@ -240,6 +242,21 @@ public class PatternValueProvider extends ValueProvider
             Matcher matcher = getRequestedValuePattern().matcher(requestedValue);
             if (!matcher.matches()) {
                 return null;
+            }
+            int groupIndex = 1;
+            for ( int patternIndex = 0; patternIndex < parsedPatterns.size(); patternIndex++) {
+                groupIndex++;
+                Pattern pattern = parsedPatterns.get(patternIndex);
+                for ( int patternComponentIndex = 0; patternComponentIndex < pattern.size(); patternComponentIndex++) {
+                    String groupValue = matcher.group(groupIndex);
+                    if (groupValue != null) {
+                        Pattern.PatternComponent patternComponent = pattern.get(patternComponentIndex);
+                        if (!patternComponent.isValueValid(groupValue)) {
+                            return null;
+                        }
+                    }
+                    groupIndex++;
+                }
             }
         }
         if (usedValues.contains(requestedValue)) {

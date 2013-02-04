@@ -16,7 +16,12 @@ public enum AliasValueType
     STRING,
 
     /**
-     * e.g., SIP URI or Adobe Connect url
+     * e.g., H.323/SIP URI ("<id>@<domain>") or Adobe Connect url
      */
-    URI
+    URI,
+
+    /**
+     * e.g., "<ip-address> <number>#"
+     */
+    IP
 }

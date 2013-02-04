@@ -431,6 +431,11 @@ sub format_aliases
         elsif ( $alias->{'type'} eq 'H323_URI' ) {
             $aliases_text .= $aliasValue;
 
+            $aliases_description .= '<dt>H.323 URI:</dt><dd>' . $aliasValue . '&nbsp;</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'H323_IP' ) {
+            $aliases_text .= $aliasValue;
+
             $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $aliasValue . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'SIP_URI' ) {
@@ -438,6 +443,11 @@ sub format_aliases
             $aliases_text .= $aliasValue;
             $aliases_description .= '<dt>SIP URI:</dt>';
             $aliases_description .= '<dd>' . $aliasValue . '&nbsp;</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'SIP_IP' ) {
+            $aliases_text .= $aliasValue;
+
+            $aliases_description .= '<dt>SIP IP:</dt><dd>' . $aliasValue . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
             if ( $available ) {
