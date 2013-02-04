@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.fault.jade;
 
 import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 
 /**
@@ -17,13 +18,6 @@ public class CommandFailureException extends FaultException
 
     /**
      * Constructor.
-     */
-    public CommandFailureException()
-    {
-    }
-
-    /**
-     * Constructor.
      *
      * @param commandFailure
      */
@@ -32,22 +26,6 @@ public class CommandFailureException extends FaultException
         if (commandFailure == null) {
             throw new IllegalArgumentException("Command failure should not be null.");
         }
-        setCommandFailure(commandFailure);
-    }
-
-    /**
-     * @return {@link #commandFailure}
-     */
-    public CommandFailure getCommandFailure()
-    {
-        return commandFailure;
-    }
-
-    /**
-     * @param commandFailure sets the {@link #commandFailure}
-     */
-    public void setCommandFailure(CommandFailure commandFailure)
-    {
         this.commandFailure = commandFailure;
     }
 

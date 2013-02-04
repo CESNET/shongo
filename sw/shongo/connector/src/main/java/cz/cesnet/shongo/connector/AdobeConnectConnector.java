@@ -447,7 +447,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
-    private void setRoomAttributes(HashMap<String, String> attributes, Room room) throws UnsupportedEncodingException, CommandException
+    private void setRoomAttributes(HashMap<String, String> attributes, Room room)
+            throws UnsupportedEncodingException, CommandException
     {
         // Set the description
         if (room.getDescription() != null) {
@@ -803,38 +804,35 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             URL url = breezeUrl(action, attributes);
 
-            URLConnection conn = url.openConnection();
-            conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
-            conn.connect();
+            while (true) {
+                // Send request
+                URLConnection conn = url.openConnection();
+                conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
+                conn.connect();
 
-            InputStream resultStream = conn.getInputStream();
+                // Read result
+                InputStream resultStream = conn.getInputStream();
+                Document result = new SAXBuilder().build(resultStream);
 
-            Document doc = new SAXBuilder().build(resultStream);
-
-            if (this.isError(doc)) {
-                Element status = doc.getRootElement().getChild("status");
-
-                List<Attribute> statusAttributes = status.getAttributes();
-                String errorMsg = new String();
-                for (Attribute attribute : statusAttributes) {
-                    errorMsg += " " + attribute.getName() + ": " + attribute.getValue();
-                }
-
-                if (status.getChild(status.getAttributeValue("code")) != null) {
-                    List<Attribute> childAttributes = status.getChild(status.getAttributeValue("code")).getAttributes();
-                    for (Attribute attribute : childAttributes) {
-                        errorMsg += ", " + attribute.getName() + ": " + attribute.getValue() + " ";
+                // Check for error and reconnect if login is needed
+                if (isError(result)) {
+                    if (isLoginNeeded(result)) {
+                        logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+                        breezesession = null;
+                        login();
+                        continue;
                     }
+                    String errorMsg = formatError(result);
+
+                    logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
+
+                    throw new RuntimeException(errorMsg + ". URL: " + url);
                 }
-
-                logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
-
-                throw new RuntimeException(errorMsg + ". URL: " + url);
+                else {
+                    logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
+                    return result.getRootElement();
+                }
             }
-            else {
-                logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
-            }
-            return doc.getRootElement();
         }
         catch (IOException e) {
             throw new RuntimeException("Command issuing error", e);
@@ -851,35 +849,74 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
-     * If login, password and address is present check if connector is still connected. If necessary reconnects.
+     * @param result
+     * @return true if the given {@code result} represents and error,
+     *         false otherwise
      */
-    private void reconnect() throws CommandException
-    {
-        if (this.getConnectorInfo().getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED) {
-            boolean needReconnect = false;
-            try {
-                Element response = this.request("common-info", null);
-                if (response.getChild("common").getChild("user") == null) {
-                    needReconnect = true;
-                }
-            } catch (Exception exception) {
-                needReconnect = true;
-            }
-
-            // Reconnect only when it is needed
-            if (needReconnect) {
-                logger.debug(String.format("Reconnecting to server %s", info.getDeviceAddress()));
-                this.breezesession = null;
-                this.login();
-            }
-        }
-    }
-
     private boolean isError(Document result)
     {
         Element status = result.getRootElement().getChild("status");
+        if (status != null) {
+            String code = status.getAttributeValue("code");
+            if (code != null && code.equals("ok")) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        return !status.getAttributeValue("code").equals("ok");
+    /**
+     * @param result
+     * @return true if the given {@code result} saying that login is needed,
+     *         false otherwise
+     */
+    private boolean isLoginNeeded(Document result)
+    {
+        Element status = result.getRootElement().getChild("status");
+        if (status != null) {
+            String code = status.getAttributeValue("code");
+            if (code != null && code.equals("no-access")) {
+                String subCode = status.getAttributeValue("subcode");
+                if (subCode != null && subCode.equals("no-login")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param result
+     * @return formatted error contained in the given {@code result}
+     */
+    private String formatError(Document result)
+    {
+        Element status = result.getRootElement().getChild("status");
+
+        List<Attribute> statusAttributes = status.getAttributes();
+        StringBuilder errorMsg = new StringBuilder();
+        for (Attribute attribute : statusAttributes) {
+            String attributeName = attribute.getName();
+            String attributeValue = attribute.getValue();
+            errorMsg.append(" ");
+            errorMsg.append(attributeName);
+            errorMsg.append(": ");
+            errorMsg.append(attributeValue);
+
+        }
+
+        String code = status.getAttributeValue("code");
+        if (status.getChild(code) != null) {
+            List<Attribute> childAttributes = status.getChild(code).getAttributes();
+            for (Attribute attribute : childAttributes) {
+                errorMsg.append(", ");
+                errorMsg.append(attribute.getName());
+                errorMsg.append(": ");
+                errorMsg.append(attribute.getValue());
+                errorMsg.append(" ");
+            }
+        }
+        return errorMsg.toString();
     }
 
     public static void main(String[] args) throws Exception

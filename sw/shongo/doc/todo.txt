@@ -1,16 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Send mail about permissions:
- - Permissions for reservation requests:
-   - view
-   - modify/delete
-   - reuse (provide the allocated reservations to another reservation requests)
- - User roles for reservation requests:
-   - ownership (view, modify/delete, reuse)
-   - reusage (view, reuse)
-
-* Fix adobe connect reconnecting
-
 * Infrastructure
  - Change string identifier to "ZZ-shongo-hash"
  - Create H323_IP, SIP_IP alis types

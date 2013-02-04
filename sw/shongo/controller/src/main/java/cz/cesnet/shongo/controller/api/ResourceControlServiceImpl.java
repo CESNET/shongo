@@ -8,15 +8,16 @@ import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.*;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
-import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
 
@@ -326,7 +327,7 @@ public class ResourceControlServiceImpl extends Component
      * Asks the local controller agent to send a command to be performed by a device.
      *
      * @param deviceResourceId shongo-id of device to perform a command
-     * @param action                   command to be performed by the device
+     * @param action           command to be performed by the device
      * @throws FaultException
      */
     private Object commandDevice(String deviceResourceId, ConnectorAgentAction action) throws FaultException
