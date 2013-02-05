@@ -8,6 +8,8 @@
 
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
+        <mapping-file>entity-mappings.xml</mapping-file>
+
         <!-- Include hibernate typedefs from joda package -->
         <class>cz.cesnet.shongo.joda</class>
 

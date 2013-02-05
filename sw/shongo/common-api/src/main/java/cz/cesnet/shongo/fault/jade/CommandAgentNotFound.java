@@ -6,17 +6,17 @@ import cz.cesnet.shongo.fault.CommonFault;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public class CommandAgentNotStarted extends CommandFailure
+public class CommandAgentNotFound extends CommandFailure
 {
     /**
-     * Agent name of Jade agent.
+     * Agent name for connector.
      */
     private String agentName;
 
     /**
      * Constructor.
      */
-    private CommandAgentNotStarted()
+    private CommandAgentNotFound()
     {
     }
 
@@ -25,7 +25,7 @@ public class CommandAgentNotStarted extends CommandFailure
      *
      * @param agentName sets the {@link #agentName}
      */
-    public CommandAgentNotStarted(String agentName)
+    public CommandAgentNotFound(String agentName)
     {
         this.agentName = agentName;
     }
@@ -49,12 +49,12 @@ public class CommandAgentNotStarted extends CommandFailure
     @Override
     public int getCode()
     {
-        return CommonFault.JADE_COMMAND_AGENT_NOT_STARTED;
+        return CommonFault.JADE_COMMAND_CONNECTOR_NOT_FOUND;
     }
 
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Jade agent '%s' was not started yet.", agentName);
+        return CommonFault.formatMessage("Jade agent '%s' was not found.", agentName);
     }
 }

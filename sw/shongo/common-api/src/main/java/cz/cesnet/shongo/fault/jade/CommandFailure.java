@@ -10,6 +10,11 @@ import cz.cesnet.shongo.fault.FaultException;
 public abstract class CommandFailure
 {
     /**
+     * Identifier which can be used.
+     */
+    public String id;
+
+    /**
      * Command which failed.
      */
     private String command;

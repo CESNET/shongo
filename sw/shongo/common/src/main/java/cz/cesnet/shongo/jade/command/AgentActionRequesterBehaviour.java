@@ -159,7 +159,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
             Matcher agentNotFoundMatcher = PATTERN_AGENT_NOT_FOUND.matcher(content);
             if (agentNotFoundMatcher.find()) {
                 String connectorAgentName = agentNotFoundMatcher.group(1);
-                return new CommandConnectorNotFound(connectorAgentName);
+                return new CommandAgentNotFound(connectorAgentName);
             }
         }
         else {

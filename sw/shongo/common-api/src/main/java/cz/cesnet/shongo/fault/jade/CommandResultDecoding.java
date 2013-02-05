@@ -10,6 +10,13 @@ public class CommandResultDecoding extends CommandFailure
 {
     /**
      * Constructor.
+     */
+    private CommandResultDecoding()
+    {
+    }
+
+    /**
+     * Constructor.
      *
      * @param throwable
      */

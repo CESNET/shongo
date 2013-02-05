@@ -86,7 +86,7 @@ public class CommonFault
      */
     public static final int JADE_COMMAND_REFUSED = 64;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandConnectorNotFound
+     * @see cz.cesnet.shongo.fault.jade.CommandAgentNotFound
      */
     public static final int JADE_COMMAND_CONNECTOR_NOT_FOUND = 65;
     /**

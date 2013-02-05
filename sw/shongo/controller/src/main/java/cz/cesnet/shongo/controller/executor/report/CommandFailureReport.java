@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.executor.report;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import org.joda.time.DateTime;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.report.Report} for {@link cz.cesnet.shongo.controller.executor.Executable}.
@@ -42,7 +40,7 @@ public class CommandFailureReport extends ExecutableReport
     /**
      * @return {@link #commandFailure}
      */
-    @Transient
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     public CommandFailure getCommandFailure()
     {
         return commandFailure;
@@ -60,6 +58,11 @@ public class CommandFailureReport extends ExecutableReport
     @Transient
     public String getText()
     {
-        return String.format("Command '%s' failure: %s", commandFailure.getCommand(), commandFailure.getMessage());
+        if (commandFailure != null) {
+            return String.format("Command '%s' failed: %s", commandFailure.getCommand(), commandFailure.getMessage());
+        }
+        else {
+            return "Command failed.";
+        }
     }
 }

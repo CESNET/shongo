@@ -92,6 +92,6 @@ public abstract class ReportablePersistentObject extends PersistentObject
             }
             stringBuilder.append(report.getReport());
         }
-        return stringBuilder.toString();
+        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
 }

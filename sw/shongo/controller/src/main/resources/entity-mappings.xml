@@ -1,0 +1,49 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<entity-mappings
+        xmlns="http://java.sun.com/xml/ns/persistence/orm"
+        version="2.0">
+
+    <description>Entities which are not defined in the controller module</description>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandFailure" access="FIELD">
+        <inheritance strategy="SINGLE_TABLE"/>
+        <attributes>
+            <id name="id">
+                <column column-definition="BIGINT"/>
+                <generated-value strategy="AUTO"/>
+            </id>
+            <basic name="command"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandAgentNotStarted" access="FIELD">
+        <attributes>
+            <basic name="agentName"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandAgentNotFound" access="FIELD">
+        <attributes>
+            <basic name="agentName"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandNotUnderstood" access="FIELD">
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandRefused" access="FIELD">
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandResultDecoding" access="FIELD">
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandTimeout" access="FIELD">
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandUnknownFailure" access="FIELD">
+        <attributes>
+            <basic name="message"/>
+        </attributes>
+    </entity>
+
+</entity-mappings>

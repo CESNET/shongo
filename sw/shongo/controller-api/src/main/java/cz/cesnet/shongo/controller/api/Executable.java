@@ -34,6 +34,11 @@ public class Executable extends IdentifiedObject
     private State state;
 
     /**
+     * Description of state.
+     */
+    private String stateReport;
+
+    /**
      * @return {@link #userId}
      */
     public String getUserId()
@@ -79,6 +84,22 @@ public class Executable extends IdentifiedObject
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    /**
+     * @return {@link #stateReport}
+     */
+    public String getStateReport()
+    {
+        return stateReport;
+    }
+
+    /**
+     * @param stateReport sets the {@link #stateReport}
+     */
+    public void setStateReport(String stateReport)
+    {
+        this.stateReport = stateReport;
     }
 
     /**

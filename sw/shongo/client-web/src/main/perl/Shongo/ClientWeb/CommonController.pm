@@ -296,7 +296,7 @@ sub get_reservation_request
     $request->{'childRequests'} = [];
     foreach my $child_request (@{$child_requests}) {
         # State report
-        if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED') ) {
+        if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED' || $child_request->{'state'} eq 'STARTING_FAILED') ) {
            $child_request->{'stateReport'} = undef;
         }
 

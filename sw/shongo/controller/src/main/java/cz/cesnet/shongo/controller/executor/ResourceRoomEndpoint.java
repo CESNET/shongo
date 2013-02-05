@@ -11,17 +11,17 @@ import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
-import cz.cesnet.shongo.controller.executor.report.UnknownExecutableReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import org.joda.time.DateTime;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -107,6 +107,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
         resourceRoomEndpointApi.setSlot(getSlot());
         resourceRoomEndpointApi.setState(getState().toApi());
+        resourceRoomEndpointApi.setStateReport(getReportText());
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
         resourceRoomEndpointApi.setResourceId(Domain.getLocalDomain().formatId(getDeviceResource()));
         for (Technology technology : getTechnologies()) {

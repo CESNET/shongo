@@ -125,6 +125,7 @@ public class Compartment extends Executable
         compartmentApi.setId(localDomain.formatId(this));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
+        compartmentApi.setStateReport(getReportText());
         for (Endpoint endpoint : getEndpoints()) {
             cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
                     new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
@@ -150,6 +151,7 @@ public class Compartment extends Executable
                     localDomain.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
+            connectionApi.setStateReport(getReportText());
             compartmentApi.addConnection(connectionApi);
         }
     }
