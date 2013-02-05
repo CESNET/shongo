@@ -66,7 +66,36 @@ public class ResourceManager extends AbstractManager
      */
     public void delete(Resource resource)
     {
+        for (Capability capability : resource.getCapabilities()) {
+            if (capability instanceof AliasProviderCapability) {
+                AliasProviderCapability aliasProviderCapability = (AliasProviderCapability) capability;
+                ValueProvider valueProvider = aliasProviderCapability.getValueProvider();
+                deleteValueProvider(valueProvider, capability);
+            }
+            else if (capability instanceof ValueProviderCapability) {
+                ValueProviderCapability valueProviderCapability = (ValueProviderCapability) capability;
+                ValueProvider valueProvider = valueProviderCapability.getValueProvider();
+                deleteValueProvider(valueProvider, capability);
+            }
+        }
         super.delete(resource);
+    }
+
+    /**
+     * Delete given {@code valueProvider} if it should be deleted while deleting the {@code capability}.
+     *
+     * @param valueProvider to be deleted
+     * @param capability which is being deleted
+     */
+    public void deleteValueProvider(ValueProvider valueProvider, Capability capability)
+    {
+        if (valueProvider instanceof FilteredValueProvider) {
+            FilteredValueProvider filteredValueProvider = (FilteredValueProvider) valueProvider;
+            deleteValueProvider(filteredValueProvider.getValueProvider(), capability);
+        }
+        if (valueProvider.getCapability().equals(capability)) {
+            super.delete(valueProvider);
+        }
     }
 
     /**

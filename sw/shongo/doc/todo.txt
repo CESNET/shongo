@@ -1,7 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Fix deleting resources
-
 * Implement permissions
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector

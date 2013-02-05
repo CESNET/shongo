@@ -30,7 +30,7 @@ public class ValueProviderCapability extends Capability
     /**
      * @return {@link #valueProvider}
      */
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public ValueProvider getValueProvider()
     {

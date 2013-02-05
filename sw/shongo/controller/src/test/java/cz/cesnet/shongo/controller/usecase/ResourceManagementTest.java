@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.junit.Test;
@@ -149,5 +151,37 @@ public class ResourceManagementTest extends AbstractControllerTest
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+    }
+
+    /**
+     * Test deletion of resources with value providers.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testValueProviderDeletion() throws Exception
+    {
+        Resource firstResource = new Resource();
+        firstResource.setName("resource");
+        firstResource.addCapability(new ValueProviderCapability("test"));
+        String firstResourceId = getResourceService().createResource(SECURITY_TOKEN, firstResource);
+
+        Resource secondResource = new Resource();
+        secondResource.setName("resource");
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.setValueProvider(
+                new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, firstResourceId));
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        secondResource.addCapability(aliasProviderCapability);
+        String secondResourceId = getResourceService().createResource(SECURITY_TOKEN, secondResource);
+
+        Resource thirdResource = new Resource();
+        thirdResource.setName("resource");
+        thirdResource.addCapability(new AliasProviderCapability("test", AliasType.H323_E164));
+        String thirdResourceId = getResourceService().createResource(SECURITY_TOKEN, thirdResource);
+
+        getResourceService().deleteResource(SECURITY_TOKEN, secondResourceId);
+        getResourceService().deleteResource(SECURITY_TOKEN, firstResourceId);
+        getResourceService().deleteResource(SECURITY_TOKEN, thirdResourceId);
     }
 }

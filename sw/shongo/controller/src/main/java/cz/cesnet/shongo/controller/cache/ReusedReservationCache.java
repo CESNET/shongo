@@ -18,7 +18,7 @@ import java.util.Set;
  */
 public class ReusedReservationCache extends AbstractReservationCache<Reservation, ExistingReservation>
 {
-    private static Logger logger = LoggerFactory.getLogger(ValueCache.class);
+    private static Logger logger = LoggerFactory.getLogger(ReusedReservationCache.class);
 
     public void loadObjects(EntityManager entityManager)
     {
