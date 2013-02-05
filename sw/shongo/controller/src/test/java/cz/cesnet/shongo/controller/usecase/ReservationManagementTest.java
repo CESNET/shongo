@@ -73,7 +73,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         }
         catch (EntityNotFoundException exception) {
             assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(Domain.getLocalId(id), exception.getEntityId());
+            assertEquals(id, exception.getEntityId());
         }
     }
 
@@ -128,7 +128,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         }
         catch (EntityNotFoundException exception) {
             assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(Domain.getLocalId(id), exception.getEntityId());
+            assertEquals(id, exception.getEntityId());
         }
     }
 
@@ -185,7 +185,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         }
         catch (EntityNotFoundException exception) {
             assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(Domain.getLocalId(id), exception.getEntityId());
+            assertEquals(id, exception.getEntityId());
         }
     }
 

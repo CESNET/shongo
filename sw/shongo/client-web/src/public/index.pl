@@ -87,6 +87,9 @@ my $response = '';
     open(CAUGHT_OUTPUT, '>', \$response);
     select CAUGHT_OUTPUT;
 
+    # Print history before
+    #var_dump('history before');var_dump($session->param('history'));
+
     $application->run($ARGV[0]);
 
     select STDOUT;
@@ -96,6 +99,10 @@ my $response = '';
 if ( !($response =~ /^(Status|Content-Type|Location)/) ) {
     $application->render_headers();
 }
+
+# Print history after
+#var_dump('history after');var_dump($session->param('history'));
+
 # Print response
 if ( length($response) > 0 ) {
     print($response);

@@ -28,6 +28,8 @@ sub index_action
 sub list_action
 {
     my ($self) = @_;
+    $self->reset_back();
+    $self->push_back();
     $self->list_reservation_requests(['ADOBE_CONNECT']);
 }
 
@@ -80,6 +82,7 @@ sub create_action
         'jquery' => 1
     };
     $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['ADOBE_CONNECT']);
+    $self->push_back();
     $self->render_page('New reservation request', 'adobe-connect/create.html', $params);
 }
 
@@ -131,6 +134,8 @@ sub detail_action
     my ($self) = @_;
     my $id = $self->get_param_required('id');
     my $request = $self->get_reservation_request($id);
+
+    $self->push_back();
     $self->render_page('Detail of reservation request', 'common/detail.html', {
         'technologies' => 'Adobe Connect',
         'request' => $request,

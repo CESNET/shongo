@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use RPC::XML;
 use RPC::XML::Client;
+use XML::Twig;
 use Shongo::Common;
 use Shongo::ClientWeb::WebAuthorization;
 use Shongo::ClientWeb::H323SipController;
@@ -154,12 +155,7 @@ sub request()
         return undef;
     }
     if ( $response->is_fault() ) {
-        my $message = $response->string();
-        if ( $message =~ /<message>(.*)<\/message>/ ) {
-            $message = $1;
-        }
-        $self->error_action(sprintf("Server failed to perform request!\nFault %d: %s",
-            $response->code, $message));
+        $self->fault_action($response);
     }
     return $response->value();
 }
@@ -232,6 +228,7 @@ sub run
 sub index_action
 {
     my ($self) = @_;
+    $self->reset_back();
     $self->render_page(undef, 'index.html');
 }
 
@@ -244,6 +241,64 @@ sub not_available_action
     select STDOUT;
     $self->render_headers();
     $self->render_page(undef, 'not-available.html');
+    exit(0);
+}
+
+#
+# Render fault page
+#
+sub fault_action
+{
+    my ($self, $faultResponse) = @_;
+
+    select STDOUT;
+    $self->render_headers();
+
+    my $title = undef;
+    my $message = undef;
+    my $params = {};
+    my $xml = XML::Twig->new(twig_handlers => {
+        'response/message' => sub {
+            my ($twig, $node) = @_;
+            $message = $node->text;
+        },
+        'response/param' => sub {
+            my ($twig, $node) = @_;
+            my $name = $node->{'att'}->{'name'};
+            $params->{$name} = $node->text;
+        },
+    });
+    $xml->parse('<response>' . $faultResponse->string() . '</response>');
+    if ( !defined($message) ) {
+        $message = $faultResponse->string();
+    }
+
+    my $code = $faultResponse->code();
+    if ( $code == 40 ) {
+        my $Type = {
+            'AbstractReservationRequest' => 'Reservation request'
+        };
+        my $entityId = $params->{'entityId'};
+        my $entity = $params->{'entityType'};
+        if ( defined($Type->{$entity}) ) {
+            $entity = $Type->{$entity};
+        }
+        $title = "$entity not found";
+        $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
+    }
+    elsif ( $code == 200 ) {
+        my $reservationRequestId = $params->{'reservationRequestId'};
+        $title = "Reservation request cannot be deleted";
+        $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";
+    }
+    else {
+        $title = "Error (code: $code)";
+    }
+
+    $self->render_page('Error', 'fault.html', {
+        'faultTitle' => $title,
+        'faultMessage' => $message,
+    });
     exit(0);
 }
 

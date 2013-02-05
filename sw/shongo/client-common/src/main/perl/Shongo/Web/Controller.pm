@@ -184,6 +184,24 @@ sub redirect
 }
 
 #
+# Push current url to the stack for "going back"
+#
+sub push_back
+{
+    my ($self) = @_;
+    $self->{'application'}->push_back();
+}
+
+#
+# Reset the stack for "going back"
+#
+sub reset_back
+{
+    my ($self) = @_;
+    $self->{'application'}->reset_back();
+}
+
+#
 # Quit application and report error
 #
 # @param $error

@@ -67,7 +67,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         }
         catch (EntityNotFoundException exception) {
             assertEquals(Resource.class, exception.getEntityType());
-            assertEquals(Domain.getLocalId(resourceId), exception.getEntityId());
+            assertEquals(resourceId, exception.getEntityId());
         }
     }
 
@@ -117,7 +117,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         }
         catch (EntityNotFoundException exception) {
             assertEquals(Resource.class, exception.getEntityType());
-            assertEquals(Domain.getLocalId(deviceResourceId), exception.getEntityId());
+            assertEquals(deviceResourceId, exception.getEntityId());
         }
     }
 

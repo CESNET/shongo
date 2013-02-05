@@ -176,7 +176,7 @@ public class XmlRpcTest extends AbstractControllerTest
             fail(EntityNotFoundException.class.getSimpleName() + " should be thrown.");
         }
         catch (EntityNotFoundException exception) {
-            assertEquals("1", exception.getEntityId());
+            assertEquals("shongo:cz.cesnet:1", exception.getEntityId());
             assertEquals(Resource.class, exception.getEntityType());
         }
     }

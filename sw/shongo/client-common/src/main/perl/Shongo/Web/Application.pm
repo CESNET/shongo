@@ -7,6 +7,7 @@ package Shongo::Web::Application;
 
 use strict;
 use warnings;
+use URI::Escape;
 use Shongo::Common;
 
 #
@@ -83,7 +84,6 @@ sub error_action
 {
     my ($self, $error) = @_;
 
-
     $error =~ s/\n/<br>/g;
 
     use Devel::StackTrace;
@@ -110,13 +110,11 @@ sub error_action
     $stack_trace .= '</table>';
 
     select STDOUT;
-
-    print $self->{'cgi'}->header(type => 'text/html');
+    $self->render_headers();
     print $self->render_template('error.html', {
         error => $error,
         stackTrace => $stack_trace
     });
-    print "\n";
     exit(0);
 }
 
@@ -171,7 +169,7 @@ sub run
     # Parse $controller and $action from absolute url
     my $controller = 'index';
     my $action = 'index';
-    my $possible_location = $self->{cgi}->url(-absolute => 1);
+    my $possible_location = $self->get_current_url(0);
     if ( length($possible_location) != 0 ) {
         $location = $possible_location;
     }
@@ -194,7 +192,7 @@ sub run
 sub render_headers
 {
     my ($self) = @_;
-    $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+    $self->{'session'}->param('previous_url', $self->get_current_url());
     my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
     print $self->{'cgi'}->header(-type => 'text/html', -charset => 'UTF-8', -cookie => $cookie);
 }
@@ -215,6 +213,7 @@ sub render_page
         $parameters = {};
     }
     $parameters->{'title'} = $title;
+    $parameters->{'back'} = $self->get_back();
     my $content = $self->render_template($file, $parameters);
     $self->render_page_content($title, $content, $parameters);
 }
@@ -262,6 +261,16 @@ sub render_template
     return undef;
 }
 
+sub get_current_url
+{
+    my ($self, $query) = @_;
+    if ( !defined($query) ) {
+        $query = 1;
+    }
+
+    return $self->{cgi}->url(-absolute => 1, -query => $query);
+}
+
 #
 # Redirect to given $url
 #
@@ -281,10 +290,71 @@ sub redirect
         $url->query_form($query);
     }
     if ( !defined($disable_set_as_previous) || !$disable_set_as_previous ) {
-        $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+        $self->{'session'}->param('previous_url', $self->get_current_url());
     }
     my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
     print $self->{'cgi'}->redirect(-uri => $url->as_string(), -cookie => $cookie);
+}
+
+#
+# Push current url to the stack for "going back"
+#
+sub push_back
+{
+    my ($self) = @_;
+
+    my $current_url = $self->get_current_url();
+    my $history = $self->{'session'}->param('history');
+    if ( !defined($history) ) {
+        $history = [];
+    }
+
+    for ( my $index = 0; $index < scalar(@{$history}); $index++ ) {
+        if ( $history->[$index] eq $current_url ) {
+            splice(@{$history}, $index);
+            last;
+        }
+    }
+
+    push(@{$history}, $current_url);
+    $self->{'session'}->param('history', $history);
+}
+
+#
+# Reset the stack for "going back"
+#
+sub reset_back
+{
+    my ($self) = @_;
+    $self->{'session'}->param('history', []);
+}
+
+#
+# Reset the stack for "going back"
+#
+sub get_back
+{
+    my ($self) = @_;
+    my $history = $self->{'session'}->param('history');
+
+    my $back = undef;
+    if ( defined($history) ) {
+        my $current_url = $self->get_current_url();
+        my $index = scalar(@{$history}) - 1;
+        while ( $index >= 0 ) {
+            if ( $history->[$index] ne $current_url ) {
+                $back = uri_unescape($history->[$index]);
+                last;
+            }
+            else {
+                $index--;
+            }
+        }
+    }
+    if ( !defined($back) ) {
+        $back = '/';
+    }
+    return $back;
 }
 
 1;

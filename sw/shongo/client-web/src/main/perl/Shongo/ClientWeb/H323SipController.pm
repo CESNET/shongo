@@ -28,6 +28,8 @@ sub index_action
 sub list_action
 {
     my ($self) = @_;
+    $self->reset_back();
+    $self->push_back();
     $self->list_reservation_requests(['H323', 'SIP']);
 }
 
@@ -80,6 +82,7 @@ sub create_action
         'jquery' => 1
     };
     $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['H323', 'SIP']);
+    $self->push_back();
     $self->render_page('New reservation request', 'h323-sip/create.html', $params);
 }
 
@@ -146,6 +149,7 @@ sub detail_action
         push(@{$request->{'attributes'}}, {'name' => 'PIN', 'value' => $request->{'pin'}});
     }
 
+    $self->push_back();
     $self->render_page('Detail of reservation request', 'common/detail.html', {
         'technologies' => 'H.323/SIP',
         'request' => $request,

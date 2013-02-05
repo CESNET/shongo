@@ -5,18 +5,8 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityNotFoundException extends FaultException
+public class EntityNotFoundException extends EntityException
 {
-    /**
-     * Type of the entity.
-     */
-    private Class entityType;
-
-    /**
-     * Id of the entity.
-     */
-    private String entityId;
-
     /**
      * Constructor.
      */
@@ -32,8 +22,7 @@ public class EntityNotFoundException extends FaultException
      */
     public EntityNotFoundException(Class entityType, String entityId)
     {
-        this.entityType = entityType;
-        this.entityId = entityId;
+        super(entityType, entityId);
     }
 
     /**
@@ -47,22 +36,6 @@ public class EntityNotFoundException extends FaultException
         this(entityType, entityId.toString());
     }
 
-    /**
-     * @return {@link #entityType}
-     */
-    public Class getEntityType()
-    {
-        return entityType;
-    }
-
-    /**
-     * @return {@link #entityId}
-     */
-    public String getEntityId()
-    {
-        return entityId;
-    }
-
     @Override
     public int getCode()
     {
@@ -73,6 +46,6 @@ public class EntityNotFoundException extends FaultException
     public String getMessage()
     {
         return CommonFault.formatMessage("Entity '%s' with identifier '%s' doesn't exist.",
-                entityType, entityId);
+                getEntityType(), getEntityId());
     }
 }

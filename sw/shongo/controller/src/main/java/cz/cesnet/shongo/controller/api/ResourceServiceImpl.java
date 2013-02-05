@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -36,7 +37,7 @@ import java.util.Map;
  */
 public class ResourceServiceImpl extends Component
         implements ResourceService, Component.EntityManagerFactoryAware,
-        Component.AuthorizationAware
+                   Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);
 
@@ -116,16 +117,17 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.addResource(resourceImpl, entityManager);
             }
-        } catch (Exception exception) {
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception);
+        }
+        finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            if (exception instanceof FaultException) {
-                throw (FaultException) exception;
-            } else {
-                throw new FaultException(exception);
-            }
-        } finally {
             entityManager.close();
         }
 
@@ -138,7 +140,8 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long resourceId = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resource.getId());
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
+        Long resourceId = localDomain.parseId(resource.getId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -160,16 +163,21 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.updateResource(resourceImpl, entityManager);
             }
-        } catch (Exception exception) {
+        }
+        catch (EntityException exception) {
+            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
+            throw exception;
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception);
+        }
+        finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            if (exception instanceof FaultException) {
-                throw (FaultException) exception;
-            } else {
-                throw new FaultException(exception);
-            }
-        } finally {
             entityManager.close();
         }
     }
@@ -179,7 +187,8 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
+        Long id = localDomain.parseId(resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -193,31 +202,37 @@ public class ResourceServiceImpl extends Component
             // Delete the resource
             resourceManager.delete(resourceImpl);
 
+            entityManager.getTransaction().commit();
+
             // Remove resource from the cache
             if (cache != null) {
                 cache.removeResource(resourceImpl);
             }
-
-            entityManager.getTransaction().commit();
-        } catch (Exception exception) {
+        }
+        catch (EntityException exception) {
+            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
+            throw exception;
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (RollbackException exception) {
+            if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                PersistenceException cause = (PersistenceException) exception.getCause();
+                if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                    logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
+                            exception);
+                    throw new EntityToDeleteIsReferencedException(Resource.class, id);
+                }
+            }
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception);
+        }
+        finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            cache.reset();
-            if (exception instanceof FaultException) {
-                throw (FaultException) exception;
-            } else if (exception instanceof RollbackException) {
-                if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
-                    PersistenceException cause = (PersistenceException) exception.getCause();
-                    if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
-                        logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.", exception);
-                        throw new EntityToDeleteIsReferencedException(Resource.class, id);
-                    }
-                }
-            } else {
-                throw new FaultException(exception);
-            }
-        } finally {
             entityManager.close();
         }
     }
@@ -232,35 +247,37 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
-        List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
+        try {
+            String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
 
-        List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
-        for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
-            ResourceSummary summary = new ResourceSummary();
-            summary.setId(localDomain.formatId(resource));
-            summary.setUserId(resource.getUserId());
-            summary.setName(resource.getName());
-            if (resource instanceof DeviceResource) {
-                StringBuilder stringBuilder = new StringBuilder();
-                for (Technology technology : ((DeviceResource) resource).getTechnologies()) {
-                    if (stringBuilder.length() > 0) {
-                        stringBuilder.append(",");
+            List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
+            for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
+                ResourceSummary summary = new ResourceSummary();
+                summary.setId(localDomain.formatId(resource));
+                summary.setUserId(resource.getUserId());
+                summary.setName(resource.getName());
+                if (resource instanceof DeviceResource) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (Technology technology : ((DeviceResource) resource).getTechnologies()) {
+                        if (stringBuilder.length() > 0) {
+                            stringBuilder.append(",");
+                        }
+                        stringBuilder.append(technology.getCode());
                     }
-                    stringBuilder.append(technology.getCode());
+                    summary.setTechnologies(stringBuilder.toString());
                 }
-                summary.setTechnologies(stringBuilder.toString());
+                cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
+                if (parentResource != null) {
+                    summary.setParentResourceId(localDomain.formatId(parentResource));
+                }
+                summaryList.add(summary);
             }
-            cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
-            if (parentResource != null) {
-                summary.setParentResourceId(localDomain.formatId(parentResource));
-            }
-            summaryList.add(summary);
+            return summaryList;
         }
-
-        entityManager.close();
-
-        return summaryList;
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -268,17 +285,23 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
+        Long id = localDomain.parseId(resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
-        Resource resourceApi = resourceImpl.toApi(entityManager);
-
-        entityManager.close();
-
-        return resourceApi;
+        try {
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
+            return resourceImpl.toApi(entityManager);
+        }
+        catch (EntityNotFoundException exception) {
+            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
+            throw exception;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -287,7 +310,8 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(resourceId);
+        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
+        Long id = localDomain.parseId(resourceId);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -298,45 +322,52 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
-        RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
+        try {
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
+            RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
 
-        // Setup resource allocation
-        ResourceAllocation resourceAllocation = null;
-        if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-            AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
-                    (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
-            RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
-            allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
-            allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
-            resourceAllocation = allocation;
-        } else {
-            resourceAllocation = new ResourceAllocation();
-        }
-        resourceAllocation.setId(cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl));
-        resourceAllocation.setName(resourceImpl.getName());
-        resourceAllocation.setInterval(interval);
-
-        // Fill resource allocations
-        Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
-                resourceManager.listResourceReservationsInInterval(id, interval);
-        for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
-            resourceAllocation.addReservation(resourceReservation.toApi());
-        }
-
-        // Fill alias allocations
-        List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
-                resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
-        for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
-            List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
-                    resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
-            for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
-                resourceAllocation.addReservation(aliasReservation.toApi());
+            // Setup resource allocation
+            ResourceAllocation resourceAllocation = null;
+            if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
+                AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
+                        (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
+                RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
+                allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
+                allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
+                resourceAllocation = allocation;
             }
+            else {
+                resourceAllocation = new ResourceAllocation();
+            }
+            resourceAllocation.setId(cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl));
+            resourceAllocation.setName(resourceImpl.getName());
+            resourceAllocation.setInterval(interval);
+
+            // Fill resource allocations
+            Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
+                    resourceManager.listResourceReservationsInInterval(id, interval);
+            for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
+                resourceAllocation.addReservation(resourceReservation.toApi());
+            }
+
+            // Fill alias allocations
+            List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
+                    resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
+            for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
+                List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
+                        resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
+                for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
+                    resourceAllocation.addReservation(aliasReservation.toApi());
+                }
+            }
+            return resourceAllocation;
         }
-
-        entityManager.close();
-
-        return resourceAllocation;
+        catch (EntityNotFoundException exception) {
+            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
+            throw exception;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 }

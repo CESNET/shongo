@@ -98,6 +98,15 @@ public class Domain
 
     /**
      * @param id
+     * @return formatted shongo-id from given {@code persistentObject}
+     */
+    public String formatId(String id)
+    {
+        return String.format("shongo:%s:%d", getName(), parseId(id));
+    }
+
+    /**
+     * @param id
      * @return parse database id from shongo-id
      */
     public Long parseId(String id)

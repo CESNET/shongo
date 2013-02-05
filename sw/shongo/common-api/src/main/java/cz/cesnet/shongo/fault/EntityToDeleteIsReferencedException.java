@@ -5,18 +5,8 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityToDeleteIsReferencedException extends FaultException
+public class EntityToDeleteIsReferencedException extends EntityException
 {
-    /**
-     * Type of the entity.
-     */
-    private Class entityType;
-
-    /**
-     * Unique identifier of the entity.
-     */
-    private Long entityId;
-
     /**
      * Constructor.
      */
@@ -32,24 +22,7 @@ public class EntityToDeleteIsReferencedException extends FaultException
      */
     public EntityToDeleteIsReferencedException(Class entityType, Long entityId)
     {
-        this.entityType = entityType;
-        this.entityId = entityId;
-    }
-
-    /**
-     * @return {@link #entityType}
-     */
-    public Class getEntityType()
-    {
-        return entityType;
-    }
-
-    /**
-     * @return {@link #entityId}
-     */
-    public Long getEntityId()
-    {
-        return entityId;
+        super(entityType, entityId);
     }
 
     @Override
@@ -61,7 +34,7 @@ public class EntityToDeleteIsReferencedException extends FaultException
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Entity '%s' with identifier '%d' cannot be deleted (it is still referenced).",
-                entityType, entityId);
+        return CommonFault.formatMessage("Entity '%s' with identifier '%s' cannot be deleted (it is still referenced).",
+                getEntityType(), getEntityId());
     }
 }

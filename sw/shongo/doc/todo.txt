@@ -5,7 +5,6 @@
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
 * Web client
-  - catch and format errors (e.g., request cannot be modified or deleted)
   - format request state errors
   - format executables state errors
   - improve scheduler error reports (alias allocation -> multiple providers what to show?)
@@ -32,7 +31,6 @@
 
 * Web client
   -use one getReservations instead of multiple getReservation requests
-  -implement better "back button"
 
 * Executor
   -Store starting failed reports

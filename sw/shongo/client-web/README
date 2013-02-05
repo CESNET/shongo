@@ -19,6 +19,7 @@ This client requires Perl installed to run and following Perl modules:
 10) DateTime::Format::ISO8601
 11) Term::ReadKey
 12) RPC::XML
+13) XML::Twig
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
@@ -26,4 +27,4 @@ can be installed by the following command:
     sudo apt-get install libtemplate-perl libcgi-session-perl  libdata-formvalidator-perl \
             libxml-simple-perl libhash-merge-simple-perl liblog-log4perl-perl \
             libfile-homedir-perl libjson-perl libdevel-stacktrace-perl libdatetime-format-iso8601-perl \
-            libterm-readkey-perl  librpc-xml-perl
+            libterm-readkey-perl  librpc-xml-perl libxml-twig-perl
