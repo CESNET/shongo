@@ -1,0 +1,37 @@
+[E] = Error, [W] = Warning, [I] = Information
+
+1. SCHEDULER REPORTS
+--------------------
+
+ * [W] Specification Not Ready
+
+ * [E] Duration Longer Than Maximum (duration : Period, maximumDuration : Period)
+   - when a resource is requested for longer duration than the maximum configured in the controller.
+   - when a value is requested for longer duration than the maximum configured in the controller,
+     value must be reserved for each alias reservation
+
+ * [E] Resource Not Allocatable
+
+Compartment:
+
+ * [E] Cannot Assign Alias To External Endpoint
+
+ * [E] Resource Requested Multiple Times
+
+
+
+
+2. EXECUTION REPORTS
+--------------------
+
+ * [E] Command Failure (command : String)
+   - Represents a failure of command which was sent to a connector agent. Attribute command stores the
+     name of the command.
+   - Possible types:
+      # Timeout
+      # Agent Not Found (agentName : String)
+      # Agent Not Started (agentName : String)
+      # Command Refused
+      # Command Not Understood
+      # Result Decoding Error
+      # Unknown Failure (message : String)

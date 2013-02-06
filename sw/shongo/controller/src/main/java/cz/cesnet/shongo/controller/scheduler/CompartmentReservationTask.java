@@ -248,22 +248,22 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        beginReport(new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
+        getContext().beginReport(new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
         catch (ReportException firstException) {
-            addReport(firstException.getReport());
+            getContext().addReport(firstException.getReport());
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
             catch (ReportException secondException) {
-                addReport(secondException.getReport());
+                getContext().addReport(secondException.getReport());
                 Report connectionFailed = new CannotCreateConnectionBetweenReport(endpointFrom, endpointTo);
                 throw connectionFailed.exception();
             }
         }
-        endReport();
+        getContext().endReport();
     }
 
     /**
@@ -282,7 +282,7 @@ public class CompartmentReservationTask extends ReservationTask
 
         // TODO: implement connections to multiple endpoints
         if (endpointTo.getCount() > 1) {
-            throw new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo).exception();
+            //throw new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo).exception();
         }
 
         // Find existing alias for connection
@@ -338,7 +338,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
             catch (ReportException exception) {
                 Report report = new CannotCreateConnectionFromToReport(endpointFrom, endpointTo);
-                report.addChildReport(exception.getReport());
+                //report.addChildReport(exception.getReport());
                 throw report.exception();
             }
         }
@@ -467,7 +467,6 @@ public class CompartmentReservationTask extends ReservationTask
         }
         Reservation reservation = roomReservationTask.perform();
         RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
-        addReport(new AllocatingRoomReport(roomEndpoint));
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(roomEndpoint, endpoint);
         }
@@ -542,7 +541,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
 
-        beginReport(new AllocatingCompartmentReport(compartment));
+        getContext().beginReport(new AllocatingCompartmentReport(compartment));
 
         if (!createNoRoomReservation()) {
             try {
@@ -554,7 +553,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
 
-        endReport();
+        getContext().endReport();
 
         // Initialize allocated compartment
         compartment.setState(Compartment.State.NOT_STARTED);

@@ -58,6 +58,13 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.INFO;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("Creating connection between %s and %s in technology %s...",

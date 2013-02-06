@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
@@ -30,6 +27,13 @@ public class ProvidedReservationNotAvailableReport extends AbstractReservationRe
     public ProvidedReservationNotAvailableReport(Reservation reservation)
     {
         setReservation(reservation);
+    }
+
+    @Override
+    @Transient
+    public State getState()
+    {
+        return State.ERROR;
     }
 
     @Override

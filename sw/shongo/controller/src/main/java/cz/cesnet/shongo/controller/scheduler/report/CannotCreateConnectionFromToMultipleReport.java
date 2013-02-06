@@ -32,6 +32,13 @@ public class CannotCreateConnectionFromToMultipleReport extends AbstractConnecti
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("Cannot create connection from %s to %s, "

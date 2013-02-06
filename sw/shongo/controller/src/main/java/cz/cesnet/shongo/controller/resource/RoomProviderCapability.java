@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Capability tells that the {@link DeviceResource} can host one or more {@link cz.cesnet.shongo.controller.common.RoomConfiguration}s.
@@ -43,6 +44,18 @@ public class RoomProviderCapability extends DeviceCapability
     public RoomProviderCapability(Integer licenseCount)
     {
         this.licenseCount = licenseCount;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param licenseCount      sets the {@link #licenseCount}
+     * @param requiredAliasType to be added to the {@link #requiredAliasTypes}
+     */
+    public RoomProviderCapability(Integer licenseCount, AliasType requiredAliasType)
+    {
+        this.licenseCount = licenseCount;
+        this.requiredAliasTypes.add(requiredAliasType);
     }
 
     /**

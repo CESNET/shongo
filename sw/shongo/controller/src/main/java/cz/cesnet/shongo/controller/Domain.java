@@ -142,7 +142,7 @@ public class Domain
     /**
      * @return {@link #localDomain}
      */
-    static void setLocalDomain(Domain domain)
+    public static void setLocalDomain(Domain domain)
     {
         if (domain != null && localDomain != null) {
             throw new IllegalStateException("Local domain is already defined.");

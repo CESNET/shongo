@@ -74,7 +74,7 @@ public class CommonFault
      */
     public static final int JADE_COMMAND_TIMEOUT = 61;
     /**
-     * @see cz.cesnet.shongo.fault.jade.CommandResultDecoding
+     * @see cz.cesnet.shongo.fault.jade.CommandResultDecodingFailed
      */
     public static final int JADE_COMMAND_RESULT_DECODING = 62;
     /**

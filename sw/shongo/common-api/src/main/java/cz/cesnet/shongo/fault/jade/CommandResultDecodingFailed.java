@@ -6,12 +6,12 @@ import cz.cesnet.shongo.fault.CommonFault;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public class CommandResultDecoding extends CommandFailure
+public class CommandResultDecodingFailed extends CommandFailure
 {
     /**
      * Constructor.
      */
-    private CommandResultDecoding()
+    private CommandResultDecodingFailed()
     {
     }
 
@@ -20,7 +20,7 @@ public class CommandResultDecoding extends CommandFailure
      *
      * @param throwable
      */
-    public CommandResultDecoding(Throwable throwable)
+    public CommandResultDecodingFailed(Throwable throwable)
     {
         setCause(throwable);
     }

@@ -14,6 +14,7 @@ import org.joda.time.Interval;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Represents a {@link Scheduler} task which results into {@link Reservation}.
@@ -33,11 +34,6 @@ public abstract class ReservationTask
     private List<Reservation> childReservations = new ArrayList<Reservation>();
 
     /**
-     * Current {@link Report}.
-     */
-    private Report currentReport = null;
-
-    /**
      * Constructor.
      */
     public ReservationTask(Context context)
@@ -51,55 +47,6 @@ public abstract class ReservationTask
     public Context getContext()
     {
         return context;
-    }
-
-    /**
-     * @return {@link #currentReport}
-     */
-    public Report getCurrentReport()
-    {
-        return currentReport;
-    }
-
-    /**
-     * @return {@link Context#reports}
-     */
-    public List<Report> getReports()
-    {
-        return context.getReports();
-    }
-
-    /**
-     * @param report to be added to the {@link Context#reports}
-     */
-    protected void addReport(Report report)
-    {
-        if (currentReport != null) {
-            currentReport.addChildReport(report);
-        }
-        else {
-            context.addReport(report);
-        }
-    }
-
-    /**
-     * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
-     */
-    protected void beginReport(Report report)
-    {
-        addReport(report);
-        currentReport = report;
-    }
-
-    /**
-     * Stop using {@link #currentReport} as parent for next reports
-     */
-    protected void endReport()
-    {
-        if (currentReport == null) {
-            throw new IllegalArgumentException("Current report should not be null.");
-        }
-        currentReport = currentReport.getParentReport();
     }
 
     /**
@@ -149,7 +96,7 @@ public abstract class ReservationTask
      * @param reservation to be added to the {@link #childReservations}
      * @return given {@code reservation} or {@link ExistingReservation#getTargetReservation()}
      */
-    public final <R extends Reservation> R  addChildReservation(Reservation reservation, Class<R> reservationClass)
+    public final <R extends Reservation> R addChildReservation(Reservation reservation, Class<R> reservationClass)
     {
         childReservations.add(reservation);
         getCacheTransaction().addAllocatedReservation(reservation);
@@ -231,6 +178,14 @@ public abstract class ReservationTask
     }
 
     /**
+     * @return main {@link Report}
+     */
+    protected Report createdMainReport()
+    {
+        return null;
+    }
+
+    /**
      * Perform the {@link ReservationTask}.
      *
      * @return created {@link Reservation}
@@ -238,7 +193,21 @@ public abstract class ReservationTask
      */
     public final Reservation perform() throws ReportException
     {
-        Reservation reservation = createReservation();
+        Reservation reservation = null;
+        Report report = createdMainReport();
+        if (report != null) {
+            getContext().beginReport(report);
+            try {
+                reservation = createReservation();
+            }
+            finally {
+                getContext().endReport();
+            }
+        }
+        else {
+            reservation = createReservation();
+        }
+
         reservation.setUserId(context.getUserId());
         for (Reservation childReservation : getChildReservations()) {
             childReservation.setUserId(context.getUserId());
@@ -293,6 +262,11 @@ public abstract class ReservationTask
          * List of reports.
          */
         private List<Report> reports = new ArrayList<Report>();
+
+        /**
+         * Stack of active {@link Report}s.
+         */
+        private Stack<Report> activeReports = new Stack<Report>();
 
         /**
          * Constructor.
@@ -369,9 +343,51 @@ public abstract class ReservationTask
         /**
          * @param report to be added to the {@link #reports}
          */
-        protected void addReport(Report report)
+        protected <T extends Report> T addReport(T report)
         {
-            reports.add(report);
+            if (activeReports.empty()) {
+                reports.add(report);
+            }
+            else {
+                activeReports.peek().addChildReport(report);
+            }
+            return report;
+        }
+
+        /**
+         * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
+         */
+        protected void beginReport(Report report)
+        {
+            addReport(report);
+            activeReports.push(report);
+        }
+
+        /**
+         * Stop using {@link #activeReports} as parent for next reports
+         */
+        protected void endReport()
+        {
+            activeReports.pop();
+        }
+
+        /**
+         * Set active reports as failed and throw it as {@link ReportException}.
+         *
+         * @throws ReportException
+         */
+        protected void throwReportFailure() throws ReportException
+        {
+            if (activeReports.empty()) {
+                throw new IllegalStateException("No report is active");
+            }
+            Report report = activeReports.peek();
+            report.setState(Report.State.ERROR);
+            while (report.hasParentReport()) {
+                report = report.getParentReport();
+                report.setState(Report.State.ERROR);
+            }
+            throw report.exception();
         }
     }
 }

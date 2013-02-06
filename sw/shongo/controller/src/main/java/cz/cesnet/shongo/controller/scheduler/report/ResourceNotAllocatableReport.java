@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractResourceReport;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -31,8 +32,15 @@ public class ResourceNotAllocatableReport extends AbstractResourceReport
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
-        return String.format("Resource %s is not allocatable.", getResourceAsString());
+        return String.format("Resource %s is not allocatable.", getResourceDescription());
     }
 }

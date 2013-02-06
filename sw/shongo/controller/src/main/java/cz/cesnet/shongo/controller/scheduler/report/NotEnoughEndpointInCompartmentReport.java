@@ -14,6 +14,13 @@ public class NotEnoughEndpointInCompartmentReport extends Report
 {
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return "Not enough endpoints are requested for the compartment.";

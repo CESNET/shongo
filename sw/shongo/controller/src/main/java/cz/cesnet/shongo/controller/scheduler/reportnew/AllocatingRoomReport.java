@@ -1,10 +1,12 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.scheduler.report.TechnologySet;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,10 +15,10 @@ import java.util.Set;
  * @see {@link #getText()}
  */
 @Entity
-public class NoAvailableRoomReport extends Report
+public class AllocatingRoomReport extends Report
 {
     /**
-     * List of {@link TechnologySet}s.
+     * List of {@link cz.cesnet.shongo.controller.scheduler.report.TechnologySet}s.
      */
     private List<TechnologySet> technologySets = new ArrayList<TechnologySet>();
 
@@ -28,8 +30,22 @@ public class NoAvailableRoomReport extends Report
     /**
      * Constructor.
      */
-    public NoAvailableRoomReport()
+    private AllocatingRoomReport()
     {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technologyVariants sets the {@link #technologySets}
+     * @param participantCount   sets the {@link #participantCount}
+     */
+    public AllocatingRoomReport(Collection<Set<Technology>> technologyVariants, Integer participantCount)
+    {
+        for (Set<Technology> technologyVariant : technologyVariants) {
+            addTechnologies(technologyVariant);
+        }
+        setParticipantCount(participantCount);
     }
 
     /**
@@ -88,7 +104,7 @@ public class NoAvailableRoomReport extends Report
     @Transient
     public String getText()
     {
-        return String.format("No virtual room was found for the following specification:\n"
+        return String.format("Allocating room for the following specification:\n"
                 + "             Technology: %s\n"
                 + " Number of participants: %d",
                 technologySetsToString(),

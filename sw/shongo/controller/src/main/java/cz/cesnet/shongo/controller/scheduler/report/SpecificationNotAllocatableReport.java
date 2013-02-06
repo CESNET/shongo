@@ -46,6 +46,13 @@ public class SpecificationNotAllocatableReport extends Report
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("The specification of type '%s' is not supposed to be allocated.",

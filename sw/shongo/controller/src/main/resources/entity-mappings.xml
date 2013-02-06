@@ -34,7 +34,7 @@
     <entity class="cz.cesnet.shongo.fault.jade.CommandRefused" access="FIELD">
     </entity>
 
-    <entity class="cz.cesnet.shongo.fault.jade.CommandResultDecoding" access="FIELD">
+    <entity class="cz.cesnet.shongo.fault.jade.CommandResultDecodingFailed" access="FIELD">
     </entity>
 
     <entity class="cz.cesnet.shongo.fault.jade.CommandTimeout" access="FIELD">

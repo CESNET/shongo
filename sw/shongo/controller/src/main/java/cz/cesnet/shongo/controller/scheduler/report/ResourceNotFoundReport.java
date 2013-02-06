@@ -49,6 +49,13 @@ public class ResourceNotFoundReport extends Report
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("No available resource was found for the following specification:\n"

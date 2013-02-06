@@ -84,6 +84,13 @@ public class SpecificationNotReadyReport extends Report
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.WARN;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return formatSpecification(specification);

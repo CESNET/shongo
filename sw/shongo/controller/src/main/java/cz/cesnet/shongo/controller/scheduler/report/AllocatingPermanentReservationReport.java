@@ -4,7 +4,6 @@ import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.Type;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -42,11 +41,18 @@ public class AllocatingPermanentReservationReport extends Report
      * @return {@link #slot}
      */
     @Columns(columns = {@Column(name = "slotStart"), @Column(name = "slotEnd")})
-    @Type(type = "Interval")
+    @org.hibernate.annotations.Type(type = "Interval")
     @Access(AccessType.FIELD)
     public Interval getSlot()
     {
         return slot;
+    }
+
+    @Override
+    @Transient
+    public State getState()
+    {
+        return State.INFO;
     }
 
     @Override

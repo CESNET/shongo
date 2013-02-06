@@ -32,6 +32,13 @@ public class CannotCreateConnectionBetweenReport extends AbstractConnectionRepor
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("Cannot create connection in any direction between %s and %s.",

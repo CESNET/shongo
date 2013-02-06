@@ -94,13 +94,13 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
             }
         }
         catch (Codec.CodecException e) {
-            command.setFailed(new CommandResultDecoding(e));
+            command.setFailed(new CommandResultDecodingFailed(e));
         }
         catch (OntologyException e) {
-            command.setFailed(new CommandResultDecoding(e));
+            command.setFailed(new CommandResultDecodingFailed(e));
         }
         catch (ClassCastException e) {
-            command.setFailed(new CommandResultDecoding(e));
+            command.setFailed(new CommandResultDecodingFailed(e));
         }
     }
 

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.report.Report;
-import org.hibernate.annotations.Type;
 import org.joda.time.Period;
 
 import javax.persistence.*;
@@ -46,7 +45,7 @@ public class DurationLongerThanMaximumReport extends Report
      * @return {@link #duration}
      */
     @Column
-    @Type(type = "Period")
+    @org.hibernate.annotations.Type(type = "Period")
     @Access(AccessType.FIELD)
     public Period getDuration()
     {
@@ -65,7 +64,7 @@ public class DurationLongerThanMaximumReport extends Report
      * @return {@link #maximumDuration}
      */
     @Column
-    @Type(type = "Period")
+    @org.hibernate.annotations.Type(type = "Period")
     @Access(AccessType.FIELD)
     public Period getMaximumDuration()
     {
@@ -78,6 +77,13 @@ public class DurationLongerThanMaximumReport extends Report
     public void setMaximumDuration(Period maximumDuration)
     {
         this.maximumDuration = maximumDuration;
+    }
+
+    @Override
+    @Transient
+    public State getState()
+    {
+        return State.ERROR;
     }
 
     @Override

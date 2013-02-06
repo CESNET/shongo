@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.executor.report;
 
-import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
-import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
 /**
  * Represents a {@link Report} for {@link Executable}.
@@ -42,7 +43,7 @@ public abstract class ExecutableReport extends Report
      * @return {@link #dateTime}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
     public DateTime getDateTime()
     {

@@ -1,9 +1,8 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -14,27 +13,27 @@ import java.util.Set;
  * @see {@link #getText()}
  */
 @Entity
-public class NoAvailableAliasReport extends Report
+public class AllocatingAliasReport extends Report
 {
     /**
-     * {@link Technology}s for the {@link Alias}.
+     * {@link cz.cesnet.shongo.Technology}s for the {@link cz.cesnet.shongo.controller.resource.Alias}.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
-     * {@link AliasType}s for the {@link Alias}.
+     * {@link cz.cesnet.shongo.AliasType}s for the {@link cz.cesnet.shongo.controller.resource.Alias}.
      */
     private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
-     * Value for the {@link Alias}.
+     * Value for the {@link cz.cesnet.shongo.controller.resource.Alias}.
      */
     private String value;
 
     /**
      * Constructor.
      */
-    public NoAvailableAliasReport()
+    public AllocatingAliasReport()
     {
     }
 
@@ -44,7 +43,7 @@ public class NoAvailableAliasReport extends Report
      * @param technologies
      * @param aliasTypes
      */
-    public NoAvailableAliasReport(Set<Technology> technologies, Set<AliasType> aliasTypes, String value)
+    public AllocatingAliasReport(Set<Technology> technologies, Set<AliasType> aliasTypes, String value)
     {
         setTechnologies(technologies);
         setAliasTypes(aliasTypes);
@@ -109,16 +108,9 @@ public class NoAvailableAliasReport extends Report
 
     @Override
     @Transient
-    public State getState()
-    {
-        return State.ERROR;
-    }
-
-    @Override
-    @Transient
     public String getText()
     {
-        return String.format("No available alias was found for the following specification:\n"
+        return String.format("Allocating alias for the following specification:\n"
                 + " Technology: %s\n"
                 + " Alias Type: %s\n"
                 + " Value: %s",

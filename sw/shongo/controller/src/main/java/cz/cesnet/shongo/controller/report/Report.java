@@ -25,6 +25,11 @@ public abstract class Report
     private Report parentReport;
 
     /**
+     * {@link State} of the {@link Report}.
+     */
+    private State state;
+
+    /**
      * List of child resources (e.g., physical room can contain some videoconferencing equipment).
      */
     private List<Report> childReports = new ArrayList<Report>();
@@ -58,6 +63,15 @@ public abstract class Report
     }
 
     /**
+     * @return true if {@link #parentReport} is not null,
+     *         false otherwise
+     */
+    public boolean hasParentReport()
+    {
+        return parentReport != null;
+    }
+
+    /**
      * @param parentReport sets the {@link #parentReport}
      */
     public void setParentReport(Report parentReport)
@@ -74,6 +88,33 @@ public abstract class Report
                 this.parentReport.addChildReport(this);
             }
         }
+    }
+
+    /**
+     * @return {@link #state}
+     */
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    /**
+     * Sets the {@link #state} tp {@link State#ERROR}
+     * @param errorReport to be added to the {@link #childReports}
+     */
+    public void setError(Report errorReport)
+    {
+        errorReport.setState(State.ERROR);
+        setState(State.ERROR);
+        addChildReport(errorReport);
     }
 
     /**
@@ -145,9 +186,15 @@ public abstract class Report
         }
     }
 
+    /**
+     * @return text of the {@link Report}
+     */
     @Transient
     public abstract String getText();
 
+    /**
+     * @return help of the {@link Report}
+     */
     @Transient
     public String getHelp()
     {
@@ -171,11 +218,24 @@ public abstract class Report
         String text = getText();
         text = text.replace("\n", "\n ");
         stringBuilder.append("-");
+        if (state != null) {
+            switch (getState()) {
+                case ERROR:
+                    stringBuilder.append("[ERROR] ");
+                    break;
+                case WARN:
+                    stringBuilder.append("[WARN] ");
+                    break;
+                default:
+                    break;
+            }
+        }
         stringBuilder.append(text);
 
         String help = getHelp();
         if (help != null) {
-            stringBuilder.append("\n");
+            help = help.replace("\n", "\n ");
+            stringBuilder.append("\n ");
             stringBuilder.append(help);
         }
 
@@ -198,6 +258,30 @@ public abstract class Report
      */
     public ReportException exception()
     {
+        if (getState() != State.ERROR) {
+            throw new IllegalStateException("Report exception can be returned only for errors.");
+        }
         return new ReportException(this);
+    }
+
+    /**
+     * Type of {@link Report}.
+     */
+    public static enum State
+    {
+        /**
+         * Represents an information {@link Report}.
+         */
+        INFO,
+
+        /**
+         * Represents an warning {@link Report}.
+         */
+        WARN,
+
+        /**
+         * Represents an error {@link Report}.
+         */
+        ERROR
     }
 }

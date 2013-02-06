@@ -56,6 +56,13 @@ public class CommandFailureReport extends ExecutableReport
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         if (commandFailure != null) {

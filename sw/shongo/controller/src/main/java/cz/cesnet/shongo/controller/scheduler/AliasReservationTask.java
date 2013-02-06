@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -11,6 +12,11 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingAliasReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.CheckingResourceReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.FindingAvailableResourceReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.ResourceNotMatchRestrictedReport;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -119,8 +125,15 @@ public class AliasReservationTask extends ReservationTask
     }
 
     @Override
+    protected Report createdMainReport()
+    {
+        return new AllocatingAliasReport(technologies, aliasTypes, value);
+    }
+
+    @Override
     protected Reservation createReservation() throws ReportException
     {
+        Context context = getContext();
         Interval interval = getInterval();
         Cache cache = getCache();
         Cache.Transaction cacheTransaction = getCacheTransaction();
@@ -160,6 +173,7 @@ public class AliasReservationTask extends ReservationTask
         }
 
         // Find available value in the alias providers
+        context.beginReport(new FindingAvailableResourceReport());
         Reservation availableValueReservation = null;
         AliasProviderCapability availableAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -177,6 +191,8 @@ public class AliasReservationTask extends ReservationTask
                 continue;
             }
 
+            CheckingResourceReport checkingResource = context.addReport(new CheckingResourceReport(aliasProvider));
+
             // Preferably reuse provided alias reservation
             Collection<AliasReservation> providedAliasReservations =
                     cacheTransaction.getProvidedAliasReservations(aliasProvider);
@@ -186,6 +202,7 @@ public class AliasReservationTask extends ReservationTask
                     for (AliasReservation possibleProvidedAliasReservation : providedAliasReservations) {
                         if (possibleProvidedAliasReservation.getValue().equals(value)) {
                             providedAliasReservation = possibleProvidedAliasReservation;
+                            break;
                         }
                     }
                 }
@@ -206,6 +223,7 @@ public class AliasReservationTask extends ReservationTask
             Resource resource = aliasProvider.getResource();
             DateTime referenceDateTime = cache.getReferenceDateTime();
             if (!resource.isAllocatable() || !aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+                checkingResource.setError(new ResourceNotAvailableReport(resource));
                 continue;
             }
 
@@ -219,8 +237,9 @@ public class AliasReservationTask extends ReservationTask
             }
         }
         if (availableValueReservation == null) {
-            throw new NoAvailableAliasReport(technologies, aliasTypes, value).exception();
+            context.throwReportFailure();
         }
+        context.endReport();
 
         ValueReservation valueReservation = addChildReservation(availableValueReservation, ValueReservation.class);
 
@@ -240,10 +259,10 @@ public class AliasReservationTask extends ReservationTask
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setUserId(getContext().getUserId());
+            roomEndpoint.setUserId(context.getUserId());
             roomEndpoint.setSlot(getInterval());
             roomEndpoint.setDeviceResource((DeviceResource) resource);
-            roomEndpoint.setRoomDescription(getContext().getReservationRequest().getDescription());
+            roomEndpoint.setRoomDescription(context.getReservationRequest().getDescription());
             roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
             Set<Technology> technologies = roomEndpoint.getTechnologies();
             for (Alias alias : aliasReservation.getAliases()) {

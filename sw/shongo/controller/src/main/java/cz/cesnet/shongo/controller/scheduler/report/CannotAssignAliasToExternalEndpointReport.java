@@ -21,6 +21,13 @@ public class CannotAssignAliasToExternalEndpointReport extends Report
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return "Cannot assign alias to allocated external endpoint.";

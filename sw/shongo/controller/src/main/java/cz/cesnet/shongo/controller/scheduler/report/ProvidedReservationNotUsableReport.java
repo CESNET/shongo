@@ -31,6 +31,13 @@ public class ProvidedReservationNotUsableReport extends AbstractReservationRepor
 
     @Override
     @Transient
+    public State getState()
+    {
+        return State.ERROR;
+    }
+
+    @Override
+    @Transient
     public String getText()
     {
         return String.format("%s is not usable because provided date/time slot doesn't contain the requested.",

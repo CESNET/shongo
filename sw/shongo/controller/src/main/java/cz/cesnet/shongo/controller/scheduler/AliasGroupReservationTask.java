@@ -18,7 +18,7 @@ import org.joda.time.Interval;
 import java.util.*;
 
 /**
- * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for one or multiple {@link cz.cesnet.shongo.controller.reservation.AliasReservation}(s).
+ * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for one or multiple {@link AliasReservation}(s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -30,7 +30,7 @@ public class AliasGroupReservationTask extends ReservationTask
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
-     * {@link cz.cesnet.shongo.controller.resource.DeviceResource} for which the {@link cz.cesnet.shongo.controller.reservation.AliasReservation} is being allocated and to which it
+     * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
      * will be assigned.
      */
     private DeviceResource targetResource;

@@ -1,5 +1,13 @@
 * 2 paragraphs of shongo features
 
+* Error reporting
+  - Each reservation task should create it owns context and should get passed the interval as parameter
+    because when an exception take places it should not affect the parent context
+  - Continue on reworking all
+
+* Prefix identifier
+ - Write mail about prefix rsv, res, req, exe (shongo keep)
+
 * Implement permissions
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
@@ -7,6 +15,7 @@
 * Web client
   - format request state errors
   - format executables state errors
+  - log all scheduler actions to reports
   - improve scheduler error reports (alias allocation -> multiple providers what to show?)
   - permissions (accessing reservation requests)
   - document all possible errors and set reactions (for request and executor)
