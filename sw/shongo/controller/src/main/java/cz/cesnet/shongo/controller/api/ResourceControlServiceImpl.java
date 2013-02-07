@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
@@ -350,7 +351,7 @@ public class ResourceControlServiceImpl extends Component
     private String getAgentName(String deviceResourceId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Long id = cz.cesnet.shongo.controller.Domain.getLocalDomain().parseId(deviceResourceId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, deviceResourceId);
         ResourceManager resourceManager = new ResourceManager(entityManager);
         DeviceResource deviceResource = resourceManager.getDevice(id);
         entityManager.close();

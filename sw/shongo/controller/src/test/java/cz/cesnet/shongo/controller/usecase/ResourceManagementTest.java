@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.junit.Test;
 

@@ -1,18 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -51,17 +40,17 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.fault.EntityNotFoundException when the {@link AliasSpecification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link AliasSpecification} doesn't exist
      */
     @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws EntityNotFoundException
+    private AliasSpecification getAliasSpecificationById(Long id) throws PersistentEntityNotFoundException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             if (aliasSpecification.getId().equals(id)) {
                 return aliasSpecification;
             }
         }
-        throw new EntityNotFoundException(AliasSpecification.class, id);
+        throw new PersistentEntityNotFoundException(AliasSpecification.class, id);
     }
 
     /**

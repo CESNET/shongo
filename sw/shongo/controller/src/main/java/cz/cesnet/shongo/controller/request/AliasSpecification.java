@@ -4,6 +4,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -299,7 +300,7 @@ public class AliasSpecification extends Specification implements ReservationTask
         aliasSpecificationApi.setValue(getValue());
         if (getAliasProviderCapability() != null) {
             aliasSpecificationApi.setResourceId(
-                    Domain.getLocalDomain().formatId(getAliasProviderCapability().getResource()));
+                    IdentifierFormat.formatGlobalId(getAliasProviderCapability().getResource()));
         }
         super.toApi(specificationApi);
     }
@@ -318,7 +319,8 @@ public class AliasSpecification extends Specification implements ReservationTask
                 setAliasProviderCapability(null);
             }
             else {
-                Long resourceId = Domain.getLocalDomain().parseId(aliasSpecificationApi.getResourceId());
+                Long resourceId = IdentifierFormat.parseLocalId(
+                        cz.cesnet.shongo.controller.resource.Resource.class, aliasSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 Resource resource = resourceManager.get(resourceId);
                 AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);

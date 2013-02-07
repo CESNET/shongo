@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
@@ -68,7 +69,7 @@ public class ResourceReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
-        resourceReservationApi.setResourceId(Domain.getLocalDomain().formatId(getResource()));
+        resourceReservationApi.setResourceId(IdentifierFormat.formatGlobalId(getResource()));
         resourceReservationApi.setResourceName(getResource().getName());
         super.toApi(api);
     }

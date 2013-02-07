@@ -2,14 +2,14 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
@@ -129,16 +129,16 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws EntityNotFoundException when alias doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when alias doesn't exist
      */
-    public Alias getAliasById(Long id) throws EntityNotFoundException
+    public Alias getAliasById(Long id) throws PersistentEntityNotFoundException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(id)) {
                 return alias;
             }
         }
-        throw new EntityNotFoundException(Alias.class, id);
+        throw new PersistentEntityNotFoundException(Alias.class, id);
     }
 
     /**
@@ -315,7 +315,7 @@ public class AliasProviderCapability extends Capability
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getResource()) {
-            aliasProviderApi.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
+            aliasProviderApi.setValueProvider(IdentifierFormat.formatGlobalId(valueProviderResource));
         }
         else {
             aliasProviderApi.setValueProvider(valueProvider.toApi());

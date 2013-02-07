@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
@@ -169,7 +170,8 @@ public abstract class ValueProvider extends PersistentObject
             EntityManager entityManager) throws FaultException
     {
         if (object instanceof String) {
-            Long resourceId = Domain.getLocalDomain().parseId((String) object);
+            Long resourceId = IdentifierFormat.parseLocalId(
+                    cz.cesnet.shongo.controller.resource.Resource.class, (String) object);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);
             ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);

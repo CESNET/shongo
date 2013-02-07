@@ -25,17 +25,6 @@ public class EntityNotFoundException extends EntityException
         super(entityType, entityId);
     }
 
-    /**
-     * Constructor.
-     *
-     * @param entityType       sets the {@link #entityType}
-     * @param entityId sets the {@link #entityId}
-     */
-    public EntityNotFoundException(Class entityType, Long entityId)
-    {
-        this(entityType, entityId.toString());
-    }
-
     @Override
     public int getCode()
     {

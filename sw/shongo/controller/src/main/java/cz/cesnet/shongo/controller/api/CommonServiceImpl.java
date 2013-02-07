@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import jade.core.AID;
@@ -92,8 +93,6 @@ public class CommonServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -115,7 +114,7 @@ public class CommonServiceImpl extends Component
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
-                connector.setResourceId(localDomain.formatId(deviceResource));
+                connector.setResourceId(IdentifierFormat.formatGlobalId(deviceResource));
                 deviceResourceMap.remove(agentName);
             }
 
@@ -125,7 +124,7 @@ public class CommonServiceImpl extends Component
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());
-            connector.setResourceId(localDomain.formatId(entry.getValue()));
+            connector.setResourceId(IdentifierFormat.formatGlobalId(entry.getValue()));
             connector.setStatus(Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }

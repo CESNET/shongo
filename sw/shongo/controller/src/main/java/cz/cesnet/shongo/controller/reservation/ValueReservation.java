@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
@@ -98,7 +99,7 @@ public class ValueReservation extends Reservation
         cz.cesnet.shongo.controller.api.ValueReservation valueReservationApi =
                 (cz.cesnet.shongo.controller.api.ValueReservation) api;
         Resource valueProviderResource = valueProvider.getCapabilityResource();
-        valueReservationApi.setResourceId(Domain.getLocalDomain().formatId(valueProviderResource));
+        valueReservationApi.setResourceId(IdentifierFormat.formatGlobalId(valueProviderResource));
         valueReservationApi.setResourceName(valueProviderResource.getName());
         valueReservationApi.setValue(getValue());
         super.toApi(api);

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;
@@ -37,7 +38,7 @@ public class XmlRpcTest extends AbstractControllerTest
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
-        assertEquals("shongo:cz.cesnet:1", id);
+        assertEquals("shongo:cz.cesnet:req:1", id);
     }
 
     @Test
@@ -96,7 +97,7 @@ public class XmlRpcTest extends AbstractControllerTest
         params.add(attributes);
 
         String id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
-        assertEquals("shongo:cz.cesnet:1", id);
+        assertEquals("shongo:cz.cesnet:req:1", id);
     }
 
     @Test
@@ -173,10 +174,10 @@ public class XmlRpcTest extends AbstractControllerTest
         ResourceService resourceService = getResourceService();
         try {
             resourceService.getResource(SECURITY_TOKEN, "1");
-            fail(EntityNotFoundException.class.getSimpleName() + " should be thrown.");
+            fail(PersistentEntityNotFoundException.class.getSimpleName() + " should be thrown.");
         }
         catch (EntityNotFoundException exception) {
-            assertEquals("shongo:cz.cesnet:1", exception.getEntityId());
+            assertEquals("shongo:cz.cesnet:res:1", exception.getEntityId());
             assertEquals(Resource.class, exception.getEntityType());
         }
     }

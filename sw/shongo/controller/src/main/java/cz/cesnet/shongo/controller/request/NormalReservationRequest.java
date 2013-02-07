@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
@@ -172,7 +173,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         normalReservationRequestApi.setSpecification(getSpecification().toApi());
         normalReservationRequestApi.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
-            normalReservationRequestApi.addProvidedReservationId(Domain.getLocalDomain().formatId(providedReservation));
+            normalReservationRequestApi.addProvidedReservationId(IdentifierFormat.formatGlobalId(providedReservation));
         }
     }
 
@@ -189,8 +190,6 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
             throws FaultException
     {
         super.fromApi(api, entityManager);
-
-        Domain localDomain = Domain.getLocalDomain();
 
         cz.cesnet.shongo.controller.api.NormalReservationRequest normalReservationRequestApi =
                 (cz.cesnet.shongo.controller.api.NormalReservationRequest) api;
@@ -220,7 +219,8 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         for (String providedReservationId : normalReservationRequestApi.getProvidedReservationIds()) {
             if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDS,
                     providedReservationId)) {
-                Long id = localDomain.parseId(providedReservationId);
+                Long id = IdentifierFormat.parseLocalId(
+                        cz.cesnet.shongo.controller.reservation.Reservation.class, providedReservationId);
                 Reservation providedReservation = reservationManager.get(id);
                 addProvidedReservation(providedReservation);
             }
@@ -229,7 +229,8 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         Set<String> apiDeletedProvidedReservationIds =
                 api.getPropertyItemsMarkedAsDeleted(normalReservationRequestApi.PROVIDED_RESERVATION_IDS);
         for (String providedReservationId : apiDeletedProvidedReservationIds) {
-            Long id = localDomain.parseId(providedReservationId);
+            Long id = IdentifierFormat.parseLocalId(
+                    cz.cesnet.shongo.controller.reservation.Reservation.class, providedReservationId);
             removeProvidedReservation(id);
         }
     }

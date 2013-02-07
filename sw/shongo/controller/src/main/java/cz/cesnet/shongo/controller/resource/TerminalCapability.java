@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -34,16 +34,16 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws EntityNotFoundException when the alias doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the alias doesn't exist
      */
-    private Alias getAliasById(Long aliasId) throws EntityNotFoundException
+    private Alias getAliasById(Long aliasId) throws PersistentEntityNotFoundException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(aliasId)) {
                 return alias;
             }
         }
-        throw new EntityNotFoundException(Alias.class, aliasId);
+        throw new PersistentEntityNotFoundException(Alias.class, aliasId);
     }
 
     /**

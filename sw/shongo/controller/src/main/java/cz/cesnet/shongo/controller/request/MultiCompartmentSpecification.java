@@ -1,16 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.*;
@@ -60,17 +55,17 @@ public class MultiCompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.request.CompartmentSpecification}
      * @return {@link cz.cesnet.shongo.controller.request.CompartmentSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.fault.EntityNotFoundException when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
      */
     @Transient
-    private CompartmentSpecification getSpecificationById(Long id) throws EntityNotFoundException
+    private CompartmentSpecification getSpecificationById(Long id) throws PersistentEntityNotFoundException
     {
         for (CompartmentSpecification compartmentSpecification : specifications) {
             if (compartmentSpecification.getId().equals(id)) {
                 return compartmentSpecification;
             }
         }
-        throw new EntityNotFoundException(CompartmentSpecification.class, id);
+        throw new PersistentEntityNotFoundException(CompartmentSpecification.class, id);
     }
 
     /**

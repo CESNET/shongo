@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
@@ -109,7 +110,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         resourceRoomEndpointApi.setState(getState().toApi());
         resourceRoomEndpointApi.setStateReport(getReportText());
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
-        resourceRoomEndpointApi.setResourceId(Domain.getLocalDomain().formatId(getDeviceResource()));
+        resourceRoomEndpointApi.setResourceId(IdentifierFormat.formatGlobalId(getDeviceResource()));
         for (Technology technology : getTechnologies()) {
             resourceRoomEndpointApi.addTechnology(technology);
         }

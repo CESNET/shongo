@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.fault.CommonFault;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -47,18 +46,18 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     /**
      * @param id of the requested {@link DateTimeSlotSpecification}
      * @return {@link DateTimeSlotSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.fault.EntityNotFoundException
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
      *          when the {@link DateTimeSlotSpecification} doesn't exist
      */
     @Transient
-    private DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
+    private DateTimeSlotSpecification getSlotById(Long id) throws PersistentEntityNotFoundException
     {
         for (DateTimeSlotSpecification dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new EntityNotFoundException(DateTimeSlotSpecification.class, id);
+        throw new PersistentEntityNotFoundException(DateTimeSlotSpecification.class, id);
     }
 
     /**
@@ -162,7 +161,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    protected ResourceReservation getReservationById(Long id) throws EntityNotFoundException
+    protected ResourceReservation getReservationById(Long id) throws PersistentEntityNotFoundException
     {
         return (ResourceReservation) super.getReservationById(id);
     }
@@ -200,7 +199,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
         for (DateTimeSlotSpecification slot : getSlots()) {
             permanentReservationRequestApi.addSlot(slot.toApi());
         }
-        permanentReservationRequestApi.setResourceId(Domain.getLocalDomain().formatId(getResource()));
+        permanentReservationRequestApi.setResourceId(IdentifierFormat.formatGlobalId(getResource()));
         permanentReservationRequestApi.setReport(getReportText());
         for (ResourceReservation resourceReservation : getResourceReservations()) {
             permanentReservationRequestApi.addResourceReservation(resourceReservation.toApi());
@@ -238,7 +237,8 @@ public class PermanentReservationRequest extends AbstractReservationRequest
                 setResource(null);
             }
             else {
-                Long resourceId = Domain.getLocalDomain().parseId(permanentReservationRequestApi.getResourceId());
+                Long resourceId = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class,
+                        permanentReservationRequestApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }

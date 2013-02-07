@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -52,17 +51,17 @@ public class ReservationRequestSet extends NormalReservationRequest
     /**
      * @param id of the requested {@link DateTimeSlotSpecification}
      * @return {@link DateTimeSlotSpecification} with given {@code id}
-     * @throws EntityNotFoundException when the {@link DateTimeSlotSpecification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link DateTimeSlotSpecification} doesn't exist
      */
     @Transient
-    private DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
+    private DateTimeSlotSpecification getSlotById(Long id) throws PersistentEntityNotFoundException
     {
         for (DateTimeSlotSpecification dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new EntityNotFoundException(DateTimeSlotSpecification.class, id);
+        throw new PersistentEntityNotFoundException(DateTimeSlotSpecification.class, id);
     }
 
     /**
@@ -169,17 +168,17 @@ public class ReservationRequestSet extends NormalReservationRequest
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
     @Transient
-    private ReservationRequest getReservationRequestById(Long id) throws EntityNotFoundException
+    private ReservationRequest getReservationRequestById(Long id) throws PersistentEntityNotFoundException
     {
         for (ReservationRequest reservationRequest : reservationRequests) {
             if (reservationRequest.getId().equals(id)) {
                 return reservationRequest;
             }
         }
-        throw new EntityNotFoundException(ReservationRequest.class, id);
+        throw new PersistentEntityNotFoundException(ReservationRequest.class, id);
     }
 
     /**

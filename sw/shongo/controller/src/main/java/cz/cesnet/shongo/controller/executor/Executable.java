@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -221,7 +222,7 @@ public abstract class Executable extends ReportablePersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        executableApi.setId(Domain.getLocalDomain().formatId(this));
+        executableApi.setId(IdentifierFormat.formatGlobalId(this));
         executableApi.setUserId(getUserId());
     }
 

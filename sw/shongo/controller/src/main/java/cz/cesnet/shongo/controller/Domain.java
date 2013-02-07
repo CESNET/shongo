@@ -84,45 +84,6 @@ public class Domain
     }
 
     /**
-     * @param persistentObject
-     * @return formatted shongo-id from given {@code persistentObject}
-     */
-    public String formatId(PersistentObject persistentObject)
-    {
-        Long id = persistentObject.getId();
-        if (id == null) {
-            throw new IllegalArgumentException("Cannot format identifier because id is null!");
-        }
-        return String.format("shongo:%s:%d", getName(), id.longValue());
-    }
-
-    /**
-     * @param id
-     * @return formatted shongo-id from given {@code persistentObject}
-     */
-    public String formatId(String id)
-    {
-        return String.format("shongo:%s:%d", getName(), parseId(id));
-    }
-
-    /**
-     * @param id
-     * @return parse database id from shongo-id
-     */
-    public Long parseId(String id)
-    {
-        if (Pattern.matches("\\d+", id)) {
-            return Long.parseLong(id);
-        }
-        String prefix = String.format("shongo:%s:", getName());
-        if (!id.startsWith(prefix)) {
-            throw new IllegalArgumentException(String.format("The identifier '%s' doesn't belong to domain '%s'!",
-                    id, getName()));
-        }
-        return Long.parseLong(id.substring(prefix.length(), id.length()));
-    }
-
-    /**
      * @return domain converted to API
      */
     public cz.cesnet.shongo.controller.api.Domain toApi()
@@ -159,5 +120,16 @@ public class Domain
             throw new IllegalStateException("No local domain is defined.");
         }
         return localDomain;
+    }
+
+    /**
+     * @return {@link #localDomain#getName()}
+     */
+    public static String getLocalDomainName()
+    {
+        if (localDomain == null) {
+            throw new IllegalStateException("No local domain is defined.");
+        }
+        return localDomain.getName();
     }
 }

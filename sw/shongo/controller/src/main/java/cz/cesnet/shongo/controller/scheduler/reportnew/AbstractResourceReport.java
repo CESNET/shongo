@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -105,6 +106,6 @@ public abstract class AbstractResourceReport extends Report
     {
         return String.format("%s '%s'",
                 (resource instanceof DeviceResource ? "device" : "resource"),
-                Domain.getLocalDomain().formatId(resource));
+                IdentifierFormat.formatGlobalId(resource));
     }
 }

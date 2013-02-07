@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -142,9 +141,9 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws EntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
      */
-    public AbstractReservationRequest get(Long reservationRequestId) throws EntityNotFoundException
+    public AbstractReservationRequest get(Long reservationRequestId) throws PersistentEntityNotFoundException
     {
         try {
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
@@ -155,7 +154,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            throw new EntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
+            throw new PersistentEntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
@@ -208,9 +207,9 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequest(Long reservationRequestId) throws EntityNotFoundException
+    public ReservationRequest getReservationRequest(Long reservationRequestId) throws PersistentEntityNotFoundException
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
@@ -221,16 +220,17 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            throw new EntityNotFoundException(ReservationRequest.class, reservationRequestId);
+            throw new PersistentEntityNotFoundException(ReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws EntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
      */
-    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws EntityNotFoundException
+    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws
+                                                                                        PersistentEntityNotFoundException
     {
         try {
             ReservationRequestSet reservationRequestSet = entityManager.createQuery(
@@ -241,7 +241,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            throw new EntityNotFoundException(ReservationRequestSet.class, reservationRequestSetId);
+            throw new PersistentEntityNotFoundException(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
@@ -343,7 +343,7 @@ public class ReservationRequestManager extends AbstractManager
         try {
             return getReservationRequest(reservationRequestId);
         }
-        catch (EntityNotFoundException e) {
+        catch (PersistentEntityNotFoundException e) {
             throw new IllegalArgumentException("Reservation request '" + reservationRequestId + "' doesn't exist!");
         }
     }

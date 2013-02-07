@@ -530,7 +530,8 @@ public class ExecutorTest extends AbstractControllerTest
         roomSpecification.setParticipantCount(10);
         roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
         roomReservationRequest.setSpecification(roomSpecification);
-        String roomReservationRequestId = allocateAndCheck(roomReservationRequest).getId();
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        checkAllocated(roomReservationRequestId);
 
         // Execute compartment
         ExecutionResult result = executor.execute(dateTime);

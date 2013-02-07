@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -118,18 +119,16 @@ public class Compartment extends Executable
     {
         super.toApi(executableApi);
 
-        cz.cesnet.shongo.controller.Domain localDomain = Domain.getLocalDomain();
-
         cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
                 (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
-        compartmentApi.setId(localDomain.formatId(this));
+        compartmentApi.setId(IdentifierFormat.formatGlobalId(this));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
         compartmentApi.setStateReport(getReportText());
         for (Endpoint endpoint : getEndpoints()) {
             cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
                     new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
-            endpointApi.setId(localDomain.formatId(endpoint));
+            endpointApi.setId(IdentifierFormat.formatGlobalId(endpoint));
             endpointApi.setDescription(endpoint.getReportDescription());
             for (Alias alias : endpoint.getAssignedAliases()) {
                 endpointApi.addAlias(alias.toApi());
@@ -145,10 +144,8 @@ public class Compartment extends Executable
         for (Connection connection : getConnections()) {
             cz.cesnet.shongo.controller.api.Executable.Compartment.Connection connectionApi =
                     new cz.cesnet.shongo.controller.api.Executable.Compartment.Connection();
-            connectionApi.setEndpointFromId(
-                    localDomain.formatId(connection.getEndpointFrom()));
-            connectionApi.setEndpointToId(
-                    localDomain.formatId(connection.getEndpointTo()));
+            connectionApi.setEndpointFromId(IdentifierFormat.formatGlobalId(connection.getEndpointFrom()));
+            connectionApi.setEndpointToId(IdentifierFormat.formatGlobalId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
             connectionApi.setStateReport(getReportText());

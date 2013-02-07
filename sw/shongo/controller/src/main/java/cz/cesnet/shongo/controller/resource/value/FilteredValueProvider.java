@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.FilterType;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
@@ -107,7 +108,7 @@ public class FilteredValueProvider extends ValueProvider
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getCapability().getResource()) {
-            filteredValueProviderApi.setValueProvider(Domain.getLocalDomain().formatId(valueProviderResource));
+            filteredValueProviderApi.setValueProvider(IdentifierFormat.formatGlobalId(valueProviderResource));
         }
         else {
             filteredValueProviderApi.setValueProvider(valueProvider.toApi());

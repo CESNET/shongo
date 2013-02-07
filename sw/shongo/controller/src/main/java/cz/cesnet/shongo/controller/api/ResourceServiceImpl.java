@@ -6,12 +6,12 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityException;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -132,7 +132,7 @@ public class ResourceServiceImpl extends Component
         }
 
         // Return resource shongo-id
-        return cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl);
+        return IdentifierFormat.formatGlobalId(resourceImpl);
     }
 
     @Override
@@ -140,8 +140,8 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-        Long resourceId = localDomain.parseId(resource.getId());
+        Long resourceId = IdentifierFormat.parseLocalId(
+                cz.cesnet.shongo.controller.resource.Resource.class, resource.getId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -164,10 +164,6 @@ public class ResourceServiceImpl extends Component
                 cache.updateResource(resourceImpl, entityManager);
             }
         }
-        catch (EntityException exception) {
-            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
-            throw exception;
-        }
         catch (FaultException exception) {
             throw exception;
         }
@@ -187,8 +183,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-        Long id = localDomain.parseId(resourceId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -208,10 +203,6 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.removeResource(resourceImpl);
             }
-        }
-        catch (EntityException exception) {
-            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
-            throw exception;
         }
         catch (FaultException exception) {
             throw exception;
@@ -242,8 +233,6 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -254,7 +243,7 @@ public class ResourceServiceImpl extends Component
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();
-                summary.setId(localDomain.formatId(resource));
+                summary.setId(IdentifierFormat.formatGlobalId(resource));
                 summary.setUserId(resource.getUserId());
                 summary.setName(resource.getName());
                 if (resource instanceof DeviceResource) {
@@ -269,7 +258,7 @@ public class ResourceServiceImpl extends Component
                 }
                 cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
                 if (parentResource != null) {
-                    summary.setParentResourceId(localDomain.formatId(parentResource));
+                    summary.setParentResourceId(IdentifierFormat.formatGlobalId(parentResource));
                 }
                 summaryList.add(summary);
             }
@@ -281,12 +270,11 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public Resource getResource(SecurityToken token, String resourceId) throws EntityNotFoundException
+    public Resource getResource(SecurityToken token, String resourceId) throws PersistentEntityNotFoundException
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-        Long id = localDomain.parseId(resourceId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -295,10 +283,6 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
             return resourceImpl.toApi(entityManager);
         }
-        catch (EntityNotFoundException exception) {
-            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
-            throw exception;
-        }
         finally {
             entityManager.close();
         }
@@ -306,12 +290,11 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
-            throws EntityNotFoundException
+            throws PersistentEntityNotFoundException
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-        Long id = localDomain.parseId(resourceId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -339,7 +322,7 @@ public class ResourceServiceImpl extends Component
             else {
                 resourceAllocation = new ResourceAllocation();
             }
-            resourceAllocation.setId(cz.cesnet.shongo.controller.Domain.getLocalDomain().formatId(resourceImpl));
+            resourceAllocation.setId(IdentifierFormat.formatGlobalId(resourceImpl));
             resourceAllocation.setName(resourceImpl.getName());
             resourceAllocation.setInterval(interval);
 
@@ -361,10 +344,6 @@ public class ResourceServiceImpl extends Component
                 }
             }
             return resourceAllocation;
-        }
-        catch (EntityNotFoundException exception) {
-            exception.setEntityId(localDomain.formatId(exception.getEntityId()));
-            throw exception;
         }
         finally {
             entityManager.close();

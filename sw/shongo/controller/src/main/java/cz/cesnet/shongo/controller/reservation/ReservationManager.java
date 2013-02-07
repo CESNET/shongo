@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
@@ -123,9 +123,9 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws EntityNotFoundException when the {@link Reservation} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link Reservation} doesn't exist
      */
-    public Reservation get(Long reservationId) throws EntityNotFoundException
+    public Reservation get(Long reservationId) throws PersistentEntityNotFoundException
     {
         try {
             Reservation reservation = entityManager.createQuery(
@@ -136,7 +136,7 @@ public class ReservationManager extends AbstractManager
             return reservation;
         }
         catch (NoResultException exception) {
-            throw new EntityNotFoundException(Reservation.class, reservationId);
+            throw new PersistentEntityNotFoundException(Reservation.class, reservationId);
         }
     }
 

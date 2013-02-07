@@ -7,6 +7,7 @@
 
 * Prefix identifier
  - Write mail about prefix rsv, res, req, exe (shongo keep)
+ - Create fault exceptions for wrong identifier errors (2x)
 
 * Implement permissions
 

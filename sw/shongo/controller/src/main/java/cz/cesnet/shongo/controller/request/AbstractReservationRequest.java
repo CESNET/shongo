@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
@@ -103,18 +104,18 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @param id of the {@link Reservation}
      * @return {@link Reservation} with given {@code id}
-     * @throws cz.cesnet.shongo.fault.EntityNotFoundException
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
      *          when the {@link Reservation} doesn't exist
      */
     @Transient
-    protected Reservation getReservationById(Long id) throws cz.cesnet.shongo.fault.EntityNotFoundException
+    protected Reservation getReservationById(Long id) throws PersistentEntityNotFoundException
     {
         for (Reservation reservation : reservations) {
             if (reservation.getId().equals(id)) {
                 return reservation;
             }
         }
-        throw new cz.cesnet.shongo.fault.EntityNotFoundException(ResourceReservation.class, id);
+        throw new PersistentEntityNotFoundException(Reservation.class, id);
     }
 
     /**
@@ -214,7 +215,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
-        api.setId(Domain.getLocalDomain().formatId(this));
+        api.setId(IdentifierFormat.formatGlobalId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setDescription(getDescription());

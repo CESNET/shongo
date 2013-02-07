@@ -1,12 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
-import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.common.*;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityValidationException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -144,16 +140,16 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws EntityNotFoundException when capability doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when capability doesn't exist
      */
-    public Capability getCapabilityById(Long id) throws EntityNotFoundException
+    public Capability getCapabilityById(Long id) throws PersistentEntityNotFoundException
     {
         for (Capability capability : capabilities) {
             if (capability.getId().equals(id)) {
                 return capability;
             }
         }
-        throw new EntityNotFoundException(Capability.class, id);
+        throw new PersistentEntityNotFoundException(Capability.class, id);
     }
 
     /**
@@ -301,16 +297,16 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws EntityNotFoundException when administrator doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when administrator doesn't exist
      */
-    public Person getAdministratorById(Long id) throws EntityNotFoundException
+    public Person getAdministratorById(Long id) throws PersistentEntityNotFoundException
     {
         for (Person person : administrators) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        throw new EntityNotFoundException(Person.class, id);
+        throw new PersistentEntityNotFoundException(Person.class, id);
     }
 
     /**
@@ -411,9 +407,7 @@ public class Resource extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
-        Domain localDomain = Domain.getLocalDomain();
-
-        resourceApi.setId(localDomain.formatId(this));
+        resourceApi.setId(IdentifierFormat.formatGlobalId(this));
         resourceApi.setUserId(getUserId());
         resourceApi.setName(getName());
         resourceApi.setAllocatable(isAllocatable());
@@ -434,7 +428,7 @@ public class Resource extends PersistentObject
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resourceApi.setParentResourceId(localDomain.formatId(parentResource));
+            resourceApi.setParentResourceId(IdentifierFormat.formatGlobalId(parentResource));
         }
 
         for (Capability capability : getCapabilities()) {
@@ -446,7 +440,7 @@ public class Resource extends PersistentObject
         }
 
         for (Resource childResource : getChildResources()) {
-            resourceApi.addChildResourceId(localDomain.formatId(childResource));
+            resourceApi.addChildResourceId(IdentifierFormat.formatGlobalId(childResource));
         }
     }
 
@@ -492,7 +486,8 @@ public class Resource extends PersistentObject
         if (resourceApi.isPropertyFilled(resourceApi.PARENT_RESOURCE_ID)) {
             Long newParentResourceId = null;
             if (resourceApi.getParentResourceId() != null) {
-                newParentResourceId = Domain.getLocalDomain().parseId(resourceApi.getParentResourceId());
+                newParentResourceId = IdentifierFormat.parseLocalId(
+                        cz.cesnet.shongo.controller.resource.Resource.class, resourceApi.getParentResourceId());
             }
             Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
             if ((newParentResourceId == null && oldParentResourceId != null)

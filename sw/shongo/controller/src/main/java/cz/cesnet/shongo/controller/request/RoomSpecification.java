@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -11,7 +11,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
@@ -101,17 +101,17 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link RoomSetting}
      * @return {@link RoomSetting} with given {@code id}
-     * @throws EntityNotFoundException when the {@link RoomSetting} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link RoomSetting} doesn't exist
      */
     @Transient
-    private RoomSetting getRoomSettingById(Long id) throws EntityNotFoundException
+    private RoomSetting getRoomSettingById(Long id) throws PersistentEntityNotFoundException
     {
         for (RoomSetting roomSetting : roomSettings) {
             if (roomSetting.getId().equals(id)) {
                 return roomSetting;
             }
         }
-        throw new EntityNotFoundException(RoomSetting.class, id);
+        throw new PersistentEntityNotFoundException(RoomSetting.class, id);
     }
 
     /**
@@ -154,17 +154,17 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws EntityNotFoundException when the {@link AliasSpecification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link AliasSpecification} doesn't exist
      */
     @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws EntityNotFoundException
+    private AliasSpecification getAliasSpecificationById(Long id) throws PersistentEntityNotFoundException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             if (aliasSpecification.getId().equals(id)) {
                 return aliasSpecification;
             }
         }
-        throw new EntityNotFoundException(AliasSpecification.class, id);
+        throw new PersistentEntityNotFoundException(AliasSpecification.class, id);
     }
 
     /**
@@ -242,7 +242,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         if (deviceResource != null) {
-            roomSpecificationApi.setResourceId(Domain.getLocalDomain().formatId(deviceResource));
+            roomSpecificationApi.setResourceId(IdentifierFormat.formatGlobalId(deviceResource));
         }
         for (Technology technology : getTechnologies()) {
             roomSpecificationApi.addTechnology(technology);
@@ -271,7 +271,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = Domain.getLocalDomain().parseId(roomSpecificationApi.getResourceId());
+                Long resourceId = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class,
+                        roomSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));
             }

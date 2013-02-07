@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -394,22 +395,20 @@ public class Reservation extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
-        cz.cesnet.shongo.controller.Domain localDomain = Domain.getLocalDomain();
-
-        api.setId(localDomain.formatId(this));
+        api.setId(IdentifierFormat.formatGlobalId(this));
         api.setUserId(getUserId());
         if (getReservationRequest() != null) {
-            api.setReservationRequestId(localDomain.formatId(getReservationRequest()));
+            api.setReservationRequestId(IdentifierFormat.formatGlobalId(getReservationRequest()));
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi());
         }
         if (getParentReservation() != null) {
-            api.setParentReservationId(localDomain.formatId(getParentReservation()));
+            api.setParentReservationId(IdentifierFormat.formatGlobalId(getParentReservation()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationId(localDomain.formatId(childReservation));
+            api.addChildReservationId(IdentifierFormat.formatGlobalId(childReservation));
         }
     }
 

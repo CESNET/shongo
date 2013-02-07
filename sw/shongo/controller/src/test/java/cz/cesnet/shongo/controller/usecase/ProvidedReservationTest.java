@@ -354,14 +354,14 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasReservationRequest.setSpecification(
                 new AliasGroupSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
         String aliasReservationRequestId = allocate(aliasReservationRequest);
-        checkAllocated(aliasReservationRequestId);
+        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
-        reservationRequest.addProvidedReservationId(aliasReservationRequestId);
+        reservationRequest.addProvidedReservationId(aliasReservation.getId());
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

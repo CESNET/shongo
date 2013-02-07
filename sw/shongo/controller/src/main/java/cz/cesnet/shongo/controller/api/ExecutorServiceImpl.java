@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -63,12 +64,10 @@ public class ExecutorServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        Long id = localDomain.parseId(executableId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
 
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -99,8 +98,6 @@ public class ExecutorServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
@@ -110,7 +107,7 @@ public class ExecutorServiceImpl extends Component
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
-            summary.setId(localDomain.formatId(executable));
+            summary.setId(IdentifierFormat.formatGlobalId(executable));
             summary.setUserId(executable.getUserId());
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
@@ -134,9 +131,7 @@ public class ExecutorServiceImpl extends Component
     {
         authorization.validate(token);
 
-        cz.cesnet.shongo.controller.Domain localDomain = cz.cesnet.shongo.controller.Domain.getLocalDomain();
-
-        Long id = localDomain.parseId(executableId);
+        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
