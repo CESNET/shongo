@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -314,7 +315,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return true if given {@code resource} is available,
      *         false otherwise
      */
-    public boolean isResourceAvailable(Resource resource, Interval interval, Transaction transaction)
+    public boolean isResourceAvailable(Resource resource, Interval interval, CacheTransaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
@@ -322,7 +323,13 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         }
         // Check if resource is not already allocated
         ObjectState<ResourceReservation> resourceState = getObjectStateRequired(resource);
-        Set<ResourceReservation> resourceReservations = resourceState.getReservations(interval, transaction);
+        Set<ResourceReservation> resourceReservations;
+        if (transaction != null) {
+            resourceReservations = resourceState.getReservations(interval, transaction.getResourceCacheTransaction());
+        }
+        else {
+            resourceReservations = resourceState.getReservations(interval);
+        }
         if (resourceReservations.size() > 0) {
             return false;
         }
@@ -339,7 +346,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return
      */
     private boolean isDependentResourceAvailable(Resource resource, Resource dependentResource, Interval interval,
-            Transaction transaction)
+            CacheTransaction transaction)
     {
         // We do not consider the resource itself as dependent and thus it is ignored (considered as available)
         if (dependentResource.equals(resource)) {
@@ -369,7 +376,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return true if dependent resources from given {@code resource} are available (recursive),
      *         false otherwise
      */
-    public boolean isDependentResourcesAvailable(Resource resource, Interval interval, Transaction transaction)
+    public boolean isDependentResourcesAvailable(Resource resource, Interval interval, CacheTransaction transaction)
     {
         // Get top parent resource and checks whether it is available
         Resource parentResource = resource;
@@ -380,16 +387,21 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     /**
-     * @param deviceResource to be checked
-     * @param interval       which should be checked
+     * @param deviceResource   to be checked
+     * @param interval         which should be checked
+     * @param transaction
      * @return collection of {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in given {@code interval} for given {@code deviceResource}
      */
-    public Collection<RoomReservation> getRoomReservations(DeviceResource deviceResource,
-            Interval interval)
+    public Collection<RoomReservation> getRoomReservations(DeviceResource deviceResource, Interval interval,
+            CacheTransaction transaction)
     {
         ObjectState<RoomReservation> roomProviderState = getRoomProviderState(deviceResource);
-        Set<RoomReservation> roomReservations = roomProviderState.getReservations(interval);
-        return roomReservations;
+        if (transaction != null) {
+            return roomProviderState.getReservations(interval, transaction.getResourceCacheTransaction());
+        }
+        else {
+            return roomProviderState.getReservations(interval);
+        }
     }
 
     /**
@@ -398,16 +410,15 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return {@link AvailableRoom} for given {@code deviceResource} in given {@code interval}
      */
     public AvailableRoom getAvailableRoom(DeviceResource deviceResource, Interval interval,
-            Transaction transaction)
+            CacheTransaction transaction)
     {
-        ObjectState<RoomReservation> roomProviderState = getRoomProviderState(deviceResource);
         RoomProviderCapability roomProviderCapability =
                 getResourceCapability(deviceResource.getId(), RoomProviderCapability.class);
         if (roomProviderCapability == null) {
             throw new IllegalStateException("Device resource doesn't have "
                     + RoomProviderCapability.class.getSimpleName() + ".");
         }
-        Set<RoomReservation> roomReservations = roomProviderState.getReservations(interval);
+        Collection<RoomReservation> roomReservations = getRoomReservations(deviceResource, interval, transaction);
         int usedLicenseCount = 0;
         if (isResourceAvailable(deviceResource, interval, transaction)) {
             for (ResourceReservation resourceReservation : roomReservations) {
@@ -423,35 +434,5 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
         availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
         return availableRoom;
-    }
-
-    /**
-     * Transaction for {@link ResourceCache}.
-     */
-    public static class Transaction
-            extends AbstractReservationCache.Transaction<ResourceReservation>
-    {
-        /**
-         * Set of resources referenced from {@link ResourceReservation}s in the transaction.
-         */
-        private Set<Resource> referencedResources = new HashSet<Resource>();
-
-        /**
-         * @param resource to be added to the {@link #referencedResources}
-         */
-        public void addReferencedResource(Resource resource)
-        {
-            referencedResources.add(resource);
-        }
-
-        /**
-         * @param resource to be checked
-         * @return true if given resource was referenced by any {@link ResourceReservation} added to the transaction,
-         *         false otherwise
-         */
-        public boolean containsResource(Resource resource)
-        {
-            return referencedResources.contains(resource);
-        }
     }
 }

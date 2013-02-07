@@ -81,7 +81,7 @@ public class ReportTest
         System.out.println();
         System.out.println(reservationTask.getClass().getSimpleName() + " reports:");
         System.out.println();
-        for (Report report : context.getReports()) {
+        for (Report report : reservationTask.getReports()) {
             System.out.println(report.toString());
         }
         System.out.println();

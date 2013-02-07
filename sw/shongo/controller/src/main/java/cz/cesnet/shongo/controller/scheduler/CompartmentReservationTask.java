@@ -7,14 +7,20 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.CompartmentSpecification;
+import cz.cesnet.shongo.controller.request.EndpointSpecification;
+import cz.cesnet.shongo.controller.request.PersonSpecification;
+import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.report.*;
+import cz.cesnet.shongo.controller.scheduler.reportnew.CannotCreateConnectionFromToMultipleReport;
+import cz.cesnet.shongo.controller.scheduler.report.NotEnoughEndpointInCompartmentReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingCompartmentReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingConnectionBetweenReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingConnectionFromToReport;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -248,22 +254,22 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        getContext().beginReport(new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
+        beginReport(new AllocatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
         catch (ReportException firstException) {
-            getContext().addReport(firstException.getReport());
+
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
             catch (ReportException secondException) {
-                getContext().addReport(secondException.getReport());
-                Report connectionFailed = new CannotCreateConnectionBetweenReport(endpointFrom, endpointTo);
-                throw connectionFailed.exception();
+                throw createReportFailureForThrowing().exception();
             }
         }
-        getContext().endReport();
+        finally {
+            endReport();
+        }
     }
 
     /**
@@ -277,31 +283,32 @@ public class CompartmentReservationTask extends ReservationTask
     private void addConnection(Endpoint endpointFrom, Endpoint endpointTo, Technology technology)
             throws ReportException
     {
-        // Created connection
-        Connection connection = null;
+        // Allocate alias for the target endpoint
+        beginReport(new AllocatingConnectionFromToReport(endpointFrom, endpointTo));
+        try {
+            // Created connection
+            Connection connection = null;
 
-        // TODO: implement connections to multiple endpoints
-        if (endpointTo.getCount() > 1) {
-            //throw new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo).exception();
-        }
-
-        // Find existing alias for connection
-        Alias alias = null;
-        List<Alias> aliases = endpointTo.getAliases();
-        for (Alias possibleAlias : aliases) {
-            if (possibleAlias.getTechnology().equals(technology)) {
-                alias = possibleAlias;
-                break;
+            // TODO: implement connections to multiple endpoints
+            if (endpointTo.getCount() > 1) {
+                throwNewReportFailure(new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo));
             }
-        }
-        // Create connection by alias
-        if (alias != null) {
-            connection = new Connection();
-            connection.setAlias(alias.clone());
-        }
-        else {
-            // Allocate alias for the target endpoint
-            try {
+
+            // Find existing alias for connection
+            Alias alias = null;
+            List<Alias> aliases = endpointTo.getAliases();
+            for (Alias possibleAlias : aliases) {
+                if (possibleAlias.getTechnology().equals(technology)) {
+                    alias = possibleAlias;
+                    break;
+                }
+            }
+            // Create connection by alias
+            if (alias != null) {
+                connection = new Connection();
+                connection.setAlias(alias.clone());
+            }
+            else {
                 DeviceResource deviceResource = null;
                 if (endpointTo instanceof ResourceEndpoint) {
                     ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
@@ -336,22 +343,16 @@ public class CompartmentReservationTask extends ReservationTask
                 connection = new Connection();
                 connection.setAlias(alias.clone());
             }
-            catch (ReportException exception) {
-                Report report = new CannotCreateConnectionFromToReport(endpointFrom, endpointTo);
-                //report.addChildReport(exception.getReport());
-                throw report.exception();
-            }
-        }
 
-        if (connection == null) {
-            throw new CannotCreateConnectionFromToReport(endpointFrom, endpointTo).exception();
+            connection.setUserId(getContext().getUserId());
+            connection.setSlot(getContext().getInterval());
+            connection.setEndpointFrom(endpointFrom);
+            connection.setEndpointTo(endpointTo);
+            compartment.addChildExecutable(connection);
         }
-
-        connection.setUserId(getContext().getUserId());
-        connection.setSlot(getContext().getInterval());
-        connection.setEndpointFrom(endpointFrom);
-        connection.setEndpointTo(endpointTo);
-        compartment.addChildExecutable(connection);
+        finally {
+            endReport();
+        }
     }
 
     /**
@@ -359,6 +360,7 @@ public class CompartmentReservationTask extends ReservationTask
      * @param endpointTo   second {@link Endpoint}
      * @return {@link CallInitiation} from given {@link Endpoint}s
      */
+
     private CallInitiation determineCallInitiation(Endpoint endpointFrom, Endpoint endpointTo)
     {
         CallInitiation callInitiation = null;
@@ -466,6 +468,7 @@ public class CompartmentReservationTask extends ReservationTask
             roomReservationTask.addTechnologyVariant(technologies);
         }
         Reservation reservation = roomReservationTask.perform();
+        addReports(roomReservationTask);
         RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(roomEndpoint, endpoint);
@@ -505,6 +508,12 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     @Override
+    protected Report createdMainReport()
+    {
+        return new AllocatingCompartmentReport();
+    }
+
+    @Override
     protected Reservation createReservation() throws ReportException
     {
         Set<Specification> specifications = new HashSet<Specification>();
@@ -541,8 +550,6 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
 
-        getContext().beginReport(new AllocatingCompartmentReport(compartment));
-
         if (!createNoRoomReservation()) {
             try {
                 createSingleRoomReservation();
@@ -552,8 +559,6 @@ public class CompartmentReservationTask extends ReservationTask
                 throw exception;
             }
         }
-
-        getContext().endReport();
 
         // Initialize allocated compartment
         compartment.setState(Compartment.State.NOT_STARTED);

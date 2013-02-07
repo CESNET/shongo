@@ -2,9 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingCompartmentReport;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.DateTime;
 
@@ -166,13 +165,10 @@ public class ExecutableManager extends AbstractManager
                         + "   SELECT childExecutable FROM Executable executable "
                         + "   INNER JOIN executable.childExecutables childExecutable"
                         + " ) AND ("
-                        + "   (executable.state = :notAllocated AND executable"
-                        + "     NOT IN (SELECT report.compartment FROM AllocatingCompartmentReport report))"
-                        + "   OR (executable.state = :notStarted"
-                        + "     AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation))"
+                        + "   executable.state = :notStarted"
+                        + "     AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
                         + " )",
                         Executable.class)
-                .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
                 .getResultList();
         for (Executable executable : executables) {

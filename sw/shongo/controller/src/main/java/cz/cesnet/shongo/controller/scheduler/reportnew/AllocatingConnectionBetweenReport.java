@@ -1,7 +1,8 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractConnectionReport;
 
 import javax.persistence.*;
 
@@ -10,7 +11,7 @@ import javax.persistence.*;
  * @see {@link #getText()}
  */
 @Entity
-public class CreatingConnectionBetweenReport extends AbstractConnectionReport
+public class AllocatingConnectionBetweenReport extends AbstractConnectionReport
 {
     /**
      * Set of technologies.
@@ -20,7 +21,7 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
     /**
      * Constructor.
      */
-    public CreatingConnectionBetweenReport()
+    public AllocatingConnectionBetweenReport()
     {
     }
 
@@ -30,7 +31,7 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
      * @param endpointFrom
      * @param endpointTo
      */
-    public CreatingConnectionBetweenReport(Endpoint endpointFrom, Endpoint endpointTo,
+    public AllocatingConnectionBetweenReport(Endpoint endpointFrom, Endpoint endpointTo,
             Technology technology)
     {
         super(endpointFrom, endpointTo);
@@ -54,13 +55,6 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
     public void setTechnology(Technology technology)
     {
         this.technology = technology;
-    }
-
-    @Override
-    @Transient
-    public State getState()
-    {
-        return State.INFO;
     }
 
     @Override

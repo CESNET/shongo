@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -127,9 +127,8 @@ public class RoomReservationTask extends ReservationTask
     protected Reservation createReservation() throws ReportException
     {
         Context context = getContext();
-        Cache.Transaction cacheTransaction = getCacheTransaction();
+        CacheTransaction cacheTransaction = getCacheTransaction();
         ResourceCache resourceCache = getCache().getResourceCache();
-        ResourceCache.Transaction resourceCacheTransaction = cacheTransaction.getResourceCacheTransaction();
 
         Set<Long> specifiedDeviceResourceIds = null;
         if (deviceResource != null) {
@@ -190,30 +189,30 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Get available rooms
-        context.beginReport(new FindingAvailableResourceReport());
+        beginReport(new FindingAvailableResourceReport());
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         try {
             for (Long deviceResourceId : roomVariantByDeviceResourceId.keySet()) {
                 DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-                context.addReport(new CheckingResourceReport(deviceResource));
                 RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
-                AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
-                        getInterval(), resourceCacheTransaction);
+                AvailableRoom availableRoom =
+                        resourceCache.getAvailableRoom(deviceResource, getInterval(), cacheTransaction);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
+                    addReport(new CheckingResourceReport(deviceResource));
                 }
             }
         }
         finally {
-            context.endReport();
+            endReport();
         }
         if (availableRooms.size() == 0) {
-            context.throwReportFailure();
+            throw createReportFailureForThrowing().exception();
         }
 
         // TODO: prefer provided room endpoints
         // Sort available rooms from the most filled to the least filled
-        SelectingResourceReport selectingResourceReport = context.addReport(new SelectingResourceReport());
+        SelectingResourceReport selectingResourceReport = addReport(new SelectingResourceReport());
         Collections.sort(availableRooms, new Comparator<AvailableRoom>()
         {
             @Override
@@ -232,9 +231,10 @@ public class RoomReservationTask extends ReservationTask
         });
         // Get the first available room
         AvailableRoom availableRoom = availableRooms.get(0);
+        selectingResourceReport.setResource(availableRoom.getDeviceResource());
+        // Get device and it's room variant
         DeviceResource deviceResource = availableRoom.getDeviceResource();
         RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResource.getId());
-        selectingResourceReport.setResource(availableRoom.getDeviceResource());
 
         // Room configuration
         RoomConfiguration roomConfiguration = new RoomConfiguration();

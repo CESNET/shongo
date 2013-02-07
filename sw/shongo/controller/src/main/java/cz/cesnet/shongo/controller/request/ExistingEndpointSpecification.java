@@ -101,7 +101,9 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 }
 
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), resource);
-                return resourceReservationTask.perform();
+                Reservation reservation = resourceReservationTask.perform();
+                addReports(resourceReservationTask);
+                return reservation;
             }
         };
     }

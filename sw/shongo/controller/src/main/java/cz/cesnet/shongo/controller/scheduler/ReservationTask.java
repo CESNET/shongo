@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -32,6 +33,16 @@ public abstract class ReservationTask
      * List of child {@link Reservation}s.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
+
+    /**
+     * List of reports.
+     */
+    private List<Report> reports = new ArrayList<Report>();
+
+    /**
+     * Stack of active {@link Report}s.
+     */
+    private Stack<Report> activeReports = new Stack<Report>();
 
     /**
      * Constructor.
@@ -68,7 +79,7 @@ public abstract class ReservationTask
     /**
      * @return {@link Context#cacheTransaction}
      */
-    protected Cache.Transaction getCacheTransaction()
+    protected CacheTransaction getCacheTransaction()
     {
         return context.getCacheTransaction();
     }
@@ -104,6 +115,25 @@ public abstract class ReservationTask
     }
 
     /**
+     * @param reservationTask to be performed
+     * @return resulting {@link Reservation}
+     * @throws ReportException
+     */
+    private Reservation performChildReservationTask(ReservationTask reservationTask) throws ReportException
+    {
+        try {
+            Reservation reservation = reservationTask.perform();
+            addReports(reservationTask);
+            return reservation;
+        }
+        catch (ReportException exception) {
+            addReport(exception.getReport());
+            exception.setReport(createReportFailureForThrowing());
+            throw exception;
+        }
+    }
+
+    /**
      * Add child {@link Reservation} to the task allocated by given {@code reservationTask}.
      *
      * @param reservationTask used for allocation of {@link Reservation}
@@ -111,8 +141,7 @@ public abstract class ReservationTask
     public final Reservation addChildReservation(ReservationTask reservationTask)
             throws ReportException
     {
-        Reservation reservation = reservationTask.perform();
-        return addChildReservation(reservation);
+        return addChildReservation(performChildReservationTask(reservationTask));
     }
 
     /**
@@ -123,8 +152,7 @@ public abstract class ReservationTask
     public final <R extends Reservation> R addChildReservation(ReservationTask reservationTask,
             Class<R> reservationClass) throws ReportException
     {
-        Reservation reservation = addChildReservation(reservationTask);
-        return reservationClass.cast(reservation);
+        return reservationClass.cast(addChildReservation(reservationTask));
     }
 
     /**
@@ -135,7 +163,7 @@ public abstract class ReservationTask
     public final <R extends Reservation> Collection<R> addMultiChildReservation(ReservationTask reservationTask,
             Class<R> reservationClass) throws ReportException
     {
-        Reservation reservation = reservationTask.perform();
+        Reservation reservation = performChildReservationTask(reservationTask);
         List<R> reservations = new ArrayList<R>();
         Reservation targetReservation = reservation.getTargetReservation();
         if (reservationClass.isInstance(targetReservation)) {
@@ -178,7 +206,90 @@ public abstract class ReservationTask
     }
 
     /**
-     * @return main {@link Report}
+     * @return {@link #reports}
+     */
+    public List<Report> getReports()
+    {
+        return reports;
+    }
+
+    /**
+     * @param report to be added to the {@link #reports}
+     */
+    protected <T extends Report> T addReport(T report)
+    {
+        if (activeReports.empty()) {
+            reports.add(report);
+        }
+        else {
+            activeReports.peek().addChildReport(report);
+        }
+        return report;
+    }
+
+    /**
+     * Add report from another {@code reservationTask}.
+     *
+     * @param reservationTask
+     */
+    protected void addReports(ReservationTask reservationTask)
+    {
+        for (Report report : reservationTask.getReports()) {
+            addReport(report);
+        }
+    }
+
+    /**
+     * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
+     */
+    protected void beginReport(Report report)
+    {
+        addReport(report);
+        activeReports.push(report);
+    }
+
+    /**
+     * Stop using {@link #activeReports} as parent for next reports
+     */
+    protected void endReport()
+    {
+        activeReports.pop();
+    }
+
+    /**
+     * @return {@link Report} in {@link Report.State#ERROR} for throwing
+     */
+    protected Report createReportFailureForThrowing()
+    {
+        if (activeReports.empty()) {
+            throw new IllegalStateException("No report is active");
+        }
+        Report report = activeReports.peek();
+        report.setState(Report.State.ERROR);
+        while (report.hasParentReport()) {
+            report = report.getParentReport();
+            report.setState(Report.State.ERROR);
+        }
+        return report;
+    }
+
+    /**
+     * @return {@link Report} in {@link Report.State#ERROR} for throwing
+     */
+    protected void throwNewReportFailure(Report report) throws ReportException
+    {
+        addReport(report);
+        report.setState(Report.State.ERROR);
+        while (report.hasParentReport()) {
+            report = report.getParentReport();
+            report.setState(Report.State.ERROR);
+        }
+        throw report.exception();
+    }
+
+    /**
+     * @return {@link Report} which should be added to the {@link #reports} when the {@link Reservation} is started
+     *         allocating, or null when no report should be added
      */
     protected Report createdMainReport()
     {
@@ -196,12 +307,21 @@ public abstract class ReservationTask
         Reservation reservation = null;
         Report report = createdMainReport();
         if (report != null) {
-            getContext().beginReport(report);
+            beginReport(report);
             try {
                 reservation = createReservation();
             }
+            catch (ReportException exception) {
+                Report exceptionReport = exception.getReport();
+                if (exceptionReport != report) {
+                    // Report from exception isn't added to root report so we add it and throw the root report
+                    addReport(exceptionReport);
+                    exception.setReport(report);
+                }
+                throw exception;
+            }
             finally {
-                getContext().endReport();
+                endReport();
             }
         }
         else {
@@ -254,38 +374,28 @@ public abstract class ReservationTask
         private Cache cache;
 
         /**
-         * @see {@link Cache.Transaction}
+         * @see {@link cz.cesnet.shongo.controller.cache.CacheTransaction}
          */
-        private Cache.Transaction cacheTransaction;
-
-        /**
-         * List of reports.
-         */
-        private List<Report> reports = new ArrayList<Report>();
-
-        /**
-         * Stack of active {@link Report}s.
-         */
-        private Stack<Report> activeReports = new Stack<Report>();
+        private CacheTransaction cacheTransaction;
 
         /**
          * Constructor.
          *
          * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
+         * @param interval sets the {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
          */
         public Context(AbstractReservationRequest reservationRequest, Cache cache, Interval interval)
         {
             this.reservationRequest = reservationRequest;
             this.cache = cache;
-            this.cacheTransaction = new Cache.Transaction(interval);
+            this.cacheTransaction = new CacheTransaction(interval);
         }
 
         /**
          * Constructor.
          *
          * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
+         * @param interval sets the {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
          */
         public Context(Cache cache, Interval interval)
         {
@@ -309,7 +419,7 @@ public abstract class ReservationTask
         }
 
         /**
-         * @return {@link Cache.Transaction#interval}
+         * @return {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
          */
         public Interval getInterval()
         {
@@ -327,67 +437,9 @@ public abstract class ReservationTask
         /**
          * @return {@link #cacheTransaction}
          */
-        public Cache.Transaction getCacheTransaction()
+        public CacheTransaction getCacheTransaction()
         {
             return cacheTransaction;
-        }
-
-        /**
-         * @return {@link #reports}
-         */
-        public List<Report> getReports()
-        {
-            return reports;
-        }
-
-        /**
-         * @param report to be added to the {@link #reports}
-         */
-        protected <T extends Report> T addReport(T report)
-        {
-            if (activeReports.empty()) {
-                reports.add(report);
-            }
-            else {
-                activeReports.peek().addChildReport(report);
-            }
-            return report;
-        }
-
-        /**
-         * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
-         */
-        protected void beginReport(Report report)
-        {
-            addReport(report);
-            activeReports.push(report);
-        }
-
-        /**
-         * Stop using {@link #activeReports} as parent for next reports
-         */
-        protected void endReport()
-        {
-            activeReports.pop();
-        }
-
-        /**
-         * Set active reports as failed and throw it as {@link ReportException}.
-         *
-         * @throws ReportException
-         */
-        protected void throwReportFailure() throws ReportException
-        {
-            if (activeReports.empty()) {
-                throw new IllegalStateException("No report is active");
-            }
-            Report report = activeReports.peek();
-            report.setState(Report.State.ERROR);
-            while (report.hasParentReport()) {
-                report = report.getParentReport();
-                report.setState(Report.State.ERROR);
-            }
-            throw report.exception();
         }
     }
 }

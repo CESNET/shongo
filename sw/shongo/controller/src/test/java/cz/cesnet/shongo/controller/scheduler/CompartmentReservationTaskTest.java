@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
@@ -13,10 +14,14 @@ import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,10 +36,23 @@ import static junit.framework.Assert.*;
  */
 public class CompartmentReservationTaskTest
 {
+    @Before
+    public void before() throws Exception
+    {
+        Domain.setLocalDomain(new Domain("test"));
+    }
+
+    @After
+    public void after() throws Exception
+    {
+        Domain.setLocalDomain(null);
+    }
+
     @Test
     public void testFailures() throws Exception
     {
-        ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
+        Cache cache = Cache.createTestingCache();
+        ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
 
         CompartmentReservationTask compartmentReservationTask;
 
@@ -68,6 +86,23 @@ public class CompartmentReservationTaskTest
         try {
             compartmentReservationTask.perform();
             fail("Exception about no alias available should be thrown.");
+        }
+        catch (ReportException exception) {
+        }
+
+        DeviceResource deviceResource = new DeviceResource();
+        deviceResource.setAllocatable(true);
+        deviceResource.addTechnology(Technology.H323);
+        deviceResource.addTechnology(Technology.SIP);
+        deviceResource.addCapability(new RoomProviderCapability(100));
+        cache.addResource(deviceResource);
+
+        compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
+        compartmentReservationTask.addChildSpecification(
+                new ExternalEndpointSetSpecification(Technology.H323, 3));
+        try {
+            compartmentReservationTask.perform();
+            fail("Exception about cannot create.");
         }
         catch (ReportException exception) {
         }
@@ -331,6 +366,12 @@ public class CompartmentReservationTaskTest
                                 aliases.add(alias);
                             }
                             return aliases;
+                        }
+
+                        @Override
+                        public String getReportDescription()
+                        {
+                            return "simple endpoint";
                         }
                     };
 

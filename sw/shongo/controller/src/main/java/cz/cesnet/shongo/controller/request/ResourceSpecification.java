@@ -84,7 +84,9 @@ public class ResourceSpecification extends Specification implements ReservationT
             protected Reservation createReservation() throws ReportException
             {
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), resource);
-                return resourceReservationTask.perform();
+                Reservation reservation = resourceReservationTask.perform();
+                addReports(resourceReservationTask);
+                return reservation;
             }
         };
     }

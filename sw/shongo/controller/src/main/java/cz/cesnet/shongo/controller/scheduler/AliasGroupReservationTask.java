@@ -113,6 +113,7 @@ public class AliasGroupReservationTask extends ReservationTask
 
             // Allocate missing alias
             Reservation reservation = aliasReservationTask.perform();
+            addReports(aliasReservationTask);
             createdReservations.add(reservation);
             AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
 

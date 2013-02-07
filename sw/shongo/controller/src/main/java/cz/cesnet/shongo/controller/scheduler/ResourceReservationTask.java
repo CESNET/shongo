@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -42,7 +42,7 @@ public class ResourceReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
-        Cache.Transaction cacheTransaction = getCacheTransaction();
+        CacheTransaction cacheTransaction = getCacheTransaction();
         if (cacheTransaction.containsResource(resource)) {
             // Same resource is requested multiple times
             throw new ResourceRequestedMultipleTimesReport(resource).exception();
@@ -78,7 +78,7 @@ public class ResourceReservationTask extends ReservationTask
                 resourceReservation = new EndpointReservation();
             }
             if (deviceResource.hasCapability(RoomProviderCapability.class)) {
-                if (getCache().getResourceCache().getRoomReservations(deviceResource, getInterval())
+                if (getCache().getResourceCache().getRoomReservations(deviceResource, getInterval(), cacheTransaction)
                         .size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new ResourceNotAvailableReport(resource).exception();

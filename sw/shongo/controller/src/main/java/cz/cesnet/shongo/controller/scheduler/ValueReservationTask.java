@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableValue;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
@@ -31,7 +31,7 @@ public class ValueReservationTask
      *         null otherwise
      */
     public static Reservation createReservation(ValueProvider valueProvider, String requestedValue, Interval interval,
-            ValueCache valueCache, Cache.Transaction cacheTransaction)
+            ValueCache valueCache, CacheTransaction cacheTransaction)
     {
         // Find available value in the alias providers
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
@@ -45,9 +45,8 @@ public class ValueReservationTask
         }
 
         // Get new available value
-        ValueCache.Transaction valueCacheTransaction = cacheTransaction.getValueCacheTransaction();
-        AvailableValue availableValue = valueCache.getAvailableValue(valueProvider, requestedValue, interval,
-                valueCacheTransaction);
+        AvailableValue availableValue =
+                valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
         if (availableValue == null) {
             return null;
         }

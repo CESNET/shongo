@@ -99,8 +99,11 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
     public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue, Interval interval,
-            Transaction transaction)
+            CacheTransaction transaction)
     {
+        AbstractReservationCache.Transaction<ValueReservation> valueReservationTransaction =
+                transaction.getValueProviderCacheTransaction();
+
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
         Resource resource = capability.getResource();
@@ -114,10 +117,11 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         ValueReservation valueReservation = null;
 
         // Preferably use  provided alias
-        Set<ValueReservation> valueReservations = transaction.getProvidedReservations(valueProvider.getId());
-        if (valueReservations.size() > 0) {
+        Set<ValueReservation> providedValueReservations =
+                valueReservationTransaction.getProvidedReservations(valueProvider.getId());
+        if (providedValueReservations.size() > 0) {
             if (requestedValue != null) {
-                for (ValueReservation possibleValueReservation : valueReservations) {
+                for (ValueReservation possibleValueReservation : providedValueReservations) {
                     if (possibleValueReservation.getValue().equals(requestedValue)) {
                         valueReservation = possibleValueReservation;
                         value = valueReservation.getValue();
@@ -126,7 +130,7 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
                 }
             }
             else {
-                valueReservation = valueReservations.iterator().next();
+                valueReservation = providedValueReservations.iterator().next();
                 value = valueReservation.getValue();
             }
         }
@@ -134,7 +138,8 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         if (value == null) {
             ObjectState<ValueReservation> valueProviderState =
                     getObjectStateRequired(valueProvider.getTargetValueProvider());
-            Set<ValueReservation> allocatedValues = valueProviderState.getReservations(interval, transaction);
+            Set<ValueReservation> allocatedValues =
+                    valueProviderState.getReservations(interval, valueReservationTransaction);
             Set<String> usedValues = new HashSet<String>();
             for (ValueReservation allocatedValue : allocatedValues) {
                 usedValues.add(allocatedValue.getValue());
@@ -153,13 +158,5 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         availableAlias.setValue(value);
         availableAlias.setValueReservation(valueReservation);
         return availableAlias;
-    }
-
-    /**
-     * Transaction for {@link ValueCache}.
-     */
-    public static class Transaction
-            extends AbstractReservationCache.Transaction<ValueReservation>
-    {
     }
 }

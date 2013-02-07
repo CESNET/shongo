@@ -93,6 +93,8 @@ public abstract class Report
     /**
      * @return {@link #state}
      */
+    @Column
+    @Enumerated(EnumType.STRING)
     public State getState()
     {
         return state;

@@ -1,6 +1,7 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractConnectionReport;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;

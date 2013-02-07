@@ -228,14 +228,12 @@ public class Scheduler extends Component implements Component.NotificationManage
             // Update reservation request
             reservationRequest.setReservation(reservation);
             reservationRequest.setState(ReservationRequest.State.ALLOCATED);
-            reservationRequest.setReports(context.getReports());
+            reservationRequest.setReports(reservationTask.getReports());
             reservationRequestManager.update(reservationRequest);
         }
         catch (ReportException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
-            for (Report report : context.getReports()) {
-                reservationRequest.addReport(report);
-            }
+            reservationRequest.addReport(exception.getReport());
         }
 
         return reservation;

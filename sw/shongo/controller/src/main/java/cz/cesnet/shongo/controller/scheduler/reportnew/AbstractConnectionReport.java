@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler.reportnew;
 
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.report.Report;

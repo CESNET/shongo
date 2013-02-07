@@ -286,7 +286,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
          * @param interval
          * @return list of reservations for cached object in given {@code interval}
          */
-        public Set<R> getReservations(Interval interval, Transaction<R> transaction)
+        public <T extends Reservation> Set<R> getReservations(Interval interval, Transaction<T> transaction)
         {
             Set<R> reservations = getReservations(interval);
             if (transaction != null) {
@@ -406,24 +406,30 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
          * @param objectId     for which the {@link Transaction} should apply
          * @param reservations to which the {@link Transaction} should apply
          */
-        public void applyReservations(Long objectId, Collection<R> reservations)
+        private <T extends Reservation> void applyReservations(Long objectId, Set<T> reservations)
         {
             Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
             if (providedReservationsToApply != null) {
-                Map<Long, R> reservationById = new HashMap<Long, R>();
-                for (R reservation : reservations) {
+                Map<Long, T> reservationById = new HashMap<Long, T>();
+                for (T reservation : reservations) {
                     reservationById.put(reservation.getId(), reservation);
                 }
-                for (R reservation : providedReservationsToApply) {
-                    reservation = reservationById.get(reservation.getId());
+                for (R providedReservation : providedReservationsToApply) {
+                    Reservation reservation = reservationById.get(providedReservation.getId());
                     if (reservation != null) {
-                        reservations.remove(reservation);
+                        @SuppressWarnings("unchecked")
+                        T typedReservation = (T) reservation;
+                        reservations.remove(typedReservation);
                     }
                 }
             }
             Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
             if (allocatedReservationsToApply != null) {
-                reservations.addAll(allocatedReservationsToApply);
+                for (R reservation : allocatedReservationsToApply) {
+                    @SuppressWarnings("unchecked")
+                    T typedReservation = (T) reservation;
+                    reservations.add(typedReservation);
+                }
             }
         }
     }

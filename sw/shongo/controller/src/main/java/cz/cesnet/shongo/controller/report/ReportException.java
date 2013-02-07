@@ -19,7 +19,7 @@ public class ReportException extends Exception
      */
     public ReportException(Report report)
     {
-        this.report = report;
+        setReport(report);
     }
 
     /**
@@ -28,6 +28,17 @@ public class ReportException extends Exception
     public Report getReport()
     {
         return report;
+    }
+
+    /**
+     * @param report sets the {@link #report}
+     */
+    public void setReport(Report report)
+    {
+        if (report.getParentReport() != null) {
+            throw new IllegalArgumentException("Only top parents reports should be thrown.");
+        }
+        this.report = report;
     }
 
     @Override

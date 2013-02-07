@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -11,12 +12,10 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingAliasReport;
 import cz.cesnet.shongo.controller.scheduler.reportnew.CheckingResourceReport;
 import cz.cesnet.shongo.controller.scheduler.reportnew.FindingAvailableResourceReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.ResourceNotMatchRestrictedReport;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -136,7 +135,7 @@ public class AliasReservationTask extends ReservationTask
         Context context = getContext();
         Interval interval = getInterval();
         Cache cache = getCache();
-        Cache.Transaction cacheTransaction = getCacheTransaction();
+        CacheTransaction cacheTransaction = getCacheTransaction();
 
         // Get alias providers
         Collection<AliasProviderCapability> aliasProviders;
@@ -173,7 +172,7 @@ public class AliasReservationTask extends ReservationTask
         }
 
         // Find available value in the alias providers
-        context.beginReport(new FindingAvailableResourceReport());
+        beginReport(new FindingAvailableResourceReport());
         Reservation availableValueReservation = null;
         AliasProviderCapability availableAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -191,7 +190,7 @@ public class AliasReservationTask extends ReservationTask
                 continue;
             }
 
-            CheckingResourceReport checkingResource = context.addReport(new CheckingResourceReport(aliasProvider));
+            CheckingResourceReport checkingResource = addReport(new CheckingResourceReport(aliasProvider));
 
             // Preferably reuse provided alias reservation
             Collection<AliasReservation> providedAliasReservations =
@@ -237,9 +236,9 @@ public class AliasReservationTask extends ReservationTask
             }
         }
         if (availableValueReservation == null) {
-            context.throwReportFailure();
+            throw createReportFailureForThrowing().exception();
         }
-        context.endReport();
+        endReport();
 
         ValueReservation valueReservation = addChildReservation(availableValueReservation, ValueReservation.class);
 
