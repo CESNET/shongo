@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -353,7 +352,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             return true;
         }
         // If dependent resource is already contained in transaction, it is available
-        if (transaction.containsResource(dependentResource)) {
+        if (transaction.containsReferencedResource(dependentResource)) {
             return true;
         }
         if (!isResourceAvailable(dependentResource, interval, transaction)) {

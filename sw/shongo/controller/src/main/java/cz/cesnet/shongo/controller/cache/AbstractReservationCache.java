@@ -363,6 +363,19 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
 
         /**
          * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be removed from the {@link Transaction} as allocated
+         */
+        public void removeAllocatedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                return;
+            }
+            reservations.remove(reservation);
+        }
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
          * @param reservation to be added to the {@link Transaction} as provided
          */
         public void addProvidedReservation(Long objectId, R reservation)

@@ -43,7 +43,7 @@ public class ResourceReservationTask extends ReservationTask
     protected Reservation createReservation() throws ReportException
     {
         CacheTransaction cacheTransaction = getCacheTransaction();
-        if (cacheTransaction.containsResource(resource)) {
+        if (cacheTransaction.containsReferencedResource(resource)) {
             // Same resource is requested multiple times
             throw new ResourceRequestedMultipleTimesReport(resource).exception();
         }
@@ -100,7 +100,7 @@ public class ResourceReservationTask extends ReservationTask
 
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
+        if (parentResource != null && !cacheTransaction.containsReferencedResource(parentResource)) {
             ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), parentResource);
             addChildReservation(resourceReservationTask);
         }
