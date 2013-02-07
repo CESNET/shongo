@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -75,15 +76,21 @@ public class ReportTest
 
     private void print(ReservationTaskProvider reservationTaskProvider, Cache cache) throws ReportException
     {
-        ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
-        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
-        reservationTask.perform();
-        System.out.println();
-        System.out.println(reservationTask.getClass().getSimpleName() + " reports:");
-        System.out.println();
-        for (Report report : reservationTask.getReports()) {
-            System.out.println(report.toString());
+        try {
+            ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
+            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
+            reservationTask.perform();
+            System.out.println();
+            System.out.println(reservationTask.getClass().getSimpleName() + " reports:");
+            System.out.println();
+            for (Report report : reservationTask.getReports()) {
+                System.out.println(report.toString());
+            }
+            System.out.println();
         }
-        System.out.println();
+        catch (ReportException exception) {
+            exception.printStackTrace();
+            Assert.fail("Exception should not be thrown");
+        }
     }
 }

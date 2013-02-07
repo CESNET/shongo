@@ -483,7 +483,8 @@ public class CacheTransaction
         public void destroy()
         {
             if (changes == null) {
-                throw new IllegalStateException("Savepoint has been already destroyed.");
+                // Savepoint has been already destroyed
+                return;
             }
 
             // Destroy next savepoint first (recursively)

@@ -4,6 +4,7 @@ import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -255,11 +256,12 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         beginReport(new AllocatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
+        CacheTransaction.Savepoint cacheTransactionSavepoint = getContext().getCacheTransaction().createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
         catch (ReportException firstException) {
-
+            cacheTransactionSavepoint.revert();
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
@@ -268,6 +270,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
         finally {
+            cacheTransactionSavepoint.destroy();
             endReport();
         }
     }
