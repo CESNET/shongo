@@ -83,8 +83,19 @@ sub on_init()
     $self->add_attribute('state', {
         'format' => sub {
             my ($attribute_value) = @_;
-            return format_state($attribute_value, $State);
-        }
+            my $state = format_state($attribute_value, $State);
+            if ( defined($state) ) {
+                my $color = 'blue';
+                if ( defined($self->get('state')) && $self->get('state') eq 'STARTING_FAILED' ) {
+                    $color = 'red';
+                }
+                my $state_report = $self->{'stateReport'};
+                $state_report = format_report($state_report, get_term_width() - 23);
+                $state .= "\n" . colored($state_report, $color);
+                return $state;
+            }
+            return undef;
+        },
     });
     $self->add_attribute('slot', {
         'type' => 'interval'

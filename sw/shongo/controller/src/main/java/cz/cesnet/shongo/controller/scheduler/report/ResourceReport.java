@@ -14,7 +14,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class AbstractResourceReport extends Report
+public class ResourceReport extends Report
 {
     /**
      * Identification of resource.
@@ -33,7 +33,7 @@ public abstract class AbstractResourceReport extends Report
     /**
      * Constructor.
      */
-    public AbstractResourceReport()
+    public ResourceReport()
     {
     }
 
@@ -42,9 +42,20 @@ public abstract class AbstractResourceReport extends Report
      *
      * @param resource ses the {@link #resource}
      */
-    public AbstractResourceReport(Resource resource)
+    public ResourceReport(Resource resource)
     {
-        this.resource = resource;
+        setResource(resource);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param resource ses the {@link #resource}
+     */
+    public ResourceReport(Resource resource, State state)
+    {
+        setResource(resource);
+        setState(state);
     }
 
     /**
@@ -52,9 +63,9 @@ public abstract class AbstractResourceReport extends Report
      *
      * @param capability sets the {@link #capability}
      */
-    public AbstractResourceReport(Capability capability)
+    public ResourceReport(Capability capability)
     {
-        this.capability = capability;
+        setResource(capability);
     }
 
     /**
@@ -113,5 +124,13 @@ public abstract class AbstractResourceReport extends Report
         return String.format("%s '%s'",
                 (resource instanceof DeviceResource ? "device" : "resource"),
                 IdentifierFormat.formatGlobalId(resource));
+    }
+
+    @Override
+    @Transient
+    public String getText()
+    {
+        String text = getResourceDescription();
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
 }

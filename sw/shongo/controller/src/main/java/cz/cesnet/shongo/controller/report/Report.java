@@ -35,6 +35,19 @@ public abstract class Report
     private List<Report> childReports = new ArrayList<Report>();
 
     /**
+     * Constructor.
+     */
+    public Report()
+    {
+        // Set default state to OK
+        State state = getState();
+        if (state == null) {
+            state = State.OK;
+        }
+        setState(state);
+    }
+
+    /**
      * @return {@link #id}
      */
     @Id
@@ -206,21 +219,29 @@ public abstract class Report
     {
         StringBuilder stringBuilder = new StringBuilder();
 
+        boolean hasChildReports = childReports.size() > 0;
+
         String text = getText();
-        text = text.replace("\n", "\n ");
         stringBuilder.append("-");
         if (state != null) {
             switch (getState()) {
+                case OK:
+                    stringBuilder.append("[OK] ");
+                    break;
                 case ERROR:
                     stringBuilder.append("[ERROR] ");
-                    break;
-                case WARN:
-                    stringBuilder.append("[WARN] ");
                     break;
                 default:
                     break;
             }
         }
+        if (hasChildReports) {
+            text = text.replace("\n", String.format("\n  |%" + (stringBuilder.length() - 3) + "s", ""));
+        }
+        else {
+            text = text.replace("\n", String.format("\n%" + stringBuilder.length() + "s", ""));
+        }
+
         stringBuilder.append(text);
 
         String help = getHelp();
@@ -230,14 +251,14 @@ public abstract class Report
             stringBuilder.append(help);
         }
 
-        if (childReports.size() > 0) {
+        if (hasChildReports) {
             int childReportsCount = childReports.size();
             for (int index = 0; index < childReportsCount; index++) {
-                stringBuilder.append("\n |");
+                stringBuilder.append("\n  |");
                 String childReportString = childReports.get(index).getReport();
                 childReportString = childReportString.replace("\n",
-                        (index < (childReportsCount - 1) ? "\n |  " : "\n    "));
-                stringBuilder.append("\n +-");
+                        (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
+                stringBuilder.append("\n  +-");
                 stringBuilder.append(childReportString);
             }
         }
@@ -261,14 +282,14 @@ public abstract class Report
     public static enum State
     {
         /**
-         * Represents an information {@link Report}.
+         * Represents no state for s{@link Report}.
          */
-        INFO,
+        NONE,
 
         /**
          * Represents an warning {@link Report}.
          */
-        WARN,
+        OK,
 
         /**
          * Represents an error {@link Report}.

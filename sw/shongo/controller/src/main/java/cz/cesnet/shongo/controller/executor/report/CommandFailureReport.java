@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.executor.report;
 
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -68,11 +70,14 @@ public class CommandFailureReport extends ExecutableReport
     @Transient
     public String getText()
     {
+        String dateTime = DateTimeFormat.mediumDateTime().print(getDateTime());
         if (commandFailure != null) {
-            return String.format("Command '%s' failed: %s", commandFailure.getCommand(), commandFailure.getMessage());
+
+            return String.format("Command '%s' failed at %s:\n%s",
+                    commandFailure.getCommand(), dateTime, commandFailure.getMessage());
         }
         else {
-            return "Command failed.";
+            return String.format("Command failed at %s", dateTime);
         }
     }
 }

@@ -913,7 +913,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 errorMsg.append(attribute.getName());
                 errorMsg.append(": ");
                 errorMsg.append(attribute.getValue());
-                errorMsg.append(" ");
             }
         }
         return errorMsg.toString();

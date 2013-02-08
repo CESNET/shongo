@@ -86,7 +86,7 @@ public class SpecificationNotReadyReport extends Report
     @Transient
     public State getState()
     {
-        return State.WARN;
+        return State.ERROR;
     }
 
     @Override

@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
@@ -191,7 +191,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public String getReportDescription()
     {
         return String.format("room in %s",
-                AbstractResourceReport.formatResource(getDeviceResource()));
+                ResourceReport.formatResource(getDeviceResource()));
     }
 
     @Override

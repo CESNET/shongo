@@ -10,7 +10,7 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class ResourceRequestedMultipleTimesReport extends AbstractResourceReport
+public class ResourceRequestedMultipleTimesReport extends ResourceReport
 {
     /**
      * Constructor.

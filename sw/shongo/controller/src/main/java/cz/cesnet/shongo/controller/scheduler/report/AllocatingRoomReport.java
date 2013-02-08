@@ -104,8 +104,8 @@ public class AllocatingRoomReport extends Report
     public String getText()
     {
         return String.format("Allocating room for the following specification:\n"
-                + "             Technology: %s\n"
-                + " Number of participants: %d",
+                + "   Technology: %s\n"
+                + " Participants: %d",
                 technologySetsToString(),
                 participantCount);
     }

@@ -40,6 +40,11 @@ public class ReportTest
     {
         Cache cache = Cache.createTestingCache();
 
+        RoomSpecification roomSpecification1 = new RoomSpecification();
+        roomSpecification1.addTechnology(Technology.H323);
+        roomSpecification1.setParticipantCount(5);
+        print(cache, roomSpecification1);
+
         DeviceResource deviceResource1 = new DeviceResource();
         deviceResource1.setAllocatable(true);
         deviceResource1.addTechnology(Technology.H323);
@@ -71,10 +76,10 @@ public class ReportTest
         aliasSpecification3.setAliasProviderCapability(deviceResource3.getCapability(AliasProviderCapability.class));
         print(cache, aliasSpecification1, aliasSpecification2, aliasSpecification3);
 
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        print(cache, roomSpecification);
+        RoomSpecification roomSpecification2 = new RoomSpecification();
+        roomSpecification2.addTechnology(Technology.H323);
+        roomSpecification2.setParticipantCount(5);
+        print(cache, roomSpecification2);
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
@@ -86,8 +91,8 @@ public class ReportTest
     {
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
+            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
             try {
-                ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
                 reservationTask.perform();
                 System.out.println();
                 System.out.println(reservationTask.getClass().getSimpleName() + " reports:");
@@ -98,6 +103,9 @@ public class ReportTest
                 System.out.println();
             }
             catch (ReportException exception) {
+                System.err.println();
+                System.err.println(reservationTask.getClass().getSimpleName() + " reports:");
+                System.err.println();
                 System.err.println(exception.getMessage());
             }
         }

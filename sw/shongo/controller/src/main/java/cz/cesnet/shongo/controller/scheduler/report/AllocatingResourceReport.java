@@ -11,7 +11,7 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class AllocatingResourceReport extends AbstractResourceReport
+public class AllocatingResourceReport extends ResourceReport
 {
     /**
      * Constructor.

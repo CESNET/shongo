@@ -50,13 +50,6 @@ public class AllocatingPermanentReservationReport extends Report
 
     @Override
     @Transient
-    public State getState()
-    {
-        return State.INFO;
-    }
-
-    @Override
-    @Transient
     public String getText()
     {
         return String.format("Allocating reservation for %s.", TemporalHelper.formatInterval(slot));

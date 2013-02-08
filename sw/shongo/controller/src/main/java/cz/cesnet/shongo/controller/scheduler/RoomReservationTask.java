@@ -196,8 +196,11 @@ public class RoomReservationTask extends ReservationTask
                         resourceCache.getAvailableRoom(deviceResource, getInterval(), cacheTransaction);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
-                    addReport(new CheckingResourceReport(deviceResource));
+                    addReport(new ResourceReport(deviceResource, Report.State.NONE));
                 }
+            }
+            if (availableRooms.size() == 0) {
+                throw createReportFailureForThrowing().exception();
             }
         }
         finally {
