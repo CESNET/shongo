@@ -115,7 +115,7 @@ public class AllocatingAliasReport extends Report
                 + " Alias Type: %s\n"
                 + " Value: %s",
                 (technologies.size() > 0 ? Technology.formatTechnologies(technologies) : "Any"),
-                (aliasTypes .size() > 0 ? AliasType.formatAliasTypes(aliasTypes ) : "Any"),
+                (aliasTypes.size() > 0 ? AliasType.formatAliasTypes(aliasTypes) : "Any"),
                 (value != null ? value : "Any"));
     }
 }

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.Executable;

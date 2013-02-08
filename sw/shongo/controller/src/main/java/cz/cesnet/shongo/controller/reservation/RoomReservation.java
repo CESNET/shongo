@@ -1,12 +1,14 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link Endpoint}.

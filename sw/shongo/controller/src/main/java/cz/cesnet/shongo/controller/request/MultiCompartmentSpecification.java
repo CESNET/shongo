@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -55,7 +55,8 @@ public class MultiCompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.request.CompartmentSpecification}
      * @return {@link cz.cesnet.shongo.controller.request.CompartmentSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
      */
     @Transient
     private CompartmentSpecification getSpecificationById(Long id) throws PersistentEntityNotFoundException
@@ -122,7 +123,8 @@ public class MultiCompartmentSpecification extends Specification
     @Override
     public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask(context){
+        return new ReservationTask(context)
+        {
 
             @Override
             protected Reservation createReservation() throws ReportException

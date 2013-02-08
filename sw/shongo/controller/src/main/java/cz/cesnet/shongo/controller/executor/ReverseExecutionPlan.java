@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
-import java.util.*;
+import java.util.Collection;
 
 /**
  * Represents an reverse {@link cz.cesnet.shongo.controller.executor.ExecutionPlan}.

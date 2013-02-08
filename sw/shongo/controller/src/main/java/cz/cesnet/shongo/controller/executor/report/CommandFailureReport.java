@@ -3,7 +3,10 @@ package cz.cesnet.shongo.controller.executor.report;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import org.joda.time.DateTime;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.report.Report} for {@link cz.cesnet.shongo.controller.executor.Executable}.

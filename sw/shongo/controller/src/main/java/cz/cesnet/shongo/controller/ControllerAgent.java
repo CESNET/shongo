@@ -70,7 +70,7 @@ public class ControllerAgent extends Agent
                     if (result != null && result instanceof String) {
                         commandState = String.format("OK: %s", result);
                     }
-                    else  {
+                    else {
                         commandState = "OK";
                     }
                     break;

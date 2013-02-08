@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpoint;
@@ -11,7 +10,10 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an external (not existing in resource database) {@link EndpointSpecification}.
@@ -137,7 +139,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
             externalEndpointSpecificationApi.addTechnology(technology);
         }
         if (aliases.size() > 0) {
-            if (aliases.size() == 1){
+            if (aliases.size() == 1) {
                 externalEndpointSpecificationApi.setAlias(aliases.iterator().next().toApi());
             }
             else {

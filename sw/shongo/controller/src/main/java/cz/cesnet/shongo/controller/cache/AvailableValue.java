@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
-import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 
 /**
@@ -22,7 +21,7 @@ public class AvailableValue
     private String value;
 
     /**
-     *  Provided {@link ValueReservation} by which the {@link AvailableValue} is already allocated.
+     * Provided {@link ValueReservation} by which the {@link AvailableValue} is already allocated.
      */
     private ValueReservation valueReservation;
 

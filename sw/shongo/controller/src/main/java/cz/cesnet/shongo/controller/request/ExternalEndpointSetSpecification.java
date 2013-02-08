@@ -1,17 +1,16 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpointSet;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
-import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import javax.persistence.Transient;
 import java.util.Map;
 import java.util.Set;
 

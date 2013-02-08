@@ -1,11 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
@@ -210,7 +209,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected abstract cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi();
 
     /**
-     * @param api    {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException

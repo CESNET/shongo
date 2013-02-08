@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.xmlrpc.*;
+import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -195,7 +195,6 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     }
 
 
-
     /**
      * {@link ReflectiveXmlRpcHandler} with conversion of {@link cz.cesnet.shongo.fault.Fault} to {@link XmlRpcException}.
      */
@@ -211,7 +210,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 method = pMethod;
                 Class[] paramClasses = method.getParameterTypes();
                 typeConverters = new TypeConverter[paramClasses.length];
-                if ( pTypeConverterFactory instanceof cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) {
+                if (pTypeConverterFactory instanceof cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) {
                     cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory typeConverterFactory =
                             (cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) pTypeConverterFactory;
                     Type[] genericParamTypes = method.getGenericParameterTypes();
@@ -300,7 +299,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             if (userInformation != null) {
                 Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
                         new Object[]{requestId, className, methodName,
-                                userInformation.getFullName(), userInformation.getUserId()});
+                                userInformation.getFullName(), userInformation.getUserId()
+                        });
             }
             else {
                 Controller.apiLogger.info("Request:{} {}.{}", new Object[]{requestId, className, methodName});

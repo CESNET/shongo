@@ -51,7 +51,8 @@ public class ReservationRequestSet extends NormalReservationRequest
     /**
      * @param id of the requested {@link DateTimeSlotSpecification}
      * @return {@link DateTimeSlotSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link DateTimeSlotSpecification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link DateTimeSlotSpecification} doesn't exist
      */
     @Transient
     private DateTimeSlotSpecification getSlotById(Long id) throws PersistentEntityNotFoundException
@@ -118,7 +119,7 @@ public class ReservationRequestSet extends NormalReservationRequest
             }
         }
         if (specification instanceof CompositeSpecification) {
-            for ( Specification childSpecification : ((CompositeSpecification) specification).getChildSpecifications()) {
+            for (Specification childSpecification : ((CompositeSpecification) specification).getChildSpecifications()) {
                 removeOriginalSpecification(childSpecification);
             }
         }
@@ -168,7 +169,8 @@ public class ReservationRequestSet extends NormalReservationRequest
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link ReservationRequest} doesn't exist
      */
     @Transient
     private ReservationRequest getReservationRequestById(Long id) throws PersistentEntityNotFoundException

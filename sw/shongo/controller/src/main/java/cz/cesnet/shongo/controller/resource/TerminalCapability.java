@@ -34,7 +34,8 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the alias doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the alias doesn't exist
      */
     private Alias getAliasById(Long aliasId) throws PersistentEntityNotFoundException
     {

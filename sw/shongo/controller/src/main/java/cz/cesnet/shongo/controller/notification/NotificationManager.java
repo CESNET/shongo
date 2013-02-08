@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,20 +88,23 @@ public class NotificationManager extends Component implements Component.Authoriz
      * @param deletedReservations
      */
     public void notifyReservations(Set<Reservation> newReservations, Set<Reservation> modifiedReservations,
-                                   Set<Reservation> deletedReservations, EntityManager entityManager)
+            Set<Reservation> deletedReservations, EntityManager entityManager)
     {
         if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
             return;
         }
         logger.debug("Notifying about changes in reservations...");
         for (Reservation reservation : newReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.NEW, reservation, this, entityManager));
+            executeNotification(new ReservationNotification(
+                    ReservationNotification.Type.NEW, reservation, this, entityManager));
         }
         for (Reservation reservation : modifiedReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.MODIFIED, reservation, this, entityManager));
+            executeNotification(new ReservationNotification(
+                    ReservationNotification.Type.MODIFIED, reservation, this, entityManager));
         }
         for (Reservation reservation : deletedReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.DELETED, reservation, this, entityManager));
+            executeNotification(new ReservationNotification(
+                    ReservationNotification.Type.DELETED, reservation, this, entityManager));
         }
     }
 }

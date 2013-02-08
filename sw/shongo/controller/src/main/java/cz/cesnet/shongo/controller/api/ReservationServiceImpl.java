@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;

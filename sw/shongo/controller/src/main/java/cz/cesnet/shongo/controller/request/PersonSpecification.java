@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;

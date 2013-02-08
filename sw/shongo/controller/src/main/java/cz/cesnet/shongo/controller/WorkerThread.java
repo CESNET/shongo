@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import org.joda.time.*;
-import org.joda.time.base.BaseDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

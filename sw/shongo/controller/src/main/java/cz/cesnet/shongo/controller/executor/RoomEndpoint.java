@@ -80,7 +80,7 @@ public abstract class RoomEndpoint extends Endpoint
      * @param roomDescription
      * @param roomConfiguration
      * @param roomAliases
-     * @param executor thread which is executing
+     * @param executor          thread which is executing
      * @return new {@link State}
      */
     public boolean modifyRoom(String roomDescription, RoomConfiguration roomConfiguration, List<Alias> roomAliases,

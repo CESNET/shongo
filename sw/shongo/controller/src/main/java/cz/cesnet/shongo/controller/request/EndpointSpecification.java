@@ -43,7 +43,8 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     /**
      * @param id of the {@link cz.cesnet.shongo.controller.common.Person}
      * @return {@link cz.cesnet.shongo.controller.common.Person} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
      */
     @Transient
     private Person getPersonById(Long id) throws PersistentEntityNotFoundException

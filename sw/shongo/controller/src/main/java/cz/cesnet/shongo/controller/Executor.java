@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -158,7 +159,8 @@ public class Executor extends Component
         // List executables which should be stopped
         DateTime stopDateTime = referenceDateTime.minus(executableEnd);
         ExecutionPlan stoppingExecutionPlan =
-                new ReverseExecutionPlan(executableManager.listNotTakingPlace(Executable.STATES_FOR_STOPPING, stopDateTime));
+                new ReverseExecutionPlan(
+                        executableManager.listNotTakingPlace(Executable.STATES_FOR_STOPPING, stopDateTime));
         Collection<Executable> stoppingExecutables = new ArrayList<Executable>();
         while (!stoppingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = stoppingExecutionPlan.popExecutables();

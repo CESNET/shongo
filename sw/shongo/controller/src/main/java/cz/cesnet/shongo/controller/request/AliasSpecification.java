@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;

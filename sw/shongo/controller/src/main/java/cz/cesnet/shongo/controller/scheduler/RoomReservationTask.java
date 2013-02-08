@@ -279,7 +279,8 @@ public class RoomReservationTask extends ReservationTask
                 for (AliasSpecification aliasSpecification : aliasSpecifications) {
                     AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
                     aliasReservationTask.setTargetResource(deviceResource);
-                    AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
+                    AliasReservation aliasReservation =
+                            addChildReservation(aliasReservationTask, AliasReservation.class);
                     // Assign allocated aliases to the room
                     for (Alias alias : aliasReservation.getAliases()) {
                         // Assign only aliases which can be assigned to the room (according to room technologies)
@@ -292,7 +293,8 @@ public class RoomReservationTask extends ReservationTask
 
                 // Allocate aliases for the room
                 // Set of alias types which should be supported in the room
-                RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
+                RoomProviderCapability roomProviderCapability =
+                        deviceResource.getCapability(RoomProviderCapability.class);
                 Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
                 // Remove all aliases which should be supported but which aren't technology compatible with current
                 // room configuration

@@ -5,10 +5,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
@@ -123,7 +123,8 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link Reservation} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link Reservation} doesn't exist
      */
     public Reservation get(Long reservationId) throws PersistentEntityNotFoundException
     {
@@ -238,7 +239,7 @@ public class ReservationManager extends AbstractManager
                         iterator.remove();
                     }
                 }
-                else if (reservation.getClass().equals(Reservation.class)){
+                else if (reservation.getClass().equals(Reservation.class)) {
                     boolean technologyFound = false;
                     for (Reservation childReservation : reservation.getChildReservations()) {
                         if (childReservation instanceof AliasReservation) {

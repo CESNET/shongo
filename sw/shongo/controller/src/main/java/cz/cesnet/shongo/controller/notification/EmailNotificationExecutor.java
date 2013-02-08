@@ -10,7 +10,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * {@link NotificationExecutor} for sending mails.

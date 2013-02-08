@@ -7,7 +7,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents an abstract cache of objects with {@link Reservation}s. Cache holds only reservations inside

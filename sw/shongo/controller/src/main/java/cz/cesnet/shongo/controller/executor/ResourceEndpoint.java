@@ -143,7 +143,8 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
         if (aliases.size() > 0) {
             for (Alias alias : aliases) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
+                message.append(
+                        String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
                 executor.getLogger().debug(message.toString());
             }
             return State.STOPPED;

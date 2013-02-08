@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -114,7 +113,7 @@ public class ReservationNotification extends Notification
                     }
                 }
             }
-            else if (reservation instanceof  AliasReservation) {
+            else if (reservation instanceof AliasReservation) {
                 AliasReservation aliasReservation = (AliasReservation) reservation;
                 aliasReservations.add(aliasReservation.toApi());
             }

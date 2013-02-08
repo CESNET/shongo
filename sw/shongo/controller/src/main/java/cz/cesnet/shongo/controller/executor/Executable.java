@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.Report;

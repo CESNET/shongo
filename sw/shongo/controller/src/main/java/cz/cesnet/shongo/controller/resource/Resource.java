@@ -140,7 +140,8 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when capability doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when capability doesn't exist
      */
     public Capability getCapabilityById(Long id) throws PersistentEntityNotFoundException
     {
@@ -297,7 +298,8 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when administrator doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when administrator doesn't exist
      */
     public Person getAdministratorById(Long id) throws PersistentEntityNotFoundException
     {

@@ -7,9 +7,9 @@ import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
@@ -129,7 +129,8 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when alias doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when alias doesn't exist
      */
     public Alias getAliasById(Long id) throws PersistentEntityNotFoundException
     {

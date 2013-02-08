@@ -245,10 +245,10 @@ public class PatternValueProvider extends ValueProvider
                 throw new InvalidValueException();
             }
             int groupIndex = 1;
-            for ( int patternIndex = 0; patternIndex < parsedPatterns.size(); patternIndex++) {
+            for (int patternIndex = 0; patternIndex < parsedPatterns.size(); patternIndex++) {
                 groupIndex++;
                 Pattern pattern = parsedPatterns.get(patternIndex);
-                for ( int patternComponentIndex = 0; patternComponentIndex < pattern.size(); patternComponentIndex++) {
+                for (int patternComponentIndex = 0; patternComponentIndex < pattern.size(); patternComponentIndex++) {
                     String groupValue = matcher.group(groupIndex);
                     if (groupValue != null) {
                         Pattern.PatternComponent patternComponent = pattern.get(patternComponentIndex);

@@ -126,7 +126,8 @@ public class FilteredValueProvider extends ValueProvider
         }
         if (valueProviderApi.isPropertyFilled(filteredValueProviderApi.VALUE_PROVIDER)) {
             Object valueProvider = filteredValueProviderApi.getValueProvider();
-            setValueProvider(ValueProvider.modifyFromApi(valueProvider, this.valueProvider, getCapability(), entityManager));
+            setValueProvider(ValueProvider.modifyFromApi(
+                    valueProvider, this.valueProvider, getCapability(), entityManager));
         }
     }
 

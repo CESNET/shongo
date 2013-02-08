@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 
 import javax.persistence.*;

@@ -55,7 +55,8 @@ public class ExecutorThread extends Thread
                     }
                     entityManager.getTransaction().commit();
                     entityManager.close();
-                } catch (FaultException exception) {
+                }
+                catch (FaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
@@ -69,7 +70,8 @@ public class ExecutorThread extends Thread
                     executable.stop(executor);
                     entityManager.getTransaction().commit();
                     entityManager.close();
-                } catch (FaultException exception) {
+                }
+                catch (FaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);

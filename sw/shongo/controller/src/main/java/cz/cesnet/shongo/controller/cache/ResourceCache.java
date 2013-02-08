@@ -386,8 +386,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     /**
-     * @param deviceResource   to be checked
-     * @param interval         which should be checked
+     * @param deviceResource to be checked
+     * @param interval       which should be checked
      * @param transaction
      * @return collection of {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in given {@code interval} for given {@code deviceResource}
      */

@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
@@ -84,7 +84,7 @@ public class ResourceManager extends AbstractManager
      * Delete given {@code valueProvider} if it should be deleted while deleting the {@code capability}.
      *
      * @param valueProvider to be deleted
-     * @param capability which is being deleted
+     * @param capability    which is being deleted
      */
     public void deleteValueProvider(ValueProvider valueProvider, Capability capability)
     {
@@ -115,7 +115,8 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when resource doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when resource doesn't exist
      */
     public Resource get(Long resourceId) throws PersistentEntityNotFoundException
     {
@@ -134,7 +135,8 @@ public class ResourceManager extends AbstractManager
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when device resource doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when device resource doesn't exist
      */
     public DeviceResource getDevice(Long deviceResourceId) throws PersistentEntityNotFoundException
     {

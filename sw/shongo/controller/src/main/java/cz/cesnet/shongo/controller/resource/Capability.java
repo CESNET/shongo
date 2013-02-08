@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;

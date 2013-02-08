@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;

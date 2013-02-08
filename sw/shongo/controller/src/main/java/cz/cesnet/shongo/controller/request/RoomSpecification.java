@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
@@ -11,7 +12,6 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
@@ -101,7 +101,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link RoomSetting}
      * @return {@link RoomSetting} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link RoomSetting} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link RoomSetting} doesn't exist
      */
     @Transient
     private RoomSetting getRoomSettingById(Long id) throws PersistentEntityNotFoundException
@@ -120,7 +121,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     public void setRoomSettings(List<RoomSetting> roomSettings)
     {
         this.roomSettings.clear();
-        for ( RoomSetting roomConfiguration : roomSettings) {
+        for (RoomSetting roomConfiguration : roomSettings) {
             this.roomSettings.add(roomConfiguration.clone());
         }
     }
@@ -154,7 +155,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link AliasSpecification} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link AliasSpecification} doesn't exist
      */
     @Transient
     private AliasSpecification getAliasSpecificationById(Long id) throws PersistentEntityNotFoundException
@@ -173,7 +175,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
     {
         this.aliasSpecifications.clear();
-        for ( AliasSpecification aliasSpecification : aliasSpecifications) {
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
             this.aliasSpecifications.add(aliasSpecification.clone());
         }
     }

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;

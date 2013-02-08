@@ -51,7 +51,7 @@ public abstract class AbstractReservationReport extends Report
     public String getReservationDescription()
     {
         String reservationDescription;
-        if ( reservation instanceof AliasReservation) {
+        if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             reservationDescription = String.format("Alias reservation '%d'", aliasReservation.getId());
         }

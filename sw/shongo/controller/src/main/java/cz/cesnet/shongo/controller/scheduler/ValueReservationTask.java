@@ -49,7 +49,7 @@ public class ValueReservationTask
 
         // Find available value in the alias providers
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
-        if (targetValueProvider != valueProvider)                               {
+        if (targetValueProvider != valueProvider) {
             // Check whether target value provider can be allocated
             capability = targetValueProvider.getCapability();
             resource = capability.getResource();

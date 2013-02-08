@@ -61,7 +61,6 @@ public class ReusedReservationCache extends AbstractReservationCache<Reservation
     }
 
     /**
-     *
      * @param providedReservation
      * @param interval
      * @return

@@ -2,11 +2,11 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

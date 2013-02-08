@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.PersistentObject;
 
-import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

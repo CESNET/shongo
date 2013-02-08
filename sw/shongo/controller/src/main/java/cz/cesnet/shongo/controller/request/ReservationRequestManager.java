@@ -2,10 +2,10 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -141,7 +141,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link AbstractReservationRequest} doesn't exist
      */
     public AbstractReservationRequest get(Long reservationRequestId) throws PersistentEntityNotFoundException
     {
@@ -207,7 +208,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequest(Long reservationRequestId) throws PersistentEntityNotFoundException
     {
@@ -227,7 +229,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
+     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
+     *          when the {@link ReservationRequestSet} doesn't exist
      */
     public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws
                                                                                         PersistentEntityNotFoundException

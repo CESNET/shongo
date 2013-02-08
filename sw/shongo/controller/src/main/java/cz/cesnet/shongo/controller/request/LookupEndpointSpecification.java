@@ -12,8 +12,10 @@ import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
-import javax.persistence.*;
-import java.util.*;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents {@link EndpointSpecification} as parameters for endpoint which will be lookup.

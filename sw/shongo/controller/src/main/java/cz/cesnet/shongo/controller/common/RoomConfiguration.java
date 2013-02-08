@@ -107,7 +107,7 @@ public class RoomConfiguration extends PersistentObject
     public void setRoomSettings(Collection<RoomSetting> roomSettings)
     {
         this.roomSettings.clear();
-        for ( RoomSetting roomConfiguration : roomSettings) {
+        for (RoomSetting roomConfiguration : roomSettings) {
             this.roomSettings.add(roomConfiguration);
         }
     }

@@ -3,7 +3,10 @@ package cz.cesnet.shongo.controller.resource.value;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.Capability;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -119,7 +122,6 @@ public abstract class ValueProvider extends PersistentObject
     }
 
     /**
-     *
      * @param usedValues set of already used values (which should not be generated)
      * @return new generated value if available,
      *         null otherwise
@@ -127,10 +129,6 @@ public abstract class ValueProvider extends PersistentObject
     public abstract String generateValue(Set<String> usedValues) throws NoAvailableValueException;
 
     /**
-     *
-     *
-     *
-     *
      * @param usedValues     set of already used values (which should not be generated)
      * @param requestedValue which should be generated
      * @return new generated value based on {@code value} if available,
@@ -162,7 +160,6 @@ public abstract class ValueProvider extends PersistentObject
     }
 
     /**
-     *
      * @param object
      * @param valueProvider
      * @param capability

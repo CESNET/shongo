@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
-import java.util.*;
 
 /**
  * Capability tells that the resource can allocate unique values base on the patterns.

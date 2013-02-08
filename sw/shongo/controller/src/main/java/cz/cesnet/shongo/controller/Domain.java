@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.api.Status;
-
-import java.util.regex.Pattern;
 
 /**
  * Holds information about domain for which the controller is running.

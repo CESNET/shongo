@@ -302,7 +302,8 @@ public class DeviceResource extends Resource
         }
         // Delete technologies
         Set<Technology> technologiesToDelete =
-                resourceApi.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+                resourceApi
+                        .getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
         for (Technology technology : technologiesToDelete) {
             removeTechnology(technology);
         }

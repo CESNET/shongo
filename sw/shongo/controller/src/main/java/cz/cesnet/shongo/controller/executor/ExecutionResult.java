@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-* Result of the {@link Executor#execute(org.joda.time.DateTime)}.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Result of the {@link Executor#execute(org.joda.time.DateTime)}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class ExecutionResult
 {
     /**

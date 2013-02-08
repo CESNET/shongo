@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
