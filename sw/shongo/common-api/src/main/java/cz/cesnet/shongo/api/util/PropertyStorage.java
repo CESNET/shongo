@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.fault.FaultException;
-import jade.content.Concept;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 

@@ -27,8 +27,8 @@ public abstract class EntityException extends FaultException
     /**
      * Constructor.
      *
-     * @param entityType       sets the {@link #entityType}
-     * @param entityId sets the {@link #entityId}
+     * @param entityType sets the {@link #entityType}
+     * @param entityId   sets the {@link #entityId}
      */
     public EntityException(Class entityType, String entityId)
     {
@@ -39,8 +39,8 @@ public abstract class EntityException extends FaultException
     /**
      * Constructor.
      *
-     * @param entityType       sets the {@link #entityType}
-     * @param entityId sets the {@link #entityId}
+     * @param entityType sets the {@link #entityType}
+     * @param entityId   sets the {@link #entityId}
      */
     public EntityException(Class entityType, Long entityId)
     {

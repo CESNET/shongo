@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
 /**
-* {@link Person} which is known to Shongo by user-id.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * {@link Person} which is known to Shongo by user-id.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class UserPerson extends Person
 {
     /**

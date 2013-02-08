@@ -1,13 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.RoomSetting;
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.annotation.Transient;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Specification} for multiple {@link AliasSpecification}.

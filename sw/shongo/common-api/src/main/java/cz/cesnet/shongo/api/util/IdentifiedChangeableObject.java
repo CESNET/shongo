@@ -2,13 +2,8 @@ package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
-import cz.cesnet.shongo.api.xmlrpc.StructType;
 import cz.cesnet.shongo.fault.FaultException;
-import jade.content.Concept;
-import jade.content.onto.annotations.SuppressSlot;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
 
 /**

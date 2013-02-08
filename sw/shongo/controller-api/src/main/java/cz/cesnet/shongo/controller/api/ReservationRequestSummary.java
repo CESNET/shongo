@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;

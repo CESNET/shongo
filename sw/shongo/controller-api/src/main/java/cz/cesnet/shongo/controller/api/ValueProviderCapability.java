@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
-
-import java.util.List;
 
 /**
  * Capability tells that the resource can allocate unique values from given patterns.
@@ -40,7 +37,7 @@ public class ValueProviderCapability extends Capability
      */
     public ValueProviderCapability withAllowedAnyRequestedValue()
     {
-        ((ValueProvider.Pattern)getValueProvider()).setAllowAnyRequestedValue(true);
+        ((ValueProvider.Pattern) getValueProvider()).setAllowAnyRequestedValue(true);
         return this;
     }
 

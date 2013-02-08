@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 import jade.content.onto.annotations.SuppressSlot;

@@ -59,7 +59,7 @@ public enum AliasType
      * Constructor.
      *
      * @param technology sets the {@link #technology}
-     * @param valueType sets the {@link #valueType}
+     * @param valueType  sets the {@link #valueType}
      */
     private AliasType(Technology technology, AliasValueType valueType)
     {

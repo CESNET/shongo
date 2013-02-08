@@ -46,7 +46,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      * Constructor.
      *
      * @param technologies to be added to the {@link #TECHNOLOGIES}
-     * @param alias sets the {@link #ALIAS}
+     * @param alias        sets the {@link #ALIAS}
      */
     public ExternalEndpointSpecification(Technology[] technologies, Alias alias)
     {

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 /**
  * Class for generating API documentation to LaTeX.
- *
+ * <p/>
  * TODO: Not fully implemented
  *
  * @author Martin Srom <martin.srom@cesnet.cz>

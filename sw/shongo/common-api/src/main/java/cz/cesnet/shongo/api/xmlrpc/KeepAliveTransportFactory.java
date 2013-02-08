@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.api.xmlrpc;
 
-import org.apache.xmlrpc.client.*;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcSun15HttpTransportFactory;
+import org.apache.xmlrpc.client.XmlRpcTransport;
+import org.apache.xmlrpc.client.XmlRpcTransportFactory;
 
 /**
-* Represents an improved {@link XmlRpcTransportFactory} which allows for keep-alive connection.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Represents an improved {@link XmlRpcTransportFactory} which allows for keep-alive connection.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class KeepAliveTransportFactory extends XmlRpcSun15HttpTransportFactory
 {
     private XmlRpcTransport transport;

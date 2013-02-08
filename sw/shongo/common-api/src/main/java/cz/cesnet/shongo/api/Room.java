@@ -274,6 +274,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
 
     /**
      * Fill {@link #OPTIONS} from given {@code roomSetting}
+     *
      * @param roomSetting
      */
     public void fillOptions(RoomSetting roomSetting)
@@ -297,8 +298,9 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     public Alias getAlias(AliasType aliasType)
     {
         for (Alias alias : this.getAliases()) {
-            if (alias.getType() == aliasType)
+            if (alias.getType() == aliasType) {
                 return alias;
+            }
         }
 
         return null;

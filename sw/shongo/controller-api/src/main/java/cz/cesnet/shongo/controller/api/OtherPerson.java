@@ -3,10 +3,10 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 
 /**
-* {@link Person} which is not known to Shongo.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * {@link Person} which is not known to Shongo.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class OtherPerson extends Person
 {
     /**

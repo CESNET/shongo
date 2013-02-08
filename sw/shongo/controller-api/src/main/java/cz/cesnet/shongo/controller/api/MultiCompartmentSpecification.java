@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.controller.CallInitiation;
-
 import java.util.List;
 
 /**

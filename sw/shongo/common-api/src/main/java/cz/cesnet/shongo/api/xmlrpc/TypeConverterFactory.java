@@ -12,7 +12,10 @@ import org.joda.time.Period;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters

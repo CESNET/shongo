@@ -93,7 +93,7 @@ public class AliasProviderCapability extends Capability
      */
     public AliasProviderCapability withAllowedAnyRequestedValue()
     {
-        ((ValueProvider.Pattern)getValueProvider()).setAllowAnyRequestedValue(true);
+        ((ValueProvider.Pattern) getValueProvider()).setAllowAnyRequestedValue(true);
         return this;
     }
 

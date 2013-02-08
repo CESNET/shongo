@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.jade.command;
 
-import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import jade.content.AgentAction;
@@ -99,7 +98,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
             }
             catch (Exception e) {
                 logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
-                    String message = e.getMessage();
+                String message = e.getMessage();
                 if (e.getCause() != null) {
                     message += " (" + e.getCause().getMessage() + ")";
                 }

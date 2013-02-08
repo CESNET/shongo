@@ -45,7 +45,7 @@ public class RoomProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param licenseCount sets the {@link #LICENSE_COUNT}
+     * @param licenseCount       sets the {@link #LICENSE_COUNT}
      * @param requiredAliasTypes sets the {@link #REQUIRED_ALIAS_TYPES}
      */
     public RoomProviderCapability(Integer licenseCount, AliasType[] requiredAliasTypes)

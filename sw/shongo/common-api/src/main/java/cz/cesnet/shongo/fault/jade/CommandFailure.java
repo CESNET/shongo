@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
 import cz.cesnet.shongo.fault.CommonFault;
-import cz.cesnet.shongo.fault.FaultException;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>

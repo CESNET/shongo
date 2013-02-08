@@ -95,9 +95,9 @@ public interface ResourceControlService extends Service
     /**
      * Modifies a room.
      *
-     * @param token                    security token
+     * @param token            security token
      * @param deviceResourceId shongo-id of the device to perform the action
-     * @param room                     see {@link Room}
+     * @param room             see {@link Room}
      * @return new room id (it may have changed due to some attribute change)
      * @throws FaultException
      */

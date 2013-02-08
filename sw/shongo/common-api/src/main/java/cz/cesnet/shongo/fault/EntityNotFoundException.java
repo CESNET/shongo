@@ -17,8 +17,8 @@ public class EntityNotFoundException extends EntityException
     /**
      * Constructor.
      *
-     * @param entityType       sets the {@link #entityType}
-     * @param entityId sets the {@link #entityId}
+     * @param entityType sets the {@link #entityType}
+     * @param entityId   sets the {@link #entityId}
      */
     public EntityNotFoundException(Class entityType, String entityId)
     {

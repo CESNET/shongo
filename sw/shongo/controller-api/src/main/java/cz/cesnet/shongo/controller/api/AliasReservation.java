@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
 
 import java.util.ArrayList;
