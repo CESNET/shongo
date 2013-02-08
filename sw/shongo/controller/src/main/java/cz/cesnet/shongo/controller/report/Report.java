@@ -109,17 +109,6 @@ public abstract class Report
     }
 
     /**
-     * Sets the {@link #state} tp {@link State#ERROR}
-     * @param errorReport to be added to the {@link #childReports}
-     */
-    public void setError(Report errorReport)
-    {
-        errorReport.setState(State.ERROR);
-        setState(State.ERROR);
-        addChildReport(errorReport);
-    }
-
-    /**
      * @return {@link #childReports}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentReport")

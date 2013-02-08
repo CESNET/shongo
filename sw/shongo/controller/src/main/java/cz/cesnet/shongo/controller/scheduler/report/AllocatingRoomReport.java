@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.controller.scheduler.reportnew;
+package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.scheduler.report.TechnologySet;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -18,7 +17,7 @@ import java.util.Set;
 public class AllocatingRoomReport extends Report
 {
     /**
-     * List of {@link cz.cesnet.shongo.controller.scheduler.report.TechnologySet}s.
+     * List of {@link TechnologySet}s.
      */
     private List<TechnologySet> technologySets = new ArrayList<TechnologySet>();
 

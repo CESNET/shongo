@@ -31,13 +31,22 @@ public class ReportException extends Exception
     }
 
     /**
+     * @return {@link #report}
+     */
+    public Report getTopReport()
+    {
+        Report report = this.report;
+        while (report.hasParentReport()) {
+            report = report.getParentReport();
+        }
+        return report;
+    }
+
+    /**
      * @param report sets the {@link #report}
      */
     public void setReport(Report report)
     {
-        if (report.getParentReport() != null) {
-            throw new IllegalArgumentException("Only top parents reports should be thrown.");
-        }
         this.report = report;
     }
 

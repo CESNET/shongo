@@ -1,12 +1,9 @@
 package cz.cesnet.shongo.controller.resource.value;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -134,7 +131,7 @@ public class FilteredValueProvider extends ValueProvider
     }
 
     @Override
-    public String generateValue(Set<String> usedValues)
+    public String generateValue(Set<String> usedValues) throws NoAvailableValueException
     {
         String value = valueProvider.generateValue(usedValues);
         if (value != null) {
@@ -146,6 +143,7 @@ public class FilteredValueProvider extends ValueProvider
     @Override
     @Transient
     public String generateValue(Set<String> usedValues, String requestedValue)
+            throws ValueAlreadyAllocatedException, InvalidValueException
     {
         return valueProvider.generateValue(usedValues, FilterType.applyFilter(requestedValue, type));
     }

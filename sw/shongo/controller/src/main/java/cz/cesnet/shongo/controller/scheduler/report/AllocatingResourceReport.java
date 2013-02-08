@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler.reportnew;
+package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -11,12 +11,12 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class SelectingResourceReport extends AbstractResourceReport
+public class AllocatingResourceReport extends AbstractResourceReport
 {
     /**
      * Constructor.
      */
-    public SelectingResourceReport()
+    public AllocatingResourceReport()
     {
     }
 
@@ -25,7 +25,7 @@ public class SelectingResourceReport extends AbstractResourceReport
      *
      * @param resource sets the {@link #resource}
      */
-    public SelectingResourceReport(Resource resource)
+    public AllocatingResourceReport(Resource resource)
     {
         super(resource);
     }
@@ -35,7 +35,7 @@ public class SelectingResourceReport extends AbstractResourceReport
      *
      * @param capability sets the {@link #capability}
      */
-    public SelectingResourceReport(Capability capability)
+    public AllocatingResourceReport(Capability capability)
     {
         super(capability);
     }
@@ -44,11 +44,6 @@ public class SelectingResourceReport extends AbstractResourceReport
     @Transient
     public String getText()
     {
-        if (hasResource()) {
-            return String.format("Selected %s.", getResourceDescription());
-        }
-        else {
-            return "Selecting resource";
-        }
+        return String.format("Allocating %s", getResourceDescription());
     }
 }

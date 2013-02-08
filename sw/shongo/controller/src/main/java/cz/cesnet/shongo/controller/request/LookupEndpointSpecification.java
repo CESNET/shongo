@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;

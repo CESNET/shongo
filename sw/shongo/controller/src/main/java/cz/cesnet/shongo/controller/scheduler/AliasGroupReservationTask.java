@@ -2,20 +2,19 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
-import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for one or multiple {@link AliasReservation}(s).

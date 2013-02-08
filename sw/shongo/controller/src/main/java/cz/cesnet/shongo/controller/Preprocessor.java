@@ -221,7 +221,7 @@ public class Preprocessor extends Component
                 permanentReservationRequest.addReservation(resourceReservation);
             }
             catch (ReportException exception) {
-                report.addChildReport(exception.getReport());
+                report.addChildReport(exception.getTopReport());
             }
             permanentReservationRequest.addReport(report);
             reservationRequestManager.update(permanentReservationRequest, false);

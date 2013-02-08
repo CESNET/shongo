@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.controller.scheduler.reportnew;
+package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.Endpoint;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractConnectionReport;
 
 import javax.persistence.*;
 

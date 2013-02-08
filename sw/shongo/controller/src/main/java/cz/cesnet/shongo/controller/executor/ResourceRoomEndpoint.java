@@ -5,7 +5,6 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRo
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
@@ -14,7 +13,7 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractResourceReport;
+import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;

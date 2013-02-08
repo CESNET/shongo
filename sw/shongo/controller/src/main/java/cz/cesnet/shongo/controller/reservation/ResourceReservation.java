@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;

@@ -215,7 +215,7 @@ public class PatternValueProvider extends ValueProvider
 
 
     @Override
-    public String generateValue(Set<String> usedValues)
+    public String generateValue(Set<String> usedValues) throws NoAvailableValueException
     {
         String value = null;
         for (Pattern pattern : getParsedPatterns()) {
@@ -228,7 +228,7 @@ public class PatternValueProvider extends ValueProvider
             }
         }
         if (value == null) {
-            return null;
+            throw new NoAvailableValueException();
         }
 
         return value;
@@ -237,11 +237,12 @@ public class PatternValueProvider extends ValueProvider
     @Override
     @Transient
     public String generateValue(Set<String> usedValues, String requestedValue)
+            throws ValueAlreadyAllocatedException, InvalidValueException
     {
         if (!isAllowAnyRequestedValue()) {
             Matcher matcher = getRequestedValuePattern().matcher(requestedValue);
             if (!matcher.matches()) {
-                return null;
+                throw new InvalidValueException();
             }
             int groupIndex = 1;
             for ( int patternIndex = 0; patternIndex < parsedPatterns.size(); patternIndex++) {
@@ -252,7 +253,7 @@ public class PatternValueProvider extends ValueProvider
                     if (groupValue != null) {
                         Pattern.PatternComponent patternComponent = pattern.get(patternComponentIndex);
                         if (!patternComponent.isValueValid(groupValue)) {
-                            return null;
+                            throw new InvalidValueException();
                         }
                     }
                     groupIndex++;
@@ -260,7 +261,7 @@ public class PatternValueProvider extends ValueProvider
             }
         }
         if (usedValues.contains(requestedValue)) {
-            return null;
+            throw new ValueAlreadyAllocatedException();
         }
         return requestedValue;
     }

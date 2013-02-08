@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.controller.resource.value.Pattern;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,7 +25,11 @@ public class PatternValueProviderTest
         generator = new PatternValueProvider(null, "950");
         generatedValues = new HashSet<String>();
         Assert.assertEquals("950", generator.generateAddedValue(generatedValues));
-        Assert.assertEquals(null, generator.generateAddedValue(generatedValues));
+        try {
+            generator.generateAddedValue(generatedValues);
+        }
+        catch (ValueProvider.NoAvailableValueException exception) {
+        }
 
         generator = new PatternValueProvider(null, "950{digit:3}");
         generatedValues = new HashSet<String>();
@@ -36,7 +41,11 @@ public class PatternValueProviderTest
         for (int index = 6; index <= 999; index++) {
             Assert.assertEquals(String.format("950%03d", index), generator.generateAddedValue(generatedValues));
         }
-        Assert.assertEquals(null, generator.generateAddedValue(generatedValues));
+        try {
+            generator.generateAddedValue(generatedValues);
+        }
+        catch (ValueProvider.NoAvailableValueException exception) {
+        }
 
         generator = new PatternValueProvider(null, "950{digit:1}00{digit:1}");
         generatedValues = new HashSet<String>();
@@ -49,7 +58,11 @@ public class PatternValueProviderTest
             Assert.assertEquals(String.format("950%01d00%01d", index / 10, index % 10),
                     generator.generateAddedValue(generatedValues));
         }
-        Assert.assertEquals(null, generator.generateAddedValue(generatedValues));
+        try {
+            generator.generateAddedValue(generatedValues);
+        }
+        catch (ValueProvider.NoAvailableValueException exception) {
+        }
     }
 
     @Test
@@ -64,7 +77,12 @@ public class PatternValueProviderTest
         generator.addPattern("9502");
         Assert.assertEquals("9501", generator.generateAddedValue(generatedValues));
         Assert.assertEquals("9502", generator.generateAddedValue(generatedValues));
-        Assert.assertEquals(null, generator.generateAddedValue(generatedValues));
+        try {
+            generator.generateAddedValue(generatedValues);
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.NoAvailableValueException exception) {
+        }
 
         generator = new PatternValueProvider();
         generatedValues = new HashSet<String>();
@@ -76,7 +94,11 @@ public class PatternValueProviderTest
         for (int index = 1; index <= 9; index++) {
             Assert.assertEquals(String.format("9502%d", index), generator.generateAddedValue(generatedValues));
         }
-        Assert.assertEquals(null, generator.generateAddedValue(generatedValues));
+        try {
+            generator.generateAddedValue(generatedValues);
+        }
+        catch (ValueProvider.NoAvailableValueException exception) {
+        }
     }
 
     @Test
@@ -127,10 +149,43 @@ public class PatternValueProviderTest
         Assert.assertEquals("test1 xxxx", generator.generateValue(new HashSet<String>(), "test1 xxxx"));
         Assert.assertEquals("test2 yyyyy", generator.generateValue(new HashSet<String>(), "test2 yyyyy"));
         Assert.assertEquals("test3 90", generator.generateValue(new HashSet<String>(), "test3 90"));
-        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test1 xxxxx"));
-        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test2 xxxx"));
-        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test yyyyy"));
-        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test3 84"));
-        Assert.assertNull(generator.generateValue(new HashSet<String>(), "test3 99"));
+        try {
+            HashSet<String> usedValues = new HashSet<String>();
+            usedValues.add("test3 90");
+            generator.generateValue(usedValues, "test3 90");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.ValueAlreadyAllocatedException exception) {
+        }
+        try {
+            generator.generateValue(new HashSet<String>(), "test1 xxxxx");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.InvalidValueException exception) {
+        }
+        try {
+            generator.generateValue(new HashSet<String>(), "test2 xxxx");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.InvalidValueException exception) {
+        }
+        try {
+            generator.generateValue(new HashSet<String>(), "test yyyyy");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.InvalidValueException exception) {
+        }
+        try {
+            generator.generateValue(new HashSet<String>(), "test3 84");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.InvalidValueException exception) {
+        }
+        try {
+            generator.generateValue(new HashSet<String>(), "test3 99");
+            Assert.fail("Exception should be thrown");
+        }
+        catch (ValueProvider.InvalidValueException exception) {
+        }
     }
 }

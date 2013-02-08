@@ -1,6 +1,5 @@
-package cz.cesnet.shongo.controller.scheduler.reportnew;
+package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.resource.Capability;
@@ -78,6 +77,9 @@ public abstract class AbstractResourceReport extends Report
         this.capability = capability;
     }
 
+    /**
+     * @return description of the resource
+     */
     @Transient
     public String getResourceDescription()
     {
@@ -85,7 +87,7 @@ public abstract class AbstractResourceReport extends Report
             return formatResource(resource);
         }
         else if (capability != null) {
-            return String.format("capability '%s' in %s ",
+            return String.format("capability '%s' in %s",
                     capability.getClass().getSimpleName(), formatResource(capability.getResource()));
         }
         else {
@@ -93,6 +95,10 @@ public abstract class AbstractResourceReport extends Report
         }
     }
 
+    /**
+     * @return true if the report contains any resource (or capability),
+     *         false otherwise
+     */
     protected final boolean hasResource()
     {
         return resource != null || capability != null;

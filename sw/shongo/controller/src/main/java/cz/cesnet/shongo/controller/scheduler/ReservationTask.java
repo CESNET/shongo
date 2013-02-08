@@ -12,10 +12,7 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * Represents a {@link Scheduler} task which results into {@link Reservation}.
@@ -43,6 +40,11 @@ public abstract class ReservationTask
      * Stack of active {@link Report}s.
      */
     private Stack<Report> activeReports = new Stack<Report>();
+
+    /**
+     * Set of {@link Report}s which should not propagate errors to parent reports.
+     */
+    private Set<Report> disabledErrorPropagation = new HashSet<Report>();
 
     /**
      * Constructor.
@@ -127,7 +129,7 @@ public abstract class ReservationTask
             return reservation;
         }
         catch (ReportException exception) {
-            addReport(exception.getReport());
+            addReport(exception.getTopReport());
             exception.setReport(createReportFailureForThrowing());
             throw exception;
         }
@@ -240,20 +242,40 @@ public abstract class ReservationTask
     }
 
     /**
-     * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
+     * @param report         to be added and to be used as parent for next reports until {@link #endReport()} is called
+     * @param propagateError specifies whether error should be propagated to parent report
      */
-    protected void beginReport(Report report)
+    protected void beginReport(Report report, boolean propagateError)
     {
         addReport(report);
         activeReports.push(report);
+        if (!propagateError) {
+            disabledErrorPropagation.add(report);
+        }
     }
 
     /**
-     * Stop using {@link #activeReports} as parent for next reports
+     * Stop using active report as parent for next reports
      */
     protected void endReport()
     {
         activeReports.pop();
+        disabledErrorPropagation.remove(reports);
+    }
+
+    /**
+     * Stop using active report as parent for next reports
+     *
+     * @param errorReport to be added to the active report as error
+     */
+    protected void endReportError(Report errorReport)
+    {
+        Report report = activeReports.pop();
+        disabledErrorPropagation.remove(reports);
+
+        errorReport.setState(Report.State.ERROR);
+        report.setState(Report.State.ERROR);
+        report.addChildReport(errorReport);
     }
 
     /**
@@ -266,7 +288,7 @@ public abstract class ReservationTask
         }
         Report report = activeReports.peek();
         report.setState(Report.State.ERROR);
-        while (report.hasParentReport()) {
+        while (report.hasParentReport() && !disabledErrorPropagation.contains(report)) {
             report = report.getParentReport();
             report.setState(Report.State.ERROR);
         }
@@ -307,12 +329,12 @@ public abstract class ReservationTask
         Reservation reservation = null;
         Report report = createdMainReport();
         if (report != null) {
-            beginReport(report);
+            beginReport(report, false);
             try {
                 reservation = createReservation();
             }
             catch (ReportException exception) {
-                Report exceptionReport = exception.getReport();
+                Report exceptionReport = exception.getTopReport();
                 if (exceptionReport != report) {
                     // Report from exception isn't added to root report so we add it and throw the root report
                     addReport(exceptionReport);

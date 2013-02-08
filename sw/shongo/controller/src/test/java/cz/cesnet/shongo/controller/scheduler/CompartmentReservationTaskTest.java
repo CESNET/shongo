@@ -14,14 +14,12 @@ import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AbstractResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;

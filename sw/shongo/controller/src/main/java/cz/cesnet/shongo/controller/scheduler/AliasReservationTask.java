@@ -12,10 +12,7 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingAliasReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.CheckingResourceReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.FindingAvailableResourceReport;
+import cz.cesnet.shongo.controller.scheduler.report.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -172,7 +169,7 @@ public class AliasReservationTask extends ReservationTask
         }
 
         // Find available value in the alias providers
-        beginReport(new FindingAvailableResourceReport());
+        beginReport(new FindingAvailableResourceReport(), true);
         Reservation availableValueReservation = null;
         AliasProviderCapability availableAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -190,7 +187,7 @@ public class AliasReservationTask extends ReservationTask
                 continue;
             }
 
-            CheckingResourceReport checkingResource = addReport(new CheckingResourceReport(aliasProvider));
+            beginReport(new AllocatingResourceReport(aliasProvider), true);
 
             // Preferably reuse provided alias reservation
             Collection<AliasReservation> providedAliasReservations =
@@ -221,19 +218,29 @@ public class AliasReservationTask extends ReservationTask
             // Check whether alias provider can be allocated
             Resource resource = aliasProvider.getResource();
             DateTime referenceDateTime = cache.getReferenceDateTime();
-            if (!resource.isAllocatable() || !aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
-                checkingResource.setError(new ResourceNotAvailableReport(resource));
+            if (!resource.isAllocatable()) {
+                endReportError(new ResourceNotAllocatableReport(resource));
+                continue;
+            }
+            if (!aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+                endReportError(new ResourceNotAvailableReport(resource));
                 continue;
             }
 
             // Get new available value
-            Reservation valueReservation = ValueReservationTask.createReservation(
-                    aliasProvider.getValueProvider(), value, interval, cache.getValueCache(), cacheTransaction);
-            if (valueReservation != null) {
-                availableValueReservation = valueReservation;
-                availableAliasProvider = aliasProvider;
-                break;
+            Reservation valueReservation;
+            try {
+                valueReservation = ValueReservationTask.createReservation(aliasProvider.getValueProvider(), value,
+                        interval, cache.getValueCache(), cacheTransaction);
             }
+            catch (ReportException exception) {
+                endReportError(exception.getTopReport());
+                continue;
+            }
+
+            availableValueReservation = valueReservation;
+            availableAliasProvider = aliasProvider;
+            break;
         }
         if (availableValueReservation == null) {
             throw createReportFailureForThrowing().exception();

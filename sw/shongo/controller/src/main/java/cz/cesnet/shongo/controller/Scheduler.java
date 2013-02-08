@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
-import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -233,7 +232,7 @@ public class Scheduler extends Component implements Component.NotificationManage
         }
         catch (ReportException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
-            reservationRequest.addReport(exception.getReport());
+            reservationRequest.addReport(exception.getTopReport());
         }
 
         return reservation;

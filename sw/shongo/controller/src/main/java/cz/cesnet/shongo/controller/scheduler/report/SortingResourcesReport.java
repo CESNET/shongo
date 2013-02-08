@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler.reportnew;
+package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.report.Report;
 
@@ -10,12 +10,12 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class AllocatingCompartmentReport extends Report
+public class SortingResourcesReport extends Report
 {
     /**
      * Constructor.
      */
-    public AllocatingCompartmentReport()
+    public SortingResourcesReport()
     {
     }
 
@@ -23,6 +23,6 @@ public class AllocatingCompartmentReport extends Report
     @Transient
     public String getText()
     {
-        return String.format("Allocating compartment");
+        return "Sorting resources";
     }
 }

@@ -1,8 +1,6 @@
 * 2 paragraphs of shongo features
 
 * Error reporting>
-  - improve RoomReservationTask to pass the uncommented test in ReportTest
-  - improve scheduler error reports (alias allocation -> multiple providers what to show?)
   - document all possible errors and set reactions (for request and executor)
 
   - Each reservation task should create it owns context and should get passed the interval as parameter

@@ -17,11 +17,11 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.scheduler.reportnew.CannotCreateConnectionFromToMultipleReport;
+import cz.cesnet.shongo.controller.scheduler.report.CannotCreateConnectionFromToMultipleReport;
 import cz.cesnet.shongo.controller.scheduler.report.NotEnoughEndpointInCompartmentReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingCompartmentReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingConnectionBetweenReport;
-import cz.cesnet.shongo.controller.scheduler.reportnew.AllocatingConnectionFromToReport;
+import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
+import cz.cesnet.shongo.controller.scheduler.report.AllocatingConnectionBetweenReport;
+import cz.cesnet.shongo.controller.scheduler.report.AllocatingConnectionFromToReport;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -255,7 +255,7 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        beginReport(new AllocatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
+        beginReport(new AllocatingConnectionBetweenReport(endpointFrom, endpointTo, technology), true);
         CacheTransaction.Savepoint cacheTransactionSavepoint = getContext().getCacheTransaction().createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
@@ -287,7 +287,7 @@ public class CompartmentReservationTask extends ReservationTask
             throws ReportException
     {
         // Allocate alias for the target endpoint
-        beginReport(new AllocatingConnectionFromToReport(endpointFrom, endpointTo));
+        beginReport(new AllocatingConnectionFromToReport(endpointFrom, endpointTo), true);
         try {
             // Created connection
             Connection connection = null;

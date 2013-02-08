@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -100,16 +102,11 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
      */
     public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue, Interval interval,
             CacheTransaction transaction)
+            throws ValueProvider.InvalidValueException, ValueProvider.ValueAlreadyAllocatedException,
+                   ValueProvider.NoAvailableValueException
     {
         AbstractReservationCache.Transaction<ValueReservation> valueReservationTransaction =
                 transaction.getValueProviderCacheTransaction();
-
-        // Check if resource can be allocated and if it is available in the future
-        Capability capability = valueProvider.getCapability();
-        Resource resource = capability.getResource();
-        if (!resource.isAllocatable() || !capability.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
-            return null;
-        }
 
         // Find available alias value
         String value = null;
@@ -150,9 +147,6 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
             else {
                 value = valueProvider.generateValue(usedValues);
             }
-        }
-        if (value == null) {
-            return null;
         }
         AvailableValue availableAlias = new AvailableValue();
         availableAlias.setValue(value);

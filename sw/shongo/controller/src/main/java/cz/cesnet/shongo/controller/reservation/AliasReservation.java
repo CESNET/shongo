@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import cz.cesnet.shongo.util.TemporalHelper;
-import org.joda.time.Period;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -108,7 +106,7 @@ public class AliasReservation extends Reservation
     public Collection<Alias> getAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
-        for ( Alias aliasTemplate : aliasProviderCapability.getAliases() ) {
+        for (Alias aliasTemplate : aliasProviderCapability.getAliases()) {
             Alias alias = new Alias();
             alias.setType(aliasTemplate.getType());
             alias.setValue(aliasTemplate.getValue());
@@ -124,7 +122,7 @@ public class AliasReservation extends Reservation
     @Transient
     public Alias getAlias(AliasType aliasType)
     {
-        for ( Alias aliasTemplate : aliasProviderCapability.getAliases() ) {
+        for (Alias aliasTemplate : aliasProviderCapability.getAliases()) {
             if (aliasTemplate.getType().equals(aliasType)) {
                 Alias alias = new Alias();
                 alias.setType(aliasTemplate.getType());

@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.util.TemporalHelper;

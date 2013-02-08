@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
@@ -120,13 +119,17 @@ public abstract class ValueProvider extends PersistentObject
     }
 
     /**
+     *
      * @param usedValues set of already used values (which should not be generated)
      * @return new generated value if available,
      *         null otherwise
      */
-    public abstract String generateValue(Set<String> usedValues);
+    public abstract String generateValue(Set<String> usedValues) throws NoAvailableValueException;
 
     /**
+     *
+     *
+     *
      *
      * @param usedValues     set of already used values (which should not be generated)
      * @param requestedValue which should be generated
@@ -134,13 +137,14 @@ public abstract class ValueProvider extends PersistentObject
      *         null otherwise
      */
     @Transient
-    public abstract String generateValue(Set<String> usedValues, String requestedValue);
+    public abstract String generateValue(Set<String> usedValues, String requestedValue)
+            throws ValueAlreadyAllocatedException, InvalidValueException;
 
     /**
      * @param usedValues set of already used values (which should not be generated)
      * @return new generated value and append the value to the {@code usedValues}
      */
-    public final String generateAddedValue(Set<String> usedValues)
+    public final String generateAddedValue(Set<String> usedValues) throws NoAvailableValueException
     {
         String generatedValue = generateValue(usedValues);
         usedValues.add(generatedValue);
@@ -210,5 +214,26 @@ public abstract class ValueProvider extends PersistentObject
                 return valueProvider;
             }
         }
+    }
+
+    /**
+     * No value can be generated because all values are already allocated.
+     */
+    public static class NoAvailableValueException extends Exception
+    {
+    }
+
+    /**
+     * Requested value doesn't match the constraints.
+     */
+    public static class InvalidValueException extends Exception
+    {
+    }
+
+    /**
+     * Requested value is already allocated.
+     */
+    public static class ValueAlreadyAllocatedException extends Exception
+    {
     }
 }

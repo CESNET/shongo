@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.cache.AvailableValue;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ValueCache;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.controller.scheduler.report.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -31,24 +33,47 @@ public class ValueReservationTask
      *         null otherwise
      */
     public static Reservation createReservation(ValueProvider valueProvider, String requestedValue, Interval interval,
-            ValueCache valueCache, CacheTransaction cacheTransaction)
+            ValueCache valueCache, CacheTransaction cacheTransaction) throws ReportException
     {
+        DateTime referenceDateTime = valueCache.getReferenceDateTime();
+
+        // Check if resource can be allocated and if it is available in the future
+        Capability capability = valueProvider.getCapability();
+        Resource resource = capability.getResource();
+        if (!resource.isAllocatable()) {
+            throw new ResourceNotAllocatableReport(resource).exception();
+        }
+        if (!capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+            throw new ResourceNotAvailableReport(resource).exception();
+        }
+
         // Find available value in the alias providers
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
-
-        // Check whether target value provider can be allocated
-        Capability capability = targetValueProvider.getCapability();
-        Resource resource = capability.getResource();
-        DateTime referenceDateTime = valueCache.getReferenceDateTime();
-        if (!resource.isAllocatable() || !capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
-            return null;
+        if (targetValueProvider != valueProvider)                               {
+            // Check whether target value provider can be allocated
+            capability = targetValueProvider.getCapability();
+            resource = capability.getResource();
+            if (!resource.isAllocatable()) {
+                throw new ResourceNotAllocatableReport(resource).exception();
+            }
+            if (!capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+                throw new ResourceNotAvailableReport(resource).exception();
+            }
         }
 
         // Get new available value
-        AvailableValue availableValue =
-                valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
-        if (availableValue == null) {
-            return null;
+        AvailableValue availableValue;
+        try {
+            availableValue = valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
+        }
+        catch (ValueProvider.InvalidValueException e) {
+            throw new ValueInvalidReport(requestedValue).exception();
+        }
+        catch (ValueProvider.ValueAlreadyAllocatedException e) {
+            throw new ValueAlreadyAllocatedReport(requestedValue).exception();
+        }
+        catch (ValueProvider.NoAvailableValueException e) {
+            throw new ValueNoAvailableReport().exception();
         }
 
         // Reuse existing value reservation
