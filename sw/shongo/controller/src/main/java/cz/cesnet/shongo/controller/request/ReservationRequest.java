@@ -347,15 +347,6 @@ public class ReservationRequest extends NormalReservationRequest
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
-        if (reservationRequestApi.getStateReport() == null) {
-            Reservation reservation = getReservation();
-            if (reservation != null) {
-                Executable executable = reservation.getExecutable();
-                if (executable != null) {
-                    reservationRequestApi.setStateReport(executable.getReportText());
-                }
-            }
-        }
         if (isReservationAllocated()) {
             reservationRequestApi.setReservationId(IdentifierFormat.formatGlobalId(getReservation()));
         }

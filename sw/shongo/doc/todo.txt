@@ -1,6 +1,7 @@
 * 2 paragraphs of shongo features
 
-* Error reporting>
+* Error reporting:
+  - format report state (error/OK)
   - document all possible errors and set reactions (for request and executor)
 
   - Each reservation task should create it owns context and should get passed the interval as parameter

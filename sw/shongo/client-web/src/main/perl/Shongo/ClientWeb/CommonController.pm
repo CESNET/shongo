@@ -296,8 +296,8 @@ sub get_reservation_request
     $request->{'childRequests'} = [];
     foreach my $child_request (@{$child_requests}) {
         # State report
-        if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED' || $child_request->{'state'} eq 'STARTING_FAILED') ) {
-           $child_request->{'stateReport'} = undef;
+        if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED') ) {
+            $child_request->{'stateReport'} = undef;
         }
 
         # State
@@ -321,6 +321,10 @@ sub get_reservation_request
                 $child_request->{'aliasUsageRequests'} = $aliasUsageRequests;
             }
             $child_request->{'reservation'} = $reservation;
+
+            if ( defined($reservation->{'executable'}) && $reservation->{'executable'}->{'state'} eq 'STARTING_FAILED' ) {
+                $child_request->{'stateReport'} = $reservation->{'executable'}->{'stateReport'};
+            }
         }
 
         push(@{$request->{'childRequests'}}, $child_request);

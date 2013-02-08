@@ -42,7 +42,9 @@
 
     <entity class="cz.cesnet.shongo.fault.jade.CommandUnknownFailure" access="FIELD">
         <attributes>
-            <basic name="message"/>
+            <basic name="message">
+                <column column-definition="LONGVARCHAR"/>
+            </basic>
         </attributes>
     </entity>
 
