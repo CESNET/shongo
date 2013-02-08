@@ -21,20 +21,39 @@ import org.joda.time.Interval;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ValueReservationTask
+public class ValueReservationTask extends ReservationTask
 {
     /**
+     * {@link ValueProvider} to be used.
+     */
+    private ValueProvider valueProvider;
+
+    /**
+     * To be allocated.
+     */
+    private String requestedValue;
+
+    /**
+     * Constructor.
+     *
+     * @param context
      * @param valueProvider
      * @param requestedValue
-     * @param interval
-     * @param valueCache
-     * @param cacheTransaction
-     * @return {@link ValueReservation} if a requested value is available,
-     *         null otherwise
      */
-    public static Reservation createReservation(ValueProvider valueProvider, String requestedValue, Interval interval,
-            ValueCache valueCache, CacheTransaction cacheTransaction) throws ReportException
+    public ValueReservationTask(Context context, ValueProvider valueProvider, String requestedValue)
     {
+        super(context);
+        this.valueProvider = valueProvider;
+        this.requestedValue = requestedValue;
+    }
+
+    @Override
+    protected Reservation createReservation() throws ReportException
+    {
+        Interval interval = getInterval();
+        ValueCache valueCache = getCache().getValueCache();
+        CacheTransaction cacheTransaction = getCacheTransaction();
+
         DateTime referenceDateTime = valueCache.getReferenceDateTime();
 
         // Check if resource can be allocated and if it is available in the future
@@ -79,6 +98,8 @@ public class ValueReservationTask
         // Reuse existing value reservation
         ValueReservation providedValueReservation = availableValue.getValueReservation();
         if (providedValueReservation != null) {
+            addReport(new ReusingReservationReport(providedValueReservation));
+
             ExistingReservation existingValueReservation = new ExistingReservation();
             existingValueReservation.setSlot(interval);
             existingValueReservation.setReservation(providedValueReservation);

@@ -7,12 +7,12 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,6 +74,7 @@ public class ReportTest
         AliasSpecification aliasSpecification3 = new AliasSpecification();
         aliasSpecification3.addAliasType(AliasType.H323_E164);
         aliasSpecification3.setAliasProviderCapability(deviceResource3.getCapability(AliasProviderCapability.class));
+        printProvided(cache, aliasSpecification1, aliasSpecification2);
         print(cache, aliasSpecification1, aliasSpecification2, aliasSpecification3);
 
         RoomSpecification roomSpecification2 = new RoomSpecification();
@@ -92,23 +93,52 @@ public class ReportTest
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
             ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
-            try {
-                reservationTask.perform();
-                System.out.println();
-                System.out.println(reservationTask.getClass().getSimpleName() + " reports:");
-                System.out.println();
-                for (Report report : reservationTask.getReports()) {
-                    System.out.println(report.toString());
-                }
-                System.out.println();
-            }
-            catch (ReportException exception) {
-                System.err.println();
-                System.err.println(reservationTask.getClass().getSimpleName() + " reports:");
-                System.err.println();
-                System.err.println(exception.getMessage());
-            }
+            print(reservationTask);
         }
-        System.out.flush();
+    }
+
+    private void printProvided(Cache cache, ReservationTaskProvider reservationTaskProvider1,
+            ReservationTaskProvider reservationTaskProvider2) throws ReportException
+    {
+        ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
+
+        ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(context);
+        Reservation reservation = print(reservationTask);
+        reservation.generateTestingId();
+        context.getCacheTransaction().addProvidedReservation(reservation);
+
+        reservationTask = reservationTaskProvider2.createReservationTask(context);
+        print(reservationTask);
+    }
+
+    private Reservation print(ReservationTask reservationTask) throws ReportException
+    {
+        try {
+            Reservation reservation = reservationTask.perform();
+            StringBuilder builder = new StringBuilder();
+            builder.append("\n");
+            builder.append(reservationTask.getClass().getSimpleName() + " reports:\n");
+            builder.append("\n");
+            for (Report report : reservationTask.getReports()) {
+                builder.append(report.toString());
+                builder.append("\n");
+            }
+            builder.append("\n");
+            System.out.print(builder.toString());
+            System.out.flush();
+            return reservation;
+        }
+        catch (ReportException exception) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("\n");
+            builder.append(reservationTask.getClass().getSimpleName() + " error report:\n");
+            builder.append("\n");
+            builder.append(exception.getMessage());
+            builder.append("\n");
+            System.err.print(builder.toString());
+            System.err.flush();
+            return null;
+        }
+
     }
 }

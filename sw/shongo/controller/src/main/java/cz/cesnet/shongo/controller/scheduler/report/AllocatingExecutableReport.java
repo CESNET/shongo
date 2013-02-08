@@ -1,35 +1,32 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getText()}
  */
 @Entity
-public class SortingResourcesReport extends Report
+public class AllocatingExecutableReport extends Report
 {
     /**
      * Constructor.
      */
-    public SortingResourcesReport()
+    public AllocatingExecutableReport()
     {
-    }
-
-    @Override
-    @Transient
-    public State getState()
-    {
-        return State.NONE;
     }
 
     @Override
     @Transient
     public String getText()
     {
-        return "Sorting resources";
+        return "Allocating new executable";
     }
 }

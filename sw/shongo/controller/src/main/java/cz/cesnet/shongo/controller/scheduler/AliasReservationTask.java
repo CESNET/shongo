@@ -134,45 +134,21 @@ public class AliasReservationTask extends ReservationTask
         Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
 
-        // Get alias providers
-        Collection<AliasProviderCapability> aliasProviders;
+        // Get possible alias providers
+        Collection<AliasProviderCapability> possibleAliasProviders;
         if (aliasProviderCapabilities.size() > 0) {
             // Use only specified alias providers
-            aliasProviders = aliasProviderCapabilities;
+            possibleAliasProviders = aliasProviderCapabilities;
         }
         else {
             // Use all alias providers from the cache
-            aliasProviders = cache.getAliasProviders();
+            possibleAliasProviders = cache.getAliasProviders();
         }
 
-        // If target resource for which the alias will be used is not specified,
-        // we should prefer alias providers which doesn't restrict target resource
-        if (targetResource == null) {
-            // Sort the alias providers in the way that the ones which restricts target resource are at the end
-            List<AliasProviderCapability> aliasProviderList =
-                    new ArrayList<AliasProviderCapability>(aliasProviders);
-            Collections.sort(aliasProviderList, new Comparator<AliasProviderCapability>()
-            {
-                @Override
-                public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
-                {
-                    if (!provider1.isRestrictedToResource() && provider2.isRestrictedToResource()) {
-                        return -1;
-                    }
-                    if (provider1.isRestrictedToResource() && !provider2.isRestrictedToResource()) {
-                        return 1;
-                    }
-                    return 0;
-                }
-            });
-            aliasProviders = aliasProviderList;
-        }
-
-        // Find available value in the alias providers
+        // Find matching alias providers
         beginReport(new FindingAvailableResourceReport(), true);
-        Reservation availableValueReservation = null;
-        AliasProviderCapability availableAliasProvider = null;
-        for (AliasProviderCapability aliasProvider : aliasProviders) {
+        List<AliasProviderCapability> aliasProviders = new ArrayList<AliasProviderCapability>();
+        for (AliasProviderCapability aliasProvider : possibleAliasProviders) {
             // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
                 // Skip alias providers which cannot be used for specified target resource
@@ -186,10 +162,18 @@ public class AliasReservationTask extends ReservationTask
             if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
                 continue;
             }
+            aliasProviders.add(aliasProvider);
+            addReport(new ResourceReport(aliasProvider, Report.State.NONE));
+        }
+        if (aliasProviders.size() == 0) {
+            throw createReportFailureForThrowing().exception();
+        }
+        endReport();
 
-            beginReport(new AllocatingResourceReport(aliasProvider), true);
-
-            // Preferably reuse provided alias reservation
+        // Build map of provided alias reservation by alias provider
+        final Map<AliasProviderCapability, AliasReservation> availableProvidedAlias =
+                new HashMap<AliasProviderCapability, AliasReservation>();
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
             Collection<AliasReservation> providedAliasReservations =
                     cacheTransaction.getProvidedAliasReservations(aliasProvider);
             if (providedAliasReservations.size() > 0) {
@@ -205,55 +189,114 @@ public class AliasReservationTask extends ReservationTask
                 else {
                     providedAliasReservation = providedAliasReservations.iterator().next();
                 }
-                // Reuse existing alias reservation
                 if (providedAliasReservation != null) {
-                    ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(getInterval());
-                    existingReservation.setReservation(providedAliasReservation);
-                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
-                    return existingReservation;
+                    availableProvidedAlias.put(aliasProvider, providedAliasReservation);
                 }
+            }
+        }
+
+        // Sort alias providers, prefer the ones with provided aliases
+        addReport(new SortingResourcesReport());
+        Collections.sort(aliasProviders, new Comparator<AliasProviderCapability>()
+        {
+            @Override
+            public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
+            {
+                boolean firstHasProvidedAlias = availableProvidedAlias.containsKey(provider1);
+                boolean secondHasProvidedAlias = availableProvidedAlias.containsKey(provider2);
+                if (firstHasProvidedAlias && !secondHasProvidedAlias) {
+                    return -1;
+                }
+                if (!firstHasProvidedAlias && secondHasProvidedAlias) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+
+        // If target resource for which the alias will be used is not specified,
+        // we should prefer alias providers which doesn't restrict target resource
+        if (targetResource == null) {
+            // Sort the alias providers in the way that the ones which restricts target resource are at the end
+            Collections.sort(aliasProviders, new Comparator<AliasProviderCapability>()
+            {
+                @Override
+                public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
+                {
+                    if (!provider1.isRestrictedToResource() && provider2.isRestrictedToResource()) {
+                        return -1;
+                    }
+                    if (provider1.isRestrictedToResource() && !provider2.isRestrictedToResource()) {
+                        return 1;
+                    }
+                    return 0;
+                }
+            });
+        }
+
+        // Find available value in the alias providers
+        ValueReservation availableValueReservation = null;
+        AliasProviderCapability availableAliasProvider = null;
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            beginReport(new AllocatingResourceReport(aliasProvider), true);
+
+            // Preferably reuse provided alias reservation
+            AliasReservation providedAliasReservation = availableProvidedAlias.get(aliasProvider);
+            if (providedAliasReservation != null) {
+                addReport(new ReusingReservationReport(providedAliasReservation));
+
+                ExistingReservation existingReservation = new ExistingReservation();
+                existingReservation.setSlot(getInterval());
+                existingReservation.setReservation(providedAliasReservation);
+                cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                return existingReservation;
             }
 
             // Check whether alias provider can be allocated
             Resource resource = aliasProvider.getResource();
             DateTime referenceDateTime = cache.getReferenceDateTime();
             if (!resource.isAllocatable()) {
+                // End allocating current alias provider and try to allocate next one
                 endReportError(new ResourceNotAllocatableReport(resource));
                 continue;
             }
             if (!aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+                // End allocating current alias provider and try to allocate next one
                 endReportError(new ResourceNotAvailableReport(resource));
                 continue;
             }
 
             // Get new available value
-            Reservation valueReservation;
+            CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
-                valueReservation = ValueReservationTask.createReservation(aliasProvider.getValueProvider(), value,
-                        interval, cache.getValueCache(), cacheTransaction);
+                ValueReservationTask valueReservationTask =
+                        new ValueReservationTask(context, aliasProvider.getValueProvider(), value);
+                availableValueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
             }
             catch (ReportException exception) {
-                endReportError(exception.getTopReport());
+                cacheTransactionSavepoint.revert();
+
+                // End allocating current alias provider and try to allocate next one
+                endReport();
                 continue;
             }
+            finally {
+                cacheTransactionSavepoint.destroy();
+            }
 
-            availableValueReservation = valueReservation;
             availableAliasProvider = aliasProvider;
+            endReport();
             break;
         }
         if (availableValueReservation == null) {
             throw createReportFailureForThrowing().exception();
         }
-        endReport();
-
-        ValueReservation valueReservation = addChildReservation(availableValueReservation, ValueReservation.class);
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
         aliasReservation.setAliasProviderCapability(availableAliasProvider);
-        aliasReservation.setValueReservation(valueReservation);
+        aliasReservation.setValueReservation(availableValueReservation);
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).

@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
+import cz.cesnet.shongo.controller.scheduler.report.ReusingReservationReport;
 
 import java.util.Set;
 
@@ -59,8 +60,10 @@ public class ResourceReservationTask extends ReservationTask
         // Reuse existing reservation
         Set<ResourceReservation> resourceReservations = cacheTransaction.getProvidedResourceReservations(resource);
         if (resourceReservations.size() > 0) {
-            // Reuse provided reservation
             ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
+            addReport(new ReusingReservationReport(providedResourceReservation));
+
+            // Reuse provided reservation
             ExistingReservation existingReservation = new ExistingReservation();
             existingReservation.setSlot(getInterval());
             existingReservation.setReservation(providedResourceReservation);

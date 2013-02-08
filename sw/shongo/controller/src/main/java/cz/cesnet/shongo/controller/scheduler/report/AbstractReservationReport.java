@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -50,14 +51,6 @@ public abstract class AbstractReservationReport extends Report
     @Transient
     public String getReservationDescription()
     {
-        String reservationDescription;
-        if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            reservationDescription = String.format("Alias reservation '%d'", aliasReservation.getId());
-        }
-        else {
-            reservationDescription = reservation.getClass().getSimpleName();
-        }
-        return reservationDescription;
+        return String.format("reservation '%s'", IdentifierFormat.formatGlobalId(reservation));
     }
 }

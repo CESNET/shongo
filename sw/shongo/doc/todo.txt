@@ -1,9 +1,7 @@
 * 2 paragraphs of shongo features
 
 * Error reporting:
-  - add scheduler reports for reusing existing reservation and for reusing executable
   - document all possible errors and set reactions (for request and executor)
-
   - Each reservation task should create it owns context and should get passed the interval as parameter
     because when an exception take places it should not affect the parent context
   - Continue on reworking all

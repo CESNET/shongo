@@ -95,22 +95,21 @@ div.state-report pre {
 /** description of aliases */
 div.aliases-description {
     position: absolute;
-    margin-top: 5px;
     display: none;
-    border: 1px solid black;
-    background-color: #FFFFFF;
+    margin-top: 5px;
     padding: 5px;
+    border: 1px solid #BBBBBB;
+    border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
+    background-color: #FFFFFF;
 }
 
 /** Not available page */
 div.not-available {
     margin: 30px;
     padding: 10px;
-    text-align: center;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
     border: 1px solid #BBBBBB;
+    border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;
+    text-align: center;
 }
 .not-available h1 {
     color: red;

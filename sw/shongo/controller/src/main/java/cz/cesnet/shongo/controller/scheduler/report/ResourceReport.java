@@ -69,6 +69,17 @@ public class ResourceReport extends Report
     }
 
     /**
+     * Constructor.
+     *
+     * @param capability ses the {@link #resource}
+     */
+    public ResourceReport(Capability capability, State state)
+    {
+        setResource(capability);
+        setState(state);
+    }
+
+    /**
      * @param resource sets the {@link #resource}
      */
     @Transient

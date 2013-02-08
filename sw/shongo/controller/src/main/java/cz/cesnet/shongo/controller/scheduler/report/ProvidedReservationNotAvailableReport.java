@@ -40,6 +40,6 @@ public class ProvidedReservationNotAvailableReport extends AbstractReservationRe
     @Transient
     public String getText()
     {
-        return String.format("%s is not available.", getReservationDescription());
+        return String.format("The %s is not available.", getReservationDescription());
     }
 }

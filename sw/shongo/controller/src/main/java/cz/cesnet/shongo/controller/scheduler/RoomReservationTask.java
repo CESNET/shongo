@@ -169,9 +169,11 @@ public class RoomReservationTask extends ReservationTask
             RoomVariant roomVariant = roomVariantByDeviceResourceId.get(providedRoomDeviceResourceId);
             // If provided room has enough allocated capacity
             if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
-                // Reuse provided reservation which allocates the provided room
                 Reservation providedReservation =
                         cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
+                addReport(new ReusingReservationReport(providedReservation));
+
+                // Reuse provided reservation which allocates the provided room
                 ExistingReservation existingReservation = new ExistingReservation();
                 existingReservation.setSlot(getInterval());
                 existingReservation.setReservation(providedReservation);
@@ -207,8 +209,7 @@ public class RoomReservationTask extends ReservationTask
             endReport();
         }
 
-        // TODO: prefer provided room endpoints
-        // Sort available rooms from the most filled to the least filled
+        // Sort available rooms, prefer the ones with provided room and most filled to the least filled
         addReport(new SortingResourcesReport());
         Collections.sort(availableRooms, new Comparator<AvailableRoom>()
         {
@@ -229,6 +230,7 @@ public class RoomReservationTask extends ReservationTask
         // Get the first available room
         for (AvailableRoom availableRoom : availableRooms) {
             beginReport(new AllocatingResourceReport(availableRoom.getDeviceResource()), false);
+            CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
                 // Get device and it's room variant
                 DeviceResource deviceResource = availableRoom.getDeviceResource();
@@ -246,19 +248,12 @@ public class RoomReservationTask extends ReservationTask
 
                 // If provided room is available
                 ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(deviceResource.getId());
-                if (availableProvidedRoom == null) {
-                    // Reserve full capacity
-                    roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
-
-                    // Create new room endpoint
-                    ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
-                    resourceRoomEndpoint.setDeviceResource(deviceResource);
-                    roomEndpoint = resourceRoomEndpoint;
-                }
-                else {
-                    // Reuse provided reservation which allocates the provided room
+                if (availableProvidedRoom != null) {
                     Reservation providedReservation =
                             cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
+                    addReport(new ReusingReservationReport(providedReservation));
+
+                    // Reuse provided reservation which allocates the provided room
                     ExistingReservation existingReservation = new ExistingReservation();
                     existingReservation.setSlot(getInterval());
                     existingReservation.setReservation(providedReservation);
@@ -266,13 +261,26 @@ public class RoomReservationTask extends ReservationTask
                     getCacheTransaction().removeProvidedReservation(providedReservation);
 
                     // Reserve only the remaining capacity
-                    roomConfiguration
-                            .setLicenseCount(roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
+                    roomConfiguration.setLicenseCount(
+                            roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
+
+                    addReport(new ReusingExecutableReport(availableProvidedRoom));
 
                     // Create new used room endpoint
                     UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
                     usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
                     roomEndpoint = usedRoomEndpoint;
+                }
+                else {
+                    // Reserve full capacity
+                    roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
+
+                    addReport(new AllocatingExecutableReport());
+
+                    // Create new room endpoint
+                    ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+                    resourceRoomEndpoint.setDeviceResource(deviceResource);
+                    roomEndpoint = resourceRoomEndpoint;
                 }
 
                 // Set of technologies which are supported in the room
@@ -365,8 +373,13 @@ public class RoomReservationTask extends ReservationTask
                 return roomReservation;
             }
             catch (ReportException exception) {
+                cacheTransactionSavepoint.revert();
+
+                // Try to allocate next available room
+                continue;
             }
             finally {
+                cacheTransactionSavepoint.destroy();
                 endReport();
             }
         }
