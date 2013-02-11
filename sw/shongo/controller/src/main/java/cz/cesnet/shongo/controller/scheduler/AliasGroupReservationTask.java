@@ -63,6 +63,7 @@ public class AliasGroupReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        Context context = getContext();
         Set<AliasType> allocatedAliasTypes = new HashSet<AliasType>();
         Set<Technology> allocatedAliasTechnologies = new HashSet<Technology>();
         ResourceRoomEndpoint allocatedRoomEndpoint = null;
@@ -102,7 +103,7 @@ public class AliasGroupReservationTask extends ReservationTask
             }
 
             // Create new reservation task
-            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(getContext());
+            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
             if (targetResource != null) {
                 aliasReservationTask.setTargetResource(targetResource);
             }
@@ -138,7 +139,7 @@ public class AliasGroupReservationTask extends ReservationTask
                 aliasReservation.setExecutable(allocatedRoomEndpoint);
             }
             // If room endpoint is allocated by current alias reservation
-            else if (aliasProviderCapability.isPermanentRoom()) {
+            else if (aliasProviderCapability.isPermanentRoom() && context.isExecutableAllowed()) {
                 // Use it for next alias reservations
                 allocatedRoomEndpoint = (ResourceRoomEndpoint) aliasReservation.getExecutable();
             }

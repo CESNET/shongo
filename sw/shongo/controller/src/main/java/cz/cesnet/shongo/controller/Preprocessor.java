@@ -64,13 +64,6 @@ public class Preprocessor extends Component
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-            // Process all not-preprocessed permanent reservation requests
-            List<PermanentReservationRequest> permanentReservationRequests =
-                    reservationRequestManager.listNotPreprocessedPermanentReservationRequests(interval);
-            for (PermanentReservationRequest permanentReservationRequest : permanentReservationRequests) {
-                processReservationRequest(permanentReservationRequest, interval, entityManager);
-            }
-
             // Process all not-preprocessed reservation request sets
             List<ReservationRequestSet> reservationRequestSets =
                     reservationRequestManager.listNotPreprocessedReservationRequestSets(interval);
@@ -117,10 +110,7 @@ public class Preprocessor extends Component
                         "Reservation request set '%s' is already preprocessed in %s!",
                         reservationRequestSetId, interval));
             }
-            if (reservationRequest instanceof PermanentReservationRequest) {
-                processReservationRequest((PermanentReservationRequest) reservationRequest, interval, entityManager);
-            }
-            else if (reservationRequest instanceof ReservationRequestSet) {
+            if (reservationRequest instanceof ReservationRequestSet) {
                 processReservationRequest((ReservationRequestSet) reservationRequest, interval, entityManager);
             }
             else {
@@ -133,109 +123,6 @@ public class Preprocessor extends Component
             transaction.rollback();
             throw new IllegalStateException("Preprocessor failed", exception);
         }
-    }
-
-    /**
-     * Synchronize (create/modify/delete) {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s
-     * for a single {@link PermanentReservationRequest}.
-     */
-    private void processReservationRequest(PermanentReservationRequest permanentReservationRequest, Interval interval,
-            EntityManager entityManager) throws FaultException
-    {
-        permanentReservationRequest.checkPersisted();
-
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-
-        // Get list of date/time slots
-        Collection<Interval> slots = permanentReservationRequest.enumerateSlots(interval);
-        // Get resource for which the permanent reservation should be synchronized
-        Resource resource = permanentReservationRequest.getResource();
-
-        // Build map of resource reservations by slots
-        Map<Interval, ResourceReservation> resourceReservationBySlot = new HashMap<Interval, ResourceReservation>();
-        Set<Interval> slotsToDelete = new HashSet<Interval>();
-        for (ResourceReservation resourceReservation : permanentReservationRequest.getResourceReservations()) {
-            // Only slots which overlaps interval
-            if (resourceReservation.getSlot().overlaps(interval)) {
-                resourceReservationBySlot.put(resourceReservation.getSlot(), resourceReservation);
-                slotsToDelete.add(resourceReservation.getSlot());
-            }
-        }
-
-        // Remove all existing slots from set of to delete
-        for (Interval slot : slots) {
-            slotsToDelete.remove(slot);
-        }
-
-        // Remove all reservations which remains in map
-        for (Interval slot : slotsToDelete) {
-            ResourceReservation resourceReservation = resourceReservationBySlot.get(slot);
-            permanentReservationRequest.removeReservation(resourceReservation);
-            reservationManager.delete(resourceReservation, cache);
-        }
-
-        // Remove all old reports
-        Set<Interval> keepReportSlots = new HashSet<Interval>();
-        for (ResourceReservation resourceReservation : permanentReservationRequest.getResourceReservations()) {
-            keepReportSlots.add(resourceReservation.getSlot());
-        }
-        Set<Report> reportsToDelete = new HashSet<Report>();
-        for (Report report : permanentReservationRequest.getReports()) {
-            if (report instanceof AllocatingPermanentReservationReport) {
-                AllocatingPermanentReservationReport allocatingPermanentReservationReport =
-                        (AllocatingPermanentReservationReport) report;
-                if (keepReportSlots.contains(allocatingPermanentReservationReport.getSlot())) {
-                    continue;
-                }
-            }
-            reportsToDelete.add(report);
-        }
-        for (Report report : reportsToDelete) {
-            permanentReservationRequest.removeReport(report);
-        }
-        reservationRequestManager.update(permanentReservationRequest, false);
-
-        // Process all slots
-        for (Interval slot : slots) {
-            ResourceReservation resourceReservation = resourceReservationBySlot.get(slot);
-
-            if (resourceReservation != null) {
-                if (resourceReservation.getResource().equals(resource)) {
-                    // Resource reservation is up-to-date
-                    continue;
-                }
-                permanentReservationRequest.removeReservation(resourceReservation);
-                reservationManager.delete(resourceReservation, cache);
-            }
-            ReservationTask.Context context = new ReservationTask.Context(permanentReservationRequest, cache, slot);
-            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
-
-            Report report = new AllocatingPermanentReservationReport(slot);
-            try {
-                resourceReservation = resourceReservationTask.perform(ResourceReservation.class);
-                reservationManager.create(resourceReservation);
-
-                // Update cache and reservation request
-                cache.addReservation(resourceReservation, entityManager);
-                permanentReservationRequest.addReservation(resourceReservation);
-            }
-            catch (ReportException exception) {
-                report.addChildReport(exception.getTopReport());
-            }
-            permanentReservationRequest.addReport(report);
-            reservationRequestManager.update(permanentReservationRequest, false);
-        }
-
-        // When the reservation request hasn't got any future requested slot, the preprocessed state
-        // is until "infinite".
-        if (!permanentReservationRequest.hasSlotAfter(interval.getEnd())) {
-            interval = new Interval(interval.getStart(), PreprocessorStateManager.MAXIMUM_INTERVAL_END);
-        }
-
-        // Set state preprocessed state for the interval to reservation request
-        PreprocessorStateManager.setState(entityManager, permanentReservationRequest,
-                PreprocessorState.PREPROCESSED, interval);
     }
 
     /**

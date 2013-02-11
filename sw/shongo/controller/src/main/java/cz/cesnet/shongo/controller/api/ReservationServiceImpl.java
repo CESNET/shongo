@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -290,93 +289,67 @@ public class ReservationServiceImpl extends Component
         summary.setId(IdentifierFormat.formatGlobalId(abstractReservationRequest));
         summary.setUserId(abstractReservationRequest.getUserId());
         summary.setCreated(abstractReservationRequest.getCreated());
+        summary.setPurpose(abstractReservationRequest.getPurpose());
         summary.setDescription(abstractReservationRequest.getDescription());
 
-        Interval earliestSlot = null;
-        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.NormalReservationRequest) {
-            cz.cesnet.shongo.controller.request.NormalReservationRequest normalReservationRequest =
-                    (cz.cesnet.shongo.controller.request.NormalReservationRequest) abstractReservationRequest;
-
-            // Set purpose
-            summary.setPurpose(normalReservationRequest.getPurpose());
-
-            // Set type based on specification
-            cz.cesnet.shongo.controller.request.Specification specification =
-                    normalReservationRequest.getSpecification();
-            if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
-                cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification =
-                        (cz.cesnet.shongo.controller.request.RoomSpecification) specification;
-                summary.setType(getSummaryRoomSpecificationType(normalReservationRequest, roomSpecification));
-            }
-            else if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
-                cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification =
-                        (cz.cesnet.shongo.controller.request.AliasSpecification) specification;
-                summary.setType(getSummaryAliasSpecificationType(normalReservationRequest, aliasSpecification));
-            }
-            else if (specification instanceof cz.cesnet.shongo.controller.request.AliasGroupSpecification) {
-                cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification =
-                        (cz.cesnet.shongo.controller.request.AliasGroupSpecification) specification;
-                summary.setType(getSummaryAliasSpecificationType(normalReservationRequest, aliasGroupSpecification));
-            }
-
-            // Set slot and state
-            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
-                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
-                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-                earliestSlot = reservationRequest.getSlot();
-                summary.setState(reservationRequest.getStateAsApi());
-            }
-            else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
-                cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
-                        (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
-                for (DateTimeSlotSpecification slot : reservationRequestSet.getSlots()) {
-                    Interval interval = slot.getEarliest(DateTime.now());
-                    if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
-                        earliestSlot = interval;
-                    }
-                }
-                List<cz.cesnet.shongo.controller.request.ReservationRequest> requests =
-                        reservationRequestSet.getReservationRequests();
-                if (earliestSlot == null && requests.size() > 0) {
-                    earliestSlot = requests.get(requests.size() - 1).getSlot();
-                }
-                for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
-                    if (reservationRequest.getSlot().equals(earliestSlot)) {
-                        summary.setState(reservationRequest.getStateAsApi());
-                    }
-                }
-            }
+        // Set type based on specification
+        cz.cesnet.shongo.controller.request.Specification specification =
+                abstractReservationRequest.getSpecification();
+        if (specification instanceof cz.cesnet.shongo.controller.request.ResourceSpecification) {
+            cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification =
+                    (cz.cesnet.shongo.controller.request.ResourceSpecification) specification;
+            ReservationRequestSummary.ResourceType resourceType = new ReservationRequestSummary.ResourceType();
+            resourceType.setResourceId(IdentifierFormat.formatGlobalId(resourceSpecification.getResource()));
+            summary.setType(resourceType);
         }
-        else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.PermanentReservationRequest) {
-            cz.cesnet.shongo.controller.request.PermanentReservationRequest permanentReservationRequest =
-                    (cz.cesnet.shongo.controller.request.PermanentReservationRequest) abstractReservationRequest;
+        else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
+            cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification =
+                    (cz.cesnet.shongo.controller.request.RoomSpecification) specification;
+            summary.setType(getSummaryRoomSpecificationType(abstractReservationRequest, roomSpecification));
+        }
+        else if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
+            cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification =
+                    (cz.cesnet.shongo.controller.request.AliasSpecification) specification;
+            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasSpecification));
+        }
+        else if (specification instanceof cz.cesnet.shongo.controller.request.AliasGroupSpecification) {
+            cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification =
+                    (cz.cesnet.shongo.controller.request.AliasGroupSpecification) specification;
+            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasGroupSpecification));
+        }
 
-            // Set type
-            ReservationRequestSummary.PermanentType permanentType = new ReservationRequestSummary.PermanentType();
-            permanentType.setResourceId(IdentifierFormat.formatGlobalId(permanentReservationRequest.getResource()));
-            summary.setType(permanentType);
-
-            // Set earliest slot
-            for (DateTimeSlotSpecification slot : permanentReservationRequest.getSlots()) {
-                Interval interval = slot.getEarliest(null);
+        // Set state and get earliest slot
+        Interval earliestSlot = null;
+        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+            earliestSlot = reservationRequest.getSlot();
+            summary.setState(reservationRequest.getStateAsApi());
+        }
+        else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
+            cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
+                    (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
+            for (DateTimeSlotSpecification slot : reservationRequestSet.getSlots()) {
+                Interval interval = slot.getEarliest(DateTime.now());
                 if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                     earliestSlot = interval;
                 }
             }
+            List<cz.cesnet.shongo.controller.request.ReservationRequest> requests =
+                    reservationRequestSet.getReservationRequests();
+            if (earliestSlot == null && requests.size() > 0) {
+                earliestSlot = requests.get(requests.size() - 1).getSlot();
+            }
+            for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
+                if (reservationRequest.getSlot().equals(earliestSlot)) {
+                    summary.setState(reservationRequest.getStateAsApi());
+                }
+            }
+        }
 
-            // Set state
-            if (permanentReservationRequest.getReservations().size() > 0) {
-                summary.setState(ReservationRequestState.ALLOCATED);
-            }
-            else {
-                summary.setState(ReservationRequestState.NOT_ALLOCATED);
-            }
-            // TODO: Implement allocation failed state to permanent reservations
-        }
-        else {
-            throw new TodoImplementException(abstractReservationRequest.getClass().getCanonicalName());
-        }
+        // Set earliest slot
         summary.setEarliestSlot(earliestSlot);
+
         return summary;
     }
 
@@ -386,7 +359,7 @@ public class ReservationServiceImpl extends Component
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
      */
     private ReservationRequestSummary.AliasType getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.NormalReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
             cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification)
     {
         if (aliasSpecification.getValue() != null) {
@@ -407,7 +380,7 @@ public class ReservationServiceImpl extends Component
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
      */
     private ReservationRequestSummary.Type getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.NormalReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
             cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification)
     {
         for (cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification :
@@ -427,7 +400,7 @@ public class ReservationServiceImpl extends Component
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.RoomType}
      */
     private ReservationRequestSummary.RoomType getSummaryRoomSpecificationType(
-            cz.cesnet.shongo.controller.request.NormalReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
             cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification)
     {
         ReservationRequestSummary.RoomType roomType = new ReservationRequestSummary.RoomType();

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends NormalReservationRequest
+public class ReservationRequest extends AbstractReservationRequest
 {
     /**
      * @see {@link CreatedBy}.
@@ -59,9 +60,10 @@ public class ReservationRequest extends NormalReservationRequest
      *
      * @param userId sets the {@link #setUserId(String)}
      */
-    public ReservationRequest(String userId)
+    public ReservationRequest(String userId, ReservationRequestPurpose purpose)
     {
-        this.setUserId(userId);
+        setUserId(userId);
+        setPurpose(purpose);
     }
 
     /**

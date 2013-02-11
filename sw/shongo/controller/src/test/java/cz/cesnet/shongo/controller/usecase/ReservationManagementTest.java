@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import junitx.framework.Assert;
 import org.junit.Test;
@@ -118,63 +117,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
         assertEquals("requestModified", reservationRequest.getDescription());
         assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
-
-        // Delete reservation request
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
-
-        // Check deleted reservation request
-        try {
-            getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-            fail("Reservation request should not exist.");
-        }
-        catch (EntityNotFoundException exception) {
-            assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(id, exception.getEntityId());
-        }
-    }
-
-    /**
-     * Test set of reservation requests.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testPermanentReservationRequest() throws Exception
-    {
-        Resource resource = new Resource();
-        resource.setName("resource");
-        resource.setAllocatable(true);
-        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
-
-        PermanentReservationRequest reservationRequest = new PermanentReservationRequest();
-        reservationRequest.setDescription("request");
-        reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
-        reservationRequest.setResourceId(resourceId);
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runPreprocessor();
-
-        // Check created reservation request
-        reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                id);
-        assertEquals("request", reservationRequest.getDescription());
-        assertEquals(1, reservationRequest.getResourceReservations().size());
-
-        // Modify reservation request by retrieved instance of reservation request
-        reservationRequest.setDescription("requestModified");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
-
-        // Modify reservation request by new instance of reservation request
-        reservationRequest = new PermanentReservationRequest();
-        reservationRequest.setId(id);
-        reservationRequest.addSlot("2012-01-01T16:00", "PT2H");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runPreprocessor();
-
-        // Check modified reservation request
-        reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                id);
-        assertEquals("requestModified", reservationRequest.getDescription());
-        assertEquals(2, reservationRequest.getResourceReservations().size());
 
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);

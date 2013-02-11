@@ -24,7 +24,7 @@ public class ReservationRequestSummary extends IdentifiedObject
     private DateTime created;
 
     /**
-     * @see NormalReservationRequest#PURPOSE
+     * @see AbstractReservationRequest#PURPOSE
      */
     private ReservationRequestPurpose purpose;
 
@@ -168,10 +168,9 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * {@link Type} that represents a reservation request for a resource
-     * which can be created only by the owner of the resource.
+     * {@link Type} that represents a reservation request for a resource.
      */
-    public static class PermanentType extends Type
+    public static class ResourceType extends Type
     {
         /**
          * {@link Resource#getId()}

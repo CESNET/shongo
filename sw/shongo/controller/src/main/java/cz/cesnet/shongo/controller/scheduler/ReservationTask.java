@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
@@ -396,7 +397,7 @@ public abstract class ReservationTask
         private Cache cache;
 
         /**
-         * @see {@link cz.cesnet.shongo.controller.cache.CacheTransaction}
+         * @see {@link CacheTransaction}
          */
         private CacheTransaction cacheTransaction;
 
@@ -404,7 +405,7 @@ public abstract class ReservationTask
          * Constructor.
          *
          * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
+         * @param interval sets the {@link CacheTransaction#interval}
          */
         public Context(AbstractReservationRequest reservationRequest, Cache cache, Interval interval)
         {
@@ -417,11 +418,12 @@ public abstract class ReservationTask
          * Constructor.
          *
          * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
+         * @param interval sets the {@link CacheTransaction#interval}
          */
         public Context(Cache cache, Interval interval)
         {
-            this(new ReservationRequest(Authorization.ROOT_USER_ID), cache, interval);
+            this(new ReservationRequest(Authorization.ROOT_USER_ID, ReservationRequestPurpose.SCIENCE),
+                    cache, interval);
         }
 
         /**
@@ -441,7 +443,16 @@ public abstract class ReservationTask
         }
 
         /**
-         * @return {@link cz.cesnet.shongo.controller.cache.CacheTransaction#interval}
+         * @return true whether executables should be allocated,
+         *         false otherwise
+         */
+        public boolean isExecutableAllowed()
+        {
+            return reservationRequest.getPurpose().isExecutableAllowed();
+        }
+
+        /**
+         * @return {@link CacheTransaction#interval}
          */
         public Interval getInterval()
         {

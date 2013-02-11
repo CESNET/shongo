@@ -12,7 +12,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSet extends NormalReservationRequest
+public class ReservationRequestSet extends AbstractReservationRequest
 {
     /**
      * Collection of {@link cz.cesnet.shongo.controller.api.DateTimeSlot} for which the reservation is requested.

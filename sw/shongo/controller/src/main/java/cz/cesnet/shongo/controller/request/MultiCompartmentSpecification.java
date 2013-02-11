@@ -125,7 +125,6 @@ public class MultiCompartmentSpecification extends Specification
     {
         return new ReservationTask(context)
         {
-
             @Override
             protected Reservation createReservation() throws ReportException
             {

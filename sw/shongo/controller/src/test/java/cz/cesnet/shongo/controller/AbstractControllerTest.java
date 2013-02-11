@@ -5,7 +5,6 @@ import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.List;
 
 import static junit.framework.Assert.*;
 
@@ -140,6 +139,31 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * Run {@link Scheduler}.
+     *
+     * @param interval
+     * @throws FaultException
+     */
+    protected void runScheduler(Interval interval) throws FaultException
+    {
+        EntityManager entityManagerForScheduler = getEntityManager();
+        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager());
+        entityManagerForScheduler.close();
+    }
+
+    /**
+     * Run {@link Preprocessor} and {@link Scheduler}.
+     *
+     * @param interval
+     * @throws FaultException
+     */
+    protected void runPreprocessorAndScheduler(Interval interval) throws FaultException
+    {
+        runPreprocessor(interval);
+        runScheduler(interval);
+    }
+
+    /**
      * Run {@link Preprocessor}.
      *
      * @throws FaultException
@@ -164,6 +188,17 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * Run {@link Preprocessor} and {@link Scheduler}.
+     *
+     * @throws FaultException
+     */
+    protected void runPreprocessorAndScheduler() throws FaultException
+    {
+        runPreprocessor();
+        runScheduler();
+    }
+
+    /**
      * Check if {@link ReservationRequest} was successfully allocated.
      *
      * @param reservationRequestId for {@link ReservationRequest} to be checked
@@ -174,33 +209,22 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         AbstractReservationRequest abstractReservationRequest =
                 getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestId);
-        String reservationId = null;
-        if (abstractReservationRequest instanceof NormalReservationRequest) {
-            ReservationRequest reservationRequest;
-            if (abstractReservationRequest instanceof ReservationRequestSet) {
-                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-                assertEquals(1, reservationRequestSet.getReservationRequests().size());
-                reservationRequest = reservationRequestSet.getReservationRequests().get(0);
-            }
-            else {
-                reservationRequest = (ReservationRequest) abstractReservationRequest;
-            }
-            if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
-                System.err.println(reservationRequest.getStateReport());
-                Thread.sleep(100);
-            }
-            assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequestState.ALLOCATED, reservationRequest.getState());
-            reservationId = reservationRequest.getReservationId();
+        ReservationRequest reservationRequest;
+        if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+            assertEquals(1, reservationRequestSet.getReservationRequests().size());
+            reservationRequest = reservationRequestSet.getReservationRequests().get(0);
         }
-        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
-            PermanentReservationRequest permanentReservationRequest =
-                    (PermanentReservationRequest) abstractReservationRequest;
-            List<ResourceReservation> resourceReservations = permanentReservationRequest.getResourceReservations();
-            assertTrue("Permanent reservation request should have at least one resource reservation.",
-                    resourceReservations.size() > 0);
-            reservationId = resourceReservations.get(0).getId();
+        else {
+            reservationRequest = (ReservationRequest) abstractReservationRequest;
         }
+        if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
+            System.err.println(reservationRequest.getStateReport());
+            Thread.sleep(100);
+        }
+        assertEquals("Reservation request should be in ALLOCATED state.",
+                ReservationRequestState.ALLOCATED, reservationRequest.getState());
+        String reservationId = reservationRequest.getReservationId();
         assertNotNull(reservationId);
         Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationId);
         assertNotNull("Reservation should be allocated for the reservation request.", reservation);
@@ -218,29 +242,19 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         AbstractReservationRequest abstractReservationRequest = getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
-        if (abstractReservationRequest instanceof NormalReservationRequest) {
-            ReservationRequest reservationRequest;
-            if (abstractReservationRequest instanceof ReservationRequestSet) {
-                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-                assertEquals(1, reservationRequestSet.getReservationRequests().size());
-                reservationRequest = reservationRequestSet.getReservationRequests().get(0);
-            }
-            else {
-                reservationRequest = (ReservationRequest) abstractReservationRequest;
-            }
-            assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                    ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
-            String reservationId = reservationRequest.getReservationId();
-            assertNull("No reservation should be allocated for the reservation request.", reservationId);
+        ReservationRequest reservationRequest;
+        if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+            assertEquals(1, reservationRequestSet.getReservationRequests().size());
+            reservationRequest = reservationRequestSet.getReservationRequests().get(0);
         }
-        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
-            PermanentReservationRequest permanentReservationRequest =
-                    (PermanentReservationRequest) abstractReservationRequest;
-            List<ResourceReservation> resourceReservations = permanentReservationRequest.getResourceReservations();
-            assertEquals("Permanent reservation request should have no resource reservation.",
-                    0, resourceReservations.size());
+        else {
+            reservationRequest = (ReservationRequest) abstractReservationRequest;
         }
-
+        assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
+                ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
+        String reservationId = reservationRequest.getReservationId();
+        assertNull("No reservation should be allocated for the reservation request.", reservationId);
     }
 
     /**
@@ -260,7 +274,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             reservationRequestId = reservationRequest.getId();
             getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         }
-        if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
+        if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();
         }
         runScheduler();
@@ -278,7 +292,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
-        if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
+        if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();
         }
         runScheduler();

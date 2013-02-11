@@ -43,7 +43,7 @@ public class RoomReservation extends EndpointReservation
     @Override
     public void setExecutable(Executable executable)
     {
-        if (!(executable instanceof RoomEndpoint)) {
+        if (executable != null && !(executable instanceof RoomEndpoint)) {
             throw new IllegalArgumentException("Only room endpoint can be executed by the room reservation.");
         }
         super.setExecutable(executable);

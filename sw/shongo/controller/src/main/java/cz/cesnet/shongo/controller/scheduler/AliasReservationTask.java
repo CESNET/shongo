@@ -301,7 +301,7 @@ public class AliasReservationTask extends ReservationTask
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).
         // The permanent room should not be created if the alias will be used for any specified target resource.
-        if (availableAliasProvider.isPermanentRoom() && targetResource == null) {
+        if (availableAliasProvider.isPermanentRoom() && context.isExecutableAllowed() && targetResource == null) {
             Resource resource = availableAliasProvider.getResource();
             if (!resource.hasCapability(RoomProviderCapability.class)) {
                 throw new IllegalStateException("Permanent room should be enabled only for device resource"

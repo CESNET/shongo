@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
@@ -11,10 +14,7 @@ import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -31,17 +31,43 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     private String userId;
 
     /**
-     * Date/time when the reservation request was created.
+     * Date/time when the {@link AbstractReservationRequest} was created.
      */
     private DateTime created;
 
     /**
-     * Description of the reservation that is shown to users.
+     * @see ReservationRequestPurpose
+     */
+    private ReservationRequestPurpose purpose;
+
+    /**
+     * Priority of the {@link AbstractReservationRequest}.
+     */
+    private Integer priority;
+
+    /**
+     * Description of the reservation request that is shown to users.
      */
     private String description;
 
     /**
-     * List of allocated {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
+     * {@link Specification} of target which is requested for a reservation.
+     */
+    private Specification specification;
+
+    /**
+     * Option that specifies whether inter-domain resource lookup can be performed.
+     */
+    private boolean interDomain;
+
+    /**
+     * List of {@link Reservation}s of allocated resources which can be used by {@link Scheduler} for allocation of
+     * this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
+     */
+    private List<Reservation> providedReservations = new ArrayList<Reservation>();
+
+    /**
+     * List of allocated {@link Reservation}s.
      */
     protected List<Reservation> reservations = new ArrayList<Reservation>();
 
@@ -74,6 +100,41 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
+     * @return {@link #purpose}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public ReservationRequestPurpose getPurpose()
+    {
+        return purpose;
+    }
+
+    /**
+     * @param purpose sets the {@link #purpose}
+     */
+    public void setPurpose(ReservationRequestPurpose purpose)
+    {
+        this.purpose = purpose;
+    }
+
+    /**
+     * @return {@link #priority}
+     */
+    @Column(nullable = false)
+    public Integer getPriority()
+    {
+        return priority;
+    }
+
+    /**
+     * @param priority sets the {@link #priority}
+     */
+    public void setPriority(Integer priority)
+    {
+        this.priority = priority;
+    }
+
+    /**
      * @return {@link #description}
      */
     @Column
@@ -88,6 +149,82 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     public void setDescription(String description)
     {
         this.description = description;
+    }
+
+    /**
+     * @return {@link #specification}
+     */
+    @ManyToOne(cascade = CascadeType.ALL)
+    public Specification getSpecification()
+    {
+        return specification;
+    }
+
+    /**
+     * @param specification sets the {@link #specification}
+     */
+    public void setSpecification(Specification specification)
+    {
+        this.specification = specification;
+    }
+
+    /**
+     * @return {@link #interDomain}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isInterDomain()
+    {
+        return interDomain;
+    }
+
+    /**
+     * @param interDomain sets the {@link #interDomain}
+     */
+    public void setInterDomain(boolean interDomain)
+    {
+        this.interDomain = interDomain;
+    }
+
+    /**
+     * @return {@link #providedReservations}
+     */
+    @ManyToMany
+    @Access(AccessType.FIELD)
+    public List<Reservation> getProvidedReservations()
+    {
+        return providedReservations;
+    }
+
+    /**
+     * @param providedReservations sets the {@link #providedReservations}
+     */
+    public void setProvidedReservations(List<Reservation> providedReservations)
+    {
+        this.providedReservations.clear();
+        for (Reservation providedReservation : providedReservations) {
+            this.providedReservations.add(providedReservation);
+        }
+    }
+
+    /**
+     * @param providedReservation to be added to the {@link #providedReservations}
+     */
+    public void addProvidedReservation(Reservation providedReservation)
+    {
+        providedReservations.add(providedReservation);
+    }
+
+    /**
+     * @param providedReservationId for {@link Reservation} to be removed from {@link #providedReservations}
+     */
+    public void removeProvidedReservation(Long providedReservationId)
+    {
+        for (int index = 0; index < providedReservations.size(); index++) {
+            if (providedReservations.get(index).getId().equals(providedReservationId)) {
+                providedReservations.remove(index);
+                break;
+            }
+        }
     }
 
     /**
@@ -150,8 +287,18 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      */
     public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
-        boolean modified = !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription());
+        boolean modified = !ObjectUtils.equals(getPurpose(), abstractReservationRequest.getPurpose())
+                || !ObjectUtils.equals(getPriority(), abstractReservationRequest.getPriority())
+                || !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription())
+                || !ObjectUtils.equals(isInterDomain(), abstractReservationRequest.isInterDomain());
+        setPurpose(abstractReservationRequest.getPurpose());
+        setPriority(abstractReservationRequest.getPriority());
         setDescription(abstractReservationRequest.getDescription());
+        setInterDomain(abstractReservationRequest.isInterDomain());
+        if (!ObjectUtils.equals(getProvidedReservations(), abstractReservationRequest.getProvidedReservations())) {
+            setProvidedReservations(abstractReservationRequest.getProvidedReservations());
+            modified = true;
+        }
         return modified;
     }
 
@@ -160,6 +307,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     {
         if (created == null) {
             created = DateTime.now();
+        }
+        if (priority == null) {
+            priority = 0;
         }
     }
 
@@ -193,9 +343,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         else if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequestSet) {
             reservationRequest = new ReservationRequestSet();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.PermanentReservationRequest) {
-            reservationRequest = new PermanentReservationRequest();
-        }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }
@@ -217,7 +364,14 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         api.setId(IdentifierFormat.formatGlobalId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
+        api.setPurpose(getPurpose());
+        api.setPriority(getPriority());
         api.setDescription(getDescription());
+        api.setSpecification(getSpecification().toApi());
+        api.setInterDomain(isInterDomain());
+        for (Reservation providedReservation : getProvidedReservations()) {
+            api.addProvidedReservationId(IdentifierFormat.formatGlobalId(providedReservation));
+        }
     }
 
     /**
@@ -231,8 +385,48 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException
     {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PURPOSE)) {
+            setPurpose(api.getPurpose());
+        }
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PRIORITY)) {
+            setPriority(api.getPriority());
+        }
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.DESCRIPTION)) {
             setDescription(api.getDescription());
+        }
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
+            cz.cesnet.shongo.controller.api.Specification specificationApi = api.getSpecification();
+            if (specificationApi == null) {
+                setSpecification(null);
+            }
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
+                getSpecification().fromApi(specificationApi, entityManager);
+            }
+            else {
+                setSpecification(Specification.createFromApi(specificationApi, entityManager));
+            }
+        }
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.INTER_DOMAIN)) {
+            setInterDomain(api.getInterDomain());
+        }
+
+        // Create/modify provided reservations
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        for (String providedReservationId : api.getProvidedReservationIds()) {
+            if (api.isPropertyItemMarkedAsNew(api.PROVIDED_RESERVATION_IDS, providedReservationId)) {
+                Long id = IdentifierFormat.parseLocalId(
+                        Reservation.class, providedReservationId);
+                Reservation providedReservation = reservationManager.get(id);
+                addProvidedReservation(providedReservation);
+            }
+        }
+        // Delete provided reservations
+        Set<String> apiDeletedProvidedReservationIds =
+                api.getPropertyItemsMarkedAsDeleted(api.PROVIDED_RESERVATION_IDS);
+        for (String providedReservationId : apiDeletedProvidedReservationIds) {
+            Long id = IdentifierFormat.parseLocalId(
+                    Reservation.class, providedReservationId);
+            removeProvidedReservation(id);
         }
     }
 
@@ -242,6 +436,10 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         super.fillDescriptionMap(map);
 
         map.put("created", getCreated());
+        map.put("purpose", getPurpose());
+        map.put("priority", getPriority());
         map.put("description", getDescription());
+        map.put("specification", getSpecification());
+        map.put("interDomain", isInterDomain());
     }
 }

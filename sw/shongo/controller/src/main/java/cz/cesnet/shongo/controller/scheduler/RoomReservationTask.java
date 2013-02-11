@@ -244,7 +244,7 @@ public class RoomReservationTask extends ReservationTask
                 }
 
                 // Allocated room endpoint
-                RoomEndpoint roomEndpoint;
+                RoomEndpoint roomEndpoint = null;
 
                 // If provided room is available
                 ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(deviceResource.getId());
@@ -264,87 +264,40 @@ public class RoomReservationTask extends ReservationTask
                     roomConfiguration.setLicenseCount(
                             roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
 
-                    addReport(new ReusingExecutableReport(availableProvidedRoom));
+                    if (context.isExecutableAllowed()) {
+                        addReport(new ReusingExecutableReport(availableProvidedRoom));
 
-                    // Create new used room endpoint
-                    UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
-                    usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
-                    roomEndpoint = usedRoomEndpoint;
+                        // Create new used room endpoint
+                        UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
+                        usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
+                        roomEndpoint = usedRoomEndpoint;
+                    }
                 }
                 else {
                     // Reserve full capacity
                     roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
 
-                    addReport(new AllocatingExecutableReport());
+                    if (context.isExecutableAllowed()) {
+                        addReport(new AllocatingExecutableReport());
 
-                    // Create new room endpoint
-                    ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
-                    resourceRoomEndpoint.setDeviceResource(deviceResource);
-                    roomEndpoint = resourceRoomEndpoint;
-                }
-
-                // Set of technologies which are supported in the room
-                Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
-
-                // Allocate aliases from alias specifications
-                for (AliasSpecification aliasSpecification : aliasSpecifications) {
-                    AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
-                    aliasReservationTask.setTargetResource(deviceResource);
-                    AliasReservation aliasReservation =
-                            addChildReservation(aliasReservationTask, AliasReservation.class);
-                    // Assign allocated aliases to the room
-                    for (Alias alias : aliasReservation.getAliases()) {
-                        // Assign only aliases which can be assigned to the room (according to room technologies)
-                        Technology aliasTechnology = alias.getTechnology();
-                        if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
-                            roomEndpoint.addAssignedAlias(alias);
-                        }
+                        // Create new room endpoint  \
+                        ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+                        resourceRoomEndpoint.setDeviceResource(deviceResource);
+                        roomEndpoint = resourceRoomEndpoint;
                     }
                 }
 
-                // Allocate aliases for the room
-                // Set of alias types which should be supported in the room
-                RoomProviderCapability roomProviderCapability =
-                        deviceResource.getCapability(RoomProviderCapability.class);
-                Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
-                // Remove all aliases which should be supported but which aren't technology compatible with current
-                // room configuration
-                for (AliasType aliasType : roomAliasTypes) {
-                    if (!aliasType.getTechnology().isCompatibleWith(roomTechnologies)) {
-                        roomAliasTypes.remove(aliasType);
-                    }
-                }
+                // Setup room endpoint
+                if (context.isExecutableAllowed()) {
+                    // Set of technologies which are supported in the room
+                    Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
 
-                // Build set of technologies and alias types which are missing (by adding all and removing all
-                // for which the room already has an alias).
-                Set<Technology> missingAliasTechnologies = new HashSet<Technology>();
-                Set<AliasType> missingAliasTypes = new HashSet<AliasType>();
-                missingAliasTechnologies.addAll(roomTechnologies);
-                missingAliasTypes.addAll(roomAliasTypes);
-                for (Alias alias : roomEndpoint.getAliases()) {
-                    missingAliasTechnologies.remove(alias.getTechnology());
-                    missingAliasTypes.remove(alias.getType());
-                }
-                if (missingAliasTypes.size() > 0 || missingAliasTechnologies.size() > 0) {
-                    AliasGroupReservationTask aliasGroupReservationTask = new AliasGroupReservationTask(context);
-                    aliasGroupReservationTask.setTargetResource(deviceResource);
-
-                    // Require aliases for alias types which are missing
-                    for (AliasType aliasType : missingAliasTypes) {
-                        aliasGroupReservationTask.addAliasSpecification(new AliasSpecification(aliasType));
-                    }
-
-                    // Require aliases for technologies which are missing
-                    if (withTechnologyAliases) {
-                        // Require aliases for technologies which are missing
-                        for (Technology aliasTechnology : missingAliasTechnologies) {
-                            aliasGroupReservationTask.addAliasSpecification(new AliasSpecification(aliasTechnology));
-                        }
-                    }
-
-                    // Allocate alias reservations
-                    for (AliasReservation aliasReservation :
-                            addMultiChildReservation(aliasGroupReservationTask, AliasReservation.class)) {
+                    // Allocate aliases from alias specifications
+                    for (AliasSpecification aliasSpecification : aliasSpecifications) {
+                        AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
+                        aliasReservationTask.setTargetResource(deviceResource);
+                        AliasReservation aliasReservation =
+                                addChildReservation(aliasReservationTask, AliasReservation.class);
                         // Assign allocated aliases to the room
                         for (Alias alias : aliasReservation.getAliases()) {
                             // Assign only aliases which can be assigned to the room (according to room technologies)
@@ -354,14 +307,68 @@ public class RoomReservationTask extends ReservationTask
                             }
                         }
                     }
-                }
 
-                // Setup abstract room endpoint
-                roomEndpoint.setUserId(context.getUserId());
-                roomEndpoint.setSlot(getInterval());
-                roomEndpoint.setRoomDescription(context.getReservationRequest().getDescription());
-                roomEndpoint.setRoomConfiguration(roomConfiguration);
-                roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                    // Allocate aliases for the room
+                    // Set of alias types which should be supported in the room
+                    RoomProviderCapability roomProviderCapability =
+                            deviceResource.getCapability(RoomProviderCapability.class);
+                    Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
+                    // Remove all aliases which should be supported but which aren't technology compatible with current
+                    // room configuration
+                    for (AliasType aliasType : roomAliasTypes) {
+                        if (!aliasType.getTechnology().isCompatibleWith(roomTechnologies)) {
+                            roomAliasTypes.remove(aliasType);
+                        }
+                    }
+
+                    // Build set of technologies and alias types which are missing (by adding all and removing all
+                    // for which the room already has an alias).
+                    Set<Technology> missingAliasTechnologies = new HashSet<Technology>();
+                    Set<AliasType> missingAliasTypes = new HashSet<AliasType>();
+                    missingAliasTechnologies.addAll(roomTechnologies);
+                    missingAliasTypes.addAll(roomAliasTypes);
+                    for (Alias alias : roomEndpoint.getAliases()) {
+                        missingAliasTechnologies.remove(alias.getTechnology());
+                        missingAliasTypes.remove(alias.getType());
+                    }
+                    if (missingAliasTypes.size() > 0 || missingAliasTechnologies.size() > 0) {
+                        AliasGroupReservationTask aliasGroupReservationTask = new AliasGroupReservationTask(context);
+                        aliasGroupReservationTask.setTargetResource(deviceResource);
+
+                        // Require aliases for alias types which are missing
+                        for (AliasType aliasType : missingAliasTypes) {
+                            aliasGroupReservationTask.addAliasSpecification(new AliasSpecification(aliasType));
+                        }
+
+                        // Require aliases for technologies which are missing
+                        if (withTechnologyAliases) {
+                            // Require aliases for technologies which are missing
+                            for (Technology aliasTechnology : missingAliasTechnologies) {
+                                aliasGroupReservationTask.addAliasSpecification(new AliasSpecification(aliasTechnology));
+                            }
+                        }
+
+                        // Allocate alias reservations
+                        for (AliasReservation aliasReservation :
+                                addMultiChildReservation(aliasGroupReservationTask, AliasReservation.class)) {
+                            // Assign allocated aliases to the room
+                            for (Alias alias : aliasReservation.getAliases()) {
+                                // Assign only aliases which can be assigned to the room (according to room technologies)
+                                Technology aliasTechnology = alias.getTechnology();
+                                if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
+                                    roomEndpoint.addAssignedAlias(alias);
+                                }
+                            }
+                        }
+                    }
+
+                    // Setup abstract room endpoint
+                    roomEndpoint.setUserId(context.getUserId());
+                    roomEndpoint.setSlot(getInterval());
+                    roomEndpoint.setRoomDescription(context.getReservationRequest().getDescription());
+                    roomEndpoint.setRoomConfiguration(roomConfiguration);
+                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                }
 
                 // Create room reservation
                 RoomReservation roomReservation = new RoomReservation();

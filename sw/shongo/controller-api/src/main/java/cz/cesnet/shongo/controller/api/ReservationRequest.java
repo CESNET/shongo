@@ -10,7 +10,7 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequest extends NormalReservationRequest
+public class ReservationRequest extends AbstractReservationRequest
 {
     /**
      * {@link DateTimeSlot} for which the reservation is requested.

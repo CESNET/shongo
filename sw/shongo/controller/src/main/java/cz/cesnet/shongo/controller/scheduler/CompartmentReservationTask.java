@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -428,7 +429,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
         else {
-            // Only allocated resource ies allowed
+            // Only allocated resource is allowed
             Endpoint allocatedEndpoint = endpoints.get(0);
             if (!(allocatedEndpoint instanceof ResourceEndpoint)) {
                 return false;
@@ -515,6 +516,9 @@ public class CompartmentReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        if (!getContext().isExecutableAllowed()) {
+            throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");
+        }
         Set<Specification> specifications = new HashSet<Specification>();
         List<PersonSpecification> personSpecifications = new ArrayList<PersonSpecification>();
         for (Specification specification : compartmentSpecification.getReadySpecifications()) {
@@ -527,7 +531,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
         for (PersonSpecification personSpecification : personSpecifications) {
             EndpointSpecification endpointSpecification = personSpecification.getEndpointSpecification();
-            if (!personSpecifications.contains(endpointSpecification)) {
+            if (!specifications.contains(endpointSpecification)) {
                 specifications.add(endpointSpecification);
             }
             // TODO: Add persons for allocated devices

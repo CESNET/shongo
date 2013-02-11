@@ -64,8 +64,7 @@ public class ReservationRequestManager extends AbstractManager
      * Update existing {@link AbstractReservationRequest} in the database.
      *
      * @param reservationRequest     to be updated in the database
-     * @param clearPreprocessedState specifies whether state for {@link ReservationRequestSet} and
-     *                               {@link PermanentReservationRequest} should be set to
+     * @param clearPreprocessedState specifies whether state for {@link ReservationRequestSet} should be set to
      *                               {@link PreprocessorState#NOT_PREPROCESSED}
      */
     public void update(AbstractReservationRequest reservationRequest, boolean clearPreprocessedState)
@@ -76,9 +75,7 @@ public class ReservationRequestManager extends AbstractManager
 
         super.update(reservationRequest);
 
-        if (clearPreprocessedState &&
-                (reservationRequest instanceof ReservationRequestSet
-                         || reservationRequest instanceof PermanentReservationRequest)) {
+        if (clearPreprocessedState && reservationRequest instanceof ReservationRequestSet) {
             PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
@@ -127,10 +124,6 @@ public class ReservationRequestManager extends AbstractManager
             }
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
-        }
-        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
-            // Clear state
-            PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
         }
 
         super.delete(abstractReservationRequest);
@@ -299,23 +292,6 @@ public class ReservationRequestManager extends AbstractManager
                 AbstractReservationRequest.class);
         filter.fillQueryParameters(query);
         List<AbstractReservationRequest> reservationRequestList = query.getResultList();
-        return reservationRequestList;
-    }
-
-    /**
-     * @return list all {@link PermanentReservationRequest} which aren't preprocessed in given interval.
-     */
-    public List<PermanentReservationRequest> listNotPreprocessedPermanentReservationRequests(Interval interval)
-    {
-        List<PermanentReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
-                        + " WHERE reservationRequest NOT IN ("
-                        + " SELECT state.reservationRequest FROM PreprocessedState state"
-                        + " WHERE state.start <= :from AND state.end >= :to)",
-                        PermanentReservationRequest.class)
-                .setParameter("from", interval.getStart())
-                .setParameter("to", interval.getEnd())
-                .getResultList();
         return reservationRequestList;
     }
 

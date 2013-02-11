@@ -98,10 +98,25 @@ public class Scheduler extends Component implements Component.NotificationManage
 
             // Get all reservation requests which should be allocated
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
-            List<ReservationRequest> reservationRequests =
-                    compartmentRequestManager.listCompletedReservationRequests(interval);
+            List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
+            reservationRequests.addAll(compartmentRequestManager.listCompletedReservationRequests(interval));
 
-            // TODO: Apply some other priority to reservation requests
+            // Sort reservation requests by theirs priority, purpose and created date/time
+            Collections.sort(reservationRequests, new Comparator<ReservationRequest>()
+            {
+                @Override
+                public int compare(ReservationRequest reservationRequest1, ReservationRequest reservationRequest2)
+                {
+                    int result = -reservationRequest1.getPriority().compareTo(reservationRequest2.getPriority());
+                    if (result == 0) {
+                        result = reservationRequest1.getPurpose().priorityCompareTo(reservationRequest2.getPurpose());
+                        if (result == 0) {
+                            return reservationRequest1.getCreated().compareTo(reservationRequest2.getCreated());
+                        }
+                    }
+                    return result;
+                }
+            });
 
             // Keep track of old reservations for reservation requests (for determination of modified reservations)
             Map<AbstractReservationRequest, Reservation> oldReservations =

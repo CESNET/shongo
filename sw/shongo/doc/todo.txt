@@ -1,11 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Permanent reservation request
-  - Delete current permanent reservation request
-  - Add forced option or higher priority (or maintenance option
-  - Executable should not be created, only empty reservation
-  - Allow to not specify begin or end (infinite reservations)
-
 * Error reporting:
   - document all possible errors and set reactions (for request and executor)
 
@@ -25,8 +19,10 @@
   - Send info mails to resource admins (when resource fails)
   - Send info mails to shongo admin (when controller/connector throws unhandled exception)
 
-* Persist CommandFailure in CommandFailureReport
-  - propagate executable reports through api
+* Allow to not specify begin or end or both (infinite reservations)
+  - API interval should be defined as "<start>/<end>" to allow "*/<end>", "<start>/*" and "*"
+
+* Allow extending the validity of the reservation
 
 * Do not log requests/actions/commands for testing controller and client
 
