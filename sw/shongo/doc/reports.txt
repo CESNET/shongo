@@ -1,37 +1,71 @@
-[E] = Error, [W] = Warning, [I] = Information
 
 1. SCHEDULER REPORTS
 --------------------
 
- * [W] Specification Not Ready
+ * Specification Not Ready
 
- * [E] Duration Longer Than Maximum (duration : Period, maximumDuration : Period)
+ * Duration Longer Than Maximum (duration : Period, maximumDuration : Period)
    - when a resource is requested for longer duration than the maximum configured in the controller.
    - when a value is requested for longer duration than the maximum configured in the controller,
      value must be reserved for each alias reservation
 
- * [E] Resource Not Allocatable
+ * Resource Not Allocatable
 
 Compartment:
 
- * [E] Cannot Assign Alias To External Endpoint
+ * Cannot Assign Alias To External Endpoint
 
- * [E] Resource Requested Multiple Times
-
+ * Resource Requested Multiple Times
 
 
 
 2. EXECUTION REPORTS
 --------------------
 
- * [E] Command Failure (command : String)
-   - Represents a failure of command which was sent to a connector agent. Attribute command stores the
-     name of the command.
+ Execution reports are stored for each executable (virtual room, compartment, etc).
+
+ Types:
+
+ * Command Failure (command : String)
+
+   - Represents a failure of a command which was sent to a connector agent. Attribute 'command' stores the
+     name of the command (e.g., 'CreateRoom').
+
    - Possible types:
-      # Timeout
+
       # Agent Not Found (agentName : String)
+         -: receiver agent (in connector) is not available
+         -> try again
+
       # Agent Not Started (agentName : String)
-      # Command Refused
-      # Command Not Understood
+         -: sender agent (in controller) is not started yet
+         -> try again
+
+      # Timeout
+         -: sender agent doesn't receive the response in specified period of time
+         -> try again
+
+      # Not supported
+         -: receiver agent does not implement (support) the requested command
+         -> report to resource administrator
+
+      # Error (message : String)
+         -: receiver agent throws CommandException while processing the command,
+            the 'message' attribute stores the exception message
+         -> report to resource administrator
+
+      # Refused
+         -: receiver jade agent refused the request
+         -> report to shongo administrator
+
+      # Not Understood
+         -: receiver jade agent didn't understand the request
+         -> report to shongo administrator
+
       # Result Decoding Error
+         -: sender jade agent cannot decode the response
+         -> report to shongo administrator
+
       # Unknown Failure (message : String)
+         -: receiver agent throws undeclared exception or some other unknown problem happens
+         -> report shongo and resource administrator

@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
@@ -138,7 +137,7 @@ public class JadeTest extends AbstractControllerTest
 
         @Override
         public Object handleAgentAction(AgentAction action, AID sender)
-                throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+                throws CommandException, CommandUnsupportedException
         {
             if (action instanceof CreateRoom) {
                 CreateRoom createRoom = (CreateRoom) action;

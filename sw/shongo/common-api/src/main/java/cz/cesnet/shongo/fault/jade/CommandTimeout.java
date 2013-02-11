@@ -3,8 +3,10 @@ package cz.cesnet.shongo.fault.jade;
 import cz.cesnet.shongo.fault.CommonFault;
 
 /**
+ * Represents a {@link CommandFailure} which happens when the result for a sent command is not
+ * received in specified period of time.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #getMessage()}
  */
 public class CommandTimeout extends CommandFailure
 {
@@ -17,6 +19,6 @@ public class CommandTimeout extends CommandFailure
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Jade command doesn't receive a response in specified period of time.");
+        return "Command doesn't receive a response in specified period of time.";
     }
 }

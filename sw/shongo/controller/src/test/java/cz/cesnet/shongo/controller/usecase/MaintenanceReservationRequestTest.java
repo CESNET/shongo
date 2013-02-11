@@ -12,8 +12,6 @@ import org.junit.Test;
 
 import java.util.*;
 
-import static junit.framework.Assert.assertEquals;
-
 /**
  * Tests for {@link AbstractReservationRequest} of {@link ReservationRequestPurpose#MAINTENANCE} type.
  *
@@ -45,16 +43,16 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         reservationFilter.put("reservationRequestId", id);
 
         runPreprocessorAndScheduler(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
-        assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessorAndScheduler(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
-        assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessorAndScheduler(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessorAndScheduler();
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         List<Reservation> reservations = new ArrayList<Reservation>(
                 getReservationService().listReservations(SECURITY_TOKEN, reservationFilter));
@@ -68,9 +66,9 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         });
         for (int index = 0; index < 12; index++) {
             ResourceReservation resourceReservation = (ResourceReservation) reservations.get(index);
-            assertEquals(resourceId, resourceReservation.getResourceId());
+            Assert.assertEquals(resourceId, resourceReservation.getResourceId());
             String slot = String.format("2012-01-01T%02d:00/2012-01-01T%02d:00", index * 2, index * 2 + 1);
-            assertEquals(Interval.parse(slot).toString(), resourceReservation.getSlot().toString());
+            Assert.assertEquals(Interval.parse(slot).toString(), resourceReservation.getSlot().toString());
         }
     }
 
@@ -143,7 +141,7 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         reservationFilter.put("reservationRequestId", reservationRequestId);
 
         // Check created reservations
-        assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         // Remove slot from the request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(
@@ -153,7 +151,7 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
 
         // Check deleted reservation
         runPreprocessor();
-        assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
+        Assert.assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         // Change resource in the request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(
@@ -164,16 +162,16 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         // Check modified reservation
         Collection<Reservation> reservations = getReservationService()
                 .listReservations(SECURITY_TOKEN, reservationFilter);
-        assertEquals(1, reservations.size());
+        Assert.assertEquals(1, reservations.size());
         ResourceReservation resourceReservation = (ResourceReservation) reservations.iterator().next();
-        assertEquals(secondResourceId, resourceReservation.getResourceId());
+        Assert.assertEquals(secondResourceId, resourceReservation.getResourceId());
 
         // Delete the request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
 
         // Check deleted reservation
         runScheduler();
-        assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN, null).size());
+        Assert.assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN, null).size());
     }
 
     /**

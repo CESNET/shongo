@@ -235,10 +235,9 @@ public class Agent extends jade.core.Agent
      * @param action agent action to be performed
      * @param sender sender of the action request
      * @return return value of the performed command (null if the command does not return anything)
-     * @throws UnknownAgentActionException
      */
     public Object handleAgentAction(AgentAction action, AID sender)
-            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+            throws CommandException, CommandUnsupportedException
     {
         if (action == null) {
             throw new NullPointerException("action");

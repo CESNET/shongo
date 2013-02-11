@@ -5,7 +5,7 @@ import jade.content.AgentAction;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class UnknownAgentActionException extends Throwable
+public class UnknownAgentActionException extends RuntimeException
 {
     private AgentAction action;
 

@@ -9,7 +9,6 @@ import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
@@ -97,7 +96,7 @@ public class ConnectorAgent extends Agent
 
     @Override
     public Object handleAgentAction(AgentAction action, AID sender)
-            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+            throws CommandException, CommandUnsupportedException
     {
         if (getArguments()[0].equals(Boolean.TRUE)) {
             // the connector is configured with <dump>true</dump>
@@ -121,6 +120,10 @@ public class ConnectorAgent extends Agent
             }
             catch (CommandUnsupportedException exception) {
                 resultState = "NOT-SUPPORTED";
+                throw exception;
+            }
+            catch (RuntimeException exception) {
+                resultState = String.format("FAILED: %s", exception.getMessage());
                 throw exception;
             }
             finally {

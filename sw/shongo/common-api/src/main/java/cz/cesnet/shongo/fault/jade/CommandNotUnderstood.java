@@ -3,8 +3,10 @@ package cz.cesnet.shongo.fault.jade;
 import cz.cesnet.shongo.fault.CommonFault;
 
 /**
+ * Represents a {@link CommandFailure} which happens when requester sends an action
+ * which is not defined in the ontology.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #getMessage()}
  */
 public class CommandNotUnderstood extends CommandFailure
 {
@@ -17,6 +19,6 @@ public class CommandNotUnderstood extends CommandFailure
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("The requested command was not understood by the connector.");
+        return "Command was not understood.";
     }
 }

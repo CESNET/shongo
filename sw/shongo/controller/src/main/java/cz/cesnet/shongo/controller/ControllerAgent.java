@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.AgentAction;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -93,7 +92,7 @@ public class ControllerAgent extends Agent
 
     @Override
     public Object handleAgentAction(jade.content.AgentAction action, AID sender)
-            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+            throws CommandException, CommandUnsupportedException
     {
         return super.handleAgentAction(action, sender);
     }

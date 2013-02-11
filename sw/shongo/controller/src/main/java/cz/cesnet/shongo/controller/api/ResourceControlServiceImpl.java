@@ -331,7 +331,7 @@ public class ResourceControlServiceImpl extends Component
      * @param action           command to be performed by the device
      * @throws FaultException
      */
-    private Object commandDevice(String deviceResourceId, ConnectorAgentAction action) throws FaultException
+    protected Object commandDevice(String deviceResourceId, ConnectorAgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceId);
         Command command = controllerAgent.performCommand(new AgentActionCommand(agentName, action));
@@ -348,7 +348,7 @@ public class ResourceControlServiceImpl extends Component
      * @return agent name of managed resource with given {@code deviceResourceId}
      * @throws FaultException when resource doesn't exist or when is not managed
      */
-    private String getAgentName(String deviceResourceId) throws FaultException
+    protected String getAgentName(String deviceResourceId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, deviceResourceId);

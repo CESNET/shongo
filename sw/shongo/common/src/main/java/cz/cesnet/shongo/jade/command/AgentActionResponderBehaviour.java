@@ -1,6 +1,10 @@
 package cz.cesnet.shongo.jade.command;
 
+import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.fault.jade.CommandError;
+import cz.cesnet.shongo.fault.jade.CommandNotSupported;
+import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import jade.content.AgentAction;
 import jade.content.ContentElement;
@@ -87,42 +91,47 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
                 fillMessage(reply, ACLMessage.INFORM, response);
             }
-            catch (CommandUnsupportedException e) {
-                logger.error("Unsupported command requested by " + request.getSender().getName(), e);
-                ContentElement response = new Result(act, new CommandNotSupported(e.getMessage()));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-            catch (UnknownAgentActionException e) {
-                logger.error("Unknown action requested by " + request.getSender().getName(), e);
+            catch (UnknownAgentActionException exception) {
+                logger.error("Unknown action requested by " + request.getSender().getName(), exception);
                 reply.setPerformative(ACLMessage.REFUSE);
             }
-            catch (Exception e) {
-                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
-                String message = e.getMessage();
-                if (e.getCause() != null) {
-                    message += " (" + e.getCause().getMessage() + ")";
+            catch (CommandUnsupportedException exception) {
+                logger.error("Unsupported command requested by " + request.getSender().getName(), exception);
+                ContentElement response = new Result(act, new CommandNotSupported());
+                fillMessage(reply, ACLMessage.FAILURE, response);
+            }
+            catch (CommandException exception) {
+                logger.error("Command error by " + request.getSender().getName(), exception);
+                ContentElement response = new Result(act, new CommandError(exception.getMessage()));
+                fillMessage(reply, ACLMessage.FAILURE, response);
+            }
+            catch (Exception exception) {
+                logger.error("Failure executing a command requested by " + request.getSender().getName(), exception);
+                String message = exception.getMessage();
+                if (exception.getCause() != null) {
+                    message += " (" + exception.getCause().getMessage() + ")";
                 }
-                ContentElement response = new Result(act, new CommandError(message));
+                ContentElement response = new Result(act, new CommandUnknownFailure(message));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
         }
-        catch (Codec.CodecException e) {
+        catch (Codec.CodecException exception) {
             logger.error(String.format("Received a request which the agent did not understand (wrong codec):%s",
-                    request), e);
+                    request), exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
-        catch (OntologyException e) {
+        catch (OntologyException exception) {
             logger.error(String.format("Received a request which the agent did not understand (wrong ontology): %s",
-                    request), e);
+                    request), exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
-        catch (ClassCastException e) {
+        catch (ClassCastException exception) {
             logger.error(String.format("Received a request which the agent did not understand (wrong content type): %s",
-                    request), e);
+                    request), exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
-        catch (Exception e) {
-            logger.error(String.format("Received a request which the agent did not understand: %s", request), e);
+        catch (Exception exception) {
+            logger.error(String.format("Received a request which the agent did not understand: %s", request), exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
 

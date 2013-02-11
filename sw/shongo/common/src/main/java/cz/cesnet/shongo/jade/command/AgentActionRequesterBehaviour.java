@@ -150,8 +150,8 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
      */
     private CommandFailure getFailure(ACLMessage msg)
     {
-        String content = msg.getContent();
         if (msg.getSender().equals(myAgent.getAMS())) {
+            String content = msg.getContent();
             Matcher matcher = PATTERN_INTERNAL_ERROR.matcher(content);
             if (matcher.find()) {
                 content = matcher.group(1);
@@ -161,24 +161,25 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
                 String connectorAgentName = agentNotFoundMatcher.group(1);
                 return new CommandAgentNotFound(connectorAgentName);
             }
+            return new CommandUnknownFailure(content);
         }
         else {
             ContentManager cm = myAgent.getContentManager();
             try {
                 ContentElement contentElement = cm.extractContent(msg);
                 Result result = (Result) contentElement;
-                Object commandError = result.getValue();
-                if (commandError instanceof CommandNotSupported) {
-                    content = ((CommandNotSupported) commandError).getDescription();
+                Object commandFailure = result.getValue();
+                if (commandFailure instanceof CommandFailure) {
+                    return (CommandFailure) commandFailure;
                 }
-                if (commandError instanceof CommandError) {
-                    content = ((CommandError) commandError).getDescription();
+                else {
+                    return new CommandResultDecodingFailed();
                 }
             }
             catch (Exception exception) {
                 logger.error("Contents of the error message could not be decoded for message " + msg, exception);
+                return new CommandResultDecodingFailed(exception);
             }
         }
-        return new CommandUnknownFailure(content);
     }
 }

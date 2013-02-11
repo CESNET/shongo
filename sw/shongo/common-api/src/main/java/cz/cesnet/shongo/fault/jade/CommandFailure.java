@@ -1,15 +1,16 @@
 package cz.cesnet.shongo.fault.jade;
 
 import cz.cesnet.shongo.fault.CommonFault;
+import jade.content.Concept;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link #getMessage()}
  */
-public abstract class CommandFailure
+public abstract class CommandFailure implements Concept
 {
     /**
-     * Identifier which can be used.
+     * Identifier which can be used to store unique identifier of the {@link CommandFailure}.
      */
     public String id;
 

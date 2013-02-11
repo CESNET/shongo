@@ -28,6 +28,17 @@
         </attributes>
     </entity>
 
+    <entity class="cz.cesnet.shongo.fault.jade.CommandError" access="FIELD">
+        <attributes>
+            <basic name="message">
+                <column column-definition="LONGVARCHAR"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.fault.jade.CommandNotSupported" access="FIELD">
+    </entity>
+
     <entity class="cz.cesnet.shongo.fault.jade.CommandNotUnderstood" access="FIELD">
     </entity>
 

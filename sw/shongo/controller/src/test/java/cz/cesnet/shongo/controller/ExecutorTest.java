@@ -11,7 +11,6 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRo
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
@@ -605,7 +604,7 @@ public class ExecutorTest extends AbstractControllerTest
 
         @Override
         public Object handleAgentAction(AgentAction action, AID sender)
-                throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+                throws CommandException, CommandUnsupportedException
         {
             performedActions.add(action);
             logger.debug("ConnectorAgent '{}' receives action '{}'.", getName(), action.getClass().getSimpleName());

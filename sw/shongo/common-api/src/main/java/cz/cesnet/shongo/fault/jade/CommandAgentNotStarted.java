@@ -3,8 +3,10 @@ package cz.cesnet.shongo.fault.jade;
 import cz.cesnet.shongo.fault.CommonFault;
 
 /**
+ * Represents a {@link CommandFailure} which happens when a command should be sent from a sender agent
+ * and that agent is not started.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #getMessage()}
  */
 public class CommandAgentNotStarted extends CommandFailure
 {

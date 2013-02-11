@@ -1,23 +1,25 @@
 package cz.cesnet.shongo.fault.jade;
 
+import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.fault.CommonFault;
 
 /**
- * Represents a {@link CommandFailure} which happens for a not specified reason.
+ * Represents a {@link CommandFailure} which happens when a process performing the command has
+ * thrown an {@link CommandException}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CommandUnknownFailure extends CommandFailure
+public class CommandError extends CommandFailure
 {
     /**
-     * Text message of the unknown failure.
+     * Text message of the error.
      */
     private String message;
 
     /**
      * Constructor.
      */
-    public CommandUnknownFailure()
+    public CommandError()
     {
     }
 
@@ -26,7 +28,7 @@ public class CommandUnknownFailure extends CommandFailure
      *
      * @param message sets the {@link #message}
      */
-    public CommandUnknownFailure(String message)
+    public CommandError(String message)
     {
         setMessage(message);
     }
@@ -42,14 +44,12 @@ public class CommandUnknownFailure extends CommandFailure
     @Override
     public int getCode()
     {
-        return CommonFault.JADE_COMMAND_UNKNOWN;
+        return CommonFault.JADE_COMMAND_ERROR;
     }
 
     @Override
     public String getMessage()
     {
-        return (message != null ? message : "Unknown failure.");
+        return (message != null ? message : "Unknown error.");
     }
-
-
 }

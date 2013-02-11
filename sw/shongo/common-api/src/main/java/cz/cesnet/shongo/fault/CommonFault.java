@@ -93,6 +93,14 @@ public class CommonFault
      * @see cz.cesnet.shongo.fault.jade.CommandAgentNotStarted
      */
     public static final int JADE_COMMAND_AGENT_NOT_STARTED = 66;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandNotSupported
+     */
+    public static final int JADE_COMMAND_NOT_SUPPORTED = 67;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandError
+     */
+    public static final int JADE_COMMAND_ERROR = 68;
 
     /**
      * @see TodoImplementException

@@ -37,6 +37,6 @@ public class CommandFailureException extends FaultException
     @Override
     public int getCode()
     {
-        return CommonFault.JADE_COMMAND_UNKNOWN;
+        return commandFailure.getCode();
     }
 }

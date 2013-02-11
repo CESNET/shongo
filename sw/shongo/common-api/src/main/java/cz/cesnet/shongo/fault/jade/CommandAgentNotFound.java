@@ -3,8 +3,9 @@ package cz.cesnet.shongo.fault.jade;
 import cz.cesnet.shongo.fault.CommonFault;
 
 /**
+ * Represents a {@link CommandFailure} which happens when an agent which is receiver of the command is not available.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #getMessage()}
  */
 public class CommandAgentNotFound extends CommandFailure
 {

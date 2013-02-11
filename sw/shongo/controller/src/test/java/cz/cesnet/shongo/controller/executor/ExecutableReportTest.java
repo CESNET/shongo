@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
@@ -16,8 +15,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Tests for {@link cz.cesnet.shongo.controller.executor.ExecutionPlan}.
@@ -118,7 +115,7 @@ public class ExecutableReportTest extends AbstractControllerTest
 
         @Override
         public Object handleAgentAction(AgentAction action, AID sender)
-                throws UnknownAgentActionException, CommandException, CommandUnsupportedException
+                throws CommandException, CommandUnsupportedException
         {
             throw new CommandException("test test");
         }
