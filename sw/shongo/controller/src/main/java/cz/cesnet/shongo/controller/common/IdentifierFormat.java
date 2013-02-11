@@ -2,9 +2,12 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.fault.IdentifierWrongDomainException;
+import cz.cesnet.shongo.controller.fault.IdentifierWrongTypeException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,14 +94,12 @@ public class IdentifierFormat
         }
         String domainPrefix = String.format("shongo:%s:", domain);
         if (!entityId.startsWith(domainPrefix)) {
-            throw new IllegalArgumentException(
-                    String.format("The identifier '%s' doesn't belong to domain '%s'!", entityId, domain));
+            throw new IdentifierWrongDomainException(entityId, domain);
         }
         String requiredType = getEntityType(entityClass);
         String domainTypePrefix = String.format("%s%s:", domainPrefix, requiredType);
         if (!entityId.startsWith(domainTypePrefix)) {
-            throw new IllegalArgumentException(
-                    String.format("The identifier '%s' isn't of required type '%s'!", entityId, requiredType));
+            throw new IdentifierWrongTypeException(entityId, requiredType);
         }
         return Long.parseLong(entityId.substring(domainTypePrefix.length(), entityId.length()));
     }

@@ -48,11 +48,6 @@ public class ReservationRequest extends NormalReservationRequest
     private State state;
 
     /**
-     * Allocated {@link Reservation} for the {@link ReservationRequest}.
-     */
-    private Reservation reservation;
-
-    /**
      * Constructor.
      */
     public ReservationRequest()

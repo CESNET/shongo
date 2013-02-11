@@ -1,14 +1,13 @@
 * 2 paragraphs of shongo features
 
+* Permanent reservation request
+  - Delete current permanent reservation request
+  - Add forced option or higher priority (or maintenance option
+  - Executable should not be created, only empty reservation
+  - Allow to not specify begin or end (infinite reservations)
+
 * Error reporting:
   - document all possible errors and set reactions (for request and executor)
-  - Each reservation task should create it owns context and should get passed the interval as parameter
-    because when an exception take places it should not affect the parent context
-  - Continue on reworking all
-
-* Prefix identifier
- - Write mail about prefix rsv, res, req, exe (shongo keep)
- - Create fault exceptions for wrong identifier errors (2x)
 
 * Implement permissions
 
@@ -26,12 +25,6 @@
   - Send info mails to resource admins (when resource fails)
   - Send info mails to shongo admin (when controller/connector throws unhandled exception)
 
-* Permanent reservation request
-  - Delete current permanent reservation request
-  - Add forced option or higher priority (or mainstanance option
-  - Executable should not be created, only empty reservation
-  - Allow to not specify begin or end (infinite reservations)
-
 * Persist CommandFailure in CommandFailureReport
   - propagate executable reports through api
 
@@ -47,6 +40,7 @@
 
 * Update API
   -authentication/authorization
+  -identifier faults (and try to find all other faults and update them)
 
 * Improve allocation failed reports
   -Max-future
