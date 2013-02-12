@@ -134,6 +134,9 @@ elsif ( $scripting ) {
             $command .= $line;
         }
     }
+    if ( !($command =~ /^\s*$/) ) {
+        $shell->command($command);
+    }
 }
 # Run shell
 else {

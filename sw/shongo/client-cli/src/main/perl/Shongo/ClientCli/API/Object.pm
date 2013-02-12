@@ -257,7 +257,10 @@ sub add_attribute
         if ( defined($attribute->{'item'}->{'class'}) ) {
             # Generate callbacks for given class
             $attribute->{'item'}->{'add'} = sub {
-                my $item = get_perl_class($attribute->{'item'}->{'class'})->create({'class' => $attribute->{'item'}->{'class'}});
+                my $perlClass = get_perl_class($attribute->{'item'}->{'class'});
+                my $className = $attribute->{'item'}->{'class'};
+                $className =~ s/.+:://g;
+                my $item = $perlClass->create({'class' => $className});
                 return $item;
             };
             $attribute->{'item'}->{'modify'} = sub {
@@ -404,6 +407,9 @@ sub create()
         # Result is class
         else {
             $self->set_object_class($on_create_result);
+            if ( defined($attributes) && defined($attributes->{'class'}) ) {
+                $attributes->{'class'} = $on_create_result;
+            }
         }
     }
     $self->init();

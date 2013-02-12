@@ -415,18 +415,6 @@ sub console_read_enum
         if ( defined($map{$default}) ) {
             return $default;
         }
-        else {
-            my $error = "Illegal value '$default'. Allowed values are:";
-            my $first = 1;
-            while ( my ($key, $value) = each %map_swapped ) {
-                if ( $first == 0) {
-                    $error .= ",";
-                }
-                $error .= " '$value'";
-                $first = 0;
-            }
-            console_print_error($error);
-        }
     }
     return console_edit_enum($message, $values, $default);
 }
