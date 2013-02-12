@@ -122,7 +122,7 @@ cd `dirname $0`
     create-resource {
         class: 'DeviceResource',
         name: 'c90-sitola',
-        description: 'H.323/SIP endpoint in SITOLA at FI MUNI',
+        description: 'Tandberg endpoint in SITOLA at FI MUNI',
         allocatable: 1,
         technologies: ['H323'],
         mode: {
@@ -134,6 +134,20 @@ cd `dirname $0`
                 type: 'H323_E164',
                 value: '950081038'
             }]
+        }]
+    }
+
+    create-resource {
+        class: 'DeviceResource',
+        name: 'lifesize-sitola',
+        description: 'LifeSize endpoint in SITOLA at FI MUNI',
+        allocatable: 1,
+        technologies: ['H323'],
+        mode: {
+            connectorAgentName: 'lifesize-sitola'
+        },
+        capabilities: [{
+            class: 'StandaloneTerminalCapability'
         }]
     }
 

@@ -495,11 +495,10 @@ sub resource_dial
 {
     my ($resourceId) = @_;
     my $alias = Shongo::ClientCli::API::Alias->create()->to_xml();
-
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.dial',
         RPC::XML::string->new($resourceId),
-        RPC::XML::string->new($alias)
+        $alias
     );
     my $callId = $result->value();
     if ( !defined($callId) ) {
@@ -870,7 +869,7 @@ sub resource_list_participants
     if ( $response->is_fault() ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' | ');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' |');
     # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $roomUser (@{$response->value()}) {
         $table->add(
