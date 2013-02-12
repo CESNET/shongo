@@ -2,7 +2,7 @@
 1. COMMON REPORTS
 -----------------
 
-  Common reports are stored for each reservation request when it is being created, modified or preprocessed.
+  Common reports are stored for each reservation request when the request is being created, modified or preprocessed.
 
  * Specification Not Ready
    - when a PersonSpecification (in the CompartmentSpecification) is not accepted or rejected by the requested person
@@ -17,7 +17,8 @@
 
  * Specification Not Allocatable [ERROR]
    - when a specification for a target which cannot be allocated is specified in the reservation request
-     (e.g., ExternalEndpointSpecification make sense only inside the CompartmentSpecification)
+     (e.g., ExternalEndpointSpecification make sense only inside the CompartmentSpecification,
+      so this error will be reported when you try to use it in the reservation request)
 
  * Duration Longer Than Maximum [ERROR] (duration : Period, maxDuration : Period)
    - when a resource is requested for longer duration than the maximum configured in the controller.
@@ -25,14 +26,14 @@
      value must be reserved for each alias reservation
 
  * Provided Reservation Not Available [ERROR]
-   - is already used by another reservation
+   - when provided reservation is already used by another reservation
 
  * Provided Reservation Not Usable [ERROR]
    - the time slot of the provided reservation doesn't contain the whole
      requested time slot
 
  * Resource Not Endpoint [ERROR]
-   - when ExistingEndpointSpecification references a resource which isn't a device or doesn't have TerminalCapability
+   - when ExistingEndpointSpecification references a resource which isn't a device or doesn't have a TerminalCapability
 
  * Resource Not Found [ERROR]
    - when LookupEndpointSpecification hasn't found any available endpoint
@@ -137,6 +138,95 @@
     [@1|@2]
         if the current allocation which is described by the report succeeds, then the report is considered as @1,
         otherwise the report is considered as @2 (the @1 and @2 can be any of [OK], [ERROR], [NEXT], [CONTINUE]).
+
+ Examples:
+
+ * Failed Alias Reservation (all values are allocated):
+
+        -[ERROR] Allocating alias for the following specification:
+          |       Technology: Any
+          |       Alias Type: H323_E164
+          |       Value: Any
+          |
+          +--[OK] Finding available resource
+          |   |
+          |   +--Capability 'AliasProviderCapability' in device 'shongo:test:res:5'
+          |
+          +--Sorting resources
+          |
+          +--[ERROR] Allocating capability 'AliasProviderCapability' in device 'shongo:test:res:5'
+              |
+              +--[ERROR] No value is available
+
+ * Successful Alias Reservation (reusing provided reservation):
+
+        -[OK] Allocating alias for the following specification:
+          |    Technology: Any
+          |    Alias Type: H323_E164
+          |    Value: 2
+          |
+          +--[OK] Finding available resource
+          |   |
+          |   +--Capability 'AliasProviderCapability' in device 'shongo:test:res:1'
+          |   |
+          |   +--Capability 'AliasProviderCapability' in device 'shongo:test:res:5'
+          |
+          +--Sorting resources
+          |
+          +--[OK] Allocating capability 'AliasProviderCapability' in device 'shongo:test:res:5'
+              |
+              +--[OK] Reusing reservation 'shongo:test:rsv:8'.
+
+
+ * Failed Room Reservation (no available resource):
+
+        -[ERROR] Allocating room for the following specification:
+          |         Technology: [H.323]
+          |       Participants: 5
+          |
+          +--[ERROR] Finding available resource
+
+ * Successful Room Reservation (for the first resource cannot be allocated alias):
+
+        -[OK] Allocating room for the following specification:
+          |      Technology: [H.323]
+          |    Participants: 5
+          |
+          +--[OK] Finding available resource
+          |   |
+          |   +--Device 'shongo:test:res:1'
+          |   |
+          |   +--Device 'shongo:test:res:2'
+          |
+          +--Sorting resources
+          |
+          +--[ERROR] Allocating device 'shongo:test:res:1'
+          |   |
+          |   +--[OK] Allocating new executable
+          |   |
+          |   +--[ERROR] Allocating alias for the following specification:
+          |       |       Technology: Any
+          |       |       Alias Type: H323_E164
+          |       |       Value: Any
+          |       |
+          |       +--[ERROR] Finding available resource
+          |
+          +--[OK] Allocating device 'shongo:test:res:2'
+              |
+              +--[OK] Allocating new executable
+              |
+              +--[OK] Allocating alias for the following specification:
+                  |    Technology: Any
+                  |    Alias Type: H323_E164
+                  |    Value: Any
+                  |
+                  +--[OK] Finding available resource
+                  |   |
+                  |   +--Capability 'AliasProviderCapability' in device 'shongo:test:res:2'
+                  |
+                  +--Sorting resources
+                  |
+                  +--[OK] Allocating capability 'AliasProviderCapability' in device 'shongo:test:res:2'
 
 
 3. EXECUTION REPORTS

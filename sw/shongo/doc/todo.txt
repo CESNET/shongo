@@ -1,7 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Correct cmd-line client create new terminal resource
-
 * Implement permissions
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
