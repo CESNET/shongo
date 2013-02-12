@@ -10,12 +10,12 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class CannotCreateConnectionFromToMultipleReport extends AbstractConnectionReport
+public class CannotCreateConnectionToMultipleReport extends AbstractConnectionReport
 {
     /**
      * Constructor.
      */
-    public CannotCreateConnectionFromToMultipleReport()
+    public CannotCreateConnectionToMultipleReport()
     {
     }
 
@@ -25,7 +25,7 @@ public class CannotCreateConnectionFromToMultipleReport extends AbstractConnecti
      * @param endpointFrom
      * @param endpointTo
      */
-    public CannotCreateConnectionFromToMultipleReport(Endpoint endpointFrom, Endpoint endpointTo)
+    public CannotCreateConnectionToMultipleReport(Endpoint endpointFrom, Endpoint endpointTo)
     {
         super(endpointFrom, endpointTo);
     }

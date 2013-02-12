@@ -284,10 +284,18 @@ public abstract class ReservationTask
      */
     protected Report createReportFailureForThrowing()
     {
+        Report report;
         if (activeReports.empty()) {
-            throw new IllegalStateException("No report is active");
+            if (reports.size() == 0) {
+                throw new IllegalStateException("No report is active");
+            }
+            // Use the last added
+            report = reports.get(reports.size() - 1);
         }
-        Report report = activeReports.peek();
+        else {
+            report = activeReports.peek();
+        }
+
         report.setState(Report.State.ERROR);
         while (report.hasParentReport() && !disabledErrorPropagation.contains(report)) {
             report = report.getParentReport();

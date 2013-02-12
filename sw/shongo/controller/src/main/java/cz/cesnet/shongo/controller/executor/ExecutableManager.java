@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
 
@@ -154,7 +153,7 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
-     * any {@link Reservation} or {@link AllocatingCompartmentReport} and which should be automatically
+     * any {@link Reservation} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
      */
     public void deleteAllNotReferenced()

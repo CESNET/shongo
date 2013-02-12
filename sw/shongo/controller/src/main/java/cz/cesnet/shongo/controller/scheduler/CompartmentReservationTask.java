@@ -291,7 +291,7 @@ public class CompartmentReservationTask extends ReservationTask
 
             // TODO: implement connections to multiple endpoints
             if (endpointTo.getCount() > 1) {
-                throwNewReportFailure(new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo));
+                throwNewReportFailure(new CannotCreateConnectionToMultipleReport(endpointFrom, endpointTo));
             }
 
             // Find existing alias for connection

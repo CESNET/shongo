@@ -1,8 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Error reporting:
-  - document all possible errors and set reactions (for request and executor)
-
 * Implement permissions
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
@@ -79,6 +76,9 @@
 
 * Add deviceResource attribute to Alias and fill it when the alias is evaluated on the DeviceResource and check
   assignment of this alias to proper DeviceResource
+
+* Do not extend ParticipantSpecification from Specification and delete the SpecificationNotAllocatableReport
+  (because all specification then will be allocatable)
 
 FUTURE:
 -------

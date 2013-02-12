@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -9,10 +10,7 @@ import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
-import cz.cesnet.shongo.controller.scheduler.report.ReusingReservationReport;
+import cz.cesnet.shongo.controller.scheduler.report.*;
 
 import java.util.Set;
 
@@ -38,6 +36,12 @@ public class ResourceReservationTask extends ReservationTask
     {
         super(context);
         this.resource = resource;
+    }
+
+    @Override
+    protected Report createdMainReport()
+    {
+        return new AllocatingResourceReport(resource);
     }
 
     @Override

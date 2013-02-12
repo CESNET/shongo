@@ -1,25 +1,145 @@
 
-1. SCHEDULER REPORTS
---------------------
+1. COMMON REPORTS
+-----------------
+
+  Common reports are stored for each reservation request when it is being created, modified or preprocessed.
 
  * Specification Not Ready
+   - when a PersonSpecification (in the CompartmentSpecification) is not accepted or rejected by the requested person
+   - when the report is stored, the reservation request is in "NOT_COMPLETE" state (and it won't be scheduled until
+     it is "COMPLETE")
 
- * Duration Longer Than Maximum (duration : Period, maximumDuration : Period)
+
+2. SCHEDULER REPORTS
+--------------------
+
+  Scheduler reports are stored for each reservation request which is being allocated by the Scheduler.
+
+ * Specification Not Allocatable [ERROR]
+   - when a specification for a target which cannot be allocated is specified in the reservation request
+     (e.g., ExternalEndpointSpecification make sense only inside the CompartmentSpecification)
+
+ * Duration Longer Than Maximum [ERROR] (duration : Period, maxDuration : Period)
    - when a resource is requested for longer duration than the maximum configured in the controller.
    - when a value is requested for longer duration than the maximum configured in the controller,
      value must be reserved for each alias reservation
 
- * Resource Not Allocatable
+ * Provided Reservation Not Available [ERROR]
+   - is already used by another reservation
 
-Compartment:
+ * Provided Reservation Not Usable [ERROR]
+   - the time slot of the provided reservation doesn't contain the whole
+     requested time slot
 
- * Cannot Assign Alias To External Endpoint
+ * Resource Not Endpoint [ERROR]
+   - when ExistingEndpointSpecification references a resource which isn't a device or doesn't have TerminalCapability
 
- * Resource Requested Multiple Times
+ * Resource Not Found [ERROR]
+   - when LookupEndpointSpecification hasn't found any available endpoint
+
+ * <Allocating Resource> (resource : Resource)
+
+     # (if) Resource Requested Multiple Times [ERROR]
+
+     # (if) Resource Not Allocatable [ERROR]
+
+     # (if) Resource Not Available [ERROR]
+
+     # (if) Reusing Provided Reservation [OK]
+
+     # [OK]
+
+ * <Allocating Alias> (technologies : Technology[], types : AliasTypes[], value : String)
+
+     # Finding Available Resources [NEXT|ERROR]
+
+         * (loop) Available Resource
+
+     # Sorting Resources
+
+     # (loop) <Allocating Resource> [OK|CONTINUE]
+
+         * (if) Value No Available [ERROR]
+                 - all possible values are already allocated
+
+         * (if) Value Already Allocated [ERROR]
+                 - requested value is already allocated
+
+         * (if) Value Invalid [ERROR]
+                 - requested value doesn't match the pattern of the value generator
+
+     # [ERROR]
+
+ * <Allocating Room> (technologySets : Technology[][], participantCount : int)
+
+     # (if) Reusing Provided Reservation [OK]
+
+     # Finding Available Resources [NEXT|ERROR]
+
+         * (loop) Available Resource
+
+     # Sorting Resources
+
+     # (loop) <Allocating Resource> [OK|CONTINUE]
+
+         * (if) Allocating Room
+
+         * (if) Reusing Room
+
+         * (loop) <Allocating Alias> [CONTINUE|NEXT]
+
+         * [OK]
+
+     # [ERROR]
+
+ * <Allocating Connection from # to #>
+
+     # (if) Cannot Create Connection To External Endpoint Set [ERROR]
+
+     # <Allocating Alias> [OK|ERROR]
+
+         * (if) Cannot Assign Alias To External Endpoint [ERROR]
+
+     # [OK]
+
+ * <Allocating Connection>
+
+     # Allocating Connection from Endpoint#1 To Endpoint#2> [OK|NEXT]
+
+     # Allocating Connection from Endpoint#2 To Endpoint#1> [OK|ERROR]
+
+ * Allocating Compartment
+
+     # (if) Not Enough Endpoints [ERROR]
+
+     # (if 2 endpoints) <Allocating Connection> [OK|ERROR]
+
+     # (else) <Allocating Room> [NEXT|ERROR]
+
+     # (loop) <Allocating Connection> [CONTINUE|ERROR]
+
+     # [OK]
+
+ Explanatory Notes:
+
+    (if)
+        represents that some condition is checked, and the report is generated only in some cases
+    (loop)
+        represents that the report can be generated zero or more times
+    [OK]
+        the report represents a successful allocation and the scheduling task is immediately exited
+    [ERROR]
+        the report represents an error and the current allocation is immediately exited
+    [NEXT]
+        the scheduling task continues to the next action
+    [CONTINUE]
+        the scheduling task continues to the next loop cycle
+    [@1|@2]
+        if the current allocation which is described by the report succeeds, then the report is considered as @1,
+        otherwise the report is considered as @2 (the @1 and @2 can be any of [OK], [ERROR], [NEXT], [CONTINUE]).
 
 
-
-2. EXECUTION REPORTS
+3. EXECUTION REPORTS
 --------------------
 
  Execution reports are stored for each executable (virtual room, compartment, etc).
@@ -42,7 +162,7 @@ Compartment:
          -> try again
 
       # Timeout
-         -: sender agent doesn't receive the response in specified period of time
+         -: sender agent hasn't received the response in specified period of time
          -> try again
 
       # Not supported
@@ -67,5 +187,5 @@ Compartment:
          -> report to shongo administrator
 
       # Unknown Failure (message : String)
-         -: receiver agent throws undeclared exception or some other unknown problem happens
+         -: receiver agent has thrown undeclared exception or some other unknown problem has happened
          -> report shongo and resource administrator
