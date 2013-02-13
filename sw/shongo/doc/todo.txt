@@ -20,9 +20,6 @@
 
 * Allow extending the validity of the reservation
 
-* Do not log requests/actions/commands for testing controller and client
-  - do not create controller/log/
-
 * Web client
   -use one getReservations instead of multiple getReservation requests
 
