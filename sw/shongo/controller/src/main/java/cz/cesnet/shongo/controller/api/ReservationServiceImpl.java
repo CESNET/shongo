@@ -254,17 +254,29 @@ public class ReservationServiceImpl extends Component
             Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
                     DatabaseFilter.getClassesFromFilter(filter, "specificationClass",
                             cz.cesnet.shongo.controller.request.Specification.class);
-            Long providedReservationId = null;
-            if (filter != null) {
-                if (filter.containsKey("providedReservationId")) {
-                    providedReservationId = IdentifierFormat.parseLocalId(
-                            cz.cesnet.shongo.controller.reservation.Reservation.class,
-                            (String) Converter.convert(filter.get("providedReservationId"), String.class));
+            Set<Long> providedReservationIds = null;
+            if (filter != null && filter.containsKey("providedReservationId")) {
+
+                Object value = filter.get("providedReservationId");
+                Object[] items;
+                if (value instanceof String) {
+                    items = new Object[]{value};
+                }
+                else {
+                    items = (Object[]) Converter.convert(value, Object[].class);
+                }
+                if (items.length > 0) {
+                    providedReservationIds = new HashSet<Long>();
+                    for (Object item : items) {
+                        providedReservationIds.add(IdentifierFormat.parseLocalId(
+                                cz.cesnet.shongo.controller.reservation.Reservation.class,
+                                (String) Converter.convert(item, String.class)));
+                    }
                 }
             }
 
             List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                    reservationRequestManager.list(userId, technologies, specificationClasses, providedReservationId);
+                    reservationRequestManager.list(userId, technologies, specificationClasses, providedReservationIds);
 
             List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
             for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
@@ -354,12 +366,12 @@ public class ReservationServiceImpl extends Component
     }
 
     /**
-     * @param normalReservationRequest
+     * @param reservationRequest
      * @param aliasSpecification
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
      */
     private ReservationRequestSummary.AliasType getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
             cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification)
     {
         if (aliasSpecification.getValue() != null) {
@@ -375,18 +387,18 @@ public class ReservationServiceImpl extends Component
     }
 
     /**
-     * @param normalReservationRequest
+     * @param reservationRequest
      * @param aliasGroupSpecification
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
      */
     private ReservationRequestSummary.Type getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
             cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification)
     {
         for (cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification :
                 aliasGroupSpecification.getAliasSpecifications()) {
             ReservationRequestSummary.AliasType aliasType =
-                    getSummaryAliasSpecificationType(normalReservationRequest, aliasSpecification);
+                    getSummaryAliasSpecificationType(reservationRequest, aliasSpecification);
             if (aliasType != null) {
                 return aliasType;
             }
@@ -395,12 +407,12 @@ public class ReservationServiceImpl extends Component
     }
 
     /**
-     * @param normalReservationRequest
+     * @param reservationRequest
      * @param roomSpecification
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.RoomType}
      */
     private ReservationRequestSummary.RoomType getSummaryRoomSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest normalReservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
             cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification)
     {
         ReservationRequestSummary.RoomType roomType = new ReservationRequestSummary.RoomType();
@@ -419,7 +431,7 @@ public class ReservationServiceImpl extends Component
         // Get room name from provider reservations
         if (roomName == null) {
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
-                    normalReservationRequest.getProvidedReservations()) {
+                    reservationRequest.getProvidedReservations()) {
                 if (reservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
                     cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation =
                             (cz.cesnet.shongo.controller.reservation.AliasReservation) reservation;

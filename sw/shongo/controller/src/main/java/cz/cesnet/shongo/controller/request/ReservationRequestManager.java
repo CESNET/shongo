@@ -242,14 +242,14 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param userId                requested owner
-     * @param technologies          requested technologies
-     * @param specificationClasses  set of classes for specifications which are allowed
-     * @param providedReservationId identifier of reservation which must be provided
+     * @param userId                 requested owner
+     * @param technologies           requested technologies
+     * @param specificationClasses   set of classes for specifications which are allowed
+     * @param providedReservationIds identifier of reservation which must be provided
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
     public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
-            Set<Class<? extends Specification>> specificationClasses, Long providedReservationId)
+            Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
@@ -276,15 +276,15 @@ public class ReservationRequestManager extends AbstractManager
                     + ")");
             filter.addFilterParameter("classes", specificationClasses);
         }
-        if (providedReservationId != null) {
+        if (providedReservationIds != null) {
             // List only reservation requests which got provided given reservation
             filter.addFilter("request IN ("
                     + "  SELECT reservationRequest"
-                    + "  FROM NormalReservationRequest reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest"
                     + "  LEFT JOIN reservationRequest.providedReservations providedReservation"
-                    + "  WHERE providedReservation.id = :providedReservationId"
+                    + "  WHERE providedReservation.id IN (:providedReservationId)"
                     + ")");
-            filter.addFilterParameter("providedReservationId", providedReservationId);
+            filter.addFilterParameter("providedReservationId", providedReservationIds);
         }
         TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
                 + " FROM AbstractReservationRequest request"

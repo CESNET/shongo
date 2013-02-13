@@ -186,7 +186,7 @@
           |
           +--[ERROR] Finding available resource
 
- * Successful Room Reservation (for the first resource cannot be allocated alias):
+ * Successful Room Reservation (the first resource cannot get allocated alias):
 
         -[OK] Allocating room for the following specification:
           |      Technology: [H.323]

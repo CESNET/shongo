@@ -357,8 +357,7 @@ public class LatexDoclet extends Doclet
                         "AliasProviderCapability",
 
                         "ReservationRequestPurpose", "ReservationRequestState",
-                        "AbstractReservationRequest", "PermanentReservationRequest",
-                        "NormalReservationRequest", "ReservationRequestSet", "ReservationRequest",
+                        "AbstractReservationRequest", "ReservationRequest", "ReservationRequestSet",
 
                         "Specification", "ResourceSpecification", "AliasSpecification", "RoomSpecification",
                         "CompartmentSpecification", "ParticipantSpecification", "ExternalEndpointSpecification",

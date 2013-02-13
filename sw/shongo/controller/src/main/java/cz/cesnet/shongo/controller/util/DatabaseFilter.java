@@ -121,8 +121,12 @@ public class DatabaseFilter
     public static Set<Technology> getTechnologiesFromFilter(Map<String, Object> filter) throws FaultException
     {
         if (filter != null && filter.containsKey("technology")) {
+            Object value = filter.get("technology");
+            if (value instanceof String) {
+                value = new Object[]{value};
+            }
             @SuppressWarnings("unchecked")
-            Set<Technology> technologies = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,
+            Set<Technology> technologies = (Set<Technology>) Converter.convert(value, Set.class,
                     new Class[]{Technology.class});
             return technologies;
         }

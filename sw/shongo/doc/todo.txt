@@ -9,7 +9,6 @@
   - format executables state errors
   - permissions (accessing reservation requests)
   * hide url parameters
-  * do not allow to delete requests whose allocated reservations was provided to another request
 
 * Executor
   - Retry in some error states (based on document)
@@ -22,6 +21,7 @@
 * Allow extending the validity of the reservation
 
 * Do not log requests/actions/commands for testing controller and client
+  - do not create controller/log/
 
 * Web client
   -use one getReservations instead of multiple getReservation requests

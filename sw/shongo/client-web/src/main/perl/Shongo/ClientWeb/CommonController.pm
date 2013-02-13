@@ -92,8 +92,15 @@ sub delete_action
         $self->redirect('list');
     }
     else {
+        my $reservations = $self->{'application'}->secure_request('Reservation.listReservations', {'reservationRequestId' => $id});
+        my $reservation_ids = [];
+        foreach my $reservation (@{$reservations}) {
+            push(@{$reservation_ids}, $reservation->{'id'});
+        }
+        my $reservation_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {'providedReservationId' => $reservation_ids});
         $self->render_page('Delete existing reservation request', 'common/delete.html', {
-            'id' => $id
+            'id' => $id,
+            'reservationRequests' => $reservation_requests
         });
     }
 }
