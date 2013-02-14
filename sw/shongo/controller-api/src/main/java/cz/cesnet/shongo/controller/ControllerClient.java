@@ -10,6 +10,9 @@ import cz.cesnet.shongo.controller.api.xmlrpc.RpcClient;
  */
 public class ControllerClient extends RpcClient
 {
+    /**
+     * Constructor.
+     */
     public ControllerClient()
     {
         setFault(new ControllerFault());

@@ -5,7 +5,7 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityNotFoundException extends EntityException
+public class EntityNotFoundException extends EntityException implements SerializableException
 {
     /**
      * Constructor.

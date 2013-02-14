@@ -86,9 +86,9 @@ public class ConverterTest
     public void testAtomicReadablePartialFromString() throws Exception
     {
         String[] values = new String[]{"2012", "2012-12", "2012-12-01", "2012-12-01T12", "2012-12-01T12:34"};
-        for (int index = 0; index < values.length; index++) {
-            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(values[index]);
-            Assert.assertEquals(values[index], readablePartial.toString());
+        for (String value : values) {
+            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(value);
+            Assert.assertEquals(value, readablePartial.toString());
         }
 
         ReadablePartial readablePartial;
@@ -102,8 +102,8 @@ public class ConverterTest
         }
         readablePartial = Converter.Atomic.convertStringToReadablePartial("2012-01-01T12");
         Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
-        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.monthOfYear()));
-        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.dayOfMonth()));
+        Assert.assertEquals(1, readablePartial.get(DateTimeFieldType.monthOfYear()));
+        Assert.assertEquals(1, readablePartial.get(DateTimeFieldType.dayOfMonth()));
         Assert.assertEquals(12, readablePartial.get(DateTimeFieldType.hourOfDay()));
         try {
             readablePartial.get(DateTimeFieldType.minuteOfHour());
@@ -121,13 +121,13 @@ public class ConverterTest
         Entity entity = new Entity();
         entity.setString("string");
         entity.setIntPrimitive(1);
-        entity.setIntObject(Integer.valueOf(2));
+        entity.setIntObject(2);
         entity.setLongPrimitive(3);
-        entity.setLongObject(Long.valueOf(4));
+        entity.setLongObject((long) 4);
         entity.setCustomType(new CustomType("customType"));
         entity.setDateTime(DateTime.parse("2012-01-01T12:00+03:00"));
         entity.setPeriod(Period.parse("P1Y2M3DT4H5M6S"));
-        entity.setInterval(new Interval("2012-01-01T00:00/2012-01-01T23:59",
+        entity.setInterval(new Interval("2012-01-01T00:00:00/2012-01-01T23:59:59",
                 ISOChronology.getInstance(DateTimeZone.forID("+03:00"))));
         entity.setType(Entity.Type.TYPE1);
         entity.addType(Entity.Type.TYPE1);
@@ -161,13 +161,13 @@ public class ConverterTest
         Map<String, Object> entityMap = new HashMap<String, Object>();
         entityMap.put("class", ClassHelper.getClassShortName(Entity.class));
         entityMap.put("string", "string");
-        entityMap.put("intPrimitive", Integer.valueOf(1));
-        entityMap.put("intObject", Integer.valueOf(2));
-        entityMap.put("longPrimitive", Long.valueOf(3));
-        entityMap.put("longObject", Long.valueOf(4));
+        entityMap.put("intPrimitive", 1);
+        entityMap.put("intObject", 2);
+        entityMap.put("longPrimitive", (long) 3);
+        entityMap.put("longObject", (long) 4);
         entityMap.put("dateTime", "2012-01-01T12:00:00.000+03:00");
         entityMap.put("period", "P1Y2M3DT4H5M6S");
-        entityMap.put("interval", "2012-01-01T00:00:00.000+03:00/PT23H59M");
+        entityMap.put("interval", "2012-01-01T00:00:00.000+03:00/2012-01-01T23:59:59.000+03:00");
         entityMap.put("customType", "customType");
         entityMap.put("type", "TYPE1");
         entityMap.put("types", new HashSet<String>()

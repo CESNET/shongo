@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -170,7 +171,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runPreprocessor() throws FaultException
     {
-        runPreprocessor(Interval.parse("0/9999"));
+        runPreprocessor(Converter.Atomic.INTERVAL_INFINITE);
     }
 
     /**
@@ -180,10 +181,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler() throws FaultException
     {
-        Interval interval = Interval.parse("0/9999");
-
         EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager());
+        Scheduler.createAndRun(Converter.Atomic.INTERVAL_INFINITE, entityManagerForScheduler, cache,
+                controller.getNotificationManager());
         entityManagerForScheduler.close();
     }
 

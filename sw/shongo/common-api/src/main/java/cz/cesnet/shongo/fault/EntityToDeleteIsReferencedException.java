@@ -5,7 +5,7 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityToDeleteIsReferencedException extends EntityException
+public class EntityToDeleteIsReferencedException extends EntityException implements SerializableException
 {
     /**
      * Constructor.

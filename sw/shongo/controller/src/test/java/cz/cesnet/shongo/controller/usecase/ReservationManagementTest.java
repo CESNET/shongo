@@ -134,8 +134,10 @@ public class ReservationManagementTest extends AbstractControllerTest
 
     /**
      * Test listing reservation requests based on {@link Technology} of
-     * {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom} or
-     * {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
+     * {@link cz.cesnet.shongo.controller.api.AliasSpecification},
+     * {@link cz.cesnet.shongo.controller.api.AliasGroupSpecification},
+     * {@link cz.cesnet.shongo.controller.api.RoomSpecification} or
+     * {@link cz.cesnet.shongo.controller.api.CompartmentSpecification}.
      *
      * @throws Exception
      */
@@ -213,5 +215,27 @@ public class ReservationManagementTest extends AbstractControllerTest
         }
         filter.put("technology", filterTechnologies);
         return filter;
+    }
+
+    /**
+     * Test reservation request for infinite start/end/whole interval
+     * @throws Exception
+     */
+    @Test
+    public void testInfiniteReservationRequest() throws Exception
+    {
+        // todo:
+
+        /*Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("request");
+        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);*/
     }
 }

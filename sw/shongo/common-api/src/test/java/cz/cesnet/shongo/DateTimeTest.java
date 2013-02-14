@@ -31,9 +31,12 @@ public class DateTimeTest
         Assert.assertEquals("+11:00", intervalByDefault.getEnd().getChronology().getZone().getID());
 
         // Converter is able to parse chronology
-        Interval intervalByConverter = Converter.Atomic.convertStringToInterval("2012-01-01T00:00+05:00/P1M1D");
+        Interval intervalByConverter =
+                Converter.Atomic.convertStringToInterval("2012-01-01T00:00+05:00/2012-01-01T02:00+06:00");
         Assert.assertEquals("+05:00", intervalByConverter.getStart().getChronology().getZone().getID());
         Assert.assertEquals("+05:00", intervalByConverter.getEnd().getChronology().getZone().getID());
+        Assert.assertEquals(0, intervalByConverter.getStart().getHourOfDay());
+        Assert.assertEquals(1, intervalByConverter.getEnd().getHourOfDay());
 
         DateTimeZone.setDefault(oldDefaultZone);
     }

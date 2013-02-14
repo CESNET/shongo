@@ -2,13 +2,14 @@ package cz.cesnet.shongo.controller.fault;
 
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.SerializableException;
 
 /**
  * Exception to be thrown when {@link cz.cesnet.shongo.controller.api.ReservationRequest} cannot be modified or deleted.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestNotModifiableException extends FaultException
+public class ReservationRequestNotModifiableException extends FaultException implements SerializableException
 {
     /**
      * Shongo-id of {@link cz.cesnet.shongo.controller.api.ReservationRequest}.
@@ -38,6 +39,14 @@ public class ReservationRequestNotModifiableException extends FaultException
     public String getReservationRequestId()
     {
         return reservationRequestId;
+    }
+
+    /**
+     * @param reservationRequestId sets the {@link #reservationRequestId}
+     */
+    public void setReservationRequestId(String reservationRequestId)
+    {
+        this.reservationRequestId = reservationRequestId;
     }
 
     @Override

@@ -5,7 +5,7 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityValidationException extends FaultException
+public class EntityValidationException extends FaultException implements SerializableException
 {
     /**
      * Constructor.

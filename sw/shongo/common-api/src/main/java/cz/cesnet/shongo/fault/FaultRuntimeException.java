@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.fault;
 
 /**
- * Exception that represents and implements {@link Fault}.
+ * Exception that represents and implements {@link cz.cesnet.shongo.fault.Fault}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class FaultException extends Exception implements Fault
+public class FaultRuntimeException extends RuntimeException implements Fault
 {
     /**
      * Fault code.
@@ -15,7 +15,7 @@ public class FaultException extends Exception implements Fault
     /**
      * Constructor.
      */
-    public FaultException()
+    public FaultRuntimeException()
     {
         this.code = CommonFault.UNKNOWN;
     }
@@ -26,7 +26,7 @@ public class FaultException extends Exception implements Fault
      * @param code
      * @param message
      */
-    public FaultException(int code, String message)
+    public FaultRuntimeException(int code, String message)
     {
         super(message);
         this.code = code;
@@ -38,7 +38,7 @@ public class FaultException extends Exception implements Fault
      * @param code
      * @param message
      */
-    public FaultException(int code, String message, Throwable throwable)
+    public FaultRuntimeException(int code, String message, Throwable throwable)
     {
         super(message, throwable);
         this.code = code;
@@ -50,7 +50,7 @@ public class FaultException extends Exception implements Fault
      * @param code
      * @param throwable
      */
-    public FaultException(int code, Throwable throwable)
+    public FaultRuntimeException(int code, Throwable throwable)
     {
         super(throwable);
         this.code = code;
@@ -63,7 +63,7 @@ public class FaultException extends Exception implements Fault
      * @param message
      * @param objects
      */
-    public FaultException(int code, String message, Object... objects)
+    public FaultRuntimeException(int code, String message, Object... objects)
     {
         this(code, CommonFault.formatMessage(message, objects));
     }
@@ -74,7 +74,7 @@ public class FaultException extends Exception implements Fault
      * @param fault
      * @param objects
      */
-    public FaultException(Fault fault, Object... objects)
+    public FaultRuntimeException(Fault fault, Object... objects)
     {
         this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects));
     }
@@ -86,7 +86,7 @@ public class FaultException extends Exception implements Fault
      * @param fault
      * @param objects
      */
-    public FaultException(Throwable throwable, Fault fault, Object... objects)
+    public FaultRuntimeException(Throwable throwable, Fault fault, Object... objects)
     {
         this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects), throwable);
     }
@@ -98,7 +98,7 @@ public class FaultException extends Exception implements Fault
      * @param message
      * @param objects
      */
-    public FaultException(Throwable throwable, String message, Object... objects)
+    public FaultRuntimeException(Throwable throwable, String message, Object... objects)
     {
         this(CommonFault.UNKNOWN, CommonFault.formatMessage(message, objects), throwable);
     }
@@ -109,7 +109,7 @@ public class FaultException extends Exception implements Fault
      * @param faultString
      * @param objects
      */
-    public FaultException(String faultString, Object... objects)
+    public FaultRuntimeException(String faultString, Object... objects)
     {
         this(CommonFault.UNKNOWN, faultString, objects);
     }
@@ -119,7 +119,7 @@ public class FaultException extends Exception implements Fault
      *
      * @param faultString
      */
-    public FaultException(String faultString)
+    public FaultRuntimeException(String faultString)
     {
         this(CommonFault.UNKNOWN, faultString);
     }
@@ -129,7 +129,7 @@ public class FaultException extends Exception implements Fault
      *
      * @param throwable
      */
-    public FaultException(Throwable throwable)
+    public FaultRuntimeException(Throwable throwable)
     {
         this(CommonFault.UNKNOWN, throwable);
     }

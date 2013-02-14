@@ -16,7 +16,7 @@ public enum ReservationRequestPurpose
     EDUCATION(0, true),
 
     /**
-     * Reservation is used for maintenance purposes (no executable will be allocated).
+     * Reservation is used for owner purposes (no executable will be allocated).
      */
     EXCLUSION(1, false),
 

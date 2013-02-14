@@ -137,12 +137,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof String) {
                 String value = (String) pObject;
-                try {
-                    return Converter.Atomic.convertStringToEnum(value, enumType);
-                }
-                catch (FaultException exception) {
-                    throw new RuntimeException(exception);
-                }
+                return Converter.Atomic.convertStringToEnum(value, enumType);
             }
             return pObject;
         }
@@ -254,13 +249,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object pObject)
         {
             if (pObject instanceof String) {
-
-                try {
-                    return Converter.Atomic.convertStringToInterval((String) pObject);
-                }
-                catch (FaultException exception) {
-                    throw new RuntimeException(exception);
-                }
+                return Converter.Atomic.convertStringToInterval((String) pObject);
             }
             return pObject;
         }
@@ -292,13 +281,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object pObject)
         {
             if (pObject instanceof String) {
-
-                try {
-                    return Converter.Atomic.convertStringToDateTime((String) pObject);
-                }
-                catch (FaultException exception) {
-                    throw new RuntimeException(exception);
-                }
+                return Converter.Atomic.convertStringToDateTime((String) pObject);
             }
             return pObject;
         }
@@ -330,13 +313,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object pObject)
         {
             if (pObject instanceof String) {
-
-                try {
-                    return Converter.Atomic.convertStringToPeriod((String) pObject);
-                }
-                catch (FaultException exception) {
-                    throw new RuntimeException(exception);
-                }
+                return Converter.Atomic.convertStringToPeriod((String) pObject);
             }
             return pObject;
         }

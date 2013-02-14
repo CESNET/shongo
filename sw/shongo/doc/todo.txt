@@ -4,6 +4,15 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
+* Allow to not specify begin or end or both (infinite reservations)
+  - API interval should be defined as "<start>/<end>" to allow "*/<end>", "<start>/*" and "*"
+
+* EXCLUSION and MAINTENANCE purpose should be allowed only for resource owner
+
+* Update API
+  - interval (describe why interval cannot be formatted as start/duration)
+  - remove normal/permanent reservation request
+
 * Web client
   - format request state errors
   - format executables state errors
@@ -14,9 +23,6 @@
   - Retry in some error states (based on document)
   - Send info mails to resource admins (when resource fails)
   - Send info mails to shongo admin (when controller/connector throws unhandled exception)
-
-* Allow to not specify begin or end or both (infinite reservations)
-  - API interval should be defined as "<start>/<end>" to allow "*/<end>", "<start>/*" and "*"
 
 * Allow extending the validity of the reservation
 

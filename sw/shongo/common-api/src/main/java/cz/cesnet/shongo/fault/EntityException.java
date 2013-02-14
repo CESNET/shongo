@@ -5,7 +5,7 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class EntityException extends FaultException
+public abstract class EntityException extends FaultException implements SerializableException
 {
     /**
      * Type of the entity.

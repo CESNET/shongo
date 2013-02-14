@@ -3,6 +3,7 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.api.xmlrpc.AtomicType;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -786,7 +787,7 @@ public class Converter
         /**
          * Array of supported partial fields (in the same order as in the partial regex pattern).
          */
-        private static DateTimeFieldType[] PARTIAL_FIELDS = new DateTimeFieldType[]{
+        private static final DateTimeFieldType[] PARTIAL_FIELDS = new DateTimeFieldType[]{
                 DateTimeFieldType.year(),
                 DateTimeFieldType.monthOfYear(),
                 DateTimeFieldType.dayOfMonth(),
@@ -795,22 +796,42 @@ public class Converter
         };
 
         /**
+         * The minimum allowed {@link DateTime} value.
+         */
+        public static final DateTime DATETIME_INFINITY_START = DateTime.parse("0000-01-01T00:00:00");
+
+        /**
+         * The maximum allowed {@link DateTime} value.
+         */
+        public static final DateTime DATETIME_INFINITY_END = DateTime.parse("9999-01-01T00:00:00");
+
+        /**
+         * String which represents a infinite date/time.
+         */
+        public static final String DATETIME_INFINITY_ALIAS = "*";
+
+        /**
+         * The interval which contains all allowed values.
+         */
+        public static final Interval INTERVAL_INFINITE = new Interval(DATETIME_INFINITY_START, DATETIME_INFINITY_END);
+
+        /**
          * Convert string to enum type.
          *
          * @param value
          * @param enumClass
          * @return enum value for given string from specified enum class
-         * @throws cz.cesnet.shongo.fault.FaultException
+         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
          *
          */
         public static <T extends Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
-                throws FaultException
+                throws FaultRuntimeException
         {
             try {
                 return Enum.valueOf(enumClass, value);
             }
             catch (IllegalArgumentException exception) {
-                throw new FaultException(CommonFault.ENUM_VALUE_NOT_DEFINED, value,
+                throw new FaultRuntimeException(CommonFault.ENUM_VALUE_NOT_DEFINED, value,
                         getClassShortName(enumClass));
             }
         }
@@ -818,27 +839,31 @@ public class Converter
         /**
          * @param value
          * @return parsed date/time from string
-         * @throws cz.cesnet.shongo.fault.FaultException
+         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
          *          when parsing fails
          */
-        public static DateTime convertStringToDateTime(String value) throws FaultException
+        public static DateTime convertStringToDateTime(String value) throws FaultRuntimeException
         {
+            DateTime dateTime;
             try {
-                DateTime dateTime = DateTime.parse(value);
-                return dateTime;
+                dateTime = DateTime.parse(value);
             }
             catch (Exception exception) {
-                throw new FaultException(CommonFault.DATETIME_PARSING_FAILED, value);
+                throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
             }
+            if (!INTERVAL_INFINITE.contains(dateTime)) {
+                throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
+            }
+            return dateTime;
         }
 
         /**
          * @param value
          * @return parsed partial date/time from string
-         * @throws cz.cesnet.shongo.fault.FaultException
+         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
          *          when parsing fails
          */
-        public static ReadablePartial convertStringToReadablePartial(String value) throws FaultException
+        public static ReadablePartial convertStringToReadablePartial(String value) throws FaultRuntimeException
         {
             Pattern pattern = Pattern.compile("(\\d{1,4})(-\\d{1,2})?(-\\d{1,2})?(T\\d{1,2})?(:\\d{1,2})?");
             Matcher matcher = pattern.matcher(value);
@@ -857,23 +882,23 @@ public class Converter
                 }
                 return partial;
             }
-            throw new FaultException(CommonFault.PARTIAL_DATETIME_PARSING_FAILED, value);
+            throw new FaultRuntimeException(CommonFault.PARTIAL_DATETIME_PARSING_FAILED, value);
         }
 
         /**
          * @param value
          * @return parsed period from string
-         * @throws cz.cesnet.shongo.fault.FaultException
+         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
          *          when parsing fails
          */
-        public static Period convertStringToPeriod(String value) throws FaultException
+        public static Period convertStringToPeriod(String value) throws FaultRuntimeException
         {
             try {
                 Period period = Period.parse(value);
                 return period;
             }
             catch (Exception exception) {
-                throw new FaultException(CommonFault.PERIOD_PARSING_FAILED, value);
+                throw new FaultRuntimeException(CommonFault.PERIOD_PARSING_FAILED, value);
             }
         }
 
@@ -881,26 +906,40 @@ public class Converter
          * Method for converting {@link String} to {@link Interval}.
          * <p/>
          * The class {@link Interval} itself is not able to preserve chronology (e.g., "+01:00") when parsing
-         * {@link Interval} by {@link Interval#parse(String)} (the format is "{@code <from>/<to>}").
+         * {@link Interval} by {@link Interval#parse(String)} (the format is "{@code <start>/<end>}").
          * And thus to preserve the chronology we must implement the parsing by hand, and this implementation use
-         * the format "{@code <start>/<duration>}" where the {@code <start>} is parsed by
-         * {@link #convertStringToDateTime(String)} and the {@code <duration>} is parsed by
-         * {@link #convertStringToPeriod(String)} and from the {@link DateTime} and {@link Period} is constructed
+         * the format "{@code <start>/<end>}" where the {@code <start>} and {@code <end>} is parsed by
+         * {@link #convertStringToDateTime(String)} from the parsed {@link DateTime}s is constructed
          * the resulting {@link Interval}.
          *
          * @param value string value to be converted to the {@link Interval}
          * @return parsed {@link Interval} from given {@code value}
-         * @throws cz.cesnet.shongo.fault.FaultException
+         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
          *          when parsing fails
          */
-        public static Interval convertStringToInterval(String value) throws FaultException
+        public static Interval convertStringToInterval(String value) throws FaultRuntimeException
         {
             String[] parts = value.split("/");
             if (parts.length == 2) {
-                Interval interval = new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
-                return interval;
+                String startString = parts[0];
+                String endString = parts[1];
+                DateTime start;
+                DateTime end;
+                if (startString.equals(DATETIME_INFINITY_ALIAS)) {
+                    start = DATETIME_INFINITY_START;
+                }
+                else {
+                    start = convertStringToDateTime(startString);
+                }
+                if (endString.equals(DATETIME_INFINITY_ALIAS)) {
+                    end = DATETIME_INFINITY_END;
+                }
+                else {
+                    end = convertStringToDateTime(endString);
+                }
+                return new Interval(start, end);
             }
-            throw new FaultException(CommonFault.INTERVAL_PARSING_FAILED, value);
+            throw new FaultRuntimeException(CommonFault.INTERVAL_PARSING_FAILED, value);
         }
 
         /**
@@ -912,7 +951,23 @@ public class Converter
          */
         public static String convertIntervalToString(Interval interval)
         {
-            return String.format("%s/%s", interval.getStart().toString(), interval.toPeriod().toString());
+            DateTime start = interval.getStart();
+            DateTime end = interval.getEnd();
+            String startString;
+            String endString;
+            if (start.equals(DATETIME_INFINITY_START)) {
+                startString = DATETIME_INFINITY_ALIAS;
+            }
+            else {
+                startString = start.toString();
+            }
+            if (end.equals(DATETIME_INFINITY_END)) {
+                endString = DATETIME_INFINITY_ALIAS;
+            }
+            else {
+                endString = end.toString();
+            }
+            return String.format("%s/%s", startString, endString);
         }
     }
 }
