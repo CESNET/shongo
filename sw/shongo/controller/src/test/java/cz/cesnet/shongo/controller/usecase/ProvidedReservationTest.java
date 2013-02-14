@@ -201,7 +201,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Reservation terminalReservation = allocateAndCheck(terminalReservationRequest);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.addSlot(new DateTimeSlot("2012-06-22T14:00", "PT2H"));
+        reservationRequestSet.addSlot("2012-06-22T14:00", "PT2H");
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(new ExistingEndpointSpecification(terminalId));
         reservationRequestSet.addProvidedReservationId(terminalReservation.getId());

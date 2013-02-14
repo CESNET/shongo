@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import org.joda.time.Period;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -35,8 +34,7 @@ public class ReservationRequestSetTest extends AbstractControllerTest
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.addSlot(new DateTimeSlot(
-                new PeriodicDateTime("2012-01-01T00:00", "P1W", "2012-01-01"), Period.parse("PT1H")));
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "P1W", "2012-01-01"));
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         reservationRequest.setSpecification(compartmentSpecification);

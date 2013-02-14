@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -19,21 +18,20 @@ import static junit.framework.Assert.*;
  */
 public class DateTimeSlotTest
 {
-    private DateTimeSlotSpecification timeSlot;
+    private DateTimeSlot timeSlot;
 
     @Before
     public void setUp() throws Exception
     {
         // Lecture on Thursdays at 12:00-14:00 in March (1.3. - 31.3.2012)
-        PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification(
+        PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 DateTime.parse("2012-03-01T12:00"), Period.parse("P1W"), LocalDate.parse("2012-03-31"));
-        timeSlot = new DateTimeSlotSpecification(periodicDateTime, Period.parse("PT2H"));
+        timeSlot = new PeriodicDateTimeSlot(periodicDateTime, Period.parse("PT2H"));
     }
 
     @Test
     public void testGetters() throws Exception
     {
-        assertTrue(timeSlot.getStart() instanceof PeriodicDateTimeSpecification);
         assertEquals(Period.parse("PT120M").normalizedStandard(), timeSlot.getDuration().normalizedStandard());
     }
 
@@ -94,9 +92,9 @@ public class DateTimeSlotTest
     {
         assertEquals(timeSlot, timeSlot);
 
-        PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification(
+        PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 DateTime.parse("2012-03-01T12:00"), Period.parse("P1W"), LocalDate.parse("2012-03-31"));
-        DateTimeSlotSpecification timeSlot = new DateTimeSlotSpecification(periodicDateTime, new Period("PT2H"));
+        DateTimeSlot timeSlot = new PeriodicDateTimeSlot(periodicDateTime, new Period("PT2H"));
         assertEquals(timeSlot, this.timeSlot);
     }
 }

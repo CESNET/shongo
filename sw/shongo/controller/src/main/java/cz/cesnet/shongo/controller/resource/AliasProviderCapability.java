@@ -2,18 +2,14 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
-import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -324,15 +320,7 @@ public class AliasProviderCapability extends Capability
 
         DateTimeSpecification maximumFuture = getMaximumFuture();
         if (maximumFuture != null) {
-            if (maximumFuture instanceof AbsoluteDateTimeSpecification) {
-                aliasProviderApi.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
-            }
-            else if (maximumFuture instanceof RelativeDateTimeSpecification) {
-                aliasProviderApi.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
-            }
-            else {
-                throw new TodoImplementException();
-            }
+            aliasProviderApi.setMaximumFuture(maximumFuture.toApi());
         }
 
         aliasProviderApi.setRestrictedToResource(isRestrictedToResource());
@@ -376,14 +364,8 @@ public class AliasProviderCapability extends Capability
             if (maximumFuture == null) {
                 setMaximumFuture(null);
             }
-            else if (maximumFuture instanceof DateTime) {
-                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maximumFuture));
-            }
-            else if (maximumFuture instanceof Period) {
-                setMaximumFuture(new RelativeDateTimeSpecification((Period) maximumFuture));
-            }
             else {
-                throw new TodoImplementException(maximumFuture.getClass().getName());
+                setMaximumFuture(DateTimeSpecification.fromApi(maximumFuture, getMaximumFuture()));
             }
         }
         if (aliasProviderApi.isPropertyFilled(aliasProviderApi.RESTRICTED_TO_RESOURCE)) {

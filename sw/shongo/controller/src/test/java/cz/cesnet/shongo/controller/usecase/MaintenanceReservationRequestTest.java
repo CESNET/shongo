@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import junitx.framework.Assert;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.junit.Test;
 
 import java.util.*;
@@ -34,8 +33,7 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
-        reservationRequest.addSlot(new DateTimeSlot(
-                new PeriodicDateTime("2012-01-01T00:00", "PT2H", "2012-01-01"), Period.parse("PT1H")));
+        reservationRequest.addSlot(new PeriodicDateTimeSlot("2012-01-01T00:00", "PT1H", "PT2H", "2012-01-01"));
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 

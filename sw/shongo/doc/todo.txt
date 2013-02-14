@@ -83,6 +83,8 @@
 * Do not extend ParticipantSpecification from Specification and delete the SpecificationNotAllocatableReport
   (because all specification then will be allocatable)
 
+* When modifying maximum future check whether it doesn't collide any reservation (do the same for all other attributes/capabilities)
+
 FUTURE:
 -------
 * Controller should check RoomProvider devices if theirs configured capacity doesn't exceed the real one and

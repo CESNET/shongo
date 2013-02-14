@@ -16,7 +16,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PeriodicDateTimeSpecification extends DateTimeSpecification
+public class PeriodicDateTime extends PersistentObject
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -52,7 +52,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     /**
      * Constructs empty periodical date/time events.
      */
-    public PeriodicDateTimeSpecification()
+    public PeriodicDateTime()
     {
         this(null, null, null);
     }
@@ -64,7 +64,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      * @param start
      * @param period
      */
-    public PeriodicDateTimeSpecification(DateTime start, Period period)
+    public PeriodicDateTime(DateTime start, Period period)
     {
         this(start, period, null);
     }
@@ -78,7 +78,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      * @param period
      * @param end
      */
-    public PeriodicDateTimeSpecification(DateTime start, Period period, ReadablePartial end)
+    public PeriodicDateTime(DateTime start, Period period, ReadablePartial end)
     {
         setStart(start);
         setPeriod(period);
@@ -359,7 +359,12 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         return dateTimeList;
     }
 
-    @Override
+    /**
+     * Get the earliest Date/Time since a given datetime (strict inequality).
+     *
+     * @param referenceDateTime the datetime since which to find the earliest occurrence
+     * @return absolute Date/Time, or <code>null</code> if the datetime won't take place since referenceDateTime
+     */
     public DateTime getEarliest(DateTime referenceDateTime)
     {
         List<DateTime> dateTimes = enumerate(referenceDateTime, null, 2);
@@ -381,7 +386,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
             return false;
         }
 
-        PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) object;
+        PeriodicDateTime periodicDateTime = (PeriodicDateTime) object;
         if (getId() != null) {
             return getId().equals(periodicDateTime.getId());
         }

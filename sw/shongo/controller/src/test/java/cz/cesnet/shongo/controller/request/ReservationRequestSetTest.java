@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -75,7 +74,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+            reservationRequestSet.addSlot("2012-06-22T14:00", "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
             compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));

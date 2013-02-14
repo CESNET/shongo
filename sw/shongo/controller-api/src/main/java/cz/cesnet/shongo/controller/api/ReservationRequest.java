@@ -15,7 +15,7 @@ import org.joda.time.Period;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
-     * {@link DateTimeSlot} for which the reservation is requested.
+     * Date/time slot for which the reservation is requested.
      */
     public static final String SLOT = "slot";
 
@@ -61,7 +61,6 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @param slot sets the {@link #SLOT}
      */
-    @Transient
     public void setSlot(String slot)
     {
         getPropertyStorage().setValue(SLOT, Converter.Atomic.convertStringToInterval(slot));

@@ -30,9 +30,8 @@ public class XmlRpcTest extends AbstractControllerTest
     {
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-        reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
-                Period.parse("PT2H"));
+        reservationRequestSet.addSlot("2012-06-01T15:00", "PT2H");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W"));
         CompartmentSpecification compartment = reservationRequestSet.setSpecification(new CompartmentSpecification());
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
@@ -49,18 +48,11 @@ public class XmlRpcTest extends AbstractControllerTest
         attributes.put("purpose", "SCIENCE");
         attributes.put("slots", new ArrayList<Object>()
         {{
+                add("2012-06-01T15:00/2012-06-01T17:00");
                 add(new HashMap<String, Object>()
                 {{
-                        put("start", "2012-06-01T15:00");
-                        put("duration", "PT2H");
-                    }});
-                add(new HashMap<String, Object>()
-                {{
-                        put("start", new HashMap<String, Object>()
-                        {{
-                                put("start", "2012-07-01T14:00");
-                                put("period", "P1W");
-                            }});
+                        put("start", "2012-07-01T14:00");
+                        put("period", "P1W");
                         put("duration", "PT2H");
                     }});
             }});
@@ -111,9 +103,8 @@ public class XmlRpcTest extends AbstractControllerTest
         {
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-            reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
-                    Period.parse("PT2H"));
+            reservationRequestSet.addSlot("2012-06-01T15:00", "PT2H");
+            reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W"));
             CompartmentSpecification compartmentSpecification =
                     reservationRequestSet.setSpecification(new CompartmentSpecification());
             compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));

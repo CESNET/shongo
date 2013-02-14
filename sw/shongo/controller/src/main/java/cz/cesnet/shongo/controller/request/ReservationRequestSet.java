@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
+import cz.cesnet.shongo.controller.common.DateTimeSlot;
+import cz.cesnet.shongo.controller.common.PeriodicDateTime;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -18,11 +22,10 @@ import java.util.*;
 @Entity
 public class ReservationRequestSet extends AbstractReservationRequest
 {
-
     /**
-     * List of {@link DateTimeSlotSpecification}s for which the reservation is requested.
+     * List of {@link cz.cesnet.shongo.controller.common.DateTimeSlot}s for which the reservation is requested.
      */
-    private List<DateTimeSlotSpecification> slots = new ArrayList<DateTimeSlotSpecification>();
+    private List<DateTimeSlot> slots = new ArrayList<DateTimeSlot>();
 
     /**
      * List of created {@link ReservationRequest}s.
@@ -43,64 +46,64 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
-    public List<DateTimeSlotSpecification> getSlots()
+    public List<DateTimeSlot> getSlots()
     {
         return Collections.unmodifiableList(slots);
     }
 
     /**
-     * @param id of the requested {@link DateTimeSlotSpecification}
-     * @return {@link DateTimeSlotSpecification} with given {@code id}
+     * @param id of the requested {@link cz.cesnet.shongo.controller.common.DateTimeSlot}
+     * @return {@link cz.cesnet.shongo.controller.common.DateTimeSlot} with given {@code id}
      * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link DateTimeSlotSpecification} doesn't exist
+     *          when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
      */
     @Transient
-    private DateTimeSlotSpecification getSlotById(Long id) throws PersistentEntityNotFoundException
+    private DateTimeSlot getSlotById(Long id) throws PersistentEntityNotFoundException
     {
-        for (DateTimeSlotSpecification dateTimeSlot : slots) {
+        for (DateTimeSlot dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new PersistentEntityNotFoundException(DateTimeSlotSpecification.class, id);
+        throw new PersistentEntityNotFoundException(DateTimeSlot.class, id);
     }
 
     /**
      * @param slot to be added to the {@link #slots}
      */
-    public void addSlot(DateTimeSlotSpecification slot)
+    public void addSlot(DateTimeSlot slot)
     {
         slots.add(slot);
     }
 
     /**
-     * Add new {@link DateTimeSlotSpecification} constructed from {@code dateTime} and {@code duration} to
+     * Add new {@link cz.cesnet.shongo.controller.common.DateTimeSlot} constructed from {@code dateTime} and {@code duration} to
      * the {@link #slots}.
      *
-     * @param dateTime slot date/time
-     * @param duration slot duration
+     * @param periodicDateTime slot date/time
+     * @param duration         slot duration
      */
-    public void addSlot(DateTimeSpecification dateTime, Period duration)
+    public void addSlot(PeriodicDateTime periodicDateTime, String duration)
     {
-        addSlot(new DateTimeSlotSpecification(dateTime, duration));
+        addSlot(new PeriodicDateTimeSlot(periodicDateTime, Period.parse(duration)));
     }
 
     /**
-     * Add new {@link DateTimeSlotSpecification} constructed from {@code dateTime} and {@code duration} to
+     * Add new {@link cz.cesnet.shongo.controller.common.DateTimeSlot} constructed from {@code dateTime} and {@code duration} to
      * the {@link #slots}.
      *
      * @param dateTime slot date/time
      * @param duration slot duration
      */
-    public void addSlot(DateTimeSpecification dateTime, String duration)
+    public void addSlot(String dateTime, String duration)
     {
-        addSlot(new DateTimeSlotSpecification(dateTime, Period.parse(duration)));
+        addSlot(new AbsoluteDateTimeSlot(DateTime.parse(dateTime), Period.parse(duration)));
     }
 
     /**
      * @param slot slot to be removed from the {@link #slots}
      */
-    public void removeSlot(DateTimeSlotSpecification slot)
+    public void removeSlot(DateTimeSlot slot)
     {
         slots.remove(slot);
     }
@@ -134,7 +137,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public Collection<Interval> enumerateSlots(Interval interval)
     {
         Set<Interval> enumeratedSlots = new HashSet<Interval>();
-        for (DateTimeSlotSpecification slot : slots) {
+        for (DateTimeSlot slot : slots) {
             enumeratedSlots.addAll(slot.enumerate(interval));
         }
         return enumeratedSlots;
@@ -147,8 +150,8 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public boolean hasSlotAfter(DateTime referenceDateTime)
     {
-        for (DateTimeSlotSpecification slot : slots) {
-            if (slot.getStart().willOccur(referenceDateTime)) {
+        for (DateTimeSlot slot : slots) {
+            if (slot.willOccur(referenceDateTime)) {
                 return true;
             }
         }
@@ -236,7 +239,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
-        for (DateTimeSlotSpecification slot : getSlots()) {
+        for (DateTimeSlot slot : getSlots()) {
             reservationRequestSetApi.addSlot(slot.toApi());
         }
         for (ReservationRequest reservationRequest : getReservationRequests()) {
@@ -253,20 +256,32 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
 
         // Create/modify slots
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : reservationRequestSetApi.getSlots()) {
+        for (Object slotApi : reservationRequestSetApi.getSlots()) {
             if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
-                addSlot(DateTimeSlotSpecification.createFromApi(slotApi));
+                addSlot(DateTimeSlot.createFromApi(slotApi));
             }
             else {
-                DateTimeSlotSpecification slot = getSlotById(slotApi.notNullIdAsLong());
-                slot.fromApi(slotApi);
+                if (slotApi instanceof cz.cesnet.shongo.api.util.IdentifiedObject) {
+                    cz.cesnet.shongo.api.util.IdentifiedObject identifiedApi =
+                            (cz.cesnet.shongo.api.util.IdentifiedObject) slotApi;
+                    DateTimeSlot slot = getSlotById(identifiedApi.notNullIdAsLong());
+                    slot.fromApi(identifiedApi);
+                }
+                else {
+                    throw new TodoImplementException("Modifying " + slotApi.getClass().getName());
+                }
             }
         }
         // Delete slots
-        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
+        Set<Object> apiDeletedSlots =
                 api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedSlots) {
-            removeSlot(getSlotById(slotApi.notNullIdAsLong()));
+        for (Object slotApi : apiDeletedSlots) {
+            for (DateTimeSlot dateTimeSlot : slots) {
+                if (dateTimeSlot.equalsApi(slotApi)) {
+                    removeSlot(dateTimeSlot);
+                    break;
+                }
+            }
         }
 
         super.fromApi(api, entityManager);

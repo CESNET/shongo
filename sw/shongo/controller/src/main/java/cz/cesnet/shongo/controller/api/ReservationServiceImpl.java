@@ -5,9 +5,8 @@ import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.*;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
-import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -341,7 +340,7 @@ public class ReservationServiceImpl extends Component
         else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
             cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
                     (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
-            for (DateTimeSlotSpecification slot : reservationRequestSet.getSlots()) {
+            for (cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequestSet.getSlots()) {
                 Interval interval = slot.getEarliest(DateTime.now());
                 if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                     earliestSlot = interval;

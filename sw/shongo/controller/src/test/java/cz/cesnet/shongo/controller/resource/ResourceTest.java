@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -20,13 +20,13 @@ public class ResourceTest
     public void testIsAvailableAt() throws Exception
     {
         DeviceResource resource = new DeviceResource();
-        resource.setMaximumFuture(new RelativeDateTimeSpecification("P4M"));
+        resource.setMaximumFuture(DateTimeSpecification.fromString("P4M"));
 
         AliasProviderCapability capability1 = new AliasProviderCapability("test", AliasType.ROOM_NAME);
         resource.addCapability(capability1);
 
         AliasProviderCapability capablity2 = new AliasProviderCapability("test", AliasType.ROOM_NAME);
-        capablity2.setMaximumFuture(new RelativeDateTimeSpecification("P1Y"));
+        capablity2.setMaximumFuture(DateTimeSpecification.fromString("P1Y"));
         resource.addCapability(capablity2);
 
         DateTime referenceDateTime = DateTime.now();

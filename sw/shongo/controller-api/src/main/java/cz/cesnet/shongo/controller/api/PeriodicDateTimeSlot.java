@@ -2,25 +2,30 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.ReadablePartial;
 
 /**
- * Represents a definition for multiple date/times by period.
+ * Represents a definition for periodic date/time slots.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PeriodicDateTime
+public class PeriodicDateTimeSlot extends IdentifiedObject
 {
     /**
-     * First date/time.
+     * Starting date/time for the first date/time slot.
      */
     private DateTime start;
 
     /**
-     * Period for multiple date/times.
+     * Duration of each date/time slots.
+     */
+    private Period duration;
+
+    /**
+     * Period for multiple date/time slots.
      */
     private Period period;
 
@@ -32,20 +37,22 @@ public class PeriodicDateTime
     /**
      * Constructor.
      */
-    public PeriodicDateTime()
+    public PeriodicDateTimeSlot()
     {
     }
 
     /**
      * Constructor.
      *
-     * @param start  sets the {@link #start}
-     * @param period sets the {@link #period}
+     * @param start    sets the {@link #start}
+     * @param duration sets the {@link #duration}
+     * @param period   sets the {@link #period}
      */
-    public PeriodicDateTime(DateTime start, Period period)
+    public PeriodicDateTimeSlot(DateTime start, Period duration, Period period)
     {
         setStart(start);
         setPeriod(period);
+        setDuration(duration);
     }
 
     /**
@@ -55,9 +62,10 @@ public class PeriodicDateTime
      * @param period sets the {@link #period}
      * @param end    sets the {@link #end}
      */
-    public PeriodicDateTime(DateTime start, Period period, ReadablePartial end)
+    public PeriodicDateTimeSlot(DateTime start, Period duration, Period period, ReadablePartial end)
     {
         setStart(start);
+        setDuration(duration);
         setPeriod(period);
         setEnd(end);
     }
@@ -65,25 +73,29 @@ public class PeriodicDateTime
     /**
      * Constructor.
      *
-     * @param start  sets the {@link #start}
-     * @param period sets the {@link #period}
+     * @param start    sets the {@link #start}
+     * @param duration sets the {@link #duration}
+     * @param period   sets the {@link #period}
      */
-    public PeriodicDateTime(String start, String period)
+    public PeriodicDateTimeSlot(String start, String duration, String period)
     {
         setStart(DateTime.parse(start));
+        setDuration(Period.parse(duration));
         setPeriod(Period.parse(period));
     }
 
     /**
      * Constructor.
      *
-     * @param start  sets the {@link #start}
-     * @param period sets the {@link #period}
-     * @param end    sets the {@link #end}
+     * @param start    sets the {@link #start}
+     * @param duration sets the {@link #duration}
+     * @param period   sets the {@link #period}
+     * @param end      sets the {@link #end}
      */
-    public PeriodicDateTime(String start, String period, String end)
+    public PeriodicDateTimeSlot(String start, String duration, String period, String end)
     {
         setStart(DateTime.parse(start));
+        setDuration(Period.parse(duration));
         setPeriod(Period.parse(period));
         setEnd(Converter.Atomic.convertStringToReadablePartial(end));
     }
@@ -104,6 +116,23 @@ public class PeriodicDateTime
     {
         this.start = start;
     }
+
+    /**
+     * @return {@link #duration}
+     */
+    public Period getDuration()
+    {
+        return duration;
+    }
+
+    /**
+     * @param duration sets the {@link #duration}
+     */
+    public void setDuration(Period duration)
+    {
+        this.duration = duration;
+    }
+
 
     /**
      * @return {@link #period}

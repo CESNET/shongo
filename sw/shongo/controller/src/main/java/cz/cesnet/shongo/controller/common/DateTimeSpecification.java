@@ -1,31 +1,96 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
- * Represents a specification of Date/Time.
+ * Represents a specification of absolute or relative date/time.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class DateTimeSpecification extends PersistentObject
+public class DateTimeSpecification extends PersistentObject
 {
     /**
-     * Get the earliest Date/Time from now.
-     *
-     * @return absolute Date/Time, or <code>null</code> if the datetime won't take place
+     * @see Type
      */
-    @Transient
-    public final DateTime getEarliest()
+    private Type type;
+
+    /**
+     * {@link Type#ABSOLUTE} data.
+     */
+    private DateTime absoluteDateTime;
+
+    /**
+     * {@link Type#RELATIVE} data.
+     */
+    private Period relativeDateTime;
+
+    /**
+     * Constructor.
+     */
+    private DateTimeSpecification()
     {
-        return getEarliest(DateTime.now());
+    }
+
+    /**
+     * @return {@link #type}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public Type getType()
+    {
+        return type;
+    }
+
+    /**
+     * @param type sets the {@link #type}
+     */
+    public void setType(Type type)
+    {
+        this.type = type;
+    }
+
+    /**
+     * @return {@link #absoluteDateTime}
+     */
+    @Column
+    @Access(AccessType.FIELD)
+    @org.hibernate.annotations.Type(type = "DateTime")
+    public DateTime getAbsoluteDateTime()
+    {
+        return absoluteDateTime;
+    }
+
+    /**
+     * @param absoluteDateTime sets the {@link #absoluteDateTime}
+     */
+    public void setAbsoluteDateTime(DateTime absoluteDateTime)
+    {
+        this.absoluteDateTime = absoluteDateTime;
+    }
+
+    /**
+     * @return {@link #relativeDateTime}
+     */
+    @Column
+    @Access(AccessType.FIELD)
+    @org.hibernate.annotations.Type(type = "Period")
+    public Period getRelativeDateTime()
+    {
+        return relativeDateTime;
+    }
+
+    /**
+     * @param relativeDateTime sets the {@link #relativeDateTime}
+     */
+    public void setRelativeDateTime(Period relativeDateTime)
+    {
+        this.relativeDateTime = relativeDateTime;
     }
 
     /**
@@ -35,28 +100,89 @@ public abstract class DateTimeSpecification extends PersistentObject
      * @return absolute Date/Time, or <code>null</code> if the datetime won't take place since referenceDateTime
      */
     @Transient
-    public abstract DateTime getEarliest(DateTime referenceDateTime);
-
-    /**
-     * Will the datetime take place in future (strict inequality)?
-     *
-     * @return boolean
-     */
-    public final boolean willOccur()
+    public DateTime getEarliest(DateTime referenceDateTime)
     {
-        DateTime dateTime = getEarliest();
-        return dateTime.isAfter(DateTime.now());
+        switch (type) {
+            case ABSOLUTE:
+                if (referenceDateTime == null || absoluteDateTime.isAfter(referenceDateTime)) {
+                    return absoluteDateTime;
+                }
+                return null;
+            case RELATIVE:
+                return referenceDateTime.plus(relativeDateTime);
+            default:
+                throw new TodoImplementException(type.toString());
+        }
     }
 
     /**
-     * Checks whether this datetime will take place since a given absolute datetime (strict inequality).
-     *
-     * @param referenceDateTime the datetime take as "now" for evaluating future
-     * @return true if this datetime will take place at least once after or in referenceDateTime,
-     *         false if not
+     * @return api object
      */
-    public final boolean willOccur(DateTime referenceDateTime)
+    public Object toApi()
     {
-        return getEarliest(referenceDateTime) != null;
+        switch (type) {
+            case ABSOLUTE:
+                return absoluteDateTime;
+            case RELATIVE:
+                return relativeDateTime;
+            default:
+                throw new TodoImplementException(type.toString());
+        }
     }
+
+    /**
+     * @param api                   from which should be the {@code dateTimeSpecification} filled
+     * @param dateTimeSpecification to be used or null to create new
+     * @return new or modified {@code dateTimeSpecification}
+     */
+    public static DateTimeSpecification fromApi(Object api, DateTimeSpecification dateTimeSpecification)
+    {
+        if (dateTimeSpecification == null) {
+            dateTimeSpecification = new DateTimeSpecification();
+        }
+        if (api instanceof DateTime) {
+            dateTimeSpecification.setType(Type.ABSOLUTE);
+            dateTimeSpecification.setAbsoluteDateTime((DateTime) api);
+        }
+        else if (api instanceof Period) {
+            dateTimeSpecification.setType(Type.RELATIVE);
+            dateTimeSpecification.setRelativeDateTime((Period) api);
+        }
+        else {
+            throw new TodoImplementException(api.getClass().getName());
+        }
+        return dateTimeSpecification;
+    }
+
+    /**
+     * @param dateTimeSpecification absolute date/time or period (relative date/time)
+     * @return new instance of {@link DateTimeSpecification} for given {@code dateTimeSpecification}
+     */
+    public static DateTimeSpecification fromString(String dateTimeSpecification)
+    {
+        try {
+            return fromApi(DateTime.parse(dateTimeSpecification), null);
+        }
+        catch (IllegalArgumentException exception) {
+            return fromApi(Period.parse(dateTimeSpecification), null);
+        }
+    }
+
+    /**
+     * Type of date/time which is specified by the {@link DateTimeSpecification}.
+     */
+    public static enum Type
+    {
+        /**
+         * Represents an absolute date/time which is full date/time definition.
+         */
+        ABSOLUTE,
+
+        /**
+         * Represents an relative date/time which is period definition which is added to the current date/time when
+         * it should be evaluated.
+         */
+        RELATIVE
+    }
+
 }
