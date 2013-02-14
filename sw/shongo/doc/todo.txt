@@ -9,6 +9,8 @@
 
 * EXCLUSION and MAINTENANCE purpose should be allowed only for resource owner
 
+* Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
+
 * Update API
   - interval (describe why interval cannot be formatted as start/duration)
   - remove normal/permanent reservation request
@@ -84,6 +86,9 @@
   (because all specification then will be allocatable)
 
 * When modifying maximum future check whether it doesn't collide any reservation (do the same for all other attributes/capabilities)
+
+* PeriodicDateTime should store the start as string with timezone because sql timestamp doesn't save timezone and
+  the partial date/time may cause that it wont work in the user expected way ("2012" will not match "2012-01-01+0100" when matching in UTC)
 
 FUTURE:
 -------

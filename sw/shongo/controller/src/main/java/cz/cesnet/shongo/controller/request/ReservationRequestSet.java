@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -260,16 +259,11 @@ public class ReservationRequestSet extends AbstractReservationRequest
             if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
                 addSlot(DateTimeSlot.createFromApi(slotApi));
             }
-            else {
-                if (slotApi instanceof cz.cesnet.shongo.api.util.IdentifiedObject) {
-                    cz.cesnet.shongo.api.util.IdentifiedObject identifiedApi =
-                            (cz.cesnet.shongo.api.util.IdentifiedObject) slotApi;
-                    DateTimeSlot slot = getSlotById(identifiedApi.notNullIdAsLong());
-                    slot.fromApi(identifiedApi);
-                }
-                else {
-                    throw new TodoImplementException("Modifying " + slotApi.getClass().getName());
-                }
+            else if (slotApi instanceof cz.cesnet.shongo.api.util.IdentifiedObject) {
+                cz.cesnet.shongo.api.util.IdentifiedObject identifiedApi =
+                        (cz.cesnet.shongo.api.util.IdentifiedObject) slotApi;
+                DateTimeSlot slot = getSlotById(identifiedApi.notNullIdAsLong());
+                slot.fromApi(identifiedApi);
             }
         }
         // Delete slots

@@ -203,7 +203,14 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
     {
         if (slotApi instanceof Interval) {
             Interval interval = (Interval) slotApi;
-            return interval.equals(getSlot());
+            Interval slot = getSlot();
+            if (interval.getStartMillis() != slot.getStartMillis()) {
+                return false;
+            }
+            if (interval.getEndMillis() != slot.getEndMillis()) {
+                return false;
+            }
+            return true;
         }
         return false;
     }
