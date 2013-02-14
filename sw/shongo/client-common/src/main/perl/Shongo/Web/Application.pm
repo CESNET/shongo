@@ -192,8 +192,11 @@ sub run
 sub render_headers
 {
     my ($self) = @_;
-    $self->{'session'}->param('previous_url', $self->get_current_url());
-    my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
+    my $cookie = undef;
+    if ( defined($self->{'session'}) ) {
+        $self->{'session'}->param('previous_url', $self->get_current_url());
+        $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
+    }
     print $self->{'cgi'}->header(-type => 'text/html', -charset => 'UTF-8', -cookie => $cookie);
 }
 

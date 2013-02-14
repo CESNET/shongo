@@ -16,8 +16,9 @@ our @EXPORT = qw(
     array_value_exists array_remove_value
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
-    get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item get_interval_end
-    format_datetime format_date format_period format_partial_datetime format_interval format_interval_date format_report
+    get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
+    format_datetime format_date format_period format_partial_datetime format_interval
+    format_interval_date format_report get_interval_duration
     var_dump
     get_home_directory get_term_width
     text_indent_lines
@@ -565,35 +566,31 @@ sub format_datetime
 sub format_period
 {
     my ($period) = @_;
-    #$period = 'P2Y1M3DT2H4M3S';
-    if ( $period =~ /P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d+)S)?)?/) {
-        my $components = ordered_hash(
-            'year' => {'value' => $2, 'separator' => ' '},
-            'month' => {'value' => $4, 'separator' => ' '},
-            'day' => {'value' => $6, 'separator' => ' '},
-            'hour' => {'value' => $9, 'separator' => ' '},
-            'minute' => {'value' => $11, 'separator' => ' '},
-            'second' => {'value' => $13, 'separator' => ' '}
-        );
-        $period = '';
-        foreach my $component (ordered_hash_keys($components)) {
-            my $value = undef;
-            if ( defined($components->{$component}->{'value'}) ) {
-                $value = int($components->{$component}->{'value'});
+
+    if ( !ref($period) ) {
+        $period = parse_period($period);
+    }
+    my $format = '';
+    foreach my $component ('years', 'months', 'days', 'hours', 'minutes', 'seconds') {
+        my $value = undef;
+        if ( defined($period->{$component}) ) {
+            $value = int($period->{$component});
+        }
+        if ( defined($value) && $value > 0 ) {
+            if ( length($format) > 0 ) {
+                $format .= ' ';
             }
-            my $separator = $components->{$component}->{'separator'};
-            if ( defined($value) && $value > 0 ) {
-                if ( length($period) > 0 ) {
-                    $period .= $separator;
-                }
-                $period .= $value . ' ' . $component;
-                if ( $value > 1 ) {
-                    $period .= 's';
-                }
+            $format .= $value . ' ' . $component;
+            if ( $value == 1 ) {
+                # delete last s
+                $format =~ s/s$//g;
             }
         }
     }
-    return $period;
+    if ( $format eq '' ) {
+        $format = '0 seconds';
+    }
+    return $format;
 }
 
 #
@@ -647,22 +644,16 @@ sub parse_period
 }
 
 #
-# @param $start
-# @param $duration
-# @return interval $end calculated from $start and $duration
+# Format interval duration
 #
-sub get_interval_end
+# @param $interval
+#
+sub get_interval_duration
 {
-    my ($start, $duration) = @_;
-    if ( !ref($start) ) {
-        $start = DateTime::Format::ISO8601->parse_datetime($start);
-    }
-    if ( !ref($duration) ) {
-        $duration = parse_period($duration);
-    }
-    my $end = $start->clone();
-    $end->add_duration($duration);
-    return $end;
+    my ($start, $end) = @_;
+    $start = DateTime::Format::ISO8601->parse_datetime($start);
+    $end = DateTime::Format::ISO8601->parse_datetime($end);
+    return $end - $start;
 }
 
 #
@@ -675,10 +666,10 @@ sub format_interval
     my ($interval, $force_datetimes) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
-        my $duration = $2;
+        my $end = $2;
+        my $duration = format_period(get_interval_duration($interval));
         # Format as "<start>/<end>"
         if ( $force_datetimes || length($duration) > 5 ) {
-            my $end = get_interval_end($start, $duration);
             return sprintf("%s/%s", format_datetime($start), format_datetime($end));
         }
         # Format as "<start>, <duration>"
@@ -700,11 +691,9 @@ sub format_interval_date
     my ($interval) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
-        my $duration = $2;
+        my $end = $2;
         $start = DateTime::Format::ISO8601->parse_datetime($start);
-        $duration = parse_period($duration);
-        my $end = $start->clone();
-        $end->add_duration($duration);
+        $end = DateTime::Format::ISO8601->parse_datetime($start);
         return sprintf("%s/%s", format_date($start), format_date($end));
     } else {
         return "";

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -204,13 +205,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
         if (slotApi instanceof Interval) {
             Interval interval = (Interval) slotApi;
             Interval slot = getSlot();
-            if (interval.getStartMillis() != slot.getStartMillis()) {
-                return false;
-            }
-            if (interval.getEndMillis() != slot.getEndMillis()) {
-                return false;
-            }
-            return true;
+            return TemporalHelper.isIntervalEqualed(interval, slot);
         }
         return false;
     }

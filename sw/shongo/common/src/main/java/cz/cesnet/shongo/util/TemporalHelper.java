@@ -59,6 +59,23 @@ public class TemporalHelper
     }
 
     /**
+     * @param interval1
+     * @param interval2
+     * @return true if both interval are equaled (without chronology match),
+     *         false otherwise
+     */
+    public static boolean isIntervalEqualed(Interval interval1, Interval interval2)
+    {
+        if (interval1.getStartMillis() != interval2.getStartMillis()) {
+            return false;
+        }
+        if (interval1.getEndMillis() != interval2.getEndMillis()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * @param period
      * @param longerThanPeriod
      * @return true if {@code period} is longer than {@code longerThanPeriod},

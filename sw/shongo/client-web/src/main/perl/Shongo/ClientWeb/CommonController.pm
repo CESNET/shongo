@@ -131,41 +131,58 @@ sub parse_reservation_request
 {
     my ($self, $params, $specification) = @_;
     my $request = {};
-    my $duration = undef;
+    my $slotStart = undef;
+    my $slotEnd = undef;
+    my $slotDuration = undef;
 
     # Parse duration from type and count
     if ( defined($params->{'durationType'}) && defined($params->{'durationCount'}) ) {
+        $slotStart = $params->{'start'};
+        my $tmp = DateTime::Format::ISO8601->parse_datetime($slotStart);
+
+        my $duration;
         if ( $params->{'durationType'} eq 'minute' ) {
-            $duration = 'PT' . $params->{'durationCount'} . 'M';
+            $slotDuration = 'PT' . $params->{'durationCount'} . 'M';
+            $duration = DateTime::Duration->new(
+                minutes => $params->{'durationCount'}
+            );
         }
         elsif ( $params->{'durationType'} eq 'hour' ) {
-            $duration = 'PT' . $params->{'durationCount'} . 'H';
+            $slotDuration = 'PT' . $params->{'durationCount'} . 'H';
+            $duration = DateTime::Duration->new(
+                hours => $params->{'durationCount'}
+            );
         }
         elsif ( $params->{'durationType'} eq 'day' ) {
-            $duration = 'P' . $params->{'durationCount'} . 'D';
+            $slotDuration = 'P' . $params->{'durationCount'} . 'D';
+            $duration = DateTime::Duration->new(
+                days => $params->{'durationCount'}
+            );
         }
         else {
             die("Unknown duration type '$params->{'durationType'}'.");
         }
+        $tmp->add_duration($duration);
+        $slotEnd = $tmp->strftime('%FT%T.%3N');
+        if ( $slotStart =~ /[\+-]\d\d(:\d\d)?$/ ) {
+            $slotEnd .= $tmp->strftime('%z');
+            $slotEnd =~ s/(\d\d)$/:$1/;
+        }
     }
     # Parse duration from start and end
     if ( defined($params->{'start'}) && defined($params->{'end'}) ) {
-        my $start = $params->{'start'};
-        my $end = $params->{'end'};
-        if ( $start =~ /^[^T]+$/ ) {
-            $start .= 'T00:00:00';
+        $slotStart = $params->{'start'};
+        $slotEnd = $params->{'end'};
+        if ( $slotStart =~ /^[^T]+$/ ) {
+            $slotStart .= 'T00:00:00';
         }
-        if ( $end =~ /^[^T]+$/ ) {
-            $end .= 'T23:59:59';
+        if ( $slotEnd =~ /^[^T]+$/ ) {
+            $slotEnd .= 'T23:59:59';
         }
-        $start = DateTime::Format::ISO8601->parse_datetime($start);
-        $end = DateTime::Format::ISO8601->parse_datetime($end);
-        my $format = DateTime::Format::Duration->new(pattern => 'P%YY%mM%eDT%HH%MM%SS');
-        $duration = $format->format_duration($end->subtract_datetime($start));
     }
     # If no duration was specified die
-    if ( !defined($duration) ) {
-        die("Unknown duration.");
+    if ( !defined($slotStart) || !defined($slotEnd) ) {
+        die("Slot start and end must be defined.");
     }
 
     # Setup request
@@ -174,30 +191,28 @@ sub parse_reservation_request
     $request->{'specification'} = $specification;
     if ( !defined($params->{'periodicity'}) || $params->{'periodicity'} eq 'none') {
         $request->{'class'} = 'ReservationRequest';
-        $request->{'slot'} = $params->{'start'} . '/' . $duration;
+        $request->{'slot'} = $slotStart . '/' . $slotEnd;
     }
     else {
         $request->{'class'} = 'ReservationRequestSet';
-        my $start = {
-            'class' => 'PeriodicDateTime',
-            'start' => $params->{'start'}
+        my $slot = {
+            'class' => 'PeriodicDateTimeSlot',
+            'start' => $slotStart,
+            'duration' => $slotDuration
         };
         if ( $params->{'periodicity'} eq 'daily' ) {
-            $start->{'period'} = 'P1D';
+            $slot->{'period'} = 'P1D';
         }
         elsif ( $params->{'periodicity'} eq 'weekly' ) {
-            $start->{'period'} = 'P1W';
+            $slot->{'period'} = 'P1W';
         }
         else {
             die("Unknown periodicity '$params->{'periodicity'}'.");
         }
         if ( length($params->{'periodicityEnd'}) > 0 ) {
-            $start->{'end'} = $params->{'periodicityEnd'};
+            $slot->{'end'} = $params->{'periodicityEnd'};
         }
-        $request->{'slots'} = [{
-            'start' => $start,
-            'duration' => $duration
-        }];
+        $request->{'slots'} = [$slot];
     }
 
     # Setup provided alias reservation
@@ -223,8 +238,8 @@ sub get_reservation_request
         # Requested slot
         if ( $request->{'slot'} =~ /(.*)\/(.*)/ ) {
             $request->{'start'} = $1;
-            $request->{'duration'} = $2;
-            $request->{'end'} = get_interval_end($1, $2);
+            $request->{'end'} = $2;
+            $request->{'duration'} = get_interval_duration($1, $2);
         }
 
         # Child requests
@@ -237,23 +252,27 @@ sub get_reservation_request
         }
         my $slot = $request->{'slots'}->[0];
         $request->{'duration'} = $slot->{'duration'};
-        if ( ref($slot->{'start'}) eq 'HASH' ) {
-            $request->{'start'} = $slot->{'start'}->{'start'};
-            if ( $slot->{'start'}->{'period'} eq 'P1D' ) {
+        if ( ref($slot) && $slot->{'class'} eq 'PeriodicDateTimeSlot' ) {
+            $request->{'start'} = $slot->{'start'};
+            if ( $slot->{'period'} eq 'P1D' ) {
                 $request->{'periodicity'} = 'daily';
             }
-            elsif ( $slot->{'start'}->{'period'} eq 'P1W' ) {
+            elsif ( $slot->{'period'} eq 'P1W' ) {
                 $request->{'periodicity'} = 'weekly';
             }
             else {
                 $self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
             }
             if ( defined($request->{'periodicity'}) ) {
-                $request->{'periodicityEnd'} = $slot->{'start'}->{'end'};
+                $request->{'periodicityEnd'} = $slot->{'end'};
             }
         }
         else {
-            $request->{'start'} = format_datetime($slot->{'start'});
+            if ( $slot =~ /(.*)\/(.*)/ ) {
+                $request->{'start'} = $1;
+                $request->{'end'} = $2;
+                $request->{'duration'} = get_interval_duration($1, $2);
+            }
         }
 
         # Child requests
@@ -261,8 +280,8 @@ sub get_reservation_request
             # Requested slot
             if ( $child_request->{'slot'} =~ /(.*)\/(.*)/ ) {
                 $child_request->{'start'} = $1;
-                $child_request->{'duration'} = $2;
-                $child_request->{'end'} = get_interval_end($1, $2);
+                $child_request->{'end'} = $2;
+                $request->{'duration'} = get_interval_duration($1, $2);
             }
             push(@{$child_requests}, $child_request);
         }
@@ -372,7 +391,8 @@ sub process_reservation_request_summary
     $request_summary->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$request_summary->{'state'}};
     if ( $request_summary->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
         $request_summary->{'start'} = $1;
-        $request_summary->{'duration'} = $2;
+        $request_summary->{'end'} = $2;
+        $request_summary->{'duration'} = get_interval_duration($1, $2);
     }
 }
 

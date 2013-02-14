@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -351,8 +352,9 @@ public class ReservationServiceImpl extends Component
             if (earliestSlot == null && requests.size() > 0) {
                 earliestSlot = requests.get(requests.size() - 1).getSlot();
             }
+            summary.setState(ReservationRequestState.NOT_ALLOCATED);
             for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
-                if (reservationRequest.getSlot().equals(earliestSlot)) {
+                if (TemporalHelper.isIntervalEqualed(reservationRequest.getSlot(), earliestSlot)) {
                     summary.setState(reservationRequest.getStateAsApi());
                 }
             }

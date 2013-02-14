@@ -937,7 +937,12 @@ public class Converter
                 else {
                     end = convertStringToDateTime(endString);
                 }
-                return new Interval(start, end);
+                try {
+                    return new Interval(start, end);
+                }
+                catch (IllegalArgumentException exception) {
+                    throw new FaultRuntimeException(exception, CommonFault.INTERVAL_PARSING_FAILED, value);
+                }
             }
             throw new FaultRuntimeException(CommonFault.INTERVAL_PARSING_FAILED, value);
         }
