@@ -667,15 +667,15 @@ sub format_interval
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
         my $end = $2;
-        my $duration = format_period(get_interval_duration($interval));
+        #my $duration = format_period(get_interval_duration($start, $end));
         # Format as "<start>/<end>"
-        if ( $force_datetimes || length($duration) > 5 ) {
+        #if ( $force_datetimes || length($duration) > 10 ) {
             return sprintf("%s/%s", format_datetime($start), format_datetime($end));
-        }
+        #}
         # Format as "<start>, <duration>"
-        else {
-            return sprintf("%s, %s", format_datetime($start), $duration);
-        }
+        #else {
+        #    return sprintf("%s (%s)", format_datetime($start), $duration);
+        #}
     } else {
         return "";
     }

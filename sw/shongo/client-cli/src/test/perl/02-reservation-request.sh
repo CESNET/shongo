@@ -7,7 +7,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         class: 'ReservationRequest',
         description: 'test',
         purpose: 'SCIENCE',
-        slot: '`date +"%Y-%m-%d"`T00:00/P1Y',
+        slot: '`date +"%Y-%m-%d"`T00:00/`date +"%Y-%m-%d"`T23:59',
         specification: {
             class: 'AliasSpecification',
             technologies: ['ADOBE_CONNECT'],
@@ -20,7 +20,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         class: 'ReservationRequest',
         description: 'test',
         purpose: 'SCIENCE',
-        slot: '`date +"%Y-%m-%d"`T12:00/PT1H',
+        slot: '`date +"%Y-%m-%d"`T12:00/`date +"%Y-%m-%d"`T13:00',
         specification: {
             class: 'RoomSpecification',
             technologies: ['H323', 'SIP'],
@@ -36,7 +36,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         class: 'ReservationRequest',
         description: 'test',
         purpose: 'SCIENCE',
-        slot: '`date +"%Y-%m-%d"`T12:00/PT1H',
+        slot: '`date +"%Y-%m-%d"`T12:00/`date +"%Y-%m-%d"`T13:00',
         specification: {
             class: 'CompartmentSpecification',
             specifications: [{

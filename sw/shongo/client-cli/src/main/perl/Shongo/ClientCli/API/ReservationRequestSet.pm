@@ -35,13 +35,12 @@ sub new()
             'title' => 'Requested Slot',
             'add' => {
                 'Add new requested slot by absolute date/time' => sub {
-                    my $slot = {};
-                    modify_slot($slot);
+                    my $slot = modify_slot();
                     return $slot;
                 },
                 'Add new requested slot by periodic date/time' => sub {
-                    my $slot = {'start' => {'class' => 'PeriodicDateTime'}};
-                    modify_slot($slot);
+                    my $slot = {'class' => 'PeriodicDateTimeSlot'};
+                    $slot = modify_slot($slot);
                     return $slot;
                 }
             },
@@ -52,19 +51,20 @@ sub new()
             },
             'format' => sub {
                 my ($slot) = @_;
-                my $start = $slot->{'start'};
-                my $duration = $slot->{'duration'};
-                if ( ref($start) ) {
-                    my $startString = sprintf("(%s, %s", format_datetime($start->{'start'}), $start->{'period'});
-                    if ( defined($start->{'end'}) ) {
-                        $startString .= ", " . format_partial_datetime($start->{'end'});
+                if ( ref($slot) ) {
+                    my $duration = $slot->{'duration'};
+                    if ( !defined($duration) ) {
+                        $duration = 'PT0S';
+                    }
+                    my $startString = sprintf("(%s, %s", format_datetime($slot->{'start'}), $slot->{'period'});
+                    if ( defined($slot->{'end'}) ) {
+                        $startString .= ", " . format_partial_datetime($slot->{'end'});
                     }
                     $startString .= ")";
-                    $start = $startString;
+                    return sprintf("at '%s' for '%s'", $startString, $duration);
                 } else {
-                    $start = format_datetime($start);
+                    return format_interval($slot);
                 }
-                return sprintf("at '%s' for '%s'", $start, $duration);
             }
         },
         'display' => 'newline'
@@ -101,15 +101,24 @@ sub modify_slot($)
 {
     my ($slot) = @_;
 
-    if (ref($slot->{'start'}) && $slot->{'start'}->{'class'} eq 'PeriodicDateTime') {
-        $slot->{'start'}->{'start'} = console_edit_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'}->{'start'});
+    if ( defined($slot) && ref($slot) && $slot->{'class'} eq 'PeriodicDateTimeSlot') {
+        $slot->{'start'} = console_edit_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'});
         $slot->{'duration'} = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $slot->{'duration'});
-        $slot->{'start'}->{'period'} = console_edit_value("Type a period", 0, $Shongo::Common::PeriodPattern, $slot->{'start'}->{'period'});
-        $slot->{'start'}->{'end'} = console_edit_value("Ending date/time", 0, $Shongo::Common::DateTimePartialPattern, $slot->{'start'}->{'end'});
-    } else {
-        $slot->{'start'} = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'});
-        $slot->{'duration'} = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $slot->{'duration'});
+        $slot->{'period'} = console_edit_value("Type a period", 0, $Shongo::Common::PeriodPattern, $slot->{'period'});
+        $slot->{'end'} = console_edit_value("Ending date/time", 0, $Shongo::Common::DateTimePartialPattern, $slot->{'end'});
     }
+    else {
+        my $start = undef;
+        my $end = undef;
+        if ( defined($slot) && $slot =~ m/(.*)\/(.*)/ ) {
+            $start = $1;
+            $end = $2;
+        }
+        $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
+        $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
+        $slot = $start . '/' . $end;
+    }
+    return $slot;
 }
 
 1;

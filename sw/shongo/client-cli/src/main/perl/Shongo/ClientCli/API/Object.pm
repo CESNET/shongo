@@ -788,14 +788,15 @@ sub modify_attribute_value
     }
     elsif ( $attribute->{'type'} eq 'interval' ) {
         my $start = undef;
-        my $duration = undef;
+        my $end = undef;
         if ( defined($attribute_value) && $attribute_value =~ m/(.*)\/(.*)/ ) {
             $start = $1;
-            $duration = $2;
+            $end = $2;
         }
-        $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
-        $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
-        $attribute_value = $start . '/' . $duration;
+        $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
+        $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
+        #$duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
+        $attribute_value = $start . '/' . $end;
     }
     elsif ( $attribute->{'type'} eq 'class' ) {
         if ( !defined($attribute_value) ) {
