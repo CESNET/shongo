@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import junitx.framework.Assert;
 import org.junit.Test;
 
@@ -215,6 +216,26 @@ public class ReservationManagementTest extends AbstractControllerTest
         }
         filter.put("technology", filterTechnologies);
         return filter;
+    }
+
+    /**
+     * Test reservation request for infinite start/end/whole interval
+     * @throws Exception
+     */
+    @Test
+    public void testSlotDuration() throws Exception
+    {
+        try {
+            ReservationRequest reservationRequest = new ReservationRequest();
+            reservationRequest.setDescription("request");
+            reservationRequest.setSlot("2012-01-01T12:00", "PT0S");
+            reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+            reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+            getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+            Assert.fail("Exception of empty duration should has been thrown.");
+        } catch (FaultException exception) {
+            Assert.assertEquals(ControllerFault.RESERVATION_REQUEST_EMPTY_DURATION.getCode(), exception.getCode());
+        }
     }
 
     /**

@@ -32,7 +32,7 @@ public abstract class DateTimeSlot extends PersistentObject
      * @return duration of the {@link DateTimeSlot}.
      */
     @Transient
-    protected abstract Period getDuration();
+    public abstract Period getDuration();
 
     /**
      * Checks whether time slot takes place at the moment.

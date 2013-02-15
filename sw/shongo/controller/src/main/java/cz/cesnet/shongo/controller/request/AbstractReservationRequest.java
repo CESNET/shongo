@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
@@ -12,6 +13,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -310,6 +312,27 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         }
         if (priority == null) {
             priority = 0;
+        }
+    }
+
+    /**
+     * Validate {@link AbstractReservationRequest}.
+     *
+     * @throws FaultException
+     */
+    public void validate() throws FaultException
+    {
+    }
+
+    /**
+     * Validate given slot {@code duration} if it is longer than 0 seconds.
+     * @param duration to be validated
+     * @throws FaultException
+     */
+    protected static void validateSlotDuration(Period duration) throws FaultException
+    {
+        if (duration.equals(new Period())) {
+            throw new FaultException(ControllerFault.RESERVATION_REQUEST_EMPTY_DURATION);
         }
     }
 

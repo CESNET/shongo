@@ -227,6 +227,15 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
+    public void validate() throws FaultException
+    {
+        for (DateTimeSlot slot : slots) {
+            validateSlotDuration(slot.getDuration());
+        }
+        super.validate();
+    }
+
+    @Override
     protected cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi()
     {
         return new cz.cesnet.shongo.controller.api.ReservationRequestSet();

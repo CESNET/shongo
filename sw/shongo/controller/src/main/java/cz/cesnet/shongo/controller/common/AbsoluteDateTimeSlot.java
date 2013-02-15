@@ -117,7 +117,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
 
     @Override
     @Transient
-    protected Period getDuration()
+    public Period getDuration()
     {
         return getSlot().toPeriod();
     }

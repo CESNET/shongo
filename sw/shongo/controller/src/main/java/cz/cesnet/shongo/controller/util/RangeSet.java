@@ -115,8 +115,12 @@ public class RangeSet<V, R> implements Iterable<V>
         }
 
         // Remove owner from buckets
-        removeBucketOwnerValue(bucketMap.get(range.getStart()), value);
-        removeBucketOwnerValue(bucketMap.get(range.getEnd()), value);
+        R start = range.getStart();
+        R end = range.getEnd();
+        removeBucketOwnerValue(bucketMap.get(start), value);
+        if (!start.equals(end)) {
+            removeBucketOwnerValue(bucketMap.get(end), value);
+        }
 
         rangeMap.remove(value);
 

@@ -716,6 +716,36 @@ sub modify_attribute_items_add_actions
 }
 
 #
+# Modify interval value
+#
+# @param $interval
+#
+sub modify_interval
+{
+    my ($interval) = @_;
+    my $start = undef;
+    my $end = undef;
+    my $duration = undef;
+    if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
+        $start = $1;
+        $end = $2;
+        $duration = iso8601_format_period(interval_get_duration($1, $2));
+    }
+    $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
+    my $duration_new = console_edit_value("Type a duration", 0, $Shongo::Common::PeriodPattern, $duration);
+    if ( !defined($duration) || $duration_new ne $duration ) {
+        if ( !defined($duration_new) || $duration_new eq '' ) {
+            $end = $start;
+        }
+        else {
+            $end = datetime_add_duration($start, $duration_new);
+        }
+    }
+    $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
+    return $start . '/' . $end;
+}
+
+#
 # Modify attribute value
 #
 sub modify_attribute_value
@@ -787,16 +817,7 @@ sub modify_attribute_value
         );
     }
     elsif ( $attribute->{'type'} eq 'interval' ) {
-        my $start = undef;
-        my $end = undef;
-        if ( defined($attribute_value) && $attribute_value =~ m/(.*)\/(.*)/ ) {
-            $start = $1;
-            $end = $2;
-        }
-        $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
-        $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
-        #$duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
-        $attribute_value = $start . '/' . $end;
+        $attribute_value = modify_interval($attribute_value);
     }
     elsif ( $attribute->{'type'} eq 'class' ) {
         if ( !defined($attribute_value) ) {

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.fault.IdentifierWrongDomainException;
 import cz.cesnet.shongo.controller.fault.IdentifierWrongTypeException;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.Fault;
 
 /**
  * Domain controller faults.
@@ -23,9 +24,15 @@ public class ControllerFault extends CommonFault
     public static final int IDENTIFIER_WRONG_TYPE = 101;
 
     /**
+     * Reservation request date/time slot duration was specified empty.
+     */
+    public static final Fault RESERVATION_REQUEST_EMPTY_DURATION = new SimpleFault(
+            200, "Date/time slot duration must not be empty.");
+
+    /**
      * @see ReservationRequestNotModifiableException
      */
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 200;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 201;
 
     @Override
     protected void fill()

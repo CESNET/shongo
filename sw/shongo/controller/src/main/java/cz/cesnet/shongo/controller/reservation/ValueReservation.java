@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -9,6 +10,7 @@ import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Period;
 
 import javax.persistence.*;
+
 
 /**
  * Represents a {@link Reservation} for a value from {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider}.
@@ -71,7 +73,7 @@ public class ValueReservation extends Reservation
     }
 
     @Override
-    public void validate(cz.cesnet.shongo.controller.Cache cache) throws ReportException
+    public void validate(Cache cache) throws ReportException
     {
         Period duration = getSlot().toPeriod();
         Period maxDuration = cache.getValueReservationMaximumDuration();

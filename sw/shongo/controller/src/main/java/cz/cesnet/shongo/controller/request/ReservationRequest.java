@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
+import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
@@ -178,7 +179,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #reservation}
+     * @return {@link #reservations}
      */
     @Transient
     public Reservation getReservation()
@@ -195,7 +196,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @param reservation sets the {@link #reservation}
+     * @param reservation sets the {@link #reservations}
      */
     @Transient
     public void setReservation(Reservation reservation)
@@ -293,7 +294,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservation} is filled
+     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservations} is filled
      *         false otherwise
      */
     @Transient
@@ -311,6 +312,14 @@ public class ReservationRequest extends AbstractReservationRequest
         if (createdBy == null) {
             createdBy = CreatedBy.USER;
         }
+    }
+
+    @Override
+    public void validate() throws FaultException
+    {
+        validateSlotDuration(getSlot().toPeriod());
+
+        super.validate();
     }
 
     @Override

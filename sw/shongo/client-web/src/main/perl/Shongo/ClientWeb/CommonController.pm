@@ -137,9 +137,6 @@ sub parse_reservation_request
 
     # Parse duration from type and count
     if ( defined($params->{'durationType'}) && defined($params->{'durationCount'}) ) {
-        $slotStart = $params->{'start'};
-        my $tmp = DateTime::Format::ISO8601->parse_datetime($slotStart);
-
         my $duration;
         if ( $params->{'durationType'} eq 'minute' ) {
             $slotDuration = 'PT' . $params->{'durationCount'} . 'M';
@@ -162,12 +159,8 @@ sub parse_reservation_request
         else {
             die("Unknown duration type '$params->{'durationType'}'.");
         }
-        $tmp->add_duration($duration);
-        $slotEnd = $tmp->strftime('%FT%T.%3N');
-        if ( $slotStart =~ /[\+-]\d\d(:\d\d)?$/ ) {
-            $slotEnd .= $tmp->strftime('%z');
-            $slotEnd =~ s/(\d\d)$/:$1/;
-        }
+        $slotStart = $params->{'start'};
+        $slotEnd = datetime_add_duration($slotStart, $duration);
     }
     # Parse duration from start and end
     if ( defined($params->{'start'}) && defined($params->{'end'}) ) {
@@ -239,7 +232,7 @@ sub get_reservation_request
         if ( $request->{'slot'} =~ /(.*)\/(.*)/ ) {
             $request->{'start'} = $1;
             $request->{'end'} = $2;
-            $request->{'duration'} = get_interval_duration($1, $2);
+            $request->{'duration'} = interval_get_duration($1, $2);
         }
 
         # Child requests
@@ -271,7 +264,7 @@ sub get_reservation_request
             if ( $slot =~ /(.*)\/(.*)/ ) {
                 $request->{'start'} = $1;
                 $request->{'end'} = $2;
-                $request->{'duration'} = get_interval_duration($1, $2);
+                $request->{'duration'} = interval_get_duration($1, $2);
             }
         }
 
@@ -281,7 +274,7 @@ sub get_reservation_request
             if ( $child_request->{'slot'} =~ /(.*)\/(.*)/ ) {
                 $child_request->{'start'} = $1;
                 $child_request->{'end'} = $2;
-                $request->{'duration'} = get_interval_duration($1, $2);
+                $request->{'duration'} = interval_get_duration($1, $2);
             }
             push(@{$child_requests}, $child_request);
         }
@@ -392,7 +385,7 @@ sub process_reservation_request_summary
     if ( $request_summary->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
         $request_summary->{'start'} = $1;
         $request_summary->{'end'} = $2;
-        $request_summary->{'duration'} = get_interval_duration($1, $2);
+        $request_summary->{'duration'} = interval_get_duration($1, $2);
     }
 }
 

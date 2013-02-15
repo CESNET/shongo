@@ -73,4 +73,12 @@ public class RangeSetTest
                 new RangeSet.Bucket(400),
         }, rangeSet.getBuckets().toArray());
     }
+
+    @Test
+    public void testEmpty() throws Exception
+    {
+        RangeSet<Integer, Integer> rangeSet = new RangeSet<Integer, Integer>();
+        rangeSet.add(1, 50, 50);
+        rangeSet.remove(1);
+    }
 }

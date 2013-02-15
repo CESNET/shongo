@@ -108,15 +108,7 @@ sub modify_slot($)
         $slot->{'end'} = console_edit_value("Ending date/time", 0, $Shongo::Common::DateTimePartialPattern, $slot->{'end'});
     }
     else {
-        my $start = undef;
-        my $end = undef;
-        if ( defined($slot) && $slot =~ m/(.*)\/(.*)/ ) {
-            $start = $1;
-            $end = $2;
-        }
-        $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
-        $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
-        $slot = $start . '/' . $end;
+        $slot = Shongo::ClientCli::API::Object::modify_interval($slot);
     }
     return $slot;
 }
