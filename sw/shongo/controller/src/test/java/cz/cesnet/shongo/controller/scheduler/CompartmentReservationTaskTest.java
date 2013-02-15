@@ -165,6 +165,7 @@ public class CompartmentReservationTaskTest
     @Test
     public void testSingleRoomFromMultipleEndpoints() throws Exception
     {
+        try {
         Cache cache = Cache.createTestingCache();
 
         DeviceResource mcu = new DeviceResource();
@@ -188,6 +189,10 @@ public class CompartmentReservationTaskTest
         Assert.assertEquals(3, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
         Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw exception;
+        }
     }
 
     @Test

@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
@@ -11,9 +14,11 @@ import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
+import org.joda.time.Interval;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -53,11 +58,24 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
             @Override
             protected Reservation createReservation() throws ReportException
             {
-                Set<Technology> technologies = getTechnologies();
+                Interval interval = getInterval();
+                CacheTransaction cacheTransaction = getCacheTransaction();
+                ResourceCache resourceCache = getCache().getResourceCache();
 
-                // Lookup device resources
-                List<DeviceResource> deviceResources = getCache().findAvailableTerminal(getInterval(), technologies,
-                        getCacheTransaction());
+                Set<Technology> technologies = getTechnologies();
+                Set<Long> terminals = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                        TerminalCapability.class, technologies);
+
+                List<DeviceResource> deviceResources = new ArrayList<DeviceResource>();
+                for (Long terminalId : terminals) {
+                    DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(terminalId);
+                    if (deviceResource == null) {
+                        throw new IllegalStateException("Device resource should be added to the cache.");
+                    }
+                    if (resourceCache.isResourceAvailableByParent(deviceResource, getContext())) {
+                        deviceResources.add(deviceResource);
+                    }
+                }
 
                 // Select first available device resource
                 // TODO: Select best endpoint based on some criteria (e.g., location in real world)

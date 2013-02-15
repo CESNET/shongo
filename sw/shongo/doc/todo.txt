@@ -4,11 +4,16 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* EXCLUSION and MAINTENANCE purpose
-  - should be allowed only for resource owner
-  - should allow infinite slots for owners
+* OWNER and MAINTENANCE purpose
+  - should be allowed only for resource owner (done but check by tests)
+  - try to move ResourceCache.checkResourceAvailable to Cache
+  - add new scheduler reports for checkResourceAvailable
+  - check "@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)" in AbstractConnectionReport
 
 * Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
+
+* AliasGroupReservationTask should execute AliasReservationTask for each alias specification and the RoomReservationTask
+  should not use the AliasGroupReservationTask (move the logic from the alias group to the room task)
 
 * Update API
   - interval (describe why interval cannot be formatted as start/duration)

@@ -126,11 +126,9 @@ public class RoomReservationTask extends ReservationTask
     protected Reservation createReservation() throws ReportException
     {
         Context context = getContext();
-        Interval interval = context.getInterval();
         Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
         ResourceCache resourceCache = cache.getResourceCache();
-        checkMaximumDuration(interval, cache.getResourceReservationMaximumDuration());
 
         Set<Long> specifiedDeviceResourceIds = null;
         if (deviceResource != null) {
@@ -199,8 +197,7 @@ public class RoomReservationTask extends ReservationTask
             for (Long deviceResourceId : roomVariantByDeviceResourceId.keySet()) {
                 DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
                 RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
-                AvailableRoom availableRoom =
-                        resourceCache.getAvailableRoom(deviceResource, getInterval(), cacheTransaction);
+                AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource, context);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
                     addReport(new ResourceReport(deviceResource, Report.State.NONE));
@@ -240,6 +237,12 @@ public class RoomReservationTask extends ReservationTask
                 // Get device and it's room variant
                 DeviceResource deviceResource = availableRoom.getDeviceResource();
                 RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResource.getId());
+
+                // Create room reservation
+                RoomReservation roomReservation = new RoomReservation();
+                roomReservation.setSlot(getInterval());
+                roomReservation.setResource(deviceResource);
+                validateReservationSlot(roomReservation);
 
                 // Room configuration
                 RoomConfiguration roomConfiguration = new RoomConfiguration();
@@ -375,10 +378,7 @@ public class RoomReservationTask extends ReservationTask
                     roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
                 }
 
-                // Create room reservation
-                RoomReservation roomReservation = new RoomReservation();
-                roomReservation.setSlot(getInterval());
-                roomReservation.setResource(deviceResource);
+                // Set room configuration and executable
                 roomReservation.setRoomConfiguration(roomConfiguration);
                 roomReservation.setExecutable(roomEndpoint);
 

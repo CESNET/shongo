@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -132,6 +133,7 @@ public class AliasReservationTask extends ReservationTask
         Context context = getContext();
         Interval interval = getInterval();
         Cache cache = getCache();
+        ResourceCache resourceCache = cache.getResourceCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
 
         // Get possible alias providers
@@ -253,16 +255,10 @@ public class AliasReservationTask extends ReservationTask
             }
 
             // Check whether alias provider can be allocated
-            Resource resource = aliasProvider.getResource();
-            DateTime referenceDateTime = cache.getReferenceDateTime();
-            if (!resource.isAllocatable()) {
-                // End allocating current alias provider and try to allocate next one
-                endReportError(new ResourceNotAllocatableReport(resource));
-                continue;
-            }
-            if (!aliasProvider.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
-                // End allocating current alias provider and try to allocate next one
-                endReportError(new ResourceNotAvailableReport(resource));
+            try {
+                resourceCache.checkCapabilityAvailable(aliasProvider, context);
+            } catch (ReportException exception) {
+                endReportError(exception.getReport());
                 continue;
             }
 

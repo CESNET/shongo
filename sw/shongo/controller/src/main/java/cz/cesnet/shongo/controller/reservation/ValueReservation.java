@@ -73,12 +73,6 @@ public class ValueReservation extends Reservation
     }
 
     @Override
-    public void validate(Cache cache) throws ReportException
-    {
-        ReservationTask.checkMaximumDuration(getSlot(), cache.getValueReservationMaximumDuration());
-    }
-
-    @Override
     public cz.cesnet.shongo.controller.api.ValueReservation toApi()
     {
         return (cz.cesnet.shongo.controller.api.ValueReservation) super.toApi();

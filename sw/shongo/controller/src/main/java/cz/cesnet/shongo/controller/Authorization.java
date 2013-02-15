@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.UserPerson;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.SecurityException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -396,6 +397,23 @@ public class Authorization
         public static UserInformation getInstance(String userId)
         {
             return Authorization.getInstance().getUserInformation(userId);
+        }
+    }
+
+    /**
+     * Class for verifying user permissions.
+     */
+    public static class Permission
+    {
+        /**
+         * @param userId
+         * @param resource
+         * @return true if user with given {@code userId} is onwer of given {@code resource},
+         *         false otherwise
+         */
+        public static boolean isUserOwner(String userId, Resource resource)
+        {
+            return resource.getUserId().equals(userId);
         }
     }
 

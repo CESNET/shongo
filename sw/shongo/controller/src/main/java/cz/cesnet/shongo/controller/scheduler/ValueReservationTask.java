@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableValue;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -58,36 +59,25 @@ public class ValueReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        Context context = getContext();
         Interval interval = getInterval();
         Cache cache = getCache();
+        ResourceCache resourceCache = cache.getResourceCache();
         ValueCache valueCache = cache.getValueCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
-        checkMaximumDuration(interval, cache.getValueReservationMaximumDuration());
 
         DateTime referenceDateTime = valueCache.getReferenceDateTime();
 
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
-        Resource resource = capability.getResource();
-        if (!resource.isAllocatable()) {
-            throw new ResourceNotAllocatableReport(resource).exception();
-        }
-        if (!capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
-            throw new ResourceNotAvailableReport(resource).exception();
-        }
+        resourceCache.checkCapabilityAvailable(capability, context);
 
         // Find available value in the alias providers
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
         if (targetValueProvider != valueProvider) {
             // Check whether target value provider can be allocated
             capability = targetValueProvider.getCapability();
-            resource = capability.getResource();
-            if (!resource.isAllocatable()) {
-                throw new ResourceNotAllocatableReport(resource).exception();
-            }
-            if (!capability.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
-                throw new ResourceNotAvailableReport(resource).exception();
-            }
+            resourceCache.checkCapabilityAvailable(capability, context);
         }
 
         // Get new available value

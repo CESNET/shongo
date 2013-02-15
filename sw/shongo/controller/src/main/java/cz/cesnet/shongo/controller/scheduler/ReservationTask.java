@@ -12,6 +12,8 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -344,6 +346,7 @@ public abstract class ReservationTask
             beginReport(report, false);
             try {
                 reservation = createReservation();
+                validateReservation(reservation);
             }
             catch (ReportException exception) {
                 Report exceptionReport = exception.getTopReport();
@@ -367,7 +370,6 @@ public abstract class ReservationTask
             childReservation.setUserId(context.getUserId());
             reservation.addChildReservation(childReservation);
         }
-        reservation.validate(getCache());
 
         // Add reservation to the cache
         getCacheTransaction().addAllocatedReservation(reservation);
@@ -393,13 +395,39 @@ public abstract class ReservationTask
     protected abstract Reservation createReservation() throws ReportException;
 
     /**
+     * @param reservation to be validated
+     * @throws ReportException when the validation failed
+     */
+    protected void validateReservationSlot(Reservation reservation) throws ReportException
+    {
+        // Check maximum duration
+        if (context.isCheckMaximumDuration()) {
+            if (reservation instanceof ResourceReservation) {
+                checkMaximumDuration(reservation.getSlot(), context.getCache().getResourceReservationMaximumDuration());
+            }
+            else if (reservation instanceof ValueReservation) {
+                checkMaximumDuration(reservation.getSlot(), context.getCache().getValueReservationMaximumDuration());
+            }
+        }
+    }
+
+    /**
+     * @param reservation to be validated
+     * @throws ReportException when the validation failed
+     */
+    protected void validateReservation(Reservation reservation) throws ReportException
+    {
+        validateReservationSlot(reservation);
+    }
+
+    /**
      * Check maximum duration.
      *
      * @param slot            to be checked
      * @param maximumDuration maximum allowed duration
      * @throws ReportException
      */
-    public static void checkMaximumDuration(Interval slot, Period maximumDuration) throws ReportException
+    private static void checkMaximumDuration(Interval slot, Period maximumDuration) throws ReportException
     {
         Period duration = Temporal.getIntervalDuration(slot);
         if (Temporal.isPeriodLongerThan(duration, maximumDuration)) {
@@ -415,7 +443,7 @@ public abstract class ReservationTask
         /**
          * {@link AbstractReservationRequest} for which the {@link Reservation} should be allocated.
          */
-        private AbstractReservationRequest reservationRequest;
+        private ReservationRequest reservationRequest;
 
         /**
          * @see Cache
@@ -433,7 +461,7 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link CacheTransaction#interval}
          */
-        public Context(AbstractReservationRequest reservationRequest, Cache cache, Interval interval)
+        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval)
         {
             this.reservationRequest = reservationRequest;
             this.cache = cache;
@@ -455,7 +483,7 @@ public abstract class ReservationTask
         /**
          * @return {@link #reservationRequest}
          */
-        public AbstractReservationRequest getReservationRequest()
+        public ReservationRequest getReservationRequest()
         {
             return reservationRequest;
         }
@@ -475,6 +503,25 @@ public abstract class ReservationTask
         public boolean isExecutableAllowed()
         {
             return reservationRequest.getPurpose().isExecutableAllowed();
+        }
+
+        /**
+         * @return true whether checking of maximum reservation duration should be done,
+         *         false otherwise
+         */
+        public boolean isCheckMaximumDuration()
+        {
+            // If all resources can be allocated, we must check the maximum duration of reservations
+            return !reservationRequest.getPurpose().isOnlyOwnedResources();
+        }
+
+        /**
+         * @return true whether only owned resource by the reservation request owner can be allocated,
+         *         false otherwise
+         */
+        public boolean isOnlyOwnedResources()
+        {
+            return reservationRequest.getPurpose().isOnlyOwnedResources();
         }
 
         /**

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -330,16 +331,6 @@ public class Reservation extends PersistentObject
             reservations.add(childReservation);
             childReservation.getNestedReservations(reservations);
         }
-    }
-
-    /**
-     * Validate reservation.
-     *
-     * @param cache
-     * @throws ReportException
-     */
-    public void validate(Cache cache) throws ReportException
-    {
     }
 
     /**

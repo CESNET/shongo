@@ -50,12 +50,6 @@ public class ResourceReservation extends Reservation
     }
 
     @Override
-    public void validate(Cache cache) throws ReportException
-    {
-        ReservationTask.checkMaximumDuration(getSlot(), cache.getResourceReservationMaximumDuration());
-    }
-
-    @Override
     public cz.cesnet.shongo.controller.api.ResourceReservation toApi()
     {
         return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi();

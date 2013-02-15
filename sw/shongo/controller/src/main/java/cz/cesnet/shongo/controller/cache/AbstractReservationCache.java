@@ -448,5 +448,44 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
                 }
             }
         }
+
+        /**
+         * Apply {@link Transaction} to given {@code reservations} for given object with given {@code objectId}.
+         *
+         * @param objectId     for which the {@link Transaction} should apply
+         * @param reservations to which the {@link Transaction} should apply
+         */
+        public  <T extends Reservation> void applyReservations(Long objectId, Set<T> reservations, Class<T> reservationType)
+        {
+            Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
+            if (providedReservationsToApply != null) {
+                Map<Long, T> reservationById = new HashMap<Long, T>();
+                for (T reservation : reservations) {
+                    if (!providedReservationsToApply.getClass().equals(reservationType)) {
+                         continue;
+                    }
+                    reservationById.put(reservation.getId(), reservation);
+                }
+                for (R providedReservation : providedReservationsToApply) {
+                    Reservation reservation = reservationById.get(providedReservation.getId());
+                    if (reservation != null) {
+                        @SuppressWarnings("unchecked")
+                        T typedReservation = (T) reservation;
+                        reservations.remove(typedReservation);
+                    }
+                }
+            }
+            Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
+            if (allocatedReservationsToApply != null) {
+                for (R reservation : allocatedReservationsToApply) {
+                    if (!reservation.getClass().equals(reservationType)) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked")
+                    T typedReservation = (T) reservation;
+                    reservations.add(typedReservation);
+                }
+            }
+        }
     }
 }

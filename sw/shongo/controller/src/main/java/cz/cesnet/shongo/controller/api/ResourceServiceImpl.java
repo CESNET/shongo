@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -313,7 +314,8 @@ public class ResourceServiceImpl extends Component
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
                 AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
-                        (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
+                        (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl,
+                        new ReservationTask.Context(cache, interval));
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

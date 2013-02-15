@@ -89,6 +89,7 @@ public abstract class ReportablePersistentObject extends PersistentObject
         for (Report report : reports) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n");
+                stringBuilder.append("\n");
             }
             stringBuilder.append(report.getReport());
         }

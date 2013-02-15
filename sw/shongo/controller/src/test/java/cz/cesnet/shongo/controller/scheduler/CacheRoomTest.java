@@ -5,6 +5,8 @@ import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -12,9 +14,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import static junitx.framework.Assert.assertEquals;
 
@@ -76,32 +76,32 @@ public class CacheRoomTest extends AbstractDatabaseTest
         List<AvailableRoom> result;
 
         // Test different intervals
-        result = cache.findAvailableRooms(Interval.parse("0/1"), 50, null);
+        result = findAvailableRooms(cache, Interval.parse("0/1"), 50);
         assertEquals(2, result.size());
 
-        result = cache.findAvailableRooms(Interval.parse("200/250"), 50, null);
+        result = findAvailableRooms(cache, Interval.parse("200/250"), 50);
         assertEquals(2, result.size());
 
-        result = cache.findAvailableRooms(Interval.parse("50/100"), 50, null);
+        result = findAvailableRooms(cache, Interval.parse("50/100"), 50);
         assertEquals(1, result.size());
 
-        result = cache.findAvailableRooms(Interval.parse("100/150"), 50, null);
+        result = findAvailableRooms(cache, Interval.parse("100/150"), 50);
         assertEquals(1, result.size());
 
         // Test different technologies
-        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
-                new Technology[]{Technology.H323, Technology.ADOBE_CONNECT}, null);
+        result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
+                new Technology[]{Technology.H323, Technology.ADOBE_CONNECT});
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
 
-        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
-                new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT}, null);
+        result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
+                new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT});
         assertEquals(1, result.size());
         assertEquals(mcu2, result.get(0).getDeviceResource());
 
         // Test different number of required ports
-        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
-                new Technology[]{Technology.ADOBE_CONNECT}, null);
+        result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
+                new Technology[]{Technology.ADOBE_CONNECT});
         sortResult(result);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
@@ -109,8 +109,8 @@ public class CacheRoomTest extends AbstractDatabaseTest
         assertEquals(mcu2, result.get(1).getDeviceResource());
         assertEquals(20, result.get(1).getAvailableLicenseCount());
 
-        result = cache.findAvailableRooms(Interval.parse("100/149"), 20,
-                new Technology[]{Technology.ADOBE_CONNECT}, null);
+        result = findAvailableRooms(cache, Interval.parse("100/149"), 20,
+                new Technology[]{Technology.ADOBE_CONNECT});
         sortResult(result);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
@@ -118,11 +118,59 @@ public class CacheRoomTest extends AbstractDatabaseTest
         assertEquals(mcu2, result.get(1).getDeviceResource());
         assertEquals(20, result.get(1).getAvailableLicenseCount());
 
-        result = cache.findAvailableRooms(Interval.parse("100/149"), 21,
-                new Technology[]{Technology.ADOBE_CONNECT}, null);
+        result = findAvailableRooms(cache, Interval.parse("100/149"), 21,
+                new Technology[]{Technology.ADOBE_CONNECT});
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
         assertEquals(50, result.get(0).getAvailableLicenseCount());
+    }
+
+    /**
+     * Find {@link cz.cesnet.shongo.controller.cache.AvailableRoom}s in given {@code interval} which have
+     * at least {@code requiredLicenseCount} available licenses and which supports given {@code technologies}.
+     *
+     * @param interval
+     * @param requiredLicenseCount
+     * @param technologies
+     * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableRoom}
+     */
+    public List<AvailableRoom> findAvailableRooms(Cache cache, Interval interval,
+            int requiredLicenseCount, Set<Technology> technologies)
+    {
+        ResourceCache resourceCache = cache.getResourceCache();
+        Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                RoomProviderCapability.class,
+                technologies);
+        List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
+        for (Long deviceResourceId : deviceResourceIds) {
+            DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
+            AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
+                    new ReservationTask.Context(cache, interval));
+            if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
+                availableRooms.add(availableRoom);
+            }
+        }
+        return availableRooms;
+    }
+
+    /**
+     * @see {@link #findAvailableRooms}
+     */
+    public List<AvailableRoom> findAvailableRooms(Cache cache, Interval interval,
+            int requiredLicenseCount, Technology[] technologies)
+    {
+        Set<Technology> technologySet = new HashSet<Technology>();
+        Collections.addAll(technologySet, technologies);
+        return findAvailableRooms(cache, interval, requiredLicenseCount, technologySet);
+    }
+
+    /**
+     * @see {@link #findAvailableRooms}
+     */
+    public List<AvailableRoom> findAvailableRooms(Cache cache, Interval interval,
+            int requiredLicenseCount)
+    {
+        return findAvailableRooms(cache, interval, requiredLicenseCount, (Set<Technology>) null);
     }
 
     private void sortResult(List<AvailableRoom> result)

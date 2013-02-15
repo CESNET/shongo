@@ -1,9 +1,15 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +34,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             new HashMap<Class<? extends Capability>, CapabilityState>();
 
     /**
-     * Map of states for cached objects with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}
+     * Map of states for cached objects with {@link RoomProviderCapability}
      * by theirs ids.
      */
     private Map<Long, ObjectState<RoomReservation>> roomProviderStateById =
@@ -305,84 +311,156 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     /**
-     * Checks whether {@code resource} is available. Device resources with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability} can
-     * be available even if theirs capacity is fully used.
+     * Check if resource is available (the {@link Resource#maximumFuture} is not verified).
      *
-     * @param resource
-     * @param interval
-     * @param transaction
-     * @return true if given {@code resource} is available,
-     *         false otherwise
+     * @param resource to be checked
+     * @param context  to be used
+     * @throws ReportException
      */
-    public boolean isResourceAvailable(Resource resource, Interval interval, CacheTransaction transaction)
+    private void checkResourceAvailableWithoutFuture(Resource resource, ReservationTask.Context context)
+            throws ReportException
     {
         // Check if resource can be allocated and if it is available in the future
-        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
-            return false;
+        if (!resource.isAllocatable()) {
+            throw new ResourceNotAllocatableReport(resource).exception();
         }
+
+        // If reservation request purpose implies allocation of only owned resources
+        if (context.isOnlyOwnedResources()) {
+            // Check resource owner against reservation request owner
+            if (!Authorization.Permission.isUserOwner(context.getUserId(), resource)) {
+                // TODO: implement report for resource is not owned by user
+                throw new ResourceNotAvailableReport(resource).exception();
+            }
+        }
+
         // Check if resource is not already allocated
         ObjectState<ResourceReservation> resourceState = getObjectStateRequired(resource);
         Set<ResourceReservation> resourceReservations;
-        if (transaction != null) {
-            resourceReservations = resourceState.getReservations(interval, transaction.getResourceCacheTransaction());
+        CacheTransaction cacheTransaction = context.getCacheTransaction();
+        if (cacheTransaction != null) {
+            resourceReservations = resourceState.getReservations(context.getInterval());
+
+            // TODO: fix somehow
+            if (true) {
+                throw new TodoImplementException();
+            }
+            cacheTransaction.getResourceCacheTransaction().applyReservations(resourceState.getObjectId(), resourceReservations, ResourceReservation.class);
         }
         else {
-            resourceReservations = resourceState.getReservations(interval);
+            resourceReservations = resourceState.getReservations(context.getInterval());
         }
         if (resourceReservations.size() > 0) {
-            return false;
+            // TODO: implement already allocated report
+            throw new ResourceNotAvailableReport(resource).exception();
         }
-        return true;
     }
 
     /**
-     * Checks whether all children resources for given {@code currentResource} are available
-     * in given {@code interval} (recursive).
+     * Checks whether given {@code capability} is available for given {@code reservationRequest}.
+     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
-     * @param resource          to be skipped from checking
-     * @param dependentResource
-     * @param interval
-     * @return
+     * @param capability to be checked
+     * @param context    for checking
+     * @throws ReportException when the given {@code resource} is not available
      */
-    private boolean isDependentResourceAvailable(Resource resource, Resource dependentResource, Interval interval,
-            CacheTransaction transaction)
+    public void checkCapabilityAvailable(Capability capability, ReservationTask.Context context) throws ReportException
     {
-        // We do not consider the resource itself as dependent and thus it is ignored (considered as available)
-        if (dependentResource.equals(resource)) {
-            return true;
+        // Check capability resource
+        Resource resource = capability.getResource();
+        checkResourceAvailableWithoutFuture(resource, context);
+
+        // Check if the capability can be allocated in the interval future
+        if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
+            throw new ResourceNotAvailableReport(resource).exception();
         }
-        // If dependent resource is already contained in transaction, it is available
-        if (transaction.containsReferencedResource(dependentResource)) {
-            return true;
-        }
-        if (!isResourceAvailable(dependentResource, interval, transaction)) {
-            return false;
-        }
-        for (Resource childDependentResource : dependentResource.getChildResources()) {
-            if (!isDependentResourceAvailable(resource, childDependentResource, interval, transaction)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
-     * Checks whether all dependent resources for given {@code resource} are available
-     * in given {@code interval} (recursive).
+     * Checks whether given {@code resource} is available for given {@code context}.
+     * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
-     * @param resource
-     * @param interval
-     * @return true if dependent resources from given {@code resource} are available (recursive),
-     *         false otherwise
+     * @param resource to be checked
+     * @param context  for checking
+     * @throws ReportException when the given {@code resource} is not available
      */
-    public boolean isDependentResourcesAvailable(Resource resource, Interval interval, CacheTransaction transaction)
+    public void checkResourceAvailable(Resource resource, ReservationTask.Context context) throws ReportException
     {
+        checkResourceAvailableWithoutFuture(resource, context);
+
+        // Check if the resource can be allocated in the interval future
+        if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
+            throw new ResourceNotAvailableReport(resource).exception();
+        }
+    }
+
+    /**
+     * @see #checkResourceAvailable(Resource, ReservationTask.Context)
+     */
+    public boolean isResourceAvailable(Resource resource, ReservationTask.Context context)
+    {
+        try {
+            checkResourceAvailable(resource, context);
+            return true;
+        }
+        catch (ReportException exception) {
+            return false;
+        }
+    }
+
+    public void checkResourceAvailableByParent(Resource resource, ReservationTask.Context context) throws ReportException
+    {
+        checkResourceAvailable(resource, context);
+
         // Get top parent resource and checks whether it is available
         Resource parentResource = resource;
         while (parentResource.getParentResource() != null) {
             parentResource = parentResource.getParentResource();
         }
-        return isDependentResourceAvailable(resource, parentResource, interval, transaction);
+        // Checks whether the top parent and all children resources are available
+        checkResourceAndChildResourcesAvailable(parentResource, context, resource);
+    }
+
+    /**
+     * @see #checkResourceAvailableByParent(Resource, ReservationTask.Context)
+     */
+    public boolean isResourceAvailableByParent(Resource resource, ReservationTask.Context context)
+    {
+        try {
+            checkResourceAvailableByParent(resource, context);
+            return true;
+        }
+        catch (ReportException exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Checks whether all children resources for given {@code dependentResource} are available
+     * in given {@code interval} (recursive).
+     *
+     * @param resource        to be checked for availability
+     * @param context         for checking
+     * @param skippedResource to be skipped from checking (it is available)
+     * @return
+     */
+    private void checkResourceAndChildResourcesAvailable(Resource resource, ReservationTask.Context context,
+            Resource skippedResource) throws ReportException
+    {
+        // We do not check the skipped resource (it is considered as available)
+        if (resource.equals(skippedResource)) {
+            return;
+        }
+        // If the resource is already contained in the transaction, it is available
+        if (context.getCacheTransaction().containsReferencedResource(resource)) {
+            return;
+        }
+        // Check resource availability
+        checkResourceAvailable(resource, context);
+        // Check child resources availability
+        for (Resource childResource : resource.getChildResources()) {
+            checkResourceAndChildResourcesAvailable(childResource, context, skippedResource);
+        }
     }
 
     /**
@@ -405,11 +483,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
 
     /**
      * @param deviceResource
-     * @param interval
+     * @param context
      * @return {@link AvailableRoom} for given {@code deviceResource} in given {@code interval}
      */
-    public AvailableRoom getAvailableRoom(DeviceResource deviceResource, Interval interval,
-            CacheTransaction transaction)
+    public AvailableRoom getAvailableRoom(DeviceResource deviceResource, ReservationTask.Context context)
     {
         RoomProviderCapability roomProviderCapability =
                 getResourceCapability(deviceResource.getId(), RoomProviderCapability.class);
@@ -417,9 +494,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             throw new IllegalStateException("Device resource doesn't have "
                     + RoomProviderCapability.class.getSimpleName() + ".");
         }
-        Collection<RoomReservation> roomReservations = getRoomReservations(deviceResource, interval, transaction);
         int usedLicenseCount = 0;
-        if (isResourceAvailable(deviceResource, interval, transaction)) {
+        if (isResourceAvailable(deviceResource, context)) {
+            Collection<RoomReservation> roomReservations =
+                    getRoomReservations(deviceResource, context.getInterval(), context.getCacheTransaction());
             for (ResourceReservation resourceReservation : roomReservations) {
                 RoomReservation roomReservation = (RoomReservation) resourceReservation;
                 usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();

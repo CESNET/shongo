@@ -18,7 +18,7 @@ use Shongo::ClientCli::API::ReservationRequestSet;
 our $Purpose = ordered_hash(
     'SCIENCE' => 'Science',
     'EDUCATION' => 'Education',
-    'EXCLUSION' => 'Exclusion',
+    'OWNER' => 'Owner',
     'MAINTENANCE' => 'Maintenance'
 );
 

@@ -8,22 +8,22 @@ public enum ReservationRequestPurpose
     /**
      * Reservation will be used e.g., for research purposes.
      */
-    SCIENCE(0, true),
+    SCIENCE(0, true, false),
 
     /**
      * Reservation will be used for education purposes (e.g., for a lecture).
      */
-    EDUCATION(0, true),
+    EDUCATION(0, true, false),
 
     /**
      * Reservation is used for owner purposes (no executable will be allocated).
      */
-    EXCLUSION(1, false),
+    OWNER(1, false, true),
 
     /**
      * Reservation is used for maintenance purposes (no executable will be allocated).
      */
-    MAINTENANCE(1, false);
+    MAINTENANCE(1, false, true);
 
     /**
      * Specifies priority for the scheduler.
@@ -36,14 +36,20 @@ public enum ReservationRequestPurpose
     private boolean executableAllowed;
 
     /**
+     * Specifies whether scheduler can allocate only owned resources.
+     */
+    private boolean onlyOwnedResources;
+
+    /**
      * Constructor.
      *
      * @param executableAllowed sets the {@link #executableAllowed}
      */
-    private ReservationRequestPurpose(int priority, boolean executableAllowed)
+    private ReservationRequestPurpose(int priority, boolean executableAllowed, boolean onlyOwnedResources)
     {
         this.priority = priority;
         this.executableAllowed = executableAllowed;
+        this.onlyOwnedResources = onlyOwnedResources;
     }
 
     /**
@@ -60,6 +66,14 @@ public enum ReservationRequestPurpose
     public boolean isExecutableAllowed()
     {
         return executableAllowed;
+    }
+
+    /**
+     * @return {@link #onlyOwnedResources}
+     */
+    public boolean isOnlyOwnedResources()
+    {
+        return onlyOwnedResources;
     }
 
     /**
