@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableValue;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ValueCache;
+import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
@@ -48,11 +50,19 @@ public class ValueReservationTask extends ReservationTask
     }
 
     @Override
+    protected Report createdMainReport()
+    {
+        return new AllocatingValueReport(valueProvider.getTargetValueProvider().getCapability());
+    }
+
+    @Override
     protected Reservation createReservation() throws ReportException
     {
         Interval interval = getInterval();
-        ValueCache valueCache = getCache().getValueCache();
+        Cache cache = getCache();
+        ValueCache valueCache = cache.getValueCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
+        checkMaximumDuration(interval, cache.getValueReservationMaximumDuration());
 
         DateTime referenceDateTime = valueCache.getReferenceDateTime();
 

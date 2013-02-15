@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -11,7 +12,9 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import java.util.*;
 
@@ -388,6 +391,21 @@ public abstract class ReservationTask
      * @throws ReportException when the {@link Reservation} cannot be created
      */
     protected abstract Reservation createReservation() throws ReportException;
+
+    /**
+     * Check maximum duration.
+     *
+     * @param slot            to be checked
+     * @param maximumDuration maximum allowed duration
+     * @throws ReportException
+     */
+    public static void checkMaximumDuration(Interval slot, Period maximumDuration) throws ReportException
+    {
+        Period duration = Temporal.getIntervalDuration(slot);
+        if (Temporal.isPeriodLongerThan(duration, maximumDuration)) {
+            throw new DurationLongerThanMaximumReport(duration, maximumDuration).exception();
+        }
+    }
 
     /**
      * Context for the {@link ReservationTask}.

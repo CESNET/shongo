@@ -4,8 +4,6 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* Throw max duration error report in the beginning of allocation
-
 * EXCLUSION and MAINTENANCE purpose
   - should be allowed only for resource owner
   - should allow infinite slots for owners

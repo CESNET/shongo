@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.report.Report;
 import org.joda.time.Period;
 
 import javax.persistence.*;
+
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -90,6 +92,13 @@ public class DurationLongerThanMaximumReport extends Report
     @Transient
     public String getText()
     {
-        return String.format("Duration '%s' is longer than maximum '%s'!", getDuration(), getMaximumDuration());
+        String duration;
+        if (getDuration().equals(Temporal.PERIOD_INFINITY)) {
+            duration = Temporal.INFINITY_ALIAS;
+        }
+        else {
+            duration = getDuration().toString();
+        }
+        return String.format("Duration '%s' is longer than maximum '%s'!", duration, getMaximumDuration());
     }
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.Temporal;
 import org.joda.time.Period;
@@ -19,6 +20,13 @@ import javax.persistence.OneToOne;
 @Entity
 public class ResourceReservation extends Reservation
 {
+    /**
+     * Constructor.
+     */
+    public ResourceReservation()
+    {
+    }
+
     /**
      * {@link Resource} which is allocated.
      */
@@ -44,11 +52,7 @@ public class ResourceReservation extends Reservation
     @Override
     public void validate(Cache cache) throws ReportException
     {
-        Period duration = getSlot().toPeriod();
-        Period maxDuration = cache.getResourceReservationMaximumDuration();
-        if (Temporal.isPeriodLongerThan(duration, maxDuration)) {
-            throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
-        }
+        ReservationTask.checkMaximumDuration(getSlot(), cache.getResourceReservationMaximumDuration());
     }
 
     @Override

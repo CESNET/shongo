@@ -19,6 +19,13 @@ import javax.persistence.Transient;
 public class RoomReservation extends EndpointReservation
 {
     /**
+     * Constructor.
+     */
+    public RoomReservation()
+    {
+    }
+
+    /**
      * @see RoomConfiguration
      */
     private RoomConfiguration roomConfiguration = new RoomConfiguration();

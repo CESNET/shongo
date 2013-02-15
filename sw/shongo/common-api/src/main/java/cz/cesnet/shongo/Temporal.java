@@ -17,6 +17,11 @@ import org.joda.time.format.PeriodFormatter;
 public class Temporal
 {
     /**
+     * Represents an infinity period.
+     */
+    public static final Period PERIOD_INFINITY = Period.years(9998);
+
+    /**
      * The minimum allowed {@link org.joda.time.DateTime} value.
      */
     public static final DateTime DATETIME_INFINITY_START = DateTime.parse("0001-01-01T00:00:00.000");
@@ -55,35 +60,17 @@ public class Temporal
     }
 
     /**
-     * @param dateTime to be formatted
-     * @return formatted given {@code dateTime} to {@link String}
+     * @param interval for which the duration should be returned
+     * @return duration of given {@code interval} or {@link #PERIOD_INFINITY} if interval specifies
+     *         {@link #DATETIME_INFINITY_START} or {@link #DATETIME_INFINITY_END}
      */
-    public static String formatDateTime(DateTime dateTime)
+    public static Period getIntervalDuration(Interval interval)
     {
-        return dateTimeFormatter.print(dateTime);
-    }
-
-    /**
-     * @param period to be formatted
-     * @return formatted given {@code period} to {@link String}
-     */
-    public static String formatPeriod(Period period)
-    {
-        return periodFormatter.print(period);
-    }
-
-    /**
-     * @param interval to be formatted
-     * @return formatted given {@code interval} to string
-     */
-    public static String formatInterval(Interval interval)
-    {
-        StringBuilder builder = new StringBuilder();
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
-        builder.append(formatter.print(interval.getStart()));
-        builder.append(", ");
-        builder.append(interval.toPeriod().normalizedStandard().toString());
-        return builder.toString();
+        if (interval.getStartMillis() == DATETIME_INFINITY_START.getMillis() ||
+                interval.getEndMillis() == DATETIME_INFINITY_END.getMillis()) {
+            return PERIOD_INFINITY;
+        }
+        return interval.toPeriod();
     }
 
     /**
@@ -160,5 +147,37 @@ public class Temporal
             }
         }
         return maxDateTime;
+    }
+
+    /**
+     * @param dateTime to be formatted
+     * @return formatted given {@code dateTime} to {@link String}
+     */
+    public static String formatDateTime(DateTime dateTime)
+    {
+        return dateTimeFormatter.print(dateTime);
+    }
+
+    /**
+     * @param period to be formatted
+     * @return formatted given {@code period} to {@link String}
+     */
+    public static String formatPeriod(Period period)
+    {
+        return periodFormatter.print(period);
+    }
+
+    /**
+     * @param interval to be formatted
+     * @return formatted given {@code interval} to string
+     */
+    public static String formatInterval(Interval interval)
+    {
+        StringBuilder builder = new StringBuilder();
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+        builder.append(formatter.print(interval.getStart()));
+        builder.append(", ");
+        builder.append(interval.toPeriod().normalizedStandard().toString());
+        return builder.toString();
     }
 }

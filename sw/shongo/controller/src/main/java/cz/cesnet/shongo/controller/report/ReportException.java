@@ -48,6 +48,7 @@ public class ReportException extends Exception
     public void setReport(Report report)
     {
         this.report = report;
+        this.report.setState(Report.State.ERROR);
     }
 
     @Override

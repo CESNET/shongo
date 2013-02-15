@@ -18,6 +18,13 @@ import javax.persistence.Transient;
 public class EndpointReservation extends ResourceReservation implements EndpointProvider
 {
     /**
+     * Constructor.
+     */
+    public EndpointReservation()
+    {
+    }
+
+    /**
      * @return {@link #resource} as {@link DeviceResource}
      */
     @Transient

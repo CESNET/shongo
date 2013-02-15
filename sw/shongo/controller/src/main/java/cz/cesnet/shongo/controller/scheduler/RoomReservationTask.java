@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
@@ -21,6 +22,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.*;
+import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -124,8 +126,11 @@ public class RoomReservationTask extends ReservationTask
     protected Reservation createReservation() throws ReportException
     {
         Context context = getContext();
+        Interval interval = context.getInterval();
+        Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
-        ResourceCache resourceCache = getCache().getResourceCache();
+        ResourceCache resourceCache = cache.getResourceCache();
+        checkMaximumDuration(interval, cache.getResourceReservationMaximumDuration());
 
         Set<Long> specifiedDeviceResourceIds = null;
         if (deviceResource != null) {
@@ -177,7 +182,7 @@ public class RoomReservationTask extends ReservationTask
                 ExistingReservation existingReservation = new ExistingReservation();
                 existingReservation.setSlot(getInterval());
                 existingReservation.setReservation(providedReservation);
-                getCacheTransaction().removeProvidedReservation(providedReservation);
+                cacheTransaction.removeProvidedReservation(providedReservation);
                 return existingReservation;
             }
             // Else provided room doesn't have enough capacity
@@ -258,7 +263,7 @@ public class RoomReservationTask extends ReservationTask
                     existingReservation.setSlot(getInterval());
                     existingReservation.setReservation(providedReservation);
                     addChildReservation(existingReservation);
-                    getCacheTransaction().removeProvidedReservation(providedReservation);
+                    cacheTransaction.removeProvidedReservation(providedReservation);
 
                     // Reserve only the remaining capacity
                     roomConfiguration.setLicenseCount(
