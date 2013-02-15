@@ -11,8 +11,8 @@
     <tbody>
     [%- FOREACH childRequest IN request.childRequests %]
     <tr>
-        <td>[% util.format_datetime(childRequest.start) %]</td>
-        <td>[% util.format_period(childRequest.duration) %]</td>
+        <td>[% util.datetime_format(childRequest.start) %]</td>
+        <td>[% util.period_format(childRequest.duration) %]</td>
         <td>
             [% IF childRequest.stateReport -%]
                 [% childRequest.stateReport = '<pre>' _ childRequest.stateReport _ '</pre>' %]

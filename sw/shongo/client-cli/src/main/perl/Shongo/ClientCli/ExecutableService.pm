@@ -110,7 +110,7 @@ sub list_executables()
             $executable->{'id'},
             $application->format_user($executable->{'userId'}),
             $type,
-            format_interval($executable->{'slot'}),
+            interval_format($executable->{'slot'}),
             Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)
         );
     }

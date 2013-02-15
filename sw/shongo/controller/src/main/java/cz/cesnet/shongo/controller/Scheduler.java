@@ -17,7 +17,7 @@ import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotUsable
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.util.TemporalHelper;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +73,7 @@ public class Scheduler extends Component implements Component.NotificationManage
      */
     public void run(Interval interval, EntityManager entityManager)
     {
-        logger.info("Running scheduler for interval '{}'...", TemporalHelper.formatInterval(interval));
+        logger.info("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
         // Set current interval as working to the cache (it will reload allocations only when
         // the interval changes)

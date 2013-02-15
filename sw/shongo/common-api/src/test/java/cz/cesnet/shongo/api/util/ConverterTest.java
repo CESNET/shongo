@@ -236,10 +236,21 @@ public class ConverterTest
         Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(expected.getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(expected.getClass(), propertyName);
-            Object expectedValue = property.getValue(expected);
-            Object objectValue = property.getValue(object);
+            Object expectedValue = processValue(property.getValue(expected));
+            Object objectValue = processValue(property.getValue(object));
             Assert.assertEquals(expectedValue, objectValue);
         }
+    }
+
+    private Object processValue(Object value)
+    {
+        if (value instanceof Interval) {
+            return ((Interval) value).withChronology(ISOChronology.getInstanceUTC());
+        }
+        if (value instanceof DateTime) {
+            return ((DateTime) value).withChronology(ISOChronology.getInstanceUTC());
+        }
+        return value;
     }
 
     /**

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.util;
+package cz.cesnet.shongo;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -14,8 +14,27 @@ import org.joda.time.format.PeriodFormatter;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TemporalHelper
+public class Temporal
 {
+    /**
+     * The minimum allowed {@link org.joda.time.DateTime} value.
+     */
+    public static final DateTime DATETIME_INFINITY_START = DateTime.parse("0001-01-01T00:00:00.000");
+    /**
+     * The maximum allowed {@link org.joda.time.DateTime} value.
+     */
+    public static final DateTime DATETIME_INFINITY_END = DateTime.parse("9999-01-01T00:00:00.000");
+
+    /**
+     * The interval which contains all allowed values.
+     */
+    public static final Interval INTERVAL_INFINITE = new Interval(DATETIME_INFINITY_START, DATETIME_INFINITY_END);
+
+    /**
+     * String which represents a infinite date/time.
+     */
+    public static final String INFINITY_ALIAS = "*";
+
     /**
      * {@link PeriodFormatter} for {@link Period}s.
      */
@@ -25,6 +44,15 @@ public class TemporalHelper
      * {@link DateTimeFormatter} for {@link DateTime}s.
      */
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+
+
+    /**
+     * Empty method used for referencing the {@link Temporal} to be statically initialized before time zone changes
+     * are applied (e.g., for unit tests).
+     */
+    public static void initialize()
+    {
+    }
 
     /**
      * @param dateTime to be formatted

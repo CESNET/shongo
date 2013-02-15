@@ -17,10 +17,12 @@ our @EXPORT = qw(
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
-    iso8601_parse_datetime iso8601_format_datetime iso8601_parse_period iso8601_format_period
-    format_datetime format_date format_period format_partial_datetime format_interval
-    format_interval_date format_report
-    datetime_add_duration interval_get_duration
+    iso8601_datetime_parse iso8601_datetime_format iso8601_period_parse iso8601_period_format
+    datetime_add_duration datetime_format datetime_format_date
+    datetime_partial_format
+    period_format
+    interval_get_duration interval_format interval_format_date
+    format_report
     var_dump
     get_home_directory get_term_width
     text_indent_lines
@@ -35,11 +37,12 @@ use Term::ANSIColor;
 use JSON -support_by_pp;
 
 # Regular Expression Patterns
-our $IdPattern = '(^\\d+|shongo:.+:\\d+$)';
-our $UserIdPattern = '(^\\d+$)';
-our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?$)';
-our $PeriodPattern = '(^P((\\d+)Y)?((\\d+)M)?((\\d+)W)?((\\d+)D)?(T((\\d+)+H)?((\\d+)M)?((\\d+)S)?)?$)';
-our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
+our $IdPattern                 = '(^\\d+|shongo:.+:\\d+$)';
+our $UserIdPattern             = '(^\\d+$)';
+our $DateTimePattern           = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?$)';
+our $DateTimeOrInfinitePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?|\\*$)';
+our $PeriodPattern             = '(^P((\\d+)Y)?((\\d+)M)?((\\d+)W)?((\\d+)D)?(T((\\d+)+H)?((\\d+)M)?((\\d+)S)?)?$)';
+our $DateTimePartialPattern    = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
 
 # Represents a "null" constant
 use constant NULL => '__null__';
@@ -549,7 +552,7 @@ sub remove_map_item
 # @param $datetime ISO8601 date/time
 # @return DateTime object
 #
-sub iso8601_parse_datetime
+sub iso8601_datetime_parse
 {
     my ($datetime) = @_;
     my $result = DateTime::Format::ISO8601->parse_datetime($datetime);
@@ -565,7 +568,7 @@ sub iso8601_parse_datetime
 # @param $datetime DateTime object
 # @return ISO8601 date/time
 #
-sub iso8601_format_datetime
+sub iso8601_datetime_format
 {
     my ($dateTime) = @_;
     my $result = $dateTime->strftime('%FT%T.%3N');
@@ -582,7 +585,7 @@ sub iso8601_format_datetime
 # @param $period ISO8601 period
 # @return DateTime::Duration object
 #
-sub iso8601_parse_period
+sub iso8601_period_parse
 {
     my ($period) = @_;
     if ( $period =~ /$PeriodPattern/ ) {
@@ -604,11 +607,14 @@ sub iso8601_parse_period
 # @param $period DateTime::Duration object
 # @return ISO8601 period
 #
-sub iso8601_format_period
+sub iso8601_period_format
 {
     my ($period) = @_;
 
-    # TODO: normalize
+    # Skip infinite period
+    if ( !ref($period) && $period eq '*' ) {
+        return '*';
+    }
 
     # Build date part
     my $result = '';
@@ -647,16 +653,38 @@ sub iso8601_format_period
 }
 
 #
+# Add duration to date time
+#
+# @param $datetime
+# @param $duration
+#
+sub datetime_add_duration
+{
+    my ($datetime, $duration) = @_;
+    my $tmp = iso8601_datetime_parse($datetime);
+    if ( !ref($duration) ) {
+        $duration = iso8601_period_parse($duration);
+    }
+    my $omit_timezone = $tmp->{'__omit_timezone'};
+    $tmp->add_duration($duration);
+    $tmp->{'__omit_timezone'} = $omit_timezone;
+    return iso8601_datetime_format($tmp);
+}
+
+#
 # Format date/time
 #
 # @param $dateTime
 #
-sub format_datetime
+sub datetime_format
 {
     my ($dateTime) = @_;
     if ( defined($dateTime) ) {
         if ( !ref($dateTime) ) {
-            $dateTime = iso8601_parse_datetime($dateTime);
+            if ( $dateTime eq '*' ) {
+                return '*';
+            }
+            $dateTime = iso8601_datetime_parse($dateTime);
         }
         return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
     }
@@ -664,16 +692,49 @@ sub format_datetime
 }
 
 #
+# Format date/time
+#
+# @param $dateTime
+#
+sub datetime_format_date
+{
+    my ($dateTime) = @_;
+    if ( defined($dateTime) ) {
+        $dateTime = iso8601_datetime_parse($dateTime);
+        return sprintf("%s", $dateTime->ymd);
+    }
+    return $dateTime;
+}
+
+#
+# Format date/time partial
+#
+# @param $dateTime
+#
+sub datetime_partial_format
+{
+    my ($dateTime) = @_;
+    if ( defined($dateTime) ) {
+        return sprintf("%s", $dateTime);
+    } else {
+        return "";
+    }
+}
+
+#
 # Format period
 #
 # @param $period
 #
-sub format_period
+sub period_format
 {
     my ($period) = @_;
 
     if ( !ref($period) ) {
-        $period = iso8601_parse_period($period);
+        if ( $period eq '*' ) {
+            return '*';
+        }
+        $period = iso8601_period_parse($period);
     }
     my $format = '';
     foreach my $component ('years', 'months', 'days', 'hours', 'minutes', 'seconds') {
@@ -699,55 +760,6 @@ sub format_period
 }
 
 #
-# Format date/time
-#
-# @param $dateTime
-#
-sub format_date
-{
-    my ($dateTime) = @_;
-    if ( defined($dateTime) ) {
-        $dateTime = iso8601_parse_datetime($dateTime);
-        return sprintf("%s", $dateTime->ymd);
-    }
-    return $dateTime;
-}
-
-#
-# Format date/time partial
-#
-# @param $dateTime
-#
-sub format_partial_datetime
-{
-    my ($dateTime) = @_;
-    if ( defined($dateTime) ) {
-        return sprintf("%s", $dateTime);
-    } else {
-        return "";
-    }
-}
-
-#
-# Add duration to date time
-#
-# @param $datetime
-# @param $duration
-#
-sub datetime_add_duration
-{
-    my ($datetime, $duration) = @_;
-    my $tmp = iso8601_parse_datetime($datetime);
-    if ( !ref($duration) ) {
-        $duration = iso8601_parse_period($duration);
-    }
-    my $omit_timezone = $tmp->{'__omit_timezone'};
-    $tmp->add_duration($duration);
-    $tmp->{'__omit_timezone'} = $omit_timezone;
-    return iso8601_format_datetime($tmp);
-}
-
-#
 # Format interval duration
 #
 # @param $interval
@@ -755,9 +767,14 @@ sub datetime_add_duration
 sub interval_get_duration
 {
     my ($start, $end) = @_;
-    $start = iso8601_parse_datetime($start);
-    $end = iso8601_parse_datetime($end);
-    return $end - $start;
+    if ( $start eq '*' || $end eq '*' ) {
+        return '*';
+    }
+    else {
+        $start = iso8601_datetime_parse($start);
+        $end = iso8601_datetime_parse($end);
+        return $end - $start;
+    }
 }
 
 #
@@ -765,20 +782,20 @@ sub interval_get_duration
 #
 # @param $interval
 #
-sub format_interval
+sub interval_format
 {
     my ($interval, $force_datetimes) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
         my $end = $2;
-        my $duration = iso8601_format_period(interval_get_duration($start, $end));
+        my $duration = iso8601_period_format(interval_get_duration($start, $end));
         # Format as "<start>/<end>"
-        if ( $force_datetimes || length($duration) > 6 ) {
-            return sprintf("%s/%s", format_datetime($start), format_datetime($end));
+        if ( $force_datetimes || $duration eq '*' || length($duration) > 6 ) {
+            return sprintf("%s/%s", datetime_format($start), datetime_format($end));
         }
         # Format as "<start>, <duration>"
         else {
-            return sprintf("%s, %s", format_datetime($start), $duration);
+            return sprintf("%s, %s", datetime_format($start), $duration);
         }
     } else {
         return "";
@@ -790,15 +807,15 @@ sub format_interval
 #
 # @param $interval
 #
-sub format_interval_date
+sub interval_format_date
 {
     my ($interval) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
         my $end = $2;
-        $start = iso8601_parse_datetime($start);
-        $end = iso8601_parse_datetime($start);
-        return sprintf("%s/%s", format_date($start), format_date($end));
+        $start = iso8601_datetime_parse($start);
+        $end = iso8601_datetime_parse($start);
+        return sprintf("%s/%s", datetime_format_date($start), datetime_format_date($end));
     } else {
         return "";
     }

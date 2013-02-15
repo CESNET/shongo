@@ -13,7 +13,14 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::ClientCli::API::ReservationRequest;
 use Shongo::ClientCli::API::ReservationRequestSet;
-use Shongo::ClientCli::API::PermanentReservationRequest;
+
+# Enumeration of reservation request purpose
+our $Purpose = ordered_hash(
+    'SCIENCE' => 'Science',
+    'EDUCATION' => 'Education',
+    'EXCLUSION' => 'Exclusion',
+    'MAINTENANCE' => 'Maintenance'
+);
 
 #
 # Create a new instance of reservation request
@@ -42,7 +49,45 @@ sub new()
         'type' => 'datetime',
         'editable' => 0
     });
+    $self->add_attribute('purpose', {
+        'type' => 'enum',
+        'enum' => $Purpose,
+        'required' => 1
+    });
     $self->add_attribute('description');
+    $self->add_attribute('specification', {
+        'complex' => 1,
+        'modify' => sub {
+            my ($specification) = @_;
+            my $class = undef;
+            if ( defined($specification) ) {
+                $class = $specification->{'class'};
+            }
+            $class = Shongo::ClientCli::API::Specification::select_type($class);
+            if ( !defined($specification) || !($class eq $specification->get_object_class()) ) {
+                $specification = Shongo::ClientCli::API::Specification->create({'class' => $class});
+            } else {
+                $specification->modify();
+            }
+            return $specification;
+        },
+        'required' => 1
+    });
+    $self->add_attribute('providedReservationIds', {
+        'title' => 'Provided reservations',
+        'type' => 'collection',
+        'item' => {
+            'title' => 'provided reservation',
+            'add' => sub {
+                return console_edit_value("Reservation identifier", 1, $Shongo::Common::IdPattern);
+            },
+            'format' => sub {
+                my ($providedReservationId) = @_;
+                return sprintf("identifier: %s", $providedReservationId);
+            }
+        },
+        'complex' => 0
+    });
 
     return $self;
 }
@@ -56,8 +101,7 @@ sub on_create
     if ( !defined($class) ) {
         $class = console_read_enum('Select type of reservation request', ordered_hash(
             'ReservationRequest' => 'Single Reservation Request',
-            'ReservationRequestSet' => 'Set of Reservation Requests',
-            'PermanentReservationRequest' => 'Permanent Reservation Request'
+            'ReservationRequestSet' => 'Set of Reservation Requests'
         ));
     }
     if ($class eq 'ReservationRequest') {
@@ -65,9 +109,6 @@ sub on_create
     }
     elsif ($class eq 'ReservationRequestSet') {
         return Shongo::ClientCli::API::ReservationRequestSet->new();
-    }
-    elsif ($class eq 'PermanentReservationRequest') {
-        return Shongo::ClientCli::API::PermanentReservationRequest->new();
     }
     die("Unknown reservation type type '$class'.");
 }

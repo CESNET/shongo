@@ -4,7 +4,7 @@ import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.util.TemporalHelper;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class Preprocessor extends Component
      */
     public void run(Interval interval, EntityManager entityManager)
     {
-        logger.info("Running preprocessor for interval '{}'...", TemporalHelper.formatInterval(interval));
+        logger.info("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
 
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
@@ -81,7 +81,7 @@ public class Preprocessor extends Component
     public void run(long reservationRequestSetId, Interval interval, EntityManager entityManager)
     {
         logger.info("Running preprocessor for a single reservation request set '{}' for interval '{}'...",
-                reservationRequestSetId, TemporalHelper.formatInterval(interval));
+                reservationRequestSetId, Temporal.formatInterval(interval));
 
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 

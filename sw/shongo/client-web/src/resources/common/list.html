@@ -17,7 +17,7 @@
         <td><a href="[% location %]/detail?id=[% aliasRequest.id %]">[% aliasRequest.type.value %]</a></td>
         <td>[% aliasRequest.description %]</td>
         <td>[% aliasRequest.purpose %]</td>
-        <td>[% util.format_interval_date(aliasRequest.earliestSlot) %]</td>
+        <td>[% util.interval_format_date(aliasRequest.earliestSlot) %]</td>
         <td><a href="[% location %]/detail?id=[% aliasRequest.id %]" class="state-[% aliasRequest.stateCode %]">[% aliasRequest.state %]</a></td>
         <td><a href="[% location %]/delete?id=[% aliasRequest.id %]">delete</a></td>
     </tr>
@@ -51,8 +51,8 @@
         <td><a href="[% location %]/detail?id=[% roomRequest.id %]">[% roomRequest.type.name %][% '(ad-hoc)' IF !roomRequest.type.name %]</a></td>
         <td>[% roomRequest.description %]</td>
         <td>[% roomRequest.purpose %]</td>
-        <td>[% util.format_datetime(roomRequest.start) %]</td>
-        <td>[% util.format_period(roomRequest.duration) %]</td>
+        <td>[% util.datetime_format(roomRequest.start) %]</td>
+        <td>[% util.period_format(roomRequest.duration) %]</td>
         <td style="text-align: right;">[% roomRequest.type.participantCount %]</td>
         <td><a href="[% location %]/detail?id=[% roomRequest.id %]" class="state-[% roomRequest.stateCode %]">[% roomRequest.state %]</a></td>
         <td><a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a></td>

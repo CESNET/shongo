@@ -4,10 +4,11 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* Allow to not specify begin or end or both (infinite reservations)
-  - API interval should be defined as "<start>/<end>" to allow "*/<end>", "<start>/*" and "*"
+* Throw max duration error report in the beginning of allocation
 
-* EXCLUSION and MAINTENANCE purpose should be allowed only for resource owner
+* EXCLUSION and MAINTENANCE purpose
+  - should be allowed only for resource owner
+  - should allow infinite slots for owners
 
 * Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
 

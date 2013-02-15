@@ -280,7 +280,7 @@ sub get_resource_allocation()
         $reservation->from_hash($reservationXml);
         $table->add(
             $reservation->{'id'},
-            format_interval($reservation->{'slot'}),
+            interval_format($reservation->{'slot'}),
             sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceId'}),
             $reservation->to_string_short()
         );

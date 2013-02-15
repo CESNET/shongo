@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.util.TemporalHelper;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -149,7 +149,7 @@ public class Executor extends Component
      */
     public ExecutionResult execute(DateTime referenceDateTime)
     {
-        logger.info("Checking executables for execution at '{}'...", TemporalHelper.formatDateTime(referenceDateTime));
+        logger.info("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);

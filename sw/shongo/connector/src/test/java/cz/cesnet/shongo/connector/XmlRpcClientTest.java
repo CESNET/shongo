@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.api.xmlrpc.KeepAliveTransportFactory;
 import org.apache.xmlrpc.client.*;
 import org.apache.xmlrpc.server.PropertyHandlerMapping;
 import org.apache.xmlrpc.server.XmlRpcServer;

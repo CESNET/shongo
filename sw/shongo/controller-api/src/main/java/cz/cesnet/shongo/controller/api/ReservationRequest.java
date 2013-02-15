@@ -67,6 +67,15 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * @param start sets the starting date/time from the {@link #SLOT}
+     * @param end sets the ending date/time from the {@link #SLOT}
+     */
+    public void setSlot(DateTime start, DateTime end)
+    {
+        setSlot(new Interval(start, end));
+    }
+
+    /**
      * @param dateTime sets the date/time from the {@link #SLOT}
      * @param duration sets the duration from the {@link #SLOT}
      */

@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::ClientCli::API::ReservationRequest;
-use base qw(Shongo::ClientCli::API::ReservationRequestNormal);
+use base qw(Shongo::ClientCli::API::ReservationRequestAbstract);
 
 use strict;
 use warnings;
@@ -33,7 +33,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::ClientCli::API::ReservationRequestNormal->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestAbstract->new(@_);
     bless $self, $class;
 
     $self->set_object_class('ReservationRequest');

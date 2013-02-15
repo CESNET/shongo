@@ -7,7 +7,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 /**
- * Class help for API types. Converts long class names to short class names and vice versa.
+ * Class helper for API types. Converts long class names to short class names and vice versa.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

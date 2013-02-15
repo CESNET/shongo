@@ -64,7 +64,8 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
         if (timestamp == null) {
             return null;
         }
-        return new DateTime(timestamp);
+        DateTime dateTime = new DateTime(timestamp);
+        return dateTime;
     }
 
     @Override

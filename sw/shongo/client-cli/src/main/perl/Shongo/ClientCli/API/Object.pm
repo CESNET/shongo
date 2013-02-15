@@ -43,6 +43,7 @@ sub new
     $self->{'__attributes'} = {};
     $self->{'__attributes_order'} = [];
     $self->{'__attributes_preserve'} = {};
+    $self->{'__attributes_filled'} = {};
 
     $self->add_attribute_preserve('id');
 
@@ -366,6 +367,7 @@ sub set
         return;
     }
     $self->{$attribute_name} = $attribute_value;
+    $self->{'__attributes_filled'}->{$attribute_name} = 1;
 }
 
 #
@@ -729,19 +731,21 @@ sub modify_interval
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         $start = $1;
         $end = $2;
-        $duration = iso8601_format_period(interval_get_duration($1, $2));
+        $duration = iso8601_period_format(interval_get_duration($1, $2));
     }
-    $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimePattern, $start);
-    my $duration_new = console_edit_value("Type a duration", 0, $Shongo::Common::PeriodPattern, $duration);
-    if ( !defined($duration) || $duration_new ne $duration ) {
-        if ( !defined($duration_new) || $duration_new eq '' ) {
-            $end = $start;
-        }
-        else {
-            $end = datetime_add_duration($start, $duration_new);
+    $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $start);
+    if ( $start ne '*' ) {
+        my $duration_new = console_edit_value("Type a duration", 0, $Shongo::Common::PeriodPattern, $duration);
+        if ( !defined($duration) || $duration_new ne $duration ) {
+            if ( !defined($duration_new) || $duration_new eq '' ) {
+                $end = $start;
+            }
+            else {
+                $end = datetime_add_duration($start, $duration_new);
+            }
         }
     }
-    $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimePattern, $end);
+    $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $end);
     return $start . '/' . $end;
 }
 
@@ -1031,12 +1035,12 @@ sub format_attribute_value
     }
     elsif ( $attribute->{'type'} eq 'interval' ) {
         if ( defined($attribute_value) ) {
-            $attribute_value = format_interval($attribute_value);
+            $attribute_value = interval_format($attribute_value);
         }
     }
     elsif ( $attribute->{'type'} eq 'datetime' ) {
         if ( defined($attribute_value) ) {
-            $attribute_value = format_datetime($attribute_value);
+            $attribute_value = datetime_format($attribute_value);
         }
     }
     elsif ( $attribute->{'type'} eq 'bool' ) {
@@ -1226,6 +1230,10 @@ sub to_xml()
                 }
                 # Store attribute to xml
                 $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
+            }
+            elsif ( defined($self->{'__attributes_filled'}->{$attribute_name}) ) {
+                # Store null (represented as empty hash)
+                $xml->{$attribute_name} = {};
             }
         }
     }

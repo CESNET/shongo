@@ -2,12 +2,18 @@ package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import junitx.framework.Assert;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
 import org.junit.Test;
 
 import java.util.*;
@@ -245,18 +251,44 @@ public class ReservationManagementTest extends AbstractControllerTest
     @Test
     public void testInfiniteReservationRequest() throws Exception
     {
-        // todo:
-
-        /*Resource resource = new Resource();
+        WebServerXmlLogger.setEnabled(true);
+        Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("request");
-        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);*/
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot(Temporal.INTERVAL_INFINITE);
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(new ResourceSpecification(resourceId));
+        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
+
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot(Temporal.DATETIME_INFINITY_START, DateTime.parse("2012-01-01"));
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new ResourceSpecification(resourceId));
+        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
+
+        ReservationRequest reservationRequest3 = new ReservationRequest();
+        reservationRequest2.setSlot(DateTime.parse("2012-01-01"), Temporal.DATETIME_INFINITY_END);
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new ResourceSpecification(resourceId));
+        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
+
+        List<Object> params = new ArrayList<Object>();
+        params.add(SECURITY_TOKEN.getAccessToken());
+        params.add(null);
+
+        Object[] result = (Object[]) getControllerClient().execute("Reservation.listReservationRequests", params);
+        Interval slot1 = ((ReservationRequestSummary) result[0]).getEarliestSlot();
+        Assert.assertEquals(Temporal.DATETIME_INFINITY_START, slot1.getStart());
+        Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot1.getEnd());
+        Interval slot2 = ((ReservationRequestSummary) result[1]).getEarliestSlot();
+        Assert.assertEquals(Temporal.DATETIME_INFINITY_START, slot2.getStart());
+        Assert.assertNotEquals(Temporal.DATETIME_INFINITY_END, slot2.getEnd());
+        Interval slot3 = ((ReservationRequestSummary) result[2]).getEarliestSlot();
+        Assert.assertNotEquals(Temporal.DATETIME_INFINITY_START, slot3.getStart());
+        Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());
+        WebServerXmlLogger.setEnabled(false);
     }
 }

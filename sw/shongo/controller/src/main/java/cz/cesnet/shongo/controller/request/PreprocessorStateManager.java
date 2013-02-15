@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -23,7 +23,7 @@ public class PreprocessorStateManager extends AbstractManager
      * Date/time value that represents "infinite". Is used for preprocessed state's interval end
      * when a reservation request hasn't got any requested slot in future.
      */
-    public static final DateTime MAXIMUM_INTERVAL_END = Converter.Atomic.DATETIME_INFINITY_END;
+    public static final DateTime MAXIMUM_INTERVAL_END = Temporal.DATETIME_INFINITY_END;
 
     /**
      * {@link ReservationRequestSet} for which the states are managed.

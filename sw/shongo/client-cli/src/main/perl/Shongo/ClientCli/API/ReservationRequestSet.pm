@@ -23,7 +23,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::ClientCli::API::ReservationRequestNormal->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestAbstract->new(@_);
     bless $self, $class;
 
     $self->set_object_class('ReservationRequestSet');
@@ -56,14 +56,14 @@ sub new()
                     if ( !defined($duration) ) {
                         $duration = 'PT0S';
                     }
-                    my $startString = sprintf("(%s, %s", format_datetime($slot->{'start'}), $slot->{'period'});
+                    my $startString = sprintf("(%s, %s", datetime_format($slot->{'start'}), $slot->{'period'});
                     if ( defined($slot->{'end'}) ) {
-                        $startString .= ", " . format_partial_datetime($slot->{'end'});
+                        $startString .= ", " . datetime_partial_format($slot->{'end'});
                     }
                     $startString .= ")";
                     return sprintf("at '%s' for '%s'", $startString, $duration);
                 } else {
-                    return format_interval($slot);
+                    return interval_format($slot);
                 }
             }
         },
@@ -76,7 +76,7 @@ sub new()
             'format' => sub() {
                 my ($reservation_request) = @_;
                 my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::ClientCli::API::Object::COLOR) . ": %s",
-                    format_interval($reservation_request->{'slot'}),
+                    interval_format($reservation_request->{'slot'}),
                     $reservation_request->{'id'},
                     $reservation_request->get_state(),
                     $Shongo::ClientCli::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}

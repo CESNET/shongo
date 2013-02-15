@@ -14,11 +14,11 @@ use Shongo::Common;
 # Utility functions for templates
 #
 my $template_util = {
-    'format_datetime' => sub { format_datetime(@_); },
-    'format_partial_datetime' => sub { format_partial_datetime(@_); },
-    'format_date' => sub { format_date(@_); },
-    'format_period' => sub { format_period(@_); },
-    'format_interval_date' => sub { format_interval_date(@_); },
+    'datetime_format' => sub { datetime_format(@_); },
+    'datetime_partial_format' => sub { datetime_partial_format(@_); },
+    'datetime_format_date' => sub { datetime_format_date(@_); },
+    'period_format' => sub { period_format(@_); },
+    'interval_format_date' => sub { interval_format_date(@_); },
 };
 
 #

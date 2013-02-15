@@ -280,8 +280,8 @@ sub constraint_interval {
         my $dfv = shift;
         $dfv->name_this('interval');
         my $data = $dfv->get_filtered_data();
-        my $start_value = iso8601_parse_datetime($data->{$start});
-        my $end_value = iso8601_parse_datetime($data->{$end});
+        my $start_value = iso8601_datetime_parse($data->{$start});
+        my $end_value = iso8601_datetime_parse($data->{$end});
         return DateTime->compare($start_value, $end_value) <= 0;
     }
   }

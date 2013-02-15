@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Period;
 
 import javax.persistence.*;
@@ -77,7 +76,7 @@ public class ValueReservation extends Reservation
     {
         Period duration = getSlot().toPeriod();
         Period maxDuration = cache.getValueReservationMaximumDuration();
-        if (TemporalHelper.isPeriodLongerThan(duration, maxDuration)) {
+        if (cz.cesnet.shongo.Temporal.isPeriodLongerThan(duration, maxDuration)) {
             throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
         }
     }

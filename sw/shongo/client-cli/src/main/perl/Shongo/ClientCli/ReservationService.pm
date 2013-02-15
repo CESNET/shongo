@@ -234,10 +234,10 @@ sub list_reservation_requests()
         $table->add(
             $reservation_request->{'id'},
             $application->format_user($reservation_request->{'userId'}),
-            format_datetime($reservation_request->{'created'}),
+            datetime_format($reservation_request->{'created'}),
             $type,
             $reservation_request->{'description'},
-            format_interval($reservation_request->{'earliestSlot'})
+            interval_format($reservation_request->{'earliestSlot'})
         );
     }
     console_print_table($table);

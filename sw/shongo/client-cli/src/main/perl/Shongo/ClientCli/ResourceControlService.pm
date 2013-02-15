@@ -851,7 +851,7 @@ sub resource_list_rooms
             $room->{'id'},
             $room->{'name'},
             $room->{'description'},
-            format_datetime($room->{'startDateTime'})
+            datetime_format($room->{'startDateTime'})
         );
     }
     console_print_table($table);
@@ -875,7 +875,7 @@ sub resource_list_participants
         $table->add(
             $roomUser->{'userId'},
             $roomUser->{'displayName'},
-            format_datetime($roomUser->{'joinTime'})
+            datetime_format($roomUser->{'joinTime'})
         );
     }
     console_print_table($table);
@@ -906,7 +906,7 @@ sub resource_get_participant
         printf("Participant ID:   %s\n", $participant->{'userId'});
         printf("User identity:    %s\n", ($participant->{'userIdentity'} ? $participant->{'userIdentity'} : "(not defined)"));
         printf("Display name:     %s\n", $participant->{'displayName'});
-        printf("Join time:        %s\n", format_datetime($participant->{'joinTime'}));
+        printf("Join time:        %s\n", datetime_format($participant->{'joinTime'}));
         printf("Audio muted:      %s\n", ($participant->{'audioMuted'} ? "yes" : "no"));
         printf("Video muted:      %s\n", ($participant->{'videoMuted'} ? "yes" : "no"));
         printf("Microphone level: %s\n", $participant->{'microphoneLevel'});

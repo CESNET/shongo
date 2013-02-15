@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Authorization;
 import junit.framework.Assert;
@@ -43,7 +43,7 @@ public class ReservationRequestSetStateTest extends AbstractDatabaseTest
         catch (IllegalArgumentException exception) {
         }
         Assert.assertEquals(PreprocessorState.NOT_PREPROCESSED,
-                stateManager.getState(Converter.Atomic.INTERVAL_INFINITE));
+                stateManager.getState(Temporal.INTERVAL_INFINITE));
 
         // Set not-preprocessed state do nothing
         stateManager.setState(PreprocessorState.NOT_PREPROCESSED,

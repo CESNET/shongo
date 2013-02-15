@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.api.xmlrpc;
+package cz.cesnet.shongo.connector;
 
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcSun15HttpTransportFactory;

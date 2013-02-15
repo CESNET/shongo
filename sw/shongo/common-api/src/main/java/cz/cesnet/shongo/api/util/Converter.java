@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.xmlrpc.AtomicType;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.joda.time.*;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -796,24 +798,14 @@ public class Converter
         };
 
         /**
-         * The minimum allowed {@link DateTime} value.
+         * {@link org.joda.time.DateTime#getMillis()} for {@link Temporal#DATETIME_INFINITY_START}
          */
-        public static final DateTime DATETIME_INFINITY_START = DateTime.parse("0000-01-01T00:00:00");
+        private static final long DATETIME_INFINITY_START_MILLIS = Temporal.DATETIME_INFINITY_START.getMillis();
 
         /**
-         * The maximum allowed {@link DateTime} value.
+         * {@link org.joda.time.DateTime#getMillis()} for {@link Temporal#DATETIME_INFINITY_END}
          */
-        public static final DateTime DATETIME_INFINITY_END = DateTime.parse("9999-01-01T00:00:00");
-
-        /**
-         * String which represents a infinite date/time.
-         */
-        public static final String DATETIME_INFINITY_ALIAS = "*";
-
-        /**
-         * The interval which contains all allowed values.
-         */
-        public static final Interval INTERVAL_INFINITE = new Interval(DATETIME_INFINITY_START, DATETIME_INFINITY_END);
+        private static final long DATETIME_INFINITY_END_MILLIS = Temporal.DATETIME_INFINITY_END.getMillis();
 
         /**
          * Convert string to enum type.
@@ -839,19 +831,20 @@ public class Converter
         /**
          * @param value
          * @return parsed date/time from string
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws FaultRuntimeException
          *          when parsing fails
          */
         public static DateTime convertStringToDateTime(String value) throws FaultRuntimeException
         {
             DateTime dateTime;
             try {
-                dateTime = DateTime.parse(value);
+                dateTime = ISODateTimeFormat.dateTimeParser().parseDateTime(value);
             }
             catch (Exception exception) {
                 throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
             }
-            if (!INTERVAL_INFINITE.contains(dateTime)) {
+            final long millis = dateTime.getMillis();
+            if (millis < DATETIME_INFINITY_START_MILLIS || millis > DATETIME_INFINITY_END_MILLIS) {
                 throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
             }
             return dateTime;
@@ -925,14 +918,14 @@ public class Converter
                 String endString = parts[1];
                 DateTime start;
                 DateTime end;
-                if (startString.equals(DATETIME_INFINITY_ALIAS)) {
-                    start = DATETIME_INFINITY_START;
+                if (startString.equals(Temporal.INFINITY_ALIAS)) {
+                    start = Temporal.DATETIME_INFINITY_START;
                 }
                 else {
                     start = convertStringToDateTime(startString);
                 }
-                if (endString.equals(DATETIME_INFINITY_ALIAS)) {
-                    end = DATETIME_INFINITY_END;
+                if (endString.equals(Temporal.INFINITY_ALIAS)) {
+                    end = Temporal.DATETIME_INFINITY_END;
                 }
                 else {
                     end = convertStringToDateTime(endString);
@@ -956,21 +949,19 @@ public class Converter
          */
         public static String convertIntervalToString(Interval interval)
         {
-            DateTime start = interval.getStart();
-            DateTime end = interval.getEnd();
             String startString;
             String endString;
-            if (start.equals(DATETIME_INFINITY_START)) {
-                startString = DATETIME_INFINITY_ALIAS;
+            if (interval.getStartMillis() == DATETIME_INFINITY_START_MILLIS) {
+                startString = Temporal.INFINITY_ALIAS;
             }
             else {
-                startString = start.toString();
+                startString = interval.getStart().toString();
             }
-            if (end.equals(DATETIME_INFINITY_END)) {
-                endString = DATETIME_INFINITY_ALIAS;
+            if (interval.getEndMillis() == DATETIME_INFINITY_END_MILLIS) {
+                endString = Temporal.INFINITY_ALIAS;
             }
             else {
-                endString = end.toString();
+                endString = interval.getEnd().toString();
             }
             return String.format("%s/%s", startString, endString);
         }

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.TemporalHelper;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -155,7 +155,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         if (!workingInterval.equals(this.workingInterval)) {
             logger.info("Setting new working interval '{}' to cache...",
-                    TemporalHelper.formatInterval(workingInterval));
+                    Temporal.formatInterval(workingInterval));
             this.workingInterval = workingInterval;
 
             referenceDateTime = workingInterval.getStart();
@@ -171,8 +171,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             valueCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
 
             Interval maxWorkingInterval = new Interval(
-                    TemporalHelper.min(resourceWorkingInterval.getStart(), aliasWorkingInterval.getStart()),
-                    TemporalHelper.max(resourceWorkingInterval.getEnd(), aliasWorkingInterval.getEnd()));
+                    Temporal.min(resourceWorkingInterval.getStart(), aliasWorkingInterval.getStart()),
+                    Temporal.max(resourceWorkingInterval.getEnd(), aliasWorkingInterval.getEnd()));
             reusedReservationCache.setWorkingInterval(maxWorkingInterval, referenceDateTime, entityManager);
         }
     }

@@ -8,6 +8,8 @@ import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.TimeZone;
+
 /**
  * Tests for {@link DateTime}, {@link Period} and {@link Interval}.
  *
@@ -16,28 +18,37 @@ import org.junit.Test;
 public class DateTimeTest
 {
     @Test
-    public void testChronologyParsing() throws Exception
+    public void testTimeZones() throws Exception
     {
-        DateTimeZone oldDefaultZone = DateTimeZone.getDefault();
-        DateTimeZone newDefaultZone = DateTimeZone.forID("+11:00");
-        DateTimeZone.setDefault(newDefaultZone);
+        Temporal.initialize();
+        DateTimeZone defaultZone = DateTimeZone.getDefault();
 
+        // DateTime.parse parses to given timezone
+        DateTimeZone.setDefault(DateTimeZone.forID("+11:00"));
         DateTime dateTime = DateTime.parse("2012-01-01T12:00+04:00");
         Assert.assertEquals("+04:00", dateTime.getChronology().getZone().getID());
+        DateTimeZone.setDefault(defaultZone);
 
-        // Interval.parse isn't able to parse chronology
-        Interval intervalByDefault = Interval.parse("2012-01-01T00:00+05:00/2012-02-02T00:00+06:00");
-        Assert.assertEquals("+11:00", intervalByDefault.getStart().getChronology().getZone().getID());
-        Assert.assertEquals("+11:00", intervalByDefault.getEnd().getChronology().getZone().getID());
+        // Interval.parse parses to default timezone (Java runtime timezone)
+        DateTimeZone.setDefault(DateTimeZone.forID("+11:00"));
+        Interval intervalByDefault = Interval.parse("2012-01-01T06:00+05:00/2012-01-01T08:00+06:00");
+        Assert.assertEquals("2012-01-01T12:00:00.000+11:00", intervalByDefault.getStart().toString());
+        Assert.assertEquals("2012-01-01T13:00:00.000+11:00", intervalByDefault.getEnd().toString());
+        DateTimeZone.setDefault(defaultZone);
 
-        // Converter is able to parse chronology
+        // Converter.Atomic.convertStringToDateTime parses to default timezone (Java runtime timezone)
+        DateTimeZone.setDefault(DateTimeZone.forID("+00:00"));
+        DateTime dateTimeByConverter =
+                Converter.Atomic.convertStringToDateTime("2012-01-01T06:00+05:00");
+        Assert.assertEquals("2012-01-01T01:00:00.000Z", dateTimeByConverter.toString());
+        DateTimeZone.setDefault(defaultZone);
+
+        // Converter.Atomic.convertStringToInterval parses to default timezone (Java runtime timezone)
+        DateTimeZone.setDefault(DateTimeZone.forID("+00:00"));
         Interval intervalByConverter =
-                Converter.Atomic.convertStringToInterval("2012-01-01T00:00+05:00/2012-01-01T02:00+06:00");
-        Assert.assertEquals("+05:00", intervalByConverter.getStart().getChronology().getZone().getID());
-        Assert.assertEquals("+05:00", intervalByConverter.getEnd().getChronology().getZone().getID());
-        Assert.assertEquals(0, intervalByConverter.getStart().getHourOfDay());
-        Assert.assertEquals(1, intervalByConverter.getEnd().getHourOfDay());
-
-        DateTimeZone.setDefault(oldDefaultZone);
+                Converter.Atomic.convertStringToInterval("2012-01-01T06:00+05:00/2012-01-01T08:00+06:00");
+        Assert.assertEquals("2012-01-01T01:00:00.000Z", intervalByConverter.getStart().toString());
+        Assert.assertEquals("2012-01-01T02:00:00.000Z", intervalByConverter.getEnd().toString());
+        DateTimeZone.setDefault(defaultZone);
     }
 }
