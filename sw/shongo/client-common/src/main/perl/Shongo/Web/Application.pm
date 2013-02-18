@@ -11,17 +11,6 @@ use URI::Escape;
 use Shongo::Common;
 
 #
-# Utility functions for templates
-#
-my $template_util = {
-    'datetime_format' => sub { datetime_format(@_); },
-    'datetime_partial_format' => sub { datetime_partial_format(@_); },
-    'datetime_format_date' => sub { datetime_format_date(@_); },
-    'period_format' => sub { period_format(@_); },
-    'interval_format_date' => sub { interval_format_date(@_); },
-};
-
-#
 # Create a new instance of object.
 #
 # @static
@@ -35,9 +24,7 @@ sub new
 
     $self->{'cgi'} = $cgi;
     $self->{'template'} = $template;
-    $self->{'template-parameters'} = {
-        'util' => $template_util
-    };
+    $self->{'template-parameters'} = {};
     $self->{'session'} = $session;
     $self->{'controller'} = {};
 
@@ -258,6 +245,16 @@ sub render_template
     foreach my $parameter (keys %{$self->{'template-parameters'}}) {
         $parameters->{$parameter} = $self->{'template-parameters'}->{$parameter};
     }
+
+    # Utility functions for templates
+    my $time_zone_offset = $self->get_time_zone_offset();
+    $parameters->{'util'} = {
+        'datetime_format' => sub { datetime_format(@_, $time_zone_offset); },
+        'datetime_format_date' => sub { datetime_format_date(@_, $time_zone_offset); },
+        'datetime_partial_format' => sub { datetime_partial_format(@_); },
+        'period_format' => sub { period_format(@_); },
+        'interval_format_date' => sub { interval_format_date(@_, $time_zone_offset); },
+    };
     if ( $self->{template}->process($file, $parameters, \$result) ) {
         return $result;
     }
@@ -358,6 +355,19 @@ sub get_back
         $back = '/';
     }
     return $back;
+}
+
+#
+# @return time zone offset
+#
+sub get_time_zone_offset
+{
+    my ($self) = @_;
+    my $time_zone_offset = $self->{'session'}->param('time_zone_offset');
+    if (!defined($time_zone_offset) ) {
+        $time_zone_offset = 0;
+    }
+    return $time_zone_offset;
 }
 
 1;

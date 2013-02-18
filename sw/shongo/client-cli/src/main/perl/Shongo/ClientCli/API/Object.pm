@@ -735,6 +735,7 @@ sub modify_interval
     }
     my $start_new = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $start);
     if ( $start_new ne '*' ) {
+        $start_new = datetime_fill_timezone($start_new);
         my $duration_new = console_edit_value("Type a duration", 0, $Shongo::Common::PeriodPattern, $duration);
         if ( !defined($duration) || $duration_new ne $duration || $start_new ne $start ) {
             if ( !defined($duration_new) || $duration_new eq '' ) {
@@ -746,6 +747,7 @@ sub modify_interval
         }
     }
     $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $end);
+    $end = datetime_fill_timezone($end);
     return $start_new . '/' . $end;
 }
 

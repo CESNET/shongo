@@ -42,6 +42,22 @@
     </style>
 </head>
 <body>
+[% IF !session.time_zone_offset %]
+<script type="text/javascript">
+    var time_zone_offset = (new Date().getTimezoneOffset() * 60) * (-1);
+    console.debug("Setting timezone to offset ", time_zone_offset);
+    $.ajax({
+        url: "/time-zone-offset?value=" + time_zone_offset,
+        context: document.body
+    }).done(function(data) {
+        console.debug("Done:", data);
+        [% IF location != '' %]
+            location.reload();
+        [% END %]
+    });
+</script>
+[% END %]
+[% IF session.time_zone_offset || location == '' %]
 <div class="navbar  navbar-fixed-top">
     <div class="navbar-inner">
         <div class="navbar-text pull-right">
@@ -77,5 +93,6 @@
         <p class="muted">&copy; 2012 - 2013&nbsp;&nbsp;&nbsp;<a title="CESNET" href="http://www.cesnet.cz/"><img src="/img/cesnet.gif" alt="CESNET, z.s.p.o."/></a></p>
     </div>
 </div>
+[% END %]
 </body>
 </html>

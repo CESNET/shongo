@@ -103,6 +103,7 @@ sub modify_slot($)
 
     if ( defined($slot) && ref($slot) && $slot->{'class'} eq 'PeriodicDateTimeSlot') {
         $slot->{'start'} = console_edit_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'});
+        $slot->{'start'} = datetime_fill_timezone($slot->{'start'});
         $slot->{'duration'} = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $slot->{'duration'});
         $slot->{'period'} = console_edit_value("Type a period", 0, $Shongo::Common::PeriodPattern, $slot->{'period'});
         $slot->{'end'} = console_edit_value("Ending date/time", 0, $Shongo::Common::DateTimePartialPattern, $slot->{'end'});

@@ -48,6 +48,7 @@ sub new
     $self->{'authorization'} = Shongo::ClientWeb::WebAuthorization->new($state);
 
     $self->add_action('index', sub { $self->index_action(); });
+    $self->add_action('time-zone-offset', sub { $self->time_zone_offset_action(); });
     $self->add_action('sign-in', sub { $self->sign_in_action(); });
     $self->add_action('sign-out', sub { $self->sign_out_action(); });
     $self->add_controller(Shongo::ClientWeb::H323SipController->new($self));
@@ -309,6 +310,14 @@ sub get_user
 {
     my ($self) = @_;
     return $self->{'session'}->param('user');
+}
+
+sub time_zone_offset_action
+{
+    my ($self) = @_;
+    my $time_zone_offset = $self->{'cgi'}->param('value');
+    $self->{'session'}->param('time_zone_offset', $time_zone_offset);
+    print "OK (time_zone_offset=$time_zone_offset)";
 }
 
 #

@@ -134,6 +134,7 @@ sub parse_reservation_request
     my $slotStart = undef;
     my $slotEnd = undef;
     my $slotDuration = undef;
+    my $timeZoneOffset = $self->{'application'}->get_time_zone_offset();
 
     # Parse duration from type and count
     if ( defined($params->{'durationType'}) && defined($params->{'durationCount'}) ) {
@@ -159,7 +160,7 @@ sub parse_reservation_request
         else {
             die("Unknown duration type '$params->{'durationType'}'.");
         }
-        $slotStart = $params->{'start'};
+        $slotStart = datetime_fill_timezone($params->{'start'}, $timeZoneOffset);
         $slotEnd = datetime_add_duration($slotStart, $duration);
     }
     # Parse duration from start and end
@@ -172,6 +173,8 @@ sub parse_reservation_request
         if ( $slotEnd =~ /^[^T]+$/ ) {
             $slotEnd .= 'T23:59:59';
         }
+        $slotStart = datetime_fill_timezone($slotStart, $timeZoneOffset);
+        $slotEnd = datetime_fill_timezone($slotEnd, $timeZoneOffset);
     }
     # If no duration was specified die
     if ( !defined($slotStart) || !defined($slotEnd) ) {

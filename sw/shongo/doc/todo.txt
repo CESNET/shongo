@@ -4,7 +4,10 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
+* Timezone
+  - show current timezone in web page
+  - show current timezone in cmd-line client
+  - allow user to select timezone
 
 * AliasGroupReservationTask should execute AliasReservationTask for each alias specification and the RoomReservationTask
   should not use the AliasGroupReservationTask (move the logic from the alias group to the room task)

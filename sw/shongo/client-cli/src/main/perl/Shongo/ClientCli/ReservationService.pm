@@ -222,7 +222,7 @@ sub list_reservation_requests()
         \' | ', 'Earliest Slot', \' |'
     );
     my $Type = {
-        'ReservationRequestSummary.PermanentType' => 'Permanent',
+        'ReservationRequestSummary.ResourceType' => 'Resource',
         'ReservationRequestSummary.RoomType' => 'Room',
         'ReservationRequestSummary.AliasType' => 'Alias'
     };

@@ -18,7 +18,7 @@ our @EXPORT = qw(
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
     iso8601_datetime_parse iso8601_datetime_format iso8601_period_parse iso8601_period_format
-    datetime_add_duration datetime_format datetime_format_date
+    datetime_add_duration datetime_get_timezone datetime_fill_timezone datetime_format datetime_format_date
     datetime_partial_format
     period_format
     interval_get_duration interval_format interval_format_date
@@ -653,6 +653,39 @@ sub iso8601_period_format
 }
 
 #
+# @return timezone
+#
+sub datetime_get_timezone
+{
+    my $timezone = DateTime->now(time_zone => DateTime::TimeZone->new(name => 'local'))->strftime("%z");
+    $timezone =~ s/(\d\d)$/:$1/;
+    return $timezone;
+}
+
+#
+# If given $datetime doesn't have timezone fill the default one
+#
+# @param $datetime
+# @param $timeZoneOffset
+# @return $datetime
+#
+sub datetime_fill_timezone
+{
+    my ($datetime, $timeZoneOffset) = @_;
+    $datetime = iso8601_datetime_parse($datetime);
+    if ( defined($datetime->{'__omit_timezone'}) ) {
+       delete $datetime->{'__omit_timezone'};
+        if ( defined($timeZoneOffset) ) {
+            $datetime->set_time_zone(DateTime::TimeZone->new(name => DateTime::TimeZone->offset_as_string($timeZoneOffset)));
+        }
+        else {
+            $datetime->set_time_zone(DateTime::TimeZone->new(name => 'local'));
+        }
+    }
+    return iso8601_datetime_format($datetime);
+}
+
+#
 # Add duration to date time
 #
 # @param $datetime
@@ -675,16 +708,23 @@ sub datetime_add_duration
 # Format date/time
 #
 # @param $dateTime
+# @param $timeZoneOffset
 #
 sub datetime_format
 {
-    my ($dateTime) = @_;
+    my ($dateTime, $timeZoneOffset) = @_;
     if ( defined($dateTime) ) {
         if ( !ref($dateTime) ) {
             if ( $dateTime eq '*' ) {
                 return '*';
             }
             $dateTime = iso8601_datetime_parse($dateTime);
+            if ( defined($timeZoneOffset) ) {
+                $dateTime->set_time_zone(DateTime::TimeZone->new(name => DateTime::TimeZone->offset_as_string($timeZoneOffset)));
+            }
+            else {
+                $dateTime->set_time_zone(DateTime::TimeZone->new(name => 'local'));
+            }
         }
         return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
     }
@@ -695,12 +735,21 @@ sub datetime_format
 # Format date/time
 #
 # @param $dateTime
+# @param $timeZoneOffset
 #
 sub datetime_format_date
 {
-    my ($dateTime) = @_;
+    my ($dateTime, $timeZoneOffset) = @_;
     if ( defined($dateTime) ) {
-        $dateTime = iso8601_datetime_parse($dateTime);
+        if ( !ref($dateTime) ) {
+            $dateTime = iso8601_datetime_parse($dateTime);
+            if ( defined($timeZoneOffset) ) {
+                $dateTime->set_time_zone(DateTime::TimeZone->new(name => DateTime::TimeZone->offset_as_string($timeZoneOffset)));
+            }
+            else {
+                $dateTime->set_time_zone(DateTime::TimeZone->new(name => 'local'));
+            }
+        }
         return sprintf("%s", $dateTime->ymd);
     }
     return $dateTime;
@@ -781,21 +830,22 @@ sub interval_get_duration
 # Format interval
 #
 # @param $interval
+# @param $timeZoneOffset
 #
 sub interval_format
 {
-    my ($interval, $force_datetimes) = @_;
+    my ($interval, $timeZoneOffset) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
         my $end = $2;
         my $duration = iso8601_period_format(interval_get_duration($start, $end));
         # Format as "<start>/<end>"
-        if ( $force_datetimes || $duration eq '*' || length($duration) > 6 ) {
-            return sprintf("%s/%s", datetime_format($start), datetime_format($end));
+        if ( $duration eq '*' || length($duration) > 6 ) {
+            return sprintf("%s/%s", datetime_format($start, $timeZoneOffset), datetime_format($end, $timeZoneOffset));
         }
         # Format as "<start>, <duration>"
         else {
-            return sprintf("%s, %s", datetime_format($start), $duration);
+            return sprintf("%s, %s", datetime_format($start, $timeZoneOffset), $duration);
         }
     } else {
         return "";
@@ -806,16 +856,15 @@ sub interval_format
 # Format interval only as dates
 #
 # @param $interval
+# @param $timeZoneOffset
 #
 sub interval_format_date
 {
-    my ($interval) = @_;
+    my ($interval, $timeZoneOffset) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         my $start = $1;
         my $end = $2;
-        $start = iso8601_datetime_parse($start);
-        $end = iso8601_datetime_parse($start);
-        return sprintf("%s/%s", datetime_format_date($start), datetime_format_date($end));
+        return sprintf("%s/%s", datetime_format_date($start, $timeZoneOffset), datetime_format_date($end, $timeZoneOffset));
     } else {
         return "";
     }
