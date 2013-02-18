@@ -44,6 +44,6 @@ public class AllocatingResourceReport extends ResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Allocating %s", getResourceDescription());
+        return String.format("Allocating %s", getResourceDescription(false));
     }
 }

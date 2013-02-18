@@ -36,20 +36,21 @@ public enum ReservationRequestPurpose
     private boolean executableAllowed;
 
     /**
-     * Specifies whether scheduler can allocate only owned resources.
+     * Specifies whether scheduler can allocate only owned resources (and if it should not check maximum duration
+     * and future).
      */
-    private boolean onlyOwnedResources;
+    private boolean byOwner;
 
     /**
      * Constructor.
      *
      * @param executableAllowed sets the {@link #executableAllowed}
      */
-    private ReservationRequestPurpose(int priority, boolean executableAllowed, boolean onlyOwnedResources)
+    private ReservationRequestPurpose(int priority, boolean executableAllowed, boolean byOwner)
     {
         this.priority = priority;
         this.executableAllowed = executableAllowed;
-        this.onlyOwnedResources = onlyOwnedResources;
+        this.byOwner = byOwner;
     }
 
     /**
@@ -69,11 +70,11 @@ public enum ReservationRequestPurpose
     }
 
     /**
-     * @return {@link #onlyOwnedResources}
+     * @return {@link #byOwner}
      */
-    public boolean isOnlyOwnedResources()
+    public boolean isByOwner()
     {
-        return onlyOwnedResources;
+        return byOwner;
     }
 
     /**

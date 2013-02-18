@@ -271,7 +271,7 @@ public abstract class Report
     public ReportException exception()
     {
         if (getState() != State.ERROR) {
-            throw new IllegalStateException("Report exception can be returned only for errors.");
+            setState(State.ERROR);
         }
         return new ReportException(this);
     }

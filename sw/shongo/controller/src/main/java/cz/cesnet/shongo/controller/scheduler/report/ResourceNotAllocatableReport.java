@@ -40,6 +40,6 @@ public class ResourceNotAllocatableReport extends ResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is not allocatable.", getResourceDescription());
+        return String.format("%s is not allocatable.", getResourceDescription(true));
     }
 }

@@ -5,8 +5,6 @@
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
 * OWNER and MAINTENANCE purpose
-  - should be allowed only for resource owner (done but check by tests)
-  - add new scheduler reports for checkResourceAvailable
   - check "@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)" in AbstractConnectionReport
   - check stroring compartment error reports (and deleting reports)
 

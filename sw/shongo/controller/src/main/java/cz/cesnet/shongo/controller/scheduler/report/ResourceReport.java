@@ -103,17 +103,24 @@ public class ResourceReport extends Report
      * @return description of the resource
      */
     @Transient
-    public String getResourceDescription()
+    public String getResourceDescription(boolean uppercase)
     {
+        String resourceDescription;
         if (resource != null) {
-            return formatResource(resource);
+            resourceDescription = formatResource(resource);
         }
         else if (capability != null) {
-            return String.format("capability '%s' in %s",
+            resourceDescription = String.format("capability '%s' in %s",
                     capability.getClass().getSimpleName(), formatResource(capability.getResource()));
         }
         else {
             throw new IllegalStateException("Resource or capability must be set.");
+        }
+        if (uppercase) {
+            return resourceDescription.substring(0, 1).toUpperCase() + resourceDescription.substring(1);
+        }
+        else {
+            return resourceDescription;
         }
     }
 
@@ -141,7 +148,7 @@ public class ResourceReport extends Report
     @Transient
     public String getText()
     {
-        String text = getResourceDescription();
+        String text = getResourceDescription(true);
         return text.substring(0, 1).toUpperCase() + text.substring(1);
     }
 }

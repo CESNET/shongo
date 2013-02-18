@@ -39,6 +39,15 @@ public class NotificationManager extends Component implements Component.Authoriz
         notificationExecutors.add(notificationExecutor);
     }
 
+    /**
+     * @return true if at least one {@link NotificationExecutor} is available,
+     *         false otherwise
+     */
+    public boolean hasExecutors()
+    {
+        return notificationExecutors.size() > 0;
+    }
+
     @Override
     public void setAuthorization(Authorization authorization)
     {

@@ -40,6 +40,6 @@ public class ResourceRequestedMultipleTimesReport extends ResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is requested multiple times.", getResourceDescription());
+        return String.format("%s is requested multiple times.", getResourceDescription(true));
     }
 }

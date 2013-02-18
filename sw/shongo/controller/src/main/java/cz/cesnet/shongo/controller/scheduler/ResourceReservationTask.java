@@ -95,7 +95,7 @@ public class ResourceReservationTask extends ReservationTask
                 RoomCache roomCache = cache.getRoomCache();
                 if (roomCache.getRoomReservations(roomProvider, interval, cacheTransaction).size() > 0) {
                     // Requested resource is not available in the requested slot
-                    throw new ResourceNotAvailableReport(resource).exception();
+                    throw new ResourceAlreadyAllocatedReport(resource).exception();
                 }
             }
         }

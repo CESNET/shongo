@@ -4,12 +4,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceAlreadyAllocatedReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.report.UserNotOwnerReport;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -246,11 +246,11 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         }
 
         // If reservation request purpose implies allocation of only owned resources
-        if (context.isOnlyOwnedResources()) {
+        if (context.isByOwner()) {
             // Check resource owner against reservation request owner
-            if (!Authorization.Permission.isUserOwner(context.getUserId(), resource)) {
-                // TODO: implement report for resource is not owned by user
-                throw new ResourceNotAvailableReport(resource).exception();
+            String userId = context.getUserId();
+            if (!Authorization.Permission.isUserOwner(userId, resource)) {
+                throw new UserNotOwnerReport(userId).exception();
             }
         }
 
@@ -266,8 +266,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             resourceReservations = resourceState.getReservations(context.getInterval());
         }
         if (resourceReservations.size() > 0) {
-            // TODO: implement already allocated report
-            throw new ResourceNotAvailableReport(resource).exception();
+            throw new ResourceAlreadyAllocatedReport(resource).exception();
         }
     }
 
@@ -285,9 +284,11 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         Resource resource = capability.getResource();
         checkResourceAvailableWithoutFuture(resource, context);
 
-        // Check if the capability can be allocated in the interval future
-        if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-            throw new ResourceNotAvailableReport(resource).exception();
+        if (!context.isByOwner()) {
+            // Check if the capability can be allocated in the interval future
+            if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
+                throw new ResourceNotAvailableReport(resource).exception();
+            }
         }
     }
 
@@ -303,9 +304,11 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     {
         checkResourceAvailableWithoutFuture(resource, context);
 
-        // Check if the resource can be allocated in the interval future
-        if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-            throw new ResourceNotAvailableReport(resource).exception();
+        if (!context.isByOwner()) {
+            // Check if the resource can be allocated in the interval future
+            if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
+                throw new ResourceNotAvailableReport(resource).exception();
+            }
         }
     }
 

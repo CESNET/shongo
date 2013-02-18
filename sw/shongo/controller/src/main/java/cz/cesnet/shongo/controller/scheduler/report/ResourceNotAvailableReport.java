@@ -40,6 +40,6 @@ public class ResourceNotAvailableReport extends ResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is not available.", getResourceDescription());
+        return String.format("%s is not available.", getResourceDescription(true));
     }
 }

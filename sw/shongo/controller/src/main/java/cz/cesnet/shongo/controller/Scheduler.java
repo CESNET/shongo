@@ -159,7 +159,7 @@ public class Scheduler extends Component implements Component.NotificationManage
             }
 
             // Notify about new reservations
-            if (notificationManager != null) {
+            if (notificationManager != null && notificationManager.hasExecutors()) {
                 notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations,
                         entityManager);
             }

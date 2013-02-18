@@ -401,7 +401,7 @@ public abstract class ReservationTask
     protected void validateReservationSlot(Reservation reservation) throws ReportException
     {
         // Check maximum duration
-        if (context.isCheckMaximumDuration()) {
+        if (!context.isByOwner()) {
             if (reservation instanceof ResourceReservation) {
                 checkMaximumDuration(reservation.getSlot(), context.getCache().getResourceReservationMaximumDuration());
             }
@@ -506,22 +506,12 @@ public abstract class ReservationTask
         }
 
         /**
-         * @return true whether checking of maximum reservation duration should be done,
-         *         false otherwise
-         */
-        public boolean isCheckMaximumDuration()
-        {
-            // If all resources can be allocated, we must check the maximum duration of reservations
-            return !reservationRequest.getPurpose().isOnlyOwnedResources();
-        }
-
-        /**
          * @return true whether only owned resource by the reservation request owner can be allocated,
          *         false otherwise
          */
-        public boolean isOnlyOwnedResources()
+        public boolean isByOwner()
         {
-            return reservationRequest.getPurpose().isOnlyOwnedResources();
+            return reservationRequest.getPurpose().isByOwner();
         }
 
         /**

@@ -10,12 +10,12 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class ResourceNotEndpoint extends ResourceReport
+public class ResourceAlreadyAllocatedReport extends ResourceReport
 {
     /**
      * Constructor.
      */
-    public ResourceNotEndpoint()
+    public ResourceAlreadyAllocatedReport()
     {
     }
 
@@ -24,7 +24,7 @@ public class ResourceNotEndpoint extends ResourceReport
      *
      * @param resource
      */
-    public ResourceNotEndpoint(Resource resource)
+    public ResourceAlreadyAllocatedReport(Resource resource)
     {
         super(resource);
     }
@@ -40,6 +40,6 @@ public class ResourceNotEndpoint extends ResourceReport
     @Transient
     public String getText()
     {
-        return String.format("%s is not endpoint.", getResourceDescription(true));
+        return String.format("%s is already allocated.", getResourceDescription(true));
     }
 }
