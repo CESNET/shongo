@@ -20,6 +20,7 @@ import org.apache.commons.cli.*;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Level;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,6 +173,12 @@ public class Controller
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default controller configuration!", exception);
         }
+
+        // Initialize timezone
+        String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
+        DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
+        DateTimeZone.setDefault(dateTimeZone);
+        TimeZone.setDefault(dateTimeZone.toTimeZone());
 
         // Initialize domain
         Domain localDomain = new Domain();

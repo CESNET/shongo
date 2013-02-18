@@ -3,6 +3,10 @@
 <!-- Default Configuration of Domain Controller -->
 <configuration>
 
+    <!-- Timezone in which the controller should work and
+         which is used as default for date/times without specific timezone -->
+    <timezone>UTC</timezone>
+
     <!-- Specifies whether XML-RPC requests and responses should be logged -->
     <log-rpc>false</log-rpc>
 

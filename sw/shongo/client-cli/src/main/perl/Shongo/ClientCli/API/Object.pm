@@ -733,20 +733,20 @@ sub modify_interval
         $end = $2;
         $duration = iso8601_period_format(interval_get_duration($1, $2));
     }
-    $start = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $start);
-    if ( $start ne '*' ) {
+    my $start_new = console_edit_value("Type a start date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $start);
+    if ( $start_new ne '*' ) {
         my $duration_new = console_edit_value("Type a duration", 0, $Shongo::Common::PeriodPattern, $duration);
-        if ( !defined($duration) || $duration_new ne $duration ) {
+        if ( !defined($duration) || $duration_new ne $duration || $start_new ne $start ) {
             if ( !defined($duration_new) || $duration_new eq '' ) {
-                $end = $start;
+                $end = $start_new;
             }
             else {
-                $end = datetime_add_duration($start, $duration_new);
+                $end = datetime_add_duration($start_new, $duration_new);
             }
         }
     }
     $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $end);
-    return $start . '/' . $end;
+    return $start_new . '/' . $end;
 }
 
 #

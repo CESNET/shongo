@@ -15,6 +15,7 @@ public class Configuration extends CompositeConfiguration
     /**
      * Configuration parameters names.
      */
+    public static final String TIMEZONE = "timezone";
     public static final String LOG_RPC = "log-rpc";
     public static final String DOMAIN_NAME = "domain.name";
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
