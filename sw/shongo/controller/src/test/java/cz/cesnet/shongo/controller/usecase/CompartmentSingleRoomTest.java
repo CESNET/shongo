@@ -5,7 +5,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import junitx.framework.Assert;
 import org.junit.Test;
+
+import javax.persistence.EntityManager;
+import java.util.List;
 
 /**
  * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
@@ -149,5 +154,41 @@ public class CompartmentSingleRoomTest extends AbstractControllerTest
 
         reallocate(secondReservationRequestId);
         checkAllocated(secondReservationRequestId);
+    }
+
+    /**
+     * Test allocation failure for compartment.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testFailure() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        reservationRequest.setSpecification(compartmentSpecification);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+
+        runScheduler();
+
+        EntityManager entityManager = getEntityManager();
+        List<cz.cesnet.shongo.controller.executor.Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable",
+                cz.cesnet.shongo.controller.executor.Executable.class).getResultList();
+        Assert.assertEquals(0, executables.size());
+        entityManager.close();
     }
 }

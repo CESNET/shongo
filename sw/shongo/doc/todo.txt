@@ -4,10 +4,6 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* OWNER and MAINTENANCE purpose
-  - check "@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)" in AbstractConnectionReport
-  - check stroring compartment error reports (and deleting reports)
-
 * Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
 
 * AliasGroupReservationTask should execute AliasReservationTask for each alias specification and the RoomReservationTask

@@ -340,10 +340,17 @@ public abstract class Executable extends ReportablePersistentObject
     public static enum State
     {
         /**
-         * {@link Executable} which has not been fully allocated yet (e.g., {@link Executable} is stored for
+         * {@link Executable} which has not been fully allocated (e.g., {@link Executable} is stored for
          * {@link Report}).
          */
         NOT_ALLOCATED,
+
+        /**
+         * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
+         * {@link Report}) and the entity for which it has been stored has been deleted so the {@link Executable}
+         * should be also deleted.
+         */
+        TO_DELETE,
 
         /**
          * {@link Executable} has not been started yet.

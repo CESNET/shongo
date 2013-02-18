@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
@@ -45,7 +46,7 @@ public abstract class AbstractConnectionReport extends Report
     /**
      * @return {@link #endpointFrom}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @Access(AccessType.FIELD)
     @JoinColumn(name = "endpoint_from_id")
     public Endpoint getEndpointFrom()
@@ -65,7 +66,7 @@ public abstract class AbstractConnectionReport extends Report
     /**
      * @return {@link #endpointTo}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @Access(AccessType.FIELD)
     @JoinColumn(name = "endpoint_to_id")
     public Endpoint getEndpointTo()
@@ -80,5 +81,16 @@ public abstract class AbstractConnectionReport extends Report
     public String getEndpointToAsString()
     {
         return endpointTo.getReportDescription();
+    }
+
+    @PreRemove
+    public void preRemove()
+    {
+        if (endpointFrom.getState() == Executable.State.NOT_ALLOCATED) {
+            endpointFrom.setState(Executable.State.TO_DELETE);
+        }
+        if (endpointTo.getState() == Executable.State.NOT_ALLOCATED) {
+            endpointTo.setState(Executable.State.TO_DELETE);
+        }
     }
 }

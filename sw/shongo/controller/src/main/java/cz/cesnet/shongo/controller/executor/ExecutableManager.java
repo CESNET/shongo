@@ -162,13 +162,16 @@ public class ExecutableManager extends AbstractManager
                 .createQuery("SELECT executable FROM Executable executable"
                         + " WHERE executable NOT IN("
                         + "   SELECT childExecutable FROM Executable executable "
-                        + "   INNER JOIN executable.childExecutables childExecutable"
+                        + "   INNER JOIN executable.childExecutables childExecutable "
                         + " ) AND ("
-                        + "   executable.state = :notStarted"
-                        + "     AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation)"
+                        + "       executable.state = :toDelete "
+                        + "   OR ("
+                        + "       executable.state = :notStarted "
+                        + "       AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation))"
                         + " )",
                         Executable.class)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
+                .setParameter("toDelete", Executable.State.TO_DELETE)
                 .getResultList();
         for (Executable executable : executables) {
             delete(executable);
