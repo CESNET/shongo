@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link Endpoint}.
@@ -16,8 +17,19 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class RoomReservation extends EndpointReservation
+public class RoomReservation extends Reservation implements EndpointProvider
 {
+
+    /**
+     * {@link RoomProviderCapability} in which the room is allocated.
+     */
+    private RoomProviderCapability roomProviderCapability;
+
+    /**
+     * @see RoomConfiguration
+     */
+    private RoomConfiguration roomConfiguration = new RoomConfiguration();
+
     /**
      * Constructor.
      */
@@ -26,9 +38,31 @@ public class RoomReservation extends EndpointReservation
     }
 
     /**
-     * @see RoomConfiguration
+     * @return {@link #roomProviderCapability}
      */
-    private RoomConfiguration roomConfiguration = new RoomConfiguration();
+    @ManyToOne(optional = false)
+    @Access(AccessType.FIELD)
+    public RoomProviderCapability getRoomProviderCapability()
+    {
+        return roomProviderCapability;
+    }
+
+    /**
+     * @param roomProviderCapability sets the {@link #roomProviderCapability}
+     */
+    public void setRoomProviderCapability(RoomProviderCapability roomProviderCapability)
+    {
+        this.roomProviderCapability = roomProviderCapability;
+    }
+
+    /**
+     * @return {@link DeviceResource} of the {@link #roomProviderCapability}
+     */
+    @Transient
+    public DeviceResource getDeviceResource()
+    {
+        return roomProviderCapability.getDeviceResource();
+    }
 
     /**
      * @return {@link #roomConfiguration}
@@ -74,6 +108,9 @@ public class RoomReservation extends EndpointReservation
     {
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
+        DeviceResource deviceResource = getDeviceResource();
+        roomReservationApi.setResourceId(IdentifierFormat.formatGlobalId(deviceResource));
+        roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
         super.toApi(api);
     }

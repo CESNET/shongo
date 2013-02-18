@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.cache.RoomCache;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -43,7 +44,7 @@ public class CacheRoomTest extends AbstractDatabaseTest
 
         RoomReservation room1 = new RoomReservation();
         room1.setUserId(Authorization.ROOT_USER_ID);
-        room1.setResource(mcu1);
+        room1.setRoomProviderCapability(mcu1.getCapability(RoomProviderCapability.class));
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
         room1.getRoomConfiguration().setLicenseCount(25);
         cache.addReservation(room1);
@@ -58,14 +59,14 @@ public class CacheRoomTest extends AbstractDatabaseTest
 
         RoomReservation room2 = new RoomReservation();
         room2.setUserId(Authorization.ROOT_USER_ID);
-        room2.setResource(mcu2);
+        room2.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
         room2.getRoomConfiguration().setLicenseCount(50);
         cache.addReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
         room3.setUserId(Authorization.ROOT_USER_ID);
-        room3.setResource(mcu2);
+        room3.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
         room3.getRoomConfiguration().setLicenseCount(30);
         cache.addReservation(room3);
@@ -137,14 +138,11 @@ public class CacheRoomTest extends AbstractDatabaseTest
     public List<AvailableRoom> findAvailableRooms(Cache cache, Interval interval,
             int requiredLicenseCount, Set<Technology> technologies)
     {
-        ResourceCache resourceCache = cache.getResourceCache();
-        Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                RoomProviderCapability.class,
-                technologies);
+        RoomCache roomCache = cache.getRoomCache();
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
-        for (Long deviceResourceId : deviceResourceIds) {
-            DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-            AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
+        for (RoomProviderCapability roomProviderCapability : roomCache.getRoomProviders(technologies)) {
+            AvailableRoom availableRoom = roomCache.getAvailableRoom(
+                    roomProviderCapability,
                     new ReservationTask.Context(cache, interval));
             if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
                 availableRooms.add(availableRoom);

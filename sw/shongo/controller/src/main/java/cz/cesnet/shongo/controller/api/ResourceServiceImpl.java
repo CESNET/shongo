@@ -313,9 +313,8 @@ public class ResourceServiceImpl extends Component
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
-                        (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl,
-                        new ReservationTask.Context(cache, interval));
+                AvailableRoom availableRoom = cache.getRoomCache().getAvailableRoom(
+                        roomProviderCapability, new ReservationTask.Context(cache, interval));
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

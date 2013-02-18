@@ -11,5 +11,8 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
  */
 public interface EndpointProvider
 {
+    /**
+     * @return {@link Endpoint} which is provided
+     */
     public Endpoint getEndpoint();
 }

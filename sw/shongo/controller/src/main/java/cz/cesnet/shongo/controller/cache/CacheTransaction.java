@@ -28,8 +28,14 @@ public class CacheTransaction
     /**
      * {@link AbstractReservationCache.Transaction} for {@link ValueReservation}s.
      */
-    private AbstractReservationCache.Transaction<ValueReservation> valueProviderCacheTransaction =
+    private AbstractReservationCache.Transaction<ValueReservation> valueCacheTransaction =
             new AbstractReservationCache.Transaction<ValueReservation>();
+
+    /**
+     * {@link AbstractReservationCache.Transaction} for {@link RoomReservation}s.
+     */
+    private AbstractReservationCache.Transaction<RoomReservation> roomCacheTransaction =
+            new AbstractReservationCache.Transaction<RoomReservation>();
 
     /**
      * Set of allocated {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
@@ -87,13 +93,20 @@ public class CacheTransaction
     }
 
     /**
-     * @return {@link #valueProviderCacheTransaction}
+     * @return {@link #valueCacheTransaction}
      */
-    public AbstractReservationCache.Transaction<ValueReservation> getValueProviderCacheTransaction()
+    public AbstractReservationCache.Transaction<ValueReservation> getValueCacheTransaction()
     {
-        return valueProviderCacheTransaction;
+        return valueCacheTransaction;
     }
 
+    /**
+     * @return {@link #roomCacheTransaction}
+     */
+    public AbstractReservationCache.Transaction<RoomReservation> getRoomCacheTransaction()
+    {
+        return roomCacheTransaction;
+    }
     /**
      * @return {@link #currentSavepoint}
      */
@@ -207,8 +220,13 @@ public class CacheTransaction
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueProviderCacheTransaction.addAllocatedReservation(
+                valueCacheTransaction.addAllocatedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
+            }
+            else if (reservation instanceof RoomReservation) {
+                RoomReservation roomReservation = (RoomReservation) reservation;
+                roomCacheTransaction.addAllocatedReservation(
+                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
         }
     }
@@ -233,8 +251,13 @@ public class CacheTransaction
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueProviderCacheTransaction.removeAllocatedReservation(
+                valueCacheTransaction.removeAllocatedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
+            }
+            else if (reservation instanceof RoomReservation) {
+                RoomReservation roomReservation = (RoomReservation) reservation;
+                roomCacheTransaction.removeAllocatedReservation(
+                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
         }
     }
@@ -291,8 +314,13 @@ public class CacheTransaction
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueProviderCacheTransaction.addProvidedReservation(
+                valueCacheTransaction.addProvidedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
+            }
+            else if (reservation instanceof RoomReservation) {
+                RoomReservation roomReservation = (RoomReservation) reservation;
+                roomCacheTransaction.addProvidedReservation(
+                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
             else if (reservation instanceof AliasReservation) {
                 AliasReservation aliasReservation = (AliasReservation) reservation;
@@ -338,8 +366,13 @@ public class CacheTransaction
         }
         else if (reservation instanceof ValueReservation) {
             ValueReservation aliasReservation = (ValueReservation) reservation;
-            valueProviderCacheTransaction.removeProvidedReservation(
+            valueCacheTransaction.removeProvidedReservation(
                     aliasReservation.getValueProvider().getId(), aliasReservation);
+        }
+        else if (reservation instanceof RoomReservation) {
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            roomCacheTransaction.removeProvidedReservation(
+                    roomReservation.getRoomProviderCapability().getId(), roomReservation);
         }
         else if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;

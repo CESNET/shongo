@@ -34,13 +34,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             new HashMap<Class<? extends Capability>, CapabilityState>();
 
     /**
-     * Map of states for cached objects with {@link RoomProviderCapability}
-     * by theirs ids.
-     */
-    private Map<Long, ObjectState<RoomReservation>> roomProviderStateById =
-            new HashMap<Long, ObjectState<RoomReservation>>();
-
-    /**
      * @see DeviceTopology
      */
     private DeviceTopology deviceTopology;
@@ -78,16 +71,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             if (terminalCapability != null) {
                 addResourceCapability(terminalCapability);
             }
-
-            // If device resource has virtual rooms capability, add it to managed capabilities
-            RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
-            if (roomProviderCapability != null) {
-                roomProviderCapability.loadLazyCollections();
-                addResourceCapability(roomProviderCapability);
-
-                // Add virtual room state
-                roomProviderStateById.put(deviceResource.getId(), new ObjectState<RoomReservation>());
-            }
         }
         super.addObject(resource, entityManager);
     }
@@ -102,17 +85,9 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             // Remove the device from the device topology
             deviceTopology.removeDeviceResource(deviceResource);
 
-            // If also has virtual rooms, remove managed capability
+            // If also has terminal capability, remove managed capability
             if (deviceResource.hasCapability(TerminalCapability.class)) {
                 removeResourceCapability(deviceResource, TerminalCapability.class);
-            }
-
-            // If also has virtual rooms, remove managed capability
-            if (deviceResource.hasCapability(RoomProviderCapability.class)) {
-                removeResourceCapability(deviceResource, RoomProviderCapability.class);
-
-                // Remove virtual room state
-                roomProviderStateById.remove(deviceResource.getId());
             }
         }
         super.removeObject(resource);
@@ -124,50 +99,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         deviceTopology = new DeviceTopology();
         capabilityStateByType.clear();
         super.clear();
-    }
-
-    /**
-     * @param deviceResource for which the state should be returned
-     * @return state for given {@code object}
-     * @throws IllegalArgumentException when state cannot be found
-     */
-    private ObjectState<RoomReservation> getRoomProviderState(DeviceResource deviceResource)
-    {
-        Long objectId = deviceResource.getId();
-        ObjectState<RoomReservation> objectState = roomProviderStateById.get(objectId);
-        if (objectState == null) {
-            throw new IllegalArgumentException(
-                    RoomProviderCapability.class.getSimpleName() + " '" + objectId + "' isn't in the cache!");
-        }
-        return objectState;
-    }
-
-    @Override
-    protected void onAddReservation(Resource object, ResourceReservation reservation)
-    {
-        if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            DeviceResource deviceResource = roomReservation.getDeviceResource();
-            ObjectState<RoomReservation> objectState = getRoomProviderState(deviceResource);
-            objectState.addReservation(roomReservation);
-        }
-        else {
-            super.onAddReservation(object, reservation);
-        }
-    }
-
-    @Override
-    public void onRemoveReservation(Resource object, ResourceReservation reservation)
-    {
-        if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            DeviceResource deviceResource = roomReservation.getDeviceResource();
-            ObjectState<RoomReservation> objectState = getRoomProviderState(deviceResource);
-            objectState.removeReservation(roomReservation);
-        }
-        else {
-            super.onRemoveReservation(object, reservation);
-        }
     }
 
     /**
@@ -216,17 +147,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             return null;
         }
         return capabilityType.cast(capabilityState.getCapability(resourceId));
-    }
-
-    /**
-     * @param resourceId
-     * @param capabilityType
-     * @return true if resource with given {@code resourceId} has capability of given {@code capabilityType},
-     *         false otherwise
-     */
-    private boolean hasResourceCapability(Long resourceId, Class<? extends Capability> capabilityType)
-    {
-        return getResourceCapability(resourceId, capabilityType) != null;
     }
 
     /**
@@ -339,13 +259,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         Set<ResourceReservation> resourceReservations;
         CacheTransaction cacheTransaction = context.getCacheTransaction();
         if (cacheTransaction != null) {
-            resourceReservations = resourceState.getReservations(context.getInterval());
-
-            // TODO: fix somehow
-            if (true) {
-                throw new TodoImplementException();
-            }
-            cacheTransaction.getResourceCacheTransaction().applyReservations(resourceState.getObjectId(), resourceReservations, ResourceReservation.class);
+            resourceReservations = resourceState.getReservations(context.getInterval(),
+                    cacheTransaction.getResourceCacheTransaction());
         }
         else {
             resourceReservations = resourceState.getReservations(context.getInterval());
@@ -461,55 +376,5 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         for (Resource childResource : resource.getChildResources()) {
             checkResourceAndChildResourcesAvailable(childResource, context, skippedResource);
         }
-    }
-
-    /**
-     * @param deviceResource to be checked
-     * @param interval       which should be checked
-     * @param transaction
-     * @return collection of {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in given {@code interval} for given {@code deviceResource}
-     */
-    public Collection<RoomReservation> getRoomReservations(DeviceResource deviceResource, Interval interval,
-            CacheTransaction transaction)
-    {
-        ObjectState<RoomReservation> roomProviderState = getRoomProviderState(deviceResource);
-        if (transaction != null) {
-            return roomProviderState.getReservations(interval, transaction.getResourceCacheTransaction());
-        }
-        else {
-            return roomProviderState.getReservations(interval);
-        }
-    }
-
-    /**
-     * @param deviceResource
-     * @param context
-     * @return {@link AvailableRoom} for given {@code deviceResource} in given {@code interval}
-     */
-    public AvailableRoom getAvailableRoom(DeviceResource deviceResource, ReservationTask.Context context)
-    {
-        RoomProviderCapability roomProviderCapability =
-                getResourceCapability(deviceResource.getId(), RoomProviderCapability.class);
-        if (roomProviderCapability == null) {
-            throw new IllegalStateException("Device resource doesn't have "
-                    + RoomProviderCapability.class.getSimpleName() + ".");
-        }
-        int usedLicenseCount = 0;
-        if (isResourceAvailable(deviceResource, context)) {
-            Collection<RoomReservation> roomReservations =
-                    getRoomReservations(deviceResource, context.getInterval(), context.getCacheTransaction());
-            for (ResourceReservation resourceReservation : roomReservations) {
-                RoomReservation roomReservation = (RoomReservation) resourceReservation;
-                usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
-            }
-        }
-        else {
-            usedLicenseCount = roomProviderCapability.getLicenseCount();
-        }
-        AvailableRoom availableRoom = new AvailableRoom();
-        availableRoom.setDeviceResource(deviceResource);
-        availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
-        availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
-        return availableRoom;
     }
 }

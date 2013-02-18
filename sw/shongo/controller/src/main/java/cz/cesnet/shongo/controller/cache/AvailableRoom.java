@@ -1,19 +1,22 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+
+import javax.persistence.Transient;
 
 /**
  * Represents an available {@link cz.cesnet.shongo.controller.common.RoomConfiguration} in
- * a {@link cz.cesnet.shongo.controller.resource.DeviceResource} with a
+ * a {@link DeviceResource} with a
  * {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}.
  */
 public class AvailableRoom
 {
     /**
-     * {@link cz.cesnet.shongo.controller.resource.DeviceResource} in which
+     * {@link DeviceResource} in which
      * the {@link cz.cesnet.shongo.controller.common.RoomConfiguration} is available.
      */
-    private DeviceResource deviceResource;
+    private RoomProviderCapability roomProviderCapability;
 
     /**
      * Number of available licenses.
@@ -26,19 +29,27 @@ public class AvailableRoom
     private int maximumLicenseCount;
 
     /**
-     * @return {@link #deviceResource}
+     * @return {@link #roomProviderCapability}
      */
-    public DeviceResource getDeviceResource()
+    public RoomProviderCapability getRoomProviderCapability()
     {
-        return deviceResource;
+        return roomProviderCapability;
     }
 
     /**
-     * @param deviceResource sets the {@link #deviceResource}
+     * @param roomProviderCapability sets the {@link #roomProviderCapability}
      */
-    public void setDeviceResource(DeviceResource deviceResource)
+    public void setRoomProviderCapability(RoomProviderCapability roomProviderCapability)
     {
-        this.deviceResource = deviceResource;
+        this.roomProviderCapability = roomProviderCapability;
+    }
+
+    /**
+     * @return {@link DeviceResource} of the {@link #roomProviderCapability}
+     */
+    public DeviceResource getDeviceResource()
+    {
+        return roomProviderCapability.getDeviceResource();
     }
 
     /**

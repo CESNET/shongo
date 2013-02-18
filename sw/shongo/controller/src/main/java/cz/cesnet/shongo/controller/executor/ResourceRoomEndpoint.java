@@ -38,7 +38,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     /**
      * {@link DeviceResource}.
      */
-    private DeviceResource deviceResource;
+    private RoomProviderCapability roomProviderCapability;
 
     /**
      * {@link cz.cesnet.shongo.Technology} specific id of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
@@ -53,20 +53,29 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link #deviceResource}
+     * @return {@link #roomProviderCapability}
      */
     @OneToOne
-    public DeviceResource getDeviceResource()
+    public RoomProviderCapability getRoomProviderCapability()
     {
-        return deviceResource;
+        return roomProviderCapability;
     }
 
     /**
-     * @param deviceResource sets the {@link #deviceResource}
+     * @param roomProviderCapability sets the {@link #roomProviderCapability}
      */
-    public void setDeviceResource(DeviceResource deviceResource)
+    public void setRoomProviderCapability(RoomProviderCapability roomProviderCapability)
     {
-        this.deviceResource = deviceResource;
+        this.roomProviderCapability = roomProviderCapability;
+    }
+
+    /**
+     * @return {@link DeviceResource} for the {@link #roomProviderCapability}
+     */
+    @Transient
+    public DeviceResource getDeviceResource()
+    {
+        return roomProviderCapability.getDeviceResource();
     }
 
     /**
@@ -130,7 +139,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             return roomConfiguration.getTechnologies();
         }
         else {
-            return deviceResource.getTechnologies();
+            return getDeviceResource().getTechnologies();
         }
     }
 
@@ -175,7 +184,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     public void addAssignedAlias(Alias assignedAlias) throws ReportException
     {
-        deviceResource.evaluateAlias(assignedAlias);
+        getDeviceResource().evaluateAlias(assignedAlias);
         super.addAssignedAlias(assignedAlias);
     }
 

@@ -299,14 +299,15 @@ public class AliasReservationTask extends ReservationTask
         // The permanent room should not be created if the alias will be used for any specified target resource.
         if (availableAliasProvider.isPermanentRoom() && context.isExecutableAllowed() && targetResource == null) {
             Resource resource = availableAliasProvider.getResource();
-            if (!resource.hasCapability(RoomProviderCapability.class)) {
+            RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
+            if (roomProvider == null) {
                 throw new IllegalStateException("Permanent room should be enabled only for device resource"
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
             roomEndpoint.setUserId(context.getUserId());
             roomEndpoint.setSlot(getInterval());
-            roomEndpoint.setDeviceResource((DeviceResource) resource);
+            roomEndpoint.setRoomProviderCapability(roomProvider);
             roomEndpoint.setRoomDescription(context.getReservationRequest().getDescription());
             roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
             Set<Technology> technologies = roomEndpoint.getTechnologies();

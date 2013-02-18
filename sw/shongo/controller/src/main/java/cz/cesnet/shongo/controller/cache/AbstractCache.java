@@ -41,7 +41,6 @@ public abstract class AbstractCache<T extends PersistentObject>
      */
     public void addObject(T object)
     {
-        object.checkPersisted();
         Long objectId = object.getId();
         if (objectById.containsKey(objectId)) {
             throw new IllegalArgumentException(

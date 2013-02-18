@@ -6,9 +6,9 @@
 
 * OWNER and MAINTENANCE purpose
   - should be allowed only for resource owner (done but check by tests)
-  - try to move ResourceCache.checkResourceAvailable to Cache
   - add new scheduler reports for checkResourceAvailable
   - check "@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)" in AbstractConnectionReport
+  - check stroring compartment error reports (and deleting reports)
 
 * Run controller in UTC timezone and cmd-line and web client should show date/times based on locale
 

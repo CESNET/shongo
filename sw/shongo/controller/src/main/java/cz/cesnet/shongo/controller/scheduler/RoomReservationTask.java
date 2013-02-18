@@ -5,7 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
-import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.cache.RoomCache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
@@ -22,7 +22,6 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.*;
-import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -128,31 +127,38 @@ public class RoomReservationTask extends ReservationTask
         Context context = getContext();
         Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
-        ResourceCache resourceCache = cache.getResourceCache();
+        RoomCache roomCache = cache.getRoomCache();
 
-        Set<Long> specifiedDeviceResourceIds = null;
+        Set<RoomProviderCapability> specifiedRoomProviders = null;
         if (deviceResource != null) {
-            specifiedDeviceResourceIds = new HashSet<Long>();
-            specifiedDeviceResourceIds.add(deviceResource.getId());
+            specifiedRoomProviders = new HashSet<RoomProviderCapability>();
+            specifiedRoomProviders.add(deviceResource.getCapability(RoomProviderCapability.class));
         }
 
         // Get map of room variants by device resource ids which supports them (if one device resource supports
         // multiple room variants the one with least requested license count is used)
-        Map<Long, RoomVariant> roomVariantByDeviceResourceId = new HashMap<Long, RoomVariant>();
+        Map<Long, RoomVariant> roomVariantByRoomProviderId = new HashMap<Long, RoomVariant>();
         for (Set<Technology> technologies : technologyVariants) {
-            Set<Long> deviceResourceIds = specifiedDeviceResourceIds;
-            if (deviceResourceIds == null) {
-                deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                        RoomProviderCapability.class, technologies);
+            Collection<RoomProviderCapability> roomProviders = specifiedRoomProviders;
+            if (roomProviders == null) {
+                roomProviders = roomCache.getObjects();
             }
 
-            for (Long deviceResourceId : deviceResourceIds) {
-                RoomVariant newRoomVariant = new RoomVariant(deviceResourceId, participantCount, technologies);
-                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
+            for (Iterator<RoomProviderCapability> iterator = roomProviders.iterator(); iterator.hasNext(); ) {
+                RoomProviderCapability roomProvider = iterator.next();
+                if (!roomProvider.getDeviceResource().hasTechnologies(technologies)) {
+                    iterator.remove();
+                }
+            }
+
+            for (RoomProviderCapability roomProvider : roomProviders) {
+                Long roomProviderId = roomProvider.getId();
+                RoomVariant newRoomVariant = new RoomVariant(roomProvider, participantCount, technologies);
+                RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProviderId);
                 if (roomVariant == null || roomVariant.getLicenseCount() > newRoomVariant.getLicenseCount()) {
                     roomVariant = newRoomVariant;
                 }
-                roomVariantByDeviceResourceId.put(deviceResourceId, roomVariant);
+                roomVariantByRoomProviderId.put(roomProviderId, roomVariant);
             }
         }
 
@@ -163,13 +169,13 @@ public class RoomReservationTask extends ReservationTask
         final Map<Long, ResourceRoomEndpoint> availableProvidedRooms = new HashMap<Long, ResourceRoomEndpoint>();
         // Find provided room with enough capacity to be reused or suitable room to which will be allocated more capacity
         for (ResourceRoomEndpoint providedRoomEndpoint : providedRooms) {
-            Long providedRoomDeviceResourceId = providedRoomEndpoint.getDeviceResource().getId();
+            Long providedRoomProviderId = providedRoomEndpoint.getRoomProviderCapability().getId();
             // Skip not suitable endpoints (by technology)
-            if (!roomVariantByDeviceResourceId.containsKey(providedRoomDeviceResourceId)) {
+            if (!roomVariantByRoomProviderId.containsKey(providedRoomProviderId)) {
                 continue;
             }
             // Get room variant with the least requested capacity
-            RoomVariant roomVariant = roomVariantByDeviceResourceId.get(providedRoomDeviceResourceId);
+            RoomVariant roomVariant = roomVariantByRoomProviderId.get(providedRoomProviderId);
             // If provided room has enough allocated capacity
             if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
                 Reservation providedReservation =
@@ -186,7 +192,7 @@ public class RoomReservationTask extends ReservationTask
             // Else provided room doesn't have enough capacity
             else {
                 // Append it to map of provided room
-                availableProvidedRooms.put(providedRoomDeviceResourceId, providedRoomEndpoint);
+                availableProvidedRooms.put(providedRoomProviderId, providedRoomEndpoint);
             }
         }
 
@@ -194,13 +200,13 @@ public class RoomReservationTask extends ReservationTask
         beginReport(new FindingAvailableResourceReport(), true);
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         try {
-            for (Long deviceResourceId : roomVariantByDeviceResourceId.keySet()) {
-                DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
-                AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource, context);
+            for (Long roomProviderId : roomVariantByRoomProviderId.keySet()) {
+                RoomProviderCapability roomProvider = roomCache.getObject(roomProviderId);
+                RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProviderId);
+                AvailableRoom availableRoom = roomCache.getAvailableRoom(roomProvider, context);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
-                    addReport(new ResourceReport(deviceResource, Report.State.NONE));
+                    addReport(new ResourceReport(roomProvider.getResource(), Report.State.NONE));
                 }
             }
             if (availableRooms.size() == 0) {
@@ -218,8 +224,10 @@ public class RoomReservationTask extends ReservationTask
             @Override
             public int compare(AvailableRoom first, AvailableRoom second)
             {
-                boolean firstHasProvidedRoom = availableProvidedRooms.containsKey(first.getDeviceResource().getId());
-                boolean secondHasProvidedRoom = availableProvidedRooms.containsKey(second.getDeviceResource().getId());
+                boolean firstHasProvidedRoom =
+                        availableProvidedRooms.containsKey(first.getRoomProviderCapability().getId());
+                boolean secondHasProvidedRoom =
+                        availableProvidedRooms.containsKey(second.getRoomProviderCapability().getId());
                 if (firstHasProvidedRoom && !secondHasProvidedRoom) {
                     return -1;
                 }
@@ -231,17 +239,18 @@ public class RoomReservationTask extends ReservationTask
         });
         // Get the first available room
         for (AvailableRoom availableRoom : availableRooms) {
-            beginReport(new AllocatingResourceReport(availableRoom.getDeviceResource()), false);
+            RoomProviderCapability roomProvider = availableRoom.getRoomProviderCapability();
+            DeviceResource deviceResource = roomProvider.getDeviceResource();
+            beginReport(new AllocatingResourceReport(deviceResource), false);
             CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
                 // Get device and it's room variant
-                DeviceResource deviceResource = availableRoom.getDeviceResource();
-                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResource.getId());
+                RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProvider.getId());
 
                 // Create room reservation
                 RoomReservation roomReservation = new RoomReservation();
                 roomReservation.setSlot(getInterval());
-                roomReservation.setResource(deviceResource);
+                roomReservation.setRoomProviderCapability(roomProvider);
                 validateReservationSlot(roomReservation);
 
                 // Room configuration
@@ -255,7 +264,7 @@ public class RoomReservationTask extends ReservationTask
                 RoomEndpoint roomEndpoint = null;
 
                 // If provided room is available
-                ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(deviceResource.getId());
+                ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(roomProvider.getId());
                 if (availableProvidedRoom != null) {
                     Reservation providedReservation =
                             cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
@@ -290,7 +299,7 @@ public class RoomReservationTask extends ReservationTask
 
                         // Create new room endpoint  \
                         ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
-                        resourceRoomEndpoint.setDeviceResource(deviceResource);
+                        resourceRoomEndpoint.setRoomProviderCapability(roomProvider);
                         roomEndpoint = resourceRoomEndpoint;
                     }
                 }
@@ -352,7 +361,8 @@ public class RoomReservationTask extends ReservationTask
                         if (withTechnologyAliases) {
                             // Require aliases for technologies which are missing
                             for (Technology aliasTechnology : missingAliasTechnologies) {
-                                aliasGroupReservationTask.addAliasSpecification(new AliasSpecification(aliasTechnology));
+                                aliasGroupReservationTask
+                                        .addAliasSpecification(new AliasSpecification(aliasTechnology));
                             }
                         }
 
@@ -416,14 +426,14 @@ public class RoomReservationTask extends ReservationTask
         /**
          * Constructor.
          *
-         * @param deviceResourceId {@link DeviceResource} used for computing {@link #licenseCount}
+         * @param roomProvider     to be used for computing {@link #licenseCount}
          * @param participantCount number of participants for the {@link RoomReservation}
          * @param technologies     set of {@link Technology}s
          */
-        public RoomVariant(Long deviceResourceId, int participantCount, Set<Technology> technologies)
+        public RoomVariant(RoomProviderCapability roomProvider, int participantCount, Set<Technology> technologies)
         {
             this.technologies = technologies;
-            this.licenseCount = computeLicenseCount(deviceResourceId, participantCount, technologies);
+            this.licenseCount = computeLicenseCount(roomProvider, participantCount, technologies);
         }
 
         /**
@@ -443,13 +453,14 @@ public class RoomReservationTask extends ReservationTask
         }
 
         /**
-         * @param deviceResourceId
+         * @param roomProvider
          * @param participantCount
          * @param technologies
          * @return number of licenses for given {@code participantCount} and {@code technologies}
          *         in {@link DeviceResource} with given {@code deviceResourceId}
          */
-        public int computeLicenseCount(Long deviceResourceId, int participantCount, Set<Technology> technologies)
+        public int computeLicenseCount(RoomProviderCapability roomProvider, int participantCount,
+                Set<Technology> technologies)
         {
             return participantCount;
         }

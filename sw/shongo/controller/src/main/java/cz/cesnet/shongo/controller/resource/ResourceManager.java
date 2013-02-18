@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
@@ -263,6 +264,26 @@ public class ResourceManager extends AbstractManager
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return valueReservations;
+    }
+
+    /**
+     * @param roomProviderCapabilityId
+     * @param interval
+     * @return list of all {@link RoomReservation}s for room provider with given {@code roomProviderCapabilityId}
+     *         which intersects given {@code interval}
+     */
+    public List<RoomReservation> listRoomReservationsInInterval(Long roomProviderCapabilityId, Interval interval)
+    {
+        List<RoomReservation> roomReservations = entityManager.createQuery("SELECT reservation"
+                + " FROM RoomReservation reservation"
+                + " WHERE reservation.roomProviderCapability.id = :id"
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", RoomReservation.class)
+                .setParameter("id", roomProviderCapabilityId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return roomReservations;
     }
 
     /**

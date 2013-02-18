@@ -122,6 +122,16 @@ public class DeviceResource extends Resource
     }
 
     /**
+     * @param technologies
+     * @return true if the device resource support given {@code technologies},
+     *         false otherwise
+     */
+    public boolean hasTechnologies(Set<Technology> technologies)
+    {
+        return this.technologies.containsAll(technologies);
+    }
+
+    /**
      * @param technology single technology that a device provides (resets all technologies already added).
      */
     public void setTechnology(Technology technology)

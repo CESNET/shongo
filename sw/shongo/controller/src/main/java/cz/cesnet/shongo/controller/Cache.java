@@ -40,12 +40,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @see ResourceCache
      */
-    private ResourceCache resourceCache = new ResourceCache();
+    private ResourceCache resourceCache;
 
     /**
-     * @see cz.cesnet.shongo.controller.cache.ValueCache
+     * @see ValueCache
      */
-    private ValueCache valueCache = new ValueCache();
+    private ValueCache valueCache;
+
+    /**
+     * @see RoomCache
+     */
+    private RoomCache roomCache;
 
     /**
      * @see ReusedReservationCache
@@ -83,6 +88,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      */
     public Cache()
     {
+        resourceCache = new ResourceCache();
+        valueCache = new ValueCache();
+        roomCache = new RoomCache(resourceCache);
     }
 
     /**
@@ -129,6 +137,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
+     * @return {@link #roomCache}
+     */
+    public RoomCache getRoomCache()
+    {
+        return roomCache;
+    }
+
+    /**
      * @return {@link #workingInterval}
      */
     public Interval getWorkingInterval()
@@ -164,6 +180,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     workingInterval.getStart().minus(resourceReservationMaximumDuration),
                     workingInterval.getEnd().plus(resourceReservationMaximumDuration));
             resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
+            roomCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
 
             Interval aliasWorkingInterval = new Interval(
                     workingInterval.getStart().minus(valueReservationMaximumDuration),
@@ -219,6 +236,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         resourceCache.clear();
         valueCache.clear();
+        roomCache.clear();
         reusedReservationCache.clear();
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -280,6 +298,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             valueCache.addObject(valueProvider, entityManager);
         }
 
+        // Add room provider capability
+        RoomProviderCapability roomProviderCapability = resource.getCapability(RoomProviderCapability.class);
+        if (roomProviderCapability != null) {
+            checkPersisted(roomProviderCapability);
+            roomCache.addObject(roomProviderCapability, entityManager);
+        }
+
         // Process all alias providers in the resource
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -336,6 +361,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         // Remove all value providers for the resource
         valueCache.removeValueProviders(resource);
 
+        // Remove room provider for the resource
+        roomCache.removeRoomProviderCapability(resource);
+
         // Process all alias providers in the resource
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
@@ -368,6 +396,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             ValueReservation valueReservation = (ValueReservation) reservation;
             valueCache.addReservation(valueReservation.getValueProvider(), valueReservation);
         }
+        else if (reservation instanceof RoomReservation) {
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            roomCache.addReservation(roomReservation.getRoomProviderCapability(), roomReservation);
+        }
 
         // Add child reservations
         for (Reservation childReservation : reservation.getChildReservations()) {
@@ -399,6 +431,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         else if (reservation instanceof ValueReservation) {
             ValueReservation valueReservation = (ValueReservation) reservation;
             valueCache.removeReservation(valueReservation.getValueProvider(), valueReservation);
+        }
+        else if (reservation instanceof RoomReservation) {
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            roomCache.removeReservation(roomReservation.getRoomProviderCapability(), roomReservation);
         }
 
         // Remove child reservations
