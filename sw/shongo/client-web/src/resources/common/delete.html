@@ -1,9 +1,9 @@
 <h1>[% title %]</h1>
 [% IF reservationRequests.size %]
-<p>The reservation request <strong>[% id %]</strong> cannot be deleted because it is referenced by the following reservation requests:</p>
+<p>The reservation request <strong>[% id %]</strong> cannot be deleted, because it is referenced by the following reservation requests:</p>
 <ul>
     [%- FOREACH reservationRequest IN reservationRequests %]
-    <li><a href="[% location %]/detail?id=[% reservationRequest.id %]">[% reservationRequest.description %]</a></li>
+    <li><a href="[% location %]/detail?id=[% reservationRequest.id %]">[% reservationRequest.description %]</a> ([% util.interval_format(reservationRequest.earliestSlot) %])</li>
     [% END %]
 </ul>
 <div>

@@ -37,8 +37,7 @@ cd `dirname $0`
             class: 'AliasProviderCapability',
             valueProvider: '1',
             aliases: [
-                { type: 'ROOM_NAME', value: '{value}' },
-                { type: 'SIP_URI', value: '{value}@cesnet.cz' }
+                { type: 'ROOM_NAME', value: '{value}' }
             ],
             maximumFuture: 'P1Y',
             restrictedToResource: 1,

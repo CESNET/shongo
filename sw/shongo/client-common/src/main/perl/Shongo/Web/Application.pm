@@ -253,6 +253,7 @@ sub render_template
         'datetime_format_date' => sub { datetime_format_date(@_, $time_zone_offset); },
         'datetime_partial_format' => sub { datetime_partial_format(@_); },
         'period_format' => sub { period_format(@_); },
+        'interval_format' => sub { interval_format(@_, $time_zone_offset); },
         'interval_format_date' => sub { interval_format_date(@_, $time_zone_offset); },
     };
     if ( $self->{template}->process($file, $parameters, \$result) ) {

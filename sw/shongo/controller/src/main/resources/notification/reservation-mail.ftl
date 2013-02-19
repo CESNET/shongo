@@ -130,7 +130,7 @@ DETAILS (for administrators):
    * H323 IP: ${alias.value}
     <#elseif alias.type == "SIP_URI">
 
-   * SIP: sip:${alias.value}
+   * SIP URI: sip:${alias.value}
     <#elseif alias.type == "SIP_IP">
 
    * SIP IP: ${alias.value}
