@@ -68,8 +68,8 @@ public class ReservationNotification extends Notification
             }
         }
         if (reservation instanceof RoomReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            for (Person person : resourceReservation.getResource().getAdministrators()) {
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            for (Person person : roomReservation.getDeviceResource().getAdministrators()) {
                 addRecipient(person);
             }
         }
