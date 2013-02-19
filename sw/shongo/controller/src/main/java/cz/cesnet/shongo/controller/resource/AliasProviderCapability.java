@@ -238,7 +238,8 @@ public class AliasProviderCapability extends Capability
                 cachedProvidedTechnologies.add(alias.getTechnology());
             }
         }
-        return !Collections.disjoint(cachedProvidedTechnologies, technologies);
+        return !Collections.disjoint(cachedProvidedTechnologies, technologies)
+                || (technologies.size() > 0 && cachedProvidedTechnologies.contains(Technology.ALL));
     }
 
     /**
