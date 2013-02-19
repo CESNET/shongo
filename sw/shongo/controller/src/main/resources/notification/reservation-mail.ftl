@@ -19,11 +19,11 @@ RESERVATION:
 <#----------------------------------------------------------------------------->
 <#if reservationRequest??>
 
-  Requested at:     ${template.formatDateTime(reservationRequest.created)}
+  Requested at:     ${template.formatDateTime(reservationRequest.created, "Europe/Prague")}
 </#if>
 
-  Start date/time:  ${template.formatDateTime(reservation.slot)} (local time)
-                    ${template.formatDateTimeUTC(reservation.slot)} (UTC)
+  Start date/time:  ${template.formatDateTime(reservation.slot, "Europe/Prague")}
+                    ${template.formatDateTime(reservation.slot, "UTC")}
 
   Duration:         ${template.formatDuration(reservation.slot)}
 <#if reservationRequest??>

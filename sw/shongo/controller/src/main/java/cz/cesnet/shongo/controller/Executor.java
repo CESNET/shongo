@@ -125,7 +125,7 @@ public class Executor extends Component
     @Override
     public void run()
     {
-        logger.info("Executor started!");
+        logger.debug("Executor started!");
 
         while (!Thread.interrupted()) {
             try {
@@ -138,7 +138,7 @@ public class Executor extends Component
             execute(DateTime.now());
         }
 
-        logger.info("Executor stopped!");
+        logger.debug("Executor stopped!");
     }
 
     /**

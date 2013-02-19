@@ -8,6 +8,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormat;
 import org.joda.time.format.PeriodFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper for manipulating/formatting temporal data types.
@@ -16,6 +18,8 @@ import org.joda.time.format.PeriodFormatter;
  */
 public class Temporal
 {
+    private static Logger logger = LoggerFactory.getLogger(Temporal.class);
+
     /**
      * Represents an infinity period.
      */
@@ -50,6 +54,13 @@ public class Temporal
      */
     private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
 
+    /**
+     * Static initialization.
+     */
+    static {
+        logger.debug("Initializing minimum/maximum date/time to {}/{}.",
+                DATETIME_INFINITY_START, DATETIME_INFINITY_END);
+    }
 
     /**
      * Empty method used for referencing the {@link Temporal} to be statically initialized before time zone changes

@@ -78,7 +78,7 @@ public class WorkerThread extends Thread
     @Override
     public void run()
     {
-        logger.info("Worker started!");
+        logger.debug("Worker started!");
 
         if (period == null) {
             throw new IllegalStateException("Worker must have period set!");
@@ -104,7 +104,7 @@ public class WorkerThread extends Thread
             }
         }
 
-        logger.info("Worker stopped!");
+        logger.debug("Worker stopped!");
     }
 
     /**

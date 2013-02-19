@@ -8,10 +8,12 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.TimeZone;
 
 /**
  * Tests for notifying about new {@link Reservation}s by emails.

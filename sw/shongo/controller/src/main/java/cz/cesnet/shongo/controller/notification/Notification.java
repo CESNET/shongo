@@ -156,11 +156,21 @@ public abstract class Notification
 
         /**
          * @param dateTime to be formatted as UTC date/time
+         * @param timeZoneId to be used
          * @return {@code dateTime} formatted to string
          */
-        public String formatDateTimeUTC(DateTime dateTime)
+        public String formatDateTime(DateTime dateTime, String timeZoneId)
         {
-            return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime.withZone(DateTimeZone.UTC));
+            DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
+            dateTime = dateTime.withZone(dateTimeZone);
+            String dateTimeZoneOffset = "";
+            if (!dateTimeZone.equals(DateTimeZone.UTC)) {
+                int offset = dateTimeZone.getOffset(dateTime) / 60000;
+                dateTimeZoneOffset = String.format(")(%+03d:%02d", offset / 60, Math.abs(offset % 60));
+            }
+            return String.format("%s (%s%s)", DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime),
+                    timeZoneId, dateTimeZoneOffset);
+
         }
 
         /**
@@ -173,12 +183,13 @@ public abstract class Notification
         }
 
         /**
-         * @param interval whose start to be formatted as UTC date/time
+         * @param interval   whose start to be formatted as UTC date/time
+         * @param timeZoneId to be used
          * @return {@code interval} start formatted to string
          */
-        public String formatDateTimeUTC(Interval interval)
+        public String formatDateTime(Interval interval, String timeZoneId)
         {
-            return formatDateTimeUTC(interval.getStart());
+            return formatDateTime(interval.getStart(), timeZoneId);
         }
 
         /**

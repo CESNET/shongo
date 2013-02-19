@@ -178,6 +178,7 @@ public class Controller
         String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
         if ( timeZoneId != null && !timeZoneId.isEmpty()) {
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
+            logger.info("Configuring timezone to {}.", dateTimeZone.getID());
             DateTimeZone.setDefault(dateTimeZone);
             TimeZone.setDefault(dateTimeZone.toTimeZone());
         }
