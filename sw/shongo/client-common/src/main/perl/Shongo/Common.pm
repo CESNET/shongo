@@ -556,7 +556,7 @@ sub iso8601_datetime_parse
 {
     my ($datetime) = @_;
     my $result = DateTime::Format::ISO8601->parse_datetime($datetime);
-    if ( !($datetime =~ /[\+-]\d\d(:\d\d)?$/) ) {
+    if ( !($datetime =~ /(Z|[\+-]\d\d(:\d\d)?)$/) ) {
         $result->{'__omit_timezone'} = 1;
     }
     return $result;
@@ -573,8 +573,13 @@ sub iso8601_datetime_format
     my ($dateTime) = @_;
     my $result = $dateTime->strftime('%FT%T.%3N');
     if ( !defined($dateTime->{'__omit_timezone'}) ) {
-        $result .= $dateTime->strftime('%z');
-        $result =~ s/(\d\d)$/:$1/;
+        if ( $dateTime->time_zone()->is_utc() ) {
+            $result .= 'Z';
+        }
+        else {
+            $result .= $dateTime->strftime('%z');
+            $result =~ s/(\d\d)$/:$1/;
+        }
     }
     return $result;
 }

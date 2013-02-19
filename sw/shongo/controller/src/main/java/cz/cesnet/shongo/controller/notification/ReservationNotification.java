@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -61,6 +62,12 @@ public class ReservationNotification extends Notification
     public void addRecipientByReservation(Reservation reservation)
     {
         if (reservation instanceof ResourceReservation) {
+            ResourceReservation resourceReservation = (ResourceReservation) reservation;
+            for (Person person : resourceReservation.getResource().getAdministrators()) {
+                addRecipient(person);
+            }
+        }
+        if (reservation instanceof RoomReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             for (Person person : resourceReservation.getResource().getAdministrators()) {
                 addRecipient(person);

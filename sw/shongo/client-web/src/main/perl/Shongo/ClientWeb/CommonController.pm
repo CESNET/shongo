@@ -97,7 +97,11 @@ sub delete_action
         foreach my $reservation (@{$reservations}) {
             push(@{$reservation_ids}, $reservation->{'id'});
         }
-        my $reservation_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {'providedReservationId' => $reservation_ids});
+
+        my $reservation_requests = [];
+        if ( scalar(@{$reservation_ids}) > 0 ) {
+            $reservation_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {'providedReservationId' => $reservation_ids});
+        }
         $self->render_page('Delete existing reservation request', 'common/delete.html', {
             'id' => $id,
             'reservationRequests' => $reservation_requests
