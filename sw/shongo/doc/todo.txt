@@ -9,9 +9,6 @@
   - show current timezone in cmd-line client
   - allow user to select timezone
 
-* AliasGroupReservationTask should execute AliasReservationTask for each alias specification and the RoomReservationTask
-  should not use the AliasGroupReservationTask (move the logic from the alias group to the room task)
-
 * Update API
   - interval (describe why interval cannot be formatted as start/duration)
   - remove normal/permanent reservation request

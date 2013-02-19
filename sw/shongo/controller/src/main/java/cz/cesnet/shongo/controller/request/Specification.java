@@ -167,8 +167,8 @@ public abstract class Specification extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
             specification = new AliasSpecification();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.AliasGroupSpecification) {
-            specification = new AliasGroupSpecification();
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSetSpecification) {
+            specification = new AliasSetSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
             specification = new ResourceSpecification();

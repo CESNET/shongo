@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasGroupSpecification extends Specification
+public class AliasSetSpecification extends Specification
 {
     /**
      * {@link AliasSpecification}s for the virtual room.
@@ -17,9 +17,14 @@ public class AliasGroupSpecification extends Specification
     public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
 
     /**
+     * Specifies whether alias reservations should share executable.
+     */
+    public static final String SHARED_EXECUTABLE = "sharedExecutable";
+
+    /**
      * Constructor.
      */
-    public AliasGroupSpecification()
+    public AliasSetSpecification()
     {
     }
 
@@ -28,7 +33,7 @@ public class AliasGroupSpecification extends Specification
      *
      * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #ALIAS_SPECIFICATIONS}
      */
-    public AliasGroupSpecification(AliasType aliasType)
+    public AliasSetSpecification(AliasType aliasType)
     {
         addAliasSpecification(new AliasSpecification(aliasType));
     }
@@ -38,7 +43,7 @@ public class AliasGroupSpecification extends Specification
      *
      * @param aliasTypes for which should be added new {@link AliasSpecification}s to the {@link #ALIAS_SPECIFICATIONS}
      */
-    public AliasGroupSpecification(AliasType[] aliasTypes)
+    public AliasSetSpecification(AliasType[] aliasTypes)
     {
         for (AliasType aliasType : aliasTypes) {
             addAliasSpecification(new AliasSpecification(aliasType));
@@ -75,5 +80,22 @@ public class AliasGroupSpecification extends Specification
     public void removeAliasSpecification(AliasSpecification aliasSpecification)
     {
         getPropertyStorage().removeCollectionItem(ALIAS_SPECIFICATIONS, aliasSpecification);
+    }
+
+    /**
+     * @return {@link #SHARED_EXECUTABLE}
+     */
+    public Boolean getSharedExecutable()
+    {
+        Boolean sharedExecutable = getPropertyStorage().getValue(SHARED_EXECUTABLE);
+        return (sharedExecutable != null ? sharedExecutable : Boolean.FALSE);
+    }
+
+    /**
+     * @param sharedExecutable sets the {@link #SHARED_EXECUTABLE}
+     */
+    public void setSharedExecutable(Boolean sharedExecutable)
+    {
+        getPropertyStorage().setValue(SHARED_EXECUTABLE, sharedExecutable);
     }
 }

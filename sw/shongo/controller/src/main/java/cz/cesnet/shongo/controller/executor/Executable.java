@@ -200,9 +200,11 @@ public abstract class Executable extends ReportablePersistentObject
      */
     public cz.cesnet.shongo.controller.api.Executable toApi()
     {
-        cz.cesnet.shongo.controller.api.Executable api = createApi();
-        toApi(api);
-        return api;
+        cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
+        executableApi.setId(IdentifierFormat.formatGlobalId(this));
+        executableApi.setUserId(getUserId());
+        toApi(executableApi);
+        return executableApi;
     }
 
     /**
@@ -220,8 +222,6 @@ public abstract class Executable extends ReportablePersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        executableApi.setId(IdentifierFormat.formatGlobalId(this));
-        executableApi.setUserId(getUserId());
     }
 
     /**

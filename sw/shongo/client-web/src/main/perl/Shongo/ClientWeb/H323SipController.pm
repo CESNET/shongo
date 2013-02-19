@@ -107,7 +107,7 @@ sub create_alias_action
         });
         if ( !%{$params->{'error'}} ) {
             my $specification = {
-                'class' => 'AliasGroupSpecification',
+                'class' => 'AliasSetSpecification',
                 'aliasSpecifications' => [{
                     'aliasTypes' => ['ROOM_NAME'],
                     'technologies' => ['H323', 'SIP'],

@@ -1,6 +1,6 @@
 <h1>Detail of reservation request for [%- technologies -%]
 [%- IF request.specification.class == 'RoomSpecification' %] room capacity
-[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' %] alias
+[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' %] alias
 [%- END -%]
 </h1>
 
@@ -45,7 +45,7 @@
     <dt>Number of participants:</dt>
     <dd>[% request.participantCount %]</dd>
 
-[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
+[%- ELSIF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' -%]
 
     [% childRequest = request.childRequests.0 -%]
 
@@ -95,13 +95,13 @@
 [% INCLUDE common/detail_room.html %]
 [% END -%]
 
-[%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
+[%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' -%]
 [% INCLUDE common/detail_alias.html %]
 [% END -%]
 
 <div class="pull-right">
     <a class="btn btn-primary" href="[% back %]">Back</a>
-    [%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasGroupSpecification' -%]
+    [%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' -%]
     [% IF request.reservationId %]
     <a class="btn" href="[% location %]/create?alias=[% request.reservationId %]">Request Room Capacity</a>
     [% ELSE %]

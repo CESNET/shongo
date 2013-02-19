@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import junitx.framework.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -276,7 +275,7 @@ public class AliasTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testAliasGroupSpecification() throws Exception
+    public void testAliasSetSpecification() throws Exception
     {
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
@@ -293,10 +292,10 @@ public class AliasTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        AliasGroupSpecification aliasGroupSpecification = new AliasGroupSpecification();
-        aliasGroupSpecification.addAliasSpecification(new AliasSpecification(AliasType.H323_URI));
-        aliasGroupSpecification.addAliasSpecification(new AliasSpecification(AliasType.SIP_URI));
-        reservationRequest.setSpecification(aliasGroupSpecification);
+        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.addAliasSpecification(new AliasSpecification(AliasType.H323_URI));
+        aliasSetSpecification.addAliasSpecification(new AliasSpecification(AliasType.SIP_URI));
+        reservationRequest.setSpecification(aliasSetSpecification);
         Reservation reservation = allocateAndCheck(reservationRequest);
         List<String> childReservationIds = reservation.getChildReservationIds();
         assertEquals("Reservation should have two child alias reservations.", 2, childReservationIds.size());

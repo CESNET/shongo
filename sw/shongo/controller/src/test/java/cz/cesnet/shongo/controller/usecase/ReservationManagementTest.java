@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -12,7 +11,6 @@ import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import junitx.framework.Assert;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -142,7 +140,7 @@ public class ReservationManagementTest extends AbstractControllerTest
     /**
      * Test listing reservation requests based on {@link Technology} of
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification},
-     * {@link cz.cesnet.shongo.controller.api.AliasGroupSpecification},
+     * {@link cz.cesnet.shongo.controller.api.AliasSetSpecification},
      * {@link cz.cesnet.shongo.controller.api.RoomSpecification} or
      * {@link cz.cesnet.shongo.controller.api.CompartmentSpecification}.
      *
@@ -160,7 +158,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         ReservationRequest reservationRequest2 = new ReservationRequest();
         reservationRequest2.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest2.setSpecification(new AliasGroupSpecification(AliasType.SIP_URI));
+        reservationRequest2.setSpecification(new AliasSetSpecification(AliasType.SIP_URI));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
 
         ReservationRequest reservationRequest3 = new ReservationRequest();

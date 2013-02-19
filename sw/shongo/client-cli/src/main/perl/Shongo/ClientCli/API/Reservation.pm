@@ -167,14 +167,7 @@ sub to_string_short
         my $attribute_value = $self->get($attribute_name);
         my $attribute_title = $self->get_attribute_title($attribute_name);
         if ( ref($attribute_value) ) {
-            if ( defined($attribute_value->{'class'}) &&  $attribute_value->{'class'} eq 'Alias' ) {
-                $attribute_value = $attribute_value->get('value');
-            }
-            elsif ( $attribute_value->can('to_string_short') ) {
-                $attribute_value = $attribute_value->to_string_short();
-            } else {
-                $attribute_value = undef;
-            }
+            $attribute_value = undef;
         }
         if( !$ignore->{$attribute_name} && defined($attribute_value) && length($attribute_value) > 0 ) {
             if ( length($string) > 0 ) {

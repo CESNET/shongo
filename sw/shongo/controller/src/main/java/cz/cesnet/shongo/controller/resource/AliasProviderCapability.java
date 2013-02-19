@@ -238,8 +238,19 @@ public class AliasProviderCapability extends Capability
                 cachedProvidedTechnologies.add(alias.getTechnology());
             }
         }
-        return !Collections.disjoint(cachedProvidedTechnologies, technologies)
-                || (technologies.size() > 0 && cachedProvidedTechnologies.contains(Technology.ALL));
+        if (!Collections.disjoint(cachedProvidedTechnologies, technologies)) {
+            return true;
+        }
+        if (technologies.size() > 0) {
+            if (cachedProvidedTechnologies.contains(Technology.ALL)) {
+                Resource resource = getResource();
+                if (resource instanceof DeviceResource) {
+                    DeviceResource deviceResource = (DeviceResource) resource;
+                    return !Collections.disjoint(deviceResource.getTechnologies(), technologies);
+                }
+            }
+        }
+        return false;
     }
 
     /**

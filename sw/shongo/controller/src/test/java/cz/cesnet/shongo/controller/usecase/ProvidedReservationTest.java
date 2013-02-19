@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
-import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -330,13 +329,13 @@ public class ProvidedReservationTest extends AbstractControllerTest
     }
 
     /**
-     * Test that a reservation request with {@link AliasGroupSpecification} cannot be modified when the allocated
+     * Test that a reservation request with {@link cz.cesnet.shongo.controller.api.AliasSetSpecification} cannot be modified when the allocated
      * {@link AliasReservation}s are reused in other reservation request (e.g., {@link RoomReservation}).
      *
      * @throws Exception
      */
     @Test
-    public void testProvidedAliasGroupNotModifiable() throws Exception
+    public void testProvidedAliasSetNotModifiable() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -352,7 +351,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
-                new AliasGroupSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+                new AliasSetSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 

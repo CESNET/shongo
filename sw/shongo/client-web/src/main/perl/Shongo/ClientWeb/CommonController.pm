@@ -61,7 +61,7 @@ sub list_reservation_requests
     # Alias requests
     my $alias_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
-        'specificationClass' => ['AliasSpecification', 'AliasGroupSpecification']
+        'specificationClass' => ['AliasSpecification', 'AliasSetSpecification']
     });
     foreach my $request_alias (@{$alias_requests}) {
         $self->process_reservation_request_summary($request_alias);
@@ -303,7 +303,7 @@ sub get_reservation_request
     }
     elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
     }
-    elsif ( $specification->{'class'} eq 'AliasGroupSpecification' ) {
+    elsif ( $specification->{'class'} eq 'AliasSetSpecification' ) {
     }
     else {
         $self->error("Reservation request has unknown specification '$specification->{'class'}'.");
@@ -337,7 +337,7 @@ sub get_reservation_request
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation', $child_request->{'reservationId'});
             $self->process_reservation($reservation, $state_code eq 'started');
 
-            if ( $specification->{'class'} eq 'AliasSpecification' || $specification->{'class'} eq 'AliasGroupSpecification') {
+            if ( $specification->{'class'} eq 'AliasSpecification' || $specification->{'class'} eq 'AliasSetSpecification') {
                 my $aliasUsageRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
                     'providedReservationId' => $request->{'reservationId'}
                 });

@@ -124,14 +124,7 @@ public class Compartment extends Executable
         compartmentApi.setState(getState().toApi());
         compartmentApi.setStateReport(getReportText());
         for (Endpoint endpoint : getEndpoints()) {
-            cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
-                    new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
-            endpointApi.setId(IdentifierFormat.formatGlobalId(endpoint));
-            endpointApi.setDescription(endpoint.getReportDescription());
-            for (Alias alias : endpoint.getAssignedAliases()) {
-                endpointApi.addAlias(alias.toApi());
-            }
-            compartmentApi.addEndpoint(endpointApi);
+            compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi());
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {

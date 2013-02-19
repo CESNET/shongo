@@ -26,7 +26,7 @@ our $RootType = ordered_hash(
     'CompartmentSpecification' => 'Compartment',
     'MultiCompartmentSpecification' => 'Multi-Compartment',
     'AliasSpecification' => 'Alias',
-    'AliasGroupSpecification' => 'Alias Group',
+    'AliasSetSpecification' => 'Alias Set',
     'RoomSpecification' => 'Virtual Room'
 );
 our $ParticipantType = ordered_hash(
@@ -241,7 +241,7 @@ sub on_init()
                 'title' => 'Requested Value'
             });
         }
-        case 'AliasGroupSpecification' {
+        case 'AliasSetSpecification' {
             $self->add_attribute('aliasSpecifications', {
                 'title' => 'Aliases',
                 'type' => 'collection',
@@ -250,6 +250,11 @@ sub on_init()
                     'class' => 'AliasSpecification',
                 },
                 'complex' => 1,
+                'required' => 1
+            });
+            $self->add_attribute('sharedExecutable', {
+                'title' => 'Shared Executable',
+                'type' => 'bool',
                 'required' => 1
             });
         }

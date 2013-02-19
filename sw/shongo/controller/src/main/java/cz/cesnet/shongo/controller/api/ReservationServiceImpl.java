@@ -7,7 +7,8 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.common.*;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -326,10 +327,9 @@ public class ReservationServiceImpl extends Component
                     (cz.cesnet.shongo.controller.request.AliasSpecification) specification;
             summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasSpecification));
         }
-        else if (specification instanceof cz.cesnet.shongo.controller.request.AliasGroupSpecification) {
-            cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification =
-                    (cz.cesnet.shongo.controller.request.AliasGroupSpecification) specification;
-            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasGroupSpecification));
+        else if (specification instanceof AliasSetSpecification) {
+            AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
+            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasSetSpecification));
         }
 
         // Set state and get earliest slot
@@ -394,15 +394,15 @@ public class ReservationServiceImpl extends Component
 
     /**
      * @param reservationRequest
-     * @param aliasGroupSpecification
+     * @param aliasSetSpecification
      * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
      */
     private ReservationRequestSummary.Type getSummaryAliasSpecificationType(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            cz.cesnet.shongo.controller.request.AliasGroupSpecification aliasGroupSpecification)
+            cz.cesnet.shongo.controller.request.AliasSetSpecification aliasSetSpecification)
     {
         for (cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification :
-                aliasGroupSpecification.getAliasSpecifications()) {
+                aliasSetSpecification.getAliasSpecifications()) {
             ReservationRequestSummary.AliasType aliasType =
                     getSummaryAliasSpecificationType(reservationRequest, aliasSpecification);
             if (aliasType != null) {

@@ -141,7 +141,8 @@ public class RoomReservationTask extends ReservationTask
         for (Set<Technology> technologies : technologyVariants) {
             Collection<RoomProviderCapability> roomProviders = specifiedRoomProviders;
             if (roomProviders == null) {
-                roomProviders = roomCache.getObjects();
+                roomProviders = new HashSet<RoomProviderCapability>();
+                roomProviders.addAll(roomCache.getObjects());
             }
 
             for (Iterator<RoomProviderCapability> iterator = roomProviders.iterator(); iterator.hasNext(); ) {

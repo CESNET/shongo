@@ -111,8 +111,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        super.toApi(executableApi);
-
         Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
         resourceRoomEndpointApi.setSlot(getSlot());
         resourceRoomEndpointApi.setState(getState().toApi());

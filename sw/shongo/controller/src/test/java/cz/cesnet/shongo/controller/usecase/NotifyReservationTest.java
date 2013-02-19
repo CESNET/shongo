@@ -8,12 +8,10 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
-import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
-import java.util.TimeZone;
 
 /**
  * Tests for notifying about new {@link Reservation}s by emails.
@@ -121,7 +119,7 @@ public class NotifyReservationTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testAliasGroup() throws Exception
+    public void testAliasSet() throws Exception
     {
         Resource firstAliasProvider = new Resource();
         firstAliasProvider.setName("firstAliasProvider");
@@ -148,7 +146,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
-                new AliasGroupSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
+                new AliasSetSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

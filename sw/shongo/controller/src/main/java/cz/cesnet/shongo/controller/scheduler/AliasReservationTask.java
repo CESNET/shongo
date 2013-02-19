@@ -43,7 +43,7 @@ public class AliasReservationTask extends ReservationTask
 
     /**
      * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
-     * will be assigned.
+     * will be assigned (so no permanent room should be allocated).
      */
     private DeviceResource targetResource;
 
@@ -303,6 +303,8 @@ public class AliasReservationTask extends ReservationTask
                 throw new IllegalStateException("Permanent room should be enabled only for device resource"
                         + " with room provider capability.");
             }
+            addReport(new AllocatingExecutableReport());
+
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
             roomEndpoint.setUserId(context.getUserId());
             roomEndpoint.setSlot(getInterval());

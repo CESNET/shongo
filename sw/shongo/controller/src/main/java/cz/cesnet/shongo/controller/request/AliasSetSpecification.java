@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
-import cz.cesnet.shongo.controller.scheduler.AliasGroupReservationTask;
+import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.fault.FaultException;
@@ -18,7 +18,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AliasGroupSpecification extends Specification implements ReservationTaskProvider
+public class AliasSetSpecification extends Specification implements ReservationTaskProvider
 {
     /**
      * List of {@link AliasSpecification} for {@link cz.cesnet.shongo.controller.resource.Alias}es which should be allocated for the room.
@@ -26,9 +26,14 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
+     * Share created executable.
+     */
+    private boolean sharedExecutable;
+
+    /**
      * Constructor.
      */
-    public AliasGroupSpecification()
+    public AliasSetSpecification()
     {
     }
 
@@ -86,6 +91,23 @@ public class AliasGroupSpecification extends Specification implements Reservatio
         aliasSpecifications.remove(aliasSpecification);
     }
 
+    /**
+     * @return {@link #sharedExecutable}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isSharedExecutable()
+    {
+        return sharedExecutable;
+    }
+
+    /**
+     * @param sharedExecutable sets the {@link #sharedExecutable}
+     */
+    public void setSharedExecutable(boolean sharedExecutable)
+    {
+        this.sharedExecutable = sharedExecutable;
+    }
+
     @Override
     public void updateTechnologies()
     {
@@ -98,7 +120,7 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
-        AliasGroupSpecification roomSpecification = (AliasGroupSpecification) specification;
+        AliasSetSpecification roomSpecification = (AliasSetSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
 
@@ -113,27 +135,29 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     @Override
     public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        AliasGroupReservationTask aliasGroupReservationTask = new AliasGroupReservationTask(context);
+        AliasSetReservationTask aliasSetReservationTask = new AliasSetReservationTask(context);
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            aliasGroupReservationTask.addAliasSpecification(aliasSpecification);
+            aliasSetReservationTask.addAliasSpecification(aliasSpecification);
         }
-        return aliasGroupReservationTask;
+        aliasSetReservationTask.setSharedExecutable(isSharedExecutable());
+        return aliasSetReservationTask;
     }
 
     @Override
     protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        return new cz.cesnet.shongo.controller.api.AliasGroupSpecification();
+        return new cz.cesnet.shongo.controller.api.AliasSetSpecification();
     }
 
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi)
     {
-        cz.cesnet.shongo.controller.api.AliasGroupSpecification aliasGroupSpecificationApi =
-                (cz.cesnet.shongo.controller.api.AliasGroupSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
+                (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
-            aliasGroupSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
+            aliasSetSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
         }
+        aliasSetSpecificationApi.setSharedExecutable(isSharedExecutable());
         super.toApi(specificationApi);
     }
 
@@ -141,13 +165,13 @@ public class AliasGroupSpecification extends Specification implements Reservatio
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.AliasGroupSpecification aliasGroupSpecificationApi =
-                (cz.cesnet.shongo.controller.api.AliasGroupSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
+                (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
 
         // Create/update alias specifications
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
-                aliasGroupSpecificationApi.getAliasSpecifications()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(aliasGroupSpecificationApi.ALIAS_SPECIFICATIONS, aliasApi)) {
+                aliasSetSpecificationApi.getAliasSpecifications()) {
+            if (specificationApi.isPropertyItemMarkedAsNew(aliasSetSpecificationApi.ALIAS_SPECIFICATIONS, aliasApi)) {
                 AliasSpecification aliasSpecification = new AliasSpecification();
                 aliasSpecification.fromApi(aliasApi, entityManager);
                 addAliasSpecification(aliasSpecification);
@@ -159,9 +183,13 @@ public class AliasGroupSpecification extends Specification implements Reservatio
         }
         // Delete room settings
         Set<cz.cesnet.shongo.controller.api.AliasSpecification> aliasSpecificationsToDelete =
-                specificationApi.getPropertyItemsMarkedAsDeleted(aliasGroupSpecificationApi.ALIAS_SPECIFICATIONS);
+                specificationApi.getPropertyItemsMarkedAsDeleted(aliasSetSpecificationApi.ALIAS_SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi : aliasSpecificationsToDelete) {
             removeAliasSpecification(getAliasSpecificationById(aliasSpecificationApi.notNullIdAsLong()));
+        }
+
+        if (aliasSetSpecificationApi.isPropertyFilled(aliasSetSpecificationApi.SHARED_EXECUTABLE)) {
+            setSharedExecutable(aliasSetSpecificationApi.getSharedExecutable());
         }
 
         super.fromApi(specificationApi, entityManager);

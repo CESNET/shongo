@@ -9,10 +9,24 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         purpose: 'SCIENCE',
         slot: '`date +"%Y-%m-%d"`T00:00/`date +"%Y-%m-%d"`T23:59',
         specification: {
-            class: 'AliasSpecification',
-            technologies: ['ADOBE_CONNECT'],
-            aliasTypes: ['ROOM_NAME'],
-            value: 'Test Test',
+            class: 'AliasSetSpecification',
+            sharedExecutable: 1,
+            aliasSpecifications: [{
+                class: 'AliasSpecification',
+                technologies: ['ADOBE_CONNECT'],
+                aliasTypes: ['ROOM_NAME'],
+                value: 'Test Alias 1',
+            },{
+                class: 'AliasSpecification',
+                technologies: ['ADOBE_CONNECT'],
+                aliasTypes: ['ROOM_NAME'],
+                value: 'Test Alias 2',
+            },{
+                class: 'AliasSpecification',
+                technologies: ['ADOBE_CONNECT'],
+                aliasTypes: ['ROOM_NAME'],
+                value: 'Test Alias 3',
+            }]
         }
     }
 
@@ -47,6 +61,27 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         }
     }
 
+    create-reservation-request {
+        class: 'ReservationRequest',
+        description: 'test',
+        purpose: 'SCIENCE',
+        slot: '`date +"%Y-%m-%d"`T00:00/`date +"%Y-%m-%d"`T23:59',
+        specification: {
+            class: 'AliasSetSpecification',
+            aliasSpecifications: [{
+                class: 'AliasSpecification',
+                technologies: ['ADOBE_CONNECT'],
+                aliasTypes: ['ROOM_NAME'],
+                value: 'Test Room 1',
+            },{
+                class: 'AliasSpecification',
+                technologies: ['ADOBE_CONNECT'],
+                aliasTypes: ['ROOM_NAME'],
+                value: 'Test Room 2',
+            }]
+        }
+    }
+
 EOF
 
 echo "Waiting for allocation..."
@@ -60,7 +95,11 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "get-reservation-for-request 2" \
 --cmd "get-reservation-request 3" \
 --cmd "get-reservation-for-request 3" \
+--cmd "get-reservation-request 4" \
+--cmd "get-reservation-for-request 4" \
 --cmd "list-executables" \
---cmd "get-executable 4" \
 --cmd "get-executable 5" \
 --cmd "get-executable 6" \
+--cmd "get-executable 7" \
+--cmd "get-executable 11" \
+--cmd "get-executable 12" \

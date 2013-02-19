@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -9,10 +8,8 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,7 +18,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasGroupReservationTask extends ReservationTask
+public class AliasSetReservationTask extends ReservationTask
 {
     /**
      * List of {@link AliasSpecification}s.
@@ -29,17 +26,16 @@ public class AliasGroupReservationTask extends ReservationTask
     private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
 
     /**
-     * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
-     * will be assigned.
+     * Share created executable.
      */
-    private DeviceResource targetResource;
+    private boolean sharedExecutable = false;
 
     /**
      * Constructor.
      *
      * @param context sets the {@link #context}
      */
-    public AliasGroupReservationTask(Context context)
+    public AliasSetReservationTask(Context context)
     {
         super(context);
     }
@@ -53,60 +49,25 @@ public class AliasGroupReservationTask extends ReservationTask
     }
 
     /**
-     * @param targetResource sets the {@link #targetResource}
+     * @param sharedExecutable sets the {@link #sharedExecutable}
      */
-    public void setTargetResource(DeviceResource targetResource)
+    public void setSharedExecutable(boolean sharedExecutable)
     {
-        this.targetResource = targetResource;
+        this.sharedExecutable = sharedExecutable;
     }
 
     @Override
     protected Reservation createReservation() throws ReportException
     {
         Context context = getContext();
-        Set<AliasType> allocatedAliasTypes = new HashSet<AliasType>();
-        Set<Technology> allocatedAliasTechnologies = new HashSet<Technology>();
         ResourceRoomEndpoint allocatedRoomEndpoint = null;
 
         List<Reservation> createdReservations = new ArrayList<Reservation>();
 
         // Process all alias specifications
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            // Check whether current alias specification is already satisfied by allocated aliases
-            boolean satisfied = true;
-            // Check alias types
-            Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
-            if (aliasTypes.size() == 0 && allocatedAliasTypes.size() == 0) {
-                satisfied = false;
-            }
-            for (AliasType aliasType : aliasTypes) {
-                if (!allocatedAliasTypes.contains(aliasType)) {
-                    satisfied = false;
-                    break;
-                }
-            }
-            // Check alias technologies
-            Set<Technology> aliasTechnologies = aliasSpecification.getTechnologies();
-            if (aliasTechnologies.size() == 0 && allocatedAliasTechnologies.size() == 0) {
-                satisfied = false;
-            }
-            for (Technology aliasTechnology : aliasTechnologies) {
-                if (!aliasTechnologies.contains(aliasTechnology)) {
-                    satisfied = false;
-                    break;
-                }
-            }
-
-            // No new alias is needed for satisfied specification
-            if (satisfied) {
-                continue;
-            }
-
             // Create new reservation task
             AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
-            if (targetResource != null) {
-                aliasReservationTask.setTargetResource(targetResource);
-            }
             if (allocatedRoomEndpoint != null) {
                 aliasReservationTask.setTargetResource(allocatedRoomEndpoint.getDeviceResource());
             }
@@ -116,14 +77,7 @@ public class AliasGroupReservationTask extends ReservationTask
             addReports(aliasReservationTask);
             createdReservations.add(reservation);
             AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
-
-            // Append all allocated alias types and technologies
             AliasProviderCapability aliasProviderCapability = aliasReservation.getAliasProviderCapability();
-            for (Alias alias : aliasProviderCapability.getAliases()) {
-                AliasType aliasType = alias.getType();
-                allocatedAliasTypes.add(aliasType);
-                allocatedAliasTechnologies.add(aliasType.getTechnology());
-            }
 
             // If room endpoint is allocated by previous alias reservation
             if (allocatedRoomEndpoint != null) {
@@ -139,7 +93,7 @@ public class AliasGroupReservationTask extends ReservationTask
                 aliasReservation.setExecutable(allocatedRoomEndpoint);
             }
             // If room endpoint is allocated by current alias reservation
-            else if (aliasProviderCapability.isPermanentRoom() && context.isExecutableAllowed()) {
+            else if (aliasProviderCapability.isPermanentRoom() && context.isExecutableAllowed() && sharedExecutable) {
                 // Use it for next alias reservations
                 allocatedRoomEndpoint = (ResourceRoomEndpoint) aliasReservation.getExecutable();
             }
