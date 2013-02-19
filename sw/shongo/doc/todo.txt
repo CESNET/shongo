@@ -15,6 +15,7 @@
 * Update API
   - interval (describe why interval cannot be formatted as start/duration)
   - remove normal/permanent reservation request
+  - AliasGroupSpecification -> AliasSetSpecification
 
 * Web client
   - format request state errors

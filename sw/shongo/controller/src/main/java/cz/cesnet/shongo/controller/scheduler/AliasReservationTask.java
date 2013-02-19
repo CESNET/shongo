@@ -27,13 +27,12 @@ import java.util.*;
 public class AliasReservationTask extends ReservationTask
 {
     /**
-     * Requests allocation of {@link Alias}es for each {@link AliasType}s.
+     * Restricts {@link AliasType} for allocation of {@link Alias}.
      */
     private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
-     * Restricts {@link Technology} of the {@link AliasType}s or if {@link #aliasTypes} is empty it requests
-     * allocation of {@link Alias}es for each {@link Technology}.
+     * Restricts {@link Technology} for allocation of {@link Alias}.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
 
