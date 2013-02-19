@@ -176,9 +176,11 @@ public class Controller
 
         // Initialize timezone
         String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
-        DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
-        DateTimeZone.setDefault(dateTimeZone);
-        TimeZone.setDefault(dateTimeZone.toTimeZone());
+        if ( timeZoneId != null && !timeZoneId.isEmpty()) {
+            DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
+            DateTimeZone.setDefault(dateTimeZone);
+            TimeZone.setDefault(dateTimeZone.toTimeZone());
+        }
 
         // Initialize domain
         Domain localDomain = new Domain();

@@ -96,6 +96,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         super.before();
 
+        // Do not change default timezone by the controller
+        System.setProperty(Configuration.TIMEZONE, "");
+
         // Change XML-RPC port
         System.setProperty(Configuration.RPC_PORT, "8484");
         System.setProperty(Configuration.JADE_PORT, "8585");
