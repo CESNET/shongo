@@ -509,7 +509,7 @@ public class Controller
         shell.setPrompt("controller");
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent));
+        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
         shell.addCommands(jadeAgent.createCommandSet());
         shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
         {

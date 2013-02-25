@@ -243,8 +243,7 @@ public class Connector
                 for (String agent : jadeAgents) {
                     if (agent.equals(agentName)) {
                         shell.setPrompt(agentName + "@connector");
-                        shell.addCommands(
-                                ConnectorContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
+                        shell.addCommands(ConnectorContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
 
                         return;
                     }
