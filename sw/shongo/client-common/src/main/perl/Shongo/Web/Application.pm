@@ -364,8 +364,11 @@ sub get_back
 sub get_time_zone_offset
 {
     my ($self) = @_;
+    if ( !defined($self->{'session'}) ) {
+        return 0;
+    }
     my $time_zone_offset = $self->{'session'}->param('time_zone_offset');
-    if (!defined($time_zone_offset) ) {
+    if ( !defined($time_zone_offset) ) {
         $time_zone_offset = 0;
     }
     return $time_zone_offset;

@@ -105,7 +105,14 @@ sub instance
 sub load_configuration
 {
     my ($self, $configuration) = @_;
-    $self->{'controller-url'} = $configuration->{'controller'};
+    my $controller_url = $configuration->{'controller'};
+    if ( !($controller_url =~ /http(s)?:\/\//) ) {
+        $controller_url = 'http://' . $controller_url;
+    }
+    if ( !($controller_url =~ /:\d+/) ) {
+        $controller_url .= ':8181';
+    }
+    $self->{'controller-url'} = $controller_url;
     if ( defined($configuration->{'authorization'}) ) {
         my $authorization = $configuration->{'authorization'};
         if ( defined($authorization->{'client-id'}) ) {
@@ -132,6 +139,7 @@ sub check_connected
     if ( !defined($self->{'controller-url'}) ) {
         $self->error_action("Controller url isn't specified.");
     }
+
     $self->{'controller-client'} = RPC::XML::Client->new($self->{'controller-url'});
 }
 
