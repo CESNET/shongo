@@ -177,7 +177,6 @@ public class NotifyReservationTest extends AbstractControllerTest
         getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("Alias Reservation Request");
         reservationRequest.setSlot("*/*");
         reservationRequest.setPurpose(ReservationRequestPurpose.OWNER);
         AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();

@@ -91,20 +91,6 @@ public class EmailNotificationExecutor extends NotificationExecutor
         }
 
         try {
-            MimeMessage message = new MimeMessage(session);
-
-            StringBuilder recipientString = new StringBuilder();
-            for (String recipient : recipients) {
-                if (recipientString.length() > 0) {
-                    recipientString.append(", ");
-                }
-                recipientString.append(recipient);
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
-            }
-
-            message.setFrom(new InternetAddress(emailSender));
-            message.setSubject(notification.getName());
-
             StringBuilder text = new StringBuilder();
             text.append(EMAIL_HEADER);
             text.append(notification.getContent());
@@ -123,6 +109,20 @@ public class EmailNotificationExecutor extends NotificationExecutor
             Multipart multipart = new MimeMultipart("alternative");
             multipart.addBodyPart(textPart);
             multipart.addBodyPart(htmlPart);
+
+            MimeMessage message = new MimeMessage(session);
+
+            StringBuilder recipientString = new StringBuilder();
+            for (String recipient : recipients) {
+                if (recipientString.length() > 0) {
+                    recipientString.append(", ");
+                }
+                recipientString.append(recipient);
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
+            }
+
+            message.setFrom(new InternetAddress(emailSender));
+            message.setSubject(notification.getName());
             message.setContent(multipart);
 
             logger.debug("Sending email '{}' from '{}' to '{}'...\n",

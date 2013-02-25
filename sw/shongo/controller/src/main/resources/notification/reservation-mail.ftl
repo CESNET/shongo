@@ -26,7 +26,7 @@ RESERVATION:
                     ${template.formatDateTime(reservation.slot, "UTC")}
 
   Duration:         ${template.formatDuration(reservation.slot)}
-<#if reservationRequest??>
+<#if reservationRequest?? && reservationRequest.description??>
 
   Description:      ${reservationRequest.description}
 </#if>
