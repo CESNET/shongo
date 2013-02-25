@@ -242,7 +242,12 @@ sub on_init()
             });
         }
         case 'AliasSetSpecification' {
-            $self->add_attribute('aliasSpecifications', {
+            $self->add_attribute('sharedExecutable', {
+                'title' => 'Shared Executable',
+                'type' => 'bool',
+                'required' => 1
+            });
+            $self->add_attribute('aliases', {
                 'title' => 'Aliases',
                 'type' => 'collection',
                 'item' => {
@@ -250,11 +255,6 @@ sub on_init()
                     'class' => 'AliasSpecification',
                 },
                 'complex' => 1,
-                'required' => 1
-            });
-            $self->add_attribute('sharedExecutable', {
-                'title' => 'Shared Executable',
-                'type' => 'bool',
                 'required' => 1
             });
         }
@@ -277,7 +277,7 @@ sub on_init()
                 'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
             });
-            $self->add_attribute('aliasSpecifications', {
+            $self->add_attribute('aliases', {
                 'title' => 'Aliases',
                 'type' => 'collection',
                 'item' => {

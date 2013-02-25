@@ -4,6 +4,29 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
+* Create communication connector -> controller
+  - get room license count
+  - get user details
+  - notify owners that room capacity exceeded
+
+* Web client
+  - checkAvailableSpecification
+  - lists of OWNERS and REUSERS in reservation request detail
+
+* Document escalation procedures with Peter
+
+* Resource Database
+  - shall have only owners (owner = admin)
+  - shall have 0:N emails where all administration info should be sent
+  - each owner also receives all administration info unless he specified a preference that he doesn't want to receive it
+
+* User preferences
+  - timezone (stored in authorization server)
+  - receive a resource administration info (stored in controller)
+
+* Adobe Connect Connector
+  - fix that room after modification is hidden in room list
+
 * Timezone
   - show current timezone in web page
   - show current timezone in cmd-line client
@@ -38,10 +61,6 @@
 * Update API
   -authentication/authorization
   -identifier faults (and try to find all other faults and update them)
-
-* Improve allocation failed reports
-  -Max-future
-  -Value already reserved
 
 * Improve value generation performance
 

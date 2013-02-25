@@ -70,7 +70,11 @@ RESERVATION:
     <#list aliasReservations as aliasReservation>
         <#list aliasReservation.aliases as alias>
             <#if alias.type == "ROOM_NAME">
-                <#assign roomName = alias.value>
+                <#if roomName??>
+                    <#assign roomName = '(multiple)'>
+                <#else>
+                    <#assign roomName = alias.value>
+                </#if>
             </#if>
         </#list>
     </#list>
@@ -79,17 +83,20 @@ RESERVATION:
 
   Room name:        ${roomName}
     </#if>
-
-  Aliases:
     <#assign aliases = []>
     <#list aliasReservations as aliasReservation>
         <#list aliasReservation.aliases as alias>
-            <#assign aliases = aliases + [alias]>
+            <#if alias.type != "ROOM_NAME">
+                <#assign aliases = aliases + [alias]>
+            </#if>
         </#list>
-    </#list>
-    <#list aliases?sort_by(['type']) as alias>
-        <@formatAlias alias=alias/>
-    </#list>
+    </#list><#if aliases?has_content>
+
+  Aliases:
+        <#list aliases?sort_by(['type']) as alias>
+            <@formatAlias alias=alias/>
+        </#list>
+    </#if>
 </#if>
 
 

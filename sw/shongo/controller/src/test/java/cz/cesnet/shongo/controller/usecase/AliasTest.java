@@ -293,8 +293,8 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
-        aliasSetSpecification.addAliasSpecification(new AliasSpecification(AliasType.H323_URI));
-        aliasSetSpecification.addAliasSpecification(new AliasSpecification(AliasType.SIP_URI));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.H323_URI));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.SIP_URI));
         reservationRequest.setSpecification(aliasSetSpecification);
         Reservation reservation = allocateAndCheck(reservationRequest);
         List<String> childReservationIds = reservation.getChildReservationIds();

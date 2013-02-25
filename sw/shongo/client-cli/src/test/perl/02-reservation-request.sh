@@ -11,7 +11,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         specification: {
             class: 'AliasSetSpecification',
             sharedExecutable: 1,
-            aliasSpecifications: [{
+            aliases: [{
                 class: 'AliasSpecification',
                 technologies: ['ADOBE_CONNECT'],
                 aliasTypes: ['ROOM_NAME'],
@@ -39,7 +39,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
             class: 'RoomSpecification',
             technologies: ['H323', 'SIP'],
             participantCount: 5,
-            aliasSpecifications: [{
+            aliases: [{
                 aliasTypes: ['ROOM_NAME'],
                 value: 'Testing Testing',
             }]
@@ -68,7 +68,7 @@ bin/client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
         slot: '`date +"%Y-%m-%d"`T00:00/`date +"%Y-%m-%d"`T23:59',
         specification: {
             class: 'AliasSetSpecification',
-            aliasSpecifications: [{
+            aliases: [{
                 class: 'AliasSpecification',
                 technologies: ['ADOBE_CONNECT'],
                 aliasTypes: ['ROOM_NAME'],

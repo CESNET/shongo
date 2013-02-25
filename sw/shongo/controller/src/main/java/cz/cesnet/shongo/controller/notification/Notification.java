@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
 import freemarker.template.Configuration;
@@ -151,16 +152,30 @@ public abstract class Notification
          */
         public String formatDateTime(DateTime dateTime)
         {
-            return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
+            if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
+                return "(infinity)";
+            }
+            else {
+                return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
+            }
         }
 
         /**
-         * @param dateTime to be formatted as UTC date/time
+         * @param dateTime   to be formatted as UTC date/time
          * @param timeZoneId to be used
          * @return {@code dateTime} formatted to string
          */
         public String formatDateTime(DateTime dateTime, String timeZoneId)
         {
+            String dateTimeString = "";
+            if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
+                dateTimeString = "(infinity)";
+                dateTime = DateTime.now();
+            }
+            else {
+                dateTimeString = DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
+            }
+
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
             dateTime = dateTime.withZone(dateTimeZone);
             String dateTimeZoneOffset = "";
@@ -168,8 +183,8 @@ public abstract class Notification
                 int offset = dateTimeZone.getOffset(dateTime) / 60000;
                 dateTimeZoneOffset = String.format(")(%+03d:%02d", offset / 60, Math.abs(offset % 60));
             }
-            return String.format("%s (%s%s)", DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime),
-                    timeZoneId, dateTimeZoneOffset);
+
+            return String.format("%s (%s%s)", dateTimeString, timeZoneId, dateTimeZoneOffset);
 
         }
 
@@ -198,6 +213,9 @@ public abstract class Notification
          */
         public String formatDuration(Period duration)
         {
+            if (duration.equals(Temporal.PERIOD_INFINITY)) {
+                return "(infinity)";
+            }
             return PeriodFormat.getDefault().print(duration);
         }
 

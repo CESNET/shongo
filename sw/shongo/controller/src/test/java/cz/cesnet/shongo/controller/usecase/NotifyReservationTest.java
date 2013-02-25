@@ -75,7 +75,7 @@ public class NotifyReservationTest extends AbstractControllerTest
     }
 
     /**
-     * Test single technology virtual room.
+     * Test single alias.
      *
      * @throws Exception
      */
@@ -112,9 +112,8 @@ public class NotifyReservationTest extends AbstractControllerTest
         Assert.assertEquals(3, notificationExecutor.getSentCount()); // new/modified/deleted
     }
 
-
     /**
-     * Test single technology virtual room.
+     * Test multiple aliases.
      *
      * @throws Exception
      */
@@ -145,15 +144,56 @@ public class NotifyReservationTest extends AbstractControllerTest
         reservationRequest.setDescription("Alias Reservation Request");
         reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
-                new AliasSetSpecification(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
+        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.H323_E164));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
+        reservationRequest.setSpecification(aliasSetSpecification);
+
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/modified/deleted
+        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
+    }
+
+    /**
+     * Test multiple aliases for owner.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testOwnerAliasSet() throws Exception
+    {
+        Resource firstAliasProvider = new Resource();
+        firstAliasProvider.setName("firstAliasProvider");
+        AliasProviderCapability aliasProviderCapability =
+                new AliasProviderCapability("{hash}").withAllowedAnyRequestedValue();
+        aliasProviderCapability.addAlias(new Alias(AliasType.ROOM_NAME, "{value}"));
+        firstAliasProvider.addCapability(aliasProviderCapability);
+        firstAliasProvider.setAllocatable(true);
+        firstAliasProvider.addAdministrator(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
+        getResourceService().createResource(SECURITY_TOKEN, firstAliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setDescription("Alias Reservation Request");
+        reservationRequest.setSlot("*/*");
+        reservationRequest.setPurpose(ReservationRequestPurpose.OWNER);
+        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test1"));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test2"));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test3"));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test4"));
+        reservationRequest.setSpecification(aliasSetSpecification);
+
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+
+        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
     }
 
     /**

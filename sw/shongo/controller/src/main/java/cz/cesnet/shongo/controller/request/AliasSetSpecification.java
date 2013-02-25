@@ -155,7 +155,7 @@ public class AliasSetSpecification extends Specification implements ReservationT
         cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
-            aliasSetSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
+            aliasSetSpecificationApi.addAlias(aliasSpecification.toApi());
         }
         aliasSetSpecificationApi.setSharedExecutable(isSharedExecutable());
         super.toApi(specificationApi);
@@ -170,8 +170,8 @@ public class AliasSetSpecification extends Specification implements ReservationT
 
         // Create/update alias specifications
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
-                aliasSetSpecificationApi.getAliasSpecifications()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(aliasSetSpecificationApi.ALIAS_SPECIFICATIONS, aliasApi)) {
+                aliasSetSpecificationApi.getAliases()) {
+            if (specificationApi.isPropertyItemMarkedAsNew(aliasSetSpecificationApi.ALIASES, aliasApi)) {
                 AliasSpecification aliasSpecification = new AliasSpecification();
                 aliasSpecification.fromApi(aliasApi, entityManager);
                 addAliasSpecification(aliasSpecification);
@@ -183,7 +183,7 @@ public class AliasSetSpecification extends Specification implements ReservationT
         }
         // Delete room settings
         Set<cz.cesnet.shongo.controller.api.AliasSpecification> aliasSpecificationsToDelete =
-                specificationApi.getPropertyItemsMarkedAsDeleted(aliasSetSpecificationApi.ALIAS_SPECIFICATIONS);
+                specificationApi.getPropertyItemsMarkedAsDeleted(aliasSetSpecificationApi.ALIASES);
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi : aliasSpecificationsToDelete) {
             removeAliasSpecification(getAliasSpecificationById(aliasSpecificationApi.notNullIdAsLong()));
         }

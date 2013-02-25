@@ -7,7 +7,7 @@
 -%]
 [% IF tooltipText -%]
 <div id='[% tooltipId %]' class="[% class %]" style="display: table;">[% text %]</div>
-<div id='[% tooltipId %]-content' class="[% tooltipClass %]">
+<div id='[% tooltipId %]-content' class="[% tooltipClass %]" style="z-index: 1;">
     [% tooltipText -%]
 </div>
 <script type="text/javascript">

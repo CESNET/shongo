@@ -254,7 +254,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             roomSpecificationApi.addRoomSetting(roomSetting.toApi());
         }
         for (AliasSpecification aliasSpecification : getAliasSpecifications()) {
-            roomSpecificationApi.addAliasSpecification(aliasSpecification.toApi());
+            roomSpecificationApi.addAlias(aliasSpecification.toApi());
         }
         super.toApi(specificationApi);
     }
@@ -313,7 +313,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         // Create/update alias specifications
         Set<Technology> technologies = getTechnologies();
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
-                roomSpecificationApi.getAliasSpecifications()) {
+                roomSpecificationApi.getAliases()) {
             Set<Technology> requestedTechnologies = new HashSet<Technology>();
             for (Technology technology : aliasApi.getTechnologies()) {
                 requestedTechnologies.add(technology);
@@ -327,7 +327,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                             "Cannot request alias in technology which the room doesn't support.");
                 }
             }
-            if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.ALIAS_SPECIFICATIONS, aliasApi)) {
+            if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.ALIASES, aliasApi)) {
                 AliasSpecification aliasSpecification = new AliasSpecification();
                 aliasSpecification.fromApi(aliasApi, entityManager);
                 addAliasSpecification(aliasSpecification);
@@ -339,7 +339,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         }
         // Delete room settings
         Set<cz.cesnet.shongo.controller.api.AliasSpecification> aliasSpecificationsToDelete =
-                specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.ALIAS_SPECIFICATIONS);
+                specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.ALIASES);
         for (cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi : aliasSpecificationsToDelete) {
             removeAliasSpecification(getAliasSpecificationById(aliasSpecificationApi.notNullIdAsLong()));
         }

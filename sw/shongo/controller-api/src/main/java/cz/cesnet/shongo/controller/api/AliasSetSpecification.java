@@ -14,7 +14,7 @@ public class AliasSetSpecification extends Specification
     /**
      * {@link AliasSpecification}s for the virtual room.
      */
-    public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
+    public static final String ALIASES = "aliases";
 
     /**
      * Specifies whether alias reservations should share executable.
@@ -31,55 +31,55 @@ public class AliasSetSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #ALIASES}
      */
     public AliasSetSpecification(AliasType aliasType)
     {
-        addAliasSpecification(new AliasSpecification(aliasType));
+        addAlias(new AliasSpecification(aliasType));
     }
 
     /**
      * Constructor.
      *
-     * @param aliasTypes for which should be added new {@link AliasSpecification}s to the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasTypes for which should be added new {@link AliasSpecification}s to the {@link #ALIASES}
      */
     public AliasSetSpecification(AliasType[] aliasTypes)
     {
         for (AliasType aliasType : aliasTypes) {
-            addAliasSpecification(new AliasSpecification(aliasType));
+            addAlias(new AliasSpecification(aliasType));
         }
     }
 
     /**
-     * @return {@link #ALIAS_SPECIFICATIONS}
+     * @return {@link #ALIASES}
      */
-    public List<AliasSpecification> getAliasSpecifications()
+    public List<AliasSpecification> getAliases()
     {
-        return getPropertyStorage().getCollection(ALIAS_SPECIFICATIONS, List.class);
+        return getPropertyStorage().getCollection(ALIASES, List.class);
     }
 
     /**
-     * @param aliasSpecifications sets the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecifications sets the {@link #ALIASES}
      */
-    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
+    public void setAliases(List<AliasSpecification> aliasSpecifications)
     {
-        getPropertyStorage().setCollection(ALIAS_SPECIFICATIONS, aliasSpecifications);
+        getPropertyStorage().setCollection(ALIASES, aliasSpecifications);
     }
 
     /**
-     * @param aliasSpecification to be added to the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecification to be added to the {@link #ALIASES}
      */
-    public void addAliasSpecification(AliasSpecification aliasSpecification)
+    public void addAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().addCollectionItem(ALIAS_SPECIFICATIONS, aliasSpecification, List.class);
+        getPropertyStorage().addCollectionItem(ALIASES, aliasSpecification, List.class);
     }
 
     /**
-     * @param aliasSpecification to be removed from the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecification to be removed from the {@link #ALIASES}
      */
-    public void removeAliasSpecification(AliasSpecification aliasSpecification)
+    public void removeAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().removeCollectionItem(ALIAS_SPECIFICATIONS, aliasSpecification);
+        getPropertyStorage().removeCollectionItem(ALIASES, aliasSpecification);
     }
 
     /**

@@ -108,7 +108,7 @@ sub create_alias_action
         if ( !%{$params->{'error'}} ) {
             my $specification = {
                 'class' => 'AliasSetSpecification',
-                'aliasSpecifications' => [{
+                'aliases' => [{
                     'aliasTypes' => ['ROOM_NAME'],
                     'technologies' => ['H323', 'SIP'],
                     'value' => $params->{'roomName'}

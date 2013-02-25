@@ -39,7 +39,7 @@ public class RoomSpecification extends Specification
     /**
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification}s for the virtual room.
      */
-    public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
+    public static final String ALIASES = "aliases";
 
     /**
      * Constructor.
@@ -96,7 +96,7 @@ public class RoomSpecification extends Specification
     @Transient
     public RoomSpecification withAlias(AliasType aliasType, String value)
     {
-        addAliasSpecification(new AliasSpecification(aliasType).withValue(value));
+        addAlias(new AliasSpecification(aliasType).withValue(value));
         return this;
     }
 
@@ -199,34 +199,34 @@ public class RoomSpecification extends Specification
     }
 
     /**
-     * @return {@link #ALIAS_SPECIFICATIONS}
+     * @return {@link #ALIASES}
      */
-    public List<AliasSpecification> getAliasSpecifications()
+    public List<AliasSpecification> getAliases()
     {
-        return getPropertyStorage().getCollection(ALIAS_SPECIFICATIONS, List.class);
+        return getPropertyStorage().getCollection(ALIASES, List.class);
     }
 
     /**
-     * @param aliasSpecifications sets the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecifications sets the {@link #ALIASES}
      */
-    public void setAliasSpecifications(List<AliasSpecification> aliasSpecifications)
+    public void setAliases(List<AliasSpecification> aliasSpecifications)
     {
-        getPropertyStorage().setCollection(ALIAS_SPECIFICATIONS, aliasSpecifications);
+        getPropertyStorage().setCollection(ALIASES, aliasSpecifications);
     }
 
     /**
-     * @param aliasSpecification to be added to the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecification to be added to the {@link #ALIASES}
      */
-    public void addAliasSpecification(AliasSpecification aliasSpecification)
+    public void addAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().addCollectionItem(ALIAS_SPECIFICATIONS, aliasSpecification, List.class);
+        getPropertyStorage().addCollectionItem(ALIASES, aliasSpecification, List.class);
     }
 
     /**
-     * @param aliasSpecification to be removed from the {@link #ALIAS_SPECIFICATIONS}
+     * @param aliasSpecification to be removed from the {@link #ALIASES}
      */
-    public void removeAliasSpecification(AliasSpecification aliasSpecification)
+    public void removeAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().removeCollectionItem(ALIAS_SPECIFICATIONS, aliasSpecification);
+        getPropertyStorage().removeCollectionItem(ALIASES, aliasSpecification);
     }
 }
