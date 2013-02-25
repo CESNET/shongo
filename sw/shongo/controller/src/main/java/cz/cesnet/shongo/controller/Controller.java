@@ -359,11 +359,6 @@ public class Controller
             instance = this;
         }
 
-        // Configure
-        if (configuration.getBoolean(Configuration.LOG_RPC)) {
-            WebServerXmlLogger.setEnabled(true);
-        }
-
         // Initialize authorization
         authorization = Authorization.createInstance(configuration);
 
@@ -442,7 +437,7 @@ public class Controller
             throw new IllegalStateException(
                     "Failed to start JADE container. Is not the port used by any other program?");
         }
-        addJadeAgent("Controller", jadeAgent);
+        addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
     }
 
     /**
@@ -514,7 +509,7 @@ public class Controller
         shell.setPrompt("controller");
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
+        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent));
         shell.addCommands(jadeAgent.createCommandSet());
         shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
         {
@@ -759,9 +754,14 @@ public class Controller
         //         "cz.cesnet.shongo.controller.migration", (development ? "controller/src/main/java" : null));
         // EntityManagerFactory entityManagerFactory = databaseMigration.migrate();
         Map<String, String> properties = new HashMap<String, String>();
+        properties.put("hibernate.connection.driver_class",
+                controller.getConfiguration().getString(Configuration.DATABASE_DRIVER));
         properties.put("hibernate.connection.url",
-                String.format("jdbc:hsqldb:file:%s; shutdown=true; hsqldb.write_delay=false;",
-                        controller.getConfiguration().getString(Configuration.DATABASE_FILENAME)));
+                controller.getConfiguration().getString(Configuration.DATABASE_URL));
+        properties.put("hibernate.connection.username",
+                controller.getConfiguration().getString(Configuration.DATABASE_USERNAME));
+        properties.put("hibernate.connection.password",
+                controller.getConfiguration().getString(Configuration.DATABASE_PASSWORD));
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 

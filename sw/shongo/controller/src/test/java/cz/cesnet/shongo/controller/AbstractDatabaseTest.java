@@ -46,12 +46,15 @@ public abstract class AbstractDatabaseTest
     @Before
     public void before() throws Exception
     {
-        // For testing purposes use only in-memory database
-        Map<String, String> properties = new HashMap<String, String>();
         // Each testing method should have different schema name and thus generate the name by random
         String schema = getClass().getName().replace(".", "_") + "_" + (Math.abs(new Random().nextInt() % 100));
-        String url = "jdbc:hsqldb:mem:" + schema + "; shutdown=true;";
-        properties.put("hibernate.connection.url", url);
+
+        // For testing purposes use only in-memory database
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("hibernate.connection.driver_class", "org.hsqldb.jdbcDriver");
+        properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:" + schema + "; shutdown=true;");
+        properties.put("hibernate.connection.username", "sa");
+        properties.put("hibernate.connection.password", "");
 
         entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
     }

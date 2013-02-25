@@ -53,11 +53,16 @@
             <version>4.1.1.Final</version>
         </dependency>
 
-        <!-- HyperSQL is used as embedded database -->
+        <!-- Database Drivers (HyperSQL is used as embedded database) -->
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
             <version>2.2.8</version>
+        </dependency>
+        <dependency>
+            <groupId>postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.1-901.jdbc4</version>
         </dependency>
 
         <!-- Apache XML-RPC is used as implementation of remote procedure calls -->

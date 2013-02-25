@@ -31,7 +31,7 @@
     <entity class="cz.cesnet.shongo.fault.jade.CommandError" access="FIELD">
         <attributes>
             <basic name="message">
-                <column column-definition="LONGVARCHAR"/>
+                <lob/>
             </basic>
         </attributes>
     </entity>
@@ -54,7 +54,7 @@
     <entity class="cz.cesnet.shongo.fault.jade.CommandUnknownFailure" access="FIELD">
         <attributes>
             <basic name="message">
-                <column column-definition="LONGVARCHAR"/>
+                <lob/>
             </basic>
         </attributes>
     </entity>

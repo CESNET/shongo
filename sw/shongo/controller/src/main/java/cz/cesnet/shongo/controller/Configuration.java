@@ -13,26 +13,49 @@ import org.joda.time.Period;
 public class Configuration extends CompositeConfiguration
 {
     /**
-     * Configuration parameters names.
+     * Time-zone in which the controller works and which is considered as default for date/times without specific zone.
      */
     public static final String TIMEZONE = "timezone";
-    public static final String LOG_RPC = "log-rpc";
+
+    /**
+     * Domain configuration.
+     */
     public static final String DOMAIN_NAME = "domain.name";
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
+
+    /**
+     * API XML-RPC configuration.
+     */
     public static final String RPC_HOST = "rpc.host";
     public static final String RPC_PORT = "rpc.port";
+
+    /**
+     * Jade configuration.
+     */
     public static final String JADE_HOST = "jade.host";
     public static final String JADE_PORT = "jade.port";
+    public static final String JADE_AGENT_NAME = "jade.agent-name";
     public static final String JADE_PLATFORM_ID = "jade.platform-id";
+
+    /**
+     * Worker configuration (it runs scheduler and executor).
+     */
     public static final String WORKER_PERIOD = "worker.period";
     public static final String WORKER_INTERVAL = "worker.interval";
+
+    /**
+     * Maximum duration of reservations.
+     */
     public static final String RESERVATION_RESOURCE_MAX_DURATION = "reservation.resource.max-duration";
     public static final String RESERVATION_VALUE_MAX_DURATION = "reservation.value.max-duration";
 
     /**
-     * Database configuration
+     * Database configuration.
      */
-    public static final String DATABASE_FILENAME = "database.filename";
+    public static final String DATABASE_DRIVER = "database.driver";
+    public static final String DATABASE_URL = "database.url";
+    public static final String DATABASE_USERNAME = "database.username";
+    public static final String DATABASE_PASSWORD = "database.password";
 
     /**
      * SMTP configuration.

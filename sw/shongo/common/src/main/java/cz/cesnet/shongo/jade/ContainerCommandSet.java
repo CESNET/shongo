@@ -47,8 +47,9 @@ public class ContainerCommandSet extends CommandSet
      * Create command set for the JADE agent in the given JADE container.
      *
      * @param container
+     * @param agent
      */
-    public static ContainerCommandSet createContainerAgentCommandSet(final Container container, final String agentName)
+    public static ContainerCommandSet createContainerAgentCommandSet(final Container container, final Agent agent)
     {
         return new ContainerCommandSet();
     }
