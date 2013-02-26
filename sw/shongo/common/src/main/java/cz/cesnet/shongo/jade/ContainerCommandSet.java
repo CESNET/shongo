@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.jade.PingAgentAction;
-import cz.cesnet.shongo.jade.command.AgentActionCommand;
-import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
 import cz.cesnet.shongo.shell.Shell;

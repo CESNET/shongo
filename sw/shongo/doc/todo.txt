@@ -8,6 +8,7 @@
   - get room license count
   - get user details
   - notify owners that room capacity exceeded
+  - check two logs for connector and controller
 
 * Web client
   - checkAvailableSpecification

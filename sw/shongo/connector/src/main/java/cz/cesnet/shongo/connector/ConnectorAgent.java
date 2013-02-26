@@ -6,10 +6,10 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
-import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
-import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
-import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
+import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
+import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
+import cz.cesnet.shongo.jade.*;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.slf4j.Logger;
@@ -33,10 +33,11 @@ public class ConnectorAgent extends Agent
     protected void setup()
     {
         addOntology(ConnectorOntology.getInstance());
+        addOntology(ControllerOntology.getInstance());
 
         super.setup();
 
-        registerService("connector", "Connector Service");
+        registerService(Constants.CONNECTOR_SERVICE, "Connector Service");
     }
 
     @Override
@@ -94,16 +95,52 @@ public class ConnectorAgent extends Agent
     }
 
     @Override
-    public Object handleAgentAction(AgentAction action, AID sender)
+    public cz.cesnet.shongo.jade.Command performCommand(cz.cesnet.shongo.jade.Command command)
+    {
+        if (command instanceof AgentActionCommand) {
+            AgentActionCommand actionCommand = (AgentActionCommand) command;
+            cz.cesnet.shongo.api.jade.AgentAction action = actionCommand.getAgentAction();
+            Connector.requestedAgentActions.info("Action:{} {}.", action.getId(), action);
+            command = super.performCommand(command);
+            String commandState;
+            switch (command.getState()) {
+                case SUCCESSFUL:
+                    Object result = command.getResult();
+                    if (result != null && result instanceof String) {
+                        commandState = String.format("OK: %s", result);
+                    }
+                    else {
+                        commandState = "OK";
+                    }
+                    break;
+                case FAILED:
+                    commandState = String.format("FAILED: %s", command.getFailure().getMessage());
+                    break;
+                default:
+                    commandState = "UNKNOWN";
+                    break;
+            }
+            Connector.requestedAgentActions.info("Action:{} Done ({}).", action.getId(), commandState);
+        }
+        else {
+            Connector.requestedAgentActions.info("Command: {}.", command.getName());
+            command = super.performCommand(command);
+            Connector.requestedAgentActions.info("Command: Done.");
+        }
+        return command;
+    }
+
+    @Override
+    public Object handleAgentAction(AgentAction agentAction, AID sender)
             throws CommandException, CommandUnsupportedException
     {
-        if (action instanceof ConnectorAgentAction) {
-            ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) action;
-            Connector.actionLogger.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
+        if (agentAction instanceof ConnectorAgentAction) {
+            ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) agentAction;
+            Connector.executedAgentActions.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
             Object result = null;
             String resultState = "OK";
             try {
-                result = ((ConnectorAgentAction) action).exec(connector);
+                result = connectorAgentAction.exec(connector);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }
@@ -121,10 +158,10 @@ public class ConnectorAgent extends Agent
                 throw exception;
             }
             finally {
-                Connector.actionLogger.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
+                Connector.executedAgentActions.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
             }
             return result;
         }
-        return super.handleAgentAction(action, sender);
+        return super.handleAgentAction(agentAction, sender);
     }
 }

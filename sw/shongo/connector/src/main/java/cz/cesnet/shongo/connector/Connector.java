@@ -3,7 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
-import cz.cesnet.shongo.connector.jade.command.ManageCommand;
+import cz.cesnet.shongo.connector.jade.ManageCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -32,10 +32,20 @@ public class Connector
     private static Logger logger = LoggerFactory.getLogger(Connector.class);
 
     /**
-     * {@link Logger} for all performed actions.
+     * {@link Logger} for all JADE requested agent actions.
      */
-    public static Logger actionLogger = LoggerFactory.getLogger(Connector.class.getName() + ".Action");
+    public static Logger requestedAgentActions =
+            LoggerFactory.getLogger(Connector.class.getName() + ".RequestedAgentAction");
 
+    /**
+     * {@link Logger} for all JADE executed agent actions.
+     */
+    public static Logger executedAgentActions =
+            LoggerFactory.getLogger(Connector.class.getName() + ".ExecutedAgentAction");
+
+    /**
+     * Default configuration filename.
+     */
     public static final String DEFAULT_CONFIGURATION_FILENAME = "connector.cfg.xml";
 
     /**

@@ -6,22 +6,19 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
 
 /**
  * Tests for serializing API classes for JADE.

@@ -63,6 +63,19 @@ sub add_controller
 }
 
 #
+# @return 1 if request is ajax, 0 otherwise
+#
+sub is_ajax
+{
+    my ($self) = @_;
+    my $ajax_header = 'HTTP_X_REQUESTED_WITH';
+    if (exists $ENV{$ajax_header} && lc $ENV{$ajax_header} eq 'xmlhttprequest') {
+        return 1;
+    }
+    return 0;
+}
+
+#
 # Action which prints information about error.
 #
 # @param $error  error message which should be displayed
@@ -181,7 +194,9 @@ sub render_headers
     my ($self) = @_;
     my $cookie = undef;
     if ( defined($self->{'session'}) ) {
-        $self->{'session'}->param('previous_url', $self->get_current_url());
+        if ( !$self->is_ajax() ) {
+            $self->{'session'}->param('previous_url', $self->get_current_url());
+        }
         $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
     }
     print $self->{'cgi'}->header(-type => 'text/html', -charset => 'UTF-8', -cookie => $cookie);
@@ -291,7 +306,9 @@ sub redirect
         $url->query_form($query);
     }
     if ( !defined($disable_set_as_previous) || !$disable_set_as_previous ) {
-        $self->{'session'}->param('previous_url', $self->get_current_url());
+        if ( !$self->is_ajax() ) {
+            $self->{'session'}->param('previous_url', $self->get_current_url());
+        }
     }
     my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
     print $self->{'cgi'}->redirect(-uri => $url->as_string(), -cookie => $cookie);

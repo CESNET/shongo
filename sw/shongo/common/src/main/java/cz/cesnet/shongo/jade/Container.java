@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
-import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.ThreadHelper;
 import jade.content.ContentElement;

@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -15,8 +15,8 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.jade.command.AgentActionCommand;
-import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.AgentActionCommand;
+import cz.cesnet.shongo.jade.Command;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

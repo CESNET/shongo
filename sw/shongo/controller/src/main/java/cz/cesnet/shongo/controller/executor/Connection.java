@@ -1,15 +1,15 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.Dial;
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DialParticipant;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
+import cz.cesnet.shongo.connector.api.jade.endpoint.Dial;
+import cz.cesnet.shongo.connector.api.jade.endpoint.HangUpAll;
+import cz.cesnet.shongo.connector.api.jade.multipoint.users.DialParticipant;
+import cz.cesnet.shongo.connector.api.jade.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.jade.command.AgentActionCommand;
-import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.AgentActionCommand;
+import cz.cesnet.shongo.jade.Command;
 
 import javax.persistence.*;
 import java.util.ArrayList;

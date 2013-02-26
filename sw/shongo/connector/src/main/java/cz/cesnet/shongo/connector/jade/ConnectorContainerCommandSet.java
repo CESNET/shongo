@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.connector.jade;
 
-import cz.cesnet.shongo.connector.jade.command.ManageCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
-import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.Command;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import org.apache.commons.cli.CommandLine;

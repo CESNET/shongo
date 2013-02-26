@@ -44,9 +44,16 @@ public class Controller
     public static Logger apiLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Api");
 
     /**
-     * {@link Logger} for all performed actions to connectors.
+     * {@link Logger} for all JADE requested agent actions.
      */
-    public static Logger connectorLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Connector");
+    public static Logger requestedAgentActions =
+            LoggerFactory.getLogger(Controller.class.getName() + ".RequestedAgentAction");
+
+    /**
+     * {@link Logger} for all JADE executed agent actions.
+     */
+    public static Logger executedAgentActions =
+            LoggerFactory.getLogger(Controller.class.getName() + ".ExecutedAgentAction");
 
     /**
      * Configuration of the controller.

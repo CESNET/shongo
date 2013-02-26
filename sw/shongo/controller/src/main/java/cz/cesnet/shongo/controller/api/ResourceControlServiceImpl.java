@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
-import cz.cesnet.shongo.connector.api.ontology.actions.common.GetDeviceLoadInfo;
-import cz.cesnet.shongo.connector.api.ontology.actions.common.GetSupportedMethods;
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
+import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
+import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
+import cz.cesnet.shongo.connector.api.jade.endpoint.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.io.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.*;
+import cz.cesnet.shongo.connector.api.jade.multipoint.users.*;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
@@ -19,8 +19,8 @@ import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
-import cz.cesnet.shongo.jade.command.AgentActionCommand;
-import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.AgentActionCommand;
+import cz.cesnet.shongo.jade.Command;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

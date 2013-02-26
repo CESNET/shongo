@@ -1,0 +1,22 @@
+package cz.cesnet.shongo.connector.api.jade.endpoint;
+
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+
+/**
+ * Command for an endpoint to disable video.
+ *
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ */
+public class DisableVideo extends ConnectorAgentAction
+{
+    @Override
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    {
+        logger.debug("Disabling video");
+        getEndpoint(connector).disableVideo();
+        return null;
+    }
+}
