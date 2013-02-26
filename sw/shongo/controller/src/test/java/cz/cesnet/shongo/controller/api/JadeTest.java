@@ -130,8 +130,6 @@ public class JadeTest extends AbstractControllerTest
         protected void setup()
         {
             addOntology(ConnectorOntology.getInstance());
-            addBehaviour(new AgentActionResponderBehaviour(this));
-
             super.setup();
         }
 

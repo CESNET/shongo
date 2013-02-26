@@ -19,19 +19,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.AgentAction
+public abstract class ConnectorAgentAction extends cz.cesnet.shongo.api.jade.AgentAction
 {
     protected static Logger logger = LoggerFactory.getLogger(ConnectorAgentAction.class);
-
-    /**
-     * Unique identifier of the action which is automatically generated.
-     */
-    private Long id = null;
-
-    /**
-     * Used for generating {@link #id}.
-     */
-    private static Long lastGeneratedId = Long.valueOf(0);
 
     /**
      * Executes the action on a given connector.
@@ -83,36 +73,8 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     }
 
     @Override
-    public Long getId()
-    {
-        synchronized (lastGeneratedId) {
-            if (this.id == null) {
-                this.id = ++lastGeneratedId;
-            }
-        }
-        return this.id;
-    }
-
-    @Override
-    public void setId(Long id)
-    {
-        synchronized (lastGeneratedId) {
-            if (id > lastGeneratedId) {
-                lastGeneratedId = id;
-            }
-        }
-        this.id = id;
-    }
-
-    @Override
     public Ontology getOntology()
     {
         return ConnectorOntology.getInstance();
-    }
-
-    @Override
-    public String toString()
-    {
-        return getClass().getSimpleName();
     }
 }

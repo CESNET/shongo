@@ -2,7 +2,10 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.CommonOntology;
+import cz.cesnet.shongo.api.jade.PingAgentAction;
 import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
+import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.CommandBehaviour;
 import jade.content.AgentAction;
@@ -12,6 +15,7 @@ import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +39,18 @@ public class Agent extends jade.core.Agent
     private DFAgentDescription agentDescription;
 
     /**
+     * Constructor.
+     */
+    public Agent()
+    {
+        super();
+
+        // Agent will accept objects from container
+        // NOTE: must be enabled here, setup() is too late - someone could pass an object before setup()
+        setEnabledO2ACommunication(true, 0);
+    }
+
+    /**
      * Is agent started?
      *
      * @return true if agent is started,
@@ -45,15 +61,23 @@ public class Agent extends jade.core.Agent
         return started;
     }
 
+    /**
+     * @param ontology to be registered to agnet
+     */
+    protected void addOntology(Ontology ontology)
+    {
+        // Register ontology used by Shongo
+        getContentManager().registerOntology(ontology);
+    }
 
     /**
-     * Perform command on local agent
+     * Perform command on local agent and wait for the command result (blocking).
      *
      * @param command command to be performed
      */
     public Command performCommand(Command command)
     {
-        if (isStarted() == false) {
+        if (!isStarted()) {
             command.setFailed(new CommandAgentNotStarted(getAID().getLocalName()));
             return command;
         }
@@ -70,35 +94,19 @@ public class Agent extends jade.core.Agent
         return command;
     }
 
-    /**
-     * Constructor.
-     */
-    public Agent()
-    {
-        super();
-
-        // Agent will accept objects from container
-        // NOTE: must be enabled here, setup() is too late - someone could pass an object before setup()
-        setEnabledO2ACommunication(true, 0);
-    }
-
-    /**
-     * @param ontology to be registered to agnet
-     */
-    public void addOntology(Ontology ontology)
-    {
-        // Register ontology used by Shongo
-        getContentManager().registerOntology(ontology);
-    }
-
     @Override
     protected void setup()
     {
         // Register content language
         getContentManager().registerLanguage(new SLCodec());
 
+        // Add common ontology
+        addOntology(CommonOntology.getInstance());
+
         // Each agent is able to process commands passed via O2A channel
         addBehaviour(new CommandBehaviour());
+        // Each agent is able to respond to agent actions
+        addBehaviour(new AgentActionResponderBehaviour(this));
 
         // Prepare agent description for DF
         agentDescription = new DFAgentDescription();
@@ -209,8 +217,8 @@ public class Agent extends jade.core.Agent
         agentDescription.addServices(serviceDescription);
 
         try {
-            DFAgentDescription[] result = DFService
-                    .searchUntilFound(this, getDefaultDF(), agentDescription, null, timeout);
+            DFAgentDescription[] result =
+                    DFService.searchUntilFound(this, getDefaultDF(), agentDescription, null, timeout);
             //DFAgentDescription[] result = DFService.search(this, agentDescription);
             if (result == null) {
                 result = new DFAgentDescription[0];
@@ -242,7 +250,9 @@ public class Agent extends jade.core.Agent
         if (action == null) {
             throw new NullPointerException("action");
         }
-
+        else if (action instanceof PingAgentAction) {
+            return DateTime.now();
+        }
         throw new UnknownAgentActionException(action);
     }
 }

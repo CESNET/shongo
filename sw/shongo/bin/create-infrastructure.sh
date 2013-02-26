@@ -209,6 +209,7 @@ cd `dirname $0`
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'ICRC' },
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'pokustemppstn' },
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'VSB-CIT' },
+                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Skoda Power' },
             ]
         }
     }

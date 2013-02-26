@@ -156,8 +156,7 @@ public class Connector
         // start configured agents
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
-            Boolean agentDumb = instCfg.getBoolean("dumb", false);
-            addAgent(agentName, new Object[]{agentDumb});
+            addAgent(agentName, null);
         }
         configureAgents();
     }

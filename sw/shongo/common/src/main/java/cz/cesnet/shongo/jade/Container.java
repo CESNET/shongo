@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.ThreadHelper;
@@ -444,21 +445,22 @@ public class Container
     }
 
     /**
-     * Perform command on local agent.
+     * Perform command on local agent and do not wait for the result (not blocking).
      * <p/>
      * Passes the command to the agent by means of the O2A channel (see JADE documentation).
      *
      * @param command command to be performed by an agent
      */
-    public void performCommand(String agentName, Command command)
+    public Command performCommand(String agentName, Command command)
     {
         if (!isStarted()) {
-            logger.error("Cannot perform command when the container is not started.");
-            return;
+            command.setFailed(new CommandAgentNotStarted(agentName));
+            return command;
         }
         AgentController agentController = agentControllers.get(agentName);
         if (agentController == null) {
-            return;
+            command.setFailed(new CommandAgentNotStarted(agentName));
+            return command;
         }
         try {
             // NOTE: must be ASYNC, otherwise, the connector thread be deadlock, waiting for itself
@@ -467,6 +469,7 @@ public class Container
         catch (StaleProxyException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
+        return command;
     }
 
     /**

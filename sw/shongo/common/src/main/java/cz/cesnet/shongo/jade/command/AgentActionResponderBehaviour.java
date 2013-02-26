@@ -37,7 +37,18 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
 {
     private Logger logger = LoggerFactory.getLogger(AgentActionResponderBehaviour.class);
 
-    protected cz.cesnet.shongo.jade.Agent myShongoAgent;
+    /**
+     * {@link cz.cesnet.shongo.jade.Agent} which is used for handling and replying to received {@link AgentAction}s.
+     */
+    protected cz.cesnet.shongo.jade.Agent agent;
+
+    /**
+     * Template defining which messages are received by the {@link AgentActionResponderBehaviour}.
+     * We want receive only {@link #FIPA_REQUEST}s and only {@link ACLMessage#REQUEST} performative.
+     */
+    private static MessageTemplate MESSAGE_TEMPLATE = MessageTemplate.and(
+            MessageTemplate.MatchProtocol(FIPA_REQUEST),
+            MessageTemplate.MatchPerformative(ACLMessage.REQUEST));
 
     /**
      * Constructor.
@@ -46,7 +57,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
      */
     public AgentActionResponderBehaviour(jade.core.Agent agent)
     {
-        super(agent, MessageTemplate.MatchProtocol(FIPA_REQUEST));
+        super(agent, MESSAGE_TEMPLATE);
     }
 
     /**
@@ -58,11 +69,10 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
     public void setAgent(jade.core.Agent agent)
     {
         if (!(agent instanceof cz.cesnet.shongo.jade.Agent)) {
-            throw new IllegalArgumentException(
-                    "This behaviour works only with instances of " + cz.cesnet.shongo.jade.Agent.class);
+            throw new IllegalArgumentException("This behaviour works only with instances of "
+                    + cz.cesnet.shongo.jade.Agent.class);
         }
-
-        myShongoAgent = (cz.cesnet.shongo.jade.Agent) agent;
+        this.agent = (cz.cesnet.shongo.jade.Agent) agent;
         super.setAgent(agent);
     }
 
@@ -86,27 +96,31 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
             Action act = (Action) cm.extractContent(request);
             AgentAction action = (AgentAction) act.getAction();
             try {
-                Object actionRetVal = myShongoAgent.handleAgentAction(action, request.getSender());
+                Object actionRetVal = agent.handleAgentAction(action, request.getSender());
                 // respond to the caller - either with the command return value or saying it was OK
                 ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
                 fillMessage(reply, ACLMessage.INFORM, response);
             }
             catch (UnknownAgentActionException exception) {
-                logger.error("Unknown action requested by " + request.getSender().getName(), exception);
+                logger.error(String.format("Unknown action '%s' requested by '%s'.",
+                        exception.getAgentAction(), request.getSender().getName()), exception);
                 reply.setPerformative(ACLMessage.REFUSE);
             }
             catch (CommandUnsupportedException exception) {
-                logger.error("Unsupported command requested by " + request.getSender().getName(), exception);
+                logger.error(String.format("Unsupported command requested by '%s'.",
+                        request.getSender().getName()), exception);
                 ContentElement response = new Result(act, new CommandNotSupported());
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (CommandException exception) {
-                logger.error("Command error by " + request.getSender().getName(), exception);
+                logger.error(String.format("Command requested by '%s' has failed.",
+                        request.getSender().getName()), exception);
                 ContentElement response = new Result(act, new CommandError(exception.getMessage()));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (Exception exception) {
-                logger.error("Failure executing a command requested by " + request.getSender().getName(), exception);
+                logger.error(String.format("Command requested by '%s' has failed with unknown reason.",
+                        request.getSender().getName()), exception);
                 String message = exception.getMessage();
                 if (exception.getCause() != null) {
                     message += " (" + exception.getCause().getMessage() + ")";
@@ -116,7 +130,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
             }
         }
         catch (Codec.CodecException exception) {
-            logger.error(String.format("Received a request which the agent did not understand (wrong codec):%s",
+            logger.error(String.format("Received a request which the agent did not understand (wrong codec): %s",
                     request), exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
@@ -131,7 +145,8 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
         catch (Exception exception) {
-            logger.error(String.format("Received a request which the agent did not understand: %s", request), exception);
+            logger.error(String.format("Received a request which the agent did not understand: %s", request),
+                    exception);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
 

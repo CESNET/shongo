@@ -7,10 +7,26 @@ import jade.content.AgentAction;
  */
 public class UnknownAgentActionException extends RuntimeException
 {
-    private AgentAction action;
+    /**
+     * {@link AgentAction} which was requested to be executed but the agent doesn't know the action.
+     */
+    private AgentAction agentAction;
 
-    public UnknownAgentActionException(AgentAction action)
+    /**
+     * Constructor.
+     *
+     * @param agentAction sets the {@link #agentAction}
+     */
+    public UnknownAgentActionException(AgentAction agentAction)
     {
-        this.action = action;
+        this.agentAction = agentAction;
+    }
+
+    /**
+     * @return {@link #agentAction}
+     */
+    public AgentAction getAgentAction()
+    {
+        return agentAction;
     }
 }

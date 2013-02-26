@@ -143,6 +143,11 @@ public class Shell extends CommandSet
     public static void printInfo(String info, java.lang.Object... objects)
     {
         System.out.printf("%s\n", String.format(info, objects));
+
+        Shell activeShell = getActive();
+        if (activeShell != null) {
+            activeShell.rePrompt();
+        }
     }
 
     /**
@@ -154,6 +159,11 @@ public class Shell extends CommandSet
     public static void printError(String error, java.lang.Object... objects)
     {
         System.err.printf("[ERROR] %s\n", String.format(error, objects));
+
+        Shell activeShell = getActive();
+        if (activeShell != null) {
+            activeShell.rePrompt();
+        }
     }
 
     /**
@@ -174,7 +184,7 @@ public class Shell extends CommandSet
                 active = this;
                 String line = console.readLine(prompt + "> ");
                 active = null;
-                if (parserCommandLine(line) == false) {
+                if (!parserCommandLine(line)) {
                     break;
                 }
             }

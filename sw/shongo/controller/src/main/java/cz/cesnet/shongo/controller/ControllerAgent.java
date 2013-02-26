@@ -59,7 +59,7 @@ public class ControllerAgent extends Agent
     {
         if (command instanceof AgentActionCommand) {
             AgentActionCommand actionCommand = (AgentActionCommand) command;
-            AgentAction action = actionCommand.getAction();
+            AgentAction action = actionCommand.getAgentAction();
             Controller.connectorLogger.info("Action:{} {}.", action.getId(), action);
             command = super.performCommand(command);
             String commandState;

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.jade.command;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.jade.AgentAction;
 import cz.cesnet.shongo.fault.jade.*;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -8,6 +10,8 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
+import jade.core.AID;
+import jade.core.Agent;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SimpleAchieveREInitiator;
@@ -18,8 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Behaviour that requests an {@link cz.cesnet.shongo.jade.Agent} to perform
- * an {@link cz.cesnet.shongo.api.jade.AgentAction}.
+ * Behaviour that requests an {@link cz.cesnet.shongo.jade.Agent} to perform an {@link cz.cesnet.shongo.api.jade.AgentAction}.
  * <p/>
  * Implements the initiator part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
  * example found in the Jade distribution in examples/src/examples/ontology).
@@ -30,7 +33,7 @@ import java.util.regex.Pattern;
  */
 public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
 {
-    private Logger logger = LoggerFactory.getLogger(AgentActionRequesterBehaviour.class);
+    private static Logger logger = LoggerFactory.getLogger(AgentActionRequesterBehaviour.class);
 
     /**
      * Command that invoked this behaviour (and someone is possibly waiting for it).
@@ -40,17 +43,49 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     /**
      * Constructor.
      *
-     * @param agent
-     * @param requestMsg
-     * @param command
+     * @param agent   representing requester who should send the request message
+     * @param command agent action command which should be sent as the request message
      */
-    public AgentActionRequesterBehaviour(jade.core.Agent agent, ACLMessage requestMsg, AgentActionCommand command)
+    public AgentActionRequesterBehaviour(jade.core.Agent agent, AgentActionCommand command) throws Exception
     {
-        super(agent, requestMsg);
-        requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-        this.command = command;
+        super(agent, createMessage(agent, command.getAgentReceiverId(), command.getAgentAction()));
 
-        logger.debug("Sending message: {}", requestMsg);
+        this.command = command;
+    }
+
+    /**
+     * Create {@link ACLMessage} which will be sent.
+     *
+     * @param agentRequester sender agent
+     * @param agentReceiverId receiver agent id
+     * @param agentAction agent action which should be sent
+     * @return the constructed message
+     * @throws Exception when the message construction fails
+     */
+    private static ACLMessage createMessage(Agent agentRequester, AID agentReceiverId,
+            AgentAction agentAction) throws Exception
+    {
+        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+        message.addReceiver(agentReceiverId);
+        message.setSender(agentRequester.getAID());
+        message.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+        message.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+        message.setOntology(agentAction.getOntology().getName());
+
+        ContentElement content = new jade.content.onto.basic.Action(agentRequester.getAID(), agentAction);
+        try {
+            agentRequester.getContentManager().fillContent(message, content);
+        }
+        catch (Codec.CodecException e) {
+            throw new CommandException("Error in composing the command message.", e);
+        }
+        catch (OntologyException e) {
+            throw new CommandException("Error in composing the command message.", e);
+        }
+
+        logger.debug("Sending message: {}", message);
+
+        return message;
     }
 
     @Override
@@ -109,7 +144,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        logger.error("Execution of the command failed: {}", msg);
+        logger.error("Execution of '{}' failed, because it was not understood.", command.getAgentAction());
         command.setFailed(new CommandNotUnderstood());
     }
 
@@ -118,8 +153,9 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        logger.error("Execution of the command failed: {}", msg);
-        command.setFailed(getFailure(msg));
+        CommandFailure commandFailure = getFailure(msg);
+        logger.error("Execution of '{}' failed: {}", command.getAgentAction(), commandFailure.getMessage());
+        command.setFailed(commandFailure);
     }
 
     @Override
@@ -127,7 +163,7 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        logger.error("Execution of the command failed: {}", msg);
+        logger.error("Execution of '{}' failed, because it was refused.", command.getAgentAction());
         command.setFailed(new CommandRefused());
     }
 

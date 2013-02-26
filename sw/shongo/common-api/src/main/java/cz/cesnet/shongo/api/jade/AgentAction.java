@@ -7,20 +7,52 @@ import jade.content.onto.Ontology;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface AgentAction extends jade.content.AgentAction
+public abstract class AgentAction implements jade.content.AgentAction
 {
     /**
-     * @return action unique identifier
+     * Unique identifier of the action which is automatically generated.
      */
-    public Long getId();
+    private Long id = null;
 
     /**
-     * @param id sets the action unique identifier
+     * Used for generating {@link #id}.
      */
-    public void setId(Long id);
+    private static Long lastGeneratedId = Long.valueOf(0);
+
+    /**
+     * @return {@link #id}
+     */
+    public Long getId()
+    {
+        synchronized (lastGeneratedId) {
+            if (this.id == null) {
+                this.id = ++lastGeneratedId;
+            }
+        }
+        return this.id;
+    }
+
+    /**
+     * @param id sets the {@link #id}
+     */
+    public void setId(Long id)
+    {
+        synchronized (lastGeneratedId) {
+            if (id > lastGeneratedId) {
+                lastGeneratedId = id;
+            }
+        }
+        this.id = id;
+    }
 
     /**
      * @return {@link Ontology} for this {@link AgentAction}
      */
-    public Ontology getOntology();
+    public abstract Ontology getOntology();
+
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName();
+    }
 }

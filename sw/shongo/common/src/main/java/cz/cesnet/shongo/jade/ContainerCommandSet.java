@@ -1,8 +1,16 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.api.jade.PingAgentAction;
+import cz.cesnet.shongo.jade.command.AgentActionCommand;
+import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
+import cz.cesnet.shongo.shell.Shell;
 import org.apache.commons.cli.CommandLine;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * Represents a Shell command set for a JADE container.
@@ -50,6 +58,34 @@ public class ContainerCommandSet extends CommandSet
      */
     public static ContainerCommandSet createContainerAgentCommandSet(final Container container, final String agentName)
     {
-        return new ContainerCommandSet();
+        ContainerCommandSet commandSet = new ContainerCommandSet();
+        commandSet.addCommand("ping", "Ping to another agent", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (args.length < 2) {
+                    Shell.printError("Ping requires agent name as a first argument.");
+                    return;
+                }
+                DateTime start = DateTime.now();
+                Command command = container.performCommand(agentName,
+                        new AgentActionCommand(args[1], new PingAgentAction()));
+                command.waitForProcessed();
+                if (command.getState() == Command.State.SUCCESSFUL) {
+                    DateTime middle = (DateTime) command.getResult();
+                    DateTime end = DateTime.now();
+                    long duration = new Interval(start, end).toDurationMillis();
+                    DateTimeFormatter formatter = ISODateTimeFormat.hourMinuteSecondMillis();
+                    Shell.printInfo("Ping Succeeded: %d ms (%s -> %s -> %s)", duration,
+                            formatter.print(start), formatter.print(middle), formatter.print(end));
+                }
+                else {
+                    Shell.printError("Ping failed: %s", command.getFailure().getMessage());
+                }
+            }
+        });
+        return commandSet;
     }
 }

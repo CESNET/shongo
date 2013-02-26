@@ -124,14 +124,13 @@ public class ManageCommand extends Command
         if (!(agent instanceof ConnectorAgent)) {
             throw new IllegalArgumentException("The 'manage' command works only with ConnectorAgent objects");
         }
-
-        ConnectorAgent connAgent = (ConnectorAgent) agent;
+        ConnectorAgent connectorAgent = (ConnectorAgent) agent;
 
         try {
-            connAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword, options);
+            connectorAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword, options);
         }
-        catch (ConnectorInitException e) {
-            throw new CommandException("Error initializing the connector", e);
+        catch (ConnectorInitException exception) {
+            throw new CommandException("Error initializing the connector", exception);
         }
     }
 }

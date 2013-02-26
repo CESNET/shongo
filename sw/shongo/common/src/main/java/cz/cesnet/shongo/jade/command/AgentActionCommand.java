@@ -3,85 +3,74 @@ package cz.cesnet.shongo.jade.command;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.jade.AgentAction;
 import cz.cesnet.shongo.jade.Agent;
-import jade.content.ContentElement;
-import jade.content.lang.Codec;
-import jade.content.onto.OntologyException;
 import jade.core.AID;
-import jade.domain.FIPANames;
-import jade.lang.acl.ACLMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link Command} to send an {@link AgentAction} to an agent via JADE middle-ware.
- * <p/>
- * The SL codec and {@link cz.cesnet.shongo.api.jade.AgentAction#getOntology()} is used to encode the message.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class AgentActionCommand extends Command
 {
-    private static Logger logger = LoggerFactory.getLogger(AgentActionCommand.class);
+    /**
+     * {@link AgentAction} which should be sent.
+     */
+    private AgentAction agentAction;
 
     /**
-     * Message parameters
+     * {@link AID} of the receiver agent.
      */
-    private AgentAction action;
-    private AID performer;
+    private AID agentReceiverId;
 
     /**
      * Construct command that sends a action to another agent.
+     *
+     * @param agentReceiverName name of the receiver agent
+     * @param agentAction       agent action which should be performed on the receiver agent
      */
-    public AgentActionCommand(String performerName, AgentAction action)
+    public AgentActionCommand(String agentReceiverName, AgentAction agentAction)
     {
-        if (performerName.contains("@")) {
-            performer = new AID(performerName, AID.ISGUID);
+        if (agentReceiverName.contains("@")) {
+            this.agentReceiverId = new AID(agentReceiverName, AID.ISGUID);
         }
         else {
-            performer = new AID(performerName, AID.ISLOCALNAME);
+            this.agentReceiverId = new AID(agentReceiverName, AID.ISLOCALNAME);
         }
-
-        this.action = action;
+        this.agentAction = agentAction;
     }
 
     /**
-     * @return {@link #action}
+     * @return {@link #agentAction}
      */
-    public AgentAction getAction()
+    public AgentAction getAgentAction()
     {
-        return action;
+        return agentAction;
+    }
+
+    /**
+     * @return {@link #agentReceiverId}
+     */
+    public AID getAgentReceiverId()
+    {
+        return agentReceiverId;
     }
 
     @Override
     public String getName()
     {
-        return action.getClass().getSimpleName();
+        return agentAction.getClass().getSimpleName();
     }
 
     @Override
     public void process(Agent agent) throws CommandException
     {
-        ACLMessage initMsg = new ACLMessage(ACLMessage.REQUEST);
-        initMsg.addReceiver(performer);
-        initMsg.setSender(agent.getAID());
-        initMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-        initMsg.setOntology(action.getOntology().getName());
-
-        ContentElement content = new jade.content.onto.basic.Action(agent.getAID(), action);
-        try {
-            agent.getContentManager().fillContent(initMsg, content);
-        }
-        catch (Codec.CodecException e) {
-            throw new CommandException("Error in composing the command message.", e);
-        }
-        catch (OntologyException e) {
-            throw new CommandException("Error in composing the command message.", e);
-        }
-
-        logger.debug("{} initiating action request -> {}\n", agent.getAID().getName(), performer.getName());
-
-        agent.addBehaviour(new AgentActionRequesterBehaviour(agent, initMsg, this));
         // FIXME: check that the behaviour is removed from the agent once it is done (or after some timeout)
+        try {
+            agent.addBehaviour(new AgentActionRequesterBehaviour(agent, this));
+        }
+        catch (Exception exception) {
+            throw new CommandException("Error in requesting agent action.", exception);
+        }
     }
 }

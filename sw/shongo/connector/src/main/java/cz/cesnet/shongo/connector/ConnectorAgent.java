@@ -33,7 +33,6 @@ public class ConnectorAgent extends Agent
     protected void setup()
     {
         addOntology(ConnectorOntology.getInstance());
-        addBehaviour(new AgentActionResponderBehaviour(this));
 
         super.setup();
 
@@ -98,12 +97,7 @@ public class ConnectorAgent extends Agent
     public Object handleAgentAction(AgentAction action, AID sender)
             throws CommandException, CommandUnsupportedException
     {
-        if (getArguments()[0].equals(Boolean.TRUE)) {
-            // the connector is configured with <dump>true</dump>
-            System.out.println(action.toString());
-            // FIXME: return something (an exception is thrown by super.handleAgentAction())
-        }
-        else if (action instanceof ConnectorAgentAction) {
+        if (action instanceof ConnectorAgentAction) {
             ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) action;
             Connector.actionLogger.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
             Object result = null;

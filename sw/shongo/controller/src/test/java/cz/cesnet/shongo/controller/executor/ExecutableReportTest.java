@@ -108,8 +108,6 @@ public class ExecutableReportTest extends AbstractControllerTest
         protected void setup()
         {
             addOntology(ConnectorOntology.getInstance());
-            addBehaviour(new AgentActionResponderBehaviour(this));
-
             super.setup();
         }
 
