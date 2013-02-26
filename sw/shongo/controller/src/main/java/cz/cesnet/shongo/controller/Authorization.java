@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -39,20 +40,16 @@ public class Authorization
     /**
      * Root user {@link cz.cesnet.shongo.controller.common.Person}.
      */
-    public static final UserInformation ROOT_USER_PERSON = new UserInformation()
-    {
-        @Override
-        public String getUserId()
-        {
-            return ROOT_USER_ID;
-        }
+    public static final UserInformation ROOT_USER_INFORMATION;
 
-        @Override
-        public String getFullName()
-        {
-            return "root";
-        }
-    };
+    /**
+     * Static initialization.
+     */
+    static {
+        ROOT_USER_INFORMATION = new UserInformation();
+        ROOT_USER_INFORMATION.setUserId(ROOT_USER_ID);
+        ROOT_USER_INFORMATION.setFullName("root");
+    }
 
     /**
      * URL to authorization server.
@@ -115,7 +112,7 @@ public class Authorization
      * @return {@link #authorization}
      * @throws IllegalStateException when the no {@link Authorization} has been created
      */
-    private static Authorization getInstance() throws IllegalStateException
+    public static Authorization getInstance() throws IllegalStateException
     {
         if (authorization == null) {
             throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
@@ -184,7 +181,7 @@ public class Authorization
 
         // Testing security token represents root user
         if (testingAccessToken != null && accessToken.equals(testingAccessToken)) {
-            return ROOT_USER_PERSON;
+            return ROOT_USER_INFORMATION;
         }
 
         // Try to use the user-id from access token cache to get the user information
@@ -231,7 +228,7 @@ public class Authorization
             catch (Exception exception) {
                 throw new IllegalStateException(exception);
             }
-            UserInformation userInformation = new UserInformation(content);
+            UserInformation userInformation = createUserInformationFromData(content);
             userId = userInformation.getUserId();
             putCachedUserIdByAccessToken(accessToken, userId);
             putCachedUserInformationByUserId(userId, userInformation);
@@ -268,7 +265,7 @@ public class Authorization
     {
         // Root user
         if (userId.equals(ROOT_USER_ID)) {
-            return ROOT_USER_PERSON;
+            return ROOT_USER_INFORMATION;
         }
 
         // Try to use the user information from the cache
@@ -304,7 +301,7 @@ public class Authorization
             catch (Exception exception) {
                 throw new IllegalStateException(exception);
             }
-            userInformation = new UserInformation(content);
+            userInformation = createUserInformationFromData(content);
             putCachedUserInformationByUserId(userId, userInformation);
             return userInformation;
         }
@@ -321,83 +318,37 @@ public class Authorization
     }
 
     /**
-     * Represents an information about user.
+     * @param data
+     * @return {@link UserInformation}
      */
-    public static class UserInformation implements PersonInformation
+    private UserInformation createUserInformationFromData(Map<String, Object> data)
     {
-        /**
-         * Data returned from the authorization server.
-         */
-        private Map<String, String> data = new HashMap<String, String>();
+        if (!data.containsKey("id")) {
+            throw new IllegalStateException("User information must contains identifier.");
+        }
+        if (!data.containsKey("given_name") || !data.containsKey("family_name")) {
+            throw new IllegalStateException("User information must contains given and family name.");
+        }
+        UserInformation userInformation = new UserInformation();
+        userInformation.setUserId((String) data.get("id"));
 
-        /**
-         * Constructor.
-         */
-        private UserInformation()
-        {
+        StringBuilder fullName = new StringBuilder();
+        fullName.append((String) data.get("given_name"));
+        fullName.append(" ");
+        fullName.append((String) data.get("family_name"));
+        userInformation.setFullName(fullName.toString());
+
+        if (data.containsKey("eppn")) {
+            userInformation.setEduPersonPrincipalName((String) data.get("eppn"));
+        }
+        if (data.containsKey("organization")) {
+            userInformation.setOrganization((String) data.get("organization"));
+        }
+        if (data.containsKey("email")) {
+            userInformation.setEmail((String) data.get("email"));
         }
 
-        /**
-         * Constructor.
-         *
-         * @param data sets the {@link #data}
-         */
-        public UserInformation(Map<String, Object> data)
-        {
-            if (!data.containsKey("id")) {
-                throw new IllegalStateException("User information must contains identifier.");
-            }
-            if (!data.containsKey("given_name") || !data.containsKey("family_name")) {
-                throw new IllegalStateException("User information must contains given and family name.");
-            }
-
-            // Add all not null entries
-            for (Map.Entry<String, Object> entry : data.entrySet()) {
-                if (entry.getValue() != null) {
-                    this.data.put(entry.getKey(), (String) entry.getValue());
-                }
-            }
-        }
-
-        /**
-         * @return user-id
-         */
-        public String getUserId()
-        {
-            return data.get("id");
-        }
-
-        @Override
-        public String getFullName()
-        {
-            StringBuilder name = new StringBuilder();
-            name.append(data.get("given_name"));
-            name.append(" ");
-            name.append(data.get("family_name"));
-            return name.toString();
-        }
-
-        @Override
-        public String getRootOrganization()
-        {
-            return data.get("organization");
-        }
-
-        @Override
-        public String getPrimaryEmail()
-        {
-            return data.get("email");
-        }
-
-        public static UserInformation getInstance(SecurityToken securityToken)
-        {
-            return Authorization.getInstance().getUserInformation(securityToken);
-        }
-
-        public static UserInformation getInstance(String userId)
-        {
-            return Authorization.getInstance().getUserInformation(userId);
-        }
+        return userInformation;
     }
 
     /**

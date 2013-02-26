@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.xmlrpc.AtomicType;
+import cz.cesnet.shongo.api.rpc.AtomicType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;

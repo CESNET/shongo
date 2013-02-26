@@ -34,8 +34,8 @@ public final class Options
 
     /**
      * Specifies whether marks for filled properties should be used and whether collections
-     * should be stored as Maps with {@link ChangesTrackingObject#COLLECTION_NEW},
-     * {@link ChangesTrackingObject#COLLECTION_MODIFIED}, {@link ChangesTrackingObject#COLLECTION_DELETED} lists.
+     * should be stored as Maps with {@link ChangesTracking#COLLECTION_NEW},
+     * {@link ChangesTracking#COLLECTION_MODIFIED}, {@link ChangesTracking#COLLECTION_DELETED} lists.
      */
     private boolean storeChanges = false;
 

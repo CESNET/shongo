@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api.xmlrpc;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import org.apache.xmlrpc.XmlRpcException;
 import org.slf4j.Logger;
@@ -16,9 +16,9 @@ import java.io.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class WebServerXmlLogger
+public class RpcServerRequestLogger
 {
-    private static Logger logger = LoggerFactory.getLogger(WebServerXmlLogger.class);
+    private static Logger logger = LoggerFactory.getLogger(RpcServerRequestLogger.class);
 
     /**
      * Specifies whether logging is enabled.
@@ -165,6 +165,6 @@ public class WebServerXmlLogger
      */
     public static void setEnabled(boolean enabled)
     {
-        WebServerXmlLogger.enabled = enabled;
+        RpcServerRequestLogger.enabled = enabled;
     }
 }

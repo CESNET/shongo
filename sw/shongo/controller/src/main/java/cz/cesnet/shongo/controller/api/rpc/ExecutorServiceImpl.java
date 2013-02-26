@@ -1,12 +1,14 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.ExecutorService;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;

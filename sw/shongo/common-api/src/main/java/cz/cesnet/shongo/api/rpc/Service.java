@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.api.xmlrpc;
+package cz.cesnet.shongo.api.rpc;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Represents an API service.
+ * Represents an XML-RPC API service.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

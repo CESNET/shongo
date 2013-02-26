@@ -10,6 +10,8 @@ import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
@@ -30,7 +32,7 @@ public class JadeTest extends AbstractControllerTest
     private static Logger logger = LoggerFactory.getLogger(JadeTest.class);
 
     /**
-     * @return {@link ResourceControlService} from the {@link #controllerClient}
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.ResourceControlService} from the {@link #controllerClient}
      */
     public ResourceControlService getResourceControlService()
     {
@@ -42,7 +44,7 @@ public class JadeTest extends AbstractControllerTest
     {
         super.onInit();
 
-        getController().addService(new ResourceControlServiceImpl()
+        getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
             public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)

@@ -1,10 +1,11 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;

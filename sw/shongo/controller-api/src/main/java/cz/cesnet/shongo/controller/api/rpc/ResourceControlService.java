@@ -1,7 +1,8 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;

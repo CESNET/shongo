@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.api.xmlrpc;
+package cz.cesnet.shongo.api.rpc;
 
 /**
  * Represents type which can be serialized to/from XML-RPC "struct" type.

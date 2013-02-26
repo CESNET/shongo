@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.api.xmlrpc.StructType;
+import cz.cesnet.shongo.api.rpc.StructType;
 import jade.content.Concept;
 import org.joda.time.DateTime;
 

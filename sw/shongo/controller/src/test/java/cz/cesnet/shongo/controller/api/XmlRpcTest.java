@@ -3,12 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -19,7 +18,7 @@ import java.util.Map;
 import static junit.framework.Assert.*;
 
 /**
- * Tests for using the implementation of {@link ReservationService} through XML-RPC.
+ * Tests for using the implementation of {@link cz.cesnet.shongo.controller.api.rpc.ReservationService} through XML-RPC.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

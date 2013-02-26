@@ -1,7 +1,11 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;

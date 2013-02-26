@@ -1,7 +1,7 @@
 package cz.cesnet.shongo;
 
 /**
- * Information about person.
+ * Information about a person.
  */
 public interface PersonInformation
 {

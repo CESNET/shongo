@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
 
 import javax.persistence.Column;
@@ -8,7 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 /**
- * Person that can be contacted.
+ * {@link Person} represents by a user-id.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -21,9 +22,9 @@ public class UserPerson extends Person
     private String userId;
 
     /**
-     * @see cz.cesnet.shongo.controller.Authorization.UserInformation
+     * @see UserInformation
      */
-    private Authorization.UserInformation userInformation;
+    private UserInformation userInformation;
 
     /**
      * Constructor.
@@ -47,7 +48,7 @@ public class UserPerson extends Person
      *
      * @param userId sets the {@link #userId}
      */
-    public UserPerson(String userId, Authorization.UserInformation userInformation)
+    public UserPerson(String userId, UserInformation userInformation)
     {
         setUserId(userId);
         this.userInformation = userInformation;
@@ -130,7 +131,7 @@ public class UserPerson extends Person
     public PersonInformation getInformation()
     {
         if (userInformation == null) {
-            userInformation = Authorization.UserInformation.getInstance(userId);
+            userInformation = Authorization.getInstance().getUserInformation(userId);
         }
         return userInformation;
     }

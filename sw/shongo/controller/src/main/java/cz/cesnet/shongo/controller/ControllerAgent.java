@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.AgentAction;
 import cz.cesnet.shongo.connector.Constants;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
+import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.controller.api.jade.ControllerAgentAction;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.Agent;
@@ -23,6 +24,16 @@ import org.apache.commons.cli.CommandLine;
  */
 public class ControllerAgent extends Agent
 {
+    private Service commonService;
+
+    /**
+     * Constructor.
+     */
+    public ControllerAgent(Service commonService)
+    {
+        this.commonService = commonService;
+    }
+
     /**
      * @return {@link CommandSet} for {@link ControllerAgent}
      */
@@ -105,7 +116,7 @@ public class ControllerAgent extends Agent
             Object result = null;
             String resultState = "OK";
             try {
-                result = controllerAgentAction.execute();
+                result = controllerAgentAction.execute(commonService);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }

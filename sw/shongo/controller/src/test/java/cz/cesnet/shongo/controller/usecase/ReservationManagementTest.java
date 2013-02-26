@@ -6,7 +6,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
+import cz.cesnet.shongo.controller.api.rpc.RpcServerRequestLogger;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import junitx.framework.Assert;
@@ -206,7 +206,7 @@ public class ReservationManagementTest extends AbstractControllerTest
 
     /**
      * @param technologies
-     * @return builded filter for {@link ReservationService#listReservationRequests(SecurityToken, java.util.Map)}
+     * @return builded filter for {@link cz.cesnet.shongo.controller.api.rpc.ReservationService#listReservationRequests(SecurityToken, java.util.Map)}
      */
     private static Map<String, Object> buildFilter(Technology[] technologies)
     {
@@ -249,7 +249,7 @@ public class ReservationManagementTest extends AbstractControllerTest
     @Test
     public void testInfiniteReservationRequest() throws Exception
     {
-        WebServerXmlLogger.setEnabled(true);
+        RpcServerRequestLogger.setEnabled(true);
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
@@ -287,6 +287,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         Interval slot3 = ((ReservationRequestSummary) result[2]).getEarliestSlot();
         Assert.assertNotEquals(Temporal.DATETIME_INFINITY_START, slot3.getStart());
         Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());
-        WebServerXmlLogger.setEnabled(false);
+        RpcServerRequestLogger.setEnabled(false);
     }
 }

@@ -1,9 +1,11 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.CommonService;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;

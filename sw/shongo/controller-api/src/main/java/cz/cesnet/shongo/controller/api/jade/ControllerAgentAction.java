@@ -17,11 +17,12 @@ public abstract class ControllerAgentAction extends cz.cesnet.shongo.api.jade.Ag
     /**
      * Executes the controller agent action.
      *
+     * @param commonService
      * @return the result of the action, or NULL if the action does not return anything; should be a concept or a Java
      *         class encapsulating a primitive type (e.g., Integer, ...)
      * @throws cz.cesnet.shongo.api.CommandException
      */
-    public abstract Object execute() throws CommandException;
+    public abstract Object execute(Service commonService) throws CommandException;
 
     @Override
     public Ontology getOntology()

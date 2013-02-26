@@ -1,6 +1,10 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.Connector;
+import cz.cesnet.shongo.controller.api.Controller;
+import cz.cesnet.shongo.controller.api.Domain;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.Collection;
 

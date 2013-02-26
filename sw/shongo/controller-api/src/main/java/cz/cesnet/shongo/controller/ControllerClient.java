@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.controller.api.xmlrpc.RpcClient;
+import cz.cesnet.shongo.api.rpc.RpcClient;
 
 /**
  * Client for a domain controller from Shongo.

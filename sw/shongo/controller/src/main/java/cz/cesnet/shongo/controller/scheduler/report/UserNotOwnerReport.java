@@ -69,6 +69,6 @@ public class UserNotOwnerReport extends Report
     public static String formatUser(String userId)
     {
 
-        return String.format("%s (id: %s)'", Authorization.UserInformation.getInstance(userId).getFullName(), userId);
+        return String.format("%s (id: %s)'", Authorization.getInstance().getUserInformation(userId).getFullName(), userId);
     }
 }

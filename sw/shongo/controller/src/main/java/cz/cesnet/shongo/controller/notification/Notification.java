@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
 import freemarker.template.Configuration;
@@ -259,7 +260,7 @@ public abstract class Notification
          */
         public String formatUser(String userId)
         {
-            Authorization.UserInformation userInformation = Authorization.UserInformation.getInstance(userId);
+            UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
             return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
         }
     }

@@ -1,7 +1,8 @@
-package cz.cesnet.shongo.controller.api.xmlrpc;
+package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -80,7 +81,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
 
         handlerMapping = new HandlerMapping();
         handlerMapping.setTypeConverterFactory(
-                new cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory(Options.SERVER));
+                new cz.cesnet.shongo.api.rpc.TypeConverterFactory(Options.SERVER));
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 
@@ -94,7 +95,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     protected XmlRpcStreamServer newXmlRpcStreamServer()
     {
         XmlRpcStreamServer server = new ConnectionServer();
-        server.setTypeFactory(new cz.cesnet.shongo.api.xmlrpc.TypeFactory(server, Options.SERVER));
+        server.setTypeFactory(new cz.cesnet.shongo.api.rpc.TypeFactory(server, Options.SERVER));
         return server;
     }
 
@@ -210,9 +211,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 method = pMethod;
                 Class[] paramClasses = method.getParameterTypes();
                 typeConverters = new TypeConverter[paramClasses.length];
-                if (pTypeConverterFactory instanceof cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) {
-                    cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory typeConverterFactory =
-                            (cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) pTypeConverterFactory;
+                if (pTypeConverterFactory instanceof cz.cesnet.shongo.api.rpc.TypeConverterFactory) {
+                    cz.cesnet.shongo.api.rpc.TypeConverterFactory typeConverterFactory =
+                            (cz.cesnet.shongo.api.rpc.TypeConverterFactory) pTypeConverterFactory;
                     Type[] genericParamTypes = method.getGenericParameterTypes();
                     for (int i = 0; i < paramClasses.length; i++) {
                         typeConverters[i] = typeConverterFactory.getTypeConverter(paramClasses[i],
@@ -292,9 +293,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             Long requestId = getNewRequestId();
             String className = pInstance.getClass().getSimpleName();
             String methodName = pMethod.getName();
-            Authorization.UserInformation userInformation = null;
+            UserInformation userInformation = null;
             if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
-                userInformation = Authorization.UserInformation.getInstance((SecurityToken) pArgs[0]);
+                userInformation = Authorization.getInstance().getUserInformation((SecurityToken) pArgs[0]);
             }
             if (userInformation != null) {
                 Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
@@ -512,8 +513,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         protected XmlRpcRequest getRequest(XmlRpcStreamRequestConfig pConfig, InputStream pStream)
                 throws XmlRpcException
         {
-            if (WebServerXmlLogger.isEnabled()) {
-                pStream = WebServerXmlLogger.logRequest(pStream);
+            if (RpcServerRequestLogger.isEnabled()) {
+                pStream = RpcServerRequestLogger.logRequest(pStream);
             }
             return super.getRequest(pConfig, pStream);
         }
@@ -522,8 +523,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         protected void writeResponse(XmlRpcStreamRequestConfig pConfig, OutputStream pStream, Object pResult)
                 throws XmlRpcException
         {
-            if (WebServerXmlLogger.isEnabled()) {
-                pStream = WebServerXmlLogger.logResponse(pStream);
+            if (RpcServerRequestLogger.isEnabled()) {
+                pStream = RpcServerRequestLogger.logResponse(pStream);
             }
             RequestData data = (RequestData) pConfig;
             try {

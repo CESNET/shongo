@@ -56,7 +56,7 @@ public class ResourceSummary extends IdentifiedObject
     /**
      * @param name sets the {@link #name}
      */
-    void setName(String name)
+    public void setName(String name)
     {
         this.name = name;
     }
@@ -72,7 +72,7 @@ public class ResourceSummary extends IdentifiedObject
     /**
      * @param technologies sets the {@link #technologies}
      */
-    void setTechnologies(String technologies)
+    public void setTechnologies(String technologies)
     {
         this.technologies = technologies;
     }

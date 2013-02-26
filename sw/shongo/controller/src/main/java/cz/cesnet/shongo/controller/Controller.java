@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.api.xmlrpc.Service;
-import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.xmlrpc.RpcServer;
-import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
+import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
@@ -71,11 +69,6 @@ public class Controller
     private Authorization authorization;
 
     /**
-     * List of services of the domain controller.
-     */
-    private List<Service> services = new ArrayList<Service>();
-
-    /**
      * List of components of the domain controller.
      */
     private List<Component> components = new ArrayList<Component>();
@@ -84,6 +77,11 @@ public class Controller
      * XML-RPC server.
      */
     private RpcServer rpcServer;
+
+    /**
+     * List of services of the domain controller.
+     */
+    private List<cz.cesnet.shongo.api.rpc.Service> rpcServices = new ArrayList<cz.cesnet.shongo.api.rpc.Service>();
 
     /**
      * Jade container.
@@ -98,7 +96,7 @@ public class Controller
     /**
      * Jade agent.
      */
-    private ControllerAgent jadeAgent = new ControllerAgent();
+    private ControllerAgent jadeAgent = new ControllerAgent(new ServiceImpl());
 
     /**
      * {@link NotificationManager}.
@@ -275,22 +273,22 @@ public class Controller
     }
 
     /**
-     * @param services sets the {@link #services}
+     * @param rpcServices sets the {@link #rpcServices}
      */
-    public void setServices(List<Service> services)
+    public void setRpcServices(List<cz.cesnet.shongo.api.rpc.Service> rpcServices)
     {
-        this.services = services;
+        this.rpcServices = rpcServices;
     }
 
     /**
-     * @param service service to be added the {@link #services}
+     * @param rpcService service to be added the {@link #rpcServices}
      */
-    public synchronized void addService(Service service)
+    public synchronized void addRpcService(cz.cesnet.shongo.api.rpc.Service rpcService)
     {
-        if (!services.contains(service)) {
-            services.add(service);
-            if (service instanceof Component) {
-                addComponent((Component) service);
+        if (!rpcServices.contains(rpcService)) {
+            rpcServices.add(rpcService);
+            if (rpcService instanceof Component) {
+                addComponent((Component) rpcService);
             }
         }
     }
@@ -310,8 +308,8 @@ public class Controller
     {
         if (!components.contains(component)) {
             components.add(component);
-            if (component instanceof Service) {
-                addService((Service) component);
+            if (component instanceof cz.cesnet.shongo.api.rpc.Service) {
+                addRpcService((cz.cesnet.shongo.api.rpc.Service) component);
             }
         }
     }
@@ -423,9 +421,9 @@ public class Controller
                 getRpcPort());
 
         rpcServer = new RpcServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
-        for (Service service : services) {
-            logger.debug("Adding XML-RPC service '" + service.getServiceName() + "'...");
-            rpcServer.addHandler(service.getServiceName(), service);
+        for (cz.cesnet.shongo.api.rpc.Service rpcService : rpcServices) {
+            logger.debug("Adding XML-RPC service '" + rpcService.getServiceName() + "'...");
+            rpcServer.addHandler(rpcService.getServiceName(), rpcService);
         }
         rpcServer.start();
     }
@@ -440,7 +438,7 @@ public class Controller
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
-        if (jadeContainer.start() == false) {
+        if (!jadeContainer.start()) {
             throw new IllegalStateException(
                     "Failed to start JADE container. Is not the port used by any other program?");
         }
@@ -530,10 +528,10 @@ public class Controller
                 org.apache.log4j.Logger logger = null;
                 Boolean enabled = null;
                 if (args[1].equals("rpc")) {
-                    enabled = !WebServerXmlLogger.isEnabled();
-                    WebServerXmlLogger.setEnabled(enabled);
+                    enabled = !RpcServerRequestLogger.isEnabled();
+                    RpcServerRequestLogger.setEnabled(enabled);
                     logger = org.apache.log4j.Logger.getLogger(
-                            cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger.class);
+                            RpcServerRequestLogger.class);
                 }
                 else if (args[1].equals("sql")) {
                     logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
@@ -790,13 +788,13 @@ public class Controller
         controller.addNotificationExecutor(new EmailNotificationExecutor());
 
         // Add XML-RPC services
-        controller.addService(new CommonServiceImpl());
+        controller.addRpcService(new CommonServiceImpl());
         ResourceServiceImpl resourceService = new ResourceServiceImpl();
         resourceService.setCache(cache);
-        controller.addService(resourceService);
-        controller.addService(new ResourceControlServiceImpl());
-        controller.addService(new ReservationServiceImpl());
-        controller.addService(new ExecutorServiceImpl());
+        controller.addRpcService(resourceService);
+        controller.addRpcService(new ResourceControlServiceImpl());
+        controller.addRpcService(new ReservationServiceImpl());
+        controller.addRpcService(new ExecutorServiceImpl());
 
         // Start, run and stop the controller
         controller.startAll();

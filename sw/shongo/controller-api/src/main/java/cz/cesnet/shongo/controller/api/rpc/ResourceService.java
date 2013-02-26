@@ -1,7 +1,11 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.Resource;
+import cz.cesnet.shongo.controller.api.ResourceAllocation;
+import cz.cesnet.shongo.controller.api.ResourceSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -23,7 +27,7 @@ public interface ResourceService extends Service
      *
      * @param token    token of the user requesting the operation
      * @param resource resource; should contains all attributes marked as {@link Required}
-     *                 in {@link ReservationRequest}
+     *                 in {@link cz.cesnet.shongo.controller.api.ReservationRequest}
      * @return the created resource shongo-id
      */
     @API

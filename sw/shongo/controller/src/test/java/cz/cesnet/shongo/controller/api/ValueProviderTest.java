@@ -4,8 +4,6 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
-import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.junit.Assert;
 import org.junit.Test;
 

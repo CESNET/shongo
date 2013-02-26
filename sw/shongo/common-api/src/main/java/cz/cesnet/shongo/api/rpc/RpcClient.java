@@ -1,10 +1,10 @@
-package cz.cesnet.shongo.controller.api.xmlrpc;
+package cz.cesnet.shongo.api.rpc;
 
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.xmlrpc.Service;
-import cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory;
-import cz.cesnet.shongo.api.xmlrpc.TypeFactory;
+import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.api.rpc.TypeConverterFactory;
+import cz.cesnet.shongo.api.rpc.TypeFactory;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.SerializableException;

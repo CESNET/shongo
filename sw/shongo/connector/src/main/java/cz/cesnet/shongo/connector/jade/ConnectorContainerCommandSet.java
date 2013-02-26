@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.connector.jade;
 
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.api.jade.action.GetUserInformation;
+import cz.cesnet.shongo.fault.jade.CommandFailure;
+import cz.cesnet.shongo.jade.AgentActionCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.jade.Command;

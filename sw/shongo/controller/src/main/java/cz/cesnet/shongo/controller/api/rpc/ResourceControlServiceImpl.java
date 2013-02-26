@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
@@ -12,6 +12,8 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;

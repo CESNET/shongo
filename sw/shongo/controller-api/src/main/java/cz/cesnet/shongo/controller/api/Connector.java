@@ -33,7 +33,7 @@ public class Connector
     /**
      * @param name sets the {@link #name}
      */
-    void setName(String name)
+    public void setName(String name)
     {
         this.name = name;
     }
@@ -49,7 +49,7 @@ public class Connector
     /**
      * @param resourceId sets the {@link #resourceId}
      */
-    void setResourceId(String resourceId)
+    public void setResourceId(String resourceId)
     {
         this.resourceId = resourceId;
     }

@@ -13,7 +13,7 @@
 
     <artifactId>common-api</artifactId>
     <name>Shongo Common API</name>
-    <description>API common for multiple parts of Shongo resource management system.</description>
+    <description>Common API classes for multiple components of Shongo resource management system.</description>
     <packaging>jar</packaging>
 
     <dependencies>

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.api.xmlrpc;
+package cz.cesnet.shongo.api.rpc;
 
 /**
  * Represents a type that can be serialized

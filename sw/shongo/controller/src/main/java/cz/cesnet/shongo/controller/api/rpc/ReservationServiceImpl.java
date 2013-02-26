@@ -1,20 +1,25 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.common.*;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ReservationRequestState;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -69,7 +74,8 @@ public class ReservationServiceImpl extends Component
 
 
     @Override
-    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequestApi)
+    public String createReservationRequest(SecurityToken token,
+            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
             throws FaultException
     {
         authorization.validate(token);
@@ -158,7 +164,8 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequestApi)
+    public void modifyReservationRequest(SecurityToken token,
+            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
             throws FaultException
     {
         authorization.validate(token);
@@ -170,7 +177,6 @@ public class ReservationServiceImpl extends Component
         entityManager.getTransaction().begin();
 
         try {
-
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
@@ -469,7 +475,8 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId)
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest getReservationRequest(SecurityToken token,
+            String reservationRequestId)
             throws FaultException
     {
         authorization.validate(token);

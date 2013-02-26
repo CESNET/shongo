@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.xmlrpc.StructType;
+import cz.cesnet.shongo.api.rpc.StructType;
 
 /**
  * Represents a base information about controller.
@@ -25,7 +25,7 @@ public class Controller implements StructType
     /**
      * @param domain sets the {@link #domain}
      */
-    void setDomain(Domain domain)
+    public void setDomain(Domain domain)
     {
         this.domain = domain;
     }

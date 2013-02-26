@@ -2,6 +2,10 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.ResourceService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceServiceImpl;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
@@ -54,7 +58,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * @return {@link ResourceService} from the {@link #controllerClient}
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.ResourceService} from the {@link #controllerClient}
      */
     public ResourceService getResourceService()
     {
@@ -62,7 +66,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * @return {@link ReservationService} from the {@link #controllerClient}
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.ReservationService} from the {@link #controllerClient}
      */
     public ReservationService getReservationService()
     {
@@ -80,8 +84,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         ResourceServiceImpl resourceService = new ResourceServiceImpl();
         resourceService.setCache(cache);
-        controller.addService(resourceService);
-        controller.addService(new ReservationServiceImpl());
+        controller.addRpcService(resourceService);
+        controller.addRpcService(new ReservationServiceImpl());
     }
 
     /**
