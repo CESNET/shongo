@@ -8,7 +8,7 @@
     </domain>
 
     <database>
-        <filename>data-test/controller</filename>
+        <url>jdbc:hsqldb:file:data-test/controller; shutdown=true; hsqldb.write_delay=false;</url>
     </database>
 
     <rpc>
