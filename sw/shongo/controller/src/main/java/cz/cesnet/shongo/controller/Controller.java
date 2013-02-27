@@ -96,7 +96,7 @@ public class Controller
     /**
      * Jade agent.
      */
-    private ControllerAgent jadeAgent = new ControllerAgent(new ServiceImpl());
+    private ControllerAgent jadeAgent = new ControllerAgent();
 
     /**
      * {@link NotificationManager}.
@@ -294,6 +294,14 @@ public class Controller
     }
 
     /**
+     * @param jadeService sets the {@link ControllerAgent#setService(cz.cesnet.shongo.controller.api.jade.Service)}
+     */
+    public void setJadeService(cz.cesnet.shongo.controller.api.jade.Service jadeService)
+    {
+        jadeAgent.setService(jadeService);
+    }
+
+    /**
      * @param components sets the {@link #components}
      */
     public void setComponents(List<Component> components)
@@ -437,11 +445,15 @@ public class Controller
     {
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
+
+        // Start jade container
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
         if (!jadeContainer.start()) {
             throw new IllegalStateException(
                     "Failed to start JADE container. Is not the port used by any other program?");
         }
+
+        // Add jade agent
         addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
     }
 
@@ -514,8 +526,10 @@ public class Controller
         shell.setPrompt("controller");
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
-        shell.addCommands(jadeAgent.createCommandSet());
+        if (jadeAgent != null) {
+            shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
+            shell.addCommands(jadeAgent.createCommandSet());
+        }
         shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
         {
             @Override
@@ -789,12 +803,13 @@ public class Controller
 
         // Add XML-RPC services
         controller.addRpcService(new CommonServiceImpl());
-        ResourceServiceImpl resourceService = new ResourceServiceImpl();
-        resourceService.setCache(cache);
-        controller.addRpcService(resourceService);
+        controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ResourceControlServiceImpl());
         controller.addRpcService(new ReservationServiceImpl());
         controller.addRpcService(new ExecutorServiceImpl());
+
+        // Add JADE service
+        controller.setJadeService(new ServiceImpl());
 
         // Start, run and stop the controller
         controller.startAll();

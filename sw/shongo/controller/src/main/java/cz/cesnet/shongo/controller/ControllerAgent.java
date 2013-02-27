@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.AgentAction;
-import cz.cesnet.shongo.connector.Constants;
+import cz.cesnet.shongo.connector.ConnectorScope;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.controller.api.jade.ControllerAgentAction;
@@ -24,14 +24,24 @@ import org.apache.commons.cli.CommandLine;
  */
 public class ControllerAgent extends Agent
 {
-    private Service commonService;
+    /**
+     * Service to be used for handling {@link ControllerAgentAction}s.
+     */
+    private Service service;
 
     /**
      * Constructor.
      */
-    public ControllerAgent(Service commonService)
+    public ControllerAgent()
     {
-        this.commonService = commonService;
+    }
+
+    /**
+     * @param service sets the {@link #service}
+     */
+    public void setService(Service service)
+    {
+        this.service = service;
     }
 
     /**
@@ -58,7 +68,7 @@ public class ControllerAgent extends Agent
      */
     public AID[] listConnectorAgents()
     {
-        return findAgentsByService(Constants.CONNECTOR_SERVICE, 1000);
+        return findAgentsByService(ConnectorScope.CONNECTOR_AGENT_SERVICE, 1000);
     }
 
     @Override
@@ -66,7 +76,10 @@ public class ControllerAgent extends Agent
     {
         addOntology(ConnectorOntology.getInstance());
         addOntology(ControllerOntology.getInstance());
+
         super.setup();
+
+        registerService(ControllerScope.CONTROLLER_AGENT_SERVICE, ControllerScope.CONTROLLER_AGENT_SERVICE_NAME);
     }
 
     @Override
@@ -109,14 +122,14 @@ public class ControllerAgent extends Agent
     public Object handleAgentAction(jade.content.AgentAction agentAction, AID sender)
             throws CommandException, CommandUnsupportedException
     {
-        if (agentAction instanceof ControllerAgentAction) {
+        if (service != null && agentAction instanceof ControllerAgentAction) {
             ControllerAgentAction controllerAgentAction = (ControllerAgentAction) agentAction;
             Controller.executedAgentActions.info("Action:{} {}.", controllerAgentAction.getId(),
                     controllerAgentAction.toString());
             Object result = null;
             String resultState = "OK";
             try {
-                result = controllerAgentAction.execute(commonService);
+                result = controllerAgentAction.execute(service);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }

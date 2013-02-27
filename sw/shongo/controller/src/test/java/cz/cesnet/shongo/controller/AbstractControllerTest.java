@@ -82,9 +82,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         cache.setEntityManagerFactory(getEntityManagerFactory());
         cache.init(controller.getConfiguration());
 
-        ResourceServiceImpl resourceService = new ResourceServiceImpl();
-        resourceService.setCache(cache);
-        controller.addRpcService(resourceService);
+        controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ReservationServiceImpl());
     }
 

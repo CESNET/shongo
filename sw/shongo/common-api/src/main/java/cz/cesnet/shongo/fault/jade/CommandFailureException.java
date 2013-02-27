@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.SerializableException;
 
 /**
  * Represents a {@link FaultException} for a {@link CommandFailure}.

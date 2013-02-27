@@ -83,6 +83,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      */
     @Override
     @Column
+    @org.hibernate.annotations.Index(name="room_id")
     public String getRoomId()
     {
         return roomId;

@@ -38,6 +38,32 @@ public class ConnectorContainerCommandSet extends ContainerCommandSet
                 container.performCommand(agentName, cmd);
             }
         });
+        commandSet.addCommand("get-user", "Get user information based on user-id", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (args.length < 2) {
+                    Shell.printError("Get user requires user-id as a first argument.");
+                    return;
+                }
+                Command command = container.performCommand(agentName, new AgentActionCommand("Controller",
+                        new GetUserInformation(args[1])));
+                command.waitForProcessed();
+                if (command.getState() == Command.State.SUCCESSFUL) {
+                    UserInformation userInformation = (UserInformation) command.getResult();
+                    Shell.printInfo("User: %s", userInformation.toString());
+                }
+                else {
+                    CommandFailure commandFailure = command.getFailure();
+                    Shell.printError("Get user failed: %s", commandFailure.getMessage());
+                    if (commandFailure.getCause() != null) {
+                        commandFailure.getCause().printStackTrace();
+                    }
+                }
+            }
+        });
 
         return commandSet;
     }

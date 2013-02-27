@@ -8,6 +8,7 @@ import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
+import cz.cesnet.shongo.controller.ControllerScope;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.*;
 import jade.content.AgentAction;
@@ -27,7 +28,15 @@ public class ConnectorAgent extends Agent
 {
     private static Logger logger = LoggerFactory.getLogger(ConnectorAgent.class);
 
-    private CommonService connector;
+    /**
+     * {@link CommonService} which holds the connector to be used for the {@link ConnectorAgent}.
+     */
+    private CommonService connectorService;
+
+    /**
+     * Cached name of controller agent (to not search for it every time when it is requested).
+     */
+    private String cachedControllerAgentName;
 
     @Override
     protected void setup()
@@ -37,21 +46,39 @@ public class ConnectorAgent extends Agent
 
         super.setup();
 
-        registerService(Constants.CONNECTOR_SERVICE, "Connector Service");
+        registerService(ConnectorScope.CONNECTOR_AGENT_SERVICE, ConnectorScope.CONNECTOR_AGENT_SERVICE_NAME);
     }
 
     @Override
     protected void takeDown()
     {
-        if (connector != null) {
+        if (connectorService != null) {
             try {
-                connector.disconnect();
+                connectorService.disconnect();
             }
             catch (CommandException e) {
                 // just suppress the exception, the agent is going not to be working anyway
             }
         }
         super.takeDown();
+    }
+
+    /**
+     * @return name of the controller agent or null if it doesn't exists
+     * @throws IllegalStateException when multiple controller agents are present
+     */
+    public String getCachedControllerAgentName()
+    {
+        if (cachedControllerAgentName == null) {
+            AID[] controllerAgents = findAgentsByService(ControllerScope.CONTROLLER_AGENT_SERVICE, 100);
+            if (controllerAgents.length > 0) {
+                if (controllerAgents.length > 1) {
+                    throw new IllegalStateException("Multiple controller agents were found.");
+                }
+                cachedControllerAgentName = controllerAgents[0].getLocalName();
+            }
+        }
+        return cachedControllerAgentName;
     }
 
     /**
@@ -63,16 +90,16 @@ public class ConnectorAgent extends Agent
     {
         try {
             Constructor co = Class.forName(connectorClass).getConstructor();
-            connector = (CommonService) co.newInstance();
-            if (connector == null) {
+            connectorService = (CommonService) co.newInstance();
+            if (connectorService == null) {
                 throw new ConnectorInitException(
                         "Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }
 
-            connector.setOptions(options);
-            connector.connect(new Address(address, port), username, password);
+            connectorService.setOptions(options);
+            connectorService.connect(new Address(address, port), username, password);
 
-            logger.info("Connector ready: {}", connector.getConnectorInfo());
+            logger.info("Connector ready: {}", connectorService.getConnectorInfo());
         }
         catch (NoSuchMethodException e) {
             throw new ConnectorInitException(
@@ -134,13 +161,13 @@ public class ConnectorAgent extends Agent
     public Object handleAgentAction(AgentAction agentAction, AID sender)
             throws CommandException, CommandUnsupportedException
     {
-        if (agentAction instanceof ConnectorAgentAction) {
+        if (connectorService != null && agentAction instanceof ConnectorAgentAction) {
             ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) agentAction;
             Connector.executedAgentActions.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
             Object result = null;
             String resultState = "OK";
             try {
-                result = connectorAgentAction.exec(connector);
+                result = connectorAgentAction.exec(connectorService);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }

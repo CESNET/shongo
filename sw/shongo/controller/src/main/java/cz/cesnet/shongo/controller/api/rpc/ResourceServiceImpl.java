@@ -59,9 +59,11 @@ public class ResourceServiceImpl extends Component
     private Authorization authorization;
 
     /**
+     * Constructor.
+     *
      * @param cache sets the {@link #cache}
      */
-    public void setCache(Cache cache)
+    public ResourceServiceImpl(Cache cache)
     {
         this.cache = cache;
     }

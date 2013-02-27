@@ -8,6 +8,7 @@
   - get room license count
   - get user details
   - notify owners that room capacity exceeded
+  - create AgentActionExecutor a AgentAction.perform
 
 * Web client
   - checkAvailableSpecification
