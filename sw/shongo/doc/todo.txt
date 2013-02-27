@@ -5,11 +5,9 @@
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
 * Create communication connector -> controller
-  - get room license count
-  - get user details
+  - make recursive jade communication working (A -> B, B -> A, B <- A, A <- B)
   - notify owners that room capacity exceeded
   - create CommandExecutor a Command.perform
-  - check 4 command logs
 
 * Web client
   - checkAvailableSpecification

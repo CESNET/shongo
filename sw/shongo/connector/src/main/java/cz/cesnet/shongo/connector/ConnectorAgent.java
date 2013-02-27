@@ -95,6 +95,10 @@ public class ConnectorAgent extends Agent
                 throw new ConnectorInitException(
                         "Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }
+            if (connectorService instanceof AbstractConnector) {
+                AbstractConnector abstractConnector = (AbstractConnector) connectorService;
+                abstractConnector.setConnectorAgent(this);
+            }
 
             connectorService.setOptions(options);
             connectorService.connect(new Address(address, port), username, password);

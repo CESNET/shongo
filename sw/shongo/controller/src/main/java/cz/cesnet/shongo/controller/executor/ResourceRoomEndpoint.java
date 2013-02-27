@@ -217,6 +217,24 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
+    @Transient
+    public cz.cesnet.shongo.api.Room getRoomApi()
+    {
+        cz.cesnet.shongo.api.Room roomApi = new cz.cesnet.shongo.api.Room();
+        roomApi.setId(roomId);
+        roomApi.setTechnologies(getTechnologies());
+        roomApi.setLicenseCount(getLicenseCount());
+        roomApi.setDescription(getRoomDescription());
+        for (RoomSetting roomSetting : getRoomSettings()) {
+            roomApi.fillOptions(roomSetting.toApi());
+        }
+        for (Alias alias : getAliases()) {
+            roomApi.addAlias(alias.toApi());
+        }
+        return roomApi;
+    }
+
+    @Override
     protected State onStart(Executor executor)
     {
         executor.getLogger().debug("Starting room '{}' for {} licenses.", new Object[]{getId(), getLicenseCount()});
@@ -230,16 +248,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setTechnologies(getTechnologies());
-            room.setLicenseCount(getLicenseCount());
-            room.setDescription(getRoomDescription());
-            for (RoomSetting roomSetting : getRoomSettings()) {
-                room.fillOptions(roomSetting.toApi());
-            }
-            for (Alias alias : getAliases()) {
-                room.addAlias(alias.toApi());
-            }
+            cz.cesnet.shongo.api.Room room = getRoomApi();
+
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(room));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 setRoomId((String) sendLocalCommand.getResult());

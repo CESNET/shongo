@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.api.jade.AbstractOntology;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.controller.api.jade.action.GetUserInformation;
 import jade.content.onto.BeanOntologyException;
 import jade.content.onto.Ontology;
 import org.slf4j.Logger;

@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.controller.api.jade.action;
+package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
-import cz.cesnet.shongo.controller.api.jade.Service;
+import jade.core.Agent;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -32,7 +31,7 @@ public class GetUserInformation extends ControllerCommand
     }
 
     @Override
-    public Object execute(Service commonService) throws CommandException
+    public Object execute(Service commonService, String senderAgentName) throws CommandException
     {
         return commonService.getUserInformation(userId);
     }

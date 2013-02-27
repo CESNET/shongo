@@ -187,6 +187,24 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
+    @Transient
+    public cz.cesnet.shongo.api.Room getRoomApi()
+    {
+        RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+
+        cz.cesnet.shongo.api.Room roomApi = roomEndpoint.getRoomApi();
+        roomApi.setDescription(getRoomDescription());
+        roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
+        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+            roomApi.fillOptions(roomSetting.toApi());
+        }
+        for (Alias alias : getAssignedAliases()) {
+            roomApi.addAlias(alias.toApi());
+        }
+        return roomApi;
+    }
+
+    @Override
     protected State onStart(Executor executor)
     {
         if (roomEndpoint.modifyRoom(getRoomDescription(), getMergedRoomConfiguration(), getAliases(), executor)) {

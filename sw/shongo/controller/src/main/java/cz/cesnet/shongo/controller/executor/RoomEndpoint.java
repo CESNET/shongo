@@ -75,6 +75,12 @@ public abstract class RoomEndpoint extends Endpoint
     public abstract String getRoomId();
 
     /**
+     * @return {@link cz.cesnet.shongo.api.Room} representing the current room for the {@link RoomEndpoint}
+     */
+    @Transient
+    public abstract cz.cesnet.shongo.api.Room getRoomApi();
+
+    /**
      * Modify this {@link RoomEndpoint}.
      *
      * @param roomDescription

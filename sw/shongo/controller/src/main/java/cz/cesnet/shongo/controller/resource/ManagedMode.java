@@ -21,6 +21,7 @@ public class ManagedMode extends Mode
      * @return {@link #connectorAgentName}
      */
     @Column
+    @org.hibernate.annotations.Index(name="connector_agent_name")
     public String getConnectorAgentName()
     {
         return connectorAgentName;

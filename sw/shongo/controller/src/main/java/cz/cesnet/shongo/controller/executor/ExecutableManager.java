@@ -177,4 +177,39 @@ public class ExecutableManager extends AbstractManager
             delete(executable);
         }
     }
+
+    /**
+     * @param deviceResourceId
+     * @param roomId
+     * @param referenceDateTime
+     * @return {@link RoomEndpoint} in given {@code deviceResourceId} with given {@code roomId}
+     *         and taking place in given {@code referenceDateTime}
+     */
+    public RoomEndpoint getRoomEndpoint(Long deviceResourceId, String roomId, DateTime referenceDateTime)
+    {
+        ResourceRoomEndpoint resourceRoomEndpoint = entityManager.createQuery(
+                "SELECT room FROM ResourceRoomEndpoint room"
+                        + " WHERE room.roomProviderCapability.resource.id = :resourceId"
+                        + " AND room.roomId = :roomId"
+                        + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", ResourceRoomEndpoint.class)
+                .setParameter("resourceId", deviceResourceId)
+                .setParameter("roomId", roomId)
+                .setParameter("dateTime", referenceDateTime)
+                .getSingleResult();
+        List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
+                "SELECT room FROM UsedRoomEndpoint room"
+                        + " WHERE room.roomEndpoint = :room"
+                        + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", UsedRoomEndpoint.class)
+                .setParameter("room", resourceRoomEndpoint)
+                .setParameter("dateTime", referenceDateTime)
+                .getResultList();
+        if (usedRoomEndpoints.size() == 0) {
+            return resourceRoomEndpoint;
+        }
+        if (usedRoomEndpoints.size() == 1) {
+            return usedRoomEndpoints.get(0);
+        }
+        throw new IllegalStateException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
+                + "s taking place at " + referenceDateTime.toString() + ".");
+    }
 }

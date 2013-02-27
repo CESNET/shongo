@@ -117,7 +117,7 @@ public class ControllerAgent extends Agent
             Object result = null;
             String resultState = "OK";
             try {
-                result = controllerCommand.execute(service);
+                result = controllerCommand.execute(service, sender.getLocalName());
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }

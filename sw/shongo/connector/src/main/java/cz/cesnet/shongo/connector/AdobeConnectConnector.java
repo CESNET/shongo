@@ -822,11 +822,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                         login();
                         continue;
                     }
-                    String errorMsg = formatError(result);
+                    String error = formatError(result);
+                    logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), error));
 
-                    logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
-
-                    throw new RuntimeException(errorMsg + ". URL: " + url);
+                    throw new RuntimeException(error + ". URL: " + url);
                 }
                 else {
                     logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
