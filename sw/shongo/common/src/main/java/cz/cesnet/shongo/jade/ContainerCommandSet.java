@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.api.jade.PingAgentAction;
+import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
 import cz.cesnet.shongo.shell.Shell;
@@ -68,11 +68,10 @@ public class ContainerCommandSet extends CommandSet
                     return;
                 }
                 DateTime start = DateTime.now();
-                Command command = container.performCommand(agentName,
-                        new AgentActionCommand(args[1], new PingAgentAction()));
-                command.waitForProcessed();
-                if (command.getState() == Command.State.SUCCESSFUL) {
-                    DateTime middle = (DateTime) command.getResult();
+                SendLocalCommand sendLocalCommand = container.sendAgentCommand(agentName, args[1],
+                        new PingCommand());
+                if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                    DateTime middle = (DateTime) sendLocalCommand.getResult();
                     DateTime end = DateTime.now();
                     long duration = new Interval(start, end).toDurationMillis();
                     DateTimeFormatter formatter = ISODateTimeFormat.hourMinuteSecondMillis();
@@ -80,7 +79,7 @@ public class ContainerCommandSet extends CommandSet
                             formatter.print(start), formatter.print(middle), formatter.print(end));
                 }
                 else {
-                    Shell.printError("Ping failed: %s", command.getFailure().getMessage());
+                    Shell.printError("Ping failed: %s", sendLocalCommand.getFailure().getMessage());
                 }
             }
         });

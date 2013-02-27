@@ -6,12 +6,12 @@ import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.jade.Agent;
-import jade.content.AgentAction;
 import jade.core.AID;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -115,7 +115,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -182,12 +182,12 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.endpoint.Dial.class);
                 add(cz.cesnet.shongo.connector.api.jade.endpoint.HangUpAll.class);
-            }}, terminalAgent.getPerformedActionClasses());
+            }}, terminalAgent.getPerformedCommandClasses());
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -236,7 +236,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, connectServerAgent.getPerformedActionClasses());
+            }}, connectServerAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -286,9 +286,9 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom createRoomAction =
-                mcuAgent.getPerformedActionByClass(
+                mcuAgent.getPerformedCommandByClass(
                         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
         assertEquals("1234", createRoomAction.getRoom().getOption(Room.Option.PIN));
     }
@@ -356,14 +356,14 @@ public class ExecutorTest extends AbstractControllerTest
         assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
-        List<Class<? extends AgentAction>> performedActionClasses = connectServerAgent.getPerformedActionClasses();
+        List<Class<? extends Command>> performedCommandClasses = connectServerAgent.getPerformedCommandClasses();
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, performedActionClasses);
+            }}, performedCommandClasses);
     }
 
     /**
@@ -431,7 +431,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -494,7 +494,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -553,7 +553,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, mcuAgent.getPerformedCommandClasses());
     }
 
     /**
@@ -564,32 +564,32 @@ public class ExecutorTest extends AbstractControllerTest
         /**
          * List of performed actions on connector.
          */
-        private List<AgentAction> performedActions = new ArrayList<AgentAction>();
+        private List<Command> performedCommands = new ArrayList<Command>();
 
         /**
-         * @return {@link Class}es for {@link #performedActions}
+         * @return {@link Class}es for {@link #performedCommands}
          */
-        public List<Class<? extends AgentAction>> getPerformedActionClasses()
+        public List<Class<? extends Command>> getPerformedCommandClasses()
         {
-            List<Class<? extends AgentAction>> performedActionClasses = new ArrayList<Class<? extends AgentAction>>();
-            for (AgentAction agentAction : performedActions) {
-                performedActionClasses.add(agentAction.getClass());
+            List<Class<? extends Command>> performedActionClasses = new ArrayList<Class<? extends Command>>();
+            for (Command command : performedCommands) {
+                performedActionClasses.add(command.getClass());
             }
             return performedActionClasses;
         }
 
         /**
          * @param type
-         * @return {@link AgentAction} of given {@code type}
+         * @return {@link Command} of given {@code type}
          */
-        public <T> T getPerformedActionByClass(Class<T> type)
+        public <T> T getPerformedCommandByClass(Class<T> type)
         {
-            for (AgentAction agentAction : performedActions) {
-                if (type.isAssignableFrom(agentAction.getClass())) {
-                    return type.cast(agentAction);
+            for (Command command : performedCommands) {
+                if (type.isAssignableFrom(command.getClass())) {
+                    return type.cast(command);
                 }
             }
-            throw new IllegalStateException("Agent action of type '" + type.getSimpleName() + "' was not found.");
+            throw new IllegalStateException("Command of type '" + type.getSimpleName() + "' was not found.");
         }
 
         @Override
@@ -600,12 +600,11 @@ public class ExecutorTest extends AbstractControllerTest
         }
 
         @Override
-        public Object handleAgentAction(AgentAction action, AID sender)
-                throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
-            performedActions.add(action);
-            logger.debug("ConnectorAgent '{}' receives action '{}'.", getName(), action.getClass().getSimpleName());
-            if (action instanceof CreateRoom) {
+            performedCommands.add(command);
+            logger.debug("ConnectorAgent '{}' receives command '{}'.", getName(), command.getClass().getSimpleName());
+            if (command instanceof CreateRoom) {
                 return "roomId";
             }
             return null;

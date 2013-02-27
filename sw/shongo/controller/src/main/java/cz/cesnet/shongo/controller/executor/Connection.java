@@ -8,8 +8,8 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.jade.AgentActionCommand;
-import cz.cesnet.shongo.jade.Command;
+import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.jade.LocalCommand;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -139,22 +139,21 @@ public class Connection extends Executable
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
-            Command command = null;
+            SendLocalCommand sendLocalCommand;
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
-                command = controllerAgent.performCommand(new AgentActionCommand(
-                        agentName, new DialParticipant(roomEndpoint.getRoomId(), getAlias().toApi())));
+                sendLocalCommand = controllerAgent.sendCommand(agentName,
+                        new DialParticipant(roomEndpoint.getRoomId(), getAlias().toApi()));
             }
             else {
-                command = controllerAgent.performCommand(new AgentActionCommand(
-                        agentName, new Dial(getAlias().toApi())));
+                sendLocalCommand = controllerAgent.sendCommand(agentName, new Dial(getAlias().toApi()));
             }
-            if (command.getState() == Command.State.SUCCESSFUL) {
-                setConnectionId((String) command.getResult());
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                setConnectionId((String) sendLocalCommand.getResult());
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(command.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
                 return State.STARTING_FAILED;
             }
         }
@@ -172,22 +171,22 @@ public class Connection extends Executable
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
-            Command command = null;
+            SendLocalCommand sendLocalCommand;
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
-                command = controllerAgent.performCommand(new AgentActionCommand(agentName,
-                        new DisconnectParticipant(roomEndpoint.getRoomId(), getConnectionId())));
+                sendLocalCommand = controllerAgent.sendCommand(agentName,
+                        new DisconnectParticipant(roomEndpoint.getRoomId(), getConnectionId()));
             }
             else {
                 // TODO: use connection id to hangup
 
-                command = controllerAgent.performCommand(new AgentActionCommand(agentName, new HangUpAll()));
+                sendLocalCommand = controllerAgent.sendCommand(agentName, new HangUpAll());
             }
-            if (command.getState() == Command.State.SUCCESSFUL) {
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(command.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
                 return State.STOPPING_FAILED;
             }
         }

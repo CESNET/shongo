@@ -2,6 +2,7 @@ package cz.cesnet.shongo.connector.api.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import cz.cesnet.shongo.connector.api.MultipointService;
@@ -10,29 +11,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A common ancestor for all connector agent actions.
+ * A common ancestor for all connector API {@link Command}s
  * <p/>
- * Offers some helper methods common to all agent actions.
+ * Offers some helper methods common to all {@link ConnectorCommand}s.
  * <p/>
- * Note that all AgentAction classes must have the default constructor without any parameters for Jade to be able to
- * construct the objects.
+ * Note that all {@link ConnectorCommand}s classes must have the default constructor
+ * without any parameters for Jade to be able to construct the objects.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public abstract class ConnectorAgentAction extends cz.cesnet.shongo.api.jade.AgentAction
+public abstract class ConnectorCommand extends Command
 {
-    protected static Logger logger = LoggerFactory.getLogger(ConnectorAgentAction.class);
+    protected static Logger logger = LoggerFactory.getLogger(ConnectorCommand.class);
 
     /**
-     * Executes the action on a given connector.
+     * Executes the {@link ConnectorCommand} on a given connector.
      *
-     * @param connector a connector on which the action should be executed
-     * @return the result of the action, or NULL if the action does not return anything; should be a concept or a Java
-     *         class encapsulating a primitive type (e.g., Integer, ...)
+     * @param connector a connector on which the {@link ConnectorCommand} should be executed
+     * @return the result of the {@link ConnectorCommand} (should be a concept or a Java class
+     *         encapsulating a primitive type, e.g., Integer, ...),
+     *         or NULL if it does not return anything
      * @throws CommandException
      * @throws CommandUnsupportedException
      */
-    public abstract Object exec(CommonService connector) throws CommandException, CommandUnsupportedException;
+    public abstract Object execute(CommonService connector) throws CommandException, CommandUnsupportedException;
 
     /**
      * Returns the passed connector as an EndpointService. Throws an exception if the typecast fails.

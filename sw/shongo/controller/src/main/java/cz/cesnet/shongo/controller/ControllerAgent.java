@@ -2,15 +2,14 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.jade.AgentAction;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.ConnectorScope;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
-import cz.cesnet.shongo.controller.api.jade.Service;
-import cz.cesnet.shongo.controller.api.jade.ControllerAgentAction;
+import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
+import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.AgentActionCommand;
-import cz.cesnet.shongo.jade.Command;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
 import cz.cesnet.shongo.shell.Shell;
@@ -25,7 +24,7 @@ import org.apache.commons.cli.CommandLine;
 public class ControllerAgent extends Agent
 {
     /**
-     * Service to be used for handling {@link ControllerAgentAction}s.
+     * Service to be used for handling {@link cz.cesnet.shongo.controller.api.jade.ControllerCommand}s.
      */
     private Service service;
 
@@ -83,53 +82,42 @@ public class ControllerAgent extends Agent
     }
 
     @Override
-    public Command performCommand(Command command)
+    public SendLocalCommand sendCommand(String receiverAgentName, Command command)
     {
-        if (command instanceof AgentActionCommand) {
-            AgentActionCommand actionCommand = (AgentActionCommand) command;
-            AgentAction action = actionCommand.getAgentAction();
-            Controller.requestedAgentActions.info("Action:{} {}.", action.getId(), action);
-            command = super.performCommand(command);
-            String commandState;
-            switch (command.getState()) {
-                case SUCCESSFUL:
-                    Object result = command.getResult();
-                    if (result != null && result instanceof String) {
-                        commandState = String.format("OK: %s", result);
-                    }
-                    else {
-                        commandState = "OK";
-                    }
-                    break;
-                case FAILED:
-                    commandState = String.format("FAILED: %s", command.getFailure().getMessage());
-                    break;
-                default:
-                    commandState = "UNKNOWN";
-                    break;
-            }
-            Controller.requestedAgentActions.info("Action:{} Done ({}).", action.getId(), commandState);
+        Controller.requestedCommands.info("Action:{} {}.", command.getId(), command);
+        SendLocalCommand sendLocalCommand = super.sendCommand(receiverAgentName, command);
+        String commandState;
+        switch (sendLocalCommand.getState()) {
+            case SUCCESSFUL:
+                Object result = sendLocalCommand.getResult();
+                if (result != null && result instanceof String) {
+                    commandState = String.format("OK: %s", result);
+                }
+                else {
+                    commandState = "OK";
+                }
+                break;
+            case FAILED:
+                commandState = String.format("FAILED: %s", sendLocalCommand.getFailure().getMessage());
+                break;
+            default:
+                commandState = "UNKNOWN";
+                break;
         }
-        else {
-            Controller.requestedAgentActions.info("Command: {}.", command.getName());
-            command = super.performCommand(command);
-            Controller.requestedAgentActions.info("Command: Done.");
-        }
-        return command;
+        Controller.requestedCommands.info("Action:{} Done ({}).", command.getId(), commandState);
+        return sendLocalCommand;
     }
 
     @Override
-    public Object handleAgentAction(jade.content.AgentAction agentAction, AID sender)
-            throws CommandException, CommandUnsupportedException
+    public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
     {
-        if (service != null && agentAction instanceof ControllerAgentAction) {
-            ControllerAgentAction controllerAgentAction = (ControllerAgentAction) agentAction;
-            Controller.executedAgentActions.info("Action:{} {}.", controllerAgentAction.getId(),
-                    controllerAgentAction.toString());
+        if (service != null && command instanceof ControllerCommand) {
+            ControllerCommand controllerCommand = (ControllerCommand) command;
+            Controller.executedCommands.info("Action:{} {}.", controllerCommand.getId(), controllerCommand.toString());
             Object result = null;
             String resultState = "OK";
             try {
-                result = controllerAgentAction.execute(service);
+                result = controllerCommand.execute(service);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }
@@ -143,10 +131,11 @@ public class ControllerAgent extends Agent
                 throw exception;
             }
             finally {
-                Controller.executedAgentActions.info("Action:{} Done ({}).", controllerAgentAction.getId(), resultState);
+                Controller.executedCommands
+                        .info("Action:{} Done ({}).", controllerCommand.getId(), resultState);
             }
             return result;
         }
-        return super.handleAgentAction(agentAction, sender);
+        return super.handleCommand(command, sender);
     }
 }

@@ -2,10 +2,10 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommonOntology;
-import cz.cesnet.shongo.api.jade.PingAgentAction;
+import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
-import jade.content.AgentAction;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.core.AID;
@@ -68,27 +68,43 @@ public class Agent extends jade.core.Agent
     }
 
     /**
-     * Perform command on local agent and wait for the command result (blocking).
+     * Perform {@link LocalCommand} on this agent.
      *
-     * @param command command to be performed
+     * @param localCommand command to be performed
      */
-    public Command performCommand(Command command)
+    public void performLocalCommand(LocalCommand localCommand)
     {
         if (!isStarted()) {
-            command.setFailed(new CommandAgentNotStarted(getAID().getLocalName()));
-            return command;
+            return;
         }
         try {
             // FIXME: should not be used by application code (according to Jade docs)
             // this.putO2AObject(command, ,AgentController.SYNC);
             // This works (it will pass tests)
-            this.putO2AObject(command, false);
+            this.putO2AObject(localCommand, false);
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
-        command.waitForProcessed();
-        return command;
+    }
+
+    /**
+     * Send {@link Command} to target receiver agent and wait for the result (blocking).
+     *
+     * @param receiverAgentName target receiver agent name
+     * @param command           to be send
+     * @return {@link SendLocalCommand} from which the result or failure can be retrieved
+     */
+    public SendLocalCommand sendCommand(String receiverAgentName, Command command)
+    {
+        SendLocalCommand sendLocalCommand = new SendLocalCommand(receiverAgentName, command);
+        if (!isStarted()) {
+            sendLocalCommand.setFailed(new CommandAgentNotStarted(getAID().getLocalName()));
+            return sendLocalCommand;
+        }
+        performLocalCommand(sendLocalCommand);
+        sendLocalCommand.waitForProcessed();
+        return sendLocalCommand;
     }
 
     @Override
@@ -101,9 +117,9 @@ public class Agent extends jade.core.Agent
         addOntology(CommonOntology.getInstance());
 
         // Each agent is able to process commands passed via O2A channel
-        addBehaviour(new CommandBehaviour());
+        addBehaviour(new LocalCommandBehaviour());
         // Each agent is able to respond to agent actions
-        addBehaviour(new AgentActionResponderBehaviour(this));
+        addBehaviour(new CommandResponderBehaviour(this));
 
         // Prepare agent description for DF
         agentDescription = new DFAgentDescription();
@@ -233,23 +249,20 @@ public class Agent extends jade.core.Agent
     }
 
     /**
-     * Handles an agent action request.
-     * <p/>
-     * Should be overridden by descendants to actually handle some action.
+     * Handles an {@link Command} request. Should be overridden by descendants to actually handle some action.
      *
-     * @param action agent action to be performed
-     * @param sender sender of the action request
+     * @param command to be handled
+     * @param sender  sender of the command
      * @return return value of the performed command (null if the command does not return anything)
      */
-    public Object handleAgentAction(AgentAction action, AID sender)
-            throws CommandException, CommandUnsupportedException
+    public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
     {
-        if (action == null) {
-            throw new NullPointerException("action");
+        if (command == null) {
+            throw new NullPointerException("Command should not be null");
         }
-        else if (action instanceof PingAgentAction) {
+        else if (command instanceof PingCommand) {
             return DateTime.now();
         }
-        throw new UnknownAgentActionException(action);
+        throw new UnknownCommandException(command);
     }
 }

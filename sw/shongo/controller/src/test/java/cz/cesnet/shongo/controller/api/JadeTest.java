@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
@@ -15,7 +16,6 @@ import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
-import jade.content.AgentAction;
 import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -133,11 +133,10 @@ public class JadeTest extends AbstractControllerTest
         }
 
         @Override
-        public Object handleAgentAction(AgentAction action, AID sender)
-                throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
-            if (action instanceof CreateRoom) {
-                CreateRoom createRoom = (CreateRoom) action;
+            if (command instanceof CreateRoom) {
+                CreateRoom createRoom = (CreateRoom) command;
                 Room room = createRoom.getRoom();
                 try {
                     room.setupNewEntity();
@@ -147,8 +146,8 @@ public class JadeTest extends AbstractControllerTest
                 }
                 Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));
             }
-            else if (action instanceof ModifyRoom) {
-                ModifyRoom modifyRoom = (ModifyRoom) action;
+            else if (command instanceof ModifyRoom) {
+                ModifyRoom modifyRoom = (ModifyRoom) command;
                 Room room = modifyRoom.getRoom();
                 Assert.assertEquals("1", room.getId());
                 Assert.assertEquals("room", room.getName());
@@ -156,7 +155,7 @@ public class JadeTest extends AbstractControllerTest
                 Assert.assertEquals("1234", room.getOption(Room.Option.PIN));
             }
             else {
-                throw new TodoImplementException(action.getClass().getName());
+                throw new TodoImplementException(command.getClass().getName());
             }
             return null;
         }

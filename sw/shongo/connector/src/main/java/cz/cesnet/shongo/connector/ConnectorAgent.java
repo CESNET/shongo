@@ -2,16 +2,16 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.controller.ControllerScope;
 import cz.cesnet.shongo.controller.api.jade.ControllerOntology;
 import cz.cesnet.shongo.jade.*;
-import jade.content.AgentAction;
 import jade.core.AID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ public class ConnectorAgent extends Agent
      */
     public void manage(String connectorClass, String address, int port, String username, String password,
             ConnectorOptions options)
-            throws ConnectorInitException, CommandException
+            throws ConnectorInitException
     {
         try {
             Constructor co = Class.forName(connectorClass).getConstructor();
@@ -101,73 +101,67 @@ public class ConnectorAgent extends Agent
 
             logger.info("Connector ready: {}", connectorService.getConnectorInfo());
         }
-        catch (NoSuchMethodException e) {
+        catch (CommandException exception) {
+            throw new ConnectorInitException("Connector failed to connect to the device", exception);
+        }
+        catch (NoSuchMethodException exception) {
             throw new ConnectorInitException(
                     "Invalid connector class: " + connectorClass + " (does not define an appropriate constructor)",
-                    e
+                    exception
             );
         }
-        catch (ClassNotFoundException e) {
-            throw new ConnectorInitException("Connector class not found: " + connectorClass, e);
+        catch (ClassNotFoundException exception) {
+            throw new ConnectorInitException("Connector class not found: " + connectorClass, exception);
         }
-        catch (InvocationTargetException e) {
-            throw new ConnectorInitException("Connector class init failed", e);
+        catch (InvocationTargetException exception) {
+            throw new ConnectorInitException("Connector class init failed", exception);
         }
-        catch (InstantiationException e) {
-            throw new ConnectorInitException("Connector class init failed", e);
+        catch (InstantiationException exception) {
+            throw new ConnectorInitException("Connector class init failed", exception);
         }
-        catch (IllegalAccessException e) {
-            throw new ConnectorInitException("Connector class not accessible: " + connectorClass, e);
+        catch (IllegalAccessException exception) {
+            throw new ConnectorInitException("Connector class not accessible: " + connectorClass, exception);
         }
     }
 
     @Override
-    public cz.cesnet.shongo.jade.Command performCommand(cz.cesnet.shongo.jade.Command command)
+    public SendLocalCommand sendCommand(String receiverAgentName, Command command)
     {
-        if (command instanceof AgentActionCommand) {
-            AgentActionCommand actionCommand = (AgentActionCommand) command;
-            cz.cesnet.shongo.api.jade.AgentAction action = actionCommand.getAgentAction();
-            Connector.requestedAgentActions.info("Action:{} {}.", action.getId(), action);
-            command = super.performCommand(command);
-            String commandState;
-            switch (command.getState()) {
-                case SUCCESSFUL:
-                    Object result = command.getResult();
-                    if (result != null && result instanceof String) {
-                        commandState = String.format("OK: %s", result);
-                    }
-                    else {
-                        commandState = "OK";
-                    }
-                    break;
-                case FAILED:
-                    commandState = String.format("FAILED: %s", command.getFailure().getMessage());
-                    break;
-                default:
-                    commandState = "UNKNOWN";
-                    break;
-            }
-            Connector.requestedAgentActions.info("Action:{} Done ({}).", action.getId(), commandState);
+        Connector.requestedCommands.info("Action:{} {}.", command.getId(), command);
+        SendLocalCommand sendLocalCommand = super.sendCommand(receiverAgentName, command);
+        String commandState;
+        switch (sendLocalCommand.getState()) {
+            case SUCCESSFUL:
+                Object result = sendLocalCommand.getResult();
+                if (result != null && result instanceof String) {
+                    commandState = String.format("OK: %s", result);
+                }
+                else {
+                    commandState = "OK";
+                }
+                break;
+            case FAILED:
+                commandState = String.format("FAILED: %s", sendLocalCommand.getFailure().getMessage());
+                break;
+            default:
+                commandState = "UNKNOWN";
+                break;
         }
-        else {
-            Connector.requestedAgentActions.info("Command: {}.", command.getName());
-            command = super.performCommand(command);
-            Connector.requestedAgentActions.info("Command: Done.");
-        }
-        return command;
+        Connector.requestedCommands.info("Action:{} Done ({}).", command.getId(), commandState);
+        return sendLocalCommand;
     }
 
     @Override
-    public Object handleAgentAction(AgentAction agentAction, AID sender)
+    public Object handleCommand(Command command, AID sender)
             throws CommandException, CommandUnsupportedException
     {
-        if (connectorService != null && agentAction instanceof ConnectorAgentAction) {
-            ConnectorAgentAction connectorAgentAction = (ConnectorAgentAction) agentAction;
-            Connector.executedAgentActions.info("Action:{} {}.", connectorAgentAction.getId(), connectorAgentAction.toString());
+        if (connectorService != null && command instanceof ConnectorCommand) {
+            ConnectorCommand connectorCommand = (ConnectorCommand) command;
+            Connector.executedCommands.info("Action:{} {}.", connectorCommand.getId(), connectorCommand.toString());
             Object result = null;
             String resultState = "OK";
             try {
-                result = connectorAgentAction.exec(connectorService);
+                result = connectorCommand.execute(connectorService);
                 if (result != null && result instanceof String) {
                     resultState = String.format("OK: %s", result);
                 }
@@ -185,10 +179,10 @@ public class ConnectorAgent extends Agent
                 throw exception;
             }
             finally {
-                Connector.executedAgentActions.info("Action:{} Done ({}).", connectorAgentAction.getId(), resultState);
+                Connector.executedCommands.info("Action:{} Done ({}).", connectorCommand.getId(), resultState);
             }
             return result;
         }
-        return super.handleAgentAction(agentAction, sender);
+        return super.handleCommand(command, sender);
     }
 }

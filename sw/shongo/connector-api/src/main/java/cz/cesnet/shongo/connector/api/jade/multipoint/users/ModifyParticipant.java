@@ -3,14 +3,14 @@ package cz.cesnet.shongo.connector.api.jade.multipoint.users;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 import java.util.Map;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ModifyParticipant extends ConnectorAgentAction
+public class ModifyParticipant extends ConnectorCommand
 {
     private String roomId;
     private String roomUserId;
@@ -58,7 +58,7 @@ public class ModifyParticipant extends ConnectorAgentAction
     }
 
     @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Modifying participant {} in room {}", roomUserId, roomId);
         if (attributes != null) {

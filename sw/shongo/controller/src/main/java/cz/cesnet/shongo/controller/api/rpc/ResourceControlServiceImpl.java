@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;
 import cz.cesnet.shongo.connector.api.jade.endpoint.*;
@@ -20,8 +20,8 @@ import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
-import cz.cesnet.shongo.jade.AgentActionCommand;
-import cz.cesnet.shongo.jade.Command;
+import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.jade.LocalCommand;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -330,14 +330,14 @@ public class ResourceControlServiceImpl extends Component
      * @param action           command to be performed by the device
      * @throws FaultException
      */
-    private Object performDeviceAction(String deviceResourceId, ConnectorAgentAction action) throws FaultException
+    private Object performDeviceAction(String deviceResourceId, ConnectorCommand action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceId);
-        Command command = controllerAgent.performCommand(new AgentActionCommand(agentName, action));
-        if (command.getState() == Command.State.SUCCESSFUL) {
-            return command.getResult();
+        SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, action);
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            return sendLocalCommand.getResult();
         }
-        throw new CommandFailureException(command.getFailure());
+        throw new CommandFailureException(sendLocalCommand.getFailure());
     }
 
     /**

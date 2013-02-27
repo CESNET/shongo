@@ -3,11 +3,11 @@ package cz.cesnet.shongo.api.jade;
 import jade.content.onto.Ontology;
 
 /**
- * {@link AgentAction}
+ * {@link Command}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PingAgentAction extends AgentAction
+public class PingCommand extends Command
 {
     @Override
     public Ontology getOntology()

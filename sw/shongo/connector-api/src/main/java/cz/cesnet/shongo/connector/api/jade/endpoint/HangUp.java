@@ -3,14 +3,14 @@ package cz.cesnet.shongo.connector.api.jade.endpoint;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * Command to hang up a given call.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class HangUp extends ConnectorAgentAction
+public class HangUp extends ConnectorCommand
 {
     private String callId;
 
@@ -34,7 +34,7 @@ public class HangUp extends ConnectorAgentAction
     }
 
     @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Hanging up call {}", callId);
         getEndpoint(connector).hangUp(callId);

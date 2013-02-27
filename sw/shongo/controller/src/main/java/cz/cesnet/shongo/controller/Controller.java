@@ -44,14 +44,14 @@ public class Controller
     /**
      * {@link Logger} for all JADE requested agent actions.
      */
-    public static Logger requestedAgentActions =
-            LoggerFactory.getLogger(Controller.class.getName() + ".RequestedAgentAction");
+    public static Logger requestedCommands =
+            LoggerFactory.getLogger(Controller.class.getName() + ".RequestedCommand");
 
     /**
      * {@link Logger} for all JADE executed agent actions.
      */
-    public static Logger executedAgentActions =
-            LoggerFactory.getLogger(Controller.class.getName() + ".ExecutedAgentAction");
+    public static Logger executedCommands =
+            LoggerFactory.getLogger(Controller.class.getName() + ".ExecutedCommand");
 
     /**
      * Configuration of the controller.

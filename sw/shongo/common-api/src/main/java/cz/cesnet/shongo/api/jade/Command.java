@@ -3,14 +3,14 @@ package cz.cesnet.shongo.api.jade;
 import jade.content.onto.Ontology;
 
 /**
- * Represents an {@link jade.content.AgentAction} for an {@link jade.core.Agent} with an {@link Ontology}.
+ * Represents an {@link jade.content.AgentAction} for performing a command on some {@link jade.core.Agent}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AgentAction implements jade.content.AgentAction
+public abstract class Command implements jade.content.AgentAction
 {
     /**
-     * Unique identifier of the action which is automatically generated.
+     * Unique identifier of the command which is automatically generated.
      */
     private Long id = null;
 
@@ -46,7 +46,7 @@ public abstract class AgentAction implements jade.content.AgentAction
     }
 
     /**
-     * @return {@link Ontology} for this {@link AgentAction}
+     * @return {@link Ontology} for this {@link Command}
      */
     public abstract Ontology getOntology();
 

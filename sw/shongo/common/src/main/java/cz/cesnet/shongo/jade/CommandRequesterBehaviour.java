@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.jade.AgentAction;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.fault.jade.*;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -11,7 +11,6 @@ import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
 import jade.core.AID;
-import jade.core.Agent;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SimpleAchieveREInitiator;
@@ -22,57 +21,59 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Behaviour that requests an {@link cz.cesnet.shongo.jade.Agent} to perform an {@link cz.cesnet.shongo.api.jade.AgentAction}.
+ * Behaviour that sends an {@link ACLMessage} from given {@link cz.cesnet.shongo.jade.Agent} to target JADE agent
+ * specified in the {@link SendLocalCommand#agentReceiverId} and the message content is {@link SendLocalCommand#command}.
  * <p/>
  * Implements the initiator part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
  * example found in the Jade distribution in examples/src/examples/ontology).
  * <p/>
- * See {@link AgentActionResponderBehaviour} class for the other party of the conversation.
+ * See {@link CommandResponderBehaviour} class for the other party of the conversation.
  *
+ * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
+public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
 {
-    private static Logger logger = LoggerFactory.getLogger(AgentActionRequesterBehaviour.class);
+    private static Logger logger = LoggerFactory.getLogger(CommandRequesterBehaviour.class);
 
     /**
-     * Command that invoked this behaviour (and someone is possibly waiting for it).
+     * {@link SendLocalCommand} that invoked this behaviour (and someone is possibly waiting for it).
      */
-    private AgentActionCommand command;
+    private SendLocalCommand sendLocalCommand;
 
     /**
      * Constructor.
      *
-     * @param agent   representing requester who should send the request message
-     * @param command agent action command which should be sent as the request message
+     * @param agent            representing requester who should send the request message
+     * @param sendLocalCommand which defines the target agent and the request content
      */
-    public AgentActionRequesterBehaviour(jade.core.Agent agent, AgentActionCommand command) throws Exception
+    public CommandRequesterBehaviour(Agent agent, SendLocalCommand sendLocalCommand) throws Exception
     {
-        super(agent, createMessage(agent, command.getAgentReceiverId(), command.getAgentAction()));
+        super(agent, createMessage(agent, sendLocalCommand.getReceiverAgentId(), sendLocalCommand.getCommand()));
 
-        this.command = command;
+        this.sendLocalCommand = sendLocalCommand;
     }
 
     /**
      * Create {@link ACLMessage} which will be sent.
      *
-     * @param agentRequester sender agent
+     * @param agentRequester  sender agent
      * @param agentReceiverId receiver agent id
-     * @param agentAction agent action which should be sent
+     * @param command         {@link Command} which should be sent
      * @return the constructed message
      * @throws Exception when the message construction fails
      */
-    private static ACLMessage createMessage(Agent agentRequester, AID agentReceiverId,
-            AgentAction agentAction) throws Exception
+    private static ACLMessage createMessage(Agent agentRequester, AID agentReceiverId, Command command)
+            throws Exception
     {
         ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
         message.addReceiver(agentReceiverId);
         message.setSender(agentRequester.getAID());
         message.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
         message.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-        message.setOntology(agentAction.getOntology().getName());
+        message.setOntology(command.getOntology().getName());
 
-        ContentElement content = new jade.content.onto.basic.Action(agentRequester.getAID(), agentAction);
+        ContentElement content = new jade.content.onto.basic.Action(agentRequester.getAID(), command);
         try {
             agentRequester.getContentManager().fillContent(message, content);
         }
@@ -110,8 +111,8 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
                 }
                 logger.info(logMsg);
 
-                command.setResult(result.getValue());
-                command.setState(Command.State.SUCCESSFUL);
+                sendLocalCommand.setResult(result.getValue());
+                sendLocalCommand.setState(SendLocalCommand.State.SUCCESSFUL);
             }
             else if (contentElement instanceof Done) {
                 // notification that a command succeeded
@@ -125,17 +126,17 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
                 }
                 logger.info(logMsg);
 
-                command.setState(Command.State.SUCCESSFUL);
+                sendLocalCommand.setState(SendLocalCommand.State.SUCCESSFUL);
             }
         }
         catch (Codec.CodecException e) {
-            command.setFailed(new CommandResultDecodingFailed(e));
+            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
         }
         catch (OntologyException e) {
-            command.setFailed(new CommandResultDecodingFailed(e));
+            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
         }
         catch (ClassCastException e) {
-            command.setFailed(new CommandResultDecodingFailed(e));
+            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
         }
     }
 
@@ -144,8 +145,8 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        logger.error("Execution of '{}' failed, because it was not understood.", command.getAgentAction());
-        command.setFailed(new CommandNotUnderstood());
+        logger.error("Execution of '{}' failed, because it was not understood.", sendLocalCommand.getCommand());
+        sendLocalCommand.setFailed(new CommandNotUnderstood());
     }
 
     @Override
@@ -154,8 +155,8 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         CommandFailure commandFailure = getFailure(msg);
-        logger.error("Execution of '{}' failed: {}", command.getAgentAction(), commandFailure.getMessage());
-        command.setFailed(commandFailure);
+        logger.error("Execution of '{}' failed: {}", sendLocalCommand.getCommand(), commandFailure.getMessage());
+        sendLocalCommand.setFailed(commandFailure);
     }
 
     @Override
@@ -163,8 +164,8 @@ public class AgentActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        logger.error("Execution of '{}' failed, because it was refused.", command.getAgentAction());
-        command.setFailed(new CommandRefused());
+        logger.error("Execution of '{}' failed, because it was refused.", sendLocalCommand.getCommand());
+        sendLocalCommand.setFailed(new CommandRefused());
     }
 
     /**

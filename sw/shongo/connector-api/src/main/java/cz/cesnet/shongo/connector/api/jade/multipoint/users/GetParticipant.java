@@ -3,14 +3,14 @@ package cz.cesnet.shongo.connector.api.jade.multipoint.users;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * Gets user information and settings in a room.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class GetParticipant extends ConnectorAgentAction
+public class GetParticipant extends ConnectorCommand
 {
     private String roomId;
     private String roomUserId;
@@ -46,7 +46,7 @@ public class GetParticipant extends ConnectorAgentAction
     }
 
     @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Getting participant info for {} in room {}", roomUserId, roomId);
         return getMultipoint(connector).getParticipant(roomId, roomUserId);

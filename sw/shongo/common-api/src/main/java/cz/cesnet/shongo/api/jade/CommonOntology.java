@@ -32,7 +32,7 @@ public class CommonOntology extends AbstractOntology
         super("shongo-ontology-common");
 
         try {
-            add(PingAgentAction.class);
+            add(PingCommand.class);
         }
         catch (OntologyException exception) {
             logger.error("Creating the ontology failed.", exception);

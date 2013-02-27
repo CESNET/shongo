@@ -3,12 +3,12 @@ package cz.cesnet.shongo.connector.api.jade.multipoint.users;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class DisconnectParticipant extends ConnectorAgentAction
+public class DisconnectParticipant extends ConnectorCommand
 {
     private String roomId;
     private String roomUserId;
@@ -44,7 +44,7 @@ public class DisconnectParticipant extends ConnectorAgentAction
     }
 
     @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Disconnecting participant {} from the room {}", roomUserId, roomId);
         getMultipoint(connector).disconnectParticipant(roomId, roomUserId);

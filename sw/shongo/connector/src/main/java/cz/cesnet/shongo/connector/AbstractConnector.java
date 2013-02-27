@@ -5,10 +5,8 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
-import cz.cesnet.shongo.controller.api.jade.ControllerAgentAction;
-import cz.cesnet.shongo.fault.jade.CommandAgentNotFound;
+import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
-import cz.cesnet.shongo.fault.jade.CommandFailureException;
 import cz.cesnet.shongo.jade.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,7 @@ abstract public class AbstractConnector implements CommonService
     private static Logger logger = LoggerFactory.getLogger(AbstractConnector.class);
 
     /**
-     * {@link ConnectorAgent} which can be used for performing {@link cz.cesnet.shongo.api.jade.AgentAction}s.
+     * {@link ConnectorAgent} which can be used for performing {@link cz.cesnet.shongo.api.jade.Command}s.
      */
     private ConnectorAgent connectorAgent;
 
@@ -77,10 +75,10 @@ abstract public class AbstractConnector implements CommonService
     }
 
     /**
-     * @param action to be performed
+     * @param controllerCommand to be performed
      * @return result from the action
      */
-    protected Object performControllerAction(ControllerAgentAction action) throws CommandException
+    protected Object performControllerAction(ControllerCommand controllerCommand) throws CommandException
     {
         if (connectorAgent == null) {
             throw new IllegalStateException("Connector agent must be set for performing controller action.");
@@ -89,12 +87,11 @@ abstract public class AbstractConnector implements CommonService
         if (agentName == null) {
             throw new IllegalStateException("Controller agent was not found.");
         }
-        cz.cesnet.shongo.jade.Command command =
-                connectorAgent.performCommand(new AgentActionCommand(agentName, action));
-        if (command.getState() == cz.cesnet.shongo.jade.Command.State.SUCCESSFUL) {
-            return command.getResult();
+        SendLocalCommand sendLocalCommand = connectorAgent.sendCommand(agentName, controllerCommand);
+        if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+            return sendLocalCommand.getResult();
         }
-        CommandFailure commandFailure = command.getFailure();
+        CommandFailure commandFailure = sendLocalCommand.getFailure();
         throw new CommandException(String.format("Controller action failed: %s", commandFailure.getMessage()),
                 commandFailure.getCause());
     }

@@ -3,12 +3,12 @@ package cz.cesnet.shongo.connector.api.jade.multipoint.users;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ListParticipants extends ConnectorAgentAction
+public class ListParticipants extends ConnectorCommand
 {
     private String roomId;
 
@@ -32,7 +32,7 @@ public class ListParticipants extends ConnectorAgentAction
     }
 
     @Override
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         logger.debug("Getting list of all participants in room {}", roomId);
         return getMultipoint(connector).listParticipants(roomId);

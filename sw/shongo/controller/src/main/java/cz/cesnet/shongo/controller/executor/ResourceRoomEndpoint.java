@@ -15,8 +15,8 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.jade.AgentActionCommand;
-import cz.cesnet.shongo.jade.Command;
+import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.jade.LocalCommand;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -240,14 +240,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommand(new AgentActionCommand(agentName,
-                    new CreateRoom(room)));
-            if (command.getState() == Command.State.SUCCESSFUL) {
-                setRoomId((String) command.getResult());
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(room));
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                setRoomId((String) sendLocalCommand.getResult());
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(command.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
                 return State.STARTING_FAILED;
             }
         }
@@ -279,12 +278,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             for (Alias alias : roomAliases) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommand(new AgentActionCommand(agentName, new ModifyRoom(room)));
-            if (command.getState() == Command.State.SUCCESSFUL) {
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(room));
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 return true;
             }
             else {
-                addReport(new CommandFailureReport(command.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
                 return false;
             }
         }
@@ -306,13 +305,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             if (roomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
-            Command command = controllerAgent.performCommand(
-                    new AgentActionCommand(agentName, new DeleteRoom(roomId)));
-            if (command.getState() == Command.State.SUCCESSFUL) {
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new DeleteRoom(roomId));
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(command.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
                 return State.STOPPING_FAILED;
             }
         }

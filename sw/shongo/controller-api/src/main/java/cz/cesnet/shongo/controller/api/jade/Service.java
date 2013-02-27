@@ -5,8 +5,8 @@ import cz.cesnet.shongo.api.UserInformation;
 
 /**
  * Defines a set of API methods which controller provides through JADE middle-ware.
- * For each method is defined one {@link ControllerAgentAction} which can be used
- * by JADE agents to invoke the method (it executes it in the {@link ControllerAgentAction#execute(Service)}).
+ * For each method is defined one {@link ControllerCommand} which can be used
+ * by JADE agents to invoke the method (it executes it in the {@link ControllerCommand#execute(Service)}).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

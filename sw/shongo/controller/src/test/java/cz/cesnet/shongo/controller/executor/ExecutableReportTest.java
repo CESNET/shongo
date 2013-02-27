@@ -3,12 +3,12 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.jade.Agent;
-import jade.content.AgentAction;
 import jade.core.AID;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -111,7 +111,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         }
 
         @Override
-        public Object handleAgentAction(AgentAction action, AID sender)
+        public Object handleCommand(Command command, AID sender)
                 throws CommandException, CommandUnsupportedException
         {
             throw new CommandException("test test");

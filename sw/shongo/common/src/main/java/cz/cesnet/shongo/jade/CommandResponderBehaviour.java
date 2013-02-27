@@ -2,10 +2,11 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.fault.jade.CommandError;
 import cz.cesnet.shongo.fault.jade.CommandNotSupported;
 import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
-import jade.content.AgentAction;
+import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -22,27 +23,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Behaviour that responds to {@link AgentAction} requests sent by {@link AgentActionRequesterBehaviour} and performs
- * requested {@link AgentAction}.
+ * Behaviour that performs and responds to {@link Command} requests sent by {@link CommandRequesterBehaviour}.
  * <p/>
  * Implements the responder part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
  * example found in the Jade distribution in examples/src/examples/ontology).
  * <p/>
- * See {@link AgentActionRequesterBehaviour} class for the other party of the conversation.
+ * See {@link CommandRequesterBehaviour} class for the other party of the conversation.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
+public class CommandResponderBehaviour extends SimpleAchieveREResponder
 {
-    private Logger logger = LoggerFactory.getLogger(AgentActionResponderBehaviour.class);
+    private Logger logger = LoggerFactory.getLogger(CommandResponderBehaviour.class);
 
     /**
-     * {@link cz.cesnet.shongo.jade.Agent} which is used for handling and replying to received {@link AgentAction}s.
+     * {@link cz.cesnet.shongo.jade.Agent} which is used for handling and replying to received {@link Command}s.
      */
     protected cz.cesnet.shongo.jade.Agent agent;
 
     /**
-     * Template defining which messages are received by the {@link AgentActionResponderBehaviour}.
+     * Template defining which messages are received by the {@link CommandResponderBehaviour}.
      * We want receive only {@link #FIPA_REQUEST}s and only {@link ACLMessage#REQUEST} performative.
      */
     private static MessageTemplate MESSAGE_TEMPLATE = MessageTemplate.and(
@@ -54,7 +54,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
      *
      * @param agent
      */
-    public AgentActionResponderBehaviour(jade.core.Agent agent)
+    public CommandResponderBehaviour(jade.core.Agent agent)
     {
         super(agent, MESSAGE_TEMPLATE);
     }
@@ -92,29 +92,35 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
 
         ContentManager cm = myAgent.getContentManager();
         try {
-            Action act = (Action) cm.extractContent(request);
-            AgentAction action = (AgentAction) act.getAction();
+            Action action = (Action) cm.extractContent(request);
+            Concept actionContent = action.getAction();
+            if (!(actionContent instanceof Command)) {
+                logger.error(String.format("Unknown action '%s' requested by '%s'.",
+                        actionContent.getClass(), request.getSender().getName()));
+                reply.setPerformative(ACLMessage.REFUSE);
+            }
+            Command command = (Command) actionContent;
             try {
-                Object actionRetVal = agent.handleAgentAction(action, request.getSender());
+                Object actionRetVal = agent.handleCommand(command, request.getSender());
                 // respond to the caller - either with the command return value or saying it was OK
-                ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
+                ContentElement response = (actionRetVal == null ? new Done(action) : new Result(action, actionRetVal));
                 fillMessage(reply, ACLMessage.INFORM, response);
             }
-            catch (UnknownAgentActionException exception) {
-                logger.error(String.format("Unknown action '%s' requested by '%s'.",
-                        exception.getAgentAction(), request.getSender().getName()), exception);
+            catch (UnknownCommandException exception) {
+                logger.error(String.format("Unknown command '%s' requested by '%s'.",
+                        exception.getCommand(), request.getSender().getName()), exception);
                 reply.setPerformative(ACLMessage.REFUSE);
             }
             catch (CommandUnsupportedException exception) {
                 logger.error(String.format("Unsupported command requested by '%s'.",
                         request.getSender().getName()), exception);
-                ContentElement response = new Result(act, new CommandNotSupported());
+                ContentElement response = new Result(action, new CommandNotSupported());
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (CommandException exception) {
                 logger.error(String.format("Command requested by '%s' has failed.",
                         request.getSender().getName()), exception);
-                ContentElement response = new Result(act, new CommandError(exception.getMessage()));
+                ContentElement response = new Result(action, new CommandError(exception.getMessage()));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (Exception exception) {
@@ -124,7 +130,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 if (exception.getCause() != null) {
                     message += " (" + exception.getCause().getMessage() + ")";
                 }
-                ContentElement response = new Result(act, new CommandUnknownFailure(message));
+                ContentElement response = new Result(action, new CommandUnknownFailure(message));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
         }

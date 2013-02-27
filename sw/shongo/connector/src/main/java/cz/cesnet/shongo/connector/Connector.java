@@ -3,7 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
-import cz.cesnet.shongo.connector.jade.ManageCommand;
+import cz.cesnet.shongo.connector.jade.ManageLocalCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -34,14 +34,14 @@ public class Connector
     /**
      * {@link Logger} for all JADE requested agent actions.
      */
-    public static Logger requestedAgentActions =
-            LoggerFactory.getLogger(Connector.class.getName() + ".RequestedAgentAction");
+    public static Logger requestedCommands =
+            LoggerFactory.getLogger(Connector.class.getName() + ".RequestedCommand");
 
     /**
      * {@link Logger} for all JADE executed agent actions.
      */
-    public static Logger executedAgentActions =
-            LoggerFactory.getLogger(Connector.class.getName() + ".ExecutedAgentAction");
+    public static Logger executedCommands =
+            LoggerFactory.getLogger(Connector.class.getName() + ".ExecutedCommand");
 
     /**
      * Default configuration filename.
@@ -190,7 +190,7 @@ public class Connector
                 }
 
                 // command the agent to manage a device
-                ManageCommand cmd = new ManageCommand(
+                ManageLocalCommand cmd = new ManageLocalCommand(
                         instCfg.getString("device.connector-class"),
                         instCfg.getString("device.host"),
                         instCfg.getInt("device.port", Address.DEFAULT_PORT),
@@ -198,7 +198,7 @@ public class Connector
                         instCfg.getString("device.auth.password"),
                         connectorOptions
                 );
-                jadeContainer.performCommand(agentName, cmd);
+                jadeContainer.performAgentLocalCommand(agentName, cmd);
             }
         }
     }

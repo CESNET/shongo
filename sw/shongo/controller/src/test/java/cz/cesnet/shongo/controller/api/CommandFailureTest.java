@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ListRooms;
@@ -14,7 +15,6 @@ import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.Agent;
-import jade.content.AgentAction;
 import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
@@ -103,19 +103,18 @@ public class CommandFailureTest extends AbstractControllerTest
         }
 
         @Override
-        public Object handleAgentAction(AgentAction action, AID sender)
-                throws CommandException, CommandUnsupportedException
+        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
         {
-            if (action instanceof ListRooms) {
+            if (command instanceof ListRooms) {
                 throw new CommandUnsupportedException("not supported");
             }
-            else if (action instanceof CreateRoom) {
+            else if (command instanceof CreateRoom) {
                 throw new CommandException("device error");
             }
-            else if (action instanceof ModifyRoom) {
+            else if (command instanceof ModifyRoom) {
                 throw new RuntimeException("implementation error");
             }
-            return super.handleAgentAction(action, sender);
+            return super.handleCommand(command, sender);
         }
     }
 }

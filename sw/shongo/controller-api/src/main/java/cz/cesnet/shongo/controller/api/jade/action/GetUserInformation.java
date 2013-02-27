@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.api.jade.action;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.controller.api.jade.ControllerAgentAction;
+import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
 import cz.cesnet.shongo.controller.api.jade.Service;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @see {@link cz.cesnet.shongo.controller.api.jade.Service#getUserInformation(String)}
  */
-public class GetUserInformation extends ControllerAgentAction
+public class GetUserInformation extends ControllerCommand
 {
     private String userId;
 

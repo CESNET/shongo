@@ -1,12 +1,21 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.api.jade.Command;
+
 /**
- * An exception thrown by invalid commands, i.e. commands that fail when executed.
+ * An exception thrown by invalid {@link Command}s, i.e. {@link Command}s that fail when executed.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class CommandException extends Exception
 {
+    /**
+     * Constructor.
+     */
+    protected CommandException()
+    {
+    }
+
     /**
      * @param message description of the failure
      */

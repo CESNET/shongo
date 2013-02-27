@@ -1,15 +1,14 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.api.CommandException;
 import jade.core.behaviours.CyclicBehaviour;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Behaviour listening for and processing {@link Command}s passed to the agent.
+ * Behaviour listening for and processing {@link LocalCommand}s passed to the agent.
  * <p/>
- * A command is an instance of the {@link Command} class, specifying what to do. The {@link Command} object should be
- * passed to the agent by the means of Object-to-Agent communication - calling putO2AObject on the agent controller.
+ * The {@link LocalCommand} object should be passed to the agent by the means of Object-to-Agent communication
+ * (calling putO2AObject on the agent controller).
  * <p/>
  * An agent having this behaviour should have enabled the Object-to-Agent communication during its setup method:
  * <code>
@@ -18,9 +17,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CommandBehaviour extends CyclicBehaviour
+public class LocalCommandBehaviour extends CyclicBehaviour
 {
-    private static Logger logger = LoggerFactory.getLogger(CommandBehaviour.class);
+    private static Logger logger = LoggerFactory.getLogger(LocalCommandBehaviour.class);
 
     /**
      * {@link Agent} which has this behavior.
@@ -51,19 +50,18 @@ public class CommandBehaviour extends CyclicBehaviour
             block();
             return;
         }
-
-        if (!(object instanceof Command)) {
+        if (!(object instanceof LocalCommand)) {
             throw new RuntimeException("CommandBehaviour can process only commands of class "
-                    + Command.class.getCanonicalName() + " but "
+                    + LocalCommand.class.getCanonicalName() + " but "
                     + object.getClass().getCanonicalName() + " was presented.");
         }
 
-        Command command = (Command) object;
+        LocalCommand command = (LocalCommand) object;
         try {
             command.process(agent);
         }
-        catch (CommandException e) {
-            logger.error("Error processing the command", e);
+        catch (LocalCommandException exception) {
+            logger.error("Error processing the local command", exception);
         }
     }
 }

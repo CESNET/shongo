@@ -1,16 +1,18 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.fault.jade.CommandTimeout;
 import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
+import jade.core.AID;
 
 /**
- * Represents a command which can be processed on a JADE agent.
+ * {@link LocalCommand} for sending an {@link Command} to target receiver agent via JADE middle-ware.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public abstract class Command
+public class SendLocalCommand extends LocalCommand
 {
     /**
      * How long to wait for command result. Unit: milliseconds
@@ -18,6 +20,16 @@ public abstract class Command
      * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
      */
     public static final int COMMAND_TIMEOUT = 33000;
+
+    /**
+     * {@link AID} of the receiver agent.
+     */
+    private AID receiverAgentId;
+
+    /**
+     * {@link Command} which should be sent.
+     */
+    private Command command;
 
     /**
      * Current command state.
@@ -36,18 +48,42 @@ public abstract class Command
 
     /**
      * Constructor.
+     *
+     * @param receiverAgentName name of the receiver agent
+     * @param command           which should be performed on the receiver agent
      */
-    public Command()
+    public SendLocalCommand(String receiverAgentName, Command command)
     {
-        state = State.UNKNOWN;
+        if (receiverAgentName.contains("@")) {
+            this.receiverAgentId = new AID(receiverAgentName, AID.ISGUID);
+        }
+        else {
+            this.receiverAgentId = new AID(receiverAgentName, AID.ISLOCALNAME);
+        }
+        this.command = command;
+        this.state = State.UNKNOWN;
     }
 
     /**
-     * @return name of the command which can be used, e.g., for depicting the command in failures
+     * @return {@link #receiverAgentId}
      */
+    public AID getReceiverAgentId()
+    {
+        return receiverAgentId;
+    }
+
+    /**
+     * @return {@link #command}
+     */
+    public Command getCommand()
+    {
+        return command;
+    }
+
+    @Override
     public String getName()
     {
-        return getClass().getSimpleName();
+        return command.getClass().getSimpleName();
     }
 
     /**
@@ -90,7 +126,7 @@ public abstract class Command
     }
 
     /**
-     * @return {@link #failure} or {@link CommandUnknownFailure}
+     * @return {@link #failure} or {@link cz.cesnet.shongo.fault.jade.CommandUnknownFailure}
      *         when the {@link #failure} is null and the {@link #state} is {@link State#FAILED}
      */
     public CommandFailure getFailure()
@@ -118,13 +154,6 @@ public abstract class Command
     }
 
     /**
-     * Process this command on an agent.
-     *
-     * @param agent agent processing the command
-     */
-    public abstract void process(Agent agent) throws CommandException;
-
-    /**
      * Wait for the command to be processed
      */
     public void waitForProcessed()
@@ -142,8 +171,19 @@ public abstract class Command
                 exception.printStackTrace();
             }
         }
-        if (getState() == Command.State.UNKNOWN) {
+        if (getState() == State.UNKNOWN) {
             setFailed(new CommandTimeout());
+        }
+    }
+
+    @Override
+    public void process(Agent localAgent) throws LocalCommandException
+    {
+        try {
+            localAgent.addBehaviour(new CommandRequesterBehaviour(localAgent, this));
+        }
+        catch (Exception exception) {
+            throw new LocalCommandException("Error in sending the command.", exception);
         }
     }
 

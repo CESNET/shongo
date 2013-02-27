@@ -4,14 +4,14 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.jade.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 
 /**
  * Command to dial a device.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Dial extends ConnectorAgentAction
+public class Dial extends ConnectorCommand
 {
     private Alias alias = null;
 
@@ -34,7 +34,7 @@ public class Dial extends ConnectorAgentAction
         this.alias = alias;
     }
 
-    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public Object execute(CommonService connector) throws CommandException, CommandUnsupportedException
     {
         if (alias == null) {
             throw new IllegalStateException("Alias should be set.");
