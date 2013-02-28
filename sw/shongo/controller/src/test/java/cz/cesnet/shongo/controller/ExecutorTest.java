@@ -4,8 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
@@ -266,7 +265,7 @@ public class ExecutorTest extends AbstractControllerTest
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(5);
-        roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         reservationRequest.setSpecification(roomSpecification);
 
         // Allocate reservation request
@@ -290,7 +289,7 @@ public class ExecutorTest extends AbstractControllerTest
         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom createRoomAction =
                 mcuAgent.getPerformedCommandByClass(
                         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-        assertEquals("1234", createRoomAction.getRoom().getRoomSetting(RoomSetting.H323.class).getPin());
+        assertEquals("1234", createRoomAction.getRoom().getRoomSetting(H323RoomSetting.class).getPin());
     }
 
     /**
@@ -526,7 +525,7 @@ public class ExecutorTest extends AbstractControllerTest
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
-        roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
+        roomSpecification.addRoomSetting(new H323RoomSetting().withPin("1234"));
         roomReservationRequest.setSpecification(roomSpecification);
         String roomReservationRequestId = allocate(roomReservationRequest);
         checkAllocated(roomReservationRequestId);

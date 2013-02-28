@@ -668,7 +668,7 @@ ParamsLoop:
         }
 
         // options
-        RoomSetting.H323 h323RoomSetting = new RoomSetting.H323();
+        H323RoomSetting h323RoomSetting = new H323RoomSetting();
         if (!result.get("pin").equals("")) {
             h323RoomSetting.setPin((String) result.get("pin"));
         }
@@ -834,37 +834,37 @@ ParamsLoop:
             throw new IllegalStateException("TODO: Implement room alias deletion.");
         }
 
-        RoomSetting.H323 h323RoomSetting = room.getRoomSetting(RoomSetting.H323.class);
+        H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
 
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.PIN)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.PIN)) {
             cmd.setParameter("pin", h323RoomSetting.getPin());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.LISTED_PUBLICLY)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.LISTED_PUBLICLY)) {
             cmd.setParameter("private", !h323RoomSetting.getListedPublicly());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.ALLOW_CONTENT)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.ALLOW_CONTENT)) {
             cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.JOIN_AUDIO_MUTED)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.JOIN_AUDIO_MUTED)) {
             cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.JOIN_VIDEO_MUTED)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.JOIN_VIDEO_MUTED)) {
             cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.REGISTER_WITH_GATEKEEPER)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.REGISTER_WITH_GATEKEEPER)) {
             cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.REGISTER_WITH_REGISTRAR)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.REGISTER_WITH_REGISTRAR)) {
             cmd.setParameter("registerWithSIPRegistrar", h323RoomSetting.getRegisterWithRegistrar());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.START_LOCKED)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.START_LOCKED)) {
             cmd.setParameter("startLocked", h323RoomSetting.getStartLocked());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.CONFERENCE_ME_ENABLED)) {
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.CONFERENCE_ME_ENABLED)) {
             cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
         }
-        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.ALLOW_GUESTS)) {
-            throw new CommandException("Room Setting " + RoomSetting.H323.ALLOW_GUESTS + "is not implemented yet.");
+        if (h323RoomSetting.isPropertyFilled(H323RoomSetting.ALLOW_GUESTS)) {
+            throw new CommandException("Room Setting " + H323RoomSetting.ALLOW_GUESTS + "is not implemented yet.");
         }
     }
 

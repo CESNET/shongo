@@ -68,7 +68,7 @@ sub create_action
             # Add PIN
             if ( length($params->{'pin'}) > 0 ) {
                 $specification->{'roomSettings'} = [{
-                    'class' => 'RoomSetting.H323',
+                    'class' => 'H323RoomSetting',
                     'pin' => $params->{'pin'}
                 }];
             }
@@ -138,7 +138,7 @@ sub detail_action
     if ( $specification->{'class'} eq 'RoomSpecification' ) {
         if ( defined($specification->{'roomSettings'}) && @{$specification->{'roomSettings'}} > 0 ) {
             my $roomSetting = $specification->{'roomSettings'}->[0];
-            if ( $roomSetting->{'class'} ne 'RoomSetting.H323' ) {
+            if ( $roomSetting->{'class'} ne 'H323RoomSetting' ) {
                 $self->error("Reservation request should contains only room setttings for 'H323' but '$roomSetting->{'class'}' was present.");
             }
             $request->{'pin'} = $roomSetting->{'pin'};

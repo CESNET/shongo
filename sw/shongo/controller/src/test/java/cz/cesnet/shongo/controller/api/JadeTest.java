@@ -143,6 +143,8 @@ public class JadeTest extends AbstractControllerTest
                 catch (FaultException exception) {
                     throw new IllegalStateException(exception);
                 }
+                Assert.assertTrue(room.isPropertyFilled(room.NAME));
+                Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));
                 Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));
                 Assert.assertEquals("test", room.getAliases().get(0).getValue());
             }
@@ -151,6 +153,8 @@ public class JadeTest extends AbstractControllerTest
                 Room room = modifyRoom.getRoom();
                 Assert.assertEquals("1", room.getId());
                 Assert.assertEquals("room", room.getName());
+                Assert.assertTrue(room.isPropertyFilled(room.NAME));
+                Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));
                 Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(1)));
                 Assert.assertEquals("test", room.getAliases().get(1).getValue());
             }

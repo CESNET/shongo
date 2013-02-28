@@ -33,11 +33,11 @@ public abstract class RoomSetting extends PersistentObject
     public static RoomSetting createFromApi(cz.cesnet.shongo.api.RoomSetting api)
     {
         RoomSetting roomSetting = null;
-        if (api instanceof cz.cesnet.shongo.api.RoomSetting.H323) {
+        if (api instanceof cz.cesnet.shongo.api.H323RoomSetting) {
             roomSetting = new H323RoomSetting();
         }
-        else if (api instanceof cz.cesnet.shongo.api.RoomSetting.AdobeConnect) {
-            roomSetting = new AdobeConnectRoomSetting();
+        else if (api instanceof cz.cesnet.shongo.api.AdobeConnectRoomSetting) {
+            roomSetting = new cz.cesnet.shongo.controller.common.AdobeConnectRoomSetting();
         }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
