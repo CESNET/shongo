@@ -4,6 +4,9 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
+* Test refactorized room options
+* Test room participants
+
 * Create communication connector -> controller
   - notify owners that room capacity exceeded
   - create CommandExecutor a Command.perform
@@ -99,8 +102,6 @@
   the cache is reloading no one can use it)
 
 * Implement allocation failed state to permanent reservations
-
-* Refactorize Room.Options
 
 * Add deviceResource attribute to Alias and fill it when the alias is evaluated on the DeviceResource and check
   assignment of this alias to proper DeviceResource

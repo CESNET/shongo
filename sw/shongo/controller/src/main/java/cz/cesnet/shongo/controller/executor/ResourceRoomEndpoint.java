@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -16,7 +18,6 @@ import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
-import cz.cesnet.shongo.jade.LocalCommand;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -226,10 +227,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         roomApi.setLicenseCount(getLicenseCount());
         roomApi.setDescription(getRoomDescription());
         for (RoomSetting roomSetting : getRoomSettings()) {
-            roomApi.fillOptions(roomSetting.toApi());
+            roomApi.addRoomSetting(roomSetting.toApi());
         }
         for (Alias alias : getAliases()) {
             roomApi.addAlias(alias.toApi());
+        }
+        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+            roomApi.addParticipant(executableOwner);
         }
         return roomApi;
     }
@@ -248,9 +252,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            cz.cesnet.shongo.api.Room room = getRoomApi();
+            cz.cesnet.shongo.api.Room roomApi = getRoomApi();
 
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(room));
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 setRoomId((String) sendLocalCommand.getResult());
                 return State.STARTED;
@@ -266,29 +270,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public boolean modifyRoom(String roomDescription, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
-            Executor executor)
+    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
     {
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), roomDescription, roomConfiguration.getLicenseCount()});
+                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setId(roomId);
-            room.setDescription(roomDescription);
-            room.setTechnologies(roomConfiguration.getTechnologies());
-            room.setLicenseCount(roomConfiguration.getLicenseCount());
-            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-                room.fillOptions(roomSetting.toApi());
-            }
-            for (Alias alias : roomAliases) {
-                room.addAlias(alias.toApi());
-            }
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(room));
+            // TODO: Retrieve current room state and only apply changes
+
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                 return true;
             }

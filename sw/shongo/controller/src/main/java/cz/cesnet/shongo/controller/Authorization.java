@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.UserPerson;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.SecurityException;
 import org.apache.http.HttpEntity;
@@ -21,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,7 +51,7 @@ public class Authorization
     static {
         ROOT_USER_INFORMATION = new UserInformation();
         ROOT_USER_INFORMATION.setUserId(ROOT_USER_ID);
-        ROOT_USER_INFORMATION.setFullName("root");
+        ROOT_USER_INFORMATION.setFirstName("root");
     }
 
     /**
@@ -331,12 +334,8 @@ public class Authorization
         }
         UserInformation userInformation = new UserInformation();
         userInformation.setUserId((String) data.get("id"));
-
-        StringBuilder fullName = new StringBuilder();
-        fullName.append((String) data.get("given_name"));
-        fullName.append(" ");
-        fullName.append((String) data.get("family_name"));
-        userInformation.setFullName(fullName.toString());
+        userInformation.setFirstName((String) data.get("given_name"));
+        userInformation.setLastName((String) data.get("family_name"));
 
         if (data.containsKey("eppn")) {
             userInformation.setEduPersonPrincipalName((String) data.get("eppn"));
@@ -365,6 +364,17 @@ public class Authorization
         public static boolean isUserOwner(String userId, Resource resource)
         {
             return resource.getUserId().equals(userId);
+        }
+
+        /**
+         * @param executable
+         * @return list of {@link UserInformation}s for owners of given {@code executable}
+         */
+        public static List<UserInformation> getExecutableOwners(Executable executable)
+        {
+            List<UserInformation> executableOwners = new LinkedList<UserInformation>();
+            executableOwners.add(getInstance().getUserInformation(executable.getUserId()));
+            return executableOwners;
         }
     }
 

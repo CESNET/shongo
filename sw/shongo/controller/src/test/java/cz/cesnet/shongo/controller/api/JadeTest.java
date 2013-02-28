@@ -90,7 +90,6 @@ public class JadeTest extends AbstractControllerTest
 
         Room room = new Room();
         room.setName("room");
-        room.setOption(Room.Option.PIN, "1234");
         room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
         getResourceControlService().createRoom(SECURITY_TOKEN, mcuId, room);
     }
@@ -116,7 +115,7 @@ public class JadeTest extends AbstractControllerTest
 
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
         room.setName("room");
-        room.setOption(Room.Option.PIN, "1234");
+        room.addAlias(new Alias(AliasType.ROOM_NAME, "test"));
         getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, room);
     }
 
@@ -145,14 +144,15 @@ public class JadeTest extends AbstractControllerTest
                     throw new IllegalStateException(exception);
                 }
                 Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));
+                Assert.assertEquals("test", room.getAliases().get(0).getValue());
             }
             else if (command instanceof ModifyRoom) {
                 ModifyRoom modifyRoom = (ModifyRoom) command;
                 Room room = modifyRoom.getRoom();
                 Assert.assertEquals("1", room.getId());
                 Assert.assertEquals("room", room.getName());
-                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, Room.Option.PIN));
-                Assert.assertEquals("1234", room.getOption(Room.Option.PIN));
+                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(1)));
+                Assert.assertEquals("test", room.getAliases().get(1).getValue());
             }
             else {
                 throw new TodoImplementException(command.getClass().getName());

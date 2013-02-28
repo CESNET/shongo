@@ -172,7 +172,7 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                     ContentElement response = new Result(action, new CommandError(exception.getMessage()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
-                catch (Exception exception) {
+                catch (Throwable exception) {
                     logger.error(String.format("Command requested by '%s' has failed with unknown reason.",
                             request.getSender().getName()), exception);
                     String message = exception.getMessage();

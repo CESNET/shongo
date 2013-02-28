@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.annotation.Transient;
 import jade.content.Concept;
 
 /**
@@ -21,9 +22,14 @@ public class UserInformation implements PersonInformation, Concept
     private String eduPersonPrincipalName;
 
     /**
-     * Full name of the user.
+     * First name of the use (e.g., given name).
      */
-    private String fullName;
+    private String firstName;
+
+    /**
+     * Last name of the user (e.g., family name).
+     */
+    private String lastName;
 
     /**
      * Organization of the user.
@@ -75,20 +81,26 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     /**
-     * @return {@link #fullName}
+     * @return {@link #firstName}
      */
-    @Override
-    public String getFullName()
+    public String getFirstName()
     {
-        return fullName;
+        return firstName;
     }
 
-    /**
-     * @param fullName sets the {@link #fullName}
-     */
-    public void setFullName(String fullName)
+    public void setFirstName(String firstName)
     {
-        this.fullName = fullName;
+        this.firstName = firstName;
+    }
+
+    public String getLastName()
+    {
+        return lastName;
+    }
+
+    public void setLastName(String lastName)
+    {
+        this.lastName = lastName;
     }
 
     /**
@@ -121,6 +133,26 @@ public class UserInformation implements PersonInformation, Concept
     public void setEmail(String email)
     {
         this.email = email;
+    }
+
+    @Override
+    @Transient
+    public String getFullName()
+    {
+        StringBuilder fullName = new StringBuilder();
+        if (firstName != null) {
+            fullName.append(firstName);
+        }
+        if (lastName != null) {
+            if (fullName.length() > 0) {
+                fullName.append(" ");
+            }
+            fullName.append(lastName);
+        }
+        if (fullName.length() > 0 ) {
+            return fullName.toString();
+        }
+        return null;
     }
 
     @Override

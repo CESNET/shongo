@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import jade.content.Concept;
 
 import java.util.List;
@@ -43,10 +44,18 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     public static final String ALIASES = "aliases";
 
     /**
-     * Options of the room. Type: Map<Option, Object>
+     * Settings of the room. Type: List<RoomSetting>
      */
-    public static final String OPTIONS = "options";
+    public static final String ROOM_SETTINGS = "roomSettings";
 
+    /**
+     * Allowed participants of the room. Type: List<UserInformation>
+     */
+    public static final String PARTICIPANTS = "participants";
+
+    /**
+     * Constructor.
+     */
     public Room()
     {
     }
@@ -144,13 +153,16 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     }
 
     /**
-     * Adds a new alias under which the room is accessible.
-     *
-     * @param alias alias to add for the room
+     * @return {@link Alias} for given {@code aliasType}
      */
-    public void addAlias(Alias alias)
+    public Alias getAlias(AliasType aliasType)
     {
-        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
+        for (Alias alias : this.getAliases()) {
+            if (alias.getType() == aliasType) {
+                return alias;
+            }
+        }
+        return null;
     }
 
     /**
@@ -162,148 +174,89 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     }
 
     /**
-     * Returns the complete map of options set for this room.
-     * <p/>
-     * NOTE: Used by Jade to compose messages containing Room objects.
+     * Adds a new alias under which the room is accessible.
      *
-     * @return options set for the room
+     * @param alias alias to add for the room
      */
-    public Map<Option, Object> getOptions()
+    public void addAlias(Alias alias)
     {
-        return getPropertyStorage().getMap(OPTIONS);
+        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
     }
 
     /**
-     * Sets options for this room.
-     *
-     * @param options options to set for the room
-     * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
+     * @return {@link #ROOM_SETTINGS}
      */
-    public void setOptions(Map<Option, Object> options)
+    public List<RoomSetting> getRoomSettings()
     {
-        for (Map.Entry<Option, Object> entry : options.entrySet()) {
-            entry.setValue(validateOption(entry.getKey(), entry.getValue()));
+        return getPropertyStorage().getCollection(ROOM_SETTINGS, List.class);
+    }
+
+    /**
+     * @param roomSettings sets the {@link #ROOM_SETTINGS}
+     */
+    public void setRoomSettings(List<RoomSetting> roomSettings)
+    {
+        getPropertyStorage().setCollection(ROOM_SETTINGS, roomSettings);
+    }
+
+    /**
+     * @param roomSettingType
+     * @return {@link RoomSetting} of given {@code roomSettingType} or null if doesn't exist
+     */
+    public <T extends RoomSetting> T getRoomSetting(Class<T> roomSettingType)
+    {
+        for (RoomSetting roomSetting : getRoomSettings()) {
+            if (roomSettingType.isInstance(roomSetting)) {
+                return roomSettingType.cast(roomSetting);
+            }
         }
-        getPropertyStorage().setMap(OPTIONS, options);
+        return null;
     }
 
     /**
-     * Finds out whether a given option is set.
-     *
-     * @param option option to find
-     * @return <code>true</code> if option with the given name is set, <code>false</code> if not
+     * @param roomSetting to be added to the {@link #ROOM_SETTINGS}
      */
-    public boolean hasOption(Option option)
+    public void addRoomSetting(RoomSetting roomSetting)
     {
-        return getPropertyStorage().getMap(OPTIONS).containsKey(option);
-    }
-
-    /**
-     * Returns the value of an option.
-     *
-     * @param option option to get value of
-     * @return value of option, or <code>null</code> if the option is not set
-     */
-    public Object getOption(Option option)
-    {
-        return getPropertyStorage().getMap(OPTIONS).get(option);
-    }
-
-    /**
-     * Returns the value of an option if it is set, or default value if the option is not set.
-     *
-     * @param option       option to get value of
-     * @param defaultValue default value to return if the option is not set
-     * @return value of option, or <code>defaultValue</code> if the option is not set
-     */
-    public Object getOption(Option option, Object defaultValue)
-    {
-        Object value = getOption(option);
-        return (value == null ? defaultValue : value);
-    }
-
-    /**
-     * Sets a single option.
-     *
-     * @param option option to set
-     * @param value  value to be set; or <code>null</code> to unset the option
-     * @throws IllegalArgumentException if the value is not of the type required by the specified option
-     */
-    public void setOption(Option option, Object value)
-    {
-        if (value == null) {
-            removeOption(option);
+        RoomSetting existingRoomSetting = getRoomSetting(roomSetting.getClass());
+        if (existingRoomSetting != null) {
+            throw new TodoImplementException("Merge same room setting");
         }
         else {
-            value = validateOption(option, value);
-            getPropertyStorage().addMapItem(OPTIONS, option, value);
+            getPropertyStorage().addCollectionItem(ROOM_SETTINGS, roomSetting, List.class);
         }
     }
 
     /**
-     * Unsets a single option.
-     *
-     * @param option option to unset
+     * @return {@link #PARTICIPANTS}
      */
-    public void removeOption(Option option)
+    public List<UserInformation> getParticipants()
     {
-        getPropertyStorage().removeMapItem(OPTIONS, option);
+        return getPropertyStorage().getCollection(PARTICIPANTS, List.class);
     }
 
     /**
-     * Validates that a given option has the correct type of value.
-     *
-     * @param option option to validate value of
-     * @param value  value to be set
-     * @throws IllegalArgumentException if the value is not of the type required by the specified option
+     * @param participants sets the {@link #PARTICIPANTS}
      */
-    private static Object validateOption(Option option, Object value)
+    public void setParticipants(List<UserInformation> participants)
     {
-        Class requiredClass = option.getValueClass();
-        if (value instanceof Integer && requiredClass.equals(Boolean.class)) {
-            return (((Integer) value) != 0);
-        }
-        if (!requiredClass.isInstance(value)) {
-            throw new IllegalArgumentException(String.format(
-                    "Option %s requires value of class %s, but %s given",
-                    option, option.getValueClass().getName(), value.getClass().getName()
-            ));
-        }
-        return value;
+        getPropertyStorage().setCollection(PARTICIPANTS, participants);
     }
 
     /**
-     * Fill {@link #OPTIONS} from given {@code roomSetting}
-     *
-     * @param roomSetting
+     * @param participant to be added to the {@link #PARTICIPANTS}
      */
-    public void fillOptions(RoomSetting roomSetting)
+    public void addParticipant(UserInformation participant)
     {
-        // TODO: use RoomSetting in the Room instead of map of options
-        if (roomSetting instanceof RoomSetting.H323) {
-            RoomSetting.H323 roomSettingH323 = (RoomSetting.H323) roomSetting;
-            if (roomSettingH323.getPin() != null) {
-                setOption(Option.PIN, roomSettingH323.getPin());
-            }
-        }
-        else if (roomSetting instanceof RoomSetting.AdobeConnect) {
-            RoomSetting.AdobeConnect roomSettingAdobeConnect = (RoomSetting.AdobeConnect) roomSetting;
-            setOption(Option.PARTICIPANTS, roomSettingAdobeConnect.getParticipants());
-        }
+        getPropertyStorage().addCollectionItem(PARTICIPANTS, participant, List.class);
     }
 
     /**
-     * @return
+     * @param participant to be removed from the {@link #PARTICIPANTS}
      */
-    public Alias getAlias(AliasType aliasType)
+    public void removeParticipant(UserInformation participant)
     {
-        for (Alias alias : this.getAliases()) {
-            if (alias.getType() == aliasType) {
-                return alias;
-            }
-        }
-
-        return null;
+        getPropertyStorage().removeCollectionItem(PARTICIPANTS, participant);
     }
 
     @Override
@@ -311,78 +264,5 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     {
         return String.format(Room.class.getSimpleName() + " (id: %s, name: %s, description: %s, licenses: %d)",
                 getId(), getName(), getDescription(), getLicenseCount());
-    }
-
-    /**
-     * Room options.
-     */
-    public static enum Option
-    {
-        /**
-         * A string option - the PIN that must be entered to get to the room.
-         */
-        PIN(String.class),
-
-        /**
-         * A boolean option whether to list the room in public lists. Defaults to false.
-         */
-        LISTED_PUBLICLY(Boolean.class),
-
-        /**
-         * A boolean option whether participants may contribute content. Defaults to true.
-         */
-        ALLOW_CONTENT(Boolean.class),
-
-        /**
-         * A boolean option whether guests should be allowed to join. Defaults to true.
-         */
-        ALLOW_GUESTS(Boolean.class),
-
-        /**
-         * A boolean option whether audio should be muted on join. Defaults to false.
-         */
-        JOIN_AUDIO_MUTED(Boolean.class),
-
-        /**
-         * A boolean option whether video should be muted on join. Defaults to false.
-         */
-        JOIN_VIDEO_MUTED(Boolean.class),
-
-        /**
-         * A boolean option whether to register the aliases with the gatekeeper. Defaults to false.
-         */
-        REGISTER_WITH_H323_GATEKEEPER(Boolean.class),
-
-        /**
-         * A boolean option whether to register the aliases with the SIP registrar. Defaults to false.
-         */
-        REGISTER_WITH_SIP_REGISTRAR(Boolean.class),
-
-        /**
-         * A boolean option whether the room should be locked when started. Defaults to false.
-         */
-        START_LOCKED(Boolean.class),
-
-        /**
-         * A boolean option whether the ConferenceMe should be enabled for the room. Defaults to false.
-         */
-        CONFERENCE_ME_ENABLED(Boolean.class),
-
-        /**
-         * List of EPPNs of allowed participants for the room.
-         */
-        PARTICIPANTS(List.class);
-
-        private Class valueClass;
-
-        Option(Class valueClass)
-        {
-            this.valueClass = valueClass;
-        }
-
-        public Class getValueClass()
-        {
-            return valueClass;
-        }
     }
 }

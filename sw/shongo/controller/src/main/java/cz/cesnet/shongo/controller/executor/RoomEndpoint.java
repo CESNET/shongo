@@ -83,14 +83,11 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * Modify this {@link RoomEndpoint}.
      *
-     * @param roomDescription
-     * @param roomConfiguration
-     * @param roomAliases
+     * @param roomApi
      * @param executor          thread which is executing
      * @return new {@link State}
      */
-    public boolean modifyRoom(String roomDescription, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
-            Executor executor)
+    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
     {
         return true;
     }

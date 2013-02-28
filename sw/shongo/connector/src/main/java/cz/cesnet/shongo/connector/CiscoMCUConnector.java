@@ -668,17 +668,18 @@ ParamsLoop:
         }
 
         // options
-        room.setOption(Room.Option.REGISTER_WITH_H323_GATEKEEPER, result.get("registerWithGatekeeper"));
-        room.setOption(Room.Option.REGISTER_WITH_SIP_REGISTRAR, result.get("registerWithSIPRegistrar"));
-        room.setOption(Room.Option.LISTED_PUBLICLY, !(Boolean) result.get("private"));
-        room.setOption(Room.Option.ALLOW_CONTENT, result.get("contentContribution"));
-        room.setOption(Room.Option.JOIN_AUDIO_MUTED, result.get("joinAudioMuted"));
-        room.setOption(Room.Option.JOIN_VIDEO_MUTED, result.get("joinVideoMuted"));
+        RoomSetting.H323 h323RoomSetting = new RoomSetting.H323();
         if (!result.get("pin").equals("")) {
-            room.setOption(Room.Option.PIN, result.get("pin"));
+            h323RoomSetting.setPin((String) result.get("pin"));
         }
-        room.setOption(Room.Option.START_LOCKED, result.get("startLocked"));
-        room.setOption(Room.Option.CONFERENCE_ME_ENABLED, result.get("conferenceMeEnabled"));
+        h323RoomSetting.setListedPublicly(!(Boolean) result.get("private"));
+        h323RoomSetting.setAllowContent((Boolean) result.get("contentContribution"));
+        h323RoomSetting.setJoinAudioMuted((Boolean) result.get("joinAudioMuted"));
+        h323RoomSetting.setJoinVideoMuted((Boolean) result.get("joinVideoMuted"));
+        h323RoomSetting.setRegisterWithGatekeeper((Boolean) result.get("registerWithGatekeeper"));
+        h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
+        h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
+        h323RoomSetting.setConferenceMeEnabled((Boolean) result.get("conferenceMeEnabled"));
 
         return room;
     }
@@ -833,56 +834,37 @@ ParamsLoop:
             throw new IllegalStateException("TODO: Implement room alias deletion.");
         }
 
-        // options
-        // Create/Update options
-        for (Room.Option option : room.getOptions().keySet()) {
-            if (room.isPropertyItemMarkedAsNew(Room.OPTIONS, option)) {
-                setRoomOption(cmd, option, room.getOption(option));
-            }
-            else {
-                setRoomOption(cmd, option, room.getOption(option));
-            }
-        }
-        // Delete options
-        Set<Room.Option> optionsToDelete = room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS);
-        for (Room.Option option : optionsToDelete) {
-            setRoomOption(cmd, option, null);
-        }
-    }
+        RoomSetting.H323 h323RoomSetting = room.getRoomSetting(RoomSetting.H323.class);
 
-    private static void setRoomOption(Command cmd, Room.Option roomOption, Object value)
-    {
-        if (value instanceof String) {
-            value = truncateString((String) value);
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.PIN)) {
+            cmd.setParameter("pin", h323RoomSetting.getPin());
         }
-        switch (roomOption) {
-            case REGISTER_WITH_H323_GATEKEEPER:
-                cmd.setParameter("registerWithGatekeeper", value);
-                break;
-            case REGISTER_WITH_SIP_REGISTRAR:
-                cmd.setParameter("registerWithSIPRegistrar", value);
-                break;
-            case LISTED_PUBLICLY:
-                cmd.setParameter("private", !(Boolean) value);
-                break;
-            case ALLOW_CONTENT:
-                cmd.setParameter("contentContribution", value);
-                break;
-            case JOIN_AUDIO_MUTED:
-                cmd.setParameter("joinAudioMuted", value);
-                break;
-            case JOIN_VIDEO_MUTED:
-                cmd.setParameter("joinVideoMuted", value);
-                break;
-            case PIN:
-                cmd.setParameter("pin", value);
-                break;
-            case START_LOCKED:
-                cmd.setParameter("startLocked", value);
-                break;
-            case CONFERENCE_ME_ENABLED:
-                cmd.setParameter("conferenceMeEnabled", value);
-                break;
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.LISTED_PUBLICLY)) {
+            cmd.setParameter("private", !h323RoomSetting.getListedPublicly());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.ALLOW_CONTENT)) {
+            cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.JOIN_AUDIO_MUTED)) {
+            cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.JOIN_VIDEO_MUTED)) {
+            cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.REGISTER_WITH_GATEKEEPER)) {
+            cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.REGISTER_WITH_REGISTRAR)) {
+            cmd.setParameter("registerWithSIPRegistrar", h323RoomSetting.getRegisterWithRegistrar());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.START_LOCKED)) {
+            cmd.setParameter("startLocked", h323RoomSetting.getStartLocked());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.CONFERENCE_ME_ENABLED)) {
+            cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
+        }
+        if (h323RoomSetting.isPropertyFilled(RoomSetting.H323.ALLOW_GUESTS)) {
+            throw new CommandException("Room Setting " + RoomSetting.H323.ALLOW_GUESTS + "is not implemented yet.");
         }
     }
 

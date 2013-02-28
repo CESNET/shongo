@@ -290,7 +290,7 @@ public class ExecutorTest extends AbstractControllerTest
         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom createRoomAction =
                 mcuAgent.getPerformedCommandByClass(
                         cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
-        assertEquals("1234", createRoomAction.getRoom().getOption(Room.Option.PIN));
+        assertEquals("1234", createRoomAction.getRoom().getRoomSetting(RoomSetting.H323.class).getPin());
     }
 
     /**

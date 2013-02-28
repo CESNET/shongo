@@ -1,15 +1,16 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.api.rpc.RpcClient;
+import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.controller.api.rpc.RpcServer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * Tests for serializing changes in {@link java.util.Map} through XML-RPC.
@@ -27,7 +28,7 @@ public class XmlRpcTypeMapTest
     @Before
     public void before() throws Exception
     {
-        RoomService roomService = new RoomServiceImpl();
+        TestingRoomService roomService = new TestingRoomServiceImpl();
         rpcServer = new RpcServer(null, 8484);
         rpcServer.addHandler(roomService.getServiceName(), roomService);
         rpcServer.start();
@@ -40,36 +41,104 @@ public class XmlRpcTypeMapTest
         rpcServer.stop();
     }
 
-    public RoomService getRoomService()
+    public TestingRoomService getRoomService()
     {
-        return rpcClient.getService(RoomService.class);
+        return rpcClient.getService(TestingRoomService.class);
     }
 
     @Test
     public void test() throws Exception
     {
-        Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
+        TestingRoom room = getRoomService().getRoom(SECURITY_TOKEN, "1");
         Assert.assertEquals("1", room.getId());
         Assert.assertEquals("room", room.getName());
         Assert.assertEquals(5, room.getLicenseCount());
 
         room.setLicenseCount(10);
-        room.setOption(Room.Option.PIN, "100");
+        room.setOption(TestingRoomOption.PIN, "100");
         room.setName(null);
 
         getRoomService().modifyRoom(SECURITY_TOKEN, room);
     }
 
-    public interface RoomService extends Service
+    public static enum TestingRoomOption
     {
-        @API
-        public Room getRoom(SecurityToken token, String roomId);
-
-        @API
-        public void modifyRoom(SecurityToken token, Room room);
+        PIN
     }
 
-    public class RoomServiceImpl implements RoomService
+    public static class TestingRoom extends IdentifiedChangeableObject implements StructType
+    {
+        public static final String NAME = "name";
+
+        public static final String LICENSE_COUNT = "licenseCount";
+
+        public static final String OPTIONS = "options";
+
+        public TestingRoom()
+        {
+        }
+
+        public String getName()
+        {
+            return getPropertyStorage().getValue(NAME);
+        }
+
+        public void setName(String name)
+        {
+            getPropertyStorage().setValue(NAME, name);
+        }
+
+        public int getLicenseCount()
+        {
+            return getPropertyStorage().getValueAsInt(LICENSE_COUNT);
+        }
+
+        public void setLicenseCount(int licenseCount)
+        {
+            getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
+        }
+
+        public Map<TestingRoomOption, Object> getOptions()
+        {
+            return getPropertyStorage().getMap(OPTIONS);
+        }
+
+        public void setOptions(Map<TestingRoomOption, Object> options)
+        {
+            getPropertyStorage().setMap(OPTIONS, options);
+        }
+
+        public Object getOption(TestingRoomOption option)
+        {
+            return getPropertyStorage().getMap(OPTIONS).get(option);
+        }
+
+        public void setOption(TestingRoomOption option, Object value)
+        {
+            if (value == null) {
+                removeOption(option);
+            }
+            else {
+                getPropertyStorage().addMapItem(OPTIONS, option, value);
+            }
+        }
+
+        public void removeOption(TestingRoomOption option)
+        {
+            getPropertyStorage().removeMapItem(OPTIONS, option);
+        }
+    }
+
+    public interface TestingRoomService extends Service
+    {
+        @API
+        public TestingRoom getRoom(SecurityToken token, String roomId);
+
+        @API
+        public void modifyRoom(SecurityToken token, TestingRoom room);
+    }
+
+    public class TestingRoomServiceImpl implements TestingRoomService
     {
         @Override
         public String getServiceName()
@@ -78,24 +147,23 @@ public class XmlRpcTypeMapTest
         }
 
         @Override
-        public Room getRoom(SecurityToken token, String roomId)
+        public TestingRoom getRoom(SecurityToken token, String roomId)
         {
             Assert.assertEquals("1", roomId);
 
-            Room room = new Room();
+            TestingRoom room = new TestingRoom();
             room.setId("1");
             room.setName("room");
             room.setLicenseCount(5);
-            room.addAlias(new Alias(AliasType.H323_E164, "9501"));
             return room;
         }
 
         @Override
-        public void modifyRoom(SecurityToken token, Room room)
+        public void modifyRoom(SecurityToken token, TestingRoom room)
         {
             Assert.assertEquals("1", room.getId());
             Assert.assertEquals(10, room.getLicenseCount());
-            Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, Room.Option.PIN));
+            Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, TestingRoomOption.PIN));
         }
     }
 }

@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -196,10 +198,13 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         roomApi.setDescription(getRoomDescription());
         roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
         for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-            roomApi.fillOptions(roomSetting.toApi());
+            roomApi.addRoomSetting(roomSetting.toApi());
         }
         for (Alias alias : getAssignedAliases()) {
             roomApi.addAlias(alias.toApi());
+        }
+        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+            roomApi.addParticipant(executableOwner);
         }
         return roomApi;
     }
@@ -207,7 +212,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStart(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(getRoomDescription(), getMergedRoomConfiguration(), getAliases(), executor)) {
+        if (roomEndpoint.modifyRoom(getRoomApi(), executor)) {
             return State.STARTED;
         }
         else {
@@ -219,8 +224,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomDescription(), roomEndpoint.getRoomConfiguration(),
-                roomEndpoint.getAliases(), executor)) {
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor)) {
             return State.STOPPED;
         }
         else {

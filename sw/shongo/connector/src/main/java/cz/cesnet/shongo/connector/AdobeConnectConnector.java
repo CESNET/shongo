@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.GetRoom;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -121,10 +122,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      *
      * @return user identification (principal-id)
      */
-    protected String createAdobeConnectUser(String eppn) throws CommandException
+    protected String createAdobeConnectUser(UserInformation userInformation) throws CommandException
     {
+        String principalName = userInformation.getEduPersonPrincipalName();
+        if (principalName == null) {
+            logger.warn("Participant '{}' doesn't have EPPN and he cannot use the Adobe Connect.",
+                    userInformation.getFullName());
+            return null;
+        }
+
         HashMap<String, String> userSearchAttributes = new HashMap<String, String>();
-        userSearchAttributes.put("filter-login", eppn);
+        userSearchAttributes.put("filter-login", principalName);
         Element principalList = request("principal-list", userSearchAttributes);
 
         if (principalList.getChild("principal-list").getChild("principal") != null) {
@@ -134,10 +142,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
 
         HashMap<String, String> newUserAttributes = new HashMap<String, String>();
-        newUserAttributes.put("first-name", "test");
-        newUserAttributes.put("last-name", "test");
-        newUserAttributes.put("login", eppn);
-//        newUserAttributes.put("email", "");
+        newUserAttributes.put("first-name", userInformation.getFirstName());
+        newUserAttributes.put("last-name", userInformation.getLastName());
+        newUserAttributes.put("login", principalName);
+        newUserAttributes.put("email", userInformation.getEmail());
         newUserAttributes.put("type", "user");
         newUserAttributes.put("has-children", "false");
 
@@ -392,62 +400,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return room;
     }
 
-    @java.lang.Override
-    public String createRoom(Room room) throws CommandException
-    {
-        try {
-            room.setupNewEntity();
-        }
-        catch (FaultException exception) {
-            throw new IllegalStateException(exception);
-        }
-
-        try {
-            HashMap<String, String> attributes = new HashMap<String, String>();
-            attributes.put("folder-id",
-                    (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
-            attributes.put("type", "meeting");
-            attributes.put("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
-
-            // Set room attributes
-            setRoomAttributes(attributes, room);
-
-            // Room name must be filled
-            if (attributes.get("name") == null) {
-                throw new IllegalStateException("Room name must be filled for the new room.");
-            }
-
-            Element respose = request("sco-update", attributes);
-            String scoId = respose.getChild("sco").getAttributeValue("sco-id");
-
-            // room.setId(respose.getChild("sco").getAttributeValue("sco-id"));
-            // room.setOption(room.getName(),this.serverUrl + respose.getChild("sco").getChildText("url-path"));
-
-            List<String> participants = (List<String>) room.getOption(Room.Option.PARTICIPANTS);
-            if (participants != null) {
-                for (String eppn : participants) {
-                    String principalId = this.createAdobeConnectUser(eppn);
-
-                    //String principalId = roomUser.getUserIdentity().getId();
-                    HashMap<String, String> userAttributes = new HashMap<String, String>();
-                    userAttributes.put("acl-id", scoId);
-                    userAttributes.put("principal-id", principalId);
-                    userAttributes.put("permission-id", "host");
-
-                    request("permissions-update", userAttributes);
-                }
-
-            }
-//        importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
-
-            return scoId;
-
-        }
-        catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while URL encoding.", ex);
-        }
-    }
-
     private void setRoomAttributes(HashMap<String, String> attributes, Room room)
             throws UnsupportedEncodingException, CommandException
     {
@@ -494,18 +446,96 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
+    private void addRoomParticipant(String roomId, UserInformation participant) throws CommandException
+    {
+        String principalId = this.createAdobeConnectUser(participant);
+        if (principalId == null) {
+            logger.warn("Participant '{}' doesn't have EPPN and thus he is not configured for the room.",
+                    participant.getFullName());
+            return;
+        }
+
+        logger.debug("Configuring participant '{}' as host in the room.", participant.getFullName());
+        HashMap<String, String> userAttributes = new HashMap<String, String>();
+        userAttributes.put("acl-id", roomId);
+        userAttributes.put("principal-id", principalId);
+        userAttributes.put("permission-id", "host");
+        request("permissions-update", userAttributes);
+    }
+
     @java.lang.Override
-    public String modifyRoom(Room room) throws CommandException
+    public String createRoom(Room room) throws CommandException
     {
         try {
+            room.setupNewEntity();
+        }
+        catch (FaultException exception) {
+            throw new IllegalStateException(exception);
+        }
+
+        try {
             HashMap<String, String> attributes = new HashMap<String, String>();
-            attributes.put("sco-id", room.getId());
+            attributes.put("folder-id",
+                    (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
+            attributes.put("type", "meeting");
+            attributes.put("date-begin", URLEncoder.encode(DateTime.now().toString(), "UTF8"));
 
             // Set room attributes
             setRoomAttributes(attributes, room);
 
+            // Room name must be filled
+            if (attributes.get("name") == null) {
+                throw new IllegalStateException("Room name must be filled for the new room.");
+            }
+
+            Element respose = request("sco-update", attributes);
+            String roomId = respose.getChild("sco").getAttributeValue("sco-id");
+
+            // Add room participants
+            for (UserInformation participant : room.getParticipants()) {
+                addRoomParticipant(roomId, participant);
+            }
+
+            //importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
+
+            return roomId;
+
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while URL encoding.", ex);
+        }
+    }
+
+    @java.lang.Override
+    public String modifyRoom(Room room) throws CommandException
+    {
+        try {
+            String roomId = room.getId();
+
+            HashMap<String, String> attributes = new HashMap<String, String>();
+            attributes.put("sco-id", roomId);
+
+            // Set room attributes
+            setRoomAttributes(attributes, room);
+
+            // Add/modify participants
+            for (UserInformation participant : room.getParticipants()) {
+                if (room.isPropertyItemMarkedAsNew(Room.PARTICIPANTS, participant)) {
+                    addRoomParticipant(roomId, participant);
+                }
+                else {
+                    throw new TodoImplementException("Modify room participant.");
+                }
+            }
+
+            // Delete participants
+            Set<UserInformation> deletedParticipants = room.getPropertyItemsMarkedAsDeleted(Room.PARTICIPANTS);
+            for (UserInformation deleteParticipant : deletedParticipants) {
+                throw new TodoImplementException("Delete room participant.");
+            }
+
             request("sco-update", attributes);
-            return room.getId();
+            return roomId;
         }
         catch (UnsupportedEncodingException ex) {
             throw new CommandException("Error while URL encoding.", ex);
