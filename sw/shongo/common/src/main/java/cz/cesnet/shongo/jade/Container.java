@@ -445,6 +445,28 @@ public class Container
     }
 
     /**
+     * Wait for all JADE agents to start.
+     */
+    public void waitForJadeAgentsToStart()
+    {
+        boolean started;
+        do {
+            started = true;
+            try {
+                Thread.sleep(50);
+            }
+            catch (InterruptedException exception) {
+            }
+            for (String agentName : getAgentNames()) {
+                if (!isAgentStarted(agentName)) {
+                    started = false;
+                }
+            }
+        }
+        while (!started);
+    }
+
+    /**
      * Perform {@link LocalCommand} on agent with given {@code agentName}.
      *
      * @param agentName of agent on which the given {@code command} should be performed

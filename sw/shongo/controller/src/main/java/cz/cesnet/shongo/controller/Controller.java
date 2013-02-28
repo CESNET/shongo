@@ -474,21 +474,7 @@ public class Controller
      */
     public void waitForJadeAgentsToStart()
     {
-        boolean started;
-        do {
-            started = true;
-            try {
-                Thread.sleep(50);
-            }
-            catch (InterruptedException exception) {
-            }
-            for (String agentName : jadeContainer.getAgentNames()) {
-                if (!jadeContainer.isAgentStarted(agentName)) {
-                    started = false;
-                }
-            }
-        }
-        while (!started);
+        jadeContainer.waitForJadeAgentsToStart();
     }
 
     /**

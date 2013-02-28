@@ -78,13 +78,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Apache Commons Configuration is used for loading/storing configuration -->
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.8</version>
-        </dependency>
-
         <!-- HttpClient is used for communication to authorization server -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

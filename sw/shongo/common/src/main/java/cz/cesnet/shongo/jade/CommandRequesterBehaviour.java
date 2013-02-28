@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 /**
  * Behaviour that sends an {@link ACLMessage} from given {@link cz.cesnet.shongo.jade.Agent} to target JADE agent
- * specified in the {@link SendLocalCommand#agentReceiverId} and the message content is {@link SendLocalCommand#command}.
+ * specified in the {@link SendLocalCommand#receiverAgentId} and the message content is {@link SendLocalCommand#command}.
  * <p/>
  * Implements the initiator part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
  * example found in the Jade distribution in examples/src/examples/ontology).
@@ -99,33 +99,17 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
             ContentElement contentElement = cm.extractContent(msg);
 
             if (contentElement instanceof Result) {
-                // return value of a command
+                // Result value of a command
                 Result result = (Result) contentElement;
-
-                // log some meaningful message
-                String logMsg = String.format("Received a result of type %s, value %s.", result.getValue().getClass(),
-                        result.getValue());
-                if (result.getAction() instanceof Action) {
-                    Action action = (Action) result.getAction();
-                    logMsg += " It is the result of action: " + action.getAction();
-                }
-                logger.info(logMsg);
-
+                logger.debug("Received a result of type {}, value {}.",
+                        result.getValue().getClass(), result.getValue());
                 sendLocalCommand.setResult(result.getValue());
                 sendLocalCommand.setState(SendLocalCommand.State.SUCCESSFUL);
             }
             else if (contentElement instanceof Done) {
-                // notification that a command succeeded
+                // Notification that a command succeeded
                 Done done = (Done) contentElement;
-
-                // log some meaningful message
-                String logMsg = "Received confirmation of successful execution of an action.";
-                if (done.getAction() instanceof Action) {
-                    Action action = (Action) done.getAction();
-                    logMsg += " It is the result of action: " + action.getAction();
-                }
-                logger.info(logMsg);
-
+                logger.debug("Received confirmation of successful execution of an action.");
                 sendLocalCommand.setState(SendLocalCommand.State.SUCCESSFUL);
             }
         }

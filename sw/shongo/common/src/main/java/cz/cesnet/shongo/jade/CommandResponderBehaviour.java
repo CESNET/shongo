@@ -14,27 +14,22 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.proto.SimpleAchieveREResponder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Behaviour that performs and responds to {@link Command} requests sent by {@link CommandRequesterBehaviour}.
  * <p/>
- * Implements the responder part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
- * example found in the Jade distribution in examples/src/examples/ontology).
- * <p/>
  * See {@link CommandRequesterBehaviour} class for the other party of the conversation.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CommandResponderBehaviour extends SimpleAchieveREResponder
+public class CommandResponderBehaviour extends ParallelResponderBehaviour
 {
-    private Logger logger = LoggerFactory.getLogger(CommandResponderBehaviour.class);
+    private static Logger logger = LoggerFactory.getLogger(CommandResponderBehaviour.class);
 
     /**
      * {@link cz.cesnet.shongo.jade.Agent} which is used for handling and replying to received {@link Command}s.
@@ -75,110 +70,166 @@ public class CommandResponderBehaviour extends SimpleAchieveREResponder
         super.setAgent(agent);
     }
 
-    /**
-     * Processes a request message, e.g. an agent action for performing a command.
-     *
-     * @param request request message
-     * @return message to respond with
-     * @throws NotUnderstoodException
-     * @throws RefuseException
-     */
     @Override
-    protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException
+    protected void handleRequest(ACLMessage requestMessage)
     {
-        logger.debug("Received message: {}", request);
+        logger.debug("Received message: {}", requestMessage);
 
-        ACLMessage reply = request.createReply();
+        RequestHandler handler = new RequestHandler(requestMessage);
 
-        ContentManager cm = myAgent.getContentManager();
-        try {
-            Action action = (Action) cm.extractContent(request);
-            Concept actionContent = action.getAction();
-            if (!(actionContent instanceof Command)) {
-                logger.error(String.format("Unknown action '%s' requested by '%s'.",
-                        actionContent.getClass(), request.getSender().getName()));
-                reply.setPerformative(ACLMessage.REFUSE);
-            }
-            Command command = (Command) actionContent;
-            try {
-                Object actionRetVal = agent.handleCommand(command, request.getSender());
-                // respond to the caller - either with the command return value or saying it was OK
-                ContentElement response = (actionRetVal == null ? new Done(action) : new Result(action, actionRetVal));
-                fillMessage(reply, ACLMessage.INFORM, response);
-            }
-            catch (UnknownCommandException exception) {
-                logger.error(String.format("Unknown command '%s' requested by '%s'.",
-                        exception.getCommand(), request.getSender().getName()), exception);
-                reply.setPerformative(ACLMessage.REFUSE);
-            }
-            catch (CommandUnsupportedException exception) {
-                logger.error(String.format("Unsupported command requested by '%s'.",
-                        request.getSender().getName()), exception);
-                ContentElement response = new Result(action, new CommandNotSupported());
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-            catch (CommandException exception) {
-                logger.error(String.format("Command requested by '%s' has failed.",
-                        request.getSender().getName()), exception);
-                ContentElement response = new Result(action, new CommandError(exception.getMessage()));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-            catch (Exception exception) {
-                logger.error(String.format("Command requested by '%s' has failed with unknown reason.",
-                        request.getSender().getName()), exception);
-                String message = exception.getMessage();
-                if (exception.getCause() != null) {
-                    message += " (" + exception.getCause().getMessage() + ")";
-                }
-                ContentElement response = new Result(action, new CommandUnknownFailure(message));
-                fillMessage(reply, ACLMessage.FAILURE, response);
-            }
-        }
-        catch (Codec.CodecException exception) {
-            logger.error(String.format("Received a request which the agent did not understand (wrong codec): %s",
-                    request), exception);
-            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-        }
-        catch (OntologyException exception) {
-            logger.error(String.format("Received a request which the agent did not understand (wrong ontology): %s",
-                    request), exception);
-            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-        }
-        catch (ClassCastException exception) {
-            logger.error(String.format("Received a request which the agent did not understand (wrong content type): %s",
-                    request), exception);
-            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-        }
-        catch (Exception exception) {
-            logger.error(String.format("Received a request which the agent did not understand: %s", request),
-                    exception);
-            reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
-        }
-
-        logger.debug("Sending reply: {}", reply);
-
-        return reply;
+        Thread handlerThread = new Thread(handler);
+        handlerThread.setName(agent.getLocalName() + "-handler");
+        handlerThread.start();
+        addSubBehaviour(handler);
     }
 
     /**
-     * Fill message content.
-     *
-     * @param message
-     * @param performative
-     * @param content
+     * Request handler.
      */
-    private void fillMessage(ACLMessage message, int performative, ContentElement content)
+    private class RequestHandler extends Behaviour implements Runnable
     {
-        message.setPerformative(performative);
+        /**
+         * Request which is being handled.
+         */
+        private ACLMessage request;
 
-        try {
-            myAgent.getContentManager().fillContent(message, content);
+        /**
+         * Response by which the request is handled.
+         */
+        private ACLMessage response;
+
+        /**
+         * Specifies whether response has been sent.
+         */
+        private boolean done = false;
+
+        /**
+         * Constructor.
+         *
+         * @param request sets the {@link #request}
+         */
+        public RequestHandler(ACLMessage request)
+        {
+            this.request = request;
         }
-        catch (Codec.CodecException e) {
-            logger.error("Error composing a reply to message", e);
+
+        @Override
+        public void action()
+        {
+            if (response != null) {
+                logger.debug("Sending reply: {}", response);
+
+                agent.send(response);
+                response = null;
+                done = true;
+            }
+            else {
+                block();
+            }
         }
-        catch (OntologyException e) {
-            logger.error("Error composing a reply to message", e);
+
+        @Override
+        public boolean done()
+        {
+            return done;
+        }
+
+        @Override
+        public void run()
+        {
+            ACLMessage reply = request.createReply();
+
+            ContentManager cm = agent.getContentManager();
+            try {
+                Action action = (Action) cm.extractContent(request);
+                Concept actionContent = action.getAction();
+                if (!(actionContent instanceof Command)) {
+                    logger.error(String.format("Unknown action '%s' requested by '%s'.",
+                            actionContent.getClass(), request.getSender().getName()));
+                    reply.setPerformative(ACLMessage.REFUSE);
+                }
+                Command command = (Command) actionContent;
+                try {
+                    Object actionRetVal = agent.handleCommand(command, request.getSender());
+                    // respond to the caller - either with the command return value or saying it was OK
+                    ContentElement response = (actionRetVal == null ? new Done(action) : new Result(action,
+                            actionRetVal));
+                    fillMessage(reply, ACLMessage.INFORM, response);
+                }
+                catch (UnknownCommandException exception) {
+                    logger.error(String.format("Unknown command '%s' requested by '%s'.",
+                            exception.getCommand(), request.getSender().getName()), exception);
+                    reply.setPerformative(ACLMessage.REFUSE);
+                }
+                catch (CommandUnsupportedException exception) {
+                    logger.error(String.format("Unsupported command requested by '%s'.",
+                            request.getSender().getName()), exception);
+                    ContentElement response = new Result(action, new CommandNotSupported());
+                    fillMessage(reply, ACLMessage.FAILURE, response);
+                }
+                catch (CommandException exception) {
+                    logger.error(String.format("Command requested by '%s' has failed.",
+                            request.getSender().getName()), exception);
+                    ContentElement response = new Result(action, new CommandError(exception.getMessage()));
+                    fillMessage(reply, ACLMessage.FAILURE, response);
+                }
+                catch (Exception exception) {
+                    logger.error(String.format("Command requested by '%s' has failed with unknown reason.",
+                            request.getSender().getName()), exception);
+                    String message = exception.getMessage();
+                    if (exception.getCause() != null) {
+                        message += " (" + exception.getCause().getMessage() + ")";
+                    }
+                    ContentElement response = new Result(action, new CommandUnknownFailure(message));
+                    fillMessage(reply, ACLMessage.FAILURE, response);
+                }
+            }
+            catch (Codec.CodecException exception) {
+                logger.error(String.format("Received a request which the agent did not understand (wrong codec): %s",
+                        request), exception);
+                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+            }
+            catch (OntologyException exception) {
+                logger.error(String.format("Received a request which the agent did not understand (wrong ontology): %s",
+                        request), exception);
+                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+            }
+            catch (ClassCastException exception) {
+                logger.error(
+                        String.format("Received a request which the agent did not understand (wrong content type): %s",
+                                request), exception);
+                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+            }
+            catch (Exception exception) {
+                logger.error(String.format("Received a request which the agent did not understand: %s", request),
+                        exception);
+                reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
+            }
+
+            response = reply;
+            restart();
+        }
+
+        /**
+         * Fill message content.
+         *
+         * @param message
+         * @param performative
+         * @param content
+         */
+        private void fillMessage(ACLMessage message, int performative, ContentElement content)
+        {
+            message.setPerformative(performative);
+
+            try {
+                agent.getContentManager().fillContent(message, content);
+            }
+            catch (Codec.CodecException e) {
+                logger.error("Error composing a reply to message", e);
+            }
+            catch (OntologyException e) {
+                logger.error("Error composing a reply to message", e);
+            }
         }
     }
 }

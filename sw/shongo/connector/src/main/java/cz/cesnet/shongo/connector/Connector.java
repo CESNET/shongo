@@ -56,13 +56,13 @@ public class Connector
     /**
      * Jade container.
      */
-    Container jadeContainer;
+    private Container jadeContainer;
 
     /**
      * Jade agent names.
      * FIXME: agents are added, but not removed...
      */
-    List<String> jadeAgents = new ArrayList<String>();
+    private List<String> jadeAgents = new ArrayList<String>();
 
     /**
      * Constructor.

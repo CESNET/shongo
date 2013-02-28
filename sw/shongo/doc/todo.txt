@@ -5,9 +5,14 @@
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
 * Create communication connector -> controller
-  - make recursive jade communication working (A -> B, B -> A, B <- A, A <- B)
   - notify owners that room capacity exceeded
   - create CommandExecutor a Command.perform
+
+* Discuss start pre end post (+-15 min, how to allocate?)
+
+* Configuration:
+  - discuss MCU MUNI with hopet and milos
+  - wait for MCU CESNET configuration from janru
 
 * Web client
   - checkAvailableSpecification

@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.controller.api.jade.GetRoom;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.jdom2.Attribute;

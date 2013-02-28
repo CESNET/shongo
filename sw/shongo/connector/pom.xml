@@ -40,13 +40,6 @@
             <version>0.1.48</version>
         </dependency>
 
-        <!-- Apache Commons Configuration is used for loading/storing configuration -->
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.8</version>
-        </dependency>
-
         <!-- Apache XML-RPC is used as implementation of remote procedure calls -->
         <dependency>
             <groupId>org.apache.xmlrpc</groupId>
