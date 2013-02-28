@@ -187,15 +187,21 @@ public class ExecutableManager extends AbstractManager
      */
     public RoomEndpoint getRoomEndpoint(Long deviceResourceId, String roomId, DateTime referenceDateTime)
     {
-        ResourceRoomEndpoint resourceRoomEndpoint = entityManager.createQuery(
-                "SELECT room FROM ResourceRoomEndpoint room"
-                        + " WHERE room.roomProviderCapability.resource.id = :resourceId"
-                        + " AND room.roomId = :roomId"
-                        + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", ResourceRoomEndpoint.class)
-                .setParameter("resourceId", deviceResourceId)
-                .setParameter("roomId", roomId)
-                .setParameter("dateTime", referenceDateTime)
-                .getSingleResult();
+        ResourceRoomEndpoint resourceRoomEndpoint;
+        try {
+            resourceRoomEndpoint = entityManager.createQuery(
+                    "SELECT room FROM ResourceRoomEndpoint room"
+                            + " WHERE room.roomProviderCapability.resource.id = :resourceId"
+                            + " AND room.roomId = :roomId"
+                            + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", ResourceRoomEndpoint.class)
+                    .setParameter("resourceId", deviceResourceId)
+                    .setParameter("roomId", roomId)
+                    .setParameter("dateTime", referenceDateTime)
+                    .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
         List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
                 "SELECT room FROM UsedRoomEndpoint room"
                         + " WHERE room.roomEndpoint = :room"

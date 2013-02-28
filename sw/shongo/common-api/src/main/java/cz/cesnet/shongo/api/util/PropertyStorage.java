@@ -150,9 +150,20 @@ public class PropertyStorage
      * @param property
      * @param collection
      */
-    public <T> void setCollection(String property, Collection<T> collection)
+    public <T> void setCollection(String property, Set<T> collection)
     {
-        values.put(property, collection);
+        values.put(property, new HashSet<T>(collection));
+    }
+
+    /**
+     * Set property collection value.
+     *
+     * @param property
+     * @param collection
+     */
+    public <T> void setCollection(String property, List<T> collection)
+    {
+        values.put(property, new LinkedList<T>(collection));
     }
 
     /**

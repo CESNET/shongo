@@ -150,10 +150,9 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                 }
                 Command command = (Command) actionContent;
                 try {
-                    Object actionRetVal = agent.handleCommand(command, request.getSender());
+                    Object result = agent.handleCommand(command, request.getSender());
                     // respond to the caller - either with the command return value or saying it was OK
-                    ContentElement response = (actionRetVal == null ? new Done(action) : new Result(action,
-                            actionRetVal));
+                    ContentElement response = (result == null ? new Done(action) : new Result(action, result));
                     fillMessage(reply, ACLMessage.INFORM, response);
                 }
                 catch (UnknownCommandException exception) {

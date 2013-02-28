@@ -50,6 +50,10 @@ public class ServiceImpl implements Service
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, roomId, DateTime.now());
+            if (roomEndpoint == null) {
+                throw new CommandException(
+                        String.format("No room '%s' was found for resource with agent '%s'.", roomId, agentName));
+            }
             return roomEndpoint.getRoomApi();
         }
         finally {
