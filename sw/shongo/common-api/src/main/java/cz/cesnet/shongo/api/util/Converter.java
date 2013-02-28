@@ -417,7 +417,7 @@ public class Converter
             // Find all modified items (not marked items are by default modified)
             List<Object> newItems = new ArrayList<Object>();
             for (Object item : items) {
-                if (collectionChanges.isItemNew(item)) {
+                if (ChangesTracking.CollectionChanges.isItemNew(item, collectionChanges)) {
                     newItems.add(item);
                 }
                 else if (collectionChanges.isItemDeleted(item)) {

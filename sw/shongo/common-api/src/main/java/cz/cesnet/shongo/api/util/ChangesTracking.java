@@ -64,15 +64,16 @@ public class ChangesTracking implements Concept
          * @param item to be checked if it is new
          * @return true if given {@code item} is new
          */
-        public boolean isItemNew(Object item)
+        public static boolean isItemNew(Object item, CollectionChanges collectionChanges)
         {
             if (item instanceof IdentifiedObject) {
                 IdentifiedObject identifiedObject = (IdentifiedObject) item;
                 String itemIdentifier = identifiedObject.getId();
-                return itemIdentifier == null || newItems.contains(itemIdentifier);
+                return itemIdentifier == null
+                        || (collectionChanges != null && collectionChanges.newItems.contains(itemIdentifier));
             }
             else {
-                return newItems.contains(item);
+                return collectionChanges != null && collectionChanges.newItems.contains(item);
             }
         }
 
@@ -197,7 +198,7 @@ public class ChangesTracking implements Concept
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
-        if (collectionChanges.isItemNew(item)) {
+        if (CollectionChanges.isItemNew(item, collectionChanges)) {
             collectionChanges.removeNewItem(item);
         }
         else {
@@ -214,10 +215,7 @@ public class ChangesTracking implements Concept
     public boolean isPropertyItemMarkedAsNew(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
-        if (collectionChanges != null) {
-            return collectionChanges.isItemNew(item);
-        }
-        return collectionItemIsByDefaultNew;
+        return CollectionChanges.isItemNew(item, collectionChanges);
     }
 
     /**

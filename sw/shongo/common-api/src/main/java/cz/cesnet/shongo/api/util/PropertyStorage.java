@@ -243,9 +243,10 @@ public class PropertyStorage
      * @param property name of the property
      * @return return {@link Map} for given {@code property}
      */
-    public Map getMap(String property)
+    @SuppressWarnings("unchecked")
+    public <K, V> Map<K, V> getMap(String property)
     {
-        return getInternalMap(property);
+        return (Map<K, V>) getInternalMap(property);
     }
 
     /**
