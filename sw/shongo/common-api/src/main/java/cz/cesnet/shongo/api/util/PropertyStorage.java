@@ -152,7 +152,10 @@ public class PropertyStorage
      */
     public <T> void setCollection(String property, Set<T> collection)
     {
-        values.put(property, new HashSet<T>(collection));
+        if (collection != null) {
+            collection = new HashSet<T>(collection);
+        }
+        values.put(property, collection);
     }
 
     /**
@@ -163,7 +166,10 @@ public class PropertyStorage
      */
     public <T> void setCollection(String property, List<T> collection)
     {
-        values.put(property, new LinkedList<T>(collection));
+        if (collection != null) {
+            collection = new LinkedList<T>(collection);
+        }
+        values.put(property, collection);
     }
 
     /**
@@ -174,7 +180,12 @@ public class PropertyStorage
      */
     public <T> void setCollection(String property, T[] array)
     {
-        setCollection(property, new ArrayList<T>(Arrays.asList(array)));
+        if (array != null) {
+            setCollection(property, new ArrayList<T>(Arrays.asList(array)));
+        }
+        else {
+            values.put(property, null);
+        }
     }
 
     /**

@@ -62,17 +62,6 @@ sub create_action
         });
         if ( !%{$params->{'error'}} ) {
             my $specification = $self->parse_room_specification($params, ['ADOBE_CONNECT']);
-
-            # Add participant
-            my $participant = 'srom@cesnet.cz';#$self->{'application'}->get_user()->{'original_id'};
-            # TODO: fill participant;
-            if ( defined($participant) ) {
-                $specification->{'roomSettings'} = [{
-                    'class' => 'RoomSetting.AdobeConnect',
-                    'participants' => [$participant]
-                }];
-            }
-
             my $reservation_request = $self->parse_reservation_request($params, $specification);
             $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
             $self->redirect('list');

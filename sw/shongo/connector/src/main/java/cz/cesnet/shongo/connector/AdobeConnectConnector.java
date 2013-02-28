@@ -450,7 +450,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         String principalId = this.createAdobeConnectUser(participant);
         if (principalId == null) {
-            logger.warn("Participant '{}' doesn't have EPPN and thus he is not configured for the room.",
+            logger.warn("Participant '{}' cannot be configured for the room.",
                     participant.getFullName());
             return;
         }

@@ -10,12 +10,10 @@ import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for using the implementation of {@link cz.cesnet.shongo.controller.api.rpc.ReservationService} through XML-RPC.
@@ -27,6 +25,20 @@ public class XmlRpcTest extends AbstractControllerTest
     @Test
     public void testCreateReservationRequest() throws Exception
     {
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSlot("2012-06-01T15:00", "PT2H");
+        reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
+
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        assertEquals("shongo:cz.cesnet:req:1", id);
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
+        RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
+        assertEquals(new HashSet<Technology>(){{
+            add(Technology.H323);
+        }}, roomSpecification.getTechnologies());
+
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot("2012-06-01T15:00", "PT2H");
@@ -35,14 +47,41 @@ public class XmlRpcTest extends AbstractControllerTest
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
-        assertEquals("shongo:cz.cesnet:req:1", id);
+        id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+        assertEquals("shongo:cz.cesnet:req:2", id);
     }
 
     @Test
     public void testCreateReservationRequestByRawXmlRpc() throws Exception
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put("class", "ReservationRequest");
+        attributes.put("purpose", "SCIENCE");
+        attributes.put("slot", "2012-06-01T15:00/2012-06-01T17:00");
+        attributes.put("specification", new HashMap<String, Object>()
+        {{
+                put("class", "RoomSpecification");
+                put("participantCount", 5);
+                put("technologies", new ArrayList<Object>()
+                {{
+                        add("H323");
+                    }});
+            }});
+        List<Object> params = new ArrayList<Object>();
+        params.add(SECURITY_TOKEN.getAccessToken());
+        params.add(attributes);
+
+        String id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
+        assertEquals("shongo:cz.cesnet:req:1", id);
+        ReservationRequest reservationRequest =
+                (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
+        RoomSpecification roomSpecification = (RoomSpecification) reservationRequest.getSpecification();
+        assertEquals(new HashSet<Technology>(){{
+            add(Technology.H323);
+        }}, roomSpecification.getTechnologies());
+
+        attributes = new HashMap<String, Object>();
         attributes.put("class", "ReservationRequestSet");
         attributes.put("purpose", "SCIENCE");
         attributes.put("slots", new ArrayList<Object>()
@@ -82,13 +121,12 @@ public class XmlRpcTest extends AbstractControllerTest
 
                     }});
             }});
-
-        List<Object> params = new ArrayList<Object>();
+        params = new ArrayList<Object>();
         params.add(SECURITY_TOKEN.getAccessToken());
         params.add(attributes);
 
-        String id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
-        assertEquals("shongo:cz.cesnet:req:1", id);
+        id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
+        assertEquals("shongo:cz.cesnet:req:2", id);
     }
 
     @Test

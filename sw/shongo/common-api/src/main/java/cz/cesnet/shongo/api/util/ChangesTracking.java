@@ -64,17 +64,30 @@ public class ChangesTracking implements Concept
          * @param item to be checked if it is new
          * @return true if given {@code item} is new
          */
-        public static boolean isItemNew(Object item, CollectionChanges collectionChanges)
+        public boolean isItemNew(Object item)
+        {
+            if (item instanceof IdentifiedObject) {
+                IdentifiedObject identifiedObject = (IdentifiedObject) item;
+                return isIdentifiedItemNew(identifiedObject) || newItems.contains(identifiedObject.getId());
+            }
+            else {
+                return newItems.contains(item);
+            }
+        }
+
+        /**
+         * @param item
+         * @return true if given {@code item} is instance of {@link IdentifiedObject} and doesn't have identifier,
+         *         false otherwise
+         */
+        public static boolean isIdentifiedItemNew(Object item)
         {
             if (item instanceof IdentifiedObject) {
                 IdentifiedObject identifiedObject = (IdentifiedObject) item;
                 String itemIdentifier = identifiedObject.getId();
-                return itemIdentifier == null
-                        || (collectionChanges != null && collectionChanges.newItems.contains(itemIdentifier));
+                return itemIdentifier == null;
             }
-            else {
-                return collectionChanges != null && collectionChanges.newItems.contains(item);
-            }
+            return false;
         }
 
         /**
@@ -198,7 +211,7 @@ public class ChangesTracking implements Concept
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
-        if (CollectionChanges.isItemNew(item, collectionChanges)) {
+        if (collectionChanges.isItemNew(item)) {
             collectionChanges.removeNewItem(item);
         }
         else {
@@ -214,8 +227,17 @@ public class ChangesTracking implements Concept
      */
     public boolean isPropertyItemMarkedAsNew(String property, Object item)
     {
+        if (CollectionChanges.isIdentifiedItemNew(item)) {
+            return true;
+        }
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
-        return CollectionChanges.isItemNew(item, collectionChanges);
+        if (collectionChanges != null) {
+            return collectionChanges.isItemNew(item);
+        }
+        if (collectionItemIsByDefaultNew) {
+            return true;
+        }
+        return false;
     }
 
     /**

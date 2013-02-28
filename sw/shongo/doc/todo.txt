@@ -4,8 +4,8 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
+* Update cmd-line client to use RoomSettings
 * Test refactorized room options
-* Test room participants
 
 * Create communication connector -> controller
   - notify owners that room capacity exceeded
