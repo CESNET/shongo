@@ -2,11 +2,9 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.Interval;
 
 import java.util.Collection;
 import java.util.Map;
@@ -18,6 +16,17 @@ import java.util.Map;
  */
 public interface ReservationService extends Service
 {
+    /**
+     * @param token         token of the user requesting the operation
+     * @param specification to checked
+     * @param slot          in which the given {@code specification} should be checked
+     * @return {@link Boolean#TRUE} when given {@code specification} can be allocated for given date/time {@code slot},
+     *         otherwise {@link String} report describing the reason why the specification is not available
+     */
+    @API
+    public Object checkSpecificationAvailability(SecurityToken token, Specification specification, Interval slot)
+            throws FaultException;
+
     /**
      * Creates a new reservation request.
      * <p/>

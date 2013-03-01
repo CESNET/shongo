@@ -249,7 +249,6 @@ public class ReservationManagementTest extends AbstractControllerTest
     @Test
     public void testInfiniteReservationRequest() throws Exception
     {
-        RpcServerRequestLogger.setEnabled(true);
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
@@ -287,6 +286,41 @@ public class ReservationManagementTest extends AbstractControllerTest
         Interval slot3 = ((ReservationRequestSummary) result[2]).getEarliestSlot();
         Assert.assertNotEquals(Temporal.DATETIME_INFINITY_START, slot3.getStart());
         Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());
-        RpcServerRequestLogger.setEnabled(false);
+    }
+
+    @Test
+    public void testCheckSpecificationAvailability() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
+        resource.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        Interval interval = Interval.parse("2012-01-01/2012-12-31");
+        Object result;
+
+        AliasSpecification aliasSpecification = new AliasSpecification();
+        aliasSpecification.addAliasType(AliasType.ROOM_NAME);
+        aliasSpecification.setValue("test");
+
+        result = getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, aliasSpecification, interval);
+        Assert.assertEquals(Boolean.TRUE, result);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(interval);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(aliasSpecification);
+        allocateAndCheck(reservationRequest);
+
+        result = getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, aliasSpecification, interval);
+        Assert.assertEquals(String.class, result.getClass());
+
+        try {
+            getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, new RoomSpecification(), interval);
+            fail("Room specification should not be able to be checked for availability for now.");
+        }
+        catch (FaultException exception) {
+        }
     }
 }

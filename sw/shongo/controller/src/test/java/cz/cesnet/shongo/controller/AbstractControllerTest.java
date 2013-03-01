@@ -83,7 +83,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         cache.init(controller.getConfiguration());
 
         controller.addRpcService(new ResourceServiceImpl(cache));
-        controller.addRpcService(new ReservationServiceImpl());
+        controller.addRpcService(new ReservationServiceImpl(cache));
     }
 
     /**

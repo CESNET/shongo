@@ -38,6 +38,9 @@
   - interval (describe why interval cannot be formatted as start/duration)
   - remove normal/permanent reservation request
   - AliasGroupSpecification -> AliasSetSpecification
+  - Controller Jade API
+  - RoomSetting
+  - checkAvailableSpecification
 
 * Web client
   - format request state errors

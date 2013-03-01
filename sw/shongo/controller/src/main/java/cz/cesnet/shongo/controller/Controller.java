@@ -791,7 +791,7 @@ public class Controller
         controller.addRpcService(new CommonServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ResourceControlServiceImpl());
-        controller.addRpcService(new ReservationServiceImpl());
+        controller.addRpcService(new ReservationServiceImpl(cache));
         controller.addRpcService(new ExecutorServiceImpl());
 
         // Add JADE service

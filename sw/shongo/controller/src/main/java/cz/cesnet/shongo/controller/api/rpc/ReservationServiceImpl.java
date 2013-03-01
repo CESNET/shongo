@@ -4,19 +4,19 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.api.ReservationRequestState;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -37,6 +37,11 @@ public class ReservationServiceImpl extends Component
                    Component.AuthorizationAware
 {
     /**
+     * @see cz.cesnet.shongo.controller.Cache
+     */
+    private Cache cache;
+
+    /**
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
@@ -45,6 +50,16 @@ public class ReservationServiceImpl extends Component
      * @see cz.cesnet.shongo.controller.Authorization
      */
     private Authorization authorization;
+
+    /**
+     * Constructor.
+     *
+     * @param cache sets the {@link #cache}
+     */
+    public ReservationServiceImpl(Cache cache)
+    {
+        this.cache = cache;
+    }
 
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
@@ -72,6 +87,41 @@ public class ReservationServiceImpl extends Component
         return "Reservation";
     }
 
+    @Override
+    public Object checkSpecificationAvailability(SecurityToken token, Specification specificationApi, Interval slot)
+            throws FaultException
+    {
+        authorization.validate(token);
+        String userId = authorization.getUserId(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
+        try {
+            cz.cesnet.shongo.controller.request.Specification specification =
+                    cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
+            Throwable cause = null;
+            if (specification instanceof ReservationTaskProvider) {
+                ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+                ReservationTask.Context context = new ReservationTask.Context(userId, cache, slot);
+                ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
+                try {
+                    reservationTask.checkAvailability();
+                    return Boolean.TRUE;
+                }
+                catch (ReportException exception) {
+                    return exception.getReport().getReport();
+                }
+                catch (UnsupportedOperationException exception) {
+                    cause = exception;
+                }
+            }
+            throw new FaultException(cause, "Specification '%s' cannot be checked for availability.",
+                    specificationApi.getClass().getSimpleName());
+        }
+        finally {
+            entityManager.close();
+        }
+    }
 
     @Override
     public String createReservationRequest(SecurityToken token,
@@ -79,6 +129,7 @@ public class ReservationServiceImpl extends Component
             throws FaultException
     {
         authorization.validate(token);
+        String userId = authorization.getUserId(token);
 
         if (reservationRequestApi == null) {
             throw new IllegalArgumentException("Reservation request should not be null.");
@@ -92,7 +143,7 @@ public class ReservationServiceImpl extends Component
         try {
             reservationRequest = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                     reservationRequestApi, entityManager);
-            reservationRequest.setUserId(authorization.getUserId(token));
+            reservationRequest.setUserId(userId);
             reservationRequest.validate();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

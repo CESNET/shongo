@@ -297,6 +297,7 @@ public class ResourceServiceImpl extends Component
             throws PersistentEntityNotFoundException
     {
         authorization.validate(token);
+        String userId = authorization.getUserId(token);
 
         Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
         if (interval == null) {
@@ -317,7 +318,7 @@ public class ResourceServiceImpl extends Component
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
                 AvailableRoom availableRoom = cache.getRoomCache().getAvailableRoom(
-                        roomProviderCapability, new ReservationTask.Context(cache, interval));
+                        roomProviderCapability, new ReservationTask.Context(userId, cache, interval));
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

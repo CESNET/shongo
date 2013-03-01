@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
@@ -401,7 +400,7 @@ public abstract class ReservationTask
     protected void validateReservationSlot(Reservation reservation) throws ReportException
     {
         // Check maximum duration
-        if (!context.isByOwner()) {
+        if (context.isMaximumFutureAndDurationRestricted()) {
             if (reservation instanceof ResourceReservation) {
                 checkMaximumDuration(reservation.getSlot(), context.getCache().getResourceReservationMaximumDuration());
             }
@@ -436,10 +435,26 @@ public abstract class ReservationTask
     }
 
     /**
+     * Check if this {@link ReservationTask} can be allocated to a {@link Reservation}.
+     *
+     * @throws UnsupportedOperationException when the check cannot be performed
+     * @throws ReportException               when the {@link Reservation} cannot be allocated
+     */
+    public void checkAvailability() throws ReportException
+    {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Context for the {@link ReservationTask}.
      */
     public static class Context
     {
+        /**
+         * User-id to owner of new reservations.
+         */
+        private String userId;
+
         /**
          * {@link AbstractReservationRequest} for which the {@link Reservation} should be allocated.
          */
@@ -458,14 +473,28 @@ public abstract class ReservationTask
         /**
          * Constructor.
          *
+         * @param userId   sets the {@link #userId}
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link CacheTransaction#interval}
          */
-        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval)
+        public Context(String userId, Cache cache, Interval interval)
         {
-            this.reservationRequest = reservationRequest;
+            this.userId = userId;
             this.cache = cache;
             this.cacheTransaction = new CacheTransaction(interval);
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param reservationRequest sets the {@link #reservationRequest}
+         * @param cache              sets the {@link #cache}
+         * @param interval           sets the {@link CacheTransaction#interval}
+         */
+        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval)
+        {
+            this(reservationRequest.getUserId(), cache, interval);
+            this.reservationRequest = reservationRequest;
         }
 
         /**
@@ -476,24 +505,26 @@ public abstract class ReservationTask
          */
         public Context(Cache cache, Interval interval)
         {
-            this(new ReservationRequest(Authorization.ROOT_USER_ID, ReservationRequestPurpose.SCIENCE),
-                    cache, interval);
+            this(Authorization.ROOT_USER_ID, cache, interval);
         }
 
         /**
-         * @return {@link #reservationRequest}
+         * @return description of {@link #reservationRequest}
          */
-        public ReservationRequest getReservationRequest()
+        public String getReservationDescription()
         {
-            return reservationRequest;
+            if (reservationRequest == null) {
+                return null;
+            }
+            return reservationRequest.getDescription();
         }
 
         /**
-         * @return {@link #reservationRequest#getUserId()}
+         * @return {@link #userId}
          */
         public String getUserId()
         {
-            return reservationRequest.getUserId();
+            return userId;
         }
 
         /**
@@ -502,16 +533,25 @@ public abstract class ReservationTask
          */
         public boolean isExecutableAllowed()
         {
-            return reservationRequest.getPurpose().isExecutableAllowed();
+            return reservationRequest == null || reservationRequest.getPurpose().isExecutableAllowed();
         }
 
         /**
          * @return true whether only owned resource by the reservation request owner can be allocated,
          *         false otherwise
          */
-        public boolean isByOwner()
+        public boolean isOwnerRestricted()
         {
-            return reservationRequest.getPurpose().isByOwner();
+            return reservationRequest != null && reservationRequest.getPurpose().isByOwner();
+        }
+
+        /**
+         * @return true whether maximum future and maximum duration should be checked,
+         *         false otherwise
+         */
+        public boolean isMaximumFutureAndDurationRestricted()
+        {
+            return reservationRequest != null && !reservationRequest.getPurpose().isByOwner();
         }
 
         /**

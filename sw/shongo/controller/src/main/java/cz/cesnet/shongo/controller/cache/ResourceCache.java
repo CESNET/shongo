@@ -246,7 +246,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         }
 
         // If reservation request purpose implies allocation of only owned resources
-        if (context.isByOwner()) {
+        if (context.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
             String userId = context.getUserId();
             if (!Authorization.Permission.isUserOwner(userId, resource)) {
@@ -284,7 +284,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         Resource resource = capability.getResource();
         checkResourceAvailableWithoutFuture(resource, context);
 
-        if (!context.isByOwner()) {
+        if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
             if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
                 throw new ResourceNotAvailableReport(resource).exception();
@@ -304,7 +304,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     {
         checkResourceAvailableWithoutFuture(resource, context);
 
-        if (!context.isByOwner()) {
+        if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
             if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
                 throw new ResourceNotAvailableReport(resource).exception();

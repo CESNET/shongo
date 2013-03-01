@@ -394,7 +394,7 @@ public class RoomReservationTask extends ReservationTask
                     // Setup abstract room endpoint
                     roomEndpoint.setUserId(context.getUserId());
                     roomEndpoint.setSlot(getInterval());
-                    roomEndpoint.setRoomDescription(context.getReservationRequest().getDescription());
+                    roomEndpoint.setRoomDescription(context.getReservationDescription());
                     roomEndpoint.setRoomConfiguration(roomConfiguration);
                     roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
                 }

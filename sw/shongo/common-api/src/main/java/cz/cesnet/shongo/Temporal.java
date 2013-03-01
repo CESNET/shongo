@@ -125,7 +125,7 @@ public class Temporal
             period = period.withDays(period.getDays() + 365 * period.getYears()).withYears(0);
         }
         if (period.getMonths() > 0) {
-            period = period.withDays(period.getDays() + 31 * period.getMonths()).withMonths(0);
+            period = period.withDays(period.getDays() + 30 * period.getMonths()).withMonths(0);
         }
         return period.toStandardDuration();
     }
