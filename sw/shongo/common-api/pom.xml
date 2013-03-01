@@ -27,7 +27,7 @@
         <dependency>
             <groupId>com.tilab.jade</groupId>
             <artifactId>jade</artifactId>
-            <version>4.1.1</version>
+            <version>4.2.0</version>
         </dependency>
         <!-- Apache XML-RPC common is used for XmlRpcException class -->
         <dependency>

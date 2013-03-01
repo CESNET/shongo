@@ -2,11 +2,11 @@
 <metadata>
   <groupId>com.tilab.jade</groupId>
   <artifactId>jade</artifactId>
-  <version>4.1.1</version>
   <versioning>
     <versions>
       <version>4.1.1</version>
+      <version>4.2.0</version>
     </versions>
-    <lastUpdated>20120417120428</lastUpdated>
+    <lastUpdated>20130301150813</lastUpdated>
   </versioning>
 </metadata>

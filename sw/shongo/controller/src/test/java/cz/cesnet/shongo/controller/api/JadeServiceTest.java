@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.PingCommand;
@@ -13,7 +12,6 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;

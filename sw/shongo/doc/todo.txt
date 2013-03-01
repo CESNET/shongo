@@ -2,7 +2,8 @@
 
 * Implement permissions
 
-* Fix passing of user identity from authorization server through controller to adobe connect connector
+* Fix JadeServiceTest
+* Arrange shongo meeting next week
 
 * Web client
   - lists of OWNERS and REUSERS in reservation request detail

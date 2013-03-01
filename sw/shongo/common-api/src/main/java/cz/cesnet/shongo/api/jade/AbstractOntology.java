@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.api.jade;
 
 import cz.cesnet.shongo.api.util.ChangesTracking;
-import jade.content.onto.BeanOntology;
-import jade.content.onto.Ontology;
-import jade.content.onto.OntologyException;
-import jade.content.onto.SerializableOntology;
+import jade.content.onto.*;
 import jade.content.schema.ObjectSchema;
 import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import org.joda.time.DateTime;
@@ -17,7 +14,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractOntology extends BeanOntology
+public abstract class AbstractOntology extends CustomBeanOntology
 {
     private static Logger logger = LoggerFactory.getLogger(AbstractOntology.class);
 
