@@ -680,6 +680,7 @@ ParamsLoop:
         h323RoomSetting.setRegisterWithRegistrar((Boolean) result.get("registerWithSIPRegistrar"));
         h323RoomSetting.setStartLocked((Boolean) result.get("startLocked"));
         h323RoomSetting.setConferenceMeEnabled((Boolean) result.get("conferenceMeEnabled"));
+        room.addRoomSetting(h323RoomSetting);
 
         return room;
     }

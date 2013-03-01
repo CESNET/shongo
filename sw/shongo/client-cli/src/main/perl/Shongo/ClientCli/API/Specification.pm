@@ -17,6 +17,7 @@ use Shongo::ClientCli::API::DeviceResource;
 use Shongo::ClientCli::API::Person;
 use Shongo::ClientCli::API::CompartmentSpecification;
 use Shongo::ClientCli::API::ParticipantSpecification;
+use Shongo::ClientCli::API::RoomSettings;
 
 #
 # Specification types
@@ -286,8 +287,23 @@ sub on_init()
                 },
                 'complex' => 1
             });
+            $self->add_attribute('roomSettings', {
+                'title' => 'Room Settings',
+                'display' => 'newline',
+                'complex' => 1,
+                'format' => sub() {
+                    my ($room_settings) = @_;
+                    Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, get_collection_items($self->get('technologies')));
+                },
+                'modify' => sub() {
+                    my ($room_settings) = @_;
+                    return Shongo::ClientCli::API::RoomSettings::modify_room_settings($room_settings);
+                }
+            });
         }
     }
 }
+
+
 
 1;

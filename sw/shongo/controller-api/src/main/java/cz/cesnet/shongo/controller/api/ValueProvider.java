@@ -89,7 +89,7 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
          */
         public Boolean getAllowAnyRequestedValue()
         {
-            return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE);
+            return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE, false);
         }
 
         /**

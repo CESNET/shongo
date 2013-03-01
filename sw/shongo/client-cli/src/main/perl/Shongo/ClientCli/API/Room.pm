@@ -11,12 +11,7 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-
-our $Option = ordered_hash(
-    'DESCRIPTION'           => {'title' => 'Description',           'type' => 'string'},
-    'PIN'                   => {'title' => 'Pin',                   'type' => 'string'},
-    'LISTED_PUBLICLY'       => {'title' => 'Listed Publicly',       'type' => 'bool'}
-);
+use Shongo::ClientCli::API::RoomSettings;
 
 #
 # Create a new instance of alias
@@ -57,38 +52,18 @@ sub new()
             'short' => 1
         }
     });
-    $self->add_attribute('options', {
-        'type' => 'map',
-        'item' => {
-            'title' => 'Option',
-            'format' => sub {
-                my ($item_key, $item_value) = @_;
-                if ( defined($Option->{$item_key}) ) {
-                    $item_key = $Option->{$item_key}->{'title'};
-                }
-                return "$item_key: $item_value";
-            },
-            'add' => sub {
-                my $options = [];
-                foreach my $item_key (ordered_hash_keys($Option)) {
-                    push(@{$options}, $item_key => $Option->{$item_key}->{'title'});
-                }
-                my $item_key = console_read_enum('Select', ordered_hash($options));
-                if ( !defined($Option->{$item_key}) ) {
-                    return;
-                }
-                my $option = $Option->{$item_key};
-                my $item_value = Shongo::ClientCli::API::Object->modify_attribute_value($option->{'title'}, undef, $option, 0);
-                return ($item_key, $item_value);
-            },
-            'modify' => sub {
-                my ($item_key, $item_value) = @_;
-                my $option = $Option->{$item_key};
-                $item_value = Shongo::ClientCli::API::Object->modify_attribute_value($option->{'title'}, $item_value, $option, 1);
-                return $item_value;
-            }
+    $self->add_attribute('roomSettings', {
+        'title' => 'Room Settings',
+        'display' => 'newline',
+        'complex' => 1,
+        'format' => sub() {
+            my ($room_settings) = @_;
+            Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, get_collection_items($self->get('technologies')));
         },
-        'display-empty' => 1
+        'modify' => sub() {
+            my ($room_settings) = @_;
+            return Shongo::ClientCli::API::RoomSettings::modify_room_settings($room_settings);
+        }
     });
 
     return $self;

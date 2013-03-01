@@ -88,7 +88,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getListedPublicly()
     {
-        return getPropertyStorage().getValueAsBoolean(LISTED_PUBLICLY);
+        return getPropertyStorage().getValue(LISTED_PUBLICLY);
     }
 
     /**
@@ -104,7 +104,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getAllowContent()
     {
-        return getPropertyStorage().getValueAsBoolean(ALLOW_CONTENT);
+        return getPropertyStorage().getValue(ALLOW_CONTENT);
     }
 
     /**
@@ -120,7 +120,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getAllowGuests()
     {
-        return getPropertyStorage().getValueAsBoolean(ALLOW_GUESTS);
+        return (Boolean) getPropertyStorage().getValue(ALLOW_GUESTS);
     }
 
     /**
@@ -136,7 +136,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getJoinAudioMuted()
     {
-        return getPropertyStorage().getValueAsBoolean(JOIN_AUDIO_MUTED);
+        return getPropertyStorage().getValue(JOIN_AUDIO_MUTED);
     }
 
     /**
@@ -152,7 +152,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getJoinVideoMuted()
     {
-        return getPropertyStorage().getValueAsBoolean(JOIN_VIDEO_MUTED);
+        return getPropertyStorage().getValue(JOIN_VIDEO_MUTED);
     }
 
     /**
@@ -168,7 +168,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getRegisterWithGatekeeper()
     {
-        return getPropertyStorage().getValueAsBoolean(REGISTER_WITH_GATEKEEPER);
+        return getPropertyStorage().getValue(REGISTER_WITH_GATEKEEPER);
     }
 
     /**
@@ -184,7 +184,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getRegisterWithRegistrar()
     {
-        return getPropertyStorage().getValueAsBoolean(REGISTER_WITH_REGISTRAR);
+        return getPropertyStorage().getValue(REGISTER_WITH_REGISTRAR);
     }
 
     /**
@@ -200,7 +200,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getStartLocked()
     {
-        return getPropertyStorage().getValueAsBoolean(START_LOCKED);
+        return getPropertyStorage().getValue(START_LOCKED);
     }
 
     /**
@@ -216,7 +216,7 @@ public class H323RoomSetting extends RoomSetting
      */
     public Boolean getConferenceMeEnabled()
     {
-        return getPropertyStorage().getValueAsBoolean(CONFERENCE_ME_ENABLED);
+        return getPropertyStorage().getValue(CONFERENCE_ME_ENABLED);
     }
 
     /**

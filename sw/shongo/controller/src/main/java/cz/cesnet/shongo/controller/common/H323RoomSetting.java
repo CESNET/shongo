@@ -242,16 +242,36 @@ public class H323RoomSetting extends RoomSetting
 
         cz.cesnet.shongo.api.H323RoomSetting roomSettingH323Api =
                 (cz.cesnet.shongo.api.H323RoomSetting) roomSettingApi;
-        roomSettingH323Api.setPin(getPin());
-        roomSettingH323Api.setListedPublicly(getListedPublicly());
-        roomSettingH323Api.setAllowContent(getAllowContent());
-        roomSettingH323Api.setAllowGuests(getAllowGuests());
-        roomSettingH323Api.setJoinAudioMuted(getJoinAudioMuted());
-        roomSettingH323Api.setJoinVideoMuted(getJoinVideoMuted());
-        roomSettingH323Api.setRegisterWithGatekeeper(getRegisterWithGatekeeper());
-        roomSettingH323Api.setRegisterWithRegistrar(getRegisterWithRegistrar());
-        roomSettingH323Api.setStartLocked(getStartLocked());
-        roomSettingH323Api.setConferenceMeEnabled(getConferenceMeEnabled());
+        if (pin != null) {
+            roomSettingH323Api.setPin(pin);
+        }
+        if (listedPublicly != null) {
+            roomSettingH323Api.setListedPublicly(listedPublicly);
+        }
+        if (allowContent != null) {
+            roomSettingH323Api.setAllowContent(allowContent);
+        }
+        if (allowGuests != null) {
+            roomSettingH323Api.setAllowGuests(allowGuests);
+        }
+        if (joinAudioMuted != null) {
+            roomSettingH323Api.setJoinAudioMuted(joinAudioMuted);
+        }
+        if (joinVideoMuted != null) {
+            roomSettingH323Api.setJoinVideoMuted(joinVideoMuted);
+        }
+        if (registerWithGatekeeper != null) {
+            roomSettingH323Api.setRegisterWithGatekeeper(registerWithGatekeeper);
+        }
+        if (registerWithRegistrar != null) {
+            roomSettingH323Api.setRegisterWithRegistrar(registerWithRegistrar);
+        }
+        if (startLocked != null) {
+            roomSettingH323Api.setStartLocked(startLocked);
+        }
+        if (conferenceMeEnabled != null) {
+            roomSettingH323Api.setConferenceMeEnabled(conferenceMeEnabled);
+        }
     }
 
     @Override

@@ -39,7 +39,7 @@ sub new
     bless $self, $class;
 
     $self->{'__class'} = undef;
-    $self->{'__name'} = 'Object';
+    $self->{'__name'} = undef;
     $self->{'__attributes'} = {};
     $self->{'__attributes_order'} = [];
     $self->{'__attributes_preserve'} = {};
@@ -1137,6 +1137,12 @@ sub to_string
 
     my $content = '';
     $content .= $self->format_attributes(0);
+
+    my $name = $self->{'__name'};
+    if ( !defined($name) ) {
+        return $content;
+    }
+
     # add "|" to the beginning of each line
     my $prefix = colored('|', $COLOR_HEADER);
     $content =~ s/\n *$//g;

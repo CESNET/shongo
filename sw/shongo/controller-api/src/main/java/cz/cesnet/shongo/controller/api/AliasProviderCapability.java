@@ -188,7 +188,7 @@ public class AliasProviderCapability extends Capability
      */
     public Boolean getRestrictedToResource()
     {
-        return getPropertyStorage().getValueAsBoolean(RESTRICTED_TO_RESOURCE);
+        return getPropertyStorage().getValueAsBoolean(RESTRICTED_TO_RESOURCE, false);
     }
 
     /**
@@ -204,7 +204,7 @@ public class AliasProviderCapability extends Capability
      */
     public Boolean getPermanentRoom()
     {
-        return getPropertyStorage().getValueAsBoolean(PERMANENT_ROOM);
+        return getPropertyStorage().getValueAsBoolean(PERMANENT_ROOM, false);
     }
 
     /**

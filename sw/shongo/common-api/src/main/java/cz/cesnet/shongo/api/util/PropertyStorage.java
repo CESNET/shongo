@@ -66,13 +66,14 @@ public class PropertyStorage
 
     /**
      * @param property
+     * @param defaultValue
      * @return value of given property as int
      */
-    public boolean getValueAsBoolean(String property)
+    public boolean getValueAsBoolean(String property, Boolean defaultValue)
     {
         Object value = getValue(property);
         if (value == null) {
-            return false;
+            return defaultValue;
         }
         return (Boolean) value;
     }
