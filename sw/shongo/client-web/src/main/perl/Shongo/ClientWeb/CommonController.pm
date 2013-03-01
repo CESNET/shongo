@@ -133,7 +133,7 @@ sub parse_room_specification
 #
 sub parse_reservation_request
 {
-    my ($self, $params, $specification) = @_;
+    my ($self, $params) = @_;
     my $request = {};
     my $slotStart = undef;
     my $slotEnd = undef;
@@ -188,7 +188,6 @@ sub parse_reservation_request
     # Setup request
     $request->{'description'} = $params->{'description'};
     $request->{'purpose'} = $params->{'purpose'};
-    $request->{'specification'} = $specification;
     if ( !defined($params->{'periodicity'}) || $params->{'periodicity'} eq 'none') {
         $request->{'class'} = 'ReservationRequest';
         $request->{'slot'} = $slotStart . '/' . $slotEnd;

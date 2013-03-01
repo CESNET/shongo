@@ -4,21 +4,27 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.AliasReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
+import cz.cesnet.shongo.controller.scheduler.report.*;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a {@link Specification} for an {@link Alias}.
@@ -26,7 +32,8 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AliasSpecification extends Specification implements ReservationTaskProvider
+public class AliasSpecification extends Specification
+        implements ReservationTaskProvider, SpecificationCheckAvailability
 {
     /**
      * Restricts {@link AliasType} for allocation of {@link Alias}.
@@ -271,6 +278,74 @@ public class AliasSpecification extends Specification implements ReservationTask
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
         }
         return aliasReservationTask;
+    }
+
+    @Override
+    public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException
+    {
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+
+        List<AliasProviderCapability> aliasProviders = new LinkedList<AliasProviderCapability>();
+        for (AliasProviderCapability aliasProvider : resourceManager.listCapabilities(AliasProviderCapability.class)) {
+            if (aliasTechnologies.size() > 0 && !aliasProvider.providesAliasTechnology(aliasTechnologies)) {
+                continue;
+            }
+            if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
+                continue;
+            }
+            aliasProviders.add(aliasProvider);
+        }
+
+        // Find available value in the alias providers
+        Report report = new CheckingSpecificationAvailabilityReport();
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            Resource resource = aliasProvider.getResource();
+            if (!resource.isAllocatable()) {
+                continue;
+            }
+            List<ResourceReservation> resourceReservations = reservationManager.getResourceReservations(resource, slot);
+            if (resourceReservations.size() > 0) {
+                continue;
+            }
+
+            Report resourceReport = report.addChildReport(new ResourceReport(resource));
+
+            ValueProvider valueProvider = aliasProvider.getValueProvider();
+            ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
+            Set<String> usedValues = new HashSet<String>();
+            for (ValueReservation allocatedValue : reservationManager.getValueReservations(targetValueProvider, slot)) {
+                usedValues.add(allocatedValue.getValue());
+            }
+            try {
+                if (value != null) {
+                    valueProvider.generateValue(usedValues, value);
+                }
+                else {
+                    valueProvider.generateValue(usedValues);
+                }
+            }
+            catch (ValueProvider.InvalidValueException exception) {
+                resourceReport.setState(Report.State.ERROR);
+                resourceReport.addChildReport(new ValueInvalidReport(value));
+                continue;
+            }
+            catch (ValueProvider.ValueAlreadyAllocatedException exception) {
+                resourceReport.setState(Report.State.ERROR);
+                resourceReport.addChildReport(new ValueAlreadyAllocatedReport(value));
+                continue;
+            }
+            catch (ValueProvider.NoAvailableValueException exception) {
+                resourceReport.setState(Report.State.ERROR);
+                resourceReport.addChildReport(new ValueNoAvailableReport());
+                continue;
+            }
+
+            // An alias reservation is available
+            return;
+        }
+
+        throw report.exception();
     }
 
     @Override

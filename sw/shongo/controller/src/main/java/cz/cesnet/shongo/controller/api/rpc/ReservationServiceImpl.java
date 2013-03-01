@@ -15,8 +15,7 @@ import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -97,15 +96,14 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
+            specificationApi.setupNewEntity();
             cz.cesnet.shongo.controller.request.Specification specification =
                     cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
             Throwable cause = null;
-            if (specification instanceof ReservationTaskProvider) {
-                ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
-                ReservationTask.Context context = new ReservationTask.Context(userId, cache, slot);
-                ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
+            if (specification instanceof SpecificationCheckAvailability) {
+                SpecificationCheckAvailability checkAvailability = (SpecificationCheckAvailability) specification;
                 try {
-                    reservationTask.checkAvailability();
+                    checkAvailability.checkAvailability(slot, entityManager);
                     return Boolean.TRUE;
                 }
                 catch (ReportException exception) {

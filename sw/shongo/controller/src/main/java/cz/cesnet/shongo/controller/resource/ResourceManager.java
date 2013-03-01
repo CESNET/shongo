@@ -155,20 +155,20 @@ public class ResourceManager extends AbstractManager
 
     /**
      * @param capabilityType
-     * @return list of all device resources which have capability with given {@code capabilityType}
+     * @return list of all {@link Resource}s which have capability with given {@code capabilityType}
      */
-    public List<DeviceResource> listDevicesWithCapability(Class<? extends Capability> capabilityType)
+    public List<Resource> listResourcesWithCapability(Class<? extends Capability> capabilityType)
     {
-        List<DeviceResource> deviceResources = entityManager.createQuery("SELECT device FROM DeviceResource device"
-                + " WHERE device.id IN("
-                + "  SELECT device.id FROM DeviceResource device"
-                + "  INNER JOIN device.capabilities capability"
+        List<Resource> resources = entityManager.createQuery("SELECT resource FROM Resource resource"
+                + " WHERE resource.id IN("
+                + "  SELECT resource.id FROM Resource resource"
+                + "  INNER JOIN resource.capabilities capability"
                 + "  WHERE TYPE(capability) = :capability"
-                + "  GROUP BY device.id"
-                + " )", DeviceResource.class)
+                + "  GROUP BY resource.id"
+                + " )", Resource.class)
                 .setParameter("capability", capabilityType)
                 .getResultList();
-        return deviceResources;
+        return resources;
     }
 
     /**
@@ -205,7 +205,7 @@ public class ResourceManager extends AbstractManager
 
     /**
      * @param capabilityType
-     * @return list of all capabilities of given {@code capabilityType}
+     * @return list of all {@link Capability}s of given {@code capabilityType}
      */
     public <T extends Capability> List<T> listCapabilities(Class<T> capabilityType)
     {

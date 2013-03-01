@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
@@ -311,6 +313,50 @@ public class ReservationManager extends AbstractManager
                         + " WHERE reservation.reservation = :reusedReservation",
                 ExistingReservation.class)
                 .setParameter("reusedReservation", reusedReservation)
+                .getResultList();
+        return reservations;
+    }
+
+    /**
+     * Get list of {@link ResourceReservation} for given {@code resource} in given {@code slot}.
+     *
+     * @param resource
+     * @param interval
+     * @return list of {@link ResourceReservation} for given {@code resource}
+     */
+    public List<ResourceReservation> getResourceReservations(Resource resource, Interval interval)
+    {
+        List<ResourceReservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM ResourceReservation reservation"
+                        + " WHERE reservation.resource = :resource"
+                        + " AND reservation.slotStart < :end"
+                        + " AND reservation.slotEnd > :start",
+                ResourceReservation.class)
+                .setParameter("resource", resource)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return reservations;
+    }
+
+    /**
+     * Get list of {@link ValueReservation} for given {@code valueProvider} in given {@code slot}.
+     *
+     * @param valueProvider
+     * @param interval
+     * @return list of {@link ValueReservation} for given {@code valueProvider}
+     */
+    public List<ValueReservation> getValueReservations(ValueProvider valueProvider, Interval interval)
+    {
+        List<ValueReservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM ValueReservation reservation"
+                        + " WHERE reservation.valueProvider = :valueProvider"
+                        + " AND reservation.slotStart < :end"
+                        + " AND reservation.slotEnd > :start",
+                ValueReservation.class)
+                .setParameter("valueProvider", valueProvider)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
                 .getResultList();
         return reservations;
     }

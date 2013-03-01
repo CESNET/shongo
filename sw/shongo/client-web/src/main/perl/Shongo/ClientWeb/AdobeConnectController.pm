@@ -61,8 +61,9 @@ sub create_action
             }
         });
         if ( !%{$params->{'error'}} ) {
+            my $reservation_request = $self->parse_reservation_request($params);
             my $specification = $self->parse_room_specification($params, ['ADOBE_CONNECT']);
-            my $reservation_request = $self->parse_reservation_request($params, $specification);
+            $reservation_request->{'specification'} = $specification;
             $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
             $self->redirect('list');
         }
@@ -101,15 +102,23 @@ sub create_alias_action
             }
         });
         if ( !%{$params->{'error'}} ) {
+            my $reservation_request = $self->parse_reservation_request($params);
             my $specification = {
                 'class' => 'AliasSpecification',
                 'aliasTypes' => ['ROOM_NAME'],
                 'technologies' => ['ADOBE_CONNECT'],
                 'value' => $params->{'roomName'}
             };
-            my $reservation_request = $self->parse_reservation_request($params, $specification);
-            $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
-            $self->redirect('list');
+            $reservation_request->{'specification'} = $specification;
+
+            my $result = $self->{'application'}->secure_request('Reservation.checkSpecificationAvailability', $specification, $reservation_request->{'slot'});
+            if ( $result eq '1' ) {
+                $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
+                $self->redirect('list');
+            }
+            else {
+                $params->{'error'}->{'roomName'} = $self->format_form_error('Room name is already used in specified time slot.');
+            }
         }
     }
     $params->{'options'} = {

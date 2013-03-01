@@ -142,13 +142,14 @@ public abstract class Report
     /**
      * @param report to be added to the {@link #childReports}
      */
-    public void addChildReport(Report report)
+    public Report addChildReport(Report report)
     {
         // Manage bidirectional association
         if (childReports.contains(report) == false) {
             childReports.add(report);
             report.setParentReport(this);
         }
+        return report;
     }
 
     /**

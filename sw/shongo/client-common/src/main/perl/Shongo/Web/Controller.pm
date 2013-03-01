@@ -212,6 +212,9 @@ sub error
     $self->{'application'}->error_action($error);
 }
 
+# Format for form errors
+our $FORM_ERROR_FORMAT = '<div class="error">* %s</div>';
+
 #
 # Validate form
 #
@@ -256,7 +259,7 @@ sub validate_form
     if (!defined($profile->{'msgs'}->{'constraints'})) {
         $profile->{'msgs'}->{'constraints'} = {};
     }
-    $profile->{'msgs'}->{'format'} = '<div class="error">* %s</div>';
+    $profile->{'msgs'}->{'format'} = $FORM_ERROR_FORMAT;
     $profile->{'msgs'}->{'constraints'}->{'number'} = 'Not a valid number';
     $profile->{'msgs'}->{'constraints'}->{'date'} = 'Not a valid date (e.g., 2012-02-25)';
     $profile->{'msgs'}->{'constraints'}->{'time'} = 'Not a valid time (e.g., 14:01)';
@@ -266,6 +269,18 @@ sub validate_form
     my $results = Data::FormValidator->check($data, $profile);
     my $errors = $results->msgs();
     return $errors;
+}
+
+#
+# Format form error.
+#
+# @param $error
+# @return formatted $error
+#
+sub format_form_error
+{
+    my ($self, $error) = @_;
+    return sprintf($FORM_ERROR_FORMAT, $error);
 }
 
 #

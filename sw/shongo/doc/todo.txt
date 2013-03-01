@@ -5,7 +5,6 @@
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
 * Web client
-  - checkAvailableSpecification
   - lists of OWNERS and REUSERS in reservation request detail
 
 * Setup shongo and shongo-dev configuration:

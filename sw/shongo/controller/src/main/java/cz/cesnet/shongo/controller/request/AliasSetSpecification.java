@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -18,7 +21,8 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AliasSetSpecification extends Specification implements ReservationTaskProvider
+public class AliasSetSpecification extends Specification
+        implements ReservationTaskProvider, SpecificationCheckAvailability
 {
     /**
      * List of {@link AliasSpecification} for {@link cz.cesnet.shongo.controller.resource.Alias}es which should be allocated for the room.
@@ -141,6 +145,14 @@ public class AliasSetSpecification extends Specification implements ReservationT
         }
         aliasSetReservationTask.setSharedExecutable(isSharedExecutable());
         return aliasSetReservationTask;
+    }
+
+    @Override
+    public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException
+    {
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            aliasSpecification.checkAvailability(slot, entityManager);
+        }
     }
 
     @Override

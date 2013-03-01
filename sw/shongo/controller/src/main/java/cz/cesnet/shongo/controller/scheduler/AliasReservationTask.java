@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -126,74 +127,10 @@ public class AliasReservationTask extends ReservationTask
     }
 
     @Override
-    public void checkAvailability() throws ReportException
-    {
-        AvailableAlias availableAlias = getAvailableAlias();
-        if (availableAlias == null) {
-            throw new IllegalStateException("Failed alias allocation should thrown report exception.");
-        }
-    }
-
-    @Override
     protected Reservation createReservation() throws ReportException
     {
         Context context = getContext();
         Interval interval = getInterval();
-
-        AvailableAlias availableAlias = getAvailableAlias();
-        if (availableAlias.providedAliasReservation != null) {
-            addReport(new ReusingReservationReport(availableAlias.providedAliasReservation));
-
-            ExistingReservation existingReservation = new ExistingReservation();
-            existingReservation.setSlot(interval);
-            existingReservation.setReservation(availableAlias.providedAliasReservation);
-            getCacheTransaction().removeProvidedReservation(availableAlias.providedAliasReservation);
-            return existingReservation;
-        }
-
-        // Create new reservation
-        AliasReservation aliasReservation = new AliasReservation();
-        aliasReservation.setSlot(interval);
-        aliasReservation.setAliasProviderCapability(availableAlias.aliasProvider);
-        aliasReservation.setValueReservation(availableAlias.valueReservation);
-
-        // If alias should be allocated as permanent room, create room endpoint with zero licenses
-        // (so we don't need reservation for the room).
-        // The permanent room should not be created if the alias will be used for any specified target resource.
-        if (availableAlias.aliasProvider.isPermanentRoom() && context.isExecutableAllowed() && targetResource == null) {
-            Resource resource = availableAlias.aliasProvider.getResource();
-            RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
-            if (roomProvider == null) {
-                throw new IllegalStateException("Permanent room should be enabled only for device resource"
-                        + " with room provider capability.");
-            }
-            addReport(new AllocatingExecutableReport());
-
-            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setUserId(context.getUserId());
-            roomEndpoint.setSlot(interval);
-            roomEndpoint.setRoomProviderCapability(roomProvider);
-            roomEndpoint.setRoomDescription(context.getReservationDescription());
-            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-            Set<Technology> technologies = roomEndpoint.getTechnologies();
-            for (Alias alias : aliasReservation.getAliases()) {
-                if (alias.getTechnology().isCompatibleWith(technologies)) {
-                    roomEndpoint.addAssignedAlias(alias);
-                }
-            }
-            aliasReservation.setExecutable(roomEndpoint);
-        }
-
-        return aliasReservation;
-    }
-
-    /**
-     * @return {@link AvailableAlias}
-     * @throws ReportException
-     */
-    private AvailableAlias getAvailableAlias() throws ReportException
-    {
-        Context context = getContext();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
@@ -307,14 +244,19 @@ public class AliasReservationTask extends ReservationTask
             // Preferably reuse provided alias reservation
             AliasReservation providedAliasReservation = availableProvidedAlias.get(aliasProvider);
             if (providedAliasReservation != null) {
-                return new AvailableAlias(providedAliasReservation);
+                addReport(new ReusingReservationReport(providedAliasReservation));
+
+                ExistingReservation existingReservation = new ExistingReservation();
+                existingReservation.setSlot(getInterval());
+                existingReservation.setReservation(providedAliasReservation);
+                cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                return existingReservation;
             }
 
             // Check whether alias provider can be allocated
             try {
                 resourceCache.checkCapabilityAvailable(aliasProvider, context);
-            }
-            catch (ReportException exception) {
+            } catch (ReportException exception) {
                 endReportError(exception.getReport());
                 continue;
             }
@@ -344,49 +286,38 @@ public class AliasReservationTask extends ReservationTask
         if (availableValueReservation == null) {
             throw createReportFailureForThrowing().exception();
         }
-        return new AvailableAlias(availableAliasProvider, availableValueReservation);
-    }
 
-    /**
-     * Represents an available {@link AliasReservation}.
-     */
-    private static class AvailableAlias
-    {
-        /**
-         * Provided {@link AliasReservation}.
-         */
-        private AliasReservation providedAliasReservation;
+        // Create new reservation
+        AliasReservation aliasReservation = new AliasReservation();
+        aliasReservation.setSlot(getInterval());
+        aliasReservation.setAliasProviderCapability(availableAliasProvider);
+        aliasReservation.setValueReservation(availableValueReservation);
 
-        /**
-         * Available {@link AliasProviderCapability}.
-         */
-        private AliasProviderCapability aliasProvider;
-
-        /**
-         * Available {@link ValueReservation}.
-         */
-        private ValueReservation valueReservation;
-
-        /**
-         * Constructor.
-         *
-         * @param providedAliasReservation sets the {@link #providedAliasReservation}
-         */
-        public AvailableAlias(AliasReservation providedAliasReservation)
-        {
-            this.providedAliasReservation = providedAliasReservation;
+        // If alias should be allocated as permanent room, create room endpoint with zero licenses
+        // (so we don't need reservation for the room).
+        // The permanent room should not be created if the alias will be used for any specified target resource.
+        if (availableAliasProvider.isPermanentRoom() && context.isExecutableAllowed() && targetResource == null) {
+            Resource resource = availableAliasProvider.getResource();
+            RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
+            if (roomProvider == null) {
+                throw new IllegalStateException("Permanent room should be enabled only for device resource"
+                        + " with room provider capability.");
+            }
+            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+            roomEndpoint.setUserId(context.getUserId());
+            roomEndpoint.setSlot(getInterval());
+            roomEndpoint.setRoomProviderCapability(roomProvider);
+            roomEndpoint.setRoomDescription(context.getReservationDescription());
+            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+            Set<Technology> technologies = roomEndpoint.getTechnologies();
+            for (Alias alias : aliasReservation.getAliases()) {
+                if (alias.getTechnology().isCompatibleWith(technologies)) {
+                    roomEndpoint.addAssignedAlias(alias);
+                }
+            }
+            aliasReservation.setExecutable(roomEndpoint);
         }
 
-        /**
-         * Constructor.
-         *
-         * @param aliasProvider    sets the {@link #aliasProvider}
-         * @param valueReservation sets the {@link #valueReservation}
-         */
-        public AvailableAlias(AliasProviderCapability aliasProvider, ValueReservation valueReservation)
-        {
-            this.aliasProvider = aliasProvider;
-            this.valueReservation = valueReservation;
-        }
+        return aliasReservation;
     }
 }

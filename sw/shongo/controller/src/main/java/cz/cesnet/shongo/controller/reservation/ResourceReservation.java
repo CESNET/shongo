@@ -21,16 +21,16 @@ import javax.persistence.OneToOne;
 public class ResourceReservation extends Reservation
 {
     /**
+     * {@link Resource} which is allocated.
+     */
+    private Resource resource;
+
+    /**
      * Constructor.
      */
     public ResourceReservation()
     {
     }
-
-    /**
-     * {@link Resource} which is allocated.
-     */
-    private Resource resource;
 
     /**
      * @return {@link #resource}

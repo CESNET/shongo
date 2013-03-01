@@ -85,13 +85,13 @@ public class ValueReservationTask extends ReservationTask
         try {
             availableValue = valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
         }
-        catch (ValueProvider.InvalidValueException e) {
+        catch (ValueProvider.InvalidValueException exception) {
             throw new ValueInvalidReport(requestedValue).exception();
         }
-        catch (ValueProvider.ValueAlreadyAllocatedException e) {
+        catch (ValueProvider.ValueAlreadyAllocatedException exception) {
             throw new ValueAlreadyAllocatedReport(requestedValue).exception();
         }
-        catch (ValueProvider.NoAvailableValueException e) {
+        catch (ValueProvider.NoAvailableValueException exception) {
             throw new ValueNoAvailableReport().exception();
         }
 

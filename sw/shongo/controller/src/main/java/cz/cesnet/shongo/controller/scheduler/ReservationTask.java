@@ -435,17 +435,6 @@ public abstract class ReservationTask
     }
 
     /**
-     * Check if this {@link ReservationTask} can be allocated to a {@link Reservation}.
-     *
-     * @throws UnsupportedOperationException when the check cannot be performed
-     * @throws ReportException               when the {@link Reservation} cannot be allocated
-     */
-    public void checkAvailability() throws ReportException
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
      * Context for the {@link ReservationTask}.
      */
     public static class Context

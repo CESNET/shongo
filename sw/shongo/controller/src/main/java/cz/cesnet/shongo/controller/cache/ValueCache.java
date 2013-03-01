@@ -105,10 +105,11 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         String value = null;
         // Provided value reservation by which the value is already allocated
         ValueReservation valueReservation = null;
+        ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
 
         // Preferably use  provided alias
         Set<ValueReservation> providedValueReservations =
-                valueReservationTransaction.getProvidedReservations(valueProvider.getId());
+                valueReservationTransaction.getProvidedReservations(targetValueProvider.getId());
         if (providedValueReservations.size() > 0) {
             if (requestedValue != null) {
                 for (ValueReservation possibleValueReservation : providedValueReservations) {
@@ -126,8 +127,7 @@ public class ValueCache extends AbstractReservationCache<ValueProvider, ValueRes
         }
         // Else use generated value
         if (value == null) {
-            ObjectState<ValueReservation> valueProviderState =
-                    getObjectStateRequired(valueProvider.getTargetValueProvider());
+            ObjectState<ValueReservation> valueProviderState = getObjectStateRequired(targetValueProvider);
             Set<ValueReservation> allocatedValues =
                     valueProviderState.getReservations(interval, valueReservationTransaction);
             Set<String> usedValues = new HashSet<String>();
