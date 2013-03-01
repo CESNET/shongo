@@ -5,7 +5,7 @@ import jade.core.Agent;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link cz.cesnet.shongo.controller.api.jade.Service#getUserInformation(String)}
+ * @see {@link cz.cesnet.shongo.controller.api.jade.Service#getUserInformation}
  */
 public class GetUserInformation extends ControllerCommand
 {

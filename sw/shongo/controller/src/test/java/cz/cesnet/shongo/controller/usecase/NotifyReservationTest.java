@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
@@ -217,12 +218,12 @@ public class NotifyReservationTest extends AbstractControllerTest
         public void executeNotification(Notification notification)
         {
             StringBuilder recipientString = new StringBuilder();
-            for (cz.cesnet.shongo.controller.common.Person recipient : notification.getRecipients()) {
+            for (PersonInformation recipient : notification.getRecipients()) {
                 if (recipientString.length() > 0) {
                     recipientString.append(", ");
                 }
-                recipientString.append(String.format("%s (%s)", recipient.getInformation().getFullName(),
-                        recipient.getInformation().getPrimaryEmail()));
+                recipientString.append(String.format("%s (%s)", recipient.getFullName(),
+                        recipient.getPrimaryEmail()));
             }
             logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
                     recipientString.toString(), notification.getContent()

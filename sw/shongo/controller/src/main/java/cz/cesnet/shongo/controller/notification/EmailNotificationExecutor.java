@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.common.Person;
 import org.slf4j.Logger;
@@ -79,8 +80,8 @@ public class EmailNotificationExecutor extends NotificationExecutor
         }
 
         Set<String> recipients = new HashSet<String>();
-        for (Person person : notification.getRecipients()) {
-            String email = person.getInformation().getPrimaryEmail();
+        for (PersonInformation recipient : notification.getRecipients()) {
+            String email = recipient.getPrimaryEmail();
             if (email != null) {
                 recipients.add(email);
             }

@@ -4,7 +4,7 @@ import cz.cesnet.shongo.api.CommandException;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link Service#getUserInformation(String)}
+ * @see {@link Service#getRoom}
  */
 public class GetRoom extends ControllerCommand
 {

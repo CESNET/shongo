@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
@@ -39,30 +40,12 @@ public abstract class Notification
     /**
      * Notification recipients.
      */
-    private Set<Person> recipients = new HashSet<Person>();
-
-    /**
-     * Constructor.
-     *
-     * @param notificationManager sets the {@link #notificationManager}
-     */
-    public Notification(NotificationManager notificationManager)
-    {
-        this.notificationManager = notificationManager;
-    }
-
-    /**
-     * @return {@link #notificationManager}
-     */
-    public NotificationManager getNotificationManager()
-    {
-        return notificationManager;
-    }
+    private Set<PersonInformation> recipients = new HashSet<PersonInformation>();
 
     /**
      * @return {@link #recipients}
      */
-    public Collection<Person> getRecipients()
+    public Collection<PersonInformation> getRecipients()
     {
         return recipients;
     }
@@ -70,9 +53,19 @@ public abstract class Notification
     /**
      * @param recipient to be added to the {@link #recipients}
      */
-    public void addRecipient(Person recipient)
+    public void addRecipient(PersonInformation recipient)
     {
         recipients.add(recipient);
+    }
+
+    /**
+     * @param recipients to be added to the {@link #recipients}
+     */
+    public void addRecipients(Collection<PersonInformation> recipients)
+    {
+        for (PersonInformation recipient : recipients) {
+            this.recipients.add(recipient);
+        }
     }
 
     /**
@@ -80,8 +73,8 @@ public abstract class Notification
      */
     public void addUserRecipient(String userId)
     {
-        Person person = notificationManager.getAuthorization().getUserPerson(userId);
-        addRecipient(person);
+        UserInformation userRecipient = Authorization.getInstance().getUserInformation(userId);
+        addRecipient(userRecipient);
     }
 
     /**
@@ -235,7 +228,7 @@ public abstract class Notification
          */
         public cz.cesnet.shongo.controller.api.Person getUserPerson(String userId)
         {
-            return notificationManager.getAuthorization().getUserPerson(userId).toApi();
+            return Authorization.getInstance().getUserPerson(userId).toApi();
         }
 
         /**

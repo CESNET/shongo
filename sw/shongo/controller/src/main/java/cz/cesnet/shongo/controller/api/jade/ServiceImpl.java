@@ -1,17 +1,23 @@
 package cz.cesnet.shongo.controller.api.jade;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.notification.MessageNotification;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Implementation of {@link Service}.
@@ -26,11 +32,17 @@ public class ServiceImpl implements Service
     private EntityManagerFactory entityManagerFactory;
 
     /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
+
+    /**
      * Constructor.
      */
-    public ServiceImpl(EntityManagerFactory entityManagerFactory)
+    public ServiceImpl(EntityManagerFactory entityManagerFactory, NotificationManager notificationManager)
     {
         this.entityManagerFactory = entityManagerFactory;
+        this.notificationManager = notificationManager;
     }
 
     @Override
@@ -43,9 +55,6 @@ public class ServiceImpl implements Service
     public Room getRoom(String agentName, String roomId) throws CommandException
     {
         Long deviceResourceId = getDeviceResourceIdByAgentName(agentName);
-        if (deviceResourceId == null) {
-            throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
-        }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -62,9 +71,42 @@ public class ServiceImpl implements Service
     }
 
     @Override
-    public void notifyRoomOwners(String roomId, String message) throws CommandException
+    public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
+            String title, String message) throws CommandException
     {
-        throw new RuntimeException("TODO: Implement ServiceImpl.notifyRoomOwners");
+        List<PersonInformation> recipients = new LinkedList<PersonInformation>();
+        switch (targetType) {
+            case USER:
+                try {
+                    recipients.add(Authorization.getInstance().getUserInformation(targetId));
+                } catch (Exception exception) {
+                    throw new CommandException(String.format("Cannot notify user with id '%s'.", targetId), exception);
+                }
+                break;
+            case ROOM_OWNERS:
+                Long deviceResourceId = getDeviceResourceIdByAgentName(agentName);
+                EntityManager entityManager = entityManagerFactory.createEntityManager();
+                try {
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
+                    RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, targetId, DateTime.now());
+                    if (roomEndpoint == null) {
+                        throw new CommandException(
+                                String.format("No room '%s' was found for resource with agent '%s'.", targetId, agentName));
+                    }
+                    for ( PersonInformation person : Authorization.Permission.getExecutableOwners(roomEndpoint) ) {
+                        recipients.add(person);
+                    }
+                }
+                finally {
+                    entityManager.close();
+                }
+            default:
+                throw new TodoImplementException(targetType.toString());
+        }
+
+        MessageNotification messageNotification = new MessageNotification(title, message);
+        messageNotification.addRecipients(recipients);
+        notificationManager.executeNotification(messageNotification);
     }
 
     /**
@@ -73,7 +115,7 @@ public class ServiceImpl implements Service
      * @param agentName of the managed device resource
      * @return device resource identifier
      */
-    private Long getDeviceResourceIdByAgentName(String agentName)
+    private Long getDeviceResourceIdByAgentName(String agentName) throws CommandException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -82,9 +124,7 @@ public class ServiceImpl implements Service
             if (deviceResource != null) {
                 return deviceResource.getId();
             }
-            else {
-                return null;
-            }
+            throw new CommandException(String.format("No device resource is configured with agent '%s'.", agentName));
         }
         finally {
             entityManager.close();

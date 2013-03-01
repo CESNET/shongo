@@ -105,15 +105,15 @@ public class NotificationManager extends Component implements Component.Authoriz
         logger.debug("Notifying about changes in reservations...");
         for (Reservation reservation : newReservations) {
             executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.NEW, reservation, this, entityManager));
+                    ReservationNotification.Type.NEW, reservation, entityManager));
         }
         for (Reservation reservation : modifiedReservations) {
             executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.MODIFIED, reservation, this, entityManager));
+                    ReservationNotification.Type.MODIFIED, reservation, entityManager));
         }
         for (Reservation reservation : deletedReservations) {
             executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, reservation, this, entityManager));
+                    ReservationNotification.Type.DELETED, reservation, entityManager));
         }
     }
 }

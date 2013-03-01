@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class JadeTest extends AbstractControllerTest
+public class JadeSerializationTest extends AbstractControllerTest
 {
-    private static Logger logger = LoggerFactory.getLogger(JadeTest.class);
+    private static Logger logger = LoggerFactory.getLogger(JadeSerializationTest.class);
 
     /**
      * @return {@link cz.cesnet.shongo.controller.api.rpc.ResourceControlService} from the {@link #controllerClient}

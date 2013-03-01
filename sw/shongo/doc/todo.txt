@@ -4,19 +4,16 @@
 
 * Fix passing of user identity from authorization server through controller to adobe connect connector
 
-* Create communication connector -> controller
-  - notify owners that room capacity exceeded
-  - create CommandExecutor a Command.perform
-
-* Discuss start pre end post (+-15 min, how to allocate?)
-
-* Configuration:
-  - discuss MCU MUNI with hopet and milos
-  - wait for MCU CESNET configuration from janru
-
 * Web client
   - checkAvailableSpecification
   - lists of OWNERS and REUSERS in reservation request detail
+
+* Setup shongo and shongo-dev configuration:
+  - discuss ROOM_NAME configuration
+
+* Discuss
+  - start pre end post (+-15 min, how to allocate?)
+  - MCU MUNI configuration with hopet and milos
 
 * Document escalation procedures with Peter
 
@@ -113,6 +110,8 @@
 
 FUTURE:
 -------
+* Refactor JADE commands to return typed values (add method "T Command.perform(Command.CommandExecutor executor)")
+
 * Controller should check RoomProvider devices if theirs configured capacity doesn't exceed the real one and
   warning should be displayed if so (we don't have to force error message)
 

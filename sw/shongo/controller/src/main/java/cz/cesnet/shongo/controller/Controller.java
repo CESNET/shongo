@@ -795,7 +795,7 @@ public class Controller
         controller.addRpcService(new ExecutorServiceImpl());
 
         // Add JADE service
-        controller.setJadeService(new ServiceImpl(entityManagerFactory));
+        controller.setJadeService(new ServiceImpl(entityManagerFactory, controller.getNotificationManager()));
 
         // Start, run and stop the controller
         controller.startAll();

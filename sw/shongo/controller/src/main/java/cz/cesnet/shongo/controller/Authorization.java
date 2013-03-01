@@ -378,7 +378,6 @@ public class Authorization
         }
     }
 
-
     /**
      * Entry for {@link Authorization#userIdCache} and {@link Authorization#userInformationCache}.
      */

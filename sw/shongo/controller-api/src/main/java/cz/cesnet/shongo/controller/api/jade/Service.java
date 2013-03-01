@@ -28,10 +28,29 @@ public interface Service
     public Room getRoom(String agentName, String roomId) throws CommandException;
 
     /**
-     * Notify all owners for the room with given {@code roomId} by given {@code message}.
+     * Notify given {@code targetType} with given {@code targetId} by given {@code message}.
      *
-     * @param roomId of the room whose owners should be notified
-     * @param message which should be used for notification
+     * @param targetType {@link NotifyTargetType} defining who should be notified
+     * @param targetId   identifier defining the identity of {@link NotifyTargetType} who should be notified
+     * @param title      title of the message
+     * @param message    which should be used for notification
      */
-    public void notifyRoomOwners(String roomId, String message) throws CommandException;
+    public void notifyTarget(String agentName, NotifyTargetType targetType, String targetId,
+            String title, String message) throws CommandException;
+
+    /**
+     * Enumeration of all possible notification targets.
+     */
+    public static enum NotifyTargetType
+    {
+        /**
+         * A single user should be notified. The {@code targetId} must contain user-id.
+         */
+        USER,
+
+        /**
+         * All owners of a single {@link Room} should be notified. The {@code targetId} must contain {@link Room#id}.
+         */
+        ROOM_OWNERS
+    }
 }
