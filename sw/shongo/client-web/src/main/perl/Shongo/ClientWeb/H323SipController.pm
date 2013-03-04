@@ -120,12 +120,12 @@ sub create_alias_action
             $reservation_request->{'specification'} = $specification;
 
             my $result = $self->{'application'}->secure_request('Reservation.checkSpecificationAvailability', $specification, $reservation_request->{'slot'});
-            if ( $result eq '1' ) {
-                $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
-                $self->redirect('list');
+            if ( $result ne '1' && $result =~ 'already allocated' ) {
+                $params->{'error'}->{'roomName'} = $self->format_form_error('Room name is already used in specified time slot.');
             }
             else {
-                $params->{'error'}->{'roomName'} = $self->format_form_error('Room name is already used in specified time slot.');
+                $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
+                $self->redirect('list');
             }
         }
     }
