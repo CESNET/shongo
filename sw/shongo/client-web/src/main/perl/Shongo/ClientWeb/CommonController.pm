@@ -82,6 +82,31 @@ sub list_reservation_requests
     });
 }
 
+sub create_user_role_action
+{
+    my ($self) = @_;
+    my $id = $self->get_param('id');
+    my $resource_title = 'resource';
+
+    my $resource_id = undef;
+    if ( defined($id) ) {
+        $resource_id = 'shongo:cz.cesnet:req:1';
+    }
+    else {
+        $resource_id = $self->get_param('resource-id');
+    }
+    if ( !defined($resource_id) ) {
+        die('Resource is not defined.');
+    }
+    if ( $resource_id =~ 'shongo:.+:req:.+' ) {
+        $resource_title = 'request';
+    }
+    $self->render_page('Create user role', 'common/user-role.html', {
+        'resource' => $resource_id,
+        'resourceTitle' => $resource_title
+    });
+}
+
 sub delete_action
 {
     my ($self) = @_;
@@ -231,6 +256,9 @@ sub get_reservation_request
 
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
+
+    #my $owners = $self->{'application'}->secure_request('Authorization.listUserResourceRoles', {}, $id, 'owner');
+    #var_dump($owners);
 
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {

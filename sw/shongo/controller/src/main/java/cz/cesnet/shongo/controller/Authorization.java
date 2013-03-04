@@ -21,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Provides methods for performing authentication and authorization.
@@ -94,7 +91,6 @@ public class Authorization
         userInformationCacheExpiration =
                 configuration.getDuration(Configuration.SECURITY_USER_INFORMATION_CACHE_EXPIRATION);
         testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
-
     }
 
     /**
@@ -259,6 +255,8 @@ public class Authorization
         }
     }
 
+    private static final String USER_WEB_SERVICE = "https://hroch.cesnet.cz/perun-ws/resource/user";
+
     /**
      * @param userId
      * @return {@link cz.cesnet.shongo.controller.common.Person} for user with given {@code userId}
@@ -283,7 +281,7 @@ public class Authorization
             Map<String, Object> content = null;
             try {
                 // Build url
-                URIBuilder uriBuilder = new URIBuilder("https://hroch.cesnet.cz/perun-ws/resource/user/" + userId);
+                URIBuilder uriBuilder = new URIBuilder(USER_WEB_SERVICE + "/" + userId);
                 String url = uriBuilder.build().toString();
 
                 // Perform request
@@ -298,7 +296,7 @@ public class Authorization
                     inputStream.close();
                 }
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    throw new Exception("Error while retrieving user info by id.");
+                    throw new Exception("Error while retrieving user information by id.");
                 }
             }
             catch (Exception exception) {
@@ -308,6 +306,50 @@ public class Authorization
             putCachedUserInformationByUserId(userId, userInformation);
             return userInformation;
         }
+    }
+
+    /**
+     * @return collection of {@link UserInformation}s
+     * @throws IllegalStateException
+     */
+    public Collection<UserInformation> listUserInformation() throws IllegalStateException
+    {
+        logger.debug("Retrieving list of user information...");
+
+        List content = null;
+        try {
+            // Build url
+            URIBuilder uriBuilder = new URIBuilder(USER_WEB_SERVICE);
+            String url = uriBuilder.build().toString();
+
+            // Perform request
+            HttpGet httpGet = new HttpGet(url);
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inputStream = entity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                content = mapper.readValue(inputStream, List.class);
+                inputStream.close();
+            }
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new Exception("Error while retrieving user information.");
+            }
+        }
+        catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
+        List<UserInformation> userInformationList = new LinkedList<UserInformation>();
+        if (content != null) {
+            for (Object object : content) {
+                if (object instanceof Map) {
+                    UserInformation userInformation = createUserInformationFromData((Map) object);
+                    userInformationList.add(userInformation);
+                }
+            }
+        }
+        return userInformationList;
     }
 
     /**

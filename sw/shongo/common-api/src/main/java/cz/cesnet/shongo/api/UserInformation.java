@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.annotation.Transient;
 import jade.content.Concept;
 
 /**
- * Represents an information about user.
+ * Represents information about a Shongo user.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

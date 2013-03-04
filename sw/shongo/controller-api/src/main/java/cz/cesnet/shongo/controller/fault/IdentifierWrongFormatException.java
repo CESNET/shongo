@@ -10,7 +10,7 @@ import cz.cesnet.shongo.fault.SerializableException;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class IdentifierWrongDomainException extends RuntimeException implements Fault, SerializableException
+public class IdentifierWrongFormatException extends RuntimeException implements Fault, SerializableException
 {
     /**
      * Identifier which was given.
@@ -18,14 +18,9 @@ public class IdentifierWrongDomainException extends RuntimeException implements 
     private String identifier;
 
     /**
-     * Domain name which was required.
-     */
-    private String requiredDomain;
-
-    /**
      * Constructor.
      */
-    public IdentifierWrongDomainException()
+    public IdentifierWrongFormatException()
     {
     }
 
@@ -33,12 +28,10 @@ public class IdentifierWrongDomainException extends RuntimeException implements 
      * Constructor.
      *
      * @param identifier         sets the {@link #identifier}
-     * @param requiredDomain sets the {@link #requiredDomain}
      */
-    public IdentifierWrongDomainException(String identifier, String requiredDomain)
+    public IdentifierWrongFormatException(String identifier)
     {
         setIdentifier(identifier);
-        setRequiredDomain(requiredDomain);
     }
 
     /**
@@ -57,31 +50,15 @@ public class IdentifierWrongDomainException extends RuntimeException implements 
         this.identifier = identifier;
     }
 
-    /**
-     * @return {@link #requiredDomain}
-     */
-    public String getRequiredDomain()
-    {
-        return requiredDomain;
-    }
-
-    /**
-     * @param requiredDomain sets the {@link #requiredDomain}
-     */
-    public void setRequiredDomain(String requiredDomain)
-    {
-        this.requiredDomain = requiredDomain;
-    }
-
     @Override
     public int getCode()
     {
-        return ControllerFault.IDENTIFIER_WRONG_DOMAIN;
+        return ControllerFault.IDENTIFIER_WRONG_FORMAT;
     }
 
     @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("The identifier '%s' doesn't belong to domain '%s'.", identifier, requiredDomain);
+        return CommonFault.formatMessage("The identifier '%s' is in wrong format.", identifier);
     }
 }

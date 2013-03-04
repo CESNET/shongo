@@ -91,6 +91,32 @@
 
 </dl>
 
+<!--
+<h2>User Roles</h2>
+<p>List of users which have access to this reservation request.</p>
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Martin Šrom</td>
+        <td>email</td>
+        <td>Owner</td>
+        <td><a href="[% location %]/delete-user" class="state-[% aliasUsageRequest.stateCode %]">delete</a></td>
+    </tr>
+    </tbody>
+</table>
+<div class="pull-right">
+    <a class="btn" href="[% location %]/create-user-role?resource-id=[% request.id %]">Add User Role</a>
+</div>&nbsp;
+-->
+
 [% IF request.specification.class == 'RoomSpecification' -%]
 [% INCLUDE common/detail_room.html %]
 [% END -%]

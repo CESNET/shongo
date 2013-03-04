@@ -16,12 +16,17 @@ public class ControllerFault extends CommonFault
     /**
      * @see IdentifierWrongDomainException
      */
-    public static final int IDENTIFIER_WRONG_DOMAIN = 100;
+    public static final int IDENTIFIER_WRONG_FORMAT = 100;
+
+    /**
+     * @see IdentifierWrongDomainException
+     */
+    public static final int IDENTIFIER_WRONG_DOMAIN = 101;
 
     /**
      * @see IdentifierWrongTypeException
      */
-    public static final int IDENTIFIER_WRONG_TYPE = 101;
+    public static final int IDENTIFIER_WRONG_TYPE = 102;
 
     /**
      * Reservation request date/time slot duration was specified empty.

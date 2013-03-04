@@ -148,7 +148,7 @@ sub dispatch
             return;
         }
         my $method_name = $action;
-        $method_name =~ s/-/_/;
+        $method_name =~ s/-/_/g;
         $method_name .= '_action';
         if ( $controller_instance->can($method_name) ) {
             $controller_instance->$method_name();

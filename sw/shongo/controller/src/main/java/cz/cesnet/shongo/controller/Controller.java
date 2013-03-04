@@ -181,7 +181,7 @@ public class Controller
 
         // Initialize timezone
         String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
-        if ( timeZoneId != null && !timeZoneId.isEmpty()) {
+        if (timeZoneId != null && !timeZoneId.isEmpty()) {
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
             logger.info("Configuring timezone to {}.", dateTimeZone.getID());
             DateTimeZone.setDefault(dateTimeZone);
@@ -513,7 +513,8 @@ public class Controller
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         if (jadeAgent != null) {
-            shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
+            shell.addCommands(
+                    ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
             shell.addCommands(jadeAgent.createCommandSet());
         }
         shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
@@ -789,6 +790,7 @@ public class Controller
 
         // Add XML-RPC services
         controller.addRpcService(new CommonServiceImpl());
+        controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ResourceControlServiceImpl());
         controller.addRpcService(new ReservationServiceImpl(cache));

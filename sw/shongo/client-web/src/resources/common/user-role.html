@@ -1,0 +1,46 @@
+[% IF !id %]
+<h1>Create new user role</h1>
+[% ELSE %]
+<h1>Modify existing user role</h1>
+[% END %]
+
+<form class="form-horizontal" action="[% location %]/create-user-role?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
+
+<div class="control-group">
+    <label class="control-label">For [% resourceTitle %]:</label>
+    <div class="controls">
+        <span class="uneditable-input">[% resource %]</span>
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="inputDescription">User:</label>
+    <div class="controls">
+        <input id="inputDescription" name="user" type="text" value="[% user %]"/>
+        [% error.user %]
+    </div>
+</div>
+
+<div class="control-group">
+    <label class="control-label" for="selectRole">Role:</label>
+    <div class="controls">
+        <select id="selectRole" name="durationType">
+            <option value="owner" [% IF role == 'owner' %]selected[% END %]>Owner</option>
+            <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>Re-User</option>
+        </select>
+        [% error.role %]
+    </div>
+</div>
+
+<div class="control-group">
+    <div class="controls">
+        [% IF !id %]
+        <input class="btn btn-primary" type="submit" value="Create"/>
+        [% ELSE %]
+        <input class="btn btn-primary" type="submit" value="Modify"/>
+        [% END %]
+        <a class="btn" href="[% back %]">Cancel</a>
+    </div>
+</div>
+
+</form>

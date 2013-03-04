@@ -3,14 +3,15 @@ package cz.cesnet.shongo.controller.common;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.fault.IdentifierWrongDomainException;
+import cz.cesnet.shongo.controller.fault.IdentifierWrongFormatException;
 import cz.cesnet.shongo.controller.fault.IdentifierWrongTypeException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -25,26 +26,81 @@ import java.util.regex.Pattern;
 public class IdentifierFormat
 {
     /**
+     * Shongo identifier entity type.
+     */
+    public static enum EntityType
+    {
+        RESOURCE("res", Resource.class),
+        RESERVATION_REQUEST("req", AbstractReservationRequest.class),
+        RESERVATION("rsv", Reservation.class),
+        EXECUTABLE("exe", Executable.class);
+
+        /**
+         * Code of the {@link EntityType}.
+         */
+        private String code;
+
+        /**
+         * Class of the {@link EntityType}.
+         */
+        private Class type;
+
+        /**
+         * @param code sets the {@link #code}
+         */
+        private EntityType(String code, Class type)
+        {
+            this.code = code;
+            this.type = type;
+        }
+
+        /**
+         * @return {@link #code}
+         */
+        public String getCode()
+        {
+            return code;
+        }
+
+        /**
+         * @return {@link #type}
+         */
+        public Class getType()
+        {
+            return type;
+        }
+    }
+
+    /**
+     * Entity types by code.
+     */
+    private static final Map<String, EntityType> entityTypeByCode = new HashMap<String, EntityType>();
+
+    /**
      * Entity types by class.
      */
-    private static final Map<Class, String> entityTypeByClass = new HashMap<Class, String>()
-    {{
-            put(Resource.class, "res");
-            put(AbstractReservationRequest.class, "req");
-            put(Reservation.class, "rsv");
-            put(Executable.class, "exe");
-        }};
+    private static final Map<Class, EntityType> entityTypeByClass = new HashMap<Class, EntityType>();
+
+    /**
+     * Static initialization.
+     */
+    static {
+        for (EntityType entityType : EntityType.class.getEnumConstants()) {
+            entityTypeByCode.put(entityType.getCode(), entityType);
+            entityTypeByClass.put(entityType.getType(), entityType);
+        }
+    }
 
     /**
      * @param entityClass entity type class
      * @return entity type string
      * @throws IllegalStateException when entity type class isn't mapped to any entity type
      */
-    private synchronized static String getEntityType(Class entityClass)
+    private synchronized static EntityType getEntityType(Class entityClass)
     {
-        String entityType = entityTypeByClass.get(entityClass);
+        EntityType entityType = entityTypeByClass.get(entityClass);
         if (entityType == null) {
-            for (Map.Entry<Class, String> entry : entityTypeByClass.entrySet()) {
+            for (Map.Entry<Class, EntityType> entry : entityTypeByClass.entrySet()) {
                 Class entryClass = entry.getKey();
                 if (entryClass.isAssignableFrom(entityClass)) {
                     entityType = entry.getValue();
@@ -67,7 +123,7 @@ public class IdentifierFormat
      */
     private static String formatGlobalId(String domain, Class entityClass, Long entityLocalId)
     {
-        return String.format("shongo:%s:%s:%d", domain, getEntityType(entityClass), entityLocalId);
+        return formatGlobalId(domain, entityClass, entityLocalId.toString());
     }
 
     /**
@@ -78,7 +134,35 @@ public class IdentifierFormat
      */
     private static String formatGlobalId(String domain, Class entityClass, String entityLocalId)
     {
-        return String.format("shongo:%s:%s:%s", domain, getEntityType(entityClass), entityLocalId);
+        return String.format("shongo:%s:%s:%s", domain, getEntityType(entityClass).getCode(), entityLocalId);
+    }
+
+    /**
+     * Local identifier pattern.
+     */
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d");
+
+    /**
+     * Global identifier pattern.
+     */
+    private static Pattern GLOBAL_IDENTIFIER_PATTERN = Pattern.compile("shongo:(.+):([a-z]+):(\\d+)");
+
+    /**
+     * @param domain   required domain
+     * @param entityId
+     * @return {@link LocalIdentifier} parsed from given {@code entityId}
+     */
+    private static LocalIdentifier parseLocalIdentifier(String domain, String entityId)
+    {
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(entityId);
+        if (!matcher.matches()) {
+            throw new IdentifierWrongFormatException(entityId);
+        }
+        if (!domain.equals(matcher.group(1))) {
+            throw new IdentifierWrongDomainException(entityId, domain);
+        }
+        EntityType entityType = entityTypeByCode.get(matcher.group(2));
+        return new LocalIdentifier(entityType, Long.parseLong(matcher.group(3)));
     }
 
     /**
@@ -89,20 +173,17 @@ public class IdentifierFormat
      */
     private static Long parseLocalId(String domain, Class entityClass, String entityId)
     {
-        if (Pattern.matches("\\d+", entityId)) {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
             return Long.parseLong(entityId);
         }
-        String domainPrefix = String.format("shongo:%s:", domain);
-        if (!entityId.startsWith(domainPrefix)) {
-            throw new IdentifierWrongDomainException(entityId, domain);
+        LocalIdentifier localIdentifier = parseLocalIdentifier(domain, entityId);
+        EntityType requiredType = getEntityType(entityClass);
+        if (localIdentifier.entityType != requiredType) {
+            throw new IdentifierWrongTypeException(entityId, requiredType.getCode());
         }
-        String requiredType = getEntityType(entityClass);
-        String domainTypePrefix = String.format("%s%s:", domainPrefix, requiredType);
-        if (!entityId.startsWith(domainTypePrefix)) {
-            throw new IdentifierWrongTypeException(entityId, requiredType);
-        }
-        return Long.parseLong(entityId.substring(domainTypePrefix.length(), entityId.length()));
+        return localIdentifier.entityId;
     }
+
 
     /**
      * @param entityClass to be checked
@@ -189,5 +270,58 @@ public class IdentifierFormat
     public static Long parseLocalId(Class entityClass, String entityId)
     {
         return parseLocalId(Domain.getLocalDomainName(), entityClass, entityId);
+    }
+
+    /**
+     * @param entityId entity local id for the identifier
+     * @return parsed {@link LocalIdentifier}
+     */
+    public static LocalIdentifier parseLocalId(String entityId)
+    {
+        return parseLocalIdentifier(Domain.getLocalDomainName(), entityId);
+    }
+
+    /**
+     * Represents a local identifier.
+     */
+    public static class LocalIdentifier
+    {
+        /**
+         * {@link EntityType} of the identifier.
+         */
+        private final EntityType entityType;
+
+        /**
+         * Identifier value.
+         */
+        private final Long entityId;
+
+        /**
+         * Constructor.
+         *
+         * @param entityType sets the {@link #entityType}
+         * @param entityId sets the {@link #entityId}
+         */
+        public LocalIdentifier(EntityType entityType, Long entityId)
+        {
+            this.entityType = entityType;
+            this.entityId = entityId;
+        }
+
+        /**
+         * @return {@link #entityType}
+         */
+        public EntityType getEntityType()
+        {
+            return entityType;
+        }
+
+        /**
+         * @return {@link #entityId}
+         */
+        public Long getEntityId()
+        {
+            return entityId;
+        }
     }
 }
