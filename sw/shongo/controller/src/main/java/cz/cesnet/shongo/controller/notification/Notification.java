@@ -162,16 +162,16 @@ public abstract class Notification
         public String formatDateTime(DateTime dateTime, String timeZoneId)
         {
             String dateTimeString = "";
+            DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
             if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
                 dateTimeString = "(infinity)";
-                dateTime = DateTime.now();
+                dateTime = DateTime.now(dateTimeZone);
             }
             else {
+                dateTime = dateTime.withZone(dateTimeZone);
                 dateTimeString = DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
             }
 
-            DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
-            dateTime = dateTime.withZone(dateTimeZone);
             String dateTimeZoneOffset = "";
             if (!dateTimeZone.equals(DateTimeZone.UTC)) {
                 int offset = dateTimeZone.getOffset(dateTime) / 60000;
@@ -179,7 +179,6 @@ public abstract class Notification
             }
 
             return String.format("%s (%s%s)", dateTimeString, timeZoneId, dateTimeZoneOffset);
-
         }
 
         /**

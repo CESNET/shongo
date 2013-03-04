@@ -2,7 +2,6 @@
 
 * Implement permissions
 
-* Fix JadeServiceTest
 * Arrange shongo meeting next week
 
 * Web client
