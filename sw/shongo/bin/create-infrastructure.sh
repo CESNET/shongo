@@ -249,6 +249,7 @@ echo -n "Presse enter to continue..."; read line
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'pokustemppstn' },
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'VSB-CIT' },
                 { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Skoda Power' },
+                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'UPa-IC' },
             ]
         }
     }

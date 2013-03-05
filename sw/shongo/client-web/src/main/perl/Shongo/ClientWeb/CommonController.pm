@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use Shongo::Common;
 use DateTime::Format::Duration;
+use JSON;
 
 our $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
@@ -82,29 +83,87 @@ sub list_reservation_requests
     });
 }
 
+sub get_user_action
+{
+    my ($self) = @_;
+    my $user_id = $self->get_param('id');
+    my $user = $self->{'application'}->secure_request('Authorization.getUser', RPC::XML::string->new($user_id));
+    print to_json($user);
+}
+
+sub list_users_action
+{
+    my ($self) = @_;
+    my $filter = $self->get_param('filter');
+    if ( defined($filter) ) {
+        $filter = RPC::XML::string->new($filter);
+    }
+    else {
+        $filter = {};
+    }
+    my $users = $self->{'application'}->secure_request('Authorization.listUsers', $filter);
+    print to_json($users);
+}
+
 sub create_user_role_action
 {
     my ($self) = @_;
-    my $id = $self->get_param('id');
-    my $resource_title = 'resource';
+    my $params = $self->get_params();
+    if ( $self->modify_user_role('Create user role', $params) ) {
+        var_dump($params);
+    }
+}
 
-    my $resource_id = undef;
-    if ( defined($id) ) {
-        $resource_id = 'shongo:cz.cesnet:req:1';
+sub modify_user_role_action
+{
+    my ($self) = @_;
+    my $params = $self->get_params();
+    if ( !defined($self->get_param('confirmed')) ) {
+        my $user_role = $self->{'application'}->secure_request('Authorization.getUserResourceRole', RPC::XML::string->new($params->{'id'}));
+        $params->{'user'} = $user_role->{'user'}->{'userId'};
+        $params->{'resource'} = $user_role->{'resourceId'};
+        $params->{'role'} = $user_role->{'roleId'};
     }
-    else {
-        $resource_id = $self->get_param('resource-id');
+    if ( $self->modify_user_role('Create user role', $params) ) {
+        var_dump($params);
     }
-    if ( !defined($resource_id) ) {
-        die('Resource is not defined.');
+}
+
+sub delete_user_role_action
+{
+    my ($self) = @_;
+    $self->{'application'}->secure_request('Authorization.deleteUserResourceRole', RPC::XML::string->new($self->get_param('id')));
+    $self->redirect_back();
+}
+
+sub modify_user_role
+{
+    my ($self, $title, $params) = @_;
+    if ( defined($self->get_param('confirmed')) ) {
+        $params->{'error'} = $self->validate_form($params, {
+            required => [
+                'resource',
+                'user',
+                'role',
+            ]
+        });
+        if ( !%{$params->{'error'}} ) {
+            return 1;
+        }
     }
-    if ( $resource_id =~ 'shongo:.+:req:.+' ) {
-        $resource_title = 'request';
+
+    my $resource_title = 'resource';
+    if ( defined($params->{'resource'}) ) {
+        if ( $params->{'resource'} =~ 'shongo:.+:req:.+' ) {
+            $resource_title = 'request';
+        }
     }
-    $self->render_page('Create user role', 'common/user-role.html', {
-        'resource' => $resource_id,
-        'resourceTitle' => $resource_title
-    });
+    $params->{'resourceTitle'} = $resource_title;
+    $params->{'options'} = {
+        'ui' => 1
+    };
+    $self->render_page($title, 'common/user-role.html', $params);
+    return 0;
 }
 
 sub delete_action
@@ -256,9 +315,7 @@ sub get_reservation_request
 
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
-
-    #my $owners = $self->{'application'}->secure_request('Authorization.listUserResourceRoles', {}, $id, 'owner');
-    #var_dump($owners);
+    $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listUserResourceRoles', {}, $id, {});
 
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {

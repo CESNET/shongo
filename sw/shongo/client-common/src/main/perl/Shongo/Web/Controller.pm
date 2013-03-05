@@ -184,6 +184,17 @@ sub redirect
 }
 
 #
+# Redirect to given $url
+#
+# @param $url
+#
+sub redirect_back
+{
+    my ($self) = @_;
+    print $self->{'application'}->redirect($self->{'application'}->get_back());
+}
+
+#
 # Push current url to the stack for "going back"
 #
 sub push_back

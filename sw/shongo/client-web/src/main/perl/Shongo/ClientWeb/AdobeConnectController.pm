@@ -69,7 +69,7 @@ sub create_action
         }
     }
     $params->{'options'} = {
-        'jquery' => 1
+        'ui' => 1
     };
     $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['ADOBE_CONNECT']);
     $self->push_back();
@@ -122,7 +122,7 @@ sub create_alias_action
         }
     }
     $params->{'options'} = {
-        'jquery' => 1
+        'ui' => 1
     };
     $self->render_page('New reservation request', 'adobe-connect/create-alias.html', $params);
 }

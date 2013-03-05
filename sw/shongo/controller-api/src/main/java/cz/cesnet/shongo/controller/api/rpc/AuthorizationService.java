@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.api.rpc.StructType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
@@ -34,7 +36,7 @@ public interface AuthorizationService extends Service
      * @param id    identifier of newly created ACL record
      */
     @API
-    public void deleteUserResourceRole(SecurityToken token, String id);
+    public void deleteUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException;
 
     /**
      * Retrieve {@link UserResourceRole} with given {@code id}.
@@ -44,7 +46,7 @@ public interface AuthorizationService extends Service
      * @return {@link UserResourceRole} with given {@code id}
      */
     @API
-    public UserResourceRole getUserResourceRole(SecurityToken token, String id);
+    public UserResourceRole getUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException;
 
     /**
      * Retrieve collection of {@link UserResourceRole} for given parameters.
@@ -61,14 +63,22 @@ public interface AuthorizationService extends Service
 
     /**
      * @param token token of the user requesting the operation
-     * @param name  for filtering or {@code null}
-     * @return collection of {@link UserInformation}s that matches given {@code name}
+     * @param userId of the user
+     * @return {@link UserInformation} for given {@code userId}
      */
     @API
-    public Collection<UserInformation> listUsers(SecurityToken token, String name);
+    public UserInformation getUser(SecurityToken token, String userId);
 
     /**
-     * Represents a record in Shongo ACL which means that user with specified {@link #userId} has role
+     * @param token token of the user requesting the operation
+     * @param filter  for filtering or {@code null}
+     * @return collection of {@link UserInformation}s that matches given {@code filter}
+     */
+    @API
+    public Collection<UserInformation> listUsers(SecurityToken token, String filter);
+
+    /**
+     * Represents a record in Shongo ACL which means that user with specified {@link #user} has role
      * with specified {@link #roleId} for resource with specified {@link #resourceId}.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
@@ -83,7 +93,7 @@ public interface AuthorizationService extends Service
         /**
          * Identifier of Shongo user.
          */
-        String userId;
+        UserInformation user;
 
         /**
          * Global identifier of any Shongo public entity.
@@ -112,19 +122,28 @@ public interface AuthorizationService extends Service
         }
 
         /**
-         * @return {@link #userId}
+         * @return {@link #user}
          */
-        public String getUserId()
+        public UserInformation getUser()
         {
-            return userId;
+            return user;
         }
 
         /**
-         * @param userId sets the {@link #userId}
+         * @return {@link cz.cesnet.shongo.api.UserInformation#getUserId()}
          */
-        public void setUserId(String userId)
+        @Transient
+        public String getUserId()
         {
-            this.userId = userId;
+            return user.getUserId();
+        }
+
+        /**
+         * @param user sets the {@link #user}
+         */
+        public void setUser(UserInformation user)
+        {
+            this.user = user;
         }
 
         /**

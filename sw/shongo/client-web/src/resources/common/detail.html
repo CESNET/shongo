@@ -91,31 +91,39 @@
 
 </dl>
 
-<!--
 <h2>User Roles</h2>
 <p>List of users which have access to this reservation request.</p>
 <table class="table table-striped table-hover">
     <thead>
     <tr>
         <th>Name</th>
-        <th>Email</th>
         <th>Role</th>
+        <th>Email</th>
         <th>Action</th>
     </tr>
     </thead>
     <tbody>
+    [%- FOREACH userRole IN request.userRoles %]
     <tr>
-        <td>Martin Šrom</td>
-        <td>email</td>
-        <td>Owner</td>
-        <td><a href="[% location %]/delete-user" class="state-[% aliasUsageRequest.stateCode %]">delete</a></td>
+        <td>[% userRole.user.firstName%] [% userRole.user.lastName%]</td>
+        <td>[% 'Owner' IF userRole.roleId == 'owner' %][% 'Re-User' IF userRole.roleId == 'reuser' %]</td>
+        <td>[% userRole.user.email %]</td>
+        <td>
+            <a href="[% location %]/modify-user-role?id=[% userRole.id %]">modify</a>
+            |
+            <a href="[% location %]/delete-user-role?id=[% userRole.id %]">delete</a>
+        </td>
     </tr>
+    [%- END %]
+    [%- IF !request.userRoles.size %]
+    <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
+    [% END %]
+
     </tbody>
 </table>
 <div class="pull-right">
-    <a class="btn" href="[% location %]/create-user-role?resource-id=[% request.id %]">Add User Role</a>
+    <a class="btn" href="[% location %]/create-user-role?resource=[% request.id %]">Add User Role</a>
 </div>&nbsp;
--->
 
 [% IF request.specification.class == 'RoomSpecification' -%]
 [% INCLUDE common/detail_room.html %]

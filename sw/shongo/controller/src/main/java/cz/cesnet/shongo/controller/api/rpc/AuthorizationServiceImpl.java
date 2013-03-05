@@ -8,14 +8,14 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.IdentifierFormat;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * TODO:
@@ -69,23 +69,37 @@ public class AuthorizationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        throw new RuntimeException("TODO: Implement AuthorizationServiceImpl.createUserResourceRole");
+        // TODO: check that resource exits
+
+        UserResourceRole userResourceRole = new UserResourceRole();
+        userResourceRole.setUser(Authorization.getInstance().getUserInformation(userId));
+        userResourceRole.setResourceId(resourceId);
+        userResourceRole.setRoleId(roleId);
+        return createUserResourceRole(userResourceRole, null);
     }
 
     @Override
-    public void deleteUserResourceRole(SecurityToken token, String id)
+    public void deleteUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException
     {
         authorization.validate(token);
 
-        throw new RuntimeException("TODO: Implement AuthorizationServiceImpl.deleteUserResourceRole");
+        UserResourceRole userResourceRole = userResourceRoleById.get(id);
+        if (userResourceRole == null) {
+            throw new EntityNotFoundException(UserResourceRole.class, id);
+        }
+        removeUserResourceRole(userResourceRole);
     }
 
     @Override
-    public UserResourceRole getUserResourceRole(SecurityToken token, String id)
+    public UserResourceRole getUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException
     {
         authorization.validate(token);
 
-        throw new RuntimeException("TODO: Implement AuthorizationServiceImpl.getUserResourceRole");
+        UserResourceRole userResourceRole = userResourceRoleById.get(id);
+        if (userResourceRole == null) {
+            throw new EntityNotFoundException(UserResourceRole.class, id);
+        }
+        return userResourceRole;
     }
 
     @Override
@@ -94,39 +108,113 @@ public class AuthorizationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        List<UserResourceRole> userResourceRoles = new LinkedList<UserResourceRole>();
         if (resourceId != null) {
             IdentifierFormat.LocalIdentifier resourceLocalId = IdentifierFormat.parseLocalId(resourceId);
             if (!resourceLocalId.getEntityType().equals(IdentifierFormat.EntityType.RESERVATION_REQUEST)) {
                 throw new TodoImplementException(resourceLocalId.getEntityType().toString());
             }
-            if (roleId.equals(ROLE_OWNER)) {
+            if (roleId == null || roleId.equals(ROLE_OWNER)) {
                 Long entityId = resourceLocalId.getEntityId();
-                EntityManager entityManager = entityManagerFactory.createEntityManager();
-                try {
-                    ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-                    AbstractReservationRequest reservationRequest = reservationRequestManager.get(entityId);
-                    String ownerUserId = reservationRequest.getUserId();
-                    if (userId == null || userId.equals(ownerUserId)) {
-                        UserResourceRole userResourceRole = new UserResourceRole();
-                        userResourceRole.setUserId(ownerUserId);
-                        userResourceRole.setResourceId(resourceId);
-                        userResourceRole.setRoleId(roleId);
-                        userResourceRoles.add(userResourceRole);
+                UserResourceRole ownerResourceRole = userResourceOwnerByEntityId.get(entityId);
+                if (ownerResourceRole == null) {
+                    EntityManager entityManager = entityManagerFactory.createEntityManager();
+                    try {
+                        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(
+                                entityManager);
+                        AbstractReservationRequest reservationRequest = reservationRequestManager.get(entityId);
+                        String ownerUserId = reservationRequest.getUserId();
+                        UserInformation userInformation = Authorization.getInstance().getUserInformation(ownerUserId);
+                        ownerResourceRole = new UserResourceRole();
+                        ownerResourceRole.setUser(userInformation);
+                        ownerResourceRole.setResourceId(resourceId);
+                        ownerResourceRole.setRoleId(ROLE_OWNER);
+                        createUserResourceRole(ownerResourceRole, entityId);
+                    }
+                    finally {
+                        entityManager.close();
                     }
                 }
-                finally {
-                    entityManager.close();
-                }
             }
+        }
+
+        Set<UserResourceRole> userResourceRoles = new HashSet<UserResourceRole>();
+        for (UserResourceRole userResourceRole : userResourceRoleById.values()) {
+            if (userId != null && !userId.equals(userResourceRole.getUser().getUserId())) {
+                continue;
+            }
+            if (resourceId != null && !resourceId.equals(userResourceRole.getResourceId())) {
+                continue;
+            }
+            if (roleId != null && !roleId.equals(userResourceRole.getRoleId())) {
+                continue;
+            }
+            userResourceRoles.add(userResourceRole);
         }
         return userResourceRoles;
     }
 
     @Override
-    public Collection<UserInformation> listUsers(SecurityToken token, String name)
+    public UserInformation getUser(SecurityToken token, String userId)
     {
         authorization.validate(token);
-        return Authorization.getInstance().listUserInformation();
+        return Authorization.getInstance().getUserInformation(userId);
+    }
+
+    @Override
+    public Collection<UserInformation> listUsers(SecurityToken token, String filter)
+    {
+        authorization.validate(token);
+        List<UserInformation> users = new LinkedList<UserInformation>();
+        for (UserInformation userInformation : Authorization.getInstance().listUserInformation()) {
+            StringBuilder filterData = null;
+            if (filter != null) {
+                filterData = new StringBuilder();
+                filterData.append(userInformation.getFirstName());
+                filterData.append(userInformation.getLastName());
+                filterData.append(userInformation.getEmail());
+                filterData.append(userInformation.getOrganization());
+            }
+            if (filterData == null || StringUtils.containsIgnoreCase(filterData.toString(), filter)) {
+                users.add(userInformation);
+            }
+        }
+        return users;
+    }
+
+    private long userResourceRoleId = 0;
+    private Map<String, UserResourceRole> userResourceRoleById = new HashMap<String, UserResourceRole>();
+    private Map<Long, UserResourceRole> userResourceOwnerByEntityId = new HashMap<Long, UserResourceRole>();
+
+    private UserResourceRole getUserResourceRole(String userId, String resourceId, String roleId)
+    {
+        for (UserResourceRole userResourceRole : userResourceRoleById.values()) {
+            if (userId != null && !userId.equals(userResourceRole.getUser().getUserId())) {
+                continue;
+            }
+            if (resourceId != null && !resourceId.equals(userResourceRole.getResourceId())) {
+                continue;
+            }
+            if (roleId != null && !roleId.equals(userResourceRole.getRoleId())) {
+                continue;
+            }
+            return userResourceRole;
+        }
+        return null;
+    }
+
+    private String createUserResourceRole(UserResourceRole userResourceRole, Long entityId)
+    {
+        String newId = String.valueOf(++userResourceRoleId);
+        userResourceRole.setId(newId);
+        userResourceRoleById.put(newId, userResourceRole);
+        if (entityId != null) {
+            userResourceOwnerByEntityId.put(entityId, userResourceRole);
+        }
+        return newId;
+    }
+
+    private void removeUserResourceRole(UserResourceRole userResourceRole)
+    {
+        userResourceRoleById.remove(userResourceRole.getId());
     }
 }

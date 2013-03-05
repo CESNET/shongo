@@ -1,3 +1,51 @@
+<script type="text/javascript">
+    window.formatUser = function(user) {
+        var text = user.firstName;
+        if ( user.lastName != null ) {
+            text += " " + user.lastName;
+        }
+        text +=  " (id: " + user.userId + ")";
+        if ( user.email != null ) {
+            text += ", " + user.email;
+        }
+        return text;
+    };
+    $(function() {
+        $("#selectUser").select2({
+            placeholder: "Add a recipient",
+            width: 'resolve',
+            minimumInputLength: 2,
+            ajax: {
+                url: "[% location %]/list-users",
+                dataType: 'json',
+                data: function (term, page) {
+                    return {
+                        filter: term
+                    };
+                },
+                results: function (data, page) {
+                    var results = [];
+                    for ( var index = 0; index < data.length; index++ ) {
+                        var dataItem = data[index];
+
+                        results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
+                    }
+                    return {results: results};
+                }
+            },
+            initSelection : function (element, callback) {
+                var id = $(element).val();
+                callback({id: 0, text: 'Loading...'});
+                $.ajax("[% location %]/get-user?id=" + id, {
+                    dataType: "json"
+                }).done(function(data) {
+                    callback({id: id, text: window.formatUser(data)});
+                });
+            }
+        });
+    });
+</script>
+
 [% IF !id %]
 <h1>Create new user role</h1>
 [% ELSE %]
@@ -6,17 +54,21 @@
 
 <form class="form-horizontal" action="[% location %]/create-user-role?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
+<input name="id" type="hidden" value="[% id %]"/>
+
 <div class="control-group">
     <label class="control-label">For [% resourceTitle %]:</label>
     <div class="controls">
+        <input name="resource" type="hidden" value="[% resource %]"/>
         <span class="uneditable-input">[% resource %]</span>
+        [% error.resource %]
     </div>
 </div>
 
 <div class="control-group">
-    <label class="control-label" for="inputDescription">User:</label>
+    <label class="control-label" for="selectUser">User:</label>
     <div class="controls">
-        <input id="inputDescription" name="user" type="text" value="[% user %]"/>
+        <input id="selectUser" name="user" type="text" value="[% user %]"/>
         [% error.user %]
     </div>
 </div>
@@ -24,7 +76,7 @@
 <div class="control-group">
     <label class="control-label" for="selectRole">Role:</label>
     <div class="controls">
-        <select id="selectRole" name="durationType">
+        <select id="selectRole" name="role">
             <option value="owner" [% IF role == 'owner' %]selected[% END %]>Owner</option>
             <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>Re-User</option>
         </select>
