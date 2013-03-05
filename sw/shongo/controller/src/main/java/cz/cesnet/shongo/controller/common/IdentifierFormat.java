@@ -140,7 +140,7 @@ public class IdentifierFormat
     /**
      * Local identifier pattern.
      */
-    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d");
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d+");
 
     /**
      * Global identifier pattern.
