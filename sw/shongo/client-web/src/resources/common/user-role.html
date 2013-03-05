@@ -12,7 +12,7 @@
     };
     $(function() {
         $("#selectUser").select2({
-            placeholder: "Add a recipient",
+            placeholder: "Select an user",
             width: 'resolve',
             minimumInputLength: 2,
             ajax: {
@@ -47,12 +47,14 @@
 </script>
 
 [% IF !id %]
-<h1>Create new user role</h1>
+    [% type = 'create' %]
+    <h1>Create new user role</h1>
 [% ELSE %]
-<h1>Modify existing user role</h1>
+    [% type = 'modify' %]
+    <h1>Modify existing user role</h1>
 [% END %]
 
-<form class="form-horizontal" action="[% location %]/create-user-role?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
+<form class="form-horizontal" action="[% location %]/[% type %]-user-role?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
 <input name="id" type="hidden" value="[% id %]"/>
 
@@ -78,7 +80,7 @@
     <div class="controls">
         <select id="selectRole" name="role">
             <option value="owner" [% IF role == 'owner' %]selected[% END %]>Owner</option>
-            <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>Re-User</option>
+            <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>User</option>
         </select>
         [% error.role %]
     </div>

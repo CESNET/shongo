@@ -33,6 +33,9 @@ sub instance
         $singleInstance->{'scripting'} = 0;
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
         $singleInstance->{'user-cache'} = {};
+
+        # Set RPC::XML encoding
+        $RPC::XML::ENCODING = 'utf-8';
     }
     return $singleInstance;
 }

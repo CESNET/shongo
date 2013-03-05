@@ -71,11 +71,16 @@ public class AuthorizationServiceImpl extends Component
 
         // TODO: check that resource exits
 
-        UserResourceRole userResourceRole = new UserResourceRole();
+        UserResourceRole userResourceRole = getUserResourceRole(userId, resourceId, roleId);
+        if (userResourceRole != null) {
+            return userResourceRole.getId();
+        }
+
+        userResourceRole = new UserResourceRole();
         userResourceRole.setUser(Authorization.getInstance().getUserInformation(userId));
         userResourceRole.setResourceId(resourceId);
         userResourceRole.setRoleId(roleId);
-        return createUserResourceRole(userResourceRole, null);
+        return createUserResourceRole(userResourceRole);
     }
 
     @Override
@@ -115,8 +120,7 @@ public class AuthorizationServiceImpl extends Component
             }
             if (roleId == null || roleId.equals(ROLE_OWNER)) {
                 Long entityId = resourceLocalId.getEntityId();
-                UserResourceRole ownerResourceRole = userResourceOwnerByEntityId.get(entityId);
-                if (ownerResourceRole == null) {
+                if (!initializedEntities.contains(entityId)) {
                     EntityManager entityManager = entityManagerFactory.createEntityManager();
                     try {
                         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(
@@ -124,11 +128,12 @@ public class AuthorizationServiceImpl extends Component
                         AbstractReservationRequest reservationRequest = reservationRequestManager.get(entityId);
                         String ownerUserId = reservationRequest.getUserId();
                         UserInformation userInformation = Authorization.getInstance().getUserInformation(ownerUserId);
-                        ownerResourceRole = new UserResourceRole();
-                        ownerResourceRole.setUser(userInformation);
-                        ownerResourceRole.setResourceId(resourceId);
-                        ownerResourceRole.setRoleId(ROLE_OWNER);
-                        createUserResourceRole(ownerResourceRole, entityId);
+                        UserResourceRole userResourceRole = new UserResourceRole();
+                        userResourceRole.setUser(userInformation);
+                        userResourceRole.setResourceId(resourceId);
+                        userResourceRole.setRoleId(ROLE_OWNER);
+                        createUserResourceRole(userResourceRole);
+                        initializedEntities.add(entityId);
                     }
                     finally {
                         entityManager.close();
@@ -170,6 +175,7 @@ public class AuthorizationServiceImpl extends Component
             if (filter != null) {
                 filterData = new StringBuilder();
                 filterData.append(userInformation.getFirstName());
+                filterData.append(" ");
                 filterData.append(userInformation.getLastName());
                 filterData.append(userInformation.getEmail());
                 filterData.append(userInformation.getOrganization());
@@ -183,7 +189,7 @@ public class AuthorizationServiceImpl extends Component
 
     private long userResourceRoleId = 0;
     private Map<String, UserResourceRole> userResourceRoleById = new HashMap<String, UserResourceRole>();
-    private Map<Long, UserResourceRole> userResourceOwnerByEntityId = new HashMap<Long, UserResourceRole>();
+    private Set<Long> initializedEntities = new HashSet<Long>();
 
     private UserResourceRole getUserResourceRole(String userId, String resourceId, String roleId)
     {
@@ -202,14 +208,11 @@ public class AuthorizationServiceImpl extends Component
         return null;
     }
 
-    private String createUserResourceRole(UserResourceRole userResourceRole, Long entityId)
+    private String createUserResourceRole(UserResourceRole userResourceRole)
     {
         String newId = String.valueOf(++userResourceRoleId);
         userResourceRole.setId(newId);
         userResourceRoleById.put(newId, userResourceRole);
-        if (entityId != null) {
-            userResourceOwnerByEntityId.put(entityId, userResourceRole);
-        }
         return newId;
     }
 

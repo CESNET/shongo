@@ -110,7 +110,12 @@ sub create_user_role_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( $self->modify_user_role('Create user role', $params) ) {
-        var_dump($params);
+        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+            RPC::XML::string->new($params->{'user'}),
+            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'role'})
+        );
+        $self->redirect_back();
     }
 }
 
@@ -125,14 +130,24 @@ sub modify_user_role_action
         $params->{'role'} = $user_role->{'roleId'};
     }
     if ( $self->modify_user_role('Create user role', $params) ) {
-        var_dump($params);
+        $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
+            RPC::XML::string->new($params->{'id'})
+        );
+        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+            RPC::XML::string->new($params->{'user'}),
+            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'role'})
+        );
+        $self->redirect_back();
     }
 }
 
 sub delete_user_role_action
 {
     my ($self) = @_;
-    $self->{'application'}->secure_request('Authorization.deleteUserResourceRole', RPC::XML::string->new($self->get_param('id')));
+    $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
+        RPC::XML::string->new($self->get_param('id'))
+    );
     $self->redirect_back();
 }
 

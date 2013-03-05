@@ -12,6 +12,17 @@
         }
         stateReport.style.display = show ? 'block' : 'none';
     };
+    $(function () {
+        $(".tooltip-role-owner").tooltip({
+            title: 'Owners can view the reservation request, delete the request, ' +
+                   'use allocated reservations for new reservation requests ' +
+                   'and manage user roles for the request.'
+        });
+        $(".tooltip-role-reuser").tooltip({
+            title: 'Users can view the reservation request ' +
+                   'and use allocated reservations for new reservation requests.'
+        });
+    });
 </script>
 
 <dl class="dl-horizontal">
@@ -106,7 +117,14 @@
     [%- FOREACH userRole IN request.userRoles %]
     <tr>
         <td>[% userRole.user.firstName%] [% userRole.user.lastName%]</td>
-        <td>[% 'Owner' IF userRole.roleId == 'owner' %][% 'Re-User' IF userRole.roleId == 'reuser' %]</td>
+        <td>
+            [% IF userRole.roleId == 'owner' %]
+            <span class="tooltip-role-owner">Owner</span>
+            [% END %]
+            [% IF userRole.roleId == 'reuser' %]
+            <span class="tooltip-role-reuser">User</span>
+            [% END %]
+        </td>
         <td>[% userRole.user.email %]</td>
         <td>
             <a href="[% location %]/modify-user-role?id=[% userRole.id %]">modify</a>

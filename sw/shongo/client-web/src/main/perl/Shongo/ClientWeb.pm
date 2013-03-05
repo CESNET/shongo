@@ -82,6 +82,9 @@ sub new
         return "\$('#$id').tooltip({'title': '$text', 'placement': 'right', 'trigger':'focus'});";
     };
 
+    # Set RPC::XML encoding
+    $RPC::XML::ENCODING = 'utf-8';
+
     return $self;
 }
 

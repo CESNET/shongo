@@ -296,7 +296,7 @@ sub redirect
 {
     my ($self, $url, $query, $disable_set_as_previous) = @_;
     if ( !defined($url) && defined($self->{'session'}->param('previous_url')) ) {
-        $url = $self->{'session'}->param('previous_url');
+        $url = uri_unescape($self->{'session'}->param('previous_url'));
     }
     if ( !($url =~ /^(\/|http)/) ) {
         $url = '/' . $url;
