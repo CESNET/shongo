@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="reports">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="api" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="report" type="api-report" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="scheduler" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="report" type="scheduler-report" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="executor" minOccurs="1" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="report" type="executor-report" maxOccurs="unbounded"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:simpleType name="severity">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="error"/>
+            <xs:enumeration value="warn"/>
+            <xs:enumeration value="info"/>
+            <xs:enumeration value="debug"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="api-report-user">
+        <xs:sequence>
+            <xs:element name="description" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="visible" type="xs:boolean"/>
+        <xs:attribute name="via" type="api-report-user-via"/>
+    </xs:complexType>
+    <xs:simpleType name="api-report-user-via">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="email"/>
+            <xs:enumeration value="ui"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="api-report-domain-admin">
+        <xs:sequence>
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+            <xs:element name="log" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="visible" type="xs:boolean"/>
+        <xs:attribute name="via" type="api-report-domain-admin-via"/>
+    </xs:complexType>
+    <xs:simpleType name="api-report-domain-admin-via">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="email"/>
+            <xs:enumeration value="log"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="api-report-device-admin">
+        <xs:sequence>
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="visible" type="xs:boolean"/>
+        <xs:attribute name="via" type="api-report-device-admin-via"/>
+    </xs:complexType>
+    <xs:simpleType name="api-report-device-admin-via">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="email"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="api-report">
+        <xs:sequence>
+            <xs:element name="code" type="xs:string"/>
+            <xs:element name="classification">
+                <xs:complexType>
+                    <xs:attribute name="severity" type="severity"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="example" type="xs:string"/>
+            <xs:element name="user" type="api-report-user"/>
+            <xs:element name="domain-admin" type="api-report-domain-admin"/>
+            <xs:element name="device-admin" type="api-report-device-admin"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="scheduler-report">
+        <xs:sequence>
+            <xs:element name="classification">
+                <xs:complexType>
+                    <xs:attribute name="severity" type="severity"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="example" type="xs:string"/>
+            <xs:element name="user" type="api-report-user"/>
+            <xs:element name="domain-admin" type="api-report-domain-admin"/>
+            <xs:element name="device-admin" type="api-report-device-admin"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="executor-report">
+        <xs:sequence>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="classification">
+                <xs:complexType>
+                    <xs:attribute name="severity" type="severity"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="example" type="xs:string"/>
+            <xs:element name="user" type="api-report-user"/>
+            <xs:element name="domain-admin" type="api-report-domain-admin"/>
+            <xs:element name="device-admin" type="api-report-device-admin"/>
+            <xs:element name="resolution" type="executor-report-resolution"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="executor-report-resolution">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="fail"/>
+            <xs:enumeration value="try-again"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

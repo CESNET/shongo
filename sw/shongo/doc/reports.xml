@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<reports xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="reports.xsd">
+
+    <api>
+
+        <report>
+            <code>0</code>
+            <classification severity="error"/>
+            <description>
+                Unknown internal error.
+            </description>
+            <example>
+            </example>
+            <user visible="true" via="ui">
+                <description>Unknown error.</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <code>10</code>
+            <classification severity="error"/>
+            <description>
+                The class specified in the request is not defined.
+            </description>
+            <example>
+            </example>
+            <user visible="true" via="ui">
+                <description>Srozumitelny text pro uzivatele.</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <!-- TODO: -->
+
+    </api>
+
+    <scheduler>
+
+        <report>
+            <classification severity="error"/>
+            <description>
+
+            </description>
+            <example>
+            </example>
+            <user visible="true" via="ui">
+                <description>Srozumitelny text pro uzivatele.</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+    </scheduler>
+
+    <executor>
+
+        <report>
+            <classification severity="error"/>
+            <name>agent-not-found</name>
+            <description>
+                Receiver agent (in connector) is not available
+            </description>
+            <example>
+            </example>
+            <resolution>fail</resolution>
+            <user visible="true" via="ui">
+                <description>Srozumitelny text pro uzivatele.</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+    </executor>
+
+</reports>
