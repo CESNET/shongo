@@ -519,12 +519,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             // Add/modify participants
             for (UserInformation participant : room.getParticipants()) {
-                if (room.isPropertyItemMarkedAsNew(Room.PARTICIPANTS, participant)) {
-                    addRoomParticipant(roomId, participant);
-                }
-                else {
-                    throw new TodoImplementException("Modify room participant.");
-                }
+                addRoomParticipant(roomId, participant);
             }
 
             // Delete participants
