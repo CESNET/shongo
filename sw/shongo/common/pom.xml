@@ -8,7 +8,7 @@
     <parent>
         <artifactId>shongo</artifactId>
         <groupId>cz.cesnet.shongo</groupId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>common</artifactId>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>common-api</artifactId>
-            <version>1.0</version>
+            <version>${shongo.version}</version>
         </dependency>
 
         <!-- Commons CLI is used for parsing command line arguments -->

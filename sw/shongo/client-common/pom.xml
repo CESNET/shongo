@@ -8,12 +8,38 @@
     <parent>
         <artifactId>shongo</artifactId>
         <groupId>cz.cesnet.shongo</groupId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>client-common</artifactId>
     <name>Shongo Controller Client Common</name>
     <description>Common classes for Shongo clients.</description>
     <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/perl</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

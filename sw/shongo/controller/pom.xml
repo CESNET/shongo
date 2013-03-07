@@ -8,7 +8,7 @@
     <parent>
         <groupId>cz.cesnet.shongo</groupId>
         <artifactId>shongo</artifactId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>controller</artifactId>
@@ -20,17 +20,17 @@
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>common</artifactId>
-            <version>1.0</version>
+            <version>${shongo.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>connector-api</artifactId>
-            <version>1.0</version>
+            <version>${shongo.version}</version>
         </dependency>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>controller-api</artifactId>
-            <version>1.0</version>
+            <version>${shongo.version}</version>
         </dependency>
 
         <!-- Spring framework core is used for AnnotationUtils class -->
@@ -94,8 +94,8 @@
 
         <!-- Graph-theory objects and algorithms -->
         <dependency>
-            <groupId>jgrapht</groupId>
-            <artifactId>jgrapht</artifactId>
+            <groupId>org.jgrapht</groupId>
+            <artifactId>jgrapht-jdk1.5</artifactId>
             <version>0.7.3</version>
         </dependency>
 
@@ -123,6 +123,26 @@
 
     <build>
         <plugins>
+            <!-- Plugin that copy all JAR dependencies along to module target JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Generates proper manifest file with right classpath and main class -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

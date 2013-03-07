@@ -3,16 +3,14 @@
 #
 #   clear \
 #     && sudo chown -R shongo:shongo /home/shongo/shongo \
-#     && sudo sh /home/shongo/shongo/sw/shongo/bin/setup-client-web.sh \
-#     && sudo su www-data -c "/home/shongo/shongo/sw/shongo/client-web/src/public/index.pl"
+#     && sudo sh /home/shongo/shongo/sw/shongo/bin/shongo_setup.sh \
+#     && sudo su www-data -c "/home/shongo/shongo/sw/shongo/client-web/target/www/index.pl"
 #
 
-# Go to sw/shongo
-cd `dirname $0`/../
+# Go to this folder
+cd `dirname $0`/..
 
 # Setup data directory
-mkdir -p log/
-touch log/client-web.log
 chown -R shongo:shongo data
 
 # Deny all access for group and other
@@ -23,8 +21,7 @@ sudo chown :www-data client-common client-web ./ ../ ../../ log
 sudo chmod g+rx client-common client-web ./ ../ ../../ log
 
 # Allow access to client-web log and configuration
-sudo chown :www-data log/client-web.log
-sudo chmod g+rw log/client-web.log
+sudo g+w log
 if [ -f client-web.cfg.xml ];
 then
   chown :www-data client-web.cfg.xml
@@ -32,7 +29,6 @@ then
 fi
 
 # Allow access to client web sources for "www-data" user
-sudo chown -R :www-data client-web/src client-common/src
-sudo chmod -R g+r client-web/src client-common/src
-sudo chmod g+x client-web/src/public/index.pl `find client-web/src client-common/src -type d`
-
+sudo chown -R :www-data client-web/target
+sudo chmod -R g+r client-web/target
+sudo chmod g+x client-web/target/www/index.pl `find client-web/target -type d`

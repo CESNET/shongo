@@ -5,9 +5,15 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <properties>
+        <shongo.version>0.5.0</shongo.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
     <groupId>cz.cesnet.shongo</groupId>
     <artifactId>shongo</artifactId>
-    <version>1.0</version>
+    <version>${shongo.version}</version>
     <name>Shongo</name>
     <description>Shongo resource management system.</description>
     <packaging>pom</packaging>
@@ -28,11 +34,21 @@
         <!-- Shongo project contains internal maven repository for libraries
              that aren't placed in any of central maven repositories -->
         <repository>
-            <id>lib</id>
+            <id>shongo-repository</id>
             <name>Shongo Maven Repository</name>
             <url>file://${project.basedir}/../lib</url>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <!-- Shongo project contains internal maven repository for libraries
+             that aren't placed in any of central maven repositories -->
+        <pluginRepository>
+            <id>shongo-plugin-repository</id>
+            <name>Shongo Plugin Maven Repository</name>
+            <url>file://${project.basedir}/../lib</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <dependencies>
         <!-- We use SLF4J API for all logging in Shongo -->
@@ -101,26 +117,6 @@
 
     <build>
         <plugins>
-            <!-- Plugin that copy all JAR dependencies along to module target JAR -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-dependencies</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <overWriteReleases>true</overWriteReleases>
-                            <overWriteSnapshots>true</overWriteSnapshots>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <!-- Set Java compiler version to 1.6 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

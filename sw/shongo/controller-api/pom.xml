@@ -8,7 +8,7 @@
     <parent>
         <groupId>cz.cesnet.shongo</groupId>
         <artifactId>shongo</artifactId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>controller-api</artifactId>
@@ -20,7 +20,7 @@
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
             <artifactId>common-api</artifactId>
-            <version>1.0</version>
+            <version>${shongo.version}</version>
         </dependency>
 
         <dependency>

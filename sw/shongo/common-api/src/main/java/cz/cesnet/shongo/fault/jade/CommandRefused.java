@@ -20,6 +20,6 @@ public class CommandRefused extends CommandFailure
     @Override
     public String getMessage()
     {
-        return "Command '%s' was refused.";
+        return "Command was refused.";
     }
 }

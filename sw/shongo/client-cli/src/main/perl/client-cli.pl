@@ -9,8 +9,6 @@ use warnings;
 
 # Setup lib directory
 use FindBin;
-use lib "$FindBin::Bin/src/main/perl";
-use lib "$FindBin::Bin/../client-common/src/main/perl";
 
 use Getopt::Long;
 use Shongo::Console;
@@ -80,6 +78,9 @@ $controller->set_scripting($scripting);
 if ($testing_access_token) {
     $controller->{'access_token'} = '1e3f174ceaa8e515721b989b19f71727060d0839';
 }
+
+print 'Shongo Command-Line Client ${shongo.version}';
+print "\n";
 
 # Connect to controller
 if ( defined($connect) ) {

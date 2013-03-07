@@ -8,12 +8,57 @@
     <parent>
         <artifactId>shongo</artifactId>
         <groupId>cz.cesnet.shongo</groupId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>client-cli</artifactId>
     <name>Shongo Controller Command-Line Client</name>
     <description>Command-line client for Shongo controller.</description>
     <packaging>pom</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>client-common</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/../client-common/target</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>src/main/perl</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>src/main/perl</directory>
+                                    <includes>
+                                        <include>client-cli.pl</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

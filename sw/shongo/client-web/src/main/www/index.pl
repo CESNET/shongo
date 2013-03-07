@@ -13,15 +13,17 @@ my $script_directory;
 BEGIN {
     $script_directory = dirname( __FILE__ );
 }
-use lib "$script_directory/../main/perl";
-use lib "$script_directory/../../../client-common/src/main/perl";
+use lib "$script_directory/../perl";
 
 # Get directories
 use File::Spec::Functions;
 use File::Basename;
 my $directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0));
-my $config_directory = $directory . '/../../..';
 my $resources_directory = $directory . '/../resources';
+my $current_directory = $directory . '/../../..';
+if ( exists($ENV{'SHONGO_CLIENT_CURRENT_DIR'}) ) {
+    $current_directory = $ENV{'SHONGO_CLIENT_CURRENT_DIR'};
+}
 
 use CGI;
 use CGI::Session;
@@ -55,7 +57,7 @@ BEGIN {
 }
 
 # Initialize logger
-my $logger_file = $config_directory . '/log/client-web.log';
+my $logger_file = $current_directory . '/log/client-web.log';
 my $logger_configuration = "";
 $logger_configuration .= "log4perl.rootLogger = DEBUG,  FILE\n";
 $logger_configuration .= "log4perl.appender.FILE = Log::Log4perl::Appender::File\n";
@@ -70,7 +72,7 @@ my $configuration = $session->param('configuration');
 if ( !defined($configuration) ) {
     $logger->debug('Loading configuration...');
     $configuration = XMLin($resources_directory . '/default.cfg.xml', KeyAttr => {}, ForceArray => []);
-    my $configuration_filename = $config_directory . '/client-web.cfg.xml';
+    my $configuration_filename = $current_directory . '/client-web.cfg.xml';
     if ( -e $configuration_filename ) {
         $configuration = Hash::Merge::Simple::merge($configuration, XMLin($configuration_filename));
     }

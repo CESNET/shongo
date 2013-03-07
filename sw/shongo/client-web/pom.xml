@@ -8,12 +8,86 @@
     <parent>
         <artifactId>shongo</artifactId>
         <groupId>cz.cesnet.shongo</groupId>
-        <version>1.0</version>
+        <version>${shongo.version}</version>
     </parent>
 
     <artifactId>client-web</artifactId>
     <name>Shongo Controller Web Client</name>
     <description>Web client for Shongo controller.</description>
     <packaging>pom</packaging>
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>client-common</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-client-common</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/perl</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/../client-common/target</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-client-web</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>src/main</directory>
+                                    <includes>
+                                        <include>resources/layout.html</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>cz.cesnet.shongo.tools</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <command>${basedir}/setup-target.sh</command>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
