@@ -55,7 +55,7 @@
         </dependency>
 
         <!-- A complete, Java-based solution for accessing, manipulating, and outputting XML data
- which is used by Adobe Connect connector -->
+             which is used by Adobe Connect connector -->
         <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom2</artifactId>
@@ -65,6 +65,22 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <!-- Plugin that copy all JAR dependencies along to module target JAR -->
             <plugin>

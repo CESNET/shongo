@@ -16,10 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Represents a device connector.
@@ -323,12 +322,34 @@ public class Connector
     }
 
     /**
+     * @return version of the {@link Connector}
+     */
+    private static String getVersion()
+    {
+        String filename = "version.properties";
+        Properties properties = new Properties();
+        InputStream inputStream = Connector.class.getClassLoader().getResourceAsStream(filename);
+        if (inputStream == null) {
+            throw new IllegalStateException("Properties file '" + filename + "' was not found in the classpath.");
+        }
+        try {
+            properties.load(inputStream);
+        }
+        catch (IOException exception) {
+            throw new IllegalStateException(exception);
+        }
+        return properties.getProperty("version");
+    }
+
+    /**
      * Main method of device connector.
      *
      * @param args
      */
     public static void main(String[] args)
     {
+        logger.info("Connector {}", getVersion());
+
         Logging.installBridge();
 
         // Create options

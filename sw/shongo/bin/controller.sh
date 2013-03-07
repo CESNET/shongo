@@ -1,3 +1,3 @@
 cd `dirname $0`/../
-java -jar controller/target/controller-1.0.jar "$@"
-
+VERSION=`cat pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`
+java -jar controller/target/controller-$VERSION.jar "$@"

@@ -1,3 +1,3 @@
 cd `dirname $0`/../
-java -jar connector/target/connector-1.0.jar "$@"
-
+VERSION=`cat pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`
+java -jar connector/target/connector-$VERSION.jar "$@"

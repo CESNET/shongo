@@ -24,7 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -651,12 +653,34 @@ public class Controller
     }
 
     /**
+     * @return version of the {@link Controller}
+     */
+    private static String getVersion()
+    {
+        String filename = "version.properties";
+        Properties properties = new Properties();
+        InputStream inputStream = Controller.class.getClassLoader().getResourceAsStream(filename);
+        if (inputStream == null) {
+            throw new IllegalStateException("Properties file '" + filename + "' was not found in the classpath.");
+        }
+        try {
+            properties.load(inputStream);
+        }
+        catch (IOException exception) {
+            throw new IllegalStateException(exception);
+        }
+        return properties.getProperty("version");
+    }
+
+    /**
      * Main controller method
      *
      * @param args
      */
     public static void main(String[] args) throws Exception
     {
+        logger.info("Controller {}", getVersion());
+
         Logging.installBridge();
 
         // Create options
