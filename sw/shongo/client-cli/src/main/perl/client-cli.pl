@@ -79,8 +79,10 @@ if ($testing_access_token) {
     $controller->{'access_token'} = '1e3f174ceaa8e515721b989b19f71727060d0839';
 }
 
-print 'Shongo Command-Line Client ${shongo.version}';
-print "\n";
+if ( $scripting eq 0 ) {
+    print 'Shongo Command-Line Client ${shongo.version}';
+    print "\n";
+}
 
 # Connect to controller
 if ( defined($connect) ) {

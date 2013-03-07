@@ -17,11 +17,11 @@ use IPC::Open2;
 use POSIX qw(strftime);
 
 # Change directory to project root
-chdir("$directory/..");
+chdir("$directory/../../../../");
 
 # Get scripts
 my $filter = $ARGV[0];
-my $script_directory = $directory . '/src/test/perl';
+my $script_directory = $directory . '/scripts';
 my @scripts = ();
 opendir(DIRECTORY, $script_directory) or die $!;
 while ( my $file = readdir(DIRECTORY) ) {
