@@ -190,12 +190,17 @@ sub authentication_token
     ));
     my $user_agent = $self->get_user_agent();
     my $response = $user_agent->simple_request($request);
-    my $response_data = decode_json($response->content);
     if (!$response->is_success) {
-        $self->error("$response_data->{'error'}. $response_data->{'error_description'}\n"
-            . "Retrieving access token failed!");
+        if ( $response->content =~ /^[{]/) {
+            my $response_data = decode_json($response->content);
+            $self->error("$response_data->{'error'}. $response_data->{'error_description'}\n"
+                . "Retrieving access token failed!");
+        } else {
+            $self->error($response->content);
+        };
         return;
     }
+    my $response_data = decode_json($response->content);
     my $access_token = $response_data->{'access_token'};
     return $access_token;
 }
@@ -210,7 +215,7 @@ sub get_user_info
 {
     my ($self, $access_token) = @_;
     if (!defined($access_token)) {
-        self->error("Access token must be passed.");
+        $self->error("Access token must be passed.");
         return;
     }
 
