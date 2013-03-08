@@ -38,7 +38,7 @@
     <!-- Security settings -->
     <security>
         <!-- Authorization server -->
-        <authorization-server>https://hroch.cesnet.cz/phpid-server/oic/</authorization-server>
+        <authorization-server>https://shongo-auth-dev.cesnet.cz/phpid-server/oic/</authorization-server>
         <!-- Specifies expiration of cache for user-id by access-token -->
         <user-id-cache-expiration>PT30M</user-id-cache-expiration>
         <!-- Specifies expiration of cache for user information by user-id -->
@@ -46,6 +46,12 @@
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
         <testing-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</testing-access-token>
     </security>
+
+    <!-- SSL configuration -->
+    <ssl>
+        <!-- Mapping hosts to different hosts for cerfificate verification -->
+        <host-verification-mapping mapped-host="shongo-auth-dev.cesnet.cz" target-host="hroch.cesnet.cz"/>
+    </ssl>
 
     <!-- Worker periodically starts preprocessor and scheduler -->
     <worker>

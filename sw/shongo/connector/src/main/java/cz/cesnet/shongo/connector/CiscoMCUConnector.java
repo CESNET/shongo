@@ -6,7 +6,7 @@ import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.HostTrustManager;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -122,8 +122,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             client.setConfig(config);
             client.setTransportFactory(new KeepAliveTransportFactory(client));
 
-            // FIXME: remove, the production code should not trust any certificate
-            HostTrustManager.getInstance().addTrustedHost(getDeviceURL().getHost());
+            ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
 
             initDeviceInfo();
         }

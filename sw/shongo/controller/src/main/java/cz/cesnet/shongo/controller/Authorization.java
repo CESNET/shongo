@@ -7,13 +7,13 @@ import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.SecurityException;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -207,7 +207,7 @@ public class Authorization
                 // Perform request
                 HttpGet httpGet = new HttpGet(url);
                 httpGet.setHeader("Authorization", "Bearer " + accessToken);
-                HttpClient httpClient = new DefaultHttpClient();
+                HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
                 HttpResponse response = httpClient.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 if (entity != null) {
@@ -286,7 +286,7 @@ public class Authorization
 
                 // Perform request
                 HttpGet httpGet = new HttpGet(url);
-                HttpClient httpClient = new DefaultHttpClient();
+                HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
                 HttpResponse response = httpClient.execute(httpGet);
                 HttpEntity entity = response.getEntity();
                 if (entity != null) {
@@ -324,7 +324,7 @@ public class Authorization
 
             // Perform request
             HttpGet httpGet = new HttpGet(url);
-            HttpClient httpClient = new DefaultHttpClient();
+            HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
             HttpResponse response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
@@ -379,8 +379,8 @@ public class Authorization
         userInformation.setFirstName((String) data.get("given_name"));
         userInformation.setLastName((String) data.get("family_name"));
 
-        if (data.containsKey("eppn")) {
-            userInformation.setEduPersonPrincipalName((String) data.get("eppn"));
+        if (data.containsKey("original_id")) {
+            userInformation.setEduPersonPrincipalName((String) data.get("original_id"));
         }
         if (data.containsKey("organization")) {
             userInformation.setOrganization((String) data.get("organization"));

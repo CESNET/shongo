@@ -78,13 +78,6 @@
             </exclusions>
         </dependency>
 
-        <!-- HttpClient is used for communication to authorization server -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.2.1</version>
-        </dependency>
-
         <!-- Jackson (High-performance JSON processor) is used for parsing responses from authorization server -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.util.HostTrustManager;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -743,7 +743,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             logout();
         }
 
-        HostTrustManager.getInstance().addTrustedHost(info.getDeviceAddress().getHost());
+        ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
 
         HashMap<String, String> loginAtributes = new HashMap<String, String>();
         loginAtributes.put("login", this.login);

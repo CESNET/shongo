@@ -35,7 +35,8 @@ sub new
         $state = join "", map { unpack "H*", chr(rand(256)) } 1..10;
     }
 
-    $self->{'url'} = 'https://hroch.cesnet.cz/phpid-server/oic/';
+    $self->{'url'} = 'https://shongo-auth-dev.cesnet.cz/phpid-server/oic/';
+    $self->{'ws_url'} = 'https://hroch.cesnet.cz/perun-ws/resource/user';
     $self->{'client_id'} = $client_id;
     $self->{'redirect_uri'} = $redirect_uri;
     $self->{'secret-string'} = 'testclientsecret';
@@ -251,7 +252,7 @@ sub get_user_info_by_id
     }
 
     # Setup request url
-    my $url = URI->new('https://hroch.cesnet.cz/perun-ws/resource/user/' . $user_id);
+    my $url = URI->new($self->{'ws_url'} . '/' . $user_id);
 
     # Request user information
     my $request = HTTP::Request->new(GET => $url);

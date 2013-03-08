@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.executor.Executable;
+import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.tree.NodeCombiner;
+import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 
@@ -10,7 +13,7 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Configuration extends CompositeConfiguration
+public class Configuration extends CombinedConfiguration
 {
     /**
      * Time-zone in which the controller works and which is considered as default for date/times without specific zone.
@@ -106,6 +109,21 @@ public class Configuration extends CompositeConfiguration
      * Specifies access token which won't be verified and can be used for testing purposes.
      */
     public static final String SECURITY_TESTING_ACCESS_TOKEN = "security.testing-access-token";
+
+    /**
+     * SSL host verification mappings.
+     */
+    public static final String SSL_HOST_VERIFICATION_MAPPINGS = "ssl.host-verification-mapping";
+
+    /**
+     * Constructor.
+     */
+    public Configuration()
+    {
+        NodeCombiner nodeCombiner = new UnionCombiner();
+        nodeCombiner.addListNode("host-verification-mapping");
+        setNodeCombiner(nodeCombiner);
+    }
 
     /**
      * @see {@link #getString(String)}

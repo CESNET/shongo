@@ -267,22 +267,25 @@ sub fault_action
     $self->render_headers();
 
     my $title = undef;
-    my $message = undef;
+    my $message = $faultResponse->string();
     my $params = {};
-    my $xml = XML::Twig->new(twig_handlers => {
-        'response/message' => sub {
-            my ($twig, $node) = @_;
-            $message = $node->text;
-        },
-        'response/param' => sub {
-            my ($twig, $node) = @_;
-            my $name = $node->{'att'}->{'name'};
-            $params->{$name} = $node->text;
-        },
-    });
-    $xml->parse('<response>' . $faultResponse->string() . '</response>');
-    if ( !defined($message) ) {
-        $message = $faultResponse->string();
+    if ( $message =~ /<message>/) {
+        my $xml = XML::Twig->new(twig_handlers => {
+            'response/message' => sub {
+                my ($twig, $node) = @_;
+                $message = $node->text;
+            },
+            'response/param' => sub {
+                my ($twig, $node) = @_;
+                my $name = $node->{'att'}->{'name'};
+                $params->{$name} = $node->text;
+            },
+        });
+        $xml->parse('<response>' . $faultResponse->string() . '</response>');
+    }
+    else {
+        $message =~ s/</&lt;/g;
+        $message =~ s/>/&gt;/g;
     }
 
     my $code = $faultResponse->code();

@@ -11,10 +11,12 @@ import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import cz.cesnet.shongo.util.ConsoleAppender;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Level;
@@ -118,7 +120,7 @@ public class Controller
      *
      * @param configuration sets the {@link #configuration}
      */
-    public Controller(org.apache.commons.configuration.Configuration configuration)
+    public Controller(org.apache.commons.configuration.AbstractConfiguration configuration)
     {
         setConfiguration(configuration);
     }
@@ -161,7 +163,7 @@ public class Controller
     /**
      * @param configuration configuration to be set to the controller
      */
-    public void setConfiguration(org.apache.commons.configuration.Configuration configuration)
+    public void setConfiguration(org.apache.commons.configuration.AbstractConfiguration configuration)
     {
         this.configuration = new Configuration();
         // System properties has the highest priority
@@ -775,6 +777,16 @@ public class Controller
         }
         // Create controller
         Controller controller = new Controller(configurationFileName);
+
+        // Configure SSL host verification mappings
+        Configuration configuration = controller.getConfiguration();
+        for (HierarchicalConfiguration mapping :
+                configuration.configurationsAt(Configuration.SSL_HOST_VERIFICATION_MAPPINGS)) {
+            String mappedHost = mapping.getString("[@mapped-host]");
+            String targetHost = mapping.getString("[@target-host]");
+            logger.info("Configuring SSL host verification mapping from '{}' to '{}'.", mappedHost, targetHost);
+            ConfiguredSSLContext.getInstance().addTrustedHostMapping(mappedHost, targetHost);
+        }
 
         logger.debug("Creating entity manager factory...");
         Timer timer = new Timer();
