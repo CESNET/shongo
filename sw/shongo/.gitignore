@@ -9,3 +9,4 @@ controller.cfg.xml
 connector.cfg.xml
 client-web.cfg.xml
 *.fsps
+*.class

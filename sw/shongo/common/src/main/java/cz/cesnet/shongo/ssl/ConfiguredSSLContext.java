@@ -123,6 +123,14 @@ public class ConfiguredSSLContext
     public static synchronized ConfiguredSSLContext getInstance()
     {
         if (instance == null) {
+            // SNI Extension must be disabled because when this extension is enabled in JDK 1.7
+            // the SSL certificates aren't in some cases validated via HostnameVerifier
+            // @see
+            // @see documentation of jsse.enableSNIExtension
+            // @see http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
+            //      and similar problems
+            System.setProperty("jsse.enableSNIExtension", Boolean.FALSE.toString());
+
             instance = new ConfiguredSSLContext();
         }
         return instance;
@@ -147,6 +155,17 @@ public class ConfiguredSSLContext
         @Override
         public final void verify(String host, String[] cns, String[] subjectAlts) throws javax.net.ssl.SSLException
         {
+            // Print verification info
+            /*System.out.print("Verify " + host + " in [ ");
+            for (String item : cns) {
+                System.out.print(item + " ");
+            }
+            System.out.print("] or in [ ");
+            for (String item : subjectAlts) {
+                System.out.print(item + " ");
+            }
+            System.out.println("]");*/
+
             String targetHost = hostMapping.get(host);
             if (targetHost != null) {
                 host = targetHost;
