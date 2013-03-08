@@ -4,6 +4,9 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.annotation.Transient;
 import jade.content.Concept;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Represents information about a Shongo user.
  *
@@ -39,7 +42,7 @@ public class UserInformation implements PersonInformation, Concept
     /**
      * Email of the user.
      */
-    private String email;
+    private List<String> emails = new LinkedList<String>();
 
     /**
      * Constructor.
@@ -120,19 +123,28 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     /**
-     * @return {@link #email}
+     * @return {@link #emails}
      */
-    public String getEmail()
+    public List<String> getEmails()
     {
-        return email;
+        return emails;
     }
 
     /**
-     * @param email sets the {@link #email}
+     * @param emails sets the {@link #emails}
      */
-    public void setEmail(String email)
+    public void setEmails(List<String> emails)
     {
-        this.email = email;
+        this.emails.clear();
+        this.emails.addAll(emails);
+    }
+
+    /**
+     * @param email to be added to the {@link #emails}
+     */
+    public void addEmail(String email)
+    {
+        this.emails.add(email);
     }
 
     @Override
@@ -164,7 +176,10 @@ public class UserInformation implements PersonInformation, Concept
     @Override
     public String getPrimaryEmail()
     {
-        return getEmail();
+        if (emails.size() > 0) {
+            emails.get(0);
+        }
+        return null;
     }
 
     @Override

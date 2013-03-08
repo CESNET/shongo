@@ -177,7 +177,9 @@ public class AuthorizationServiceImpl extends Component
                 filterData.append(userInformation.getFirstName());
                 filterData.append(" ");
                 filterData.append(userInformation.getLastName());
-                filterData.append(userInformation.getEmail());
+                for (String email : userInformation.getEmails()) {
+                    filterData.append(email);
+                }
                 filterData.append(userInformation.getOrganization());
             }
             if (filterData == null || StringUtils.containsIgnoreCase(filterData.toString(), filter)) {

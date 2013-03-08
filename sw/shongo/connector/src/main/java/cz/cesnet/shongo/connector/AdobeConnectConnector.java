@@ -144,7 +144,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         newUserAttributes.put("first-name", userInformation.getFirstName());
         newUserAttributes.put("last-name", userInformation.getLastName());
         newUserAttributes.put("login", principalName);
-        newUserAttributes.put("email", userInformation.getEmail());
+        newUserAttributes.put("email", userInformation.getPrimaryEmail());
         newUserAttributes.put("type", "user");
         newUserAttributes.put("has-children", "false");
 

@@ -386,7 +386,14 @@ public class Authorization
             userInformation.setOrganization((String) data.get("organization"));
         }
         if (data.containsKey("email")) {
-            userInformation.setEmail((String) data.get("email"));
+            String emails = (String) data.get("email");
+            if (emails != null) {
+                for (String email : emails.split(";")) {
+                    if (!email.isEmpty()) {
+                        userInformation.addEmail(email);
+                    }
+                }
+            }
         }
 
         return userInformation;

@@ -5,8 +5,8 @@
             text += " " + user.lastName;
         }
         text +=  " (id: " + user.userId + ")";
-        if ( user.email != null ) {
-            text += ", " + user.email;
+        if ( user.emails != null && user.emails.length > 0) {
+            text += ", " + user.emails[0];
         }
         return text;
     };
