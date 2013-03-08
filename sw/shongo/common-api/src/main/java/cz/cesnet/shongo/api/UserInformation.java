@@ -177,7 +177,7 @@ public class UserInformation implements PersonInformation, Concept
     public String getPrimaryEmail()
     {
         if (emails.size() > 0) {
-            emails.get(0);
+            return emails.get(0);
         }
         return null;
     }
