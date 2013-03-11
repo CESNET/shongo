@@ -8,6 +8,7 @@ package Shongo::Authorization;
 use strict;
 use warnings;
 
+use IO::Socket::SSL 1.56; # At leaset version 1.56 because of SNI support (see http://pkgs.fedoraproject.org/cgit/perl-IO-Socket-SSL.git/plain/perl-IO-Socket-SSL.spec?p=perl-IO-Socket-SSL.git;a=blob_plain;f=perl-IO-Socket-SSL.spec)
 use LWP;
 use LWP::UserAgent;
 use URI;
