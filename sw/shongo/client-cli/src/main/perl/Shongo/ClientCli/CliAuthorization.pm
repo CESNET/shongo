@@ -96,9 +96,7 @@ sub authentication_authorize
         }
         elsif ($url =~ /^$redirect_uri/) {
             # Check for error
-            my $pound = '#';
-            if ( $url =~ /${pound}error=/ ) {
-                $url =~ s/${pound}error=/\?error=/g;
+            if ( $url =~ /\?error=/ ) {
                 $url = URI->new($url);
                 console_print_error("Retrieving authorization code failed! " . $url->query_param('error') . ": "
                     . $url->query_param('error_description'));

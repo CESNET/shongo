@@ -231,6 +231,25 @@ sub run
         return;
     }
 
+    my $error = $self->{'cgi'}->param('error');
+    my $error_description = $self->{'cgi'}->param('error_description');
+    if ( defined($error) && defined($error_description) ) {
+        if ( $error eq 'server_error' && $error_description =~ /"(.+)":{"isEmpty":"Value is required.+"/ ) {
+            $error = "Field <strong>$1</strong> in the user data is empty and it is required.";
+        }
+        else {
+            $error = "<strong>$error</strong>: $error_description";
+        }
+
+        select STDOUT;
+        $self->render_headers();
+        $self->render_page('Error', 'fault.html', {
+            'faultTitle' => 'Signing in failed',
+            'faultMessage' => $error,
+        });
+        exit(0);
+    }
+
     $self->SUPER::run($location);
 }
 
