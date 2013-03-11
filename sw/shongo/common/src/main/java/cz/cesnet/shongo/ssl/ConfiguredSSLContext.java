@@ -17,10 +17,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * SSL {@link javax.net.ssl.TrustManager} for trusting hosts.
@@ -123,14 +120,6 @@ public class ConfiguredSSLContext
     public static synchronized ConfiguredSSLContext getInstance()
     {
         if (instance == null) {
-            // SNI Extension must be disabled because when this extension is enabled in JDK 1.7
-            // the SSL certificates aren't in some cases validated via HostnameVerifier
-            // @see
-            // @see documentation of jsse.enableSNIExtension
-            // @see http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
-            //      and similar problems
-            System.setProperty("jsse.enableSNIExtension", Boolean.FALSE.toString());
-
             instance = new ConfiguredSSLContext();
         }
         return instance;
@@ -139,7 +128,7 @@ public class ConfiguredSSLContext
     private class HostnameVerifier extends AbstractVerifier
     {
         /**
-         * Set of hosts which are trusted in the certificates.
+         * Set of host mappings which are trusted in the certificates.
          */
         private Map<String, String> hostMapping = new HashMap<String, String>();
 
@@ -155,20 +144,22 @@ public class ConfiguredSSLContext
         @Override
         public final void verify(String host, String[] cns, String[] subjectAlts) throws javax.net.ssl.SSLException
         {
-            // Print verification info
-            /*System.out.print("Verify " + host + " in [ ");
-            for (String item : cns) {
-                System.out.print(item + " ");
-            }
-            System.out.print("] or in [ ");
-            for (String item : subjectAlts) {
-                System.out.print(item + " ");
-            }
-            System.out.println("]");*/
-
             String targetHost = hostMapping.get(host);
             if (targetHost != null) {
-                host = targetHost;
+                boolean addHostAsSubjectAlt = false;
+                for (String subjectAlt : subjectAlts) {
+                    if (subjectAlt.equals(targetHost)) {
+                        addHostAsSubjectAlt = true;
+                    }
+                    else if (subjectAlt.equals(host)) {
+                        addHostAsSubjectAlt = false;
+                        break;
+                    }
+                }
+                if (addHostAsSubjectAlt) {
+                    subjectAlts = Arrays.copyOf(subjectAlts, subjectAlts.length + 1);
+                    subjectAlts[subjectAlts.length - 1] = host;
+                }
             }
             verify(host, cns, subjectAlts, false);
         }

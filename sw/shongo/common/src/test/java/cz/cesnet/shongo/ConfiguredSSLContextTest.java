@@ -1,7 +1,6 @@
 package cz.cesnet.shongo;
 
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import org.apache.http.HttpConnection;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -14,7 +13,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * Tests for {@link ConfiguredSSLContext}.
