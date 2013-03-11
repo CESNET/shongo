@@ -81,11 +81,17 @@
                 <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.roomName %] ([% aliasReservation.id %])</option>
                 [% END %]
             </select>
-            [% IF !get.alias %]<a class="btn" href="javascript: createAlias();">Create new Alias</a>[% END %]
+            [% IF !get.alias %]
+            <a class="btn" href="javascript: refresh();">Refresh</a>
+            <a class="btn" href="javascript: createAlias();">Create new Alias</a>
+            [% END %]
             <script type="text/javascript">
-                function createAlias()
-                {
+                function createAlias() {
                     document.form.action = '[% location %]/create-alias?store-request=true';
+                    document.form.submit();
+                }
+                function refresh() {
+                    document.form.action = '[% location %]/create';
                     document.form.submit();
                 }
             </script>
