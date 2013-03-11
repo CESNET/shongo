@@ -10,11 +10,11 @@ command:
 
 To run controller on localhost at port 8008 type:
 
-    ./controller.sh
+    bun/controller.sh
 
 To connect to the controller use the client application:
 
-    ./client.sh
+    bin/client-cli.sh
 
 REQUIREMENTS
 

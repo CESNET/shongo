@@ -6,4 +6,4 @@ To run connector application go to directory
 <shongo_repository>/sw/shongo and type the
 following command:
 
-    ./connector.sh
+    bin/connector.sh

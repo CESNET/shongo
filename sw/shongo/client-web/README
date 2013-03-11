@@ -20,6 +20,9 @@ This client requires Perl installed to run and following Perl modules:
 11) Term::ReadKey
 12) RPC::XML
 13) XML::Twig
+14) IO::Socket::SSL (version 1.56)
+15) LWP::Protocol::https
+
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
@@ -28,3 +31,13 @@ can be installed by the following command:
             libxml-simple-perl libhash-merge-simple-perl liblog-log4perl-perl \
             libfile-homedir-perl libjson-perl libdevel-stacktrace-perl libdatetime-format-iso8601-perl \
             libterm-readkey-perl  librpc-xml-perl libxml-twig-perl
+
+On other platforms the modules can be installed by CPAN utility:
+
+    cpan -i Template
+
+The CPAN can be used even on the Ubuntu/Debian system to upgrade Perl modules, e.g. to install
+the latest version of IO::Socket::SSL:
+
+    sudo apt-get install build-essential
+    sudo cpan -i IO::Socket::SSL

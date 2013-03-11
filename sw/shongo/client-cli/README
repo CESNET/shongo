@@ -6,38 +6,42 @@ To run client application go to directory
 <shongo_repository>/sw/shongo and type the
 following command:
 
-    ./client-cli.sh
+    bin/client-cli.sh
 
 For printing application help type:
 
-    ./client-cli.sh --help
+    bin/client-cli.sh --help
 
 REQUIREMENTS
 
 This client requires Perl installed to run and following Perl modules:
-1) Term::ReadKey
-2) File::Which
-3) Term::ReadLine::Gnu
-4) RPC::XML
-5) XML::Twig
-6) Text::Table
-7) DateTime::Format::ISO8601
-8) JSON
-9) LWP::Protocol::https
+ 1) Term::ReadKey
+ 2) File::Which
+ 3) Term::ReadLine::Gnu
+ 4) RPC::XML
+ 5) XML::Twig
+ 6) Text::Table
+ 7) DateTime::Format::ISO8601
+ 8) JSON
+ 9) IO::Socket::SSL (version 1.56)
+10) LWP::Protocol::https
+
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 
-    sudo apt-get install libterm-readkey-perl libfile-which-perl libterm-readline-gnu-perl librpc-xml-perl libxml-twig-perl \
+    sudo apt-get install libterm-readkey-perl libfile-which-perl \
+        libterm-readline-gnu-perl librpc-xml-perl libxml-twig-perl \
         libtext-table-perl libdatetime-format-iso8601-perl \
         libjson-perl liblwp-protocol-https-perl
 
 
-On other platforms the modules can be installed for instance
-by CPAN utility:
+On other platforms the modules can be installed by CPAN utility:
 
-    cpan -f -i RPC::XML XML::Twig Text::Table DateTime::Format::ISO8601
+    cpan -i Term::ReadKey
 
-On cygwin you must first run:
+The CPAN can be used even on the Ubuntu/Debian system to upgrade Perl modules, e.g. to install
+the latest version of IO::Socket::SSL:
 
-    cpan -f -i YAML Switch
+    sudo apt-get install build-essential
+    sudo cpan -i IO::Socket::SSL
