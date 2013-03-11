@@ -76,7 +76,7 @@ sub populate()
             desc => "Connect to a controller. You must specify an <URL>.",
             maxargs => 1,
             args => sub { return ['127.0.0.1', 'localhost']; },
-            proc => sub {
+            method => sub {
                 my $url = $_[0];
                 if (defined($url) == 0) {
                     my $controller = Shongo::ClientCli->instance();
@@ -92,21 +92,22 @@ sub populate()
         },
         "disconnect" => {
             desc => "Disconnect from a controller.",
-            proc => sub {
+            method => sub {
                 Shongo::ClientCli->instance()->disconnect();
             }
         },
         "status" => {
             desc => "Show status and information about connected controller.",
-            proc => sub {
+            method => sub {
                 Shongo::ClientCli->instance()->status();
             }
         },
         "authenticate" => {
             desc => "Perform user authentication",
             method => sub {
+                my ($shell, $params, @args) = @_;
                 my $controller = Shongo::ClientCli->instance();
-                if ( defined($controller->authenticate()) ) {
+                if ( defined($controller->authenticate(@args)) ) {
                     $controller->user_info($controller->{'access_token'});
                 }
             }
@@ -168,8 +169,8 @@ sub user_exists
 #
 sub authenticate()
 {
-    my ($self) = @_;
-    $self->{'access_token'} = $self->{'authorization'}->authentication_authorize();
+    my ($self, $data) = @_;
+    $self->{'access_token'} = $self->{'authorization'}->authentication_authorize($data);
     return $self->{'access_token'};
 }
 

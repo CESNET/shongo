@@ -50,12 +50,21 @@ sub error
 #
 sub authentication_authorize
 {
-    my ($self) = @_;
+    my ($self, $data) = @_;
     my $username = undef;
     my $password = undef;
 
-    $username = console_read_value('Username', 1);
-    $password = console_read_password('Password');
+    if ( defined($data) && $data =~ /(.+):(.+)/ ) {
+        $username = $1;
+        $password = $2;
+    }
+
+    if ( !defined($username) ) {
+        $username = console_read_value('Username', 1);
+    }
+    if ( !defined($password) ) {
+        $password = console_read_password('Password');
+    }
     if ( !defined($password) ) {
         $password = '';
     }

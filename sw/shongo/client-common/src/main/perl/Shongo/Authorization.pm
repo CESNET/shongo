@@ -96,7 +96,7 @@ sub set_redirect_uri()
 sub get_user_agent()
 {
     my ($self) = @_;
-    my $user_agent = LWP::UserAgent->new();
+    my $user_agent = LWP::UserAgent->new(ssl_opts => { verify_hostname => 1 });
     $user_agent->agent('Shongo Client');
     return $user_agent;
 }
