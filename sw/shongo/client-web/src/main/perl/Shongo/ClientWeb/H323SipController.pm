@@ -75,7 +75,7 @@ sub create_action
             $reservation_request->{'specification'} = $specification;
 
             $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
-            $self->redirect('list');
+            $self->redirect_back('list');
         }
     }
     $params->{'options'} = {
@@ -90,6 +90,17 @@ sub create_alias_action
 {
     my ($self) = @_;
     my $params = $self->get_params();
+    if ( defined($self->get_param('store-request')) ) {
+        my $query = {};
+        foreach my $key (%{$params}) {
+            my $value = $params->{$key};
+            if ( $key ne 'alias' && defined($value) && length($value) > 0 ) {
+                $query->{$key} = $value;
+            }
+        }
+        $self->set_back_query($query);
+        $params = {};
+    }
     if ( defined($self->get_param('confirmed')) ) {
         $params->{'error'} = $self->validate_form($params, {
             required => [
@@ -125,7 +136,7 @@ sub create_alias_action
             }
             else {
                 $self->{'application'}->secure_request('Reservation.createReservationRequest', $reservation_request);
-                $self->redirect('list');
+                $self->redirect_back('list');
             }
         }
     }

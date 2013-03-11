@@ -6,7 +6,7 @@
     });
 </script>
 <h1>New reservation request for Adobe Connect conference</h1>
-<form class="form-horizontal" action="[% location %]/create?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
+<form name='form' class="form-horizontal" action="[% location %]/create?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
     <div class="control-group">
         <label class="control-label" for="inputDescription">Description:</label>
@@ -81,7 +81,14 @@
                 <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.roomName %] ([% aliasReservation.id %])</option>
                 [% END %]
             </select>
-            [% IF !get.alias %]<a class="btn" href="[% location %]/create-alias">Create new Alias</a>[% END %]
+            [% IF !get.alias %]<a class="btn" href="javascript: createAlias();">Create new Alias</a>[% END %]
+            <script type="text/javascript">
+                function createAlias()
+                {
+                    document.form.action = '[% location %]/create-alias?store-request=true';
+                    document.form.submit();
+                }
+            </script>
         </div>
     </div>
 

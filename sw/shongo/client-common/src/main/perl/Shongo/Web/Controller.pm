@@ -173,25 +173,31 @@ sub render_page_content
 # Redirect to given $url
 #
 # @param $url
+# @param $query
 #
 sub redirect
 {
-    my ($self, $url) = @_;
+    my ($self, $url, $query) = @_;
     if ( !($url =~ /^\//) ) {
         $url = $self->get_location() . '/' . $url;
     }
-    print $self->{'application'}->redirect($url);
+    print $self->{'application'}->redirect($url, $query);
 }
 
 #
 # Redirect to given $url
 #
 # @param $url
+# @param $default
+# @param $query
 #
 sub redirect_back
 {
-    my ($self) = @_;
-    print $self->{'application'}->redirect($self->{'application'}->get_back());
+    my ($self, $default, $query) = @_;
+    if ( !($default =~ /^\//) ) {
+        $default = $self->get_location() . '/' . $default;
+    }
+    print $self->{'application'}->redirect($self->{'application'}->get_back($default), $query);
 }
 
 #
@@ -201,6 +207,15 @@ sub push_back
 {
     my ($self) = @_;
     $self->{'application'}->push_back();
+}
+
+#
+# Set the query for the last back url
+#
+sub set_back_query
+{
+    my ($self, $query) = @_;
+    $self->{'application'}->set_back_query($query);
 }
 
 #
