@@ -256,7 +256,7 @@
             </params>
             <description>
                 Type mismatch of value in attribute {attribute} in class {class}. Present type {given-type} doesn't match
-                required type {required-type}
+                required type {required-type}.
             </description>
             <example>
                 TODO:
