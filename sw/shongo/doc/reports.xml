@@ -3,45 +3,460 @@
 <reports xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="reports.xsd">
 
+    <jade>
+
+        <report>
+            <id>unknown-error</id>
+            <classification severity="error"/>
+            <params>
+                <param name="description" type="string"/>
+            </params>
+            <description>
+                Unknown error: {description}
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>agent-not-found</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+            </params>
+            <description>
+                Receiver agent {receiver-agent} is not available now.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>agent-not-started</id>
+            <classification severity="error"/>
+            <params>
+                <param name="sender-agent" type="string"/>
+            </params>
+            <description>
+                Server agent {sender-agent} is not started yet.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-timeout</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+                <param name="command" type="string"/>
+            </params>
+            <description>
+                Command {command} has timeout.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-not-supported</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+                <param name="command" type="string"/>
+            </params>
+            <description>
+                Receiver agent {receiver-agent} doesn't implement command {command}.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-refused</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+                <param name="command" type="string"/>
+            </params>
+            <description>
+                Receiver agent {receiver-agent} has refused command {command}.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-not-understood</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+                <param name="command" type="string"/>
+            </params>
+            <description>
+                Receiver agent {receiver-agent} didn't understand command {command}.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-failed</id>
+            <classification severity="error"/>
+            <params>
+                <param name="receiver-agent" type="string"/>
+                <param name="command" type="string"/>
+                <param name="reason" type="string"/>
+            </params>
+            <description>
+                Receiver agent {receiver-agent} throws CommandException while processing command {command}: {reason}
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+        <report>
+            <id>command-result-decoding-failed</id>
+            <classification severity="error"/>
+            <params>
+                <param name="sender-agent" type="string"/>
+                <param name="command" type="string"/>
+            </params>
+            <description>
+                Sender agent {sender-agent} cannot decode response from command {command}.
+            </description>
+            <example>
+                TODO:
+            </example>
+        </report>
+
+    </jade>
+
     <api>
 
         <report>
-            <code>0</code>
+            <id>unknown-error</id>
             <classification severity="error"/>
+            <params>
+                <param name="description" type="string"/>
+            </params>
             <description>
-                Unknown internal error.
+                Unknown error: {description}
             </description>
             <example>
+                TODO:
             </example>
             <user visible="true" via="ui">
-                <description>Unknown error.</description>
+                <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
             <device-admin visible="false"/>
         </report>
 
         <report>
-            <code>10</code>
+            <id>type-illegal-value</id>
             <classification severity="error"/>
+            <params>
+                <param name="type" type="string"/>
+                <param name="value" type="string"/>
+            </params>
             <description>
-                The class specified in the request is not defined.
+                Value {value} is illegal for type {type}.
             </description>
             <example>
+                TODO:
+                -Enum
+                -Date/Time
+                -Period
+                -Interval
+                -Partial Date/Time
+                -DeviceResource.Mode
             </example>
             <user visible="true" via="ui">
-                <description>Srozumitelny text pro uzivatele.</description>
+                <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
             <device-admin visible="false"/>
         </report>
 
-        <!-- TODO: -->
+        <report>
+            <id>class-undefined</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+            </params>
+            <description>
+                Class {class} is not defined.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-instantiation-error</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+            </params>
+            <description>
+                Class {class} cannot be instanced.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-attribute-undefined</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="attribute" type="string"/>
+            </params>
+            <description>
+                Attribute {attribute} is not defined in class {class}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-attribute-type-mismatch</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="attribute" type="string"/>
+                <param name="required-type" type="string"/>
+                <param name="present-type" type="string"/>
+            </params>
+            <description>
+                Type mismatch of value in attribute {attribute} in class {class}. Present type {given-type} doesn't match
+                required type {required-type}
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-attribute-required</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="attribute" type="string"/>
+            </params>
+            <description>
+                Attribute {attribute} in class {class} wasn't present but it is required.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-attribute-readonly</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="attribute" type="string"/>
+            </params>
+            <description>
+                Value for attribute {attribute} in class {class} was present but the attribute is read-only.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-collection-required</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="collection" type="string"/>
+            </params>
+            <description>
+                Collection {collection} in class {class} wasn't present or was empty but it is required.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-collection-item-null</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="collection" type="string"/>
+            </params>
+            <description>
+                Null item cannot be present in collection {collection} in class {class}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>class-collection-item-type-mismatch</id>
+            <classification severity="error"/>
+            <params>
+                <param name="class" type="string"/>
+                <param name="collection" type="string"/>
+                <param name="required-type" type="string"/>
+                <param name="present-type" type="string"/>
+            </params>
+            <description>
+                Collection {collection} in class {class} contains item of type {present-type} which dosn't match the
+                required type {required-type}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>entity-not-found</id>
+            <classification severity="error"/>
+            <params>
+                <param name="entity" type="string"/>
+                <param name="id" type="string"/>
+            </params>
+            <description>
+                Entity {entity} with identifier {id} was not found.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>entity-invalid</id>
+            <classification severity="error"/>
+            <params>
+                <param name="entity" type="string"/>
+                <param name="reason" type="string"/>
+            </params>
+            <description>
+                Entity {entity} validation failed: {reason}
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>security-error</id>
+            <classification severity="error"/>
+            <params>
+                <param name="description" type="string"/>
+            </params>
+            <description>
+                Authentication or authorization has failed: {description}
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>device-command-failed</id>
+            <classification severity="error"/>
+            <params>
+                <param name="device" type="string"/>
+                <param name="command" type="string"/>
+                <param name="error" type="jade-report"/>
+            </params>
+            <description>
+                Command {command} for device {device} failed: {error}
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
 
     </api>
 
     <scheduler>
 
         <report>
+            <id>unknown-error</id>
             <classification severity="error"/>
             <description>
 
@@ -49,7 +464,7 @@
             <example>
             </example>
             <user visible="true" via="ui">
-                <description>Srozumitelny text pro uzivatele.</description>
+                <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
             <device-admin visible="false"/>
@@ -60,16 +475,20 @@
     <executor>
 
         <report>
+            <id>command-failed</id>
             <classification severity="error"/>
-            <name>agent-not-found</name>
+            <params>
+                <param name="command" type="string"/>
+                <param name="error" type="jade-report"/>
+            </params>
             <description>
-                Receiver agent (in connector) is not available
+                Command {command} failed: {error}
             </description>
             <example>
             </example>
             <resolution>fail</resolution>
             <user visible="true" via="ui">
-                <description>Srozumitelny text pro uzivatele.</description>
+                <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
             <device-admin visible="false"/>
