@@ -9,6 +9,7 @@ use strict;
 use warnings;
 use URI::Escape;
 use Shongo::Common;
+use Log::Log4perl;
 
 #
 # Create a new instance of object.
@@ -27,6 +28,7 @@ sub new
     $self->{'template-parameters'} = {};
     $self->{'session'} = $session;
     $self->{'controller'} = {};
+    $self->{'logger'} = Log::Log4perl->get_logger('cz.cesnet.shongo.client-common');
 
     return $self;
 }
@@ -291,6 +293,7 @@ sub get_current_url
 # Redirect to given $url
 #
 # @param $url
+# @param $query
 #
 sub redirect
 {
@@ -326,16 +329,40 @@ sub push_back
     if ( !defined($history) ) {
         $history = [];
     }
+    my $query = undef;
+    if ( $current_url =~ /(.+)\?(.+)/ ) {
+        $current_url = $1;
+        $query = $2;
+    }
 
     for ( my $index = 0; $index < scalar(@{$history}); $index++ ) {
-        if ( $history->[$index] eq $current_url ) {
+        if ( $history->[$index]->{'url'} eq $current_url ) {
             splice(@{$history}, $index);
             last;
         }
     }
 
-    push(@{$history}, $current_url);
+    push(@{$history}, {
+        'url' => $current_url,
+        'query' => $query
+    });
     $self->{'session'}->param('history', $history);
+}
+
+#
+# Set the query for the last back url
+#
+sub set_back_query
+{
+    my ($self, $query) = @_;
+    my $history = $self->{'session'}->param('history');
+    if ( defined($history) ) {
+        my $index = scalar(@{$history}) - 1;
+        if ( $index >= 0 ) {
+            $history->[$index]->{'query'} = $query;
+            $self->{'session'}->param('history', $history);
+        }
+    }
 }
 
 #
@@ -352,16 +379,29 @@ sub reset_back
 #
 sub get_back
 {
-    my ($self) = @_;
+    my ($self, $default) = @_;
     my $history = $self->{'session'}->param('history');
 
     my $back = undef;
     if ( defined($history) ) {
         my $current_url = $self->get_current_url();
+        if ( $current_url =~ /(.+)\?(.+)/ ) {
+            $current_url = $1;
+        }
         my $index = scalar(@{$history}) - 1;
         while ( $index >= 0 ) {
-            if ( $history->[$index] ne $current_url ) {
-                $back = uri_unescape($history->[$index]);
+            if ( $history->[$index]->{'url'} ne $current_url ) {
+                $back = uri_unescape($history->[$index]->{'url'});
+                if ( defined($history->[$index]->{'query'}) ) {
+                    if ( ref($history->[$index]->{'query'}) ) {
+                        $back = URI->new($back);
+                        $back->query_form($history->[$index]->{'query'});
+                        $back = $back->as_string();
+                    }
+                    else {
+                        $back .= '?' . $history->[$index]->{'query'};
+                    }
+                }
                 last;
             }
             else {
@@ -370,7 +410,12 @@ sub get_back
         }
     }
     if ( !defined($back) ) {
-        $back = '/';
+        if ( !defined($default) ) {
+            $back = '/';
+        }
+        else {
+            $back = $default;
+        }
     }
     return $back;
 }
