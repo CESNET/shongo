@@ -28,6 +28,7 @@
         <module>client-common</module>
         <module>client-cli</module>
         <module>client-web</module>
+        <module>tool-maven-plugin-exec</module>
     </modules>
 
     <repositories>

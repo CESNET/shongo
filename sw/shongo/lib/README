@@ -29,10 +29,6 @@ Custom Maven plugin can be installed by following command:
 
     mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
             -DlocalRepositoryPath=/home/martin/project/cesnet/shongo/sw/shongo/lib/ \
-            -Dfile=tools/exec-maven-plugin/target/exec-maven-plugin-1.0.jar \
-            -DpomFile=tools/exec-maven-plugin/pom.xml \
-            -DgroupId=cz.cesnet.shongo.tools \
-            -DartifactId=exec-maven-plugin \
-            -Dversion=1.0 \
-            -Dpackaging=maven-plugin \
+            -Dfile=tool-maven-plugin-exec/target/tool-maven-plugin-exec-1.0.0.jar \
+            -DpomFile=tool-maven-plugin-exec/pom.xml \
             -DcreateChecksum=true
