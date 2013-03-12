@@ -487,15 +487,15 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 throw new IllegalStateException("Room name must be filled for the new room.");
             }
 
-            Element respose = request("sco-update", attributes);
-            String roomId = respose.getChild("sco").getAttributeValue("sco-id");
+            Element response = request("sco-update", attributes);
+            String roomId = response.getChild("sco").getAttributeValue("sco-id");
 
             // Add room participants
             for (UserInformation participant : room.getParticipants()) {
                 addRoomParticipant(roomId, participant);
             }
 
-            //importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
+            //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 
             return roomId;
 
@@ -513,6 +513,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             HashMap<String, String> attributes = new HashMap<String, String>();
             attributes.put("sco-id", roomId);
+            attributes.put("type","meeting");
 
             // Set room attributes
             setRoomAttributes(attributes, room);
@@ -828,6 +829,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
 
             URL url = breezeUrl(action, attributes);
+            logger.debug(String.format("Calling action %s on %s", url, info.getDeviceAddress()));
 
             while (true) {
                 // Send request
