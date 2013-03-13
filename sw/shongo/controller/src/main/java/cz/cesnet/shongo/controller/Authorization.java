@@ -1,10 +1,16 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.authorization.AuthorizationCache;
+import cz.cesnet.shongo.controller.authorization.UserAcl;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.SecurityException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -15,11 +21,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.util.*;
 
@@ -57,67 +62,30 @@ public class Authorization
     private String authorizationServer;
 
     /**
-     * Specifies expiration for the {@link #userIdCache}.
-     */
-    private Duration userIdCacheExpiration;
-
-    /**
-     * Specifies expiration for the {@link #userInformationCache}.
-     */
-    private Duration userInformationCacheExpiration;
-
-    /**
      * Access token which won't be verified and can be used for testing purposes.
      */
     private String testingAccessToken;
 
     /**
-     * Single instance of {@link Authorization} which is used for retrieving {@link UserInformation}.
+     * @see AuthorizationCache
      */
-    private static Authorization authorization;
+    private AuthorizationCache cache = new AuthorizationCache();
 
     /**
      * Constructor.
      *
-     * @param configuration to load authorization configuration from
+     * @param config to load authorization configuration from
      */
-    private Authorization(Configuration configuration)
+    private Authorization(Configuration config)
     {
-        authorizationServer = configuration.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
+        authorizationServer = config.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
-        userIdCacheExpiration = configuration.getDuration(Configuration.SECURITY_USER_ID_CACHE_EXPIRATION);
-        userInformationCacheExpiration =
-                configuration.getDuration(Configuration.SECURITY_USER_INFORMATION_CACHE_EXPIRATION);
-        testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
-    }
-
-    /**
-     * @return new instance of {@link Authorization}
-     * @throws IllegalStateException when other {@link Authorization} already exists
-     */
-    public static Authorization createInstance(Configuration configuration) throws IllegalStateException
-    {
-        if (authorization != null) {
-            throw new IllegalStateException("Another instance of " + Authorization.class.getSimpleName()
-                    + "has been created and wasn't destroyed.");
-        }
-        authorization = new Authorization(configuration);
-        return authorization;
-    }
-
-    /**
-     * @return {@link #authorization}
-     * @throws IllegalStateException when the no {@link Authorization} has been created
-     */
-    public static Authorization getInstance() throws IllegalStateException
-    {
-        if (authorization == null) {
-            throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
-                    + "has been created.");
-        }
-        return authorization;
+        cache.setUserIdExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_ID));
+        cache.setUserInformationExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_INFORMATION));
+        cache.setUserAclExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_ACL));
+        testingAccessToken = config.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
     }
 
     /**
@@ -184,7 +152,7 @@ public class Authorization
         }
 
         // Try to use the user-id from access token cache to get the user information
-        String userId = getCachedUserIdByAccessToken(accessToken);
+        String userId = cache.getCachedUserIdByAccessToken(accessToken);
         if (userId != null) {
             logger.debug("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
             UserInformation userInformation = getUserInformation(userId);
@@ -229,8 +197,8 @@ public class Authorization
             }
             UserInformation userInformation = createUserInformationFromData(content);
             userId = userInformation.getUserId();
-            putCachedUserIdByAccessToken(accessToken, userId);
-            putCachedUserInformationByUserId(userId, userInformation);
+            cache.putCachedUserIdByAccessToken(accessToken, userId);
+            cache.putCachedUserInformationByUserId(userId, userInformation);
 
             // Store the user information inside the security token
             securityToken.setCachedPersonInformation(userInformation);
@@ -270,7 +238,7 @@ public class Authorization
         }
 
         // Try to use the user information from the cache
-        UserInformation userInformation = getCachedUserInformationByUserId(userId);
+        UserInformation userInformation = cache.getCachedUserInformationByUserId(userId);
         if (userInformation != null) {
             logger.debug("Using cached user information for user-id '{}'...", userId);
             return userInformation;
@@ -303,7 +271,7 @@ public class Authorization
                 throw new IllegalStateException(exception);
             }
             userInformation = createUserInformationFromData(content);
-            putCachedUserInformationByUserId(userId, userInformation);
+            cache.putCachedUserInformationByUserId(userId, userInformation);
             return userInformation;
         }
     }
@@ -400,6 +368,103 @@ public class Authorization
     }
 
     /**
+     * @param userId of user for which the ACL should be fetched
+     * @return fetched {@link UserAcl} for given {@code userId}
+     */
+    public UserAcl fetchUserAcl(String userId)
+    {
+        UserAcl userAcl = new UserAcl();
+
+        // TODO: Fetch ACL from authorization server
+        EntityManager entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+        try {
+            @SuppressWarnings("unchecked")
+            Class<? extends PersistentObject>[] types = (Class<? extends PersistentObject>[])new Class[] {
+                    Resource.class,
+                    AbstractReservationRequest.class,
+                    Reservation.class,
+                    Executable.class,
+            };
+            for (Class<? extends PersistentObject> type : types) {
+                List entities = entityManager.createQuery(
+                        "SELECT entity FROM " + type.getSimpleName() + " entity WHERE entity.userId = :userId")
+                        .setParameter("userId", userId)
+                        .getResultList();
+                for (Object entity : entities) {
+                    userAcl.addUserRoleForEntity(new EntityIdentifier(type.cast(entity)), Role.OWNER);
+                }
+            }
+        }
+        finally {
+            entityManager.close();
+        }
+        return userAcl;
+    }
+
+
+    public void createUserRole(String userId, EntityIdentifier entityId, Role role) throws SecurityException
+    {
+        EntityType entityType = entityId.getEntityType();
+        if (!entityType.allowsRole(role)) {
+            throw new SecurityException("Role is not allowed to specified entity");
+        }
+
+        // TODO: create user role in authorization server
+
+        // Update cache
+        UserAcl userAcl = cache.getCachedUserAclByUserId(userId);
+        if (userAcl != null) {
+            userAcl.addUserRoleForEntity(entityId, role);
+        }
+        else {
+            userAcl = fetchUserAcl(userId);
+            cache.putCachedUserAclByUserId(userId, userAcl);
+        }
+    }
+
+    public Set<Role> listUserRoles(String userId, EntityIdentifier entityId)
+    {
+        UserAcl userAcl = cache.getCachedUserAclByUserId(userId);
+        if (userAcl == null) {
+            userAcl = fetchUserAcl(userId);
+            cache.putCachedUserAclByUserId(userId, userAcl);
+        }
+        return userAcl.getUserRolesForEntity(entityId);
+    }
+
+    /**
+     * Single instance of {@link Authorization} which is used for retrieving {@link UserInformation}.
+     */
+    private static Authorization authorization;
+
+    /**
+     * @return new instance of {@link Authorization}
+     * @throws IllegalStateException when other {@link Authorization} already exists
+     */
+    public static Authorization createInstance(Configuration configuration) throws IllegalStateException
+    {
+        if (authorization != null) {
+            throw new IllegalStateException("Another instance of " + Authorization.class.getSimpleName()
+                    + "has been created and wasn't destroyed.");
+        }
+        authorization = new Authorization(configuration);
+        return authorization;
+    }
+
+    /**
+     * @return {@link #authorization}
+     * @throws IllegalStateException when the no {@link Authorization} has been created
+     */
+    public static Authorization getInstance() throws IllegalStateException
+    {
+        if (authorization == null) {
+            throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
+                    + "has been created.");
+        }
+        return authorization;
+    }
+
+    /**
      * Class for verifying user permissions.
      */
     public static class Permission
@@ -427,105 +492,5 @@ public class Authorization
         }
     }
 
-    /**
-     * Entry for {@link Authorization#userIdCache} and {@link Authorization#userInformationCache}.
-     */
-    private class CacheEntry<T>
-    {
-        private DateTime expirationDateTime;
 
-        private T cachedObject;
-
-    }
-
-    /**
-     * Cache of user-id by access token.
-     */
-    private Map<String, CacheEntry<String>> userIdCache = new HashMap<String, CacheEntry<String>>();
-
-    /**
-     * Cache of {@link UserInformation} by user-id.
-     */
-    private Map<String, CacheEntry<UserInformation>> userInformationCache =
-            new HashMap<String, CacheEntry<UserInformation>>();
-
-    /**
-     * @param accessToken
-     * @return user-id by given {@code accessToken}
-     */
-    private String getCachedUserIdByAccessToken(String accessToken)
-    {
-        CacheEntry<String> entry = userIdCache.get(accessToken);
-        if (entry != null) {
-            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
-                return entry.cachedObject;
-            }
-            else {
-                userIdCache.remove(accessToken);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Put given {@code userId} to the cache by the given {@code accessToken}.
-     *
-     * @param accessToken
-     * @param userId
-     */
-    private void putCachedUserIdByAccessToken(String accessToken, String userId)
-    {
-        CacheEntry<String> entry = userIdCache.get(accessToken);
-        if (entry == null) {
-            entry = new CacheEntry<String>();
-            userIdCache.put(accessToken, entry);
-        }
-        if (userIdCacheExpiration != null) {
-            entry.expirationDateTime = DateTime.now().plus(userIdCacheExpiration);
-        }
-        else {
-            entry.expirationDateTime = null;
-        }
-        entry.cachedObject = userId;
-    }
-
-    /**
-     * @param userId
-     * @return {@link UserInformation} by given {@code userId}
-     */
-    public UserInformation getCachedUserInformationByUserId(String userId)
-    {
-        CacheEntry<UserInformation> entry = userInformationCache.get(userId);
-        if (entry != null) {
-            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
-                return entry.cachedObject;
-            }
-            else {
-                userIdCache.remove(userId);
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Put given {@code userInformation} to the cache by the given {@code userId}.
-     *
-     * @param userId
-     * @param userInformation
-     */
-    public void putCachedUserInformationByUserId(String userId, UserInformation userInformation)
-    {
-        CacheEntry<UserInformation> entry = userInformationCache.get(userId);
-        if (entry == null) {
-            entry = new CacheEntry<UserInformation>();
-            userInformationCache.put(userId, entry);
-        }
-        if (userInformationCacheExpiration != null) {
-            entry.expirationDateTime = DateTime.now().plus(userInformationCacheExpiration);
-        }
-        else {
-            entry.expirationDateTime = null;
-        }
-        entry.cachedObject = userInformation;
-    }
 }

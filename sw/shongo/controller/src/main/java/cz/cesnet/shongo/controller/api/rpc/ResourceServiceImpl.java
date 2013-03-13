@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
@@ -136,7 +136,7 @@ public class ResourceServiceImpl extends Component
         }
 
         // Return resource shongo-id
-        return IdentifierFormat.formatGlobalId(resourceImpl);
+        return EntityIdentifier.formatId(resourceImpl);
     }
 
     @Override
@@ -144,7 +144,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long resourceId = IdentifierFormat.parseLocalId(
+        Long resourceId = EntityIdentifier.parseId(
                 cz.cesnet.shongo.controller.resource.Resource.class, resource.getId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -187,7 +187,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
+        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -247,7 +247,7 @@ public class ResourceServiceImpl extends Component
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
                 ResourceSummary summary = new ResourceSummary();
-                summary.setId(IdentifierFormat.formatGlobalId(resource));
+                summary.setId(EntityIdentifier.formatId(resource));
                 summary.setUserId(resource.getUserId());
                 summary.setName(resource.getName());
                 if (resource instanceof DeviceResource) {
@@ -262,7 +262,7 @@ public class ResourceServiceImpl extends Component
                 }
                 cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
                 if (parentResource != null) {
-                    summary.setParentResourceId(IdentifierFormat.formatGlobalId(parentResource));
+                    summary.setParentResourceId(EntityIdentifier.formatId(parentResource));
                 }
                 summaryList.add(summary);
             }
@@ -278,7 +278,7 @@ public class ResourceServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
+        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -299,7 +299,7 @@ public class ResourceServiceImpl extends Component
         authorization.validate(token);
         String userId = authorization.getUserId(token);
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
+        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -327,7 +327,7 @@ public class ResourceServiceImpl extends Component
             else {
                 resourceAllocation = new ResourceAllocation();
             }
-            resourceAllocation.setId(IdentifierFormat.formatGlobalId(resourceImpl));
+            resourceAllocation.setId(EntityIdentifier.formatId(resourceImpl));
             resourceAllocation.setName(resourceImpl.getName());
             resourceAllocation.setInterval(interval);
 

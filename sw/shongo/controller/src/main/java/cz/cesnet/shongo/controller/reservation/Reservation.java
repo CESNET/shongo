@@ -1,14 +1,11 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -385,20 +382,20 @@ public class Reservation extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
-        api.setId(IdentifierFormat.formatGlobalId(this));
+        api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
         if (getReservationRequest() != null) {
-            api.setReservationRequestId(IdentifierFormat.formatGlobalId(getReservationRequest()));
+            api.setReservationRequestId(EntityIdentifier.formatId(getReservationRequest()));
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi());
         }
         if (getParentReservation() != null) {
-            api.setParentReservationId(IdentifierFormat.formatGlobalId(getParentReservation()));
+            api.setParentReservationId(EntityIdentifier.formatId(getParentReservation()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationId(IdentifierFormat.formatGlobalId(childReservation));
+            api.addChildReservationId(EntityIdentifier.formatId(childReservation));
         }
     }
 

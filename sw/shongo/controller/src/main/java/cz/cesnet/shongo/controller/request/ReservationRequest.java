@@ -3,8 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
-import cz.cesnet.shongo.controller.common.DateTimeSlot;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
@@ -354,7 +353,7 @@ public class ReservationRequest extends AbstractReservationRequest
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
         if (isReservationAllocated()) {
-            reservationRequestApi.setReservationId(IdentifierFormat.formatGlobalId(getReservation()));
+            reservationRequestApi.setReservationId(EntityIdentifier.formatId(getReservation()));
         }
         super.toApi(api);
     }

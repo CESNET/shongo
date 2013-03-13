@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -171,7 +171,7 @@ public abstract class ValueProvider extends PersistentObject
             EntityManager entityManager) throws FaultException
     {
         if (object instanceof String) {
-            Long resourceId = IdentifierFormat.parseLocalId(
+            Long resourceId = EntityIdentifier.parseId(
                     cz.cesnet.shongo.controller.resource.Resource.class, (String) object);
             ResourceManager resourceManager = new ResourceManager(entityManager);
             Resource resource = resourceManager.get(resourceId);

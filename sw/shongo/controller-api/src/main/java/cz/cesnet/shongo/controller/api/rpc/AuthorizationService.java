@@ -11,7 +11,7 @@ import cz.cesnet.shongo.fault.FaultException;
 import java.util.Collection;
 
 /**
- * Interface defining service for accessing Shongo ACLs.
+ * Interface defining service for accessing Shongo ACL.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -27,7 +27,7 @@ public interface AuthorizationService extends Service
      * @return identifier of newly created ACL record
      */
     @API
-    public String createUserResourceRole(SecurityToken token, String userId, String resourceId, String roleId);
+    public String createUserResourceRole(SecurityToken token, String userId, String resourceId, String roleId) throws FaultException;
 
     /**
      * Delete {@link UserResourceRole} with given {@code id}.

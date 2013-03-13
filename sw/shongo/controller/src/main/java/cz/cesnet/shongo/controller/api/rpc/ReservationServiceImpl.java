@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
@@ -162,7 +162,7 @@ public class ReservationServiceImpl extends Component
             entityManager.close();
         }
 
-        return IdentifierFormat.formatGlobalId(reservationRequest);
+        return EntityIdentifier.formatId(reservationRequest);
     }
 
     /**
@@ -208,7 +208,7 @@ public class ReservationServiceImpl extends Component
 
         if (!modifiable) {
             throw new ReservationRequestNotModifiableException(
-                    IdentifierFormat.formatGlobalId(reservationRequest));
+                    EntityIdentifier.formatId(reservationRequest));
         }
     }
 
@@ -219,7 +219,7 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(
+        Long id = EntityIdentifier.parseId(
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest.class, reservationRequestApi.getId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -266,7 +266,7 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(
+        Long id = EntityIdentifier.parseId(
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest.class, reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -326,7 +326,7 @@ public class ReservationServiceImpl extends Component
                 if (items.length > 0) {
                     providedReservationIds = new HashSet<Long>();
                     for (Object item : items) {
-                        providedReservationIds.add(IdentifierFormat.parseLocalId(
+                        providedReservationIds.add(EntityIdentifier.parseId(
                                 cz.cesnet.shongo.controller.reservation.Reservation.class,
                                 (String) Converter.convert(item, String.class)));
                     }
@@ -356,7 +356,7 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest)
     {
         ReservationRequestSummary summary = new ReservationRequestSummary();
-        summary.setId(IdentifierFormat.formatGlobalId(abstractReservationRequest));
+        summary.setId(EntityIdentifier.formatId(abstractReservationRequest));
         summary.setUserId(abstractReservationRequest.getUserId());
         summary.setCreated(abstractReservationRequest.getCreated());
         summary.setPurpose(abstractReservationRequest.getPurpose());
@@ -369,7 +369,7 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification =
                     (cz.cesnet.shongo.controller.request.ResourceSpecification) specification;
             ReservationRequestSummary.ResourceType resourceType = new ReservationRequestSummary.ResourceType();
-            resourceType.setResourceId(IdentifierFormat.formatGlobalId(resourceSpecification.getResource()));
+            resourceType.setResourceId(EntityIdentifier.formatId(resourceSpecification.getResource()));
             summary.setType(resourceType);
         }
         else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
@@ -530,7 +530,7 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(
+        Long id = EntityIdentifier.parseId(
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest.class, reservationRequestId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -554,7 +554,7 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(
+        Long id = EntityIdentifier.parseId(
                 cz.cesnet.shongo.controller.reservation.Reservation.class, reservationId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -581,7 +581,7 @@ public class ReservationServiceImpl extends Component
         try {
             List<Reservation> reservations = new LinkedList<Reservation>();
             for (String reservationId : reservationIds) {
-                Long id = IdentifierFormat.parseLocalId(
+                Long id = EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.reservation.Reservation.class, reservationId);
                 cz.cesnet.shongo.controller.reservation.Reservation reservationImpl = reservationManager.get(id);
                 reservations.add(reservationImpl.toApi());
@@ -607,7 +607,7 @@ public class ReservationServiceImpl extends Component
             Long reservationRequestId = null;
             if (filter != null) {
                 if (filter.containsKey("reservationRequestId")) {
-                    reservationRequestId = IdentifierFormat.parseLocalId(
+                    reservationRequestId = EntityIdentifier.parseId(
                             cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
                             (String) Converter.convert(filter.get("reservationRequestId"), String.class));
                 }

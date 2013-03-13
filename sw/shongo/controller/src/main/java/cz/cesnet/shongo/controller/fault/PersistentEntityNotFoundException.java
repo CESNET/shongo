@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.fault;
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 
@@ -26,8 +26,8 @@ public class PersistentEntityNotFoundException extends EntityNotFoundException
      */
     public PersistentEntityNotFoundException(Class entityType, Long entityId)
     {
-        super(entityType, (IdentifierFormat.hasEntityType(entityType) ?
-                                   IdentifierFormat.formatGlobalId(entityType, entityId) : entityId.toString()));
+        super(entityType, (EntityIdentifier.hasEntityType(entityType) ?
+                                   EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
 
     @Override

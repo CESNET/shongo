@@ -200,6 +200,14 @@ public class Controller
     }
 
     /**
+     * @return {@link #entityManagerFactory}
+     */
+    public EntityManagerFactory getEntityManagerFactory()
+    {
+        return entityManagerFactory;
+    }
+
+    /**
      * Set domain information.
      *
      * @param name         sets the {@link Domain#name}

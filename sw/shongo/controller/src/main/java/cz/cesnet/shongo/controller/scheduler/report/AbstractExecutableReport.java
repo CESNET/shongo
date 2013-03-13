@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
 
@@ -60,6 +60,6 @@ public abstract class AbstractExecutableReport extends Report
     @Transient
     public String getExecutableDescription()
     {
-        return String.format("executable '%s'", IdentifierFormat.formatGlobalId(executable));
+        return String.format("executable '%s'", EntityIdentifier.formatId(executable));
     }
 }

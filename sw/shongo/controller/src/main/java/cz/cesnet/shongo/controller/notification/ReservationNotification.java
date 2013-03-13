@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
@@ -85,7 +85,7 @@ public class ReservationNotification extends Notification
     @Override
     public String getName()
     {
-        return type.getName() + " reservation " + IdentifierFormat.formatGlobalId(reservation);
+        return type.getName() + " reservation " + EntityIdentifier.formatId(reservation);
     }
 
     @Override

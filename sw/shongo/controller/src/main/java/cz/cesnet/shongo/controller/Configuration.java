@@ -97,13 +97,17 @@ public class Configuration extends CombinedConfiguration
     /**
      * Specifies expiration of cache for user-id by access-token.
      */
-    public static final String SECURITY_USER_ID_CACHE_EXPIRATION = "security.user-id-cache-expiration";
+    public static final String SECURITY_EXPIRATION_USER_ID = "security.expiration.user-id";
 
     /**
      * Specifies expiration of cache for user information by user-id.
      */
-    public static final String SECURITY_USER_INFORMATION_CACHE_EXPIRATION =
-            "security.user-information-cache-expiration";
+    public static final String SECURITY_EXPIRATION_USER_INFORMATION = "security.expiration.user-information";
+
+    /**
+     * Specifies expiration of cache for user ACL by user-id.
+     */
+    public static final String SECURITY_EXPIRATION_USER_ACL = "security.expiration.user-acl";
 
     /**
      * Specifies access token which won't be verified and can be used for testing purposes.

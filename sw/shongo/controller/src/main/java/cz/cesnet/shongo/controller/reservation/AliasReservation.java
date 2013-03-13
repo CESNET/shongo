@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -151,7 +151,7 @@ public class AliasReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
-        aliasReservationApi.setResourceId(IdentifierFormat.formatGlobalId(aliasProviderCapability.getResource()));
+        aliasReservationApi.setResourceId(EntityIdentifier.formatId(aliasProviderCapability.getResource()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
         aliasReservationApi.setValueReservation(valueReservation.toApi());
         for (Alias alias : getAliases()) {

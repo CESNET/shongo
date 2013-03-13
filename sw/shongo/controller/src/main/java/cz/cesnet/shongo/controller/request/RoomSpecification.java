@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -244,7 +244,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         if (deviceResource != null) {
-            roomSpecificationApi.setResourceId(IdentifierFormat.formatGlobalId(deviceResource));
+            roomSpecificationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
         }
         for (Technology technology : getTechnologies()) {
             roomSpecificationApi.addTechnology(technology);
@@ -273,7 +273,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class,
+                Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
                         roomSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));

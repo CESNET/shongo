@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -265,7 +265,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         entityManager.createQuery(
                 "UPDATE Resource resource SET resource.userId = :userId WHERE resource.id = :resourceId")
                 .setParameter("userId", ownerUserId)
-                .setParameter("resourceId", IdentifierFormat.parseLocalId(
+                .setParameter("resourceId", EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.resource.Resource.class, resourceId))
                 .executeUpdate();
         entityManager.getTransaction().commit();
@@ -290,7 +290,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         entityManager.createQuery(
                 "UPDATE ReservationRequest request SET request.userId = :userId WHERE request.id = :requestId")
                 .setParameter("userId", ownerUserId)
-                .setParameter("requestId", IdentifierFormat.parseLocalId(
+                .setParameter("requestId", EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.request.ReservationRequest.class, firstReservationRequestId))
                 .executeUpdate();
         entityManager.getTransaction().commit();
@@ -304,7 +304,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         entityManager.createQuery(
                 "UPDATE ReservationRequest request SET request.userId = :userId WHERE request.id = :requestId")
                 .setParameter("userId", ownerUserId)
-                .setParameter("requestId", IdentifierFormat.parseLocalId(
+                .setParameter("requestId", EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.request.ReservationRequest.class, secondReservationRequestId))
                 .executeUpdate();
         entityManager.getTransaction().commit();

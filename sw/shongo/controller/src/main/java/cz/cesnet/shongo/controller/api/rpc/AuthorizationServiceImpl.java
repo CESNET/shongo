@@ -1,13 +1,17 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -64,10 +68,32 @@ public class AuthorizationServiceImpl extends Component
         return "Authorization";
     }
 
+    /**
+     * @param entityId of entity which should be checked for existence
+     * @throws PersistentEntityNotFoundException
+     */
+    private void checkEntityExistence(EntityIdentifier entityId) throws PersistentEntityNotFoundException
+    {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity == null) {
+                throw new PersistentEntityNotFoundException(entityId.getEntityClass(), entityId.getPersistenceId());
+            }
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
     @Override
-    public String createUserResourceRole(SecurityToken token, String userId, String resourceId, String roleId)
+    public String createUserResourceRole(SecurityToken token, String userId, String resourceId, String roleId) throws FaultException
     {
         authorization.validate(token);
+
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(resourceId);
+        checkEntityExistence(entityIdentifier);
+
 
         // TODO: check that resource exits
 
@@ -114,12 +140,13 @@ public class AuthorizationServiceImpl extends Component
         authorization.validate(token);
 
         if (resourceId != null) {
-            IdentifierFormat.LocalIdentifier resourceLocalId = IdentifierFormat.parseLocalId(resourceId);
-            if (!resourceLocalId.getEntityType().equals(IdentifierFormat.EntityType.RESERVATION_REQUEST)) {
-                throw new TodoImplementException(resourceLocalId.getEntityType().toString());
+            EntityIdentifier resourceIdentifier =
+                    cz.cesnet.shongo.controller.common.EntityIdentifier.parse(resourceId);
+            if (!resourceIdentifier.getEntityType().equals(EntityType.RESERVATION_REQUEST)) {
+                throw new TodoImplementException(resourceIdentifier.getEntityType().toString());
             }
             if (roleId == null || roleId.equals(ROLE_OWNER)) {
-                Long entityId = resourceLocalId.getEntityId();
+                Long entityId = resourceIdentifier.getPersistenceId();
                 if (!initializedEntities.contains(entityId)) {
                     EntityManager entityManager = entityManagerFactory.createEntityManager();
                     try {

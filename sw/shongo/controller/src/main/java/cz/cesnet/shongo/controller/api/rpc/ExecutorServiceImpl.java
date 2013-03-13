@@ -5,8 +5,7 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.rpc.ExecutorService;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -73,7 +72,7 @@ public class ExecutorServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
+        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
 
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -113,7 +112,7 @@ public class ExecutorServiceImpl extends Component
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
-            summary.setId(IdentifierFormat.formatGlobalId(executable));
+            summary.setId(EntityIdentifier.formatId(executable));
             summary.setUserId(executable.getUserId());
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
@@ -137,7 +136,7 @@ public class ExecutorServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
+        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);

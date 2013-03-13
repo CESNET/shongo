@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -384,7 +384,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
-        api.setId(IdentifierFormat.formatGlobalId(this));
+        api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setPurpose(getPurpose());
@@ -393,7 +393,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         api.setSpecification(getSpecification().toApi());
         api.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
-            api.addProvidedReservationId(IdentifierFormat.formatGlobalId(providedReservation));
+            api.addProvidedReservationId(EntityIdentifier.formatId(providedReservation));
         }
     }
 
@@ -437,7 +437,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (String providedReservationId : api.getProvidedReservationIds()) {
             if (api.isPropertyItemMarkedAsNew(api.PROVIDED_RESERVATION_IDS, providedReservationId)) {
-                Long id = IdentifierFormat.parseLocalId(
+                Long id = EntityIdentifier.parseId(
                         Reservation.class, providedReservationId);
                 Reservation providedReservation = reservationManager.get(id);
                 addProvidedReservation(providedReservation);
@@ -447,7 +447,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         Set<String> apiDeletedProvidedReservationIds =
                 api.getPropertyItemsMarkedAsDeleted(api.PROVIDED_RESERVATION_IDS);
         for (String providedReservationId : apiDeletedProvidedReservationIds) {
-            Long id = IdentifierFormat.parseLocalId(
+            Long id = EntityIdentifier.parseId(
                     Reservation.class, providedReservationId);
             removeProvidedReservation(id);
         }
