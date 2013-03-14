@@ -54,11 +54,11 @@ public class AclRecord
         return role;
     }
 
-    public cz.cesnet.shongo.controller.api.AclRecord toApi(Authorization authorization)
+    public cz.cesnet.shongo.controller.api.AclRecord toApi()
     {
         cz.cesnet.shongo.controller.api.AclRecord aclRecordApi = new cz.cesnet.shongo.controller.api.AclRecord();
         aclRecordApi.setId(getId());
-        aclRecordApi.setUser(authorization.getUserInformation(getUserId()));
+        aclRecordApi.setUserId(getUserId());
         aclRecordApi.setEntityId(getEntityId().toId());
         aclRecordApi.setRole(getRole());
         return aclRecordApi;

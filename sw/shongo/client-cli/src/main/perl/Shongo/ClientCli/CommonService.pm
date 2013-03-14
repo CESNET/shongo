@@ -16,7 +16,7 @@ use Shongo::Console;
 our $Status = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
 
 #
-# Populate shell by options for management of reservations.
+# Populate shell by options for common management.
 #
 # @param shell
 #

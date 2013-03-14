@@ -19,9 +19,9 @@ public class AclRecord implements StructType
     String id;
 
     /**
-     * {@link cz.cesnet.shongo.api.UserInformation} of user of the {@link AclRecord}.
+     * User-id of user of the {@link AclRecord}.
      */
-    UserInformation user;
+    String userId;
 
     /**
      * Identifier of entity of some {@link cz.cesnet.shongo.controller.EntityType} for which the user
@@ -51,28 +51,19 @@ public class AclRecord implements StructType
     }
 
     /**
-     * @return {@link #user}
+     * @return {@link #userId}
      */
-    public UserInformation getUser()
-    {
-        return user;
-    }
-
-    /**
-     * @return {@link cz.cesnet.shongo.api.UserInformation#getUserId()}
-     */
-    @Transient
     public String getUserId()
     {
-        return user.getUserId();
+        return userId;
     }
 
     /**
-     * @param user sets the {@link #user}
+     * @param userId sets the {@link #userId}
      */
-    public void setUser(UserInformation user)
+    public void setUserId(String userId)
     {
-        this.user = user;
+        this.userId = userId;
     }
 
     /**

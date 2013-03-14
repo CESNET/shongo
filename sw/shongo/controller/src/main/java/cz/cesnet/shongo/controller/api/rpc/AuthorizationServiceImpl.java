@@ -108,7 +108,7 @@ public class AuthorizationServiceImpl extends Component
     {
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
         authorization.validate(token, aclRecord.getEntityId(), Permission.READ);
-        return aclRecord.toApi(authorization);
+        return aclRecord.toApi();
     }
 
     @Override
@@ -146,7 +146,7 @@ public class AuthorizationServiceImpl extends Component
 
         List<AclRecord> aclRecordApiList = new LinkedList<AclRecord>();
         for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
-            aclRecordApiList.add(aclRecord.toApi(authorization));
+            aclRecordApiList.add(aclRecord.toApi());
         }
         return aclRecordApiList;
     }
