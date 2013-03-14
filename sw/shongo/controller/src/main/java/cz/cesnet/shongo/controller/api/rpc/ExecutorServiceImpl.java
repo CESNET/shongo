@@ -65,17 +65,19 @@ public class ExecutorServiceImpl extends Component
     @Override
     public void deleteExecutable(SecurityToken token, String executableId) throws FaultException
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
-        authorization.validate(token, entityId, Permission.WRITE);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
         try {
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
+            entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.WRITE);
 
             executableManager.delete(executable);
 
@@ -132,13 +134,18 @@ public class ExecutorServiceImpl extends Component
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
             throws FaultException
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
-        authorization.validate(token, entityId, Permission.READ);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+
         try {
-            return executableManager.get(entityId.getPersistenceId()).toApi();
+            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.READ);
+
+            return executable.toApi();
         }
         finally {
             entityManager.close();

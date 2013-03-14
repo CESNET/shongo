@@ -117,7 +117,7 @@ sub connect()
         $url = 'http://' . $url;
     }
 
-    $self->{"controller-url"} = $url;
+    $self->{'controller-url'} = $url;
     $self->{'controller-client'} = RPC::XML::Client->new($url);
 }
 

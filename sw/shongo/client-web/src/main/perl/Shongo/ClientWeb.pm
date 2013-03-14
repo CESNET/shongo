@@ -12,6 +12,7 @@ use RPC::XML;
 use RPC::XML::Client;
 use XML::Twig;
 use Shongo::Common;
+use Shongo::ClientCommon;
 use Shongo::ClientWeb::WebAuthorization;
 use Shongo::ClientWeb::H323SipController;
 use Shongo::ClientWeb::AdobeConnectController;
@@ -42,11 +43,53 @@ sub new
     }
     $singleInstance = $self;
 
+    # Initialize client
+    $singleInstance->{'client'} = Shongo::ClientCommon->new();
+    $singleInstance->{'client'}->{'on-error'} = sub {
+        my ($error) = @_;
+        if ( $error =~ /(Connection refused)/ ) {
+            $self->not_available_action();
+        }
+        else {
+            $self->error_action($error);
+        }
+    };
+    $singleInstance->{'client'}->{'on-fault'} = sub {
+        my ($fault) = @_;
+        $self->fault_action($fault);
+    };
+    $singleInstance->{'client'}->{'on-get-access-token'} = sub {
+        my $user = $self->get_authenticated_user();
+        if ( !defined($user) || !defined($user->{'access_token'}) ) {
+            $self->redirect('/sign-in');
+            exit(0);
+        }
+        return $user->{'access_token'};
+    };
+    $singleInstance->{'client'}->{'user-cache-get'} = sub {
+        my ($user_id) = @_;
+        my $user_cache = $self->{'session'}->param('user-cache');
+        if ( defined($user_cache) && defined($user_cache->{$user_id}) ) {
+            return $user_cache->{$user_id};
+        }
+        return undef;
+    };
+    $singleInstance->{'client'}->{'user-cache-put'} = sub {
+        my ($user_id, $user_information) = @_;
+        my $user_cache = $self->{'session'}->param('user-cache');
+        if ( !defined($user_cache) ) {
+            $user_cache = {};
+        }
+        $user_cache->{$user_id} = $user_information;
+        $self->{'session'}->param('user-cache', $user_cache);
+    };
+
     # We must reuse existing authorization state (because the case when the user click on "Sign in" then he go back
     # and again click on "Sing in" and then login, the authorization server returns the first "state" so it must be same)
     my $state = $self->{'session'}->param('authorization_state');
     $self->{'authorization'} = Shongo::ClientWeb::WebAuthorization->new($state);
 
+    # Initialize actions
     $self->add_action('index', sub { $self->index_action(); });
     $self->add_action('time-zone-offset', sub { $self->time_zone_offset_action(); });
     $self->add_action('sign-in', sub { $self->sign_in_action(); });
@@ -105,14 +148,21 @@ sub instance
 sub load_configuration
 {
     my ($self, $configuration) = @_;
+
+    # Connect to controller
     my $controller_url = $configuration->{'controller'};
+    if ( !defined($controller_url) ) {
+        $self->error_action("Controller url isn't specified.");
+    }
     if ( !($controller_url =~ /http(s)?:\/\//) ) {
         $controller_url = 'http://' . $controller_url;
     }
     if ( !($controller_url =~ /:\d+/) ) {
         $controller_url .= ':8181';
     }
-    $self->{'controller-url'} = $controller_url;
+    $self->{'client'}->connect($controller_url);
+
+    # Setup authorization
     if ( defined($configuration->{'authorization'}) ) {
         my $authorization = $configuration->{'authorization'};
         if ( defined($authorization->{'client-id'}) ) {
@@ -125,25 +175,6 @@ sub load_configuration
 }
 
 #
-# Connect to to url
-#
-# @param controller_url
-#
-sub check_connected
-{
-    my ($self) = @_;
-    if ( defined($self->{'controller-client'}) ) {
-        return;
-    }
-
-    if ( !defined($self->{'controller-url'}) ) {
-        $self->error_action("Controller url isn't specified.");
-    }
-
-    $self->{'controller-client'} = RPC::XML::Client->new($self->{'controller-url'});
-}
-
-#
 # Send request to Controller XML-RPC server.
 #
 # @param... Arguments for XML-RPC request
@@ -152,21 +183,8 @@ sub check_connected
 #
 sub request()
 {
-    my ($self, $method, @args) = @_;
-    $self->check_connected();
-
-    my $response = $self->{'controller-client'}->send_request($method, @args);
-    if ( !ref($response) ) {
-        if ( $response =~ /(Connection refused)/ ) {
-            $self->not_available_action();
-        }
-        $self->error_action("Failed to send request to controller!\n" . $response);
-        return undef;
-    }
-    if ( $response->is_fault() ) {
-        $self->fault_action($response);
-    }
-    return $response->value();
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->request(@arguments);
 }
 
 #
@@ -178,19 +196,30 @@ sub request()
 #
 sub secure_request()
 {
-    my ($self, $method, @args) = @_;
-    my $user = $self->get_user();
-    if ( !defined($user) || !defined($user->{'access_token'}) ) {
-        $self->redirect('/sign-in');
-        return undef;
-    }
-    my $securityToken = RPC::XML::string->new($user->{'access_token'});
-    return $self->request(
-        $method,
-        $securityToken,
-        @args
-    );
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->secure_request(@arguments);
 }
+
+#
+# @return current signed user
+#
+sub get_authenticated_user
+{
+    my ($self) = @_;
+    return $self->{'session'}->param('user');
+}
+
+
+#
+# @param $user_id
+# @return user information by $user_id
+#
+sub get_user_information
+{
+    my ($self, $user_id) = @_;
+    return $self->{'client'}->get_user_information($user_id);
+}
+
 
 # @Override
 sub run
@@ -334,14 +363,8 @@ sub fault_action
 }
 
 #
-# @return current signed user
+# Set time zone offset action
 #
-sub get_user
-{
-    my ($self) = @_;
-    return $self->{'session'}->param('user');
-}
-
 sub time_zone_offset_action
 {
     my ($self) = @_;

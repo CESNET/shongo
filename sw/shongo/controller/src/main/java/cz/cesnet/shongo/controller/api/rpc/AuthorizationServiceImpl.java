@@ -83,11 +83,10 @@ public class AuthorizationServiceImpl extends Component
     public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
             throws FaultException
     {
+        String requesterUserId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
-        authorization.validate(token, entityIdentifier, Permission.WRITE);
-
         checkEntityExistence(entityIdentifier);
-
+        authorization.checkPermission(requesterUserId, entityIdentifier, Permission.WRITE);
         cz.cesnet.shongo.controller.authorization.AclRecord userAclRecord =
                 authorization.createAclRecord(userId, entityIdentifier, role);
         return userAclRecord.getId();
@@ -97,8 +96,9 @@ public class AuthorizationServiceImpl extends Component
     public void deleteAclRecord(SecurityToken token, String aclRecordId)
             throws FaultException
     {
+        String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
-        authorization.validate(token, aclRecord.getEntityId(), Permission.WRITE);
+        authorization.checkPermission(userId, aclRecord.getEntityId(), Permission.WRITE);
         authorization.deleteAclRecord(aclRecord);
     }
 
@@ -106,8 +106,9 @@ public class AuthorizationServiceImpl extends Component
     public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
             throws FaultException
     {
+        String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
-        authorization.validate(token, aclRecord.getEntityId(), Permission.READ);
+        authorization.checkPermission(userId, aclRecord.getEntityId(), Permission.READ);
         return aclRecord.toApi();
     }
 

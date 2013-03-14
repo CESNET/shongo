@@ -68,7 +68,6 @@ Getopt::Long::GetOptions(
 ) or usage('Invalid commmand line options.');
 if ( $help == 1) {
     usage();
-    exit(0);
 }
 
 my $controller = Shongo::ClientCli->instance();
@@ -155,5 +154,3 @@ history_save($history_file);
 if ( $controller->is_connected() ) {
     $controller->disconnect();
 }
-
-exit(0);

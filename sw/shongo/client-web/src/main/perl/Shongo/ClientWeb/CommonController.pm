@@ -42,7 +42,7 @@ sub pre_dispatch
 {
     my ($self, $action) = @_;
     my $application = Shongo::ClientWeb->instance();
-    if ( !defined($application->get_user()) ) {
+    if ( !defined($application->get_authenticated_user()) ) {
         $application->redirect('/sign-in');
         return 0;
     }
@@ -125,19 +125,21 @@ sub modify_user_role_action
     my $params = $self->get_params();
     if ( !defined($self->get_param('confirmed')) ) {
         my $user_role = $self->{'application'}->secure_request('Authorization.getAclRecord', RPC::XML::string->new($params->{'id'}));
-        $params->{'user'} = $user_role->{'user'}->{'userId'};
+        $params->{'user'} = $user_role->{'userId'};
         $params->{'entity'} = $user_role->{'entityId'};
         $params->{'role'} = $user_role->{'role'};
     }
     if ( $self->modify_user_role('Create user role', $params) ) {
-        $self->{'application'}->secure_request('Authorization.deleteAclRecord',
-            RPC::XML::string->new($params->{'id'})
-        );
-        $self->{'application'}->secure_request('Authorization.createAclRecord',
+        my $id = $self->{'application'}->secure_request('Authorization.createAclRecord',
             RPC::XML::string->new($params->{'user'}),
             RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
+        if ( $id ne $params->{'id'} ) {
+            $self->{'application'}->secure_request('Authorization.deleteAclRecord',
+                RPC::XML::string->new($params->{'id'})
+            );
+        }
         $self->redirect_back();
     }
 }
@@ -331,6 +333,9 @@ sub get_reservation_request
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
     $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listAclRecords', {}, $id, {});
+    foreach my $user_role (@{$request->{'userRoles'}}) {
+        $user_role->{'user'} = $self->{'application'}->get_user_information($user_role->{'userId'});
+    }
 
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {

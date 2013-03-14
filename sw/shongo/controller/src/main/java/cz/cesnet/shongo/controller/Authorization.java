@@ -147,22 +147,6 @@ public class Authorization
     }
 
     /**
-     * Validate given {@code securityToken} and check if the user associated with the given {@code securityToken}
-     * has given {@code permission} for given {@code entityId}.
-     *
-     * @param securityToken to be validated
-     * @param entityId      for which the given {@code permission} should be checked
-     * @param permission    to be checked
-     * @return user-id
-     */
-    public String validate(SecurityToken securityToken, EntityIdentifier entityId, Permission permission)
-    {
-        String userId = validate(securityToken);
-        checkPermission(userId, entityId, permission);
-        return userId;
-    }
-
-    /**
      * @param securityToken of an user
      * @return {@link cz.cesnet.shongo.controller.common.Person} for user with given {@code securityToken}
      */
@@ -453,16 +437,20 @@ public class Authorization
 
         AclRecord newAclRecord = new AclRecord(userId, entityId, role);
 
-        // Update AclRecord cache
-        cache.putAclRecordById(newAclRecord);
-
         // Update AclUserState cache
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        aclUserState.addAclRecord(newAclRecord);
+        AclRecord addedAclRecord = aclUserState.addAclRecord(newAclRecord);
+        // ACL already exists so return it
+        if (addedAclRecord != newAclRecord) {
+            return addedAclRecord;
+        }
+
+        // Update AclRecord cache
+        cache.putAclRecordById(newAclRecord);
 
         // Update AclEntityState cache
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);

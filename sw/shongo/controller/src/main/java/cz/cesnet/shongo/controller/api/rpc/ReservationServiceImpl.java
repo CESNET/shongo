@@ -213,18 +213,21 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
             throws FaultException
     {
-        String reservationRequestId = reservationRequestApi.getId();
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
-        authorization.validate(token, entityId, Permission.WRITE);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        String reservationRequestId = reservationRequestApi.getId();
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         try {
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.WRITE);
+
             checkModifiableReservationRequest(reservationRequest, entityManager);
             reservationRequest.fromApi(reservationRequestApi, entityManager);
             reservationRequest.validate();
@@ -259,17 +262,20 @@ public class ReservationServiceImpl extends Component
     @Override
     public void deleteReservationRequest(SecurityToken token, String reservationRequestId) throws FaultException
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
-        authorization.validate(token, entityId, Permission.WRITE);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         try {
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
                     reservationRequestManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.WRITE);
+
             checkModifiableReservationRequest(reservationRequestImpl, entityManager);
 
             reservationRequestManager.delete(reservationRequestImpl);
@@ -346,14 +352,19 @@ public class ReservationServiceImpl extends Component
             String reservationRequestId)
             throws FaultException
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
-        authorization.validate(token, entityId, Permission.READ);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         try {
-            return reservationRequestManager.get(entityId.getPersistenceId()).toApi();
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.READ);
+
+            return reservationRequest.toApi();
         }
         finally {
             entityManager.close();
@@ -363,13 +374,19 @@ public class ReservationServiceImpl extends Component
     @Override
     public Reservation getReservation(SecurityToken token, String reservationId) throws FaultException
     {
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationId, EntityType.RESERVATION);
-        authorization.validate(token, entityId, Permission.READ);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationId, EntityType.RESERVATION);
+
         try {
-            return reservationManager.get(entityId.getPersistenceId()).toApi();
+            cz.cesnet.shongo.controller.reservation.Reservation reservation =
+                    reservationManager.get(entityId.getPersistenceId());
+
+            authorization.checkPermission(userId, entityId, Permission.READ);
+
+            return reservation.toApi();
         }
         finally {
             entityManager.close();

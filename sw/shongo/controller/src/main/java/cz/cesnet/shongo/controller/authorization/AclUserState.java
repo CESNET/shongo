@@ -22,12 +22,12 @@ public class AclUserState
 
     private Map<EntityIdentifier, EntityState> entityStateByEntityId = new HashMap<EntityIdentifier, EntityState>();
 
-    public void addAclRecord(AclRecord aclRecord)
+    public AclRecord addAclRecord(AclRecord aclRecord)
     {
+        EntityIdentifier entityId = aclRecord.getEntityId();
         if (aclRecords.add(aclRecord)) {
             aclRecordById.put(aclRecord.getId(), aclRecord);
 
-            EntityIdentifier entityId = aclRecord.getEntityId();
             EntityState entityState = entityStateByEntityId.get(entityId);
             if (entityState == null) {
                 entityState = new EntityState();
@@ -42,7 +42,17 @@ public class AclUserState
             for (Permission permission : entityType.getRolePermissions(aclRecord.getRole())) {
                 entityState.permissions.add(permission);
             }
+            return aclRecord;
         }
+        else {
+            EntityState entityState = entityStateByEntityId.get(entityId);
+            for (AclRecord existingAclRecord : entityState.aclRecords) {
+                if (existingAclRecord.equals(aclRecord)) {
+                    return existingAclRecord;
+                }
+            }
+        }
+        throw new IllegalStateException();
     }
 
     public void removeAclRecord(AclRecord aclRecord)
