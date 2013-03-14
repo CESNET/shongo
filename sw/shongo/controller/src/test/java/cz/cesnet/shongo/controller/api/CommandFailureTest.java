@@ -11,6 +11,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
@@ -42,7 +43,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(String deviceResourceId) throws FaultException
+            protected String getAgentName(EntityIdentifier entityId) throws FaultException
             {
                 return "mcu";
             }
@@ -63,7 +64,6 @@ public class CommandFailureTest extends AbstractControllerTest
         String mcuId = "1";
         getController().addJadeAgent("mcu", new ConnectorAgent());
         getController().waitForJadeAgentsToStart();
-
 
         try {
             getResourceControlService().listRooms(SECURITY_TOKEN, mcuId);

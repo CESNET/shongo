@@ -24,7 +24,12 @@ public enum Permission
      * If this permission is set for a reservation request, all reservations allocated for the request
      * can be provided to a new reservation request.
      */
-    PROVIDE_RESERVATION("provide-reservation");
+    PROVIDE_RESERVATION("provide-reservation"),
+
+    /**
+     * Control device resource.
+     */
+    CONTROL_RESOURCE("control-resource");
 
     /**
      * Permission unique code.

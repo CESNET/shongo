@@ -206,12 +206,25 @@ public class EntityIdentifier
     }
 
     /**
-     * @param entityId entity local id for the identifier
+     * @param entityId entity identifier
      * @return parsed {@link cz.cesnet.shongo.controller.common.EntityIdentifier}
      */
     public static EntityIdentifier parse(String entityId)
     {
+        if (entityId == null) {
+            return null;
+        }
         return parse(Domain.getLocalDomainName(), entityId);
+    }
+
+    /**
+     * @param entityId   entity identifier
+     * @param entityType
+     * @return parsed {@link cz.cesnet.shongo.controller.common.EntityIdentifier}
+     */
+    public static EntityIdentifier parse(String entityId, EntityType entityType)
+    {
+        return parse(Domain.getLocalDomainName(), entityType, entityId);
     }
 
     /**
@@ -324,6 +337,21 @@ public class EntityIdentifier
     }
 
     /**
+     * @param domain     required domain
+     * @param entityType
+     * @param entityId
+     * @return {@link cz.cesnet.shongo.controller.common.EntityIdentifier} parsed from given {@code entityId}
+     */
+    private static EntityIdentifier parse(String domain, EntityType entityType, String entityId)
+    {
+        EntityIdentifier entityIdentifier = parse(domain, entityId);
+        if (entityIdentifier.entityType != entityType) {
+            throw new IdentifierWrongTypeException(entityId, entityType.getCode());
+        }
+        return entityIdentifier;
+    }
+
+    /**
      * @param domain      domain name for the identifier
      * @param entityClass entity type for the identifier
      * @param entityId    entity local id for the identifier
@@ -334,12 +362,12 @@ public class EntityIdentifier
         if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
             return Long.parseLong(entityId);
         }
-        EntityIdentifier localIdentifier = parse(domain, entityId);
+        EntityIdentifier entityIdentifier = parse(domain, entityId);
         EntityType requiredType = getEntityType(entityClass);
-        if (localIdentifier.entityType != requiredType) {
+        if (entityIdentifier.entityType != requiredType) {
             throw new IdentifierWrongTypeException(entityId, requiredType.getCode());
         }
-        return localIdentifier.persistenceId;
+        return entityIdentifier.persistenceId;
     }
 
     /**

@@ -41,6 +41,11 @@ public class Authorization
     private static Logger logger = LoggerFactory.getLogger(Authorization.class);
 
     /**
+     * User web service.
+     */
+    private static final String USER_WEB_SERVICE = "https://hroch.cesnet.cz/perun-ws/resource/user";
+
+    /**
      * Root user-id.
      */
     public static final String ROOT_USER_ID = "0";
@@ -108,11 +113,12 @@ public class Authorization
     }
 
     /**
-     * Validate that user with given {@code securityToken} can access the {@link cz.cesnet.shongo.controller.api.Controller}.
+     * Validate given {@code securityToken}.
      *
-     * @param securityToken
+     * @param securityToken to be validated
+     * @return user-id
      */
-    public UserInformation validate(SecurityToken securityToken)
+    public String validate(SecurityToken securityToken)
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
@@ -122,20 +128,38 @@ public class Authorization
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
             logger.debug("Access token '{}' is valid for testing.", securityToken.getAccessToken());
-            return ROOT_USER_INFORMATION;
+            return ROOT_USER_ID;
         }
 
         // Validate access token by getting user info
         try {
             UserInformation userInformation = getUserInformation(securityToken);
             logger.debug("Access token '{}' is valid for {} (id: {}).",
-                    new Object[]{securityToken.getAccessToken(), userInformation.getFullName(), userInformation.getUserId()});
-            return userInformation;
+                    new Object[]{securityToken.getAccessToken(), userInformation.getFullName(),
+                            userInformation.getUserId()
+                    });
+            return userInformation.getUserId();
         }
         catch (Exception exception) {
             throw new SecurityException(exception, "Access token '%s' cannot be validated. %s",
                     securityToken.getAccessToken(), exception.getMessage());
         }
+    }
+
+    /**
+     * Validate given {@code securityToken} and check if the user associated with the given {@code securityToken}
+     * has given {@code permission} for given {@code entityId}.
+     *
+     * @param securityToken to be validated
+     * @param entityId      for which the given {@code permission} should be checked
+     * @param permission    to be checked
+     * @return user-id
+     */
+    public String validate(SecurityToken securityToken, EntityIdentifier entityId, Permission permission)
+    {
+        String userId = validate(securityToken);
+        checkPermission(userId, entityId, permission);
+        return userId;
     }
 
     /**
@@ -210,24 +234,6 @@ public class Authorization
             return userInformation;
         }
     }
-
-    /**
-     * @param securityToken of an user
-     * @return user-id of an user with given {@code securityToken}
-     */
-    public String getUserId(SecurityToken securityToken)
-    {
-        try {
-            return getUserInformation(securityToken).getUserId();
-        }
-        catch (Exception exception) {
-            throw new SecurityException("User id cannot be retrieved from the access token '"
-                    + securityToken.getAccessToken()
-                    + "'. " + exception.getMessage(), exception);
-        }
-    }
-
-    private static final String USER_WEB_SERVICE = "https://hroch.cesnet.cz/perun-ws/resource/user";
 
     /**
      * @param userId
@@ -469,14 +475,9 @@ public class Authorization
         return newAclRecord;
     }
 
-    public void deleteAclRecord(String aclRecordId) throws FaultException
+    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
     {
         // TODO: delete ACL in authorization server
-
-        AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
-        if (aclRecord == null) {
-            return;
-        }
 
         // Update AclRecord cache
         cache.removeAclRecordById(aclRecord);
@@ -560,8 +561,13 @@ public class Authorization
         return aclRecords;
     }
 
-    public Collection<Permission> getPermissions(String userId, EntityIdentifier entityId)
+    public Set<Permission> getPermissions(String userId, EntityIdentifier entityId)
     {
+        if (userId.equals(ROOT_USER_ID)) {
+            // Root user has all possible permissions
+            EntityType entityType = entityId.getEntityType();
+            return entityType.getPermissions();
+        }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
@@ -572,6 +578,16 @@ public class Authorization
             return Collections.emptySet();
         }
         return permissions;
+    }
+
+    public void checkPermission(String userId, EntityIdentifier entityId, Permission permission)
+            throws SecurityException
+    {
+        Set<Permission> permissions = getPermissions(userId, entityId);
+        if (!permissions.contains(permission)) {
+            throw new SecurityException("User with id '%s' doesn't have '%s' permission for the '%s'",
+                    userId, permission.getCode(), entityId);
+        }
     }
 
     /**

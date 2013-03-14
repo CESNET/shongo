@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -67,17 +65,17 @@ public class ExecutorServiceImpl extends Component
     @Override
     public void deleteExecutable(SecurityToken token, String executableId) throws FaultException
     {
-        authorization.validate(token);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        authorization.validate(token, entityId, Permission.WRITE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
-
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(id);
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
 
             executableManager.delete(executable);
 
@@ -85,7 +83,7 @@ public class ExecutorServiceImpl extends Component
         }
         catch (javax.persistence.RollbackException exception) {
             throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
-                    id);
+                    entityId.getPersistenceId());
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -101,13 +99,13 @@ public class ExecutorServiceImpl extends Component
     @Override
     public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
-        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(userId);
+        String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
+        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(filterUserId);
 
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
@@ -134,18 +132,16 @@ public class ExecutorServiceImpl extends Component
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
             throws FaultException
     {
-        authorization.validate(token);
-
-        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+        authorization.validate(token, entityId, Permission.READ);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-
-        cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(id);
-        cz.cesnet.shongo.controller.api.Executable executableApi = executable.toApi();
-
-        entityManager.close();
-
-        return executableApi;
+        try {
+            return executableManager.get(entityId.getPersistenceId()).toApi();
+        }
+        finally {
+            entityManager.close();
+        }
     }
 }

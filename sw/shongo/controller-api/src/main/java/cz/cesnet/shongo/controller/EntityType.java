@@ -16,7 +16,8 @@ public enum EntityType
     {{
             put(Role.OWNER, new Permission[]{
                     Permission.READ,
-                    Permission.WRITE
+                    Permission.WRITE,
+                    Permission.CONTROL_RESOURCE,
             });
         }}),
 
@@ -65,12 +66,17 @@ public enum EntityType
     /**
      * Unique code for the {@link EntityType}.
      */
-    private String code;
+    private final String code;
 
     /**
-     * List of {@link Role}s for the {@link EntityType}.
+     * Map of all possible {@link Permission}s for the {@link EntityType} {@link Role}.
      */
-    private Map<Role, Set<Permission>> roles;
+    private final Map<Role, Set<Permission>> roles;
+
+    /**
+     * Set of all possible {@link Permission}s for the {@link EntityType}.
+     */
+    private final Set<Permission> permissions;
 
     /**
      * Constructor.
@@ -81,13 +87,16 @@ public enum EntityType
     private EntityType(String code, Map<Role, Permission[]> roles)
     {
         this.code = code;
+        Set<Permission> permissions = new HashSet<Permission>();
         Map<Role, Set<Permission>> newRoles = new HashMap<Role, Set<Permission>>();
         for (Map.Entry<Role, Permission[]> role : roles.entrySet()) {
-            Set<Permission> permissions = new HashSet<Permission>();
+            Set<Permission> rolePermissions = new HashSet<Permission>();
             Collections.addAll(permissions, role.getValue());
-            newRoles.put(role.getKey(), Collections.unmodifiableSet(permissions));
+            Collections.addAll(rolePermissions, role.getValue());
+            newRoles.put(role.getKey(), Collections.unmodifiableSet(rolePermissions));
         }
         this.roles = Collections.unmodifiableMap(newRoles);
+        this.permissions = Collections.unmodifiableSet(permissions);
     }
 
     /**
@@ -104,6 +113,14 @@ public enum EntityType
     public Set<Role> getRoles()
     {
         return roles.keySet();
+    }
+
+    /**
+     * @return {@link #permissions}
+     */
+    public Set<Permission> getPermissions()
+    {
+        return permissions;
     }
 
     /**

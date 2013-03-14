@@ -83,9 +83,9 @@ public class AuthorizationServiceImpl extends Component
     public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
             throws FaultException
     {
-        authorization.validate(token);
-
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+        authorization.validate(token, entityIdentifier, Permission.WRITE);
+
         checkEntityExistence(entityIdentifier);
 
         cz.cesnet.shongo.controller.authorization.AclRecord userAclRecord =
@@ -97,16 +97,17 @@ public class AuthorizationServiceImpl extends Component
     public void deleteAclRecord(SecurityToken token, String aclRecordId)
             throws FaultException
     {
-        authorization.validate(token);
-        authorization.deleteAclRecord(aclRecordId);
+        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+        authorization.validate(token, aclRecord.getEntityId(), Permission.WRITE);
+        authorization.deleteAclRecord(aclRecord);
     }
 
     @Override
     public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
             throws FaultException
     {
-        authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+        authorization.validate(token, aclRecord.getEntityId(), Permission.READ);
         return aclRecord.toApi(authorization);
     }
 
@@ -114,12 +115,20 @@ public class AuthorizationServiceImpl extends Component
     public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role)
             throws FaultException
     {
-        authorization.validate(token);
+        String requesterUserId = authorization.validate(token);
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+        if (!requesterUserId.equals(userId)) {
+            if (entityIdentifier != null) {
+                authorization.checkPermission(requesterUserId, entityIdentifier, Permission.READ);
+            }
+            else {
+                throw new TodoImplementException("List only ACL to which the requester has permission.");
+            }
+        }
 
         Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = null;
         if (role == null) {
-            if (entityId != null) {
-                EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+            if (entityIdentifier != null) {
                 checkEntityExistence(entityIdentifier);
                 if (userId != null) {
                     aclRecords = authorization.getAclRecords(userId, entityIdentifier);
@@ -131,10 +140,7 @@ public class AuthorizationServiceImpl extends Component
         }
 
         if (aclRecords == null) {
-            EntityIdentifier entityIdentifier = null;
-            if (entityId != null) {
-                entityIdentifier = EntityIdentifier.parse(entityId);
-            }
+
             aclRecords = authorization.getAclRecords(userId, entityIdentifier, role);
         }
 
@@ -148,12 +154,12 @@ public class AuthorizationServiceImpl extends Component
     @Override
     public Collection<Permission> listPermissions(SecurityToken token, String entityId) throws FaultException
     {
-        UserInformation userInformation = authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
 
-        return authorization.getPermissions(userInformation.getUserId(), entityIdentifier);
+        return authorization.getPermissions(userId, entityIdentifier);
     }
 
     @Override

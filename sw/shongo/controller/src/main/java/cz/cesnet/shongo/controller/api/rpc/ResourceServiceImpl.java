@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -98,7 +95,7 @@ public class ResourceServiceImpl extends Component
     @Override
     public String createResource(SecurityToken token, Resource resource) throws FaultException
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         resource.setupNewEntity();
 
@@ -109,7 +106,7 @@ public class ResourceServiceImpl extends Component
         try {
             // Create resource from API
             resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager);
-            resourceImpl.setUserId(authorization.getUserId(token));
+            resourceImpl.setUserId(userId);
 
             // Save it
             ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -142,10 +139,9 @@ public class ResourceServiceImpl extends Component
     @Override
     public void modifyResource(SecurityToken token, Resource resource) throws FaultException
     {
-        authorization.validate(token);
-
-        Long resourceId = EntityIdentifier.parseId(
-                cz.cesnet.shongo.controller.resource.Resource.class, resource.getId());
+        String resourceId = resource.getId();
+        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        authorization.validate(token, entityId, Permission.WRITE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -154,7 +150,8 @@ public class ResourceServiceImpl extends Component
             ResourceManager resourceManager = new ResourceManager(entityManager);
 
             // Get reservation request
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+                    resourceManager.get(entityId.getPersistenceId());
 
             // Synchronize from API
             resourceImpl.fromApi(resource, entityManager);
@@ -185,9 +182,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public void deleteResource(SecurityToken token, String resourceId) throws FaultException
     {
-        authorization.validate(token);
-
-        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
+        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        authorization.validate(token, entityId, Permission.WRITE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -196,7 +192,8 @@ public class ResourceServiceImpl extends Component
             ResourceManager resourceManager = new ResourceManager(entityManager);
 
             // Get the resource
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+                    resourceManager.get(entityId.getPersistenceId());
 
             // Delete the resource
             resourceManager.delete(resourceImpl);
@@ -217,7 +214,7 @@ public class ResourceServiceImpl extends Component
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    throw new EntityToDeleteIsReferencedException(Resource.class, id);
+                    throw new EntityToDeleteIsReferencedException(Resource.class, entityId.getPersistenceId());
                 }
             }
         }
@@ -235,14 +232,14 @@ public class ResourceServiceImpl extends Component
     @Override
     public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
-            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
+            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
+            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(filterUserId);
 
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
@@ -276,16 +273,14 @@ public class ResourceServiceImpl extends Component
     @Override
     public Resource getResource(SecurityToken token, String resourceId) throws PersistentEntityNotFoundException
     {
-        authorization.validate(token);
-
-        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
+        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        authorization.validate(token, entityId, Permission.READ);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
-            return resourceImpl.toApi(entityManager);
+            return resourceManager.get(entityId.getPersistenceId()).toApi(entityManager);
         }
         finally {
             entityManager.close();
@@ -296,10 +291,9 @@ public class ResourceServiceImpl extends Component
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
             throws PersistentEntityNotFoundException
     {
-        authorization.validate(token);
-        String userId = authorization.getUserId(token);
+        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
+        String userId = authorization.validate(token, entityId, Permission.READ);
 
-        Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class, resourceId);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -311,7 +305,8 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(id);
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+                    resourceManager.get(entityId.getPersistenceId());
             RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
 
             // Setup resource allocation
@@ -333,7 +328,7 @@ public class ResourceServiceImpl extends Component
 
             // Fill resource allocations
             Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
-                    resourceManager.listResourceReservationsInInterval(id, interval);
+                    resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
             for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
                 resourceAllocation.addReservation(resourceReservation.toApi());
             }
