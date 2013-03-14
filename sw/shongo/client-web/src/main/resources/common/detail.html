@@ -118,10 +118,10 @@
     <tr>
         <td>[% userRole.user.firstName%] [% userRole.user.lastName%]</td>
         <td>
-            [% IF userRole.roleId == 'owner' %]
+            [% IF userRole.role == 'OWNER' %]
             <span class="tooltip-role-owner">Owner</span>
             [% END %]
-            [% IF userRole.roleId == 'reuser' %]
+            [% IF userRole.role == 'RESERVATION_USER' %]
             <span class="tooltip-role-reuser">User</span>
             [% END %]
         </td>
@@ -140,7 +140,7 @@
     </tbody>
 </table>
 <div class="pull-right">
-    <a class="btn" href="[% location %]/create-user-role?resource=[% request.id %]">Add User Role</a>
+    <a class="btn" href="[% location %]/create-user-role?entity=[% request.id %]">Add User Role</a>
 </div>&nbsp;
 
 [% IF request.specification.class == 'RoomSpecification' -%]

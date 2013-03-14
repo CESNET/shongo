@@ -48,14 +48,14 @@
             <!-- Expiration of user information by user-id -->
             <user-information>PT5M</user-information>
             <!-- Expiration of user ACL by user-id -->
-            <user-acl>PT5M</user-acl>
+            <acl>PT5M</acl>
         </expiration>
     </security>
 
     <!-- SSL configuration -->
     <ssl>
         <!-- Mapping hosts to different hosts for cerfificate verification -->
-        <!--<host-verification-mapping mapped-host="shongo-auth-dev.cesnet.cz" target-host="hroch.cesnet.cz"/>-->
+        <host-verification-mapping mapped-host="shongo-auth-dev.cesnet.cz" target-host="hroch.cesnet.cz"/>
     </ssl>
 
     <!-- Worker periodically starts preprocessor and scheduler -->

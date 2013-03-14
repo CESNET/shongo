@@ -42,8 +42,8 @@ public class EntityIdentifier
     /**
      * Constructor.
      *
-     * @param entityType sets the {@link #entityType}
-     * @param persistenceId   sets the {@link #persistenceId}
+     * @param entityType    sets the {@link #entityType}
+     * @param persistenceId sets the {@link #persistenceId}
      */
     public EntityIdentifier(EntityType entityType, Long persistenceId)
     {
@@ -76,21 +76,53 @@ public class EntityIdentifier
     /**
      * @return class for the {@link #entityType}
      */
-    public Class<? extends  PersistentObject> getEntityClass()
+    public Class<? extends PersistentObject> getEntityClass()
     {
         return getEntityTypeClass(entityType);
+    }
+
+    /**
+     * @return global identifier
+     */
+    public String toId()
+    {
+        return formatId(entityType, persistenceId);
+    }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+
+        EntityIdentifier that = (EntityIdentifier) object;
+
+        if (entityType != that.entityType) {
+            return false;
+        }
+        if (persistenceId != null ? !persistenceId.equals(that.persistenceId) : that.persistenceId != null) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public int hashCode()
     {
-        throw new TodoImplementException();
+        int result = entityType != null ? entityType.hashCode() : 0;
+        result = 31 * result + (persistenceId != null ? persistenceId.hashCode() : 0);
+        return result;
     }
 
     @Override
-    public boolean equals(Object obj)
+    public String toString()
     {
-        throw new TodoImplementException();
+        return toId();
     }
 
     /**
@@ -143,7 +175,7 @@ public class EntityIdentifier
      */
     private static Class<? extends PersistentObject> getEntityTypeClass(EntityType entityType)
     {
-        switch ( entityType ) {
+        switch (entityType) {
             case RESOURCE:
                 return Resource.class;
             case RESERVATION_REQUEST:
@@ -190,6 +222,16 @@ public class EntityIdentifier
     public static String formatId(Class entityClass, Long entityLocalId)
     {
         return formatId(Domain.getLocalDomainName(), entityClass, entityLocalId);
+    }
+
+    /**
+     * @param entityType    entity type for the identifier
+     * @param entityLocalId entity local id for the identifier
+     * @return entity global identifier
+     */
+    public static String formatId(EntityType entityType, Long entityLocalId)
+    {
+        return formatId(Domain.getLocalDomainName(), entityType, entityLocalId);
     }
 
     /**
@@ -313,13 +355,35 @@ public class EntityIdentifier
 
     /**
      * @param domain        domain name for the identifier
+     * @param entityType    entity type for the identifier
+     * @param entityLocalId entity local id for the identifier
+     * @return entity global identifier.
+     */
+    private static String formatId(String domain, EntityType entityType, Long entityLocalId)
+    {
+        return formatId(domain, entityType, entityLocalId.toString());
+    }
+
+    /**
+     * @param domain        domain name for the identifier
      * @param entityClass   entity type for the identifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier.
      */
     private static String formatId(String domain, Class entityClass, String entityLocalId)
     {
-        return String.format("shongo:%s:%s:%s", domain, getEntityType(entityClass).getCode(), entityLocalId);
+        return formatId(domain, getEntityType(entityClass), entityLocalId);
+    }
+
+    /**
+     * @param domain        domain name for the identifier
+     * @param entityType    entity type for the identifier
+     * @param entityLocalId entity local id for the identifier
+     * @return entity global identifier.
+     */
+    private static String formatId(String domain, EntityType entityType, String entityLocalId)
+    {
+        return String.format("shongo:%s:%s:%s", domain, entityType.getCode(), entityLocalId);
     }
 }
 

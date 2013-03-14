@@ -249,7 +249,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         if (context.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
             String userId = context.getUserId();
-            if (!Authorization.Permission.isUserOwner(userId, resource)) {
+            if (!Authorization.PermissionHelper.isUserOwner(userId, resource)) {
                 throw new UserNotOwnerReport(userId).exception();
             }
         }

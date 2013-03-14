@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import org.hibernate.annotations.Type;
@@ -23,13 +24,8 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Reservation extends PersistentObject
+public class Reservation extends OwnedPersistentObject
 {
-    /**
-     * User-id of an user who is owner of the {@link Reservation}.
-     */
-    private String userId;
-
     /**
      * @see {@link CreatedBy}.
      */
@@ -64,23 +60,6 @@ public class Reservation extends PersistentObject
      * {@link Executable} which is allocated for execution by the {@link Reservation}.
      */
     private Executable executable;
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #createdBy}

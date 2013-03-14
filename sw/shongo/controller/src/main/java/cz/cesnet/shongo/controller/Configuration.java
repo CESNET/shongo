@@ -107,7 +107,7 @@ public class Configuration extends CombinedConfiguration
     /**
      * Specifies expiration of cache for user ACL by user-id.
      */
-    public static final String SECURITY_EXPIRATION_USER_ACL = "security.expiration.user-acl";
+    public static final String SECURITY_EXPIRATION_ACL = "security.expiration.acl";
 
     /**
      * Specifies access token which won't be verified and can be used for testing purposes.

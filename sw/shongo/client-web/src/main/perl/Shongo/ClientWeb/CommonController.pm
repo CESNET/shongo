@@ -110,9 +110,9 @@ sub create_user_role_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( $self->modify_user_role('Create user role', $params) ) {
-        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+        $self->{'application'}->secure_request('Authorization.createAclRecord',
             RPC::XML::string->new($params->{'user'}),
-            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
         $self->redirect_back();
@@ -124,18 +124,18 @@ sub modify_user_role_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( !defined($self->get_param('confirmed')) ) {
-        my $user_role = $self->{'application'}->secure_request('Authorization.getUserResourceRole', RPC::XML::string->new($params->{'id'}));
+        my $user_role = $self->{'application'}->secure_request('Authorization.getAclRecord', RPC::XML::string->new($params->{'id'}));
         $params->{'user'} = $user_role->{'user'}->{'userId'};
-        $params->{'resource'} = $user_role->{'resourceId'};
-        $params->{'role'} = $user_role->{'roleId'};
+        $params->{'entity'} = $user_role->{'entityId'};
+        $params->{'role'} = $user_role->{'role'};
     }
     if ( $self->modify_user_role('Create user role', $params) ) {
-        $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
+        $self->{'application'}->secure_request('Authorization.deleteAclRecord',
             RPC::XML::string->new($params->{'id'})
         );
-        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+        $self->{'application'}->secure_request('Authorization.createAclRecord',
             RPC::XML::string->new($params->{'user'}),
-            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
         $self->redirect_back();
@@ -145,7 +145,7 @@ sub modify_user_role_action
 sub delete_user_role_action
 {
     my ($self) = @_;
-    $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
+    $self->{'application'}->secure_request('Authorization.deleteAclRecord',
         RPC::XML::string->new($self->get_param('id'))
     );
     $self->redirect_back();
@@ -157,7 +157,7 @@ sub modify_user_role
     if ( defined($self->get_param('confirmed')) ) {
         $params->{'error'} = $self->validate_form($params, {
             required => [
-                'resource',
+                'entity',
                 'user',
                 'role',
             ]
@@ -167,13 +167,13 @@ sub modify_user_role
         }
     }
 
-    my $resource_title = 'resource';
-    if ( defined($params->{'resource'}) ) {
-        if ( $params->{'resource'} =~ 'shongo:.+:req:.+' ) {
-            $resource_title = 'request';
+    my $entity_title = 'entity';
+    if ( defined($params->{'entity'}) ) {
+        if ( $params->{'entity'} =~ 'shongo:.+:req:.+' ) {
+            $entity_title = 'request';
         }
     }
-    $params->{'resourceTitle'} = $resource_title;
+    $params->{'entityTitle'} = $entity_title;
     $params->{'options'} = {
         'ui' => 1
     };
@@ -330,7 +330,7 @@ sub get_reservation_request
 
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
-    $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listUserResourceRoles', {}, $id, {});
+    $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listAclRecords', {}, $id, {});
 
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {

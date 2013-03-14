@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.report;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class ReportablePersistentObject extends PersistentObject
+public abstract class ReportablePersistentObject extends OwnedPersistentObject
 {
     /**
      * List of report for this object.

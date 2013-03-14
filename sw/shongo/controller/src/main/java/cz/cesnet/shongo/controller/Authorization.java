@@ -1,17 +1,20 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.authorization.AclEntityState;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.AclUserState;
 import cz.cesnet.shongo.controller.authorization.AuthorizationCache;
-import cz.cesnet.shongo.controller.authorization.UserAcl;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.SecurityException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
@@ -84,7 +87,7 @@ public class Authorization
         }
         cache.setUserIdExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_ID));
         cache.setUserInformationExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_INFORMATION));
-        cache.setUserAclExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_USER_ACL));
+        cache.setAclExpiration(config.getDuration(Configuration.SECURITY_EXPIRATION_ACL));
         testingAccessToken = config.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
     }
 
@@ -109,7 +112,7 @@ public class Authorization
      *
      * @param securityToken
      */
-    public void validate(SecurityToken securityToken)
+    public UserInformation validate(SecurityToken securityToken)
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
@@ -119,14 +122,15 @@ public class Authorization
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
             logger.debug("Access token '{}' is valid for testing.", securityToken.getAccessToken());
-            return;
+            return ROOT_USER_INFORMATION;
         }
 
         // Validate access token by getting user info
         try {
-            UserInformation person = getUserInformation(securityToken);
+            UserInformation userInformation = getUserInformation(securityToken);
             logger.debug("Access token '{}' is valid for {} (id: {}).",
-                    new Object[]{securityToken.getAccessToken(), person.getFullName(), person.getUserId()});
+                    new Object[]{securityToken.getAccessToken(), userInformation.getFullName(), userInformation.getUserId()});
+            return userInformation;
         }
         catch (Exception exception) {
             throw new SecurityException(exception, "Access token '%s' cannot be validated. %s",
@@ -152,7 +156,7 @@ public class Authorization
         }
 
         // Try to use the user-id from access token cache to get the user information
-        String userId = cache.getCachedUserIdByAccessToken(accessToken);
+        String userId = cache.getUserIdByAccessToken(accessToken);
         if (userId != null) {
             logger.debug("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
             UserInformation userInformation = getUserInformation(userId);
@@ -197,8 +201,8 @@ public class Authorization
             }
             UserInformation userInformation = createUserInformationFromData(content);
             userId = userInformation.getUserId();
-            cache.putCachedUserIdByAccessToken(accessToken, userId);
-            cache.putCachedUserInformationByUserId(userId, userInformation);
+            cache.putUserIdByAccessToken(accessToken, userId);
+            cache.putUserInformationByUserId(userId, userInformation);
 
             // Store the user information inside the security token
             securityToken.setCachedPersonInformation(userInformation);
@@ -238,7 +242,7 @@ public class Authorization
         }
 
         // Try to use the user information from the cache
-        UserInformation userInformation = cache.getCachedUserInformationByUserId(userId);
+        UserInformation userInformation = cache.getUserInformationByUserId(userId);
         if (userInformation != null) {
             logger.debug("Using cached user information for user-id '{}'...", userId);
             return userInformation;
@@ -271,7 +275,7 @@ public class Authorization
                 throw new IllegalStateException(exception);
             }
             userInformation = createUserInformationFromData(content);
-            cache.putCachedUserInformationByUserId(userId, userInformation);
+            cache.putUserInformationByUserId(userId, userInformation);
             return userInformation;
         }
     }
@@ -367,69 +371,207 @@ public class Authorization
         return userInformation;
     }
 
+    @SuppressWarnings("unchecked")
+    Class<? extends OwnedPersistentObject>[] PUBLIC_ENTITIES = (Class<? extends OwnedPersistentObject>[]) new Class[]{
+            Resource.class,
+            AbstractReservationRequest.class,
+            Reservation.class,
+            Executable.class,
+    };
+
     /**
      * @param userId of user for which the ACL should be fetched
-     * @return fetched {@link UserAcl} for given {@code userId}
+     * @return fetched {@link cz.cesnet.shongo.controller.authorization.AclUserState} for given {@code userId}
      */
-    public UserAcl fetchUserAcl(String userId)
+    public AclUserState fetchAclUserState(String userId)
     {
-        UserAcl userAcl = new UserAcl();
+        AclUserState aclUserState = new AclUserState();
 
         // TODO: Fetch ACL from authorization server
+
         EntityManager entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
         try {
-            @SuppressWarnings("unchecked")
-            Class<? extends PersistentObject>[] types = (Class<? extends PersistentObject>[])new Class[] {
-                    Resource.class,
-                    AbstractReservationRequest.class,
-                    Reservation.class,
-                    Executable.class,
-            };
-            for (Class<? extends PersistentObject> type : types) {
+            for (Class<? extends OwnedPersistentObject> type : PUBLIC_ENTITIES) {
                 List entities = entityManager.createQuery(
                         "SELECT entity FROM " + type.getSimpleName() + " entity WHERE entity.userId = :userId")
                         .setParameter("userId", userId)
                         .getResultList();
                 for (Object entity : entities) {
-                    userAcl.addUserRoleForEntity(new EntityIdentifier(type.cast(entity)), Role.OWNER);
+                    OwnedPersistentObject ownedPersistentObject = type.cast(entity);
+                    EntityIdentifier entityId = new EntityIdentifier(ownedPersistentObject);
+                    AclRecord aclRecord = new AclRecord(userId, entityId, Role.OWNER);
+                    aclUserState.addAclRecord(aclRecord);
+                    cache.putAclRecordById(aclRecord);
                 }
             }
         }
         finally {
             entityManager.close();
         }
-        return userAcl;
+        return aclUserState;
     }
 
+    private AclEntityState fetchAclEntityState(EntityIdentifier entityId)
+    {
+        AclEntityState aclEntityState = new AclEntityState();
 
-    public void createUserRole(String userId, EntityIdentifier entityId, Role role) throws SecurityException
+        // TODO: Fetch ACL from authorization server
+
+        EntityManager entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+        try {
+            Class type = entityId.getEntityClass();
+
+            Object entity = entityManager.createQuery(
+                    "SELECT entity FROM " + type.getSimpleName() + " entity WHERE entity.id = :entityId")
+                    .setParameter("entityId", entityId.getPersistenceId())
+                    .getSingleResult();
+            OwnedPersistentObject ownedPersistentObject = (OwnedPersistentObject) entity;
+            AclRecord aclRecord = new AclRecord(ownedPersistentObject.getUserId(), entityId, Role.OWNER);
+            aclEntityState.addAclRecord(aclRecord);
+            cache.putAclRecordById(aclRecord);
+        }
+        finally {
+            entityManager.close();
+        }
+        return aclEntityState;
+    }
+
+    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws SecurityException
     {
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
             throw new SecurityException("Role is not allowed to specified entity");
         }
 
-        // TODO: create user role in authorization server
+        // TODO: create ACL in authorization server
 
-        // Update cache
-        UserAcl userAcl = cache.getCachedUserAclByUserId(userId);
-        if (userAcl != null) {
-            userAcl.addUserRoleForEntity(entityId, role);
+        AclRecord newAclRecord = new AclRecord(userId, entityId, role);
+
+        // Update AclRecord cache
+        cache.putAclRecordById(newAclRecord);
+
+        // Update AclUserState cache
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        else {
-            userAcl = fetchUserAcl(userId);
-            cache.putCachedUserAclByUserId(userId, userAcl);
+        aclUserState.addAclRecord(newAclRecord);
+
+        // Update AclEntityState cache
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = fetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
+        aclEntityState.addAclRecord(newAclRecord);
+
+        return newAclRecord;
     }
 
-    public Set<Role> listUserRoles(String userId, EntityIdentifier entityId)
+    public void deleteAclRecord(String aclRecordId) throws FaultException
     {
-        UserAcl userAcl = cache.getCachedUserAclByUserId(userId);
-        if (userAcl == null) {
-            userAcl = fetchUserAcl(userId);
-            cache.putCachedUserAclByUserId(userId, userAcl);
+        // TODO: delete ACL in authorization server
+
+        AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
+        if (aclRecord == null) {
+            return;
         }
-        return userAcl.getUserRolesForEntity(entityId);
+
+        // Update AclRecord cache
+        cache.removeAclRecordById(aclRecord);
+
+        // Update AclUserState cache
+        String userId = aclRecord.getUserId();
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        aclUserState.removeAclRecord(aclRecord);
+
+        // Update AclEntityState cache
+        EntityIdentifier entityId = aclRecord.getEntityId();
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = fetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        }
+        aclEntityState.removeAclRecord(aclRecord);
+    }
+
+    public AclRecord getAclRecord(String aclRecordId) throws SecurityException
+    {
+        AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
+        if (aclRecord == null) {
+            // TODO: get ACL from authorization server
+        }
+        if (aclRecord == null) {
+            throw new SecurityException("ACL not found.");
+        }
+        return aclRecord;
+    }
+
+    public Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId)
+    {
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        Set<AclRecord> aclRecords = aclUserState.getAclRecords(entityId);
+        if (aclRecords == null) {
+            return Collections.emptySet();
+        }
+        return aclRecords;
+    }
+
+    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
+    {
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = fetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        }
+        Set<AclRecord> aclRecords = aclEntityState.getAclRecords();
+        if (aclRecords == null) {
+            return Collections.emptySet();
+        }
+        return aclRecords;
+    }
+
+    public Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId, Role role)
+    {
+        // ToDO: get ACL from authorization server
+
+        List<AclRecord> aclRecords = new LinkedList<AclRecord>();
+        for (AclRecord aclRecord : cache.getAclRecords()) {
+            if (userId != null && !userId.equals(aclRecord.getUserId())) {
+                continue;
+            }
+            if (entityId != null && !entityId.equals(aclRecord.getEntityId())) {
+                continue;
+            }
+            if (role != null && !role.equals(aclRecord.getRole())) {
+                continue;
+            }
+            aclRecords.add(aclRecord);
+        }
+        return aclRecords;
+    }
+
+    public Collection<Permission> getPermissions(String userId, EntityIdentifier entityId)
+    {
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        Set<Permission> permissions = aclUserState.getPermissions(entityId);
+        if (permissions == null) {
+            return Collections.emptySet();
+        }
+        return permissions;
     }
 
     /**
@@ -467,7 +609,7 @@ public class Authorization
     /**
      * Class for verifying user permissions.
      */
-    public static class Permission
+    public static class PermissionHelper
     {
         /**
          * @param userId

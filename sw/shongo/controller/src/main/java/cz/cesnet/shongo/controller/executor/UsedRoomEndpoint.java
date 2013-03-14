@@ -203,7 +203,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         for (Alias alias : getAssignedAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+        for (UserInformation executableOwner : Authorization.PermissionHelper.getExecutableOwners(this)) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;

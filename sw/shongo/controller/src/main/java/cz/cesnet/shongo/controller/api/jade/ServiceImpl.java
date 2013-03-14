@@ -93,7 +93,7 @@ public class ServiceImpl implements Service
                         throw new CommandException(
                                 String.format("No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
-                    for ( PersonInformation person : Authorization.Permission.getExecutableOwners(roomEndpoint) ) {
+                    for ( PersonInformation person : Authorization.PermissionHelper.getExecutableOwners(roomEndpoint) ) {
                         recipients.add(person);
                     }
                 }

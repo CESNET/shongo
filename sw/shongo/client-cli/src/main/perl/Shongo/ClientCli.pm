@@ -118,7 +118,7 @@ sub populate()
                 my $controller = Shongo::ClientCli->instance();
                 $controller->user_info();
             }
-        },
+        }
     });
 }
 

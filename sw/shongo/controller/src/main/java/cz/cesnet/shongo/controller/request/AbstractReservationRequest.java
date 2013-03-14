@@ -28,11 +28,6 @@ import java.util.*;
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link AbstractReservationRequest}.
-     */
-    private String userId;
-
-    /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
     private DateTime created;
@@ -72,23 +67,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * List of allocated {@link Reservation}s.
      */
     protected List<Reservation> reservations = new ArrayList<Reservation>();
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #created}

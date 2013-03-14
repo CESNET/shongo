@@ -129,7 +129,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return (pObject instanceof String) || enumType.isAssignableFrom(pObject.getClass());
+            return pObject == null || (pObject instanceof String) || enumType.isAssignableFrom(pObject.getClass());
         }
 
         @Override

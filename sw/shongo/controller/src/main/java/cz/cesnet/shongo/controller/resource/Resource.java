@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
@@ -19,13 +20,8 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Resource extends PersistentObject
+public class Resource extends OwnedPersistentObject
 {
-    /**
-     * User-id of an user who is owner of the {@link Resource}.
-     */
-    private String userId;
-
     /**
      * Name of a resource that is visible to users.
      */
@@ -74,23 +70,6 @@ public class Resource extends PersistentObject
      */
     public Resource()
     {
-    }
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
     }
 
     /**

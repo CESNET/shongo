@@ -2,16 +2,11 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -29,9 +24,6 @@ import java.util.*;
 public class AuthorizationServiceImpl extends Component
         implements AuthorizationService, Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {
-    private static final String ROLE_OWNER = "owner";
-    private static final String ROLE_REUSER = "reuser";
-
     /**
      * @see javax.persistence.EntityManagerFactory
      */
@@ -71,8 +63,9 @@ public class AuthorizationServiceImpl extends Component
     /**
      * @param entityId of entity which should be checked for existence
      * @throws PersistentEntityNotFoundException
+     *
      */
-    private void checkEntityExistence(EntityIdentifier entityId) throws PersistentEntityNotFoundException
+    private void checkEntityExistence(EntityIdentifier entityId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -87,106 +80,85 @@ public class AuthorizationServiceImpl extends Component
     }
 
     @Override
-    public String createUserResourceRole(SecurityToken token, String userId, String resourceId, String roleId) throws FaultException
+    public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
+            throws FaultException
     {
         authorization.validate(token);
 
-        EntityIdentifier entityIdentifier = EntityIdentifier.parse(resourceId);
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
 
-
-        // TODO: check that resource exits
-
-        UserResourceRole userResourceRole = getUserResourceRole(userId, resourceId, roleId);
-        if (userResourceRole != null) {
-            return userResourceRole.getId();
-        }
-
-        userResourceRole = new UserResourceRole();
-        userResourceRole.setUser(Authorization.getInstance().getUserInformation(userId));
-        userResourceRole.setResourceId(resourceId);
-        userResourceRole.setRoleId(roleId);
-        return createUserResourceRole(userResourceRole);
+        cz.cesnet.shongo.controller.authorization.AclRecord userAclRecord =
+                authorization.createAclRecord(userId, entityIdentifier, role);
+        return userAclRecord.getId();
     }
 
     @Override
-    public void deleteUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException
+    public void deleteAclRecord(SecurityToken token, String aclRecordId)
+            throws FaultException
     {
         authorization.validate(token);
-
-        UserResourceRole userResourceRole = userResourceRoleById.get(id);
-        if (userResourceRole == null) {
-            throw new EntityNotFoundException(UserResourceRole.class, id);
-        }
-        removeUserResourceRole(userResourceRole);
+        authorization.deleteAclRecord(aclRecordId);
     }
 
     @Override
-    public UserResourceRole getUserResourceRole(SecurityToken token, String id) throws EntityNotFoundException
+    public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
+            throws FaultException
     {
         authorization.validate(token);
-
-        UserResourceRole userResourceRole = userResourceRoleById.get(id);
-        if (userResourceRole == null) {
-            throw new EntityNotFoundException(UserResourceRole.class, id);
-        }
-        return userResourceRole;
+        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+        return aclRecord.toApi(authorization);
     }
 
     @Override
-    public Collection<UserResourceRole> listUserResourceRoles(SecurityToken token, String userId, String resourceId,
-            String roleId) throws FaultException
+    public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role)
+            throws FaultException
     {
         authorization.validate(token);
 
-        if (resourceId != null) {
-            EntityIdentifier resourceIdentifier =
-                    cz.cesnet.shongo.controller.common.EntityIdentifier.parse(resourceId);
-            if (!resourceIdentifier.getEntityType().equals(EntityType.RESERVATION_REQUEST)) {
-                throw new TodoImplementException(resourceIdentifier.getEntityType().toString());
-            }
-            if (roleId == null || roleId.equals(ROLE_OWNER)) {
-                Long entityId = resourceIdentifier.getPersistenceId();
-                if (!initializedEntities.contains(entityId)) {
-                    EntityManager entityManager = entityManagerFactory.createEntityManager();
-                    try {
-                        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(
-                                entityManager);
-                        AbstractReservationRequest reservationRequest = reservationRequestManager.get(entityId);
-                        String ownerUserId = reservationRequest.getUserId();
-                        UserInformation userInformation = Authorization.getInstance().getUserInformation(ownerUserId);
-                        UserResourceRole userResourceRole = new UserResourceRole();
-                        userResourceRole.setUser(userInformation);
-                        userResourceRole.setResourceId(resourceId);
-                        userResourceRole.setRoleId(ROLE_OWNER);
-                        createUserResourceRole(userResourceRole);
-                        initializedEntities.add(entityId);
-                    }
-                    finally {
-                        entityManager.close();
-                    }
+        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = null;
+        if (role == null) {
+            if (entityId != null) {
+                EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+                checkEntityExistence(entityIdentifier);
+                if (userId != null) {
+                    aclRecords = authorization.getAclRecords(userId, entityIdentifier);
+                }
+                else {
+                    aclRecords = authorization.getAclRecords(entityIdentifier);
                 }
             }
         }
 
-        Set<UserResourceRole> userResourceRoles = new HashSet<UserResourceRole>();
-        for (UserResourceRole userResourceRole : userResourceRoleById.values()) {
-            if (userId != null && !userId.equals(userResourceRole.getUser().getUserId())) {
-                continue;
+        if (aclRecords == null) {
+            EntityIdentifier entityIdentifier = null;
+            if (entityId != null) {
+                entityIdentifier = EntityIdentifier.parse(entityId);
             }
-            if (resourceId != null && !resourceId.equals(userResourceRole.getResourceId())) {
-                continue;
-            }
-            if (roleId != null && !roleId.equals(userResourceRole.getRoleId())) {
-                continue;
-            }
-            userResourceRoles.add(userResourceRole);
+            aclRecords = authorization.getAclRecords(userId, entityIdentifier, role);
         }
-        return userResourceRoles;
+
+        List<AclRecord> aclRecordApiList = new LinkedList<AclRecord>();
+        for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
+            aclRecordApiList.add(aclRecord.toApi(authorization));
+        }
+        return aclRecordApiList;
+    }
+
+    @Override
+    public Collection<Permission> listPermissions(SecurityToken token, String entityId) throws FaultException
+    {
+        UserInformation userInformation = authorization.validate(token);
+
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+        checkEntityExistence(entityIdentifier);
+
+        return authorization.getPermissions(userInformation.getUserId(), entityIdentifier);
     }
 
     @Override
     public UserInformation getUser(SecurityToken token, String userId)
+        throws FaultException
     {
         authorization.validate(token);
         return Authorization.getInstance().getUserInformation(userId);
@@ -214,39 +186,5 @@ public class AuthorizationServiceImpl extends Component
             }
         }
         return users;
-    }
-
-    private long userResourceRoleId = 0;
-    private Map<String, UserResourceRole> userResourceRoleById = new HashMap<String, UserResourceRole>();
-    private Set<Long> initializedEntities = new HashSet<Long>();
-
-    private UserResourceRole getUserResourceRole(String userId, String resourceId, String roleId)
-    {
-        for (UserResourceRole userResourceRole : userResourceRoleById.values()) {
-            if (userId != null && !userId.equals(userResourceRole.getUser().getUserId())) {
-                continue;
-            }
-            if (resourceId != null && !resourceId.equals(userResourceRole.getResourceId())) {
-                continue;
-            }
-            if (roleId != null && !roleId.equals(userResourceRole.getRoleId())) {
-                continue;
-            }
-            return userResourceRole;
-        }
-        return null;
-    }
-
-    private String createUserResourceRole(UserResourceRole userResourceRole)
-    {
-        String newId = String.valueOf(++userResourceRoleId);
-        userResourceRole.setId(newId);
-        userResourceRoleById.put(newId, userResourceRole);
-        return newId;
-    }
-
-    private void removeUserResourceRole(UserResourceRole userResourceRole)
-    {
-        userResourceRoleById.remove(userResourceRole.getId());
     }
 }

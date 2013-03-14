@@ -22,11 +22,6 @@ import java.util.*;
 public abstract class Executable extends ReportablePersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link Executable}.
-     */
-    private String userId;
-
-    /**
      * Interval start date/time.
      */
     private DateTime slotStart;
@@ -45,23 +40,6 @@ public abstract class Executable extends ReportablePersistentObject
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new ArrayList<Executable>();
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #slotStart}
