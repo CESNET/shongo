@@ -122,8 +122,8 @@ sub create_resource()
             'Resource.createResource',
             $resource->to_xml()
         );
-        if ( !$response->is_fault() ) {
-            return $response->value();
+        if ( defined($response) ) {
+            return $response;
         }
         return undef;
     };
@@ -141,7 +141,7 @@ sub modify_resource()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
         RPC::XML::string->new($id)
     );
@@ -153,14 +153,14 @@ sub modify_resource()
             'Resource.modifyResource',
             $resource->to_xml()
         );
-        if ( !$response->is_fault() ) {
+        if ( defined($response) ) {
             return $resource->{'id'};
         }
         return undef;
     };
 
-    if ( !$result->is_fault ) {
-        my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
+    if ( defined($response) ) {
+        my $resource = Shongo::ClientCli::API::Resource->from_hash($response);
         if ( defined($resource) ) {
             $resource->modify($attributes, $options);
         }
@@ -189,7 +189,7 @@ sub list_resources()
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Resource.listResources', $filter);
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(
@@ -200,7 +200,7 @@ sub list_resources()
         \' | ', 'Parent Resource',
         \' |'
     );
-    foreach my $resource (@{$response->value()}) {
+    foreach my $resource (@{$response}) {
         my $technologies = '';
         if (defined($resource->{'technologies'})) {
             foreach my $technology (split(/,/, $resource->{'technologies'})) {
@@ -228,12 +228,12 @@ sub get_resource()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
         RPC::XML::string->new($id)
     );
-    if ( !$result->is_fault ) {
-        my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
+    if ( defined($response) ) {
+        my $resource = Shongo::ClientCli::API::Resource->from_hash($response);
         if ( defined($resource) ) {
             console_print_text($resource->to_string());
         }
@@ -252,26 +252,25 @@ sub get_resource_allocation()
     } else {
         $interval = RPC::XML::struct->new();
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResourceAllocation',
         RPC::XML::string->new($id),
         $interval
     );
-    if ( $result->is_fault ) {
+    if ( !defined($response) ) {
         return
     }
 
-    my $result_hash = $result->value();
     my $resource_allocation = Shongo::ClientCli::API::Object::->new();
     $resource_allocation->set_object_name('Resource Allocation');
     $resource_allocation->add_attribute('id', {'title' => 'Identifier'});
     $resource_allocation->add_attribute('name');
     $resource_allocation->add_attribute('interval', {'type' => 'interval'});
-    if ($result_hash->{'class'} eq 'RoomProviderResourceAllocation') {
+    if ($response->{'class'} eq 'RoomProviderResourceAllocation') {
         $resource_allocation->add_attribute('maximumLicenseCount', {'title' => 'Maximum License Count'});
         $resource_allocation->add_attribute('availableLicenseCount', {'title' => 'Available License Count'});
     }
-    $resource_allocation->from_hash($result_hash);
+    $resource_allocation->from_hash($response);
     console_print_text($resource_allocation);
 
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');

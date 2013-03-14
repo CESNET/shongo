@@ -13,16 +13,17 @@ use RPC::XML::Client;
 use XML::Twig;
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::ClientCommon;
 use Shongo::ClientCli::CliAuthorization;
 use Shongo::ClientCli::API::Object;
 
 #
-# Single instance of ClientCli class.
+# Shongo::ClientCli singleton.
 #
 my $singleInstance;
 
 #
-# Get single instance of Controller class.
+# @return Shongo::ClientCli singleton
 #
 sub instance
 {
@@ -32,12 +33,34 @@ sub instance
         $singleInstance = bless $self, $class;
         $singleInstance->{'scripting'} = 0;
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
-        $singleInstance->{'user-cache'} = {};
 
-        # Set RPC::XML encoding
-        $RPC::XML::ENCODING = 'utf-8';
+        # Initialize client
+        $singleInstance->{'client'} = Shongo::ClientCommon->new();
+        $singleInstance->{'client'}->{'on-error'} = sub {
+            my ($error) = @_;
+            console_print_error($error);
+        };
+        $singleInstance->{'client'}->{'on-fault'} = sub {
+            my ($fault) = @_;
+            my $message = $fault->string();
+            if ( $message =~ /<message>(.*)<\/message>/ ) {
+                $message = $1;
+            }
+            console_print_error("Server failed to perform request!\nFault %d: %s", $fault->code, $message);
+        };
+        $singleInstance->{'client'}->{'on-get-access-token'} = sub {
+            return $self->authenticate();
+        };
     }
     return $singleInstance;
+}
+
+#
+# @return Shongo::ClientCommon
+#
+sub client()
+{
+    return instance()->{'client'}
 }
 
 #
@@ -108,18 +131,140 @@ sub populate()
                 my ($shell, $params, @args) = @_;
                 my $controller = Shongo::ClientCli->instance();
                 if ( defined($controller->authenticate(@args)) ) {
-                    $controller->user_info($controller->{'access_token'});
+                    $controller->get_authenticated_user();
                 }
             }
         },
-        "user-info" => {
+        "get-authenticated-user" => {
             desc => "Show authenticated user information",
             method => sub {
                 my $controller = Shongo::ClientCli->instance();
-                $controller->user_info();
+                $controller->get_authenticated_user();
             }
         }
     });
+}
+
+#
+# Authenticate user
+#
+sub authenticate()
+{
+    my ($self, $data) = @_;
+    my $access_token = $self->{'authorization'}->authentication_authorize($data);
+    $self->{'client'}->set_access_token($access_token);
+    return $access_token;
+}
+
+#
+# Show current authenticated user information
+#
+sub get_authenticated_user()
+{
+    my ($self) = @_;
+    my $access_token = $self->{'client'}->get_access_token();
+    console_print_debug("Retrieving user information for access token '%s'...", $access_token);
+    my $user = $self->{'authorization'}->get_user_information($access_token);
+    if (!defined($user)) {
+        return;
+    }
+
+    my $object = Shongo::ClientCli::API::Object->new();
+    $object->set_object_name('Authenticated User Information');
+    $object->add_attribute('Access Token', {}, $self->{'access_token'});
+    $object->add_attribute('Id', {}, $user->{'id'});
+    $object->add_attribute('Identity', {}, $user->{'original_id'});
+    $object->add_attribute('Name', {}, $user->{'name'});
+    $object->add_attribute('Email', {}, $user->{'email'});
+    console_print_text($object);
+}
+
+#
+# @see Shongo::ClientCommon::connect
+#
+sub connect()
+{
+    my ($self, $url) = @_;
+
+    $url = $self->{'client'}->update_url($url);
+
+    console_print_debug("Connecting to controller at '$url'...");
+
+    $self->{'client'}->connect($url);
+
+    my $response = $self->{'client'}->request("Common.getController");
+    if ( ref($response) ) {
+        console_print_debug("Successfully connected to the controller!");
+        return 1;
+    } else {
+        console_print_error("Failed to connect to controller! Is the controller running?");
+        return 0;
+    }
+}
+
+#
+# @see Shongo::ClientCommon::disconnect
+#
+sub disconnect()
+{
+    my ($self) = @_;
+    if ( $self->{'client'}->disconnect() ) {
+        console_print_debug("Successfully disconnected from the controller!");
+    }
+}
+
+#
+# @see Shongo::ClientCommon::is_connected
+#
+sub is_connected()
+{
+    my ($self) = @_;
+    return $self->{'client'}->is_connected();
+}
+
+#
+# @see Shongo::ClientCommon::request
+#
+sub request()
+{
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->request(@arguments);
+}
+
+#
+# @see Shongo::ClientCommon::secure_request
+#
+sub secure_request()
+{
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->secure_request(@arguments);
+}
+
+#
+# Print Controller XML-RPC server info
+#
+sub status()
+{
+    my ($self) = @_;
+    if ( !$self->{'client'}->check_connected() ) {
+        return;
+    }
+
+    my $response = $self->request("Common.getController");
+    if ( !defined($response) ) {
+        return;
+    }
+    if ( !($response->{"class"} eq "Controller") ) {
+        console_print_error("Server hasn't return Controller object!");
+        return;
+    }
+    printf("+----------------------------------------------------------------------+\n");
+    printf("| Connected to the following controller:                               |\n");
+    printf("| -------------------------------------------------------------------- |\n");
+    printf("| URL:                 %-47s |\n", $self->{'client'}->get_url());
+    printf("| Domain Name:         %-47s |\n", $response->{"domain"}->{"name"});
+    printf("| Domain Organization: %-47s |\n", $response->{"domain"}->{"organization"});
+    printf("+----------------------------------------------------------------------+\n");
 }
 
 #
@@ -134,16 +279,13 @@ sub format_user
         return undef;
     }
 
-    my $user_info = $singleInstance->{'user-cache'}->{$user_id};
-    my $name = 'not existing user';
-    if ( !defined($user_info) ) {
-        $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
-        if ( defined($user_info) ) {
-            $singleInstance->{'user-cache'}->{$user_id} = $user_info;
+    my $user_information = $self->{'client'}->get_user_information($user_id);
+    my $name = '<not-exists>';
+    if ( defined($user_information) ) {
+        $name = $user_information->{'firstName'};
+        if ( defined($user_information->{'lastName'}) ) {
+            $name .= ' ' . $user_information->{'lastName'};
         }
-    }
-    if ( defined($user_info) ) {
-        $name = $user_info->{'name'};
     }
     if ( $long ) {
         return "$name (id: $user_id)";
@@ -160,211 +302,8 @@ sub format_user
 sub user_exists
 {
     my ($self, $user_id) = @_;
-    my $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
-    return defined($user_info);
-}
-
-#
-# Authenticate user
-#
-sub authenticate()
-{
-    my ($self, $data) = @_;
-    $self->{'access_token'} = $self->{'authorization'}->authentication_authorize($data);
-    return $self->{'access_token'};
-}
-
-#
-# Show current authenticated user information
-#
-sub user_info()
-{
-    my ($self) = @_;
-    console_print_debug("Retrieving user information for access token '%s'...", $self->{'access_token'});
-    my $user_info = $self->{'authorization'}->get_user_info($self->{'access_token'});
-    if (!defined($user_info)) {
-        return;
-    }
-
-    my $object = Shongo::ClientCli::API::Object->new();
-    $object->set_object_name('Authenticated User Information');
-    $object->add_attribute('Access Token', {}, $self->{'access_token'});
-    $object->add_attribute('Id', {}, $user_info->{'id'});
-    $object->add_attribute('Identity', {}, $user_info->{'original_id'});
-    $object->add_attribute('Name', {}, $user_info->{'name'});
-    $object->add_attribute('Email', {}, $user_info->{'email'});
-    console_print_text($object);
-}
-
-#
-# Connect to Controller XML-RPC server.
-#
-# @param url
-#
-sub connect()
-{
-    my ($self, $url) = @_;
-
-    # Append default port if not presented
-    if ( !($url =~ /.+:[0-9]+$/ ) ) {
-        $url = $url . ":8181";
-    }
-    # Prepend http:// if not presented
-    if ( !($url =~ /^http:\/\// ) ) {
-        $url = 'http://' . $url;
-    }
-
-    $self->{"_url"} = $url;
-
-    console_print_debug("Connecting to controller at '$url'...");
-
-    my $client = RPC::XML::Client->new($url);
-    my $response = $client->send_request("Common.getController");
-    if ( ref($response) ) {
-        $self->{"_client"} = $client;
-        console_print_debug("Successfully connected to the controller!");
-        return 1;
-    } else {
-        console_print_error("Failed to connect to controller! Is the controller running?");
-        return 0;
-    }
-}
-
-#
-# Disconnect from Controller XML-RPC server.
-#
-sub disconnect()
-{
-    my ($self) = @_;
-    if ( !defined($self->{"_client"}) ) {
-        console_print_error("Client is not connected to any controller!");
-        return;
-    }
-    undef $self->{"_client"};
-    console_print_debug("Successfully disconnected from the controller!");
-}
-
-#
-# Checks whether client is connected to controller
-#
-sub is_connected()
-{
-    my ($self) = @_;
-    if ( !defined($self->{"_client"}) ) {
-        return 0;
-    }
-    return 1;
-}
-
-#
-# Checks whether client is connected to controller
-#
-sub check_connected()
-{
-    my ($self) = @_;
-    if ( !$self->is_connected() ) {
-        console_print_error("Client is not connected to any controller!");
-        return 0;
-    }
-    return 1;
-}
-
-#
-# Send request to Controller XML-RPC server.
-#
-# @param... Arguments for XML-RPC request
-# @param method
-# @return response
-#
-sub request()
-{
-    my ($self, $method, @args) = @_;
-    if ( !$self->check_connected() ) {
-        return RPC::XML::fault->new(0, "Not connected!");
-    }
-    my $response = $self->{"_client"}->send_request($method, @args);
-    if ( !ref($response) ) {
-        console_print_error("Failed to send request to controller!\n" . $response);
-        return RPC::XML::fault->new(0, "Failed to send request!");;
-    }
-    if ( $response->is_fault() ) {
-        my $message = $response->string();
-        if ( $message =~ /<message>(.*)<\/message>/ ) {
-            $message = $1;
-        }
-        console_print_error("Server failed to perform request!\nFault %d: %s",
-            $response->code, $message);
-    }
-    return $response;
-}
-
-#
-# Send request to Controller XML-RPC server with auto fill first security token parameter.
-#
-# @param method
-# @param... Arguments for XML-RPC request
-# @return response
-#
-sub secure_request()
-{
-    my ($self, $method, @args) = @_;
-    if ( !$self->check_connected() ) {
-        return RPC::XML::fault->new(0, "Not connected!");
-    }
-    my $securityToken = RPC::XML::struct->new();
-    if (!defined($self->{'access_token'})) {
-        console_print_debug("User is not authenticated, starting authentication...");
-        $self->authenticate();
-    }
-    if (defined($self->{'access_token'})) {
-        $securityToken = RPC::XML::string->new($self->{'access_token'});
-    }
-    return $self->request(
-        $method,
-        $securityToken,
-        @args
-    );
-}
-
-#
-# Print Controller XML-RPC server info
-#
-sub status()
-{
-    my ($self) = @_;
-    if ( !defined($self->{"_client"}) ) {
-        console_print_error("Client is not connected to any controller!");
-        return;
-    }
-
-    my $response = $self->request("Common.getController");
-    if ( !ref($response) || $response->is_fault() ) {
-        return;
-    }
-    if ( !($response->{"class"}->value eq "Controller") ) {
-        console_print_error("Server hasn't return Controller object!");
-        return;
-    }
-    printf("+----------------------------------------------------------------------+\n");
-    printf("| Connected to the following controller:                               |\n");
-    printf("| -------------------------------------------------------------------- |\n");
-    printf("| URL:                 %-47s |\n", $self->{'_url'});
-    printf("| Domain Name:         %-47s |\n", $response->{"domain"}->{"name"}->value);
-    printf("| Domain Organization: %-47s |\n", $response->{"domain"}->{"organization"}->value);
-    printf("+----------------------------------------------------------------------+\n");
-}
-
-#
-# Print XML-RPC response in readable form
-#
-# @param response
-#
-sub print_response()
-{
-    my ($self, $response) = @_;
-    my $xml = XML::Twig->new(pretty_print => 'indented');
-    $xml->parse($response->as_string());
-    return $xml->print();
+    my $user_information = $self->{'client'}->get_user_information($user_id);
+    return defined($user_information);
 }
 
 1;

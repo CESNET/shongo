@@ -23,7 +23,7 @@ sub test
         'shongo:cz.cesnet:res:1',
         'owner'
     );
-    var_dump($response->value());
+    var_dump($response);
 }
 
 1;

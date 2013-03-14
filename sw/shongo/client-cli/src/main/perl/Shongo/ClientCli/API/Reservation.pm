@@ -133,15 +133,14 @@ sub fetch_child_reservations
     if ( defined($self->{'childReservationIds'}) && @{$self->{'childReservationIds'}} > 0) {
         my $child_reservations = [];
         foreach my $reservation (@{$self->{'childReservationIds'}}) {
-            my $result = Shongo::ClientCli->instance()->secure_request(
+            my $response = Shongo::ClientCli->instance()->secure_request(
                 'Reservation.getReservation',
                 RPC::XML::string->new($reservation)
             );
-            if ( $result->is_fault ) {
+            if ( !defined($response) ) {
                 return;
             }
-            my $reservationXml = $result->value();
-            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
+            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($response);
             if ( $recursive ) {
                 $reservation->fetch_child_reservations($recursive);
             }

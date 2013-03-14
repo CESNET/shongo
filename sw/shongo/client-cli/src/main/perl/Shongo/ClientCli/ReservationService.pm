@@ -136,8 +136,8 @@ sub create_reservation_request()
             'Reservation.createReservationRequest',
             $reservation_request->to_xml()
         );
-        if ( !$response->is_fault() ) {
-            return $response->value();
+        if ( defined($response) ) {
+            return $response;
         }
         return undef;
     };
@@ -155,7 +155,7 @@ sub modify_reservation_request()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
         RPC::XML::string->new($id)
     );
@@ -167,14 +167,14 @@ sub modify_reservation_request()
             'Reservation.modifyReservationRequest',
             $reservation_request->to_xml()
         );
-        if ( !$response->is_fault() ) {
+        if ( defined($response) ) {
             return $reservation_request->{'id'};
         }
         return undef;
     };
 
-    if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($result);
+    if ( defined($response) ) {
+        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($response);
         if ( defined($reservation_request) ) {
             $reservation_request->modify($attributes, $options);
         }
@@ -210,7 +210,7 @@ sub list_reservation_requests()
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Reservation.listReservationRequests', $filter);
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(
@@ -226,7 +226,7 @@ sub list_reservation_requests()
         'ReservationRequestSummary.RoomType' => 'Room',
         'ReservationRequestSummary.AliasType' => 'Alias'
     };
-    foreach my $reservation_request (@{$response->value()}) {
+    foreach my $reservation_request (@{$response}) {
         my $type = 'Other';
         if ( defined($reservation_request->{'type'}) && defined($reservation_request->{'type'}->{'class'}) ) {
             $type = $Type->{$reservation_request->{'type'}->{'class'}};
@@ -250,12 +250,12 @@ sub get_reservation_request()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
         RPC::XML::string->new($id)
     );
-    if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($result);
+    if ( defined($response) ) {
+        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($response);
         if ( defined($reservation_request) ) {
             console_print_text($reservation_request->to_string());
         }
@@ -269,20 +269,19 @@ sub get_reservation_for_request()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request('Reservation.listReservations', {
+    my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservations', {
         'reservationRequestId' => $id,
         'userId' => '*'
     });
-    if ( $result->is_fault ) {
+    if ( !defined($response) ) {
         return;
     }
-    my $reservations = $result->value();
-    if (get_collection_size($reservations) == 0) {
+    if (get_collection_size($response) == 0) {
         return;
     }
     print("\n");
     my $index = 0;
-    foreach my $reservationXml (@{$reservations}) {
+    foreach my $reservationXml (@{$response}) {
         my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
@@ -305,12 +304,12 @@ sub get_reservation()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservation',
         RPC::XML::string->new($id)
     );
-    if ( !$result->is_fault ) {
-        my $reservation = Shongo::ClientCli::API::Reservation->from_hash($result);
+    if ( defined($response) ) {
+        my $reservation = Shongo::ClientCli::API::Reservation->from_hash($response);
         $reservation->fetch_child_reservations(1);
         if ( defined($reservation) ) {
             console_print_text($reservation->to_string());

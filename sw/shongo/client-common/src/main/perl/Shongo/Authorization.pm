@@ -207,12 +207,12 @@ sub authentication_token
 }
 
 #
-# Retrieve user information
+# Retrieve user information by $access_token
 #
 # @param $access_token
 # @return user information
 #
-sub get_user_info
+sub get_user_information
 {
     my ($self, $access_token) = @_;
     if (!defined($access_token)) {

@@ -87,7 +87,7 @@ sub list_executables()
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Executable.listExecutables', $filter);
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(
@@ -98,7 +98,7 @@ sub list_executables()
         \' | ', 'State',
         \' |'
     );
-    foreach my $executable (@{$response->value()}) {
+    foreach my $executable (@{$response}) {
         my $type = '';
         if ( $executable->{'type'} eq 'COMPARTMENT' ) {
             $type = 'Compartment';
@@ -124,12 +124,12 @@ sub get_executable()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Executable.getExecutable',
         RPC::XML::string->new($id)
     );
-    if ( !$result->is_fault ) {
-        my $executable = Shongo::ClientCli::API::Executable->from_hash($result);
+    if ( defined($response) ) {
+        my $executable = Shongo::ClientCli::API::Executable->from_hash($response);
         if ( defined($executable) ) {
             console_print_text($executable->to_string());
         }

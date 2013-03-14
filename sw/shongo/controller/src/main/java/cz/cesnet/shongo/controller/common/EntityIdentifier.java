@@ -344,6 +344,9 @@ public class EntityIdentifier
      */
     private static EntityIdentifier parse(String domain, EntityType entityType, String entityId)
     {
+        if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
+            return new EntityIdentifier(entityType, Long.parseLong(entityId));
+        }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         if (entityIdentifier.entityType != entityType) {
             throw new IdentifierWrongTypeException(entityId, entityType.getCode());

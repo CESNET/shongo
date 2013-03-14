@@ -76,7 +76,7 @@ $controller->set_scripting($scripting);
 
 # Set testing access token
 if ($testing_access_token) {
-    $controller->{'access_token'} = '1e3f174ceaa8e515721b989b19f71727060d0839';
+    $controller->{'client'}->set_access_token('1e3f174ceaa8e515721b989b19f71727060d0839');
 }
 
 if ( $scripting eq 0 ) {

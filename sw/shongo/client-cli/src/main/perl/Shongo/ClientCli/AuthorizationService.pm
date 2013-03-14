@@ -61,10 +61,9 @@ sub create_acl()
         RPC::XML::string->new($args[1]),
         RPC::XML::string->new($args[2])
     );
-    if ( $response->is_fault() ) {
-        return;
+    if ( defined($response) ) {
+        console_print_info("ACL record '%s' has been created.", $response);
     }
-    console_print_info("ACL record '%s' has been created.", $response->value());
 }
 
 sub delete_acl()
@@ -77,10 +76,9 @@ sub delete_acl()
     my $response = Shongo::ClientCli->instance()->secure_request('Authorization.deleteAclRecord',
         RPC::XML::string->new($args[0])
     );
-    if ( $response->is_fault() ) {
-        return;
+    if ( defined($response) ) {
+        console_print_info("ACL record '%s' has been deleted.", $args[0]);
     }
-    console_print_info("ACL record '%s' has been deleted.", $args[0]);
 }
 
 sub list_acl()
@@ -99,11 +97,11 @@ sub list_acl()
         $role = RPC::XML::string->new($options->{'role'});
     }
     my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listAclRecords', $user_id, $entity_id, $role);
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return;
     }
     my $table = Text::Table->new(\'| ', 'Id', \' | ', 'User', \' | ', 'Entity', \' | ', 'Role', \' |');
-    foreach my $record (@{$response->value()}) {
+    foreach my $record (@{$response}) {
         $table->add(
             $record->{'id'},
             $record->{'userId'},
