@@ -16,6 +16,7 @@ use Shongo::ClientCommon;
 use Shongo::ClientWeb::WebAuthorization;
 use Shongo::ClientWeb::H323SipController;
 use Shongo::ClientWeb::AdobeConnectController;
+use Log::Log4perl;
 
 # Get directory
 use File::Spec::Functions;
@@ -42,6 +43,9 @@ sub new
         die("ClientWeb can be instantiated only once.");
     }
     $singleInstance = $self;
+
+    # Logger
+    $singleInstance->{'logger'} = Log::Log4perl->get_logger('cz.cesnet.shongo.client-web');
 
     # Initialize client
     $singleInstance->{'client'} = Shongo::ClientCommon->new();
@@ -251,6 +255,8 @@ sub run
             'original_id' => $user_info->{'original_id'},
             'name' => $user_info->{'name'}
         });
+
+        $self->{'logger'}->debug("User '$user_info->{'id'}' signed in (token: $access_token).");
 
         # Redirect to previous page
         $self->redirect();

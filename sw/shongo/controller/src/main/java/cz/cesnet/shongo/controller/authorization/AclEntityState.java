@@ -6,32 +6,38 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * TODO:
+ * Represents an entity state in the {@link AuthorizationCache}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AclEntityState
 {
+    /**
+     * Set of {@link AclRecord}s for the entity.
+     */
     private Set<AclRecord> aclRecords = new HashSet<AclRecord>();
-    private Map<String, AclRecord> aclRecordById = new HashMap<String, AclRecord>();
 
-    public void addAclRecord(AclRecord aclRecord)
+    /**
+     * @param aclRecord to be added to the {@link AclEntityState}
+     */
+    public synchronized void addAclRecord(AclRecord aclRecord)
     {
-        if (aclRecords.add(aclRecord)) {
-            aclRecordById.put(aclRecord.getId(), aclRecord);
-        }
+        aclRecords.add(aclRecord);
     }
 
-    public void removeAclRecord(AclRecord aclRecord)
+    /**
+     * @param aclRecord to be removed from the {@link AclEntityState}
+     */
+    public synchronized void removeAclRecord(AclRecord aclRecord)
     {
-        if (aclRecords.remove(aclRecord)) {
-            aclRecordById.remove(aclRecord.getId());
-        }
+        aclRecords.remove(aclRecord);
     }
 
-    public Set<AclRecord> getAclRecords()
+    /**
+     * @return {@link #aclRecords}
+     */
+    public synchronized Set<AclRecord> getAclRecords()
     {
         return aclRecords;
     }
-
 }

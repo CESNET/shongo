@@ -72,6 +72,7 @@ public interface AuthorizationService extends Service
      * @param entityId identifier of the Shongo public entity
      * @return collection of permissions
      */
+    @API
     public Collection<Permission> listPermissions(SecurityToken token, String entityId)
             throws FaultException;
 

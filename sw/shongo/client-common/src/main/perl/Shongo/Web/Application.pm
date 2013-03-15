@@ -400,7 +400,7 @@ sub get_back
                         $back = $back->as_string();
                     }
                     else {
-                        $back .= '?' . $history->[$index]->{'query'};
+                        $back .= '?' . uri_unescape($history->[$index]->{'query'});
                     }
                 }
                 last;

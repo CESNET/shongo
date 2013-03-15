@@ -123,7 +123,9 @@ public class AuthorizationServiceImpl extends Component
                 authorization.checkPermission(requesterUserId, entityIdentifier, Permission.READ);
             }
             else {
-                throw new TodoImplementException("List only ACL to which the requester has permission.");
+                if (!requesterUserId.equals(Authorization.ROOT_USER_ID)) {
+                    throw new TodoImplementException("List only ACL to which the requester has permission.");
+                }
             }
         }
 
@@ -141,7 +143,6 @@ public class AuthorizationServiceImpl extends Component
         }
 
         if (aclRecords == null) {
-
             aclRecords = authorization.getAclRecords(userId, entityIdentifier, role);
         }
 

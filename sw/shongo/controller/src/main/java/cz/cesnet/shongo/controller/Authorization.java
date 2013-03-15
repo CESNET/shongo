@@ -205,7 +205,7 @@ public class Authorization
                 }
             }
             catch (Exception exception) {
-                throw new IllegalStateException(exception);
+                throw new SecurityException(exception, "Retrieving user information for access token failed.");
             }
             UserInformation userInformation = createUserInformationFromData(content);
             userId = userInformation.getUserId();
@@ -576,6 +576,23 @@ public class Authorization
             throw new SecurityException("User with id '%s' doesn't have '%s' permission for the '%s'",
                     userId, permission.getCode(), entityId);
         }
+    }
+
+    public Set<Long> getEntitiesWithPermission(String userId, EntityType entityType, Permission permission)
+    {
+        if (userId.equals(ROOT_USER_ID)) {
+            return null;
+        }
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = fetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        Set<Long> entities = aclUserState.getEntitiesByPermission(entityType, permission);
+        if (entities == null) {
+            return Collections.emptySet();
+        }
+        return entities;
     }
 
     /**

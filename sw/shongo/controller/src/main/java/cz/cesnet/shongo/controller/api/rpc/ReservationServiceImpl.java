@@ -302,6 +302,9 @@ public class ReservationServiceImpl extends Component
     {
         String userId = authorization.validate(token);
 
+        Set<Long> reservationRequestIds =
+                authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION_REQUEST, Permission.READ);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 

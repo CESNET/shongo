@@ -55,13 +55,13 @@ sub usage {
 my $connect;
 my $cmd;
 my $file;
-my $testing_access_token = 0;
+my $testing_access_token = undef;
 my $scripting = 0;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
-    'testing-access-token' => \$testing_access_token,
+    'testing-access-token:s' => \$testing_access_token,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
@@ -74,8 +74,11 @@ my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
 
 # Set testing access token
-if ($testing_access_token) {
-    $controller->{'client'}->set_access_token('1e3f174ceaa8e515721b989b19f71727060d0839');
+if (defined($testing_access_token)) {
+    if ( $testing_access_token eq '' ) {
+        $testing_access_token = '1e3f174ceaa8e515721b989b19f71727060d0839';
+    }
+    $controller->{'client'}->set_access_token($testing_access_token);
 }
 
 if ( $scripting eq 0 ) {

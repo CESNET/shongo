@@ -45,7 +45,15 @@ sub populate()
                 my ($shell, $params, @args) = @_;
                 list_acl($params->{'options'});
             }
-        }
+        },
+        'list-permissions' => {
+            desc => 'List permissions for authorized user to a entity',
+            args => '<entity-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_permissions(@args);
+            }
+        },
     });
 }
 
@@ -107,6 +115,25 @@ sub list_acl()
             $record->{'userId'},
             $record->{'entityId'},
             $record->{'role'},
+        );
+    }
+    console_print_table($table);
+}
+
+sub list_permissions()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 1 ) {
+        console_print_error("Arguments '<entity-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listPermissions',
+        RPC::XML::string->new($args[0]),
+    );
+    my $table = Text::Table->new(\'| ', 'Permission', \' |');
+    foreach my $permission (@{$response}) {
+        $table->add(
+            $permission
         );
     }
     console_print_table($table);

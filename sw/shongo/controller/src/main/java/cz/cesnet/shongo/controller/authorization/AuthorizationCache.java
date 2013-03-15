@@ -8,7 +8,7 @@ import org.joda.time.Duration;
 import java.util.*;
 
 /**
- * TODO:
+ * Represents a cache of {@link AclRecord}s
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
