@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -53,18 +55,17 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.common.DateTimeSlot}
      * @return {@link cz.cesnet.shongo.controller.common.DateTimeSlot} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
+     * @throws FaultException when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
      */
     @Transient
-    private DateTimeSlot getSlotById(Long id) throws PersistentEntityNotFoundException
+    private DateTimeSlot getSlotById(Long id) throws FaultException
     {
         for (DateTimeSlot dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new PersistentEntityNotFoundException(DateTimeSlot.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(DateTimeSlot.class, id);
     }
 
     /**
@@ -171,18 +172,17 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link ReservationRequest} doesn't exist
+     * @throws FaultException when the {@link ReservationRequest} doesn't exist
      */
     @Transient
-    private ReservationRequest getReservationRequestById(Long id) throws PersistentEntityNotFoundException
+    private ReservationRequest getReservationRequestById(Long id) throws FaultException
     {
         for (ReservationRequest reservationRequest : reservationRequests) {
             if (reservationRequest.getId().equals(id)) {
                 return reservationRequest;
             }
         }
-        throw new PersistentEntityNotFoundException(ReservationRequest.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(ReservationRequest.class, id);
     }
 
     /**
@@ -243,7 +243,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.old.CommonFault;
 
 /**
  * Represents a {@link CommandFailure} which happens when an agent which is receiver of the command is not available.

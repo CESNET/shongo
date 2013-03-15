@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.old.EntityNotFoundException;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;

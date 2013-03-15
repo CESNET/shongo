@@ -412,6 +412,26 @@
         </report>
 
         <report>
+            <id>entity-not-deletable-referenced</id>
+            <classification severity="error"/>
+            <params>
+                <param name="entity" type="string"/>
+                <param name="id" type="string"/>
+            </params>
+            <description>
+                Entity {entity} with identifier {id} cannot be deleted because it is still referenced.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
             <id>security-error</id>
             <classification severity="error"/>
             <params>
@@ -440,6 +460,100 @@
             </params>
             <description>
                 Command {command} for device {device} failed: {error}
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>identifier-invalid</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="string"/>
+            </params>
+            <description>
+                Identifier {id} is invalid.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>identifier-invalid-domain</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="string"/>
+                <param name="required-domain" type="string"/>
+            </params>
+            <description>
+                Identifier {id} doesn't belong to domain {required-domain}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>identifier-invalid-type</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="string"/>
+                <param name="required-type" type="string"/>
+            </params>
+            <description>
+                Identifier {id} isn't of required type {required-type}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>reservation-request-not-modifiable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="string"/>
+            </params>
+            <description>
+                Reservation request with identifier {id} cannot be modified or deleted.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report module="controller">
+            <id>reservation-request-empty-duration</id>
+            <classification severity="error"/>
+            <description>
+                Reservation request time slot must not be empty.
             </description>
             <example>
                 TODO:

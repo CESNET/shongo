@@ -1,150 +1,40 @@
 package cz.cesnet.shongo.fault;
 
+import cz.cesnet.shongo.CommonFaultSet;
+
 /**
- * Exception that represents and implements {@link cz.cesnet.shongo.fault.Fault}.
+ * TODO:
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class FaultRuntimeException extends RuntimeException implements Fault
+public class FaultRuntimeException extends RuntimeException implements FaultThrowable
 {
-    /**
-     * Fault code.
-     */
-    int code;
+    private Fault fault;
 
-    /**
-     * Constructor.
-     */
-    public FaultRuntimeException()
+    public FaultRuntimeException(Fault fault)
     {
-        this.code = CommonFault.UNKNOWN;
+        this.fault = fault;
     }
 
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     */
-    public FaultRuntimeException(int code, String message)
-    {
-        super(message);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     */
-    public FaultRuntimeException(int code, String message, Throwable throwable)
-    {
-        super(message, throwable);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param throwable
-     */
-    public FaultRuntimeException(int code, Throwable throwable)
-    {
-        super(throwable);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     * @param objects
-     */
-    public FaultRuntimeException(int code, String message, Object... objects)
-    {
-        this(code, CommonFault.formatMessage(message, objects));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param fault
-     * @param objects
-     */
-    public FaultRuntimeException(Fault fault, Object... objects)
-    {
-        this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param throwable
-     * @param fault
-     * @param objects
-     */
-    public FaultRuntimeException(Throwable throwable, Fault fault, Object... objects)
-    {
-        this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects), throwable);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param throwable
-     * @param message
-     * @param objects
-     */
-    public FaultRuntimeException(Throwable throwable, String message, Object... objects)
-    {
-        this(CommonFault.UNKNOWN, CommonFault.formatMessage(message, objects), throwable);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param faultString
-     * @param objects
-     */
-    public FaultRuntimeException(String faultString, Object... objects)
-    {
-        this(CommonFault.UNKNOWN, faultString, objects);
-    }
-
-    /**
-     * Construct unknown fault by description string.
-     *
-     * @param faultString
-     */
-    public FaultRuntimeException(String faultString)
-    {
-        this(CommonFault.UNKNOWN, faultString);
-    }
-
-    /**
-     * Construct unknown fault by {@code throwable}.
-     *
-     * @param throwable
-     */
     public FaultRuntimeException(Throwable throwable)
     {
-        this(CommonFault.UNKNOWN, throwable);
+        super(throwable);
+        this.fault = CommonFaultSet.createUnknownErrorFault(throwable.getMessage());
     }
 
     @Override
-    public int getCode()
+    public Fault getFault()
     {
-        return code;
+        return fault;
     }
 
-    /**
-     * @param code sets the {@link #code}
-     */
-    public void setCode(int code)
+    public <F extends Fault> F getFault(Class<F> faultType)
     {
-        this.code = code;
+        return faultType.cast(fault);
+    }
+
+    public Class<? extends Fault> getFaultClass()
+    {
+        return fault.getClass();
     }
 }

@@ -35,7 +35,8 @@ public interface ExecutorService extends Service
      * @return collection of {@link cz.cesnet.shongo.controller.api.ExecutableSummary}s
      */
     @API
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter);
+    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
+        throws FaultException;
 
     /**
      * Gets the complete compartment object.

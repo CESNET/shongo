@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
 
 /**
  * Exception to be thrown when an entity with an identifier cannot be deleted because it is still referenced.

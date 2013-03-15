@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
@@ -220,18 +221,17 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @param id of the {@link Reservation}
      * @return {@link Reservation} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Reservation} doesn't exist
+     * @throws FaultException when the {@link Reservation} doesn't exist
      */
     @Transient
-    protected Reservation getReservationById(Long id) throws PersistentEntityNotFoundException
+    protected Reservation getReservationById(Long id) throws FaultException
     {
         for (Reservation reservation : reservations) {
             if (reservation.getId().equals(id)) {
                 return reservation;
             }
         }
-        throw new PersistentEntityNotFoundException(Reservation.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Reservation.class, id);
     }
 
     /**
@@ -310,16 +310,16 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected static void validateSlotDuration(Period duration) throws FaultException
     {
         if (duration.equals(new Period())) {
-            throw new FaultException(ControllerFault.RESERVATION_REQUEST_EMPTY_DURATION);
+            ControllerFaultSet.throwReservationRequestEmptyDurationFault();
         }
     }
 
     /**
      * @return converted {@link AbstractReservationRequest}
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
         toApi(api);
@@ -360,7 +360,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws FaultException
+            throws OldFaultException
     {
         api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
@@ -381,7 +381,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      *
      * @param api
      * @param entityManager
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException

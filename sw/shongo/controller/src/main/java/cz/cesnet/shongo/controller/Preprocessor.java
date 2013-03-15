@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.Temporal;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,7 +322,8 @@ public class Preprocessor extends Component
      * @param interval
      * @param cache
      */
-    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache) throws FaultException
+    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache)
+            throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(cache);

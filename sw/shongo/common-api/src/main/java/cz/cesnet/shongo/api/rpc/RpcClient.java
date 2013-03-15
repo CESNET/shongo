@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.api.rpc;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.api.rpc.TypeConverterFactory;
-import cz.cesnet.shongo.api.rpc.TypeFactory;
-import cz.cesnet.shongo.fault.CommonFault;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.SerializableException;
+import cz.cesnet.shongo.fault.Fault;
+import cz.cesnet.shongo.fault.FaultMessage;
+import cz.cesnet.shongo.fault.FaultSet;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -45,9 +43,9 @@ public class RpcClient
     private Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
-     * @see {@link CommonFault}
+     * @see {@link FaultSet}
      */
-    private CommonFault fault = new CommonFault();
+    private FaultSet faultSet = new CommonFaultSet();
 
     /**
      * Constructor.
@@ -69,11 +67,11 @@ public class RpcClient
     }
 
     /**
-     * @param fault sets the {@link #fault}
+     * @param faultSet sets the {@link #faultSet}
      */
-    public void setFault(CommonFault fault)
+    public void setFaultSet(FaultSet faultSet)
     {
-        this.fault = fault;
+        this.faultSet = faultSet;
     }
 
     /**
@@ -138,24 +136,22 @@ public class RpcClient
 
     /**
      * @param xmlRpcException
-     * @return {@code xmlRpcException} converted to {@link FaultException}
+     * @return {@code xmlRpcException} converted to proper {@link Exception}
      */
     public Exception convertException(XmlRpcException xmlRpcException)
     {
-        SerializableException.Content content = new SerializableException.Content();
-        content.fromString(xmlRpcException.getMessage());
+        Class<? extends Fault> type = faultSet.getFaultClass(xmlRpcException.code);
+        if (type == null) {
+            throw new IllegalStateException(String.valueOf(xmlRpcException.code));
+        }
+        Fault fault = ClassHelper.createInstanceFromClassRuntime(type);
 
-        Exception exception;
-        Class<? extends Exception> type = fault.getClasses().get(xmlRpcException.code);
-        if (type != null) {
-            exception = ClassHelper.createInstanceFromClassRuntime(type);
-            if (exception instanceof SerializableException) {
-                content.toException(exception);
-            }
-        }
-        else {
-            exception = new FaultException(xmlRpcException.code, content.getMessage(), xmlRpcException.getCause());
-        }
+        // Fill message
+        FaultMessage faultMessage = new FaultMessage(xmlRpcException.getMessage());
+        faultMessage.toFault(fault);
+
+        // Create exception for fault
+        Exception exception = fault.createException();
         exception.setStackTrace(xmlRpcException.getStackTrace());
         return exception;
     }
@@ -211,23 +207,22 @@ public class RpcClient
                         result = getClient().execute(methodName, pArgs);
                     }
                     catch (XmlRpcInvocationException e) {
-                        Throwable t = e.linkedException;
-                        if (t instanceof RuntimeException) {
-                            throw t;
+                        Throwable throwable = e.linkedException;
+                        if (throwable instanceof RuntimeException) {
+                            throw throwable;
                         }
-                        else if (t instanceof XmlRpcException) {
-                            XmlRpcException xmlRpcException = (XmlRpcException) t;
-                            t = new FaultException(xmlRpcException.code, xmlRpcException.getMessage(),
-                                    xmlRpcException.getCause());
+                        else if (throwable instanceof XmlRpcException) {
+                            XmlRpcException xmlRpcException = (XmlRpcException) throwable;
+                            throwable = convertException(xmlRpcException);
                         }
                         Class<?>[] exceptionTypes = pMethod.getExceptionTypes();
                         for (int i = 0; i < exceptionTypes.length; i++) {
                             Class<?> c = exceptionTypes[i];
-                            if (c.isAssignableFrom(t.getClass())) {
-                                throw t;
+                            if (c.isAssignableFrom(throwable.getClass())) {
+                                throw throwable;
                             }
                         }
-                        throw new UndeclaredThrowableException(t);
+                        throw new UndeclaredThrowableException(throwable);
                     }
                     catch (XmlRpcException xmlRpcException) {
                         throw convertException(xmlRpcException);

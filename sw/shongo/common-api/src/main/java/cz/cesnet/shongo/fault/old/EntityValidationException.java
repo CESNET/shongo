@@ -1,11 +1,11 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
 
 /**
  * Exception to be thrown when an entity validation failed.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class EntityValidationException extends FaultException implements SerializableException
+public class EntityValidationException extends OldFaultException implements SerializableException
 {
     /**
      * Constructor.

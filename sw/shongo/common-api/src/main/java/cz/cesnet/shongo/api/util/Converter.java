@@ -2,9 +2,10 @@ package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.rpc.AtomicType;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
+import cz.cesnet.shongo.fault.old.CommonFault;
+import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.old.FaultRuntimeException;
 import org.joda.time.*;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class Converter
      * @param property specifies target type for conversion
      * @return given {@code value} converted to type specified by given {@code property}
      */
-    public static Object convert(Object value, Property property) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Property property) throws IllegalArgumentException, OldFaultException
     {
         return convert(value, property.getType(), property.getValueAllowedTypes(), property, DEFAULT_OPTIONS);
     }
@@ -51,7 +52,7 @@ public class Converter
     /**
      * @see #convert(Object, Property)
      */
-    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, OldFaultException
     {
         return convert(value, targetType, null, null, DEFAULT_OPTIONS);
     }
@@ -74,7 +75,7 @@ public class Converter
      * @param value   to be converted
      * @param options {@link Options}
      * @return converted given {@code value}
-     * @throws FaultException if the conversion failed
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException if the conversion failed
      */
     public static Object convertFromBasic(Object value, Options options) throws FaultException
     {
@@ -91,7 +92,7 @@ public class Converter
      * @param targetType to which the given {@code value} should be converted
      * @param options    {@link Options}
      * @return converted given {@code value} to given {@code targetType}
-     * @throws FaultException if the conversion failed
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException if the conversion failed
      */
     public static Object convertFromBasic(Object value, Class targetType, Options options) throws FaultException
     {
@@ -188,9 +189,9 @@ public class Converter
      * @param object  to be converted
      * @param options see {@link Options}
      * @return map which contains object's properties
-     * @throws FaultException when the conversion fails
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException when the conversion fails
      */
-    private static Map convertObjectToMap(Object object, Options options) throws FaultException
+    private static Map convertObjectToMap(Object object, Options options) throws OldFaultException
     {
         ChangesTracking changesTrackingObject =
                 ((object instanceof ChangesTracking.Changeable) ?
@@ -201,7 +202,7 @@ public class Converter
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(object.getClass(), propertyName);
             if (property == null) {
-                throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
+                throw new OldFaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
             }
 
             // Skip read-only properties
@@ -264,9 +265,9 @@ public class Converter
      * @param targetType target type for conversion
      * @param options    see {@link Options}
      * @return new instance of given {@code targetType} that is filled by attributes from given {@code map}
-     * @throws FaultException when the conversion fails
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException when the conversion fails
      */
-    private static Object convertMapToObject(Map map, Class targetType, Options options) throws FaultException
+    private static Object convertMapToObject(Map map, Class targetType, Options options) throws OldFaultException
     {
         // Null or empty map means "null" object
         if (map == null || map.size() == 0) {
@@ -281,10 +282,10 @@ public class Converter
                     targetType = getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    throw new FaultException(CommonFault.CLASS_NOT_DEFINED, className);
+                    throw new OldFaultException(CommonFault.CLASS_NOT_DEFINED, className);
                 }
                 if (!declaredType.isAssignableFrom(targetType)) {
-                    throw new FaultException(CommonFault.UNKNOWN, "Cannot convert map to object of class '%s'"
+                    throw new OldFaultException(CommonFault.UNKNOWN, "Cannot convert map to object of class '%s'"
                             + " because map specifies not assignable class '%s'.",
                             getClassShortName(declaredType), className);
                 }
@@ -296,7 +297,7 @@ public class Converter
                 object = targetType.newInstance();
             }
             catch (Exception exception) {
-                throw new FaultException(exception, CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
+                throw new OldFaultException(exception, CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
             }
 
             ChangesTracking changesTrackingObject =
@@ -311,7 +312,7 @@ public class Converter
             // Fill each property that is present in map
             for (Object key : map.keySet()) {
                 if (!(key instanceof String)) {
-                    throw new FaultException("Map must contain only string keys.");
+                    throw new OldFaultException("Map must contain only string keys.");
                 }
                 String propertyName = (String) key;
                 Object value = map.get(key);
@@ -323,7 +324,7 @@ public class Converter
 
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
                 if (property.isReadOnly() && !options.isLoadReadOnly()) {
-                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+                    throw new OldFaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
                 }
 
                 // Set changes for items
@@ -361,7 +362,7 @@ public class Converter
                         if (value instanceof String) {
                             givenType = String.format("String(%s)", value);
                         }
-                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
+                        throw new OldFaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
                                 object.getClass(), requiredType, givenType);
                     }
                 }
@@ -387,10 +388,10 @@ public class Converter
      * @param options           see {@link Options}
      * @return {@link Map} containing changes for given {@code value} or null when no changes are present
      *         (the changes are also converted to {@link TypeFlags#BASIC} types)
-     * @throws FaultException when the method fails
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException when the method fails
      */
     private static Map<String, Object> getValueItemChanges(Object value,
-            ChangesTracking.CollectionChanges collectionChanges, Options options) throws FaultException
+            ChangesTracking.CollectionChanges collectionChanges, Options options) throws OldFaultException
     {
         // Map of changes
         Map<String, Object> mapValueItemChanges = new HashMap<String, Object>();
@@ -467,10 +468,10 @@ public class Converter
      * @param changesTracking {@link ChangesTracking} to which the changes should be filled
      * @param options         see {@link Options}
      * @return value which should be set to the given {@code property} (converted from{@link TypeFlags#BASIC} types)
-     * @throws FaultException when the method fails
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException when the method fails
      */
     private static Object setValueItemChanges(Object value, Property property, ChangesTracking changesTracking,
-            Options options) throws FaultException
+            Options options) throws OldFaultException
     {
         Map changes = (Map) value;
 
@@ -565,11 +566,11 @@ public class Converter
      * @param options            see {@link Options}
      * @return converted value
      * @throws IllegalArgumentException when the value cannot be converted to specified type
-     * @throws FaultException           when the conversion fails from some reason
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException           when the conversion fails from some reason
      */
     private static Object convert(Object value, Class targetType, Class[] targetAllowedTypes, Property property,
             Options options)
-            throws IllegalArgumentException, FaultException
+            throws IllegalArgumentException, OldFaultException
     {
         // Null values aren't converted
         if (value == null) {
@@ -641,7 +642,7 @@ public class Converter
                 for (Object item : collectionValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        throw new OldFaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
                     }
                     collection.add(item);
                 }
@@ -676,7 +677,7 @@ public class Converter
                     return ClassHelper.getClassFromShortName((String) value);
                 }
                 catch (ClassNotFoundException exception) {
-                    throw new FaultException(CommonFault.CLASS_NOT_DEFINED, value);
+                    throw new OldFaultException(CommonFault.CLASS_NOT_DEFINED, value);
                 }
             }
             // If boolean is required
@@ -698,7 +699,7 @@ public class Converter
                     atomicType = (AtomicType) targetType.newInstance();
                 }
                 catch (Exception exception) {
-                    throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
+                    throw new RuntimeException(new OldFaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
                             targetType));
                 }
                 atomicType.fromString((String) value);
@@ -741,7 +742,7 @@ public class Converter
                 for (int index = 0; index < arrayValue.length; index++) {
                     Object item = convert(arrayValue[index], componentType, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        throw new OldFaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
                     }
                     newArray[index] = item;
                 }
@@ -755,7 +756,7 @@ public class Converter
                 for (Object item : arrayValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        throw new OldFaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
                     }
                     collection.add(item);
                 }
@@ -776,7 +777,7 @@ public class Converter
      * @see #convert(Object, Class, Class[], Property, Options)
      */
     private static Object convert(Object value, Property property, Options options)
-            throws IllegalArgumentException, FaultException
+            throws IllegalArgumentException, OldFaultException
     {
         return convert(value, property.getType(), property.getValueAllowedTypes(), property, options);
     }
@@ -813,7 +814,7 @@ public class Converter
          * @param value
          * @param enumClass
          * @return enum value for given string from specified enum class
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws cz.cesnet.shongo.fault.old.FaultRuntimeException
          *
          */
         public static <T extends Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
@@ -853,7 +854,7 @@ public class Converter
         /**
          * @param value
          * @return parsed partial date/time from string
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws cz.cesnet.shongo.fault.old.FaultRuntimeException
          *          when parsing fails
          */
         public static ReadablePartial convertStringToReadablePartial(String value) throws FaultRuntimeException
@@ -881,7 +882,7 @@ public class Converter
         /**
          * @param value
          * @return parsed period from string
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws cz.cesnet.shongo.fault.old.FaultRuntimeException
          *          when parsing fails
          */
         public static Period convertStringToPeriod(String value) throws FaultRuntimeException
@@ -907,7 +908,7 @@ public class Converter
          *
          * @param value string value to be converted to the {@link Interval}
          * @return parsed {@link Interval} from given {@code value}
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws cz.cesnet.shongo.fault.old.FaultRuntimeException
          *          when parsing fails
          */
         public static Interval convertStringToInterval(String value) throws FaultRuntimeException

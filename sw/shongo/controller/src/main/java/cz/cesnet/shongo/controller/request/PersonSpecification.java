@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -176,7 +176,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.PersonSpecification personSpecificationApi =
                 (cz.cesnet.shongo.controller.api.PersonSpecification) specificationApi;

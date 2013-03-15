@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.SecurityException;
+import cz.cesnet.shongo.fault.old.SecurityException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -122,7 +122,7 @@ public class Authorization
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
-            throw new cz.cesnet.shongo.fault.SecurityException(
+            throw new SecurityException(
                     SecurityToken.class.getSimpleName() + " should not be empty.");
         }
         // Always allow testing access token

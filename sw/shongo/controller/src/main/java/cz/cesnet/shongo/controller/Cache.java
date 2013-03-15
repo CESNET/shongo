@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.*;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -249,7 +248,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     addResource(resource, entityManager);
                 }
                 catch (FaultException exception) {
-                    throw new IllegalStateException(exception);
+                    throw new IllegalStateException("Failed to add resource to the cache.", exception);
                 }
             }
             reusedReservationCache.loadObjects(entityManager);

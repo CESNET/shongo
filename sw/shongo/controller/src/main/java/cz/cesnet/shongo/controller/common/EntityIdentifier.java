@@ -1,15 +1,14 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.fault.IdentifierWrongDomainException;
-import cz.cesnet.shongo.controller.fault.IdentifierWrongFormatException;
-import cz.cesnet.shongo.controller.fault.IdentifierWrongTypeException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import java.util.HashMap;
@@ -209,7 +208,7 @@ public class EntityIdentifier
      * @param entityId entity identifier
      * @return parsed {@link cz.cesnet.shongo.controller.common.EntityIdentifier}
      */
-    public static EntityIdentifier parse(String entityId)
+    public static EntityIdentifier parse(String entityId) throws FaultException
     {
         if (entityId == null) {
             return null;
@@ -222,7 +221,7 @@ public class EntityIdentifier
      * @param entityType
      * @return parsed {@link cz.cesnet.shongo.controller.common.EntityIdentifier}
      */
-    public static EntityIdentifier parse(String entityId, EntityType entityType)
+    public static EntityIdentifier parse(String entityId, EntityType entityType) throws FaultException
     {
         return parse(Domain.getLocalDomainName(), entityType, entityId);
     }
@@ -303,7 +302,7 @@ public class EntityIdentifier
      * @param entityId    entity local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    public static Long parseId(Class entityClass, String entityId)
+    public static Long parseId(Class entityClass, String entityId) throws FaultException
     {
         return parseId(Domain.getLocalDomainName(), entityClass, entityId);
     }
@@ -323,14 +322,14 @@ public class EntityIdentifier
      * @param entityId
      * @return {@link cz.cesnet.shongo.controller.common.EntityIdentifier} parsed from given {@code entityId}
      */
-    private static EntityIdentifier parse(String domain, String entityId)
+    private static EntityIdentifier parse(String domain, String entityId) throws FaultException
     {
         Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(entityId);
         if (!matcher.matches()) {
-            throw new IdentifierWrongFormatException(entityId);
+            ControllerFaultSet.throwIdentifierInvalidFault(entityId);
         }
         if (!domain.equals(matcher.group(1))) {
-            throw new IdentifierWrongDomainException(entityId, domain);
+            ControllerFaultSet.throwIdentifierInvalidDomainFault(entityId, domain);
         }
         EntityType entityType = entityTypeByCode.get(matcher.group(2));
         return new EntityIdentifier(entityType, Long.parseLong(matcher.group(3)));
@@ -342,14 +341,14 @@ public class EntityIdentifier
      * @param entityId
      * @return {@link cz.cesnet.shongo.controller.common.EntityIdentifier} parsed from given {@code entityId}
      */
-    private static EntityIdentifier parse(String domain, EntityType entityType, String entityId)
+    private static EntityIdentifier parse(String domain, EntityType entityType, String entityId) throws FaultException
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
             return new EntityIdentifier(entityType, Long.parseLong(entityId));
         }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         if (entityIdentifier.entityType != entityType) {
-            throw new IdentifierWrongTypeException(entityId, entityType.getCode());
+            ControllerFaultSet.throwIdentifierInvalidTypeFault(entityId, entityType.getCode());
         }
         return entityIdentifier;
     }
@@ -360,7 +359,7 @@ public class EntityIdentifier
      * @param entityId    entity local id for the identifier
      * @return parsed local identifier from given global or local identifier
      */
-    private static Long parseId(String domain, Class entityClass, String entityId)
+    private static Long parseId(String domain, Class entityClass, String entityId) throws FaultException
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
             return Long.parseLong(entityId);
@@ -368,7 +367,7 @@ public class EntityIdentifier
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         EntityType requiredType = getEntityType(entityClass);
         if (entityIdentifier.entityType != requiredType) {
-            throw new IdentifierWrongTypeException(entityId, requiredType.getCode());
+            ControllerFaultSet.throwIdentifierInvalidTypeFault(entityId, requiredType.getCode());
         }
         return entityIdentifier.persistenceId;
     }

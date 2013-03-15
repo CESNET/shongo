@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -55,10 +56,10 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executableId of the {@link Executable}
      * @return {@link Executable} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Executable} doesn't exist
+     * @throws FaultException when the {@link Executable} doesn't exist
      */
-    public Executable get(Long executableId) throws PersistentEntityNotFoundException
+    public Executable get(Long executableId)
+            throws FaultException
     {
         try {
             Executable executable = entityManager.createQuery(
@@ -71,7 +72,7 @@ public class ExecutableManager extends AbstractManager
             return executable;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(Executable.class, executableId);
+            return ControllerImplFaultSet.throwEntityNotFoundFault(Executable.class, executableId);
         }
     }
 

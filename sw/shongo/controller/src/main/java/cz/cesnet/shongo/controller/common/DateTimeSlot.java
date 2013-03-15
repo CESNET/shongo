@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -178,7 +177,7 @@ public abstract class DateTimeSlot extends PersistentObject
 
     /**
      * @return converted {@link DateTimeSlot} to API
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
     public abstract Object toApi();
 

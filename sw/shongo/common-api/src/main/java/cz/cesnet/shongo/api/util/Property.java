@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.lang.annotation.Annotation;
@@ -115,15 +115,15 @@ public class Property
                 return;
             }
             else if (readMethod != null) {
-                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, name, classType);
+                CommonFaultSet.throwClassAttributeReadonlyFault(classType.getSimpleName(), name);
             }
         }
         catch (FaultException exception) {
             throw exception;
         }
         catch (IllegalArgumentException exception) {
-            throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH,
-                    name, classType, getType(), value.getClass());
+            CommonFaultSet.throwClassAttributeTypeMismatchFault(classType.getSimpleName(), name,
+                    getType().getSimpleName(), value.getClass().getSimpleName());
         }
         catch (Exception exception) {
             throw new FaultException(exception, "Cannot set value of attribute '%s' in class '%s'!", name, classType);
@@ -151,8 +151,8 @@ public class Property
         catch (Exception exception) {
             thrownException = exception;
         }
-        throw new FaultException(thrownException, "Cannot get attribute '%s' from object of type '%s'.",
-                name, classType);
+        throw new FaultException(thrownException,
+                "Cannot get attribute '%s' from object of type '%s'.", name, classType);
     }
 
     /**
@@ -500,7 +500,7 @@ public class Property
     {
         Property property = getProperty(type, name);
         if (property == null) {
-            throw new FaultException(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED, name, type);
+            CommonFaultSet.throwClassAttributeUndefinedFault(type.getSimpleName(), name);
         }
         return property;
     }

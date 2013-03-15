@@ -7,8 +7,8 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.EntityToDeleteIsReferencedException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -60,7 +60,7 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public void deleteExecutable(SecurityToken token, String executableId) throws FaultException
+    public void deleteExecutable(SecurityToken token, String executableId) throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -84,7 +84,7 @@ public class ExecutorServiceImpl extends Component
             throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
                     entityId.getPersistenceId());
         }
-        catch (FaultException exception) {
+        catch (OldFaultException exception) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -132,7 +132,7 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 

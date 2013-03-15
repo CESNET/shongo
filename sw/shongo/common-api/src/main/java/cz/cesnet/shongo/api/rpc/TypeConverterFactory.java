@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.api.rpc;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import org.joda.time.DateTime;
@@ -198,7 +199,8 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     atomicType = (AtomicType) clazz.newInstance();
                 }
                 catch (java.lang.Exception exception) {
-                    throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, clazz));
+                    throw new FaultRuntimeException(
+                            CommonFaultSet.createClassInstantiationErrorFault(clazz.getSimpleName()));
                 }
                 atomicType.fromString(value);
                 return atomicType;
@@ -370,7 +372,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     return Converter.convertFromBasic(pObject, type, options);
                 }
                 catch (FaultException exception) {
-                    throw new RuntimeException(exception);
+                    throw new FaultRuntimeException(exception.getFault());
                 }
             }
             return pObject;
@@ -383,7 +385,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 return Converter.convertToBasic(pObject, options);
             }
             catch (FaultException exception) {
-                throw new RuntimeException(exception);
+                throw new FaultRuntimeException(exception.getFault());
             }
         }
 
@@ -451,7 +453,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     return Converter.convertToBasic(pObject, options);
                 }
                 catch (FaultException exception) {
-                    throw new RuntimeException(exception);
+                    throw new FaultRuntimeException(exception.getFault());
                 }
             }
             return pObject;
@@ -495,7 +497,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     return Converter.convert(object, collectionType, new Class[]{componentType});
                 }
                 catch (FaultException exception) {
-                    throw new RuntimeException(exception);
+                    throw new FaultRuntimeException(exception.getFault());
                 }
             }
             return object;

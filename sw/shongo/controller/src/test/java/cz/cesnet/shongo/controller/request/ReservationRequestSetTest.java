@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -145,7 +146,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
                 reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
                 fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
-            catch (IllegalStateException exception) {
+            catch (FaultException exception) {
             }
 
             // Second person accepts

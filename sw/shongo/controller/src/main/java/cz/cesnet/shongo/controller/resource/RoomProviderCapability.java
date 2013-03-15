@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -131,7 +131,7 @@ public class RoomProviderCapability extends DeviceCapability
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.RoomProviderCapability roomProviderCapabilityApi =
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;

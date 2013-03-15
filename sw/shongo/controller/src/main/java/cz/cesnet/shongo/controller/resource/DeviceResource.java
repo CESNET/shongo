@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.fault.CommonFault;
-import cz.cesnet.shongo.fault.EntityValidationException;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.CommonFault;
+import cz.cesnet.shongo.fault.old.EntityValidationException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -291,7 +291,7 @@ public class DeviceResource extends Resource
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
         if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
@@ -325,7 +325,7 @@ public class DeviceResource extends Resource
                     setMode(null);
                 }
                 else {
-                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
+                    throw new OldFaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
                             cz.cesnet.shongo.controller.api.DeviceResource.MODE, resourceApi.getClass(), mode);
                 }
             }
@@ -342,7 +342,7 @@ public class DeviceResource extends Resource
                         ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
             }
             else {
-                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
+                throw new OldFaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
                         cz.cesnet.shongo.controller.api.DeviceResource.MODE, resourceApi.getClass(), mode);
             }
         }

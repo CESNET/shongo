@@ -2,13 +2,14 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -125,17 +126,16 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when alias doesn't exist
+     * @throws FaultException when alias doesn't exist
      */
-    public Alias getAliasById(Long id) throws PersistentEntityNotFoundException
+    public Alias getAliasById(Long id) throws FaultException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(id)) {
                 return alias;
             }
         }
-        throw new PersistentEntityNotFoundException(Alias.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Alias.class, id);
     }
 
     /**

@@ -1,5 +1,9 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
 
+import cz.cesnet.shongo.fault.Fault;
+import cz.cesnet.shongo.fault.TodoImplementException;
+
+import java.lang.*;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -103,7 +107,7 @@ public class CommonFault
     public static final int JADE_COMMAND_ERROR = 68;
 
     /**
-     * @see TodoImplementException
+     * @see cz.cesnet.shongo.fault.TodoImplementException
      */
     public static final int TODO_IMPLEMENT = 99;
 
@@ -209,6 +213,12 @@ public class CommonFault
         public String getMessage()
         {
             return message;
+        }
+
+        @Override
+        public Exception createException()
+        {
+            throw new RuntimeException("TODO: Implement SimpleFault.getExceptionClass");
         }
     }
 }

@@ -1,11 +1,11 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
 
 /**
  * Exception to be thrown when an entity is referenced.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class EntityException extends FaultException implements SerializableException
+public abstract class EntityException extends OldFaultException implements SerializableException
 {
     /**
      * Type of the entity.

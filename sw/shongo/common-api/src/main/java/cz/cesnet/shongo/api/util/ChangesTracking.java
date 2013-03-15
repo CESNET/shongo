@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.CommonFault;
 import jade.content.Concept;
 
 import java.io.IOException;
@@ -271,7 +272,7 @@ public class ChangesTracking implements Concept
      * arrays and collections (recursive).
      *
      * @param object
-     * @throws cz.cesnet.shongo.fault.FaultException
+     * @throws FaultException
      *
      */
     public static void setupNewEntity(Object object) throws FaultException
@@ -292,8 +293,7 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
-                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
-                                type);
+                        CommonFaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
                     }
                     for (Object item : array) {
                         setupNewEntity(item);
@@ -302,16 +302,14 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
-                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
-                                type);
+                        CommonFaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
                     }
                     for (Object item : collection) {
                         setupNewEntity(item);
                     }
                 }
                 else if (required && value == null) {
-                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_IS_REQUIRED, propertyName,
-                            type);
+                    CommonFaultSet.throwClassAttributeRequiredFault(type.getSimpleName(), propertyName);
                 }
             }
         }

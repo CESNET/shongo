@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.fault.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.old.CommonFault;
 
 /**
  * Represents a {@link CommandFailure} which happens when a process performing the command has

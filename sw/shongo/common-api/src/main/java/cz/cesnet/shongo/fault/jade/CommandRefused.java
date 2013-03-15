@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.old.CommonFault;
 import jade.lang.acl.ACLMessage;
 
 /**

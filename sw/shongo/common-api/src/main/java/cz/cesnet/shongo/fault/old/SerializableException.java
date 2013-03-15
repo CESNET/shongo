@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
 
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Interface specifying that {@link Fault} {@link Exception} can be serialized to {@link SerializableException.Content}.
+ * Interface specifying that {@link cz.cesnet.shongo.fault.Fault} {@link Exception} can be serialized to {@link SerializableException.Content}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -153,7 +153,7 @@ public interface SerializableException
                     content.setParameter(propertyName, Property.getPropertyValue(fromException, propertyName));
                 }
             }
-            catch (FaultException exception) {
+            catch (OldFaultException exception) {
                 throw new IllegalStateException("Cannot get property value from exception '"
                         + fromException.getClass().getCanonicalName() + "'!", exception);
             }

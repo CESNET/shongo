@@ -2,12 +2,10 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
@@ -15,8 +13,8 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -86,7 +84,7 @@ public class ReservationServiceImpl extends Component
 
     @Override
     public Object checkSpecificationAvailability(SecurityToken token, Specification specificationApi, Interval slot)
-            throws FaultException
+            throws OldFaultException
     {
         authorization.validate(token);
 
@@ -110,7 +108,7 @@ public class ReservationServiceImpl extends Component
                     cause = exception;
                 }
             }
-            throw new FaultException(cause, "Specification '%s' cannot be checked for availability.",
+            throw new OldFaultException(cause, "Specification '%s' cannot be checked for availability.",
                     specificationApi.getClass().getSimpleName());
         }
         finally {
@@ -121,7 +119,7 @@ public class ReservationServiceImpl extends Component
     @Override
     public String createReservationRequest(SecurityToken token,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -145,11 +143,11 @@ public class ReservationServiceImpl extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (FaultException exception) {
+        catch (OldFaultException exception) {
             throw exception;
         }
         catch (Exception exception) {
-            throw new FaultException(exception);
+            throw new OldFaultException(exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -165,13 +163,12 @@ public class ReservationServiceImpl extends Component
      * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
      *
      * @param reservationRequest
-     * @throws ReservationRequestNotModifiableException
+     * @throws FaultException
      *
      */
     private void checkModifiableReservationRequest(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            EntityManager entityManager)
-            throws ReservationRequestNotModifiableException
+            EntityManager entityManager) throws FaultException
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
@@ -203,15 +200,14 @@ public class ReservationServiceImpl extends Component
         }
 
         if (!modifiable) {
-            throw new ReservationRequestNotModifiableException(
-                    EntityIdentifier.formatId(reservationRequest));
+            ControllerFaultSet.throwReservationRequestNotModifiableFault(EntityIdentifier.formatId(reservationRequest));                    );
         }
     }
 
     @Override
     public void modifyReservationRequest(SecurityToken token,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -245,11 +241,11 @@ public class ReservationServiceImpl extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (FaultException exception) {
+        catch (OldFaultException exception) {
             throw exception;
         }
         catch (Exception exception) {
-            throw new FaultException(exception);
+            throw new OldFaultException(exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -260,7 +256,7 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public void deleteReservationRequest(SecurityToken token, String reservationRequestId) throws FaultException
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestId) throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -282,11 +278,11 @@ public class ReservationServiceImpl extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (FaultException exception) {
+        catch (OldFaultException exception) {
             throw exception;
         }
         catch (Exception exception) {
-            throw new FaultException(exception);
+            throw new OldFaultException(exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -298,7 +294,7 @@ public class ReservationServiceImpl extends Component
 
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
-            Map<String, Object> filter) throws FaultException
+            Map<String, Object> filter) throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -353,7 +349,7 @@ public class ReservationServiceImpl extends Component
     @Override
     public cz.cesnet.shongo.controller.api.AbstractReservationRequest getReservationRequest(SecurityToken token,
             String reservationRequestId)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -375,7 +371,7 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Reservation getReservation(SecurityToken token, String reservationId) throws FaultException
+    public Reservation getReservation(SecurityToken token, String reservationId) throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -398,7 +394,7 @@ public class ReservationServiceImpl extends Component
 
     @Override
     public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 
@@ -422,7 +418,7 @@ public class ReservationServiceImpl extends Component
 
     @Override
     public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter)
-            throws FaultException
+            throws OldFaultException
     {
         String userId = authorization.validate(token);
 

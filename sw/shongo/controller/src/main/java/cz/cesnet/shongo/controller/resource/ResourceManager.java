@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
@@ -120,10 +120,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when resource doesn't exist
+     * @throws FaultException when resource doesn't exist
      */
-    public Resource get(Long resourceId) throws PersistentEntityNotFoundException
+    public Resource get(Long resourceId) throws FaultException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -133,17 +132,16 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(Resource.class, resourceId);
+            return ControllerImplFaultSet.throwEntityNotFoundFault(Resource.class, resourceId);
         }
     }
 
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when device resource doesn't exist
+     * @throws FaultException when device resource doesn't exist
      */
-    public DeviceResource getDevice(Long deviceResourceId) throws PersistentEntityNotFoundException
+    public DeviceResource getDevice(Long deviceResourceId) throws FaultException
     {
         try {
             DeviceResource deviceResource = entityManager.createQuery(
@@ -153,7 +151,7 @@ public class ResourceManager extends AbstractManager
             return deviceResource;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(DeviceResource.class, deviceResourceId);
+            return ControllerImplFaultSet.throwEntityNotFoundFault(DeviceResource.class, deviceResourceId);
         }
     }
 

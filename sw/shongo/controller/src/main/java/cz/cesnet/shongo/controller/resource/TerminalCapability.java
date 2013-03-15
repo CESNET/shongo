@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Capability tells that the device is able to participate in a videoconference call.
+ * Capability tells that the device is able to participate in a video conference call.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -34,17 +35,16 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the alias doesn't exist
+     * @throws FaultException when the alias doesn't exist
      */
-    private Alias getAliasById(Long aliasId) throws PersistentEntityNotFoundException
+    private Alias getAliasById(Long aliasId) throws FaultException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(aliasId)) {
                 return alias;
             }
         }
-        throw new PersistentEntityNotFoundException(Alias.class, aliasId);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Alias.class, aliasId);
     }
 
     /**

@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
@@ -103,18 +103,17 @@ public class CompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link Specification}
      * @return {@link Specification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Specification} doesn't exist
+     * @throws FaultException when the {@link Specification} doesn't exist
      */
     @Transient
-    private ParticipantSpecification getSpecificationById(Long id) throws PersistentEntityNotFoundException
+    private ParticipantSpecification getSpecificationById(Long id) throws FaultException
     {
         for (ParticipantSpecification specification : specifications) {
             if (specification.getId().equals(id)) {
                 return specification;
             }
         }
-        throw new PersistentEntityNotFoundException(ParticipantSpecification.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(ParticipantSpecification.class, id);
     }
 
     /**

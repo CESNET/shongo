@@ -1,4 +1,6 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;
+
+import cz.cesnet.shongo.fault.Fault;
 
 /**
  * Exception thrown when some security error need to be reported.

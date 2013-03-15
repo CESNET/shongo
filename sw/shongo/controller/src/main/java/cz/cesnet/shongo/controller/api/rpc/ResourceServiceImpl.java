@@ -5,13 +5,11 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateTime;
@@ -90,7 +88,8 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public String createResource(SecurityToken token, Resource resource) throws FaultException
+    public String createResource(SecurityToken token, Resource resource)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -134,7 +133,8 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public void modifyResource(SecurityToken token, Resource resource) throws FaultException
+    public void modifyResource(SecurityToken token, Resource resource)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -215,7 +215,7 @@ public class ResourceServiceImpl extends Component
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    throw new EntityToDeleteIsReferencedException(Resource.class, entityId.getPersistenceId());
+                    ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(Resource.class, entityId.getPersistenceId());
                 }
             }
         }
@@ -274,7 +274,8 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public Resource getResource(SecurityToken token, String resourceId) throws PersistentEntityNotFoundException
+    public Resource getResource(SecurityToken token, String resourceId)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -296,7 +297,7 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
-            throws PersistentEntityNotFoundException
+            throws FaultException
     {
         String userId = authorization.validate(token);
 

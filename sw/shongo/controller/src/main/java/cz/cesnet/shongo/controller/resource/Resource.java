@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
-import cz.cesnet.shongo.fault.EntityValidationException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.EntityValidationException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -119,17 +119,16 @@ public class Resource extends OwnedPersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when capability doesn't exist
+     * @throws FaultException when capability doesn't exist
      */
-    public Capability getCapabilityById(Long id) throws PersistentEntityNotFoundException
+    public Capability getCapabilityById(Long id) throws FaultException
     {
         for (Capability capability : capabilities) {
             if (capability.getId().equals(id)) {
                 return capability;
             }
         }
-        throw new PersistentEntityNotFoundException(Capability.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Capability.class, id);
     }
 
     /**
@@ -277,17 +276,16 @@ public class Resource extends OwnedPersistentObject
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when administrator doesn't exist
+     * @throws FaultException when administrator doesn't exist
      */
-    public Person getAdministratorById(Long id) throws PersistentEntityNotFoundException
+    public Person getAdministratorById(Long id) throws FaultException
     {
         for (Person person : administrators) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        throw new PersistentEntityNotFoundException(Person.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**
@@ -368,7 +366,8 @@ public class Resource extends OwnedPersistentObject
 
     /**
      * @return converted capability to API
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     *
      */
     public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager)
     {
@@ -384,7 +383,8 @@ public class Resource extends OwnedPersistentObject
 
     /**
      * @return converted resource to API
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     *
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
@@ -518,7 +518,7 @@ public class Resource extends OwnedPersistentObject
     /**
      * Validate resource
      */
-    public void validate() throws EntityValidationException
+    public void validate() throws FaultException
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
@@ -527,8 +527,8 @@ public class Resource extends OwnedPersistentObject
             }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
-                    throw new EntityValidationException(getClass(), getId(), "Resource cannot contain multiple '"
-                            + capabilityType.getSimpleName() + "'.");
+                    CommonFaultSet.throwEntityInvalidFault(getClass().getSimpleName(),
+                            "Resource cannot contain multiple '" + capabilityType.getSimpleName() + "'.");
 
                 }
             }

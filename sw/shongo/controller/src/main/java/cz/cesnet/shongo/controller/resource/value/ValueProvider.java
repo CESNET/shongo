@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
@@ -77,7 +78,7 @@ public abstract class ValueProvider extends PersistentObject
      * @param api
      * @param entityManager
      * @return new instance of {@link ValueProvider} from API
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
     public static ValueProvider createFromApi(cz.cesnet.shongo.controller.api.ValueProvider api,
             Capability capability, EntityManager entityManager) throws FaultException
@@ -165,7 +166,7 @@ public abstract class ValueProvider extends PersistentObject
      * @param capability
      * @param entityManager
      * @return
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
     public static ValueProvider modifyFromApi(Object object, ValueProvider valueProvider, Capability capability,
             EntityManager entityManager) throws FaultException

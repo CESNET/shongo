@@ -6,15 +6,15 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * TODO:
@@ -62,8 +62,7 @@ public class AuthorizationServiceImpl extends Component
 
     /**
      * @param entityId of entity which should be checked for existence
-     * @throws PersistentEntityNotFoundException
-     *
+     * @throws FaultException
      */
     private void checkEntityExistence(EntityIdentifier entityId) throws FaultException
     {
@@ -71,7 +70,7 @@ public class AuthorizationServiceImpl extends Component
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity == null) {
-                throw new PersistentEntityNotFoundException(entityId.getEntityClass(), entityId.getPersistenceId());
+                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
             }
         }
         finally {
@@ -166,7 +165,7 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public UserInformation getUser(SecurityToken token, String userId)
-        throws FaultException
+            throws FaultException
     {
         authorization.validate(token);
         return Authorization.getInstance().getUserInformation(userId);

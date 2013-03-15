@@ -3,4 +3,4 @@
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.fault.old;

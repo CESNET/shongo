@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -43,18 +44,17 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     /**
      * @param id of the {@link cz.cesnet.shongo.controller.common.Person}
      * @return {@link cz.cesnet.shongo.controller.common.Person} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
+     * @throws FaultException when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
      */
     @Transient
-    private Person getPersonById(Long id) throws PersistentEntityNotFoundException
+    private Person getPersonById(Long id) throws FaultException
     {
         for (Person person : persons) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        throw new PersistentEntityNotFoundException(Person.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**

@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -54,18 +55,17 @@ public class AliasSetSpecification extends Specification
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link AliasSpecification} doesn't exist
+     * @throws FaultException when the {@link AliasSpecification} doesn't exist
      */
     @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws PersistentEntityNotFoundException
+    private AliasSpecification getAliasSpecificationById(Long id) throws FaultException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             if (aliasSpecification.getId().equals(id)) {
                 return aliasSpecification;
             }
         }
-        throw new PersistentEntityNotFoundException(AliasSpecification.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**

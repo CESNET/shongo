@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.joda;
 
 import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
+import cz.cesnet.shongo.fault.old.FaultRuntimeException;
 import org.hibernate.HibernateException;
 import org.joda.time.ReadablePartial;
 

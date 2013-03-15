@@ -1,11 +1,16 @@
 package cz.cesnet.shongo.fault;
 
+import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.fault.Fault;
+import cz.cesnet.shongo.fault.old.CommonFault;
+import cz.cesnet.shongo.fault.old.SerializableException;
+
 /**
  * Exception thrown when some feature isn't implemented yet.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoImplementException extends RuntimeException implements Fault, SerializableException
+public class TodoImplementException extends RuntimeException implements FaultThrowable, SerializableException
 {
     /**
      * Message.
@@ -49,12 +54,6 @@ public class TodoImplementException extends RuntimeException implements Fault, S
     }
 
     @Override
-    public int getCode()
-    {
-        return CommonFault.TODO_IMPLEMENT;
-    }
-
-    @Override
     public String getMessage()
     {
         if (description != null) {
@@ -63,5 +62,11 @@ public class TodoImplementException extends RuntimeException implements Fault, S
         else {
             return "TODO: Implement";
         }
+    }
+
+    @Override
+    public Fault getFault()
+    {
+        return CommonFaultSet.createUnknownErrorFault(description);
     }
 }

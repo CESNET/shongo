@@ -92,7 +92,8 @@ public interface ReservationService extends Service
      * @throws FaultException
      */
     @API
-    public Reservation getReservation(SecurityToken token, String reservationId) throws FaultException;
+    public Reservation getReservation(SecurityToken token, String reservationId)
+            throws FaultException;
 
     /**
      * @param token

@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.rpc.RpcServerRequestLogger;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.EntityNotFoundException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import junitx.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -76,9 +77,10 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
             fail("Reservation request should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(id, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            assertEquals(id, entityNotFoundFault.getId());
         }
     }
 
@@ -131,9 +133,10 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
             fail("Reservation request should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            assertEquals(AbstractReservationRequest.class, exception.getEntityType());
-            assertEquals(id, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            assertEquals(id, entityNotFoundFault.getId());
         }
     }
 
@@ -212,7 +215,7 @@ public class ReservationManagementTest extends AbstractControllerTest
     {
         Map<String, Object> filter = new HashMap<String, Object>();
         Set<Technology> filterTechnologies = null;
-        if ( technologies != null) {
+        if (technologies != null) {
             filterTechnologies = new HashSet<Technology>();
             for (Technology technology : technologies) {
                 filterTechnologies.add(technology);
@@ -224,6 +227,7 @@ public class ReservationManagementTest extends AbstractControllerTest
 
     /**
      * Test reservation request for infinite start/end/whole interval
+     *
      * @throws Exception
      */
     @Test
@@ -237,13 +241,15 @@ public class ReservationManagementTest extends AbstractControllerTest
             reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
             getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
             Assert.fail("Exception of empty duration should has been thrown.");
-        } catch (FaultException exception) {
-            Assert.assertEquals(ControllerFault.RESERVATION_REQUEST_EMPTY_DURATION.getCode(), exception.getCode());
+        }
+        catch (FaultException exception) {
+            Assert.assertEquals(ControllerFaultSet.ReservationRequestEmptyDurationFault.class, exception.getFaultClass());
         }
     }
 
     /**
      * Test reservation request for infinite start/end/whole interval
+     *
      * @throws Exception
      */
     @Test

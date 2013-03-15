@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.EntityManager;
@@ -56,7 +56,7 @@ public class ExecutorThread extends Thread
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 }
-                catch (FaultException exception) {
+                catch (OldFaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
@@ -71,7 +71,7 @@ public class ExecutorThread extends Thread
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 }
-                catch (FaultException exception) {
+                catch (OldFaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);

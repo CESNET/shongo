@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.old.OldFaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -314,7 +314,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    public void validate() throws FaultException
+    public void validate() throws OldFaultException
     {
         validateSlotDuration(getSlot().toPeriod());
 
@@ -338,14 +338,14 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi() throws FaultException
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi() throws OldFaultException
     {
         return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi();
     }
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
@@ -360,7 +360,7 @@ public class ReservationRequest extends AbstractReservationRequest
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
-            throws FaultException
+            throws OldFaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;

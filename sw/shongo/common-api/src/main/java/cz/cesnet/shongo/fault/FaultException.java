@@ -1,150 +1,51 @@
 package cz.cesnet.shongo.fault;
 
+import cz.cesnet.shongo.CommonFaultSet;
+
 /**
- * Exception that represents and implements {@link Fault}.
+ * TODO:
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class FaultException extends Exception implements Fault
+public class FaultException extends Exception implements FaultThrowable
 {
-    /**
-     * Fault code.
-     */
-    int code;
+    private Fault fault;
 
-    /**
-     * Constructor.
-     */
-    public FaultException()
+    public FaultException(Fault fault)
     {
-        this.code = CommonFault.UNKNOWN;
+        this.fault = fault;
     }
 
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     */
-    public FaultException(int code, String message)
-    {
-        super(message);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     */
-    public FaultException(int code, String message, Throwable throwable)
-    {
-        super(message, throwable);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param throwable
-     */
-    public FaultException(int code, Throwable throwable)
-    {
-        super(throwable);
-        this.code = code;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param code
-     * @param message
-     * @param objects
-     */
-    public FaultException(int code, String message, Object... objects)
-    {
-        this(code, CommonFault.formatMessage(message, objects));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param fault
-     * @param objects
-     */
-    public FaultException(Fault fault, Object... objects)
-    {
-        this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param throwable
-     * @param fault
-     * @param objects
-     */
-    public FaultException(Throwable throwable, Fault fault, Object... objects)
-    {
-        this(fault.getCode(), CommonFault.formatMessage(fault.getMessage(), objects), throwable);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param throwable
-     * @param message
-     * @param objects
-     */
-    public FaultException(Throwable throwable, String message, Object... objects)
-    {
-        this(CommonFault.UNKNOWN, CommonFault.formatMessage(message, objects), throwable);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param faultString
-     * @param objects
-     */
-    public FaultException(String faultString, Object... objects)
-    {
-        this(CommonFault.UNKNOWN, faultString, objects);
-    }
-
-    /**
-     * Construct unknown fault by description string.
-     *
-     * @param faultString
-     */
-    public FaultException(String faultString)
-    {
-        this(CommonFault.UNKNOWN, faultString);
-    }
-
-    /**
-     * Construct unknown fault by {@code throwable}.
-     *
-     * @param throwable
-     */
     public FaultException(Throwable throwable)
     {
-        this(CommonFault.UNKNOWN, throwable);
+        super(throwable);
+        this.fault = CommonFaultSet.createUnknownErrorFault(throwable.getMessage());
+    }
+
+    public FaultException(String message, Object... objects)
+    {
+        this.fault = CommonFaultSet.createUnknownErrorFault(FaultSet.formatMessage(message, objects));
+    }
+
+    public FaultException(Throwable throwable, String message, Object... objects)
+    {
+        super(throwable);
+        this.fault = CommonFaultSet.createUnknownErrorFault(FaultSet.formatMessage(message, objects));
     }
 
     @Override
-    public int getCode()
+    public Fault getFault()
     {
-        return code;
+        return fault;
     }
 
-    /**
-     * @param code sets the {@link #code}
-     */
-    public void setCode(int code)
+    public <F extends Fault> F getFault(Class<F> faultType)
     {
-        this.code = code;
+        return faultType.cast(fault);
+    }
+
+    public Class<? extends Fault> getFaultClass()
+    {
+        return fault.getClass();
     }
 }
