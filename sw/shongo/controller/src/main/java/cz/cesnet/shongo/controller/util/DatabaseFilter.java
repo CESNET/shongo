@@ -60,6 +60,19 @@ public class DatabaseFilter
     }
 
     /**
+     * Add identifier filter.
+     *
+     * @param ids allowed identifiers of the entity.
+     */
+    public void addIds(Set<Long> ids)
+    {
+        if (ids != null) {
+            addFilter(alias + ".id IN (:ids)");
+            addFilterParameter("ids", ids);
+        }
+    }
+
+    /**
      * Add user-id filter (entity referenced by {@link #alias} must contain "userId" property).
      *
      * @param userId user-id of the user
@@ -98,20 +111,14 @@ public class DatabaseFilter
 
     /**
      * @param filter        from which the user-id should be parsed
-     * @param defaultUserId value which will be returned when the user-id isn't present in the {@code filter}
      * @return user-id from given {@code filter}
      */
-    public static String getUserIdFromFilter(Map<String, Object> filter, String defaultUserId)
+    public static String getUserIdFromFilter(Map<String, Object> filter)
     {
-        String userId = defaultUserId;
+        String userId = null;
         if (filter != null && filter.containsKey("userId")) {
             Object value = filter.get("userId");
-            // All users
-            if (value.equals("*")) {
-                userId = null;
-            }
-            // One selected user
-            else {
+            if (!value.equals("*")) {
                 userId = (value != null ? value.toString() : null);
             }
         }

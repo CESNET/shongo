@@ -63,8 +63,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            options => 'owner=s technology=s',
-            args => '[-owner=*|<user-id>] [-technology]',
+            options => 'user=s technology=s',
+            args => '[-user=*|<user-id>] [-technology]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -96,6 +96,15 @@ sub populate()
                 } else {
                     get_reservation_for_request();
                 }
+            }
+        },
+        'list-reservations' => {
+            desc => 'List existing reservations',
+            options => 'user=s technology=s',
+            args => '[-user=*|<user-id>] [-technology]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                list_reservations($params->{'options'});
             }
         },
         'get-reservation' => {
@@ -205,8 +214,8 @@ sub list_reservation_requests()
             push(@{$filter->{'technology'}}, $technology);
         }
     }
-    if ( defined($options->{'owner'}) ) {
-        $filter->{'userId'} = $options->{'owner'};
+    if ( defined($options->{'user'}) ) {
+        $filter->{'userId'} = $options->{'user'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Reservation.listReservationRequests', $filter);
@@ -215,7 +224,7 @@ sub list_reservation_requests()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'Owner',
+        \' | ', 'User',
         \' | ', 'Created',
         \' | ', 'Type',
         \' | ', 'Description',
@@ -287,6 +296,42 @@ sub get_reservation_for_request()
         $index++;
         printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
     }
+}
+
+sub list_reservations()
+{
+    my ($options) = @_;
+    my $filter = {};
+    if ( defined($options->{'technology'}) ) {
+        $filter->{'technology'} = [];
+        foreach my $technology (split(/,/, $options->{'technology'})) {
+            $technology =~ s/(^ +)|( +$)//g;
+            push(@{$filter->{'technology'}}, $technology);
+        }
+    }
+    if ( defined($options->{'user'}) ) {
+        $filter->{'userId'} = $options->{'user'};
+    }
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Reservation.listReservations', $filter);
+    if ( !defined($response) ) {
+        return
+    }
+    my $table = Text::Table->new(
+        \'| ', 'Identifier',
+        \' | ', 'User',
+        \' | ', 'Type',
+        \' | ', 'Slot', \' |'
+    );
+    foreach my $reservation (@{$response}) {
+        $table->add(
+            $reservation->{'id'},
+            $application->format_user($reservation->{'userId'}),
+            $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}},
+            interval_format($reservation->{'slot'})
+        );
+    }
+    console_print_table($table);
 }
 
 sub select_reservation($)

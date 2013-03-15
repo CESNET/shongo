@@ -24,10 +24,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 import javax.persistence.RollbackException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Resource service implementation.
@@ -242,8 +239,10 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
-            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(filterUserId);
+            Set<Long> resourceIds =
+                    authorization.getEntitiesWithPermission(userId, EntityType.RESOURCE, Permission.READ);
+            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
+            List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
             for (cz.cesnet.shongo.controller.resource.Resource resource : list) {

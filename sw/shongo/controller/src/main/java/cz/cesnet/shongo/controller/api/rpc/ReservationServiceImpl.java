@@ -302,14 +302,13 @@ public class ReservationServiceImpl extends Component
     {
         String userId = authorization.validate(token);
 
-        Set<Long> reservationRequestIds =
-                authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION_REQUEST, Permission.READ);
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         try {
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
+            Set<Long> reservationRequestIds =
+                    authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION_REQUEST, Permission.READ);
+            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
             Set<Technology> technologies = DatabaseFilter.getTechnologiesFromFilter(filter);
             Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
                     DatabaseFilter.getClassesFromFilter(filter, "specificationClass",
@@ -336,7 +335,8 @@ public class ReservationServiceImpl extends Component
             }
 
             List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                    reservationRequestManager.list(filterUserId, technologies, specificationClasses, providedReservationIds);
+                    reservationRequestManager.list(reservationRequestIds, filterUserId, technologies,
+                            specificationClasses, providedReservationIds);
 
             List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
             for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
@@ -430,7 +430,9 @@ public class ReservationServiceImpl extends Component
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         try {
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
+            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
+            Set<Long> reservationIds =
+                    authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION, Permission.READ);
             Long reservationRequestId = null;
             if (filter != null) {
                 if (filter.containsKey("reservationRequestId")) {
@@ -445,7 +447,8 @@ public class ReservationServiceImpl extends Component
                             cz.cesnet.shongo.controller.reservation.Reservation.class);
 
             List<cz.cesnet.shongo.controller.reservation.Reservation> reservations =
-                    reservationManager.list(filterUserId, reservationRequestId, reservationClasses, technologies);
+                    reservationManager.list(reservationIds, filterUserId, reservationRequestId,
+                            reservationClasses, technologies);
             List<Reservation> apiReservations = new ArrayList<Reservation>();
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
                 apiReservations.add(reservation.toApi());

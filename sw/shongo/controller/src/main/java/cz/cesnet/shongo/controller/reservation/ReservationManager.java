@@ -172,15 +172,17 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param userId
-     * @param reservationClasses
-     * @param technologies
+     * @param ids                requested identifiers
+     * @param userId             requested user
+     * @param reservationClasses set of reservation classes which are allowed
+     * @param technologies       requested technologies
      * @return list of {@link Reservation}s
      */
-    public List<Reservation> list(String userId, Long reservationRequestId,
+    public List<Reservation> list(Set<Long> ids, String userId, Long reservationRequestId,
             Set<Class<? extends Reservation>> reservationClasses, Set<Technology> technologies)
     {
         DatabaseFilter filter = new DatabaseFilter("reservation");
+        filter.addIds(ids);
         filter.addUserId(userId);
         if (reservationClasses != null && reservationClasses.size() > 0) {
 

@@ -14,7 +14,9 @@ use JSON;
 
 our $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
-    'EDUCATION' => 'Education'
+    'EDUCATION' => 'Education',
+    'OWNER' => 'Owner',
+    'MAINTENANCE' => 'Maintenance'
 };
 
 our $ReservationRequestState = {

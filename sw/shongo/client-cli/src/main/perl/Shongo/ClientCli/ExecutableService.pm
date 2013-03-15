@@ -34,8 +34,8 @@ sub populate()
         },
         'list-executables' => {
             desc => 'List summary of all existing executables',
-            options => 'owner=s',
-            args => '[-owner=*|<user-id>]',
+            options => 'user=s',
+            args => '[-user=*|<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_executables($params->{'options'});
@@ -82,8 +82,8 @@ sub list_executables()
 {
     my ($options) = @_;
     my $filter = {};
-    if ( defined($options->{'owner'}) ) {
-        $filter->{'userId'} = $options->{'owner'};
+    if ( defined($options->{'user'}) ) {
+        $filter->{'userId'} = $options->{'user'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Executable.listExecutables', $filter);
@@ -92,7 +92,7 @@ sub list_executables()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'Owner',
+        \' | ', 'User',
         \' | ', 'Type',
         \' | ', 'Slot',
         \' | ', 'State',

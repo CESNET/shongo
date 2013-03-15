@@ -62,8 +62,8 @@ sub populate()
         },
         'list-resources' => {
             desc => 'List all existing resources',
-            options => 'owner=s',
-            args => '[-owner=*|<user-id>]',
+            options => 'user=s',
+            args => '[-user=*|<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_resources($params->{'options'});
@@ -184,8 +184,8 @@ sub list_resources()
 {
     my ($options) = @_;
     my $filter = {};
-    if ( defined($options->{'owner'}) ) {
-        $filter->{'userId'} = $options->{'owner'};
+    if ( defined($options->{'user'}) ) {
+        $filter->{'userId'} = $options->{'user'};
     }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Resource.listResources', $filter);
@@ -194,7 +194,7 @@ sub list_resources()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'Owner',
+        \' | ', 'User',
         \' | ', 'Name',
         \' | ', 'Technologies',
         \' | ', 'Parent Resource',

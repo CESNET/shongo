@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link Resource}.
@@ -99,11 +100,14 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
+     * @param ids    requested identifiers
+     * @param userId requested userId
      * @return list of all resources in the database
      */
-    public List<Resource> list(String userId)
+    public List<Resource> list(Set<Long> ids, String userId)
     {
         DatabaseFilter filter = new DatabaseFilter("resource");
+        filter.addIds(ids);
         filter.addUserId(userId);
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
                 + " WHERE " + filter.toQueryWhere(),

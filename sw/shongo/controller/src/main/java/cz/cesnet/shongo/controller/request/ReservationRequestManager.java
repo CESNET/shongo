@@ -242,18 +242,20 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param userId                 requested owner
+     * @param ids                    requested identifiers
+     * @param userId                 requested user
      * @param technologies           requested technologies
      * @param specificationClasses   set of classes for specifications which are allowed
      * @param providedReservationIds identifier of reservation which must be provided
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
+    public List<AbstractReservationRequest> list(Set<Long> ids, String userId, Set<Technology> technologies,
             Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
         filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        filter.addIds(ids);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {
             // List only reservation requests which specifies given technologies

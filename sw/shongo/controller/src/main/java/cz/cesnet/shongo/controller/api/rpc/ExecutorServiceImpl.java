@@ -12,10 +12,7 @@ import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Reservation service implementation
@@ -106,8 +103,11 @@ public class ExecutorServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        String filterUserId = DatabaseFilter.getUserIdFromFilter(filter, userId);
-        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(filterUserId);
+        Set<Long> executableIds =
+                authorization.getEntitiesWithPermission(userId, EntityType.EXECUTABLE, Permission.READ);
+        String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
+        List<cz.cesnet.shongo.controller.executor.Executable> list =
+                executableManager.list(executableIds, filterUserId);
 
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
