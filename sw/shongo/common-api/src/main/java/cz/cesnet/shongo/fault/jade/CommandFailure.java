@@ -66,4 +66,10 @@ public abstract class CommandFailure implements Concept
      * @return message of the failure
      */
     public abstract String getMessage();
+
+    @Override
+    public String toString()
+    {
+        return getMessage();
+    }
 }

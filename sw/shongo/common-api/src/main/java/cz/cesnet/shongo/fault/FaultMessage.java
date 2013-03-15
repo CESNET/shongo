@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Property;
 import cz.cesnet.shongo.api.util.TypeFlags;
+import cz.cesnet.shongo.fault.jade.CommandFailure;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -90,6 +91,10 @@ public class FaultMessage
         }
         else if (value instanceof Class) {
             string = ClassHelper.getClassShortName((Class) value);
+        }
+        else if (value instanceof CommandFailure) {
+            // TODO: Implement command failure serialization
+            return;
         }
         else {
             throw new IllegalArgumentException(value.getClass().getCanonicalName());
