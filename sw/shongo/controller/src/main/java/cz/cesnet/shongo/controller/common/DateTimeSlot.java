@@ -177,7 +177,6 @@ public abstract class DateTimeSlot extends PersistentObject
 
     /**
      * @return converted {@link DateTimeSlot} to API
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
      */
     public abstract Object toApi();
 

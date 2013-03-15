@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.CommonFault;
 import org.apache.xmlrpc.XmlRpcException;
 import org.junit.Test;
 
@@ -229,7 +229,7 @@ public class XmlRpcTest extends AbstractControllerTest
             fail("Exception that collection cannot contain null should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(CommonFault.COLLECTION_ITEM_NULL.getCode(), exception.code);
+            assertEquals(CommonFaultSet.COLLECTION_ITEM_NULL_FAULT, exception.code);
         }
 
         reservationRequest = new HashMap<String, Object>();
@@ -247,7 +247,7 @@ public class XmlRpcTest extends AbstractControllerTest
             fail("Exception that attribute has wrong type should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH.getCode(), exception.code);
+            assertEquals(CommonFaultSet.CLASS_ATTRIBUTE_TYPE_MISMATCH_FAULT, exception.code);
         }
 
         reservationRequest = new HashMap<String, Object>();
@@ -259,7 +259,7 @@ public class XmlRpcTest extends AbstractControllerTest
             fail("Exception that attribute is read only should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(CommonFault.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.code);
+            assertEquals(CommonFaultSet.CLASS_ATTRIBUTE_READONLY_FAULT, exception.code);
         }
     }
 }

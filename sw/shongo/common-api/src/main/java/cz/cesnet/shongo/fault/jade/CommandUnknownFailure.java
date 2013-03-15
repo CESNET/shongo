@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.old.CommonFault;
-
 /**
  * Represents a {@link CommandFailure} which happens for a not specified reason.
  *
@@ -37,12 +35,6 @@ public class CommandUnknownFailure extends CommandFailure
     public void setMessage(String message)
     {
         this.message = message;
-    }
-
-    @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_UNKNOWN;
     }
 
     @Override

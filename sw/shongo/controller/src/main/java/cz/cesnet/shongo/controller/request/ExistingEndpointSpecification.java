@@ -10,7 +10,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Entity;
@@ -125,7 +125,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws OldFaultException
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;

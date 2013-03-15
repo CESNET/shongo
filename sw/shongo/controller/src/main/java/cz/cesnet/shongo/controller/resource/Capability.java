@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 
@@ -64,7 +63,7 @@ public abstract class Capability extends PersistentObject
 
     /**
      * @return converted capability to API
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     * @throws FaultException
      */
     public final cz.cesnet.shongo.controller.api.Capability toApi()
     {

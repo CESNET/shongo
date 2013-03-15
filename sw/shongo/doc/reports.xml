@@ -329,14 +329,13 @@
         </report>
 
         <report>
-            <id>class-collection-item-null</id>
+            <id>collection-item-null</id>
             <classification severity="error"/>
             <params>
-                <param name="class" type="string"/>
                 <param name="collection" type="string"/>
             </params>
             <description>
-                Null item cannot be present in collection {collection} in class {class}.
+                Null item cannot be present in collection {collection}.
             </description>
             <example>
                 TODO:
@@ -349,16 +348,15 @@
         </report>
 
         <report>
-            <id>class-collection-item-type-mismatch</id>
+            <id>collection-item-type-mismatch</id>
             <classification severity="error"/>
             <params>
-                <param name="class" type="string"/>
                 <param name="collection" type="string"/>
                 <param name="required-type" type="string"/>
                 <param name="present-type" type="string"/>
             </params>
             <description>
-                Collection {collection} in class {class} contains item of type {present-type} which dosn't match the
+                Collection {collection} contains item of type {present-type} which dosn't match the
                 required type {required-type}.
             </description>
             <example>

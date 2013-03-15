@@ -5,9 +5,7 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
-import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -243,7 +241,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws OldFaultException
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;

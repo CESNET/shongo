@@ -4,11 +4,12 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.old.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,9 +68,10 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, resourceId);
             Assert.fail("Resource should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            Assert.assertEquals(Resource.class, exception.getEntityType());
-            Assert.assertEquals(resourceId, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            Assert.assertEquals(resourceId, entityNotFoundFault.getId());
         }
     }
 
@@ -117,9 +119,10 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
             Assert.fail("Device resource should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            Assert.assertEquals(Resource.class, exception.getEntityType());
-            Assert.assertEquals(deviceResourceId, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            Assert.assertEquals(deviceResourceId, entityNotFoundFault.getId());
         }
     }
 

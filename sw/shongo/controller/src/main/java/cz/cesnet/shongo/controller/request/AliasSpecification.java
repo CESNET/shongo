@@ -20,7 +20,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.scheduler.report.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.Interval;
 
@@ -400,7 +399,7 @@ public class AliasSpecification extends Specification
                 Resource resource = resourceManager.get(resourceId);
                 AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
                 if (aliasProviderCapability == null) {
-                    throw new OldFaultException("Resource '%s' doesn't have %s.",
+                    throw new FaultException("Resource '%s' doesn't have %s.",
                             AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId());
                 }
                 setAliasProviderCapability(aliasProviderCapability);

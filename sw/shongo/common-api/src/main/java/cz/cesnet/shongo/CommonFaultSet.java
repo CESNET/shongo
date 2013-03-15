@@ -16,8 +16,8 @@ public class CommonFaultSet extends FaultSet
     public static final int CLASS_ATTRIBUTE_REQUIRED_FAULT = 6;
     public static final int CLASS_ATTRIBUTE_READONLY_FAULT = 7;
     public static final int CLASS_COLLECTION_REQUIRED_FAULT = 8;
-    public static final int CLASS_COLLECTION_ITEM_NULL_FAULT = 9;
-    public static final int CLASS_COLLECTION_ITEM_TYPE_MISMATCH_FAULT = 10;
+    public static final int COLLECTION_ITEM_NULL_FAULT = 9;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH_FAULT = 10;
     public static final int ENTITY_NOT_FOUND_FAULT = 11;
     public static final int ENTITY_INVALID_FAULT = 12;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_FAULT = 13;
@@ -641,22 +641,11 @@ public class CommonFaultSet extends FaultSet
     }
 
     /**
-     * Null item cannot be present in collection {@link #collection} in class {class}.
+     * Null item cannot be present in collection {@link #collection}.
      */
-    public static class ClassCollectionItemNullFault implements Fault
+    public static class CollectionItemNullFault implements Fault
     {
-        private String className;
         private String collection;
-
-        public String getClassName()
-        {
-            return className;
-        }
-
-        public void setClassName(String className)
-        {
-            this.className = className;
-        }
 
         public String getCollection()
         {
@@ -671,14 +660,13 @@ public class CommonFaultSet extends FaultSet
         @Override
         public int getCode()
         {
-            return CLASS_COLLECTION_ITEM_NULL_FAULT;
+            return COLLECTION_ITEM_NULL_FAULT;
         }
 
         @Override
         public String getMessage()
         {
-            String message = "Null item cannot be present in collection {collection} in class {class}.";
-            message = message.replace("{class}", className);
+            String message = "Null item cannot be present in collection {collection}.";
             message = message.replace("{collection}", collection);
             return message;
         }
@@ -691,44 +679,32 @@ public class CommonFaultSet extends FaultSet
     }
 
     /**
-     * @return new instance of {@link ClassCollectionItemNullFault}
+     * @return new instance of {@link CollectionItemNullFault}
      */
-    public static ClassCollectionItemNullFault createClassCollectionItemNullFault(String className, String collection)
+    public static CollectionItemNullFault createCollectionItemNullFault(String collection)
     {
-        ClassCollectionItemNullFault classCollectionItemNullFault = new ClassCollectionItemNullFault();
-        classCollectionItemNullFault.setClassName(className);
-        classCollectionItemNullFault.setCollection(collection);
-        return classCollectionItemNullFault;
+        CollectionItemNullFault collectionItemNullFault = new CollectionItemNullFault();
+        collectionItemNullFault.setCollection(collection);
+        return collectionItemNullFault;
     }
 
     /**
-     * @return new instance of {@link ClassCollectionItemNullFault}
+     * @return new instance of {@link CollectionItemNullFault}
      */
-    public static <T> T throwClassCollectionItemNullFault(String className, String collection) throws FaultException
+    public static <T> T throwCollectionItemNullFault(String collection) throws FaultException
     {
-        ClassCollectionItemNullFault classCollectionItemNullFault = createClassCollectionItemNullFault(className, collection);
-        throw classCollectionItemNullFault.createException();
+        CollectionItemNullFault collectionItemNullFault = createCollectionItemNullFault(collection);
+        throw collectionItemNullFault.createException();
     }
 
     /**
-     * Collection {@link #collection} in class {class} contains item of type {present-type} which dosn't match the required type {required-type}.
+     * Collection {@link #collection} contains item of type {present-type} which dosn't match the required type {required-type}.
      */
-    public static class ClassCollectionItemTypeMismatchFault implements Fault
+    public static class CollectionItemTypeMismatchFault implements Fault
     {
-        private String className;
         private String collection;
         private String requiredType;
         private String presentType;
-
-        public String getClassName()
-        {
-            return className;
-        }
-
-        public void setClassName(String className)
-        {
-            this.className = className;
-        }
 
         public String getCollection()
         {
@@ -763,14 +739,13 @@ public class CommonFaultSet extends FaultSet
         @Override
         public int getCode()
         {
-            return CLASS_COLLECTION_ITEM_TYPE_MISMATCH_FAULT;
+            return COLLECTION_ITEM_TYPE_MISMATCH_FAULT;
         }
 
         @Override
         public String getMessage()
         {
-            String message = "Collection {collection} in class {class} contains item of type {present-type} which dosn't match the required type {required-type}.";
-            message = message.replace("{class}", className);
+            String message = "Collection {collection} contains item of type {present-type} which dosn't match the required type {required-type}.";
             message = message.replace("{collection}", collection);
             message = message.replace("{required-type}", requiredType);
             message = message.replace("{present-type}", presentType);
@@ -785,25 +760,24 @@ public class CommonFaultSet extends FaultSet
     }
 
     /**
-     * @return new instance of {@link ClassCollectionItemTypeMismatchFault}
+     * @return new instance of {@link CollectionItemTypeMismatchFault}
      */
-    public static ClassCollectionItemTypeMismatchFault createClassCollectionItemTypeMismatchFault(String className, String collection, String requiredType, String presentType)
+    public static CollectionItemTypeMismatchFault createCollectionItemTypeMismatchFault(String collection, String requiredType, String presentType)
     {
-        ClassCollectionItemTypeMismatchFault classCollectionItemTypeMismatchFault = new ClassCollectionItemTypeMismatchFault();
-        classCollectionItemTypeMismatchFault.setClassName(className);
-        classCollectionItemTypeMismatchFault.setCollection(collection);
-        classCollectionItemTypeMismatchFault.setRequiredType(requiredType);
-        classCollectionItemTypeMismatchFault.setPresentType(presentType);
-        return classCollectionItemTypeMismatchFault;
+        CollectionItemTypeMismatchFault collectionItemTypeMismatchFault = new CollectionItemTypeMismatchFault();
+        collectionItemTypeMismatchFault.setCollection(collection);
+        collectionItemTypeMismatchFault.setRequiredType(requiredType);
+        collectionItemTypeMismatchFault.setPresentType(presentType);
+        return collectionItemTypeMismatchFault;
     }
 
     /**
-     * @return new instance of {@link ClassCollectionItemTypeMismatchFault}
+     * @return new instance of {@link CollectionItemTypeMismatchFault}
      */
-    public static <T> T throwClassCollectionItemTypeMismatchFault(String className, String collection, String requiredType, String presentType) throws FaultException
+    public static <T> T throwCollectionItemTypeMismatchFault(String collection, String requiredType, String presentType) throws FaultException
     {
-        ClassCollectionItemTypeMismatchFault classCollectionItemTypeMismatchFault = createClassCollectionItemTypeMismatchFault(className, collection, requiredType, presentType);
-        throw classCollectionItemTypeMismatchFault.createException();
+        CollectionItemTypeMismatchFault collectionItemTypeMismatchFault = createCollectionItemTypeMismatchFault(collection, requiredType, presentType);
+        throw collectionItemTypeMismatchFault.createException();
     }
 
     /**
@@ -1086,8 +1060,8 @@ public class CommonFaultSet extends FaultSet
         addFault(CLASS_ATTRIBUTE_REQUIRED_FAULT, ClassAttributeRequiredFault.class);
         addFault(CLASS_ATTRIBUTE_READONLY_FAULT, ClassAttributeReadonlyFault.class);
         addFault(CLASS_COLLECTION_REQUIRED_FAULT, ClassCollectionRequiredFault.class);
-        addFault(CLASS_COLLECTION_ITEM_NULL_FAULT, ClassCollectionItemNullFault.class);
-        addFault(CLASS_COLLECTION_ITEM_TYPE_MISMATCH_FAULT, ClassCollectionItemTypeMismatchFault.class);
+        addFault(COLLECTION_ITEM_NULL_FAULT, CollectionItemNullFault.class);
+        addFault(COLLECTION_ITEM_TYPE_MISMATCH_FAULT, CollectionItemTypeMismatchFault.class);
         addFault(ENTITY_NOT_FOUND_FAULT, EntityNotFoundFault.class);
         addFault(ENTITY_INVALID_FAULT, EntityInvalidFault.class);
         addFault(ENTITY_NOT_DELETABLE_REFERENCED_FAULT, EntityNotDeletableReferencedFault.class);

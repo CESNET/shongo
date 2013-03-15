@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * TODO:
+ * Implementation of {@link AuthorizationService}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -173,6 +173,7 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public Collection<UserInformation> listUsers(SecurityToken token, String filter)
+            throws FaultException
     {
         authorization.validate(token);
         List<UserInformation> users = new LinkedList<UserInformation>();

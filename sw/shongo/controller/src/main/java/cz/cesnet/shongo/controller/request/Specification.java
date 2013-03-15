@@ -201,7 +201,7 @@ public abstract class Specification extends PersistentObject
     /**
      * Synchronize from {@link cz.cesnet.shongo.controller.api.Specification}.
      *
-     * @param specificationApi from which this {@link cz.cesnet.shongo.controller.request.Specification} should be filled
+     * @param specificationApi from which this {@link Specification} should be filled
      * @param entityManager
      */
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)

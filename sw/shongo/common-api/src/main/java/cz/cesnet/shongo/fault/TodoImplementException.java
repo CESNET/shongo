@@ -1,16 +1,13 @@
 package cz.cesnet.shongo.fault;
 
 import cz.cesnet.shongo.CommonFaultSet;
-import cz.cesnet.shongo.fault.Fault;
-import cz.cesnet.shongo.fault.old.CommonFault;
-import cz.cesnet.shongo.fault.old.SerializableException;
 
 /**
  * Exception thrown when some feature isn't implemented yet.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoImplementException extends RuntimeException implements FaultThrowable, SerializableException
+public class TodoImplementException extends RuntimeException implements FaultThrowable
 {
     /**
      * Message.

@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.EntityValidationException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -366,7 +365,7 @@ public class Resource extends OwnedPersistentObject
 
     /**
      * @return converted capability to API
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     * @throws FaultException
      *
      */
     public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager)
@@ -383,7 +382,7 @@ public class Resource extends OwnedPersistentObject
 
     /**
      * @return converted resource to API
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     * @throws FaultException
      *
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)

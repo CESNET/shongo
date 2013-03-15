@@ -17,7 +17,6 @@ import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandError;
 import cz.cesnet.shongo.fault.jade.CommandNotSupported;
 import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
-import cz.cesnet.shongo.fault.old.CommonFault;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;

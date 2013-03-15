@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
@@ -151,7 +151,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws OldFaultException
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;

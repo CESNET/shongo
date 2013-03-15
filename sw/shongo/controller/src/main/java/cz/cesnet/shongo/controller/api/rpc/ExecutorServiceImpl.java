@@ -7,8 +7,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.old.EntityToDeleteIsReferencedException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -60,7 +59,8 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public void deleteExecutable(SecurityToken token, String executableId) throws OldFaultException
+    public void deleteExecutable(SecurityToken token, String executableId)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -81,10 +81,10 @@ public class ExecutorServiceImpl extends Component
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
-            throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
-                    entityId.getPersistenceId());
+            ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(
+                    cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
         }
-        catch (OldFaultException exception) {
+        catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -97,6 +97,7 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -132,7 +133,7 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
-            throws OldFaultException
+            throws FaultException
     {
         String userId = authorization.validate(token);
 

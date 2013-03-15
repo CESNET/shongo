@@ -9,7 +9,7 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -126,7 +126,7 @@ public class ReservationNotification extends Notification
 
             content = renderTemplate("reservation-mail.ftl", parameters);
         }
-        catch (OldFaultException exception) {
+        catch (FaultException exception) {
             logger.error("Failed to notify about new reservations.", exception);
         }
         return content;

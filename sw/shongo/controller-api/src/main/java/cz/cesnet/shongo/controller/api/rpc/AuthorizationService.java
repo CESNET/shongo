@@ -91,5 +91,6 @@ public interface AuthorizationService extends Service
      * @return collection of {@link UserInformation}s that matches given {@code filter}
      */
     @API
-    public Collection<UserInformation> listUsers(SecurityToken token, String filter);
+    public Collection<UserInformation> listUsers(SecurityToken token, String filter)
+            throws FaultException;
 }

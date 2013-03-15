@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.EntityManager;
@@ -56,7 +56,7 @@ public class ExecutorThread extends Thread
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 }
-                catch (OldFaultException exception) {
+                catch (FaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
@@ -71,7 +71,7 @@ public class ExecutorThread extends Thread
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 }
-                catch (OldFaultException exception) {
+                catch (FaultException exception) {
                     executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
@@ -87,12 +87,12 @@ public class ExecutorThread extends Thread
     public static enum Type
     {
         /**
-         * Call {@link Executable#start(cz.cesnet.shongo.controller.Executor, javax.persistence.EntityManager)}.
+         * Call {@link Executable#start}.
          */
         START,
 
         /**
-         * Call {@link Executable#stop(cz.cesnet.shongo.controller.Executor, javax.persistence.EntityManager)}.
+         * Call {@link Executable#stop}.
          */
         STOP
     }

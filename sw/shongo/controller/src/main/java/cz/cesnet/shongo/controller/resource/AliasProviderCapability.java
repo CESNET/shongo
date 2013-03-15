@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;

@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.*;

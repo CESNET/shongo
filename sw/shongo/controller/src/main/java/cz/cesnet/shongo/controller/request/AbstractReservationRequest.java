@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
@@ -8,8 +9,6 @@ import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
@@ -304,6 +303,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
 
     /**
      * Validate given slot {@code duration} if it is longer than 0 seconds.
+     *
      * @param duration to be validated
      * @throws FaultException
      */
@@ -317,9 +317,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @return converted {@link AbstractReservationRequest}
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws OldFaultException
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws FaultException
     {
         cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
         toApi(api);
@@ -360,7 +360,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws OldFaultException
+            throws FaultException
     {
         api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
@@ -381,7 +381,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      *
      * @param api
      * @param entityManager
-     * @throws cz.cesnet.shongo.fault.old.OldFaultException
+     * @throws FaultException
      */
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
             throws FaultException

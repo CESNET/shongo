@@ -4,7 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpointSet;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Column;
@@ -114,7 +114,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws OldFaultException
+            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;

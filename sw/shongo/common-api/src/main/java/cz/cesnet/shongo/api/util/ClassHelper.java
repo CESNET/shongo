@@ -3,7 +3,6 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
-import cz.cesnet.shongo.fault.old.CommonFault;
 
 import java.lang.reflect.Array;
 import java.util.*;

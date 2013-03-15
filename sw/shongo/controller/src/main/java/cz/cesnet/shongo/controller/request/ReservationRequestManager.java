@@ -8,8 +8,6 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.EntityToDeleteIsReferencedException;
-import cz.cesnet.shongo.fault.old.OldFaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;

@@ -4,7 +4,7 @@ import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.fault.old.OldFaultException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -114,7 +114,7 @@ public class FilteredValueProvider extends ValueProvider
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi, EntityManager entityManager)
-            throws OldFaultException
+            throws FaultException
     {
         super.fromApi(valueProviderApi, entityManager);
 

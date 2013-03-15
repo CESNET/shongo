@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -15,7 +16,6 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.SecurityException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -118,7 +118,7 @@ public class Authorization
      * @param securityToken to be validated
      * @return user-id
      */
-    public String validate(SecurityToken securityToken)
+    public String validate(SecurityToken securityToken) throws FaultException
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
@@ -140,9 +140,9 @@ public class Authorization
                     });
             return userInformation.getUserId();
         }
-        catch (Exception exception) {
-            throw new SecurityException(exception, "Access token '%s' cannot be validated. %s",
-                    securityToken.getAccessToken(), exception.getMessage());
+        catch (IllegalStateException exception) {
+            return CommonFaultSet.throwSecurityErrorFault(String.format("Access token '%s' cannot be validated. %s",
+                    securityToken.getAccessToken(), exception.getMessage()));
         }
     }
 
@@ -205,7 +205,7 @@ public class Authorization
                 }
             }
             catch (Exception exception) {
-                throw new SecurityException(exception, "Retrieving user information for access token failed.");
+                throw new IllegalStateException("Retrieving user information for access token failed.", exception);
             }
             UserInformation userInformation = createUserInformationFromData(content);
             userId = userInformation.getUserId();
@@ -426,11 +426,11 @@ public class Authorization
         return aclEntityState;
     }
 
-    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws SecurityException
+    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
-            throw new SecurityException("Role is not allowed to specified entity");
+            CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
         }
 
         // TODO: create ACL in authorization server
@@ -489,14 +489,14 @@ public class Authorization
         aclEntityState.removeAclRecord(aclRecord);
     }
 
-    public AclRecord getAclRecord(String aclRecordId) throws SecurityException
+    public AclRecord getAclRecord(String aclRecordId) throws FaultException
     {
         AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
         if (aclRecord == null) {
             // TODO: get ACL from authorization server
         }
         if (aclRecord == null) {
-            throw new SecurityException("ACL not found.");
+            CommonFaultSet.throwSecurityErrorFault("ACL not found.");
         }
         return aclRecord;
     }
@@ -569,12 +569,13 @@ public class Authorization
     }
 
     public void checkPermission(String userId, EntityIdentifier entityId, Permission permission)
-            throws SecurityException
+            throws FaultException
     {
         Set<Permission> permissions = getPermissions(userId, entityId);
         if (!permissions.contains(permission)) {
-            throw new SecurityException("User with id '%s' doesn't have '%s' permission for the '%s'",
-                    userId, permission.getCode(), entityId);
+            CommonFaultSet.throwSecurityErrorFault(
+                    String.format("User with id '%s' doesn't have '%s' permission for the '%s'",
+                            userId, permission.getCode(), entityId));
         }
     }
 

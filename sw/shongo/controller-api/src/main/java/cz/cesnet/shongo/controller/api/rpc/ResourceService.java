@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.api.ResourceAllocation;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.old.EntityNotFoundException;
 import org.joda.time.Interval;
 
 import java.util.Collection;

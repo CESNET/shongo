@@ -179,7 +179,8 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public void deleteResource(SecurityToken token, String resourceId) throws FaultException
+    public void deleteResource(SecurityToken token, String resourceId)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -232,6 +233,7 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
+            throws FaultException
     {
         String userId = authorization.validate(token);
 
