@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.Role;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an entity state in the {@link AuthorizationCache}.
@@ -62,7 +59,7 @@ public class AclEntityState
      */
     public synchronized Set<AclRecord> getAclRecords()
     {
-        return aclRecords;
+        return Collections.unmodifiableSet(aclRecords);
     }
 
     /**
@@ -70,6 +67,10 @@ public class AclEntityState
      */
     public synchronized Set<String> getUserIdsByRole(Role role)
     {
-        return userIdsByRole.get(role);
+        Set<String> userIds = userIdsByRole.get(role);
+        if (userIds != null) {
+            return Collections.unmodifiableSet(userIds);
+        }
+        return null;
     }
 }

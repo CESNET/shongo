@@ -142,6 +142,9 @@ public class ReservationServiceImpl extends Component
             reservationRequestManager.create(reservationRequest);
 
             entityManager.getTransaction().commit();
+
+            // Create ACL
+            authorization.onEntityCreated(userId, reservationRequest);
         }
         catch (FaultException exception) {
             throw exception;
@@ -267,14 +270,17 @@ public class ReservationServiceImpl extends Component
         try {
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
             authorization.checkPermission(userId, entityId, Permission.WRITE);
 
-            checkModifiableReservationRequest(reservationRequestImpl, entityManager);
+            checkModifiableReservationRequest(reservationRequest, entityManager);
 
-            reservationRequestManager.delete(reservationRequestImpl);
+            // Remove ACL
+            authorization.onEntityDeleted(reservationRequest);
+
+            reservationRequestManager.delete(reservationRequest);
 
             entityManager.getTransaction().commit();
         }

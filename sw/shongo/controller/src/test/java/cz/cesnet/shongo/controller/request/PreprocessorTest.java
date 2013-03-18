@@ -1,10 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.Preprocessor;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import org.joda.time.DateTime;
@@ -34,6 +33,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         EntityManager entityManager = getEntityManager();
 
+        Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setCache(new Cache());
+        preprocessor.init();
+
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Create reservation request
@@ -62,13 +65,13 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestManager.create(reservationRequestSet);
 
         // Run preprocessor
-        Preprocessor.createAndRun(new Interval(
+        preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")), entityManager);
         assertEquals(1, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
-        Preprocessor.createAndRun(new Interval(
+        preprocessor.run(new Interval(
                 DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
         assertEquals(2, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
-        Preprocessor.createAndRun(new Interval(
+        preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
         assertEquals(3, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
 
@@ -93,7 +96,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestManager.update(reservationRequestSet);
 
         // Run preprocessor
-        Preprocessor.createAndRun(new Interval(
+        preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
 
         // Check modified compartments
@@ -110,6 +113,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
     @Test
     public void testClonedSpecifications() throws Exception
     {
+        Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setCache(new Cache());
+        preprocessor.init();
+
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
@@ -125,7 +132,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
-        Preprocessor.createAndRun(new Interval(
+        preprocessor.run(new Interval(
                 DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03")), entityManager);
 
         List<ReservationRequest> reservationRequests =
@@ -154,6 +161,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
     @Test
     public void testModification() throws Exception
     {
+        Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setCache(new Cache());
+        preprocessor.init();
+
         Interval preprocessorInterval = new Interval(DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03"));
         List<ReservationRequest> reservationRequests = null;
         CompartmentSpecification createdCompartmentSpecification = null;
@@ -175,7 +186,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
-        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+        preprocessor.run(preprocessorInterval, entityManager);
 
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(1, reservationRequests.size());
@@ -188,7 +199,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         compartmentSpecification.removeSpecification(compartmentSpecification.getSpecifications().get(1));
         reservationRequestManager.update(reservationRequestSet);
 
-        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+        preprocessor.run(preprocessorInterval, entityManager);
 
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(1, reservationRequests.size());
@@ -200,7 +211,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestManager.update(reservationRequestSet);
 
-        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+        preprocessor.run(preprocessorInterval, entityManager);
 
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(1, reservationRequests.size());
@@ -212,7 +223,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 new OtherPerson("Ondrej Bouda", "bouda@cesnet.cz"));
         reservationRequestManager.update(reservationRequestSet);
 
-        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+        preprocessor.run(preprocessorInterval, entityManager);
 
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(1, reservationRequests.size());

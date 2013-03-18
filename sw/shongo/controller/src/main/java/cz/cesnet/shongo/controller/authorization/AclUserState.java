@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an user state in the {@link AuthorizationCache}.
@@ -17,7 +15,6 @@ import java.util.Set;
  */
 public class AclUserState
 {
-
     /**
      * Set of {@link AclRecord}s for the user.
      */
@@ -129,7 +126,7 @@ public class AclUserState
     {
         EntityState entityState = entityStateByEntityId.get(entityId);
         if (entityState != null) {
-            return entityState.aclRecords;
+            return Collections.unmodifiableSet(entityState.aclRecords);
         }
         return null;
     }
@@ -142,7 +139,7 @@ public class AclUserState
     {
         EntityState entityState = entityStateByEntityId.get(entityId);
         if (entityState != null) {
-            return entityState.permissions;
+            return Collections.unmodifiableSet(entityState.permissions);
         }
         return null;
     }
@@ -158,7 +155,11 @@ public class AclUserState
         if (!permission.equals(Permission.READ)) {
             throw new TodoImplementException(permission.getCode());
         }
-        return accessibleEntitiesByType.get(entityType);
+        Set<Long> entities = accessibleEntitiesByType.get(entityType);
+        if (entities != null) {
+            return Collections.unmodifiableSet(entities);
+        }
+        return null;
     }
 
     /**

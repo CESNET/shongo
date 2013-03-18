@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import org.hibernate.cfg.SetSimpleValueTypeSecondPass;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -580,8 +581,7 @@ public abstract class ReservationTask
                 throw new IllegalStateException("Reservation request must not be null.");
             }
             Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
-            ownerIds.retainAll(userIds);
-            return ownerIds.size() > 0;
+            return !Collections.disjoint(userIds, ownerIds);
         }
     }
 }

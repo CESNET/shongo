@@ -9,7 +9,7 @@ import cz.cesnet.shongo.fault.jade.CommandFailure;
 public class ControllerImplFaultSet extends ControllerFaultSet
 {
     /**
-     * @return new instance of {@link EntityNotFoundFault}
+     * @return new instance of {@link CommonFaultSet.EntityNotFoundFault}
      */
     public static <T> T throwEntityNotFoundFault(EntityIdentifier entityId) throws FaultException
     {
@@ -17,7 +17,7 @@ public class ControllerImplFaultSet extends ControllerFaultSet
     }
 
     /**
-     * @return new instance of {@link EntityNotFoundFault}
+     * @return new instance of {@link CommonFaultSet.EntityNotFoundFault}
      */
     public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId) throws FaultException
     {
@@ -27,7 +27,7 @@ public class ControllerImplFaultSet extends ControllerFaultSet
     }
 
     /**
-     * @return new instance of {@link EntityNotDeletableReferencedFault}
+     * @return new instance of {@link CommonFaultSet.EntityNotDeletableReferencedFault}
      */
     public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId) throws FaultException
     {

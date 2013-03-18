@@ -88,32 +88,4 @@ public class NotificationManager extends Component implements Component.Authoriz
             notificationExecutor.executeNotification(notification);
         }
     }
-
-    /**
-     * Notify about new reservations.
-     *
-     * @param newReservations
-     * @param modifiedReservations
-     * @param deletedReservations
-     */
-    public void notifyReservations(Set<Reservation> newReservations, Set<Reservation> modifiedReservations,
-            Set<Reservation> deletedReservations, EntityManager entityManager)
-    {
-        if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
-            return;
-        }
-        logger.debug("Notifying about changes in reservations...");
-        for (Reservation reservation : newReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.NEW, reservation, entityManager));
-        }
-        for (Reservation reservation : modifiedReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.MODIFIED, reservation, entityManager));
-        }
-        for (Reservation reservation : deletedReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, reservation, entityManager));
-        }
-    }
 }

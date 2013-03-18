@@ -1,23 +1,13 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
-import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceServiceImpl;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 
 import static junit.framework.Assert.*;
 
@@ -40,9 +30,24 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private cz.cesnet.shongo.controller.Controller controller;
 
     /**
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
      * @see Cache
      */
     private Cache cache;
+
+    /**
+     * @see Preprocessor
+     */
+    private Preprocessor preprocessor;
+
+    /**
+     * @see Scheduler
+     */
+    private Scheduler scheduler;
 
     /**
      * @see ControllerClient
@@ -63,6 +68,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public ControllerClient getControllerClient()
     {
         return controllerClient;
+    }
+
+    /**
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.AuthorizationService} from the {@link #controllerClient}
+     */
+    public AuthorizationService getAuthorizationService()
+    {
+        return controllerClient.getService(AuthorizationService.class);
     }
 
     /**
@@ -90,6 +103,18 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         cache.setEntityManagerFactory(getEntityManagerFactory());
         cache.init(controller.getConfiguration());
 
+        preprocessor = new Preprocessor();
+        preprocessor.setCache(cache);
+        preprocessor.setAuthorization(authorization);
+        preprocessor.init();
+
+        scheduler = new Scheduler();
+        scheduler.setCache(cache);
+        scheduler.setAuthorization(authorization);
+        scheduler.setNotificationManager(controller.getNotificationManager());
+        scheduler.init();
+
+        controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ReservationServiceImpl(cache));
     }
@@ -113,14 +138,18 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         System.setProperty(Configuration.RPC_PORT, "8484");
         System.setProperty(Configuration.JADE_PORT, "8585");
 
-        // Start controller
+        // Create controller
         controller = new cz.cesnet.shongo.controller.Controller();
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
 
+        // Create authorization
+        authorization = TestingAuthorization.createInstance(controller.getConfiguration());
+        controller.setAuthorization(authorization);
+
         onInit();
 
-        controller.setAuthorization(TestingAuthorization.createInstance(controller.getConfiguration()));
+        // Start controller
         controller.start();
         controller.startRpc();
 
@@ -135,6 +164,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         controller.stop();
         controller.destroy();
+        preprocessor.destroy();
+        scheduler.destroy();
 
         super.after();
     }
@@ -148,7 +179,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void runPreprocessor(Interval interval) throws FaultException
     {
         EntityManager entityManagerForPreprocessor = getEntityManager();
-        Preprocessor.createAndRun(interval, entityManagerForPreprocessor, cache);
+        preprocessor.run(interval, entityManagerForPreprocessor);
         entityManagerForPreprocessor.close();
     }
 
@@ -161,7 +192,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void runScheduler(Interval interval) throws FaultException
     {
         EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager());
+        scheduler.run(interval, entityManagerForScheduler);
         entityManagerForScheduler.close();
     }
 
@@ -194,10 +225,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler() throws FaultException
     {
-        EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(Temporal.INTERVAL_INFINITE, entityManagerForScheduler, cache,
-                controller.getNotificationManager());
-        entityManagerForScheduler.close();
+        runScheduler(Temporal.INTERVAL_INFINITE);
     }
 
     /**
@@ -335,88 +363,5 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
-    }
-
-    private static class TestingAuthorization extends Authorization
-    {
-        private TestingAuthorization(Configuration config)
-        {
-            super(config);
-        }
-
-        @Override
-        protected String onValidate(SecurityToken securityToken) throws FaultException
-        {
-            if (SECURITY_TOKEN.getAccessToken().equals(securityToken.getAccessToken())) {
-                return ROOT_USER_ID;
-            }
-            return super.onValidate(securityToken);
-        }
-
-        @Override
-        protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
-        {
-            throw new TodoImplementException();
-        }
-
-        @Override
-        protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
-        {
-            throw new TodoImplementException();
-        }
-
-        @Override
-        protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
-        {
-            throw new TodoImplementException();
-        }
-
-        @Override
-        protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
-                throws FaultException
-        {
-            List<AclRecord> aclRecords = new LinkedList<AclRecord>();
-            for (AclRecord aclRecord : cache.getAclRecords()) {
-                if (userId != null && !userId.equals(aclRecord.getUserId())) {
-                    continue;
-                }
-                if (entityId != null && !entityId.equals(aclRecord.getEntityId())) {
-                    continue;
-                }
-                if (role != null && !role.equals(aclRecord.getRole())) {
-                    continue;
-                }
-                aclRecords.add(aclRecord);
-            }
-            return aclRecords;
-        }
-
-        @Override
-        protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
-        {
-            if (SECURITY_TOKEN.getAccessToken().equals(accessToken)) {
-                return ROOT_USER_INFORMATION;
-            }
-            throw new TodoImplementException();
-        }
-
-        @Override
-        protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
-        {
-            throw new TodoImplementException();
-        }
-
-        @Override
-        protected Collection<UserInformation> onListUserInformation() throws FaultException
-        {
-            throw new TodoImplementException();
-        }
-
-        public static TestingAuthorization createInstance(Configuration configuration) throws IllegalStateException
-        {
-            TestingAuthorization authorization = new TestingAuthorization(configuration);
-            Authorization.setInstance(authorization);
-            return authorization;
-        }
     }
 }

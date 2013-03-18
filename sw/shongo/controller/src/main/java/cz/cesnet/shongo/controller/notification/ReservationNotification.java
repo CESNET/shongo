@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -26,15 +28,10 @@ public class ReservationNotification extends Notification
      */
     private Type type;
 
-    /**
-     * @see Reservation
-     */
-    private Reservation reservation;
-
-    /**
-     * @see EntityManager
-     */
-    EntityManager entityManager;
+    cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
+    cz.cesnet.shongo.controller.api.Reservation reservation = null;
+    List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
+            new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
 
     /**
      * Constructor.
@@ -46,10 +43,39 @@ public class ReservationNotification extends Notification
     public ReservationNotification(Type type, Reservation reservation, EntityManager entityManager)
     {
         this.type = type;
-        this.reservation = reservation;
-        this.entityManager = entityManager;
-        addUserRecipient(reservation.getUserId());
+
+        // Add recipients
+        for (String userId : Authorization.getInstance().getUserIdsWithRole(reservation, Role.OWNER)) {
+            addUserRecipient(userId);
+        }
         addRecipientByReservation(reservation);
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = reservationRequestManager.getByReservation(reservation.getId());
+
+        try {
+            if (reservationRequest != null) {
+                this.reservationRequest = reservationRequest.toApi();
+            }
+            this.reservation = reservation.toApi();
+
+            if (reservation.getClass().equals(Reservation.class)) {
+                Collection<AliasReservation> childAliasReservations =
+                        reservation.getChildReservations(AliasReservation.class);
+                if (childAliasReservations.size() > 0) {
+                    for (AliasReservation aliasReservation : childAliasReservations) {
+                        aliasReservations.add(aliasReservation.toApi());
+                    }
+                }
+            }
+            else if (reservation instanceof AliasReservation) {
+                AliasReservation aliasReservation = (AliasReservation) reservation;
+                aliasReservations.add(aliasReservation.toApi());
+            }
+        }
+        catch (FaultException exception) {
+            logger.error("Failed to create reservation notification.", exception);
+        }
     }
 
     /**
@@ -85,51 +111,18 @@ public class ReservationNotification extends Notification
     @Override
     public String getName()
     {
-        return type.getName() + " reservation " + EntityIdentifier.formatId(reservation);
+        return type.getName() + " reservation " + reservation.getId();
     }
 
     @Override
     public String getContent()
     {
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-
-        AbstractReservationRequest reservationRequest =
-                reservationRequestManager.getByReservation(reservation.getId());
-        String content = null;
-        try {
-            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi = null;
-            if (reservationRequest != null) {
-                reservationRequestApi = reservationRequest.toApi();
-            }
-
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("type", type);
-            parameters.put("reservationRequest", reservationRequestApi);
-            parameters.put("reservation", reservation.toApi());
-
-            List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
-                    new ArrayList<cz.cesnet.shongo.controller.api.AliasReservation>();
-            if (reservation.getClass().equals(Reservation.class)) {
-                Collection<AliasReservation> childAliasReservations =
-                        reservation.getChildReservations(AliasReservation.class);
-                if (childAliasReservations.size() > 0) {
-                    for (AliasReservation aliasReservation : childAliasReservations) {
-                        aliasReservations.add(aliasReservation.toApi());
-                    }
-                }
-            }
-            else if (reservation instanceof AliasReservation) {
-                AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasReservations.add(aliasReservation.toApi());
-            }
-            parameters.put("aliasReservations", aliasReservations);
-
-            content = renderTemplate("reservation-mail.ftl", parameters);
-        }
-        catch (FaultException exception) {
-            logger.error("Failed to notify about new reservations.", exception);
-        }
-        return content;
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("type", type);
+        parameters.put("reservationRequest", reservationRequest);
+        parameters.put("reservation", reservation);
+        parameters.put("aliasReservations", aliasReservations);
+        return renderTemplate("reservation-mail.ftl", parameters);
     }
 
     /**

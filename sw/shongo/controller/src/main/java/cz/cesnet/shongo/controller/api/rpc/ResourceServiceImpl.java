@@ -89,31 +89,34 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public String createResource(SecurityToken token, Resource resource)
+    public String createResource(SecurityToken token, Resource resourceApi)
             throws FaultException
     {
         String userId = authorization.validate(token);
 
-        resource.setupNewEntity();
+        resourceApi.setupNewEntity();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl;
+        cz.cesnet.shongo.controller.resource.Resource resource;
         try {
             // Create resource from API
-            resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager);
-            resourceImpl.setUserId(userId);
+            resource = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resourceApi, entityManager);
+            resource.setUserId(userId);
 
             // Save it
             ResourceManager resourceManager = new ResourceManager(entityManager);
-            resourceManager.create(resourceImpl);
+            resourceManager.create(resource);
 
             entityManager.getTransaction().commit();
 
+            // Create ACL
+            authorization.onEntityCreated(userId, resource);
+
             // Add resource to the cache
             if (cache != null) {
-                cache.addResource(resourceImpl, entityManager);
+                cache.addResource(resource, entityManager);
             }
         }
         catch (FaultException exception) {
@@ -130,39 +133,39 @@ public class ResourceServiceImpl extends Component
         }
 
         // Return resource shongo-id
-        return EntityIdentifier.formatId(resourceImpl);
+        return EntityIdentifier.formatId(resource);
     }
 
     @Override
-    public void modifyResource(SecurityToken token, Resource resource)
+    public void modifyResource(SecurityToken token, Resource resourceApi)
             throws FaultException
     {
         String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        String resourceId = resource.getId();
+        String resourceId = resourceApi.getId();
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
         try {
             entityManager.getTransaction().begin();
 
             // Get reservation request
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+            cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
             authorization.checkPermission(userId, entityId, Permission.WRITE);
 
             // Synchronize from API
-            resourceImpl.fromApi(resource, entityManager);
+            resource.fromApi(resourceApi, entityManager);
 
-            resourceManager.update(resourceImpl);
+            resourceManager.update(resource);
 
             entityManager.getTransaction().commit();
 
             // Update resource in the cache
             if (cache != null) {
-                cache.updateResource(resourceImpl, entityManager);
+                cache.updateResource(resource, entityManager);
             }
         }
         catch (FaultException exception) {
@@ -193,19 +196,22 @@ public class ResourceServiceImpl extends Component
             entityManager.getTransaction().begin();
 
             // Get the resource
-            cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+            cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
             authorization.checkPermission(userId, entityId, Permission.WRITE);
 
+            // Remove ACL
+            authorization.onEntityDeleted(resource);
+
             // Delete the resource
-            resourceManager.delete(resourceImpl);
+            resourceManager.delete(resource);
 
             entityManager.getTransaction().commit();
 
             // Remove resource from the cache
             if (cache != null) {
-                cache.removeResource(resourceImpl);
+                cache.removeResource(resource);
             }
         }
         catch (FaultException exception) {

@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TransactionHelper;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +16,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Preprocessor extends Component
+public class Preprocessor extends Component implements Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
@@ -28,11 +26,22 @@ public class Preprocessor extends Component
     private Cache cache;
 
     /**
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
      * @param cache sets the {@link #cache}
      */
     public void setCache(Cache cache)
     {
         this.cache = cache;
+    }
+
+    @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
     }
 
     @Override
@@ -47,11 +56,9 @@ public class Preprocessor extends Component
      *
      * @param interval
      */
-    public void run(Interval interval, EntityManager entityManager)
+    public synchronized void run(Interval interval, EntityManager entityManager)
     {
         logger.info("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
-
-        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -60,59 +67,10 @@ public class Preprocessor extends Component
             List<ReservationRequestSet> reservationRequestSets =
                     reservationRequestManager.listNotPreprocessedReservationRequestSets(interval);
             for (ReservationRequestSet reservationRequestSet : reservationRequestSets) {
-                processReservationRequest(reservationRequestSet, interval, entityManager);
+                processReservationRequestSet(reservationRequestSet, interval, entityManager);
             }
-
-            transaction.commit();
         }
         catch (Exception exception) {
-            transaction.rollback();
-            throw new IllegalStateException("Preprocessor failed", exception);
-        }
-    }
-
-    /**
-     * Run preprocessor only for single {@link ReservationRequestSet} with given shongo-id for a given interval.
-     *
-     * @param reservationRequestSetId
-     * @param interval
-     * @param entityManager
-     */
-    public void run(long reservationRequestSetId, Interval interval, EntityManager entityManager)
-    {
-        logger.info("Running preprocessor for a single reservation request set '{}' for interval '{}'...",
-                reservationRequestSetId, Temporal.formatInterval(interval));
-
-        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
-
-        try {
-            // Get reservation request set by shongo-id
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            AbstractReservationRequest reservationRequest =
-                    reservationRequestManager.getReservationRequest(reservationRequestSetId);
-
-            if (reservationRequest == null) {
-                throw new IllegalArgumentException(String.format("Reservation request set '%s' doesn't exist!",
-                        reservationRequestSetId));
-            }
-            PreprocessorStateManager reservationRequestStateManager =
-                    new PreprocessorStateManager(entityManager, reservationRequest);
-            if (reservationRequestStateManager.getState(interval) != PreprocessorState.NOT_PREPROCESSED) {
-                throw new IllegalStateException(String.format(
-                        "Reservation request set '%s' is already preprocessed in %s!",
-                        reservationRequestSetId, interval));
-            }
-            if (reservationRequest instanceof ReservationRequestSet) {
-                processReservationRequest((ReservationRequestSet) reservationRequest, interval, entityManager);
-            }
-            else {
-                throw new TodoImplementException(reservationRequest.getClass().getCanonicalName());
-            }
-
-            transaction.commit();
-        }
-        catch (Exception exception) {
-            transaction.rollback();
             throw new IllegalStateException("Preprocessor failed", exception);
         }
     }
@@ -120,113 +78,147 @@ public class Preprocessor extends Component
     /**
      * Synchronize (create/modify/delete) {@link ReservationRequest}s from a single {@link ReservationRequestSet}.
      */
-    private void processReservationRequest(ReservationRequestSet reservationRequestSet, Interval interval,
-            EntityManager entityManager) throws FaultException
+    private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
+            EntityManager entityManager) throws Exception
     {
-        reservationRequestSet.checkPersisted();
+        // Store created and deleted reservation requests for updating ACL
+        Set<ReservationRequest> createdReservationRequests = new HashSet<ReservationRequest>();
+        Set<ReservationRequest> deletedReservationRequests = new HashSet<ReservationRequest>();
 
-        logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
+        entityManager.getTransaction().begin();
+        try {
+            reservationRequestSet.checkPersisted();
 
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
 
-        // Get list of date/time slots
-        Collection<Interval> slots = reservationRequestSet.enumerateSlots(interval);
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        // List all reservation requests for the set
-        List<ReservationRequest> reservationRequests =
-                reservationRequestManager.listReservationRequestsBySet(reservationRequestSet, interval);
+            // Get list of date/time slots
+            Collection<Interval> slots = reservationRequestSet.enumerateSlots(interval);
 
-        // Build map of reservation requests by original specification
-        Map<Specification, Set<ReservationRequest>> reservationRequestsByOriginalSpecification =
-                new HashMap<Specification, Set<ReservationRequest>>();
-        for (ReservationRequest reservationRequest : reservationRequests) {
-            Specification originalSpecification = reservationRequestSet.getOriginalSpecifications()
-                    .get(reservationRequest.getSpecification());
-            if (originalSpecification == null) {
-                originalSpecification = reservationRequest.getSpecification();
-            }
-            Set<ReservationRequest> set = reservationRequestsByOriginalSpecification.get(originalSpecification);
-            if (set == null) {
-                set = new HashSet<ReservationRequest>();
-                reservationRequestsByOriginalSpecification.put(originalSpecification, set);
-            }
-            set.add(reservationRequest);
-        }
+            // List all reservation requests for the set
+            List<ReservationRequest> reservationRequests =
+                    reservationRequestManager.listReservationRequestsBySet(reservationRequestSet, interval);
 
-        // Build set of existing specifications for the set
-        Set<Long> specifications = new HashSet<Long>();
-
-        // Reservation requests are synchronized per specification from the set
-        Specification specification = reservationRequestSet.getSpecification();
-        if (specification == null) {
-            throw new IllegalStateException("Specification should not be null!");
-        }
-        // List existing reservation requests for the set in the interval
-        Set<ReservationRequest> reservationRequestsForSpecification =
-                reservationRequestsByOriginalSpecification.get(specification);
-
-        // Create map of reservation requests with date/time slot as key
-        // and remove reservation request from list of all reservation request
-        Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
-        if (reservationRequestsForSpecification != null) {
-            for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
-                map.put(reservationRequest.getSlot(), reservationRequest);
-                reservationRequests.remove(reservationRequest);
-            }
-        }
-
-        // For each requested slot we must create or modify reservation request.
-        // If we find date/time slot in prepared map we modify the corresponding request
-        // and remove it from map, otherwise we create a new reservation request.
-        for (Interval slot : slots) {
-            ReservationRequest reservationRequest;
-            // Modify existing reservation request
-            if (map.containsKey(slot)) {
-                reservationRequest = map.get(slot);
-                if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
-                    // Reservation request was modified, so we must clear it's state
-                    reservationRequest.clearState();
+            // Build map of reservation requests by original specification
+            Map<Specification, Set<ReservationRequest>> reservationRequestsByOriginalSpecification =
+                    new HashMap<Specification, Set<ReservationRequest>>();
+            for (ReservationRequest reservationRequest : reservationRequests) {
+                Specification originalSpecification = reservationRequestSet.getOriginalSpecifications()
+                        .get(reservationRequest.getSpecification());
+                if (originalSpecification == null) {
+                    originalSpecification = reservationRequest.getSpecification();
                 }
-
-                // Remove the slot from the map for the corresponding reservation request to not be deleted
-                map.remove(slot);
+                Set<ReservationRequest> set = reservationRequestsByOriginalSpecification.get(originalSpecification);
+                if (set == null) {
+                    set = new HashSet<ReservationRequest>();
+                    reservationRequestsByOriginalSpecification.put(originalSpecification, set);
+                }
+                set.add(reservationRequest);
             }
-            // Create new reservation request
-            else {
-                reservationRequest = new ReservationRequest();
-                reservationRequest.setUserId(reservationRequestSet.getUserId());
-                reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
-                reservationRequest.setSlot(slot);
-                updateReservationRequest(reservationRequest, reservationRequestSet, specification);
-                reservationRequestSet.addReservationRequest(reservationRequest);
+
+            // Build set of existing specifications for the set
+            Set<Long> specifications = new HashSet<Long>();
+
+            // Reservation requests are synchronized per specification from the set
+            Specification specification = reservationRequestSet.getSpecification();
+            if (specification == null) {
+                throw new IllegalStateException("Specification should not be null!");
             }
-            reservationRequest.updateStateBySpecification();
+            // List existing reservation requests for the set in the interval
+            Set<ReservationRequest> reservationRequestsForSpecification =
+                    reservationRequestsByOriginalSpecification.get(specification);
+
+            // Create map of reservation requests with date/time slot as key
+            // and remove reservation request from list of all reservation request
+            Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
+            if (reservationRequestsForSpecification != null) {
+                for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
+                    map.put(reservationRequest.getSlot(), reservationRequest);
+                    reservationRequests.remove(reservationRequest);
+                }
+            }
+
+            // For each requested slot we must create or modify reservation request.
+            // If we find date/time slot in prepared map we modify the corresponding request
+            // and remove it from map, otherwise we create a new reservation request.
+            for (Interval slot : slots) {
+                ReservationRequest reservationRequest;
+                // Modify existing reservation request
+                if (map.containsKey(slot)) {
+                    reservationRequest = map.get(slot);
+                    if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
+                        // Reservation request was modified, so we must clear it's state
+                        reservationRequest.clearState();
+                    }
+
+                    // Remove the slot from the map for the corresponding reservation request to not be deleted
+                    map.remove(slot);
+                }
+                // Create new reservation request
+                else {
+                    reservationRequest = new ReservationRequest();
+                    reservationRequest.setUserId(reservationRequestSet.getUserId());
+                    reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
+                    reservationRequest.setSlot(slot);
+                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
+                    reservationRequestSet.addReservationRequest(reservationRequest);
+
+                    // Remember for updating ACL
+                    createdReservationRequests.add(reservationRequest);
+                }
+                reservationRequest.updateStateBySpecification();
+            }
+
+            // All reservation requests that remains in map must be deleted
+            for (ReservationRequest reservationRequest : map.values()) {
+                reservationRequestSet.removeReservationRequest(reservationRequest);
+                reservationRequestManager.delete(reservationRequest);
+
+                // Remember for updating ACL
+                deletedReservationRequests.add(reservationRequest);
+            }
+
+            // All reservation requests that remains in list of all must be deleted
+            for (ReservationRequest reservationRequest : reservationRequests) {
+                reservationRequestSet.removeReservationRequest(reservationRequest);
+                reservationRequestManager.delete(reservationRequest);
+
+                // Remember for updating ACL
+                deletedReservationRequests.add(reservationRequest);
+            }
+
+            // Update reservation request
+            reservationRequestManager.update(reservationRequestSet, false);
+
+            // When the reservation request hasn't got any future requested slot, the preprocessed state
+            // is until "infinite".
+            if (!reservationRequestSet.hasSlotAfter(interval.getEnd())) {
+                interval = new Interval(interval.getStart(), PreprocessorStateManager.MAXIMUM_INTERVAL_END);
+            }
+
+            // Set state preprocessed state for the interval to reservation request
+            PreprocessorStateManager.setState(entityManager, reservationRequestSet,
+                    PreprocessorState.PREPROCESSED, interval);
+
+            entityManager.getTransaction().commit();
+        }
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            throw exception;
         }
 
-        // All reservation requests that remains in map must be deleted
-        for (ReservationRequest reservationRequest : map.values()) {
-            reservationRequestSet.removeReservationRequest(reservationRequest);
-            reservationRequestManager.delete(reservationRequest);
+        // Update ACL
+        if (authorization != null) {
+            for (ReservationRequest reservationRequest : deletedReservationRequests) {
+                authorization.onEntityDeleted(reservationRequest);
+            }
+            for (ReservationRequest reservationRequest : createdReservationRequests) {
+                authorization.onEntityChildCreated(reservationRequestSet, reservationRequest);
+            }
         }
-
-        // All reservation requests that remains in list of all must be deleted
-        for (ReservationRequest reservationRequest : reservationRequests) {
-            reservationRequestSet.removeReservationRequest(reservationRequest);
-            reservationRequestManager.delete(reservationRequest);
-        }
-
-        // Update reservation request
-        reservationRequestManager.update(reservationRequestSet, false);
-
-        // When the reservation request hasn't got any future requested slot, the preprocessed state
-        // is until "infinite".
-        if (!reservationRequestSet.hasSlotAfter(interval.getEnd())) {
-            interval = new Interval(interval.getStart(), PreprocessorStateManager.MAXIMUM_INTERVAL_END);
-        }
-
-        // Set state preprocessed state for the interval to reservation request
-        PreprocessorStateManager.setState(entityManager, reservationRequestSet,
-                PreprocessorState.PREPROCESSED, interval);
     }
 
     /**
@@ -313,33 +305,5 @@ public class Preprocessor extends Component
         }
 
         return modified;
-    }
-
-    /**
-     * Run preprocessor on given {@code entityManager} and interval.
-     *
-     * @param entityManager
-     * @param interval
-     * @param cache
-     */
-    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache)
-            throws FaultException
-    {
-        Preprocessor preprocessor = new Preprocessor();
-        preprocessor.setCache(cache);
-        preprocessor.init();
-        preprocessor.run(interval, entityManager);
-        preprocessor.destroy();
-    }
-
-    /**
-     * Run preprocessor on given {@code entityManager} and interval.
-     *
-     * @param entityManager
-     * @param interval
-     */
-    public static void createAndRun(Interval interval, EntityManager entityManager) throws FaultException
-    {
-        createAndRun(interval, entityManager, new Cache());
     }
 }

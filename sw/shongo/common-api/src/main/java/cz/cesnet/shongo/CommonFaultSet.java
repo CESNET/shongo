@@ -50,7 +50,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Unknown error: {description}";
-            message = message.replace("{description}", description);
+            message = message.replace("{description}", description != null ? description : "");
             return message;
         }
 
