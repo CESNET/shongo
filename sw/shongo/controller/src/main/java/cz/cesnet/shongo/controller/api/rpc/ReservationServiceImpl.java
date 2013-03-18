@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
@@ -41,7 +42,7 @@ public class ReservationServiceImpl extends Component
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see cz.cesnet.shongo.controller.Authorization
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 

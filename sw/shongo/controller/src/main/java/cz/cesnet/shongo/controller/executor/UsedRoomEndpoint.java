@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;

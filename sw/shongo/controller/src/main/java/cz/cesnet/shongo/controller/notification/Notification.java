@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.fault.FaultException;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -31,11 +31,6 @@ import java.util.Set;
 public abstract class Notification
 {
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
-    /**
-     * @see NotificationManager
-     */
-    private NotificationManager notificationManager;
 
     /**
      * Notification recipients.

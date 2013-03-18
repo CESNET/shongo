@@ -1,15 +1,23 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceServiceImpl;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import static junit.framework.Assert.*;
 
@@ -112,9 +120,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         onInit();
 
+        controller.setAuthorization(TestingAuthorization.createInstance(controller.getConfiguration()));
         controller.start();
         controller.startRpc();
-        controller.getAuthorization().setTestingAccessToken(SECURITY_TOKEN.getAccessToken());
 
         // Start client
         controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
@@ -327,5 +335,88 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
+    }
+
+    private static class TestingAuthorization extends Authorization
+    {
+        private TestingAuthorization(Configuration config)
+        {
+            super(config);
+        }
+
+        @Override
+        protected String onValidate(SecurityToken securityToken) throws FaultException
+        {
+            if (SECURITY_TOKEN.getAccessToken().equals(securityToken.getAccessToken())) {
+                return ROOT_USER_ID;
+            }
+            return super.onValidate(securityToken);
+        }
+
+        @Override
+        protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+        {
+            throw new TodoImplementException();
+        }
+
+        @Override
+        protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
+        {
+            throw new TodoImplementException();
+        }
+
+        @Override
+        protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
+        {
+            throw new TodoImplementException();
+        }
+
+        @Override
+        protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
+                throws FaultException
+        {
+            List<AclRecord> aclRecords = new LinkedList<AclRecord>();
+            for (AclRecord aclRecord : cache.getAclRecords()) {
+                if (userId != null && !userId.equals(aclRecord.getUserId())) {
+                    continue;
+                }
+                if (entityId != null && !entityId.equals(aclRecord.getEntityId())) {
+                    continue;
+                }
+                if (role != null && !role.equals(aclRecord.getRole())) {
+                    continue;
+                }
+                aclRecords.add(aclRecord);
+            }
+            return aclRecords;
+        }
+
+        @Override
+        protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
+        {
+            if (SECURITY_TOKEN.getAccessToken().equals(accessToken)) {
+                return ROOT_USER_INFORMATION;
+            }
+            throw new TodoImplementException();
+        }
+
+        @Override
+        protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
+        {
+            throw new TodoImplementException();
+        }
+
+        @Override
+        protected Collection<UserInformation> onListUserInformation() throws FaultException
+        {
+            throw new TodoImplementException();
+        }
+
+        public static TestingAuthorization createInstance(Configuration configuration) throws IllegalStateException
+        {
+            TestingAuthorization authorization = new TestingAuthorization(configuration);
+            Authorization.setInstance(authorization);
+            return authorization;
+        }
     }
 }

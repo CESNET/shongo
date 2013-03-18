@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -28,7 +29,7 @@ public class ExecutorServiceImpl extends Component
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see Authorization
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 

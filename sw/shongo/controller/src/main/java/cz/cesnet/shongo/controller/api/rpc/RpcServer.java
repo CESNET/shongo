@@ -3,10 +3,11 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.Fault;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultMessage;
 import cz.cesnet.shongo.fault.FaultThrowable;
 import cz.cesnet.shongo.util.Timer;
@@ -289,7 +290,12 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             String methodName = pMethod.getName();
             UserInformation userInformation = null;
             if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
-                userInformation = Authorization.getInstance().getUserInformation((SecurityToken) pArgs[0]);
+                try {
+                    userInformation = Authorization.getInstance().getUserInformation((SecurityToken) pArgs[0]);
+                }
+                catch (FaultException exception) {
+                    throw convertException(exception, null);
+                }
             }
             if (userInformation != null) {
                 Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
