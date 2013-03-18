@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
@@ -565,6 +566,22 @@ public abstract class ReservationTask
         public CacheTransaction getCacheTransaction()
         {
             return cacheTransaction;
+        }
+
+        /**
+         * @param userIds       to be checked
+         * @param authorization which is used for retrieving owners for the {@link #reservationRequest}
+         * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
+         *         false otherwise
+         */
+        public boolean containsOwnerId(Set<String> userIds, Authorization authorization)
+        {
+            if (reservationRequest == null) {
+                throw new IllegalStateException("Reservation request must not be null.");
+            }
+            Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
+            ownerIds.retainAll(userIds);
+            return ownerIds.size() > 0;
         }
     }
 }

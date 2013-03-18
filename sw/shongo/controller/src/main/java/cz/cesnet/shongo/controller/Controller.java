@@ -386,6 +386,7 @@ public class Controller
 
         // Initialize authorization
         authorization = Authorization.createInstance(configuration);
+        authorization.setEntityManagerFactory(entityManagerFactory);
 
         logger.info("Controller for domain '{}' is starting...", Domain.getLocalDomain().getName());
 

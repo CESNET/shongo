@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
@@ -249,8 +250,12 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         if (context.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
             String userId = context.getUserId();
-            if (!Authorization.PermissionHelper.isUserOwner(userId, resource)) {
+            Authorization authorization = Authorization.getInstance();
+            Set<String> resourceOwnerIds = authorization.getUserIdsWithRole(resource, Role.OWNER);
+            if (!context.containsOwnerId(resourceOwnerIds, authorization)) {
                 throw new UserNotOwnerReport(userId).exception();
+            }
+            if (!Authorization.PermissionHelper.isUserOwner(userId, resource)) {
             }
         }
 

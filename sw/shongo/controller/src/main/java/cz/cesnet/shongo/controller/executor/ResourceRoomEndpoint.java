@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
@@ -8,6 +9,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
@@ -232,7 +234,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         for (Alias alias : getAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        for (UserInformation executableOwner : Authorization.PermissionHelper.getExecutableOwners(this)) {
+        Authorization authorization = Authorization.getInstance();
+        for ( UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER) ) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;

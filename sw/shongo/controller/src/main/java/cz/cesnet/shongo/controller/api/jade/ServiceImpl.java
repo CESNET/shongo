@@ -5,6 +5,8 @@ import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.MessageNotification;
@@ -93,8 +95,9 @@ public class ServiceImpl implements Service
                         throw new CommandException(
                                 String.format("No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
-                    for ( PersonInformation person : Authorization.PermissionHelper.getExecutableOwners(roomEndpoint) ) {
-                        recipients.add(person);
+                    Authorization authorization = Authorization.getInstance();
+                    for ( UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER) ) {
+                        recipients.add(user);
                     }
                 }
                 finally {

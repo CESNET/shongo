@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.io.InputStream;
 import java.util.*;
 
@@ -63,6 +65,11 @@ public class Authorization
         ROOT_USER_INFORMATION.setUserId(ROOT_USER_ID);
         ROOT_USER_INFORMATION.setFirstName("root");
     }
+
+    /**
+     * @see EntityManagerFactory
+     */
+    private EntityManagerFactory entityManagerFactory;
 
     /**
      * URL to authorization server.
@@ -102,6 +109,14 @@ public class Authorization
     public void destroy()
     {
         authorization = null;
+    }
+
+    /**
+     * @param entityManagerFactory sets the {@link #entityManagerFactory}
+     */
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
@@ -379,7 +394,7 @@ public class Authorization
 
         // TODO: Fetch ACL from authorization server
 
-        EntityManager entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             for (Class<? extends OwnedPersistentObject> type : PUBLIC_ENTITIES) {
                 List entities = entityManager.createQuery(
@@ -407,7 +422,7 @@ public class Authorization
 
         // TODO: Fetch ACL from authorization server
 
-        EntityManager entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             Class type = entityId.getEntityClass();
 
@@ -596,6 +611,30 @@ public class Authorization
         return entities;
     }
 
+    public Set<String> getUserIdsWithRole(PersistentObject persistentObject, Role role)
+    {
+        EntityIdentifier entityId = new EntityIdentifier(persistentObject);
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = fetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        }
+        Set<String> userIds = aclEntityState.getUserIdsByRole(role);
+        if (userIds == null) {
+            return Collections.emptySet();
+        }
+        return userIds;
+    }
+
+    public Collection<UserInformation> getUsersWithRole(PersistentObject persistentObject, Role role)
+    {
+        List<UserInformation> users = new LinkedList<UserInformation>();
+        for (String userId : getUserIdsWithRole(persistentObject, role)) {
+            users.add(getUserInformation(userId));
+        }
+        return users;
+    }
+
     /**
      * Single instance of {@link Authorization} which is used for retrieving {@link UserInformation}.
      */
@@ -642,17 +681,6 @@ public class Authorization
         public static boolean isUserOwner(String userId, Resource resource)
         {
             return resource.getUserId().equals(userId);
-        }
-
-        /**
-         * @param executable
-         * @return list of {@link UserInformation}s for owners of given {@code executable}
-         */
-        public static List<UserInformation> getExecutableOwners(Executable executable)
-        {
-            List<UserInformation> executableOwners = new LinkedList<UserInformation>();
-            executableOwners.add(getInstance().getUserInformation(executable.getUserId()));
-            return executableOwners;
         }
     }
 
