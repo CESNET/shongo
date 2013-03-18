@@ -149,7 +149,7 @@ public class EntityIdentifier
      * @return entity type string
      * @throws IllegalStateException when entity type class isn't mapped to any entity type
      */
-    private synchronized static EntityType getEntityType(Class entityClass)
+    public synchronized static EntityType getEntityType(Class entityClass)
     {
         EntityType entityType = entityTypeByClass.get(entityClass);
         if (entityType == null) {

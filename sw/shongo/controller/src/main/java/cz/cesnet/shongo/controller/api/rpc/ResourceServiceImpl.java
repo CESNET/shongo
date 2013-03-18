@@ -96,11 +96,12 @@ public class ResourceServiceImpl extends Component
 
         resourceApi.setupNewEntity();
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
         cz.cesnet.shongo.controller.resource.Resource resource;
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             // Create resource from API
             resource = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resourceApi, entityManager);
             resource.setUserId(userId);
@@ -110,14 +111,6 @@ public class ResourceServiceImpl extends Component
             resourceManager.create(resource);
 
             entityManager.getTransaction().commit();
-
-            // Create ACL
-            authorization.onEntityCreated(userId, resource);
-
-            // Add resource to the cache
-            if (cache != null) {
-                cache.addResource(resource, entityManager);
-            }
         }
         catch (FaultException exception) {
             throw exception;
@@ -130,6 +123,14 @@ public class ResourceServiceImpl extends Component
                 entityManager.getTransaction().rollback();
             }
             entityManager.close();
+        }
+
+        // Create owner ACL
+        authorization.createAclRecord(userId, resource, Role.OWNER);
+
+        // Add resource to the cache
+        if (cache != null) {
+            cache.addResource(resource, entityManager);
         }
 
         // Return resource shongo-id
@@ -192,6 +193,7 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
+        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
         try {
             entityManager.getTransaction().begin();
 
@@ -201,8 +203,7 @@ public class ResourceServiceImpl extends Component
 
             authorization.checkPermission(userId, entityId, Permission.WRITE);
 
-            // Remove ACL
-            authorization.onEntityDeleted(resource);
+            aclRecordsToDelete = authorization.getAclRecordsForDeletion(resource);
 
             // Delete the resource
             resourceManager.delete(resource);
@@ -224,8 +225,10 @@ public class ResourceServiceImpl extends Component
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
                     ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(Resource.class, entityId.getPersistenceId());
+                    return;
                 }
             }
+            throw new FaultException(exception);
         }
         catch (Exception exception) {
             throw new FaultException(exception);
@@ -236,6 +239,8 @@ public class ResourceServiceImpl extends Component
             }
             entityManager.close();
         }
+
+        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override

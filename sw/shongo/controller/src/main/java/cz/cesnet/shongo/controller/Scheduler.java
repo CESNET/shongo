@@ -1,14 +1,12 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TransactionHelper;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
@@ -19,6 +17,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotUsableReport;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -92,25 +91,24 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
+
+        // Storage for reservation notifications
+        Map<Long, ReservationNotification> notificationByReservationId =
+                new HashMap<Long, ReservationNotification>();
+        // Map from new reservations to old reservations identifiers
+        Map<Reservation, Long> newReservations = new HashMap<Reservation, Long>();
+        // Collections of ACL records for deletion
+        Set<AclRecord> aclRecordsToDelete = new HashSet<AclRecord>();
+
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-
         try {
             entityManager.getTransaction().begin();
 
-            // Collections of reservations identifiers for updating ACL
-            Set<EntityIdentifier> newReservationIds = new HashSet<EntityIdentifier>();
-            Set<EntityIdentifier> deletedReservationIds = new HashSet<EntityIdentifier>();
-
-            // Store reservation notifications
-            Map<Long, ReservationNotification> notificationByReservationId =
-                    new HashMap<Long, ReservationNotification>();
-
             // Get all reservations which should be deleted, and store theirs reservation request
-            Map<Reservation, AbstractReservationRequest> toDeleteReservations =
-                    new HashMap<Reservation, AbstractReservationRequest>();
+            Map<Reservation, ReservationRequest> toDeleteReservations = new HashMap<Reservation, ReservationRequest>();
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
-                toDeleteReservations.put(reservation, reservation.getReservationRequest());
+                toDeleteReservations.put(reservation, (ReservationRequest) reservation.getReservationRequest());
             }
 
             // Get all reservation requests which should be allocated
@@ -136,7 +134,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             });
 
             // Keep track of old reservations for reservation requests (for determination of modified reservations)
-            Map<AbstractReservationRequest, Long> oldReservationIds = new HashMap<AbstractReservationRequest, Long>();
+            Map<ReservationRequest, Long> oldReservationIds = new HashMap<ReservationRequest, Long>();
 
             // Delete all reservations which should be deleted
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -148,10 +146,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                         ReservationNotification.Type.DELETED, reservation, entityManager));
 
                 // Add record for updating ACL
-                deletedReservationIds.add(new EntityIdentifier(reservation));
+                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation));
 
                 // Delete the reservation
-                AbstractReservationRequest reservationRequest = toDeleteReservations.get(reservation);
+                ReservationRequest reservationRequest = toDeleteReservations.get(reservation);
                 if (reservationRequest != null) {
                     reservationRequest.removeReservation(reservation);
                     reservationRequestManager.update(reservationRequest);
@@ -167,43 +165,14 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 Long oldReservationId = oldReservationIds.get(reservationRequest);
                 Reservation newReservation = allocateReservationRequest(reservationRequest, entityManager);
                 if (newReservation != null) {
-                    // Add record for updating ACL
-                    newReservationIds.add(new EntityIdentifier(newReservation));
+                    newReservations.put(newReservation, oldReservationId);
                 }
-
-                throw new TodoImplementException("Continue implementing notification and ACL update");
-                /*if (oldReservationId != null) {
-                    oldReservationIds.remove(reservationRequest);
-                    if (newReservation != null) {
-                        // Remove notification about deleted reservation
-                        notificationByReservationId.remove(oldReservationId);
-                        // Add notification about modified reservation
-                        notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                                ReservationNotification.Type.MODIFIED, newReservation, entityManager));
-                    }
-                }
-                else if (newReservation != null) {
-                    notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                            ReservationNotification.Type.NEW, newReservation, entityManager));
-                }*/
             }
 
             // Delete all executables which should be deleted
             executableManager.deleteAllNotReferenced();
 
             entityManager.getTransaction().commit();
-
-            // TODO: Create new/modified reservation notifications
-
-            // Notify about reservations
-            if (notificationByReservationId.size() > 0) {
-                if ( notificationManager != null && notificationManager.hasExecutors()) {
-                    logger.debug("Notifying about changes in reservations...");
-                    for (ReservationNotification reservationNotification : notificationByReservationId.values()) {
-                        notificationManager.executeNotification(reservationNotification);
-                    }
-                }
-            }
         }
         catch (Exception exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -216,6 +185,44 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 logger.error("Cache resetting failed", resettingException);
             }
             throw new IllegalStateException("Scheduler failed", exception);
+        }
+
+        // Update ACL
+        try {
+            authorization.deleteAclRecords(aclRecordsToDelete);
+            for (Reservation reservation : newReservations.keySet()) {
+                authorization.createAclRecordsForChildEntity(reservation.getReservationRequest(), reservation);
+            }
+        } catch (FaultException exception) {
+            throw new IllegalStateException("Assigning permissions failed", exception);
+        }
+
+        // Create new/modified reservation notifications
+        for (Map.Entry<Reservation, Long> newReservationEntry : newReservations.entrySet()) {
+            Reservation newReservation = newReservationEntry.getKey();
+            Long oldReservationId = newReservationEntry.getValue();
+            if (oldReservationId == null) {
+                // Add notification about new reservation
+                notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
+                        ReservationNotification.Type.NEW, newReservation, entityManager));
+            }
+            else {
+                // Remove notification about deleted reservation
+                notificationByReservationId.remove(oldReservationId);
+                // Add notification about modified reservation
+                notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
+                        ReservationNotification.Type.MODIFIED, newReservation, entityManager));
+            }
+        }
+
+        // Notify about reservations
+        if (notificationByReservationId.size() > 0) {
+            if ( notificationManager != null && notificationManager.hasExecutors()) {
+                logger.debug("Notifying about changes in reservations...");
+                for (ReservationNotification reservationNotification : notificationByReservationId.values()) {
+                    notificationManager.executeNotification(reservationNotification);
+                }
+            }
         }
     }
 

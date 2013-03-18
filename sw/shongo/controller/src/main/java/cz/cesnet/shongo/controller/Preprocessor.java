@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
@@ -83,11 +84,11 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
     {
         // Store created and deleted reservation requests for updating ACL
         Set<ReservationRequest> createdReservationRequests = new HashSet<ReservationRequest>();
-        Set<ReservationRequest> deletedReservationRequests = new HashSet<ReservationRequest>();
+        Set<AclRecord> aclRecordsToDelete = new HashSet<AclRecord>();
 
-        entityManager.getTransaction().begin();
+        reservationRequestSet.checkPersisted();
         try {
-            reservationRequestSet.checkPersisted();
+            entityManager.getTransaction().begin();
 
             logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
 
@@ -176,7 +177,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestManager.delete(reservationRequest);
 
                 // Remember for updating ACL
-                deletedReservationRequests.add(reservationRequest);
+                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
             }
 
             // All reservation requests that remains in list of all must be deleted
@@ -185,7 +186,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestManager.delete(reservationRequest);
 
                 // Remember for updating ACL
-                deletedReservationRequests.add(reservationRequest);
+                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
             }
 
             // Update reservation request
@@ -212,11 +213,9 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
         // Update ACL
         if (authorization != null) {
-            for (ReservationRequest reservationRequest : deletedReservationRequests) {
-                authorization.onEntityDeleted(reservationRequest);
-            }
+            authorization.deleteAclRecords(aclRecordsToDelete);
             for (ReservationRequest reservationRequest : createdReservationRequests) {
-                authorization.onEntityChildCreated(reservationRequestSet, reservationRequest);
+                authorization.createAclRecordsForChildEntity(reservationRequestSet, reservationRequest);
             }
         }
     }

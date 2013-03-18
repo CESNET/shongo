@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.EntityType;
@@ -13,6 +12,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
@@ -204,91 +204,6 @@ public abstract class Authorization
         logger.debug("Retrieving list of user information...");
 
         return onListUserInformation();
-    }
-
-    /**
-     * Create a new {@link AclRecord}.
-     *
-     * @param userId   of user for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
-     * @return new {@link AclRecord}
-     * @throws FaultException when the creation failed.
-     */
-    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
-    {
-        logger.debug("Creating ACL record (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
-
-        EntityType entityType = entityId.getEntityType();
-        if (!entityType.allowsRole(role)) {
-            CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
-        }
-
-        AclRecord newAclRecord = onCreateAclRecord(userId, entityId, role);
-
-        // Update AclUserState cache
-        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-        if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
-            cache.putAclUserStateByUserId(userId, aclUserState);
-        }
-        AclRecord addedAclRecord = aclUserState.addAclRecord(newAclRecord);
-        // ACL already exists so return it
-        if (addedAclRecord != newAclRecord) {
-            return addedAclRecord;
-        }
-
-        // Update AclRecord cache
-        cache.putAclRecordById(newAclRecord);
-
-        // Update AclEntityState cache
-        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState == null) {
-            aclEntityState = onFetchAclEntityState(entityId);
-            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
-        }
-        aclEntityState.addAclRecord(newAclRecord);
-
-        onAfterCreateAclRecord(newAclRecord);
-
-        return newAclRecord;
-    }
-
-    /**
-     * Delete given {@code aclRecord}.
-     *
-     * @param aclRecord to be deleted
-     * @throws FaultException when the deletion failed
-     */
-    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
-    {
-        onBeforeDeleteAclRecord(aclRecord);
-
-        logger.debug("Deleting ACL record (user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
-
-        onDeleteAclRecord(aclRecord);
-
-        // Update AclRecord cache
-        cache.removeAclRecordById(aclRecord);
-
-        // Update AclUserState cache
-        String userId = aclRecord.getUserId();
-        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-        if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
-            cache.putAclUserStateByUserId(userId, aclUserState);
-        }
-        aclUserState.removeAclRecord(aclRecord);
-
-        // Update AclEntityState cache
-        EntityIdentifier entityId = aclRecord.getEntityId();
-        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState == null) {
-            aclEntityState = onFetchAclEntityState(entityId);
-            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
-        }
-        aclEntityState.removeAclRecord(aclRecord);
     }
 
     /**
@@ -627,17 +542,29 @@ public abstract class Authorization
         return authorization;
     }
 
-    public void onEntityCreated(String userId, PersistentObject entity)
-            throws FaultException
+    public PersistentObject getEntity(EntityIdentifier entityId) throws FaultException
     {
-        EntityIdentifier entityIdentifier = new EntityIdentifier(entity);
-        EntityType entityType = entityIdentifier.getEntityType();
-        if (entityType.allowsRole(Role.OWNER)) {
-            authorization.createAclRecord(userId, entityIdentifier, Role.OWNER);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            return entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+        }
+        finally {
+            entityManager.close();
         }
     }
 
-    public void onEntityChildCreated(PersistentObject parentEntity, PersistentObject childEntity)
+    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    {
+        PersistentObject entity = getEntity(entityId);
+        return createAclRecordsWithChildren(userId, entityId, role, entity);
+    }
+
+    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
+    {
+        return createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
+    }
+
+    public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
             throws FaultException
     {
         EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
@@ -646,102 +573,172 @@ public abstract class Authorization
         for (AclRecord aclRecord : authorization.getAclRecords(parentEntityId)) {
             Role role = aclRecord.getRole();
             if (childEntityType.allowsRole(role)) {
-                authorization.createAclRecord(aclRecord.getUserId(), childEntityId, role);
+                authorization.createAclRecordsWithChildren(aclRecord.getUserId(), childEntityId, role, childEntity);
             }
         }
     }
 
-    public void onEntityDeleted(PersistentObject entity) throws FaultException
+    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
     {
-        EntityIdentifier entityIdentifier = new EntityIdentifier(entity);
-        for (AclRecord aclRecord : authorization.getAclRecords(entityIdentifier)) {
-            authorization.deleteAclRecord(aclRecord);
-        }
-    }
+        deleteSingleAclRecord(aclRecord);
 
-    public void onAfterCreateAclRecord(AclRecord aclRecord) throws FaultException
-    {
+        // Delete all children records
         String userId = aclRecord.getUserId();
         EntityIdentifier entityId = aclRecord.getEntityId();
-        Role role = aclRecord.getRole();
-
-        // Propagate role to child entities
-        for (EntityIdentifier childEntityId : getChildEntities(entityId)) {
-            if (childEntityId.getEntityType().allowsRole(role)) {
-                authorization.createAclRecord(userId, childEntityId, role);
-            }
+        PersistentObject entity = getEntity(entityId);
+        for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
+            deleteSingleAclRecord(childAclRecord);
         }
     }
 
-    public void onBeforeDeleteAclRecord(AclRecord aclRecord) throws FaultException
+    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity) throws FaultException
     {
+        EntityIdentifier entityId = new EntityIdentifier(entity);
+        Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
+        aclRecords.addAll(getAclRecords(null, entityId, null));
+        aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
+        return aclRecords;
+    }
+
+    public void deleteAclRecords(Collection<AclRecord> aclRecords) throws FaultException
+    {
+        for (AclRecord aclRecord : aclRecords) {
+            deleteSingleAclRecord(aclRecord);
+        }
+    }
+
+    /**
+     * Create a new single {@link AclRecord}.
+     *
+     * @param userId   of user for which the ACL is created.
+     * @param entityId of entity for which the ACL is created.
+     * @param role     which is created for given user and given entity
+     * @return new {@link AclRecord}
+     * @throws FaultException when the creation failed.
+     */
+    private AclRecord createSingleAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    {
+        logger.debug("Creating ACL record (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+
+        EntityType entityType = entityId.getEntityType();
+        if (!entityType.allowsRole(role)) {
+            CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
+        }
+
+        AclRecord newAclRecord = onCreateAclRecord(userId, entityId, role);
+
+        // Update AclUserState cache
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = onFetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        AclRecord addedAclRecord = aclUserState.addAclRecord(newAclRecord);
+        // ACL already exists so return it
+        if (addedAclRecord != newAclRecord) {
+            return addedAclRecord;
+        }
+
+        // Update AclRecord cache
+        cache.putAclRecordById(newAclRecord);
+
+        // Update AclEntityState cache
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = onFetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        }
+        aclEntityState.addAclRecord(newAclRecord);
+
+        return newAclRecord;
+    }
+
+    /**
+     * Delete given single {@code aclRecord}.
+     *
+     * @param aclRecord to be deleted
+     * @throws FaultException when the deletion failed
+     */
+    public void deleteSingleAclRecord(AclRecord aclRecord) throws FaultException
+    {
+        logger.debug("Deleting ACL record (user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
+
+        onDeleteAclRecord(aclRecord);
+
+        // Update AclRecord cache
+        cache.removeAclRecordById(aclRecord);
+
+        // Update AclUserState cache
         String userId = aclRecord.getUserId();
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = onFetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        aclUserState.removeAclRecord(aclRecord);
+
+        // Update AclEntityState cache
         EntityIdentifier entityId = aclRecord.getEntityId();
-        Role role = aclRecord.getRole();
-
-        // Propagate role to child entities
-        for (EntityIdentifier childEntityId : getChildEntities(entityId)) {
-            if (childEntityId.getEntityType().allowsRole(role)) {
-                for (AclRecord childAclRecord : authorization.getAclRecords(userId, childEntityId, role)) {
-                    authorization.deleteAclRecord(childAclRecord);
-                }
-            }
+        AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
+        if (aclEntityState == null) {
+            aclEntityState = onFetchAclEntityState(entityId);
+            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
+        aclEntityState.removeAclRecord(aclRecord);
     }
 
-    public Collection<EntityIdentifier> getChildEntities(EntityIdentifier entityId)
+    private AclRecord createAclRecordsWithChildren(String userId, EntityIdentifier entityId, Role role,
+            PersistentObject entity) throws FaultException
     {
-        List<EntityIdentifier> childEntityIds = new LinkedList<EntityIdentifier>();
-        switch (entityId.getEntityType()) {
-            case RESERVATION_REQUEST: {
-                EntityManager entityManager = entityManagerFactory.createEntityManager();
-                try {
-                    // Child reservation requests
-                    List<ReservationRequest> reservationRequests = entityManager.createQuery(
-                            "SELECT request FROM ReservationRequestSet requestSet"
-                                    + " LEFT JOIN requestSet.reservationRequests request"
-                                    + " WHERE requestSet.id = :id AND request IS NOT NULL", ReservationRequest.class)
-                            .setParameter("id", entityId.getPersistenceId()).getResultList();
-                    for (ReservationRequest reservationRequest : reservationRequests) {
-                        childEntityIds.add(new EntityIdentifier(reservationRequest));
-                    }
-                    // Allocated reservations
-                    List<Reservation> reservations = entityManager.createQuery(
-                            "SELECT reservation FROM Reservation reservation" +
-                                    " WHERE reservation.reservationRequest.id = :id", Reservation.class)
-                            .setParameter("id", entityId.getPersistenceId()).getResultList();
-                    for (Reservation reservation : reservations) {
-                        childEntityIds.add(new EntityIdentifier(reservation));
-                    }
-                }
-                finally {
-                    entityManager.close();
-                }
-                break;
+        AclRecord aclRecord = createSingleAclRecord(userId, entityId, role);
+        for (PersistentObject childEntity : getChildEntities(entity)) {
+            EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
+            if (role == null || !childEntityId.getEntityType().allowsRole(role)) {
+                continue;
             }
-            case RESERVATION: {
-                EntityManager entityManager = entityManagerFactory.createEntityManager();
-                try {
-                    Reservation reservation = entityManager.find(Reservation.class, entityId.getPersistenceId());
-                    getReservationChildEntities(reservation, childEntityIds);
-                }
-                finally {
-                    entityManager.close();
-                }
-                break;
-            }
+            createAclRecordsWithChildren(userId, childEntityId, role, childEntity);
         }
-        return childEntityIds;
+        return aclRecord;
     }
 
-    private static void getReservationChildEntities(Reservation reservation, List<EntityIdentifier> childEntityIds)
+    private Collection<AclRecord> getChildAclRecords(String userId, EntityIdentifier entityId, Role role,
+            PersistentObject entity) throws FaultException
     {
-        Executable executable = reservation.getExecutable();
-        if (executable != null) {
-            childEntityIds.add(new EntityIdentifier(executable));
+        Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
+        for (PersistentObject childEntity : getChildEntities(entity)) {
+            EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
+            if (role != null && !childEntityId.getEntityType().allowsRole(role)) {
+                continue;
+            }
+            aclRecords.addAll(getAclRecords(userId, childEntityId, role));
+            aclRecords.addAll(getChildAclRecords(userId, childEntityId, role, childEntity));
         }
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            getReservationChildEntities(childReservation, childEntityIds);
+        return aclRecords;
+    }
+
+    private Collection<PersistentObject> getChildEntities(PersistentObject entity)
+    {
+        Collection<PersistentObject> childEntities = new LinkedList<PersistentObject>();
+        if (entity instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
+            childEntities.addAll(reservationRequestSet.getReservationRequests());
         }
+        else if (entity instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) entity;
+            Reservation reservation = reservationRequest.getReservation();
+            if (reservation != null) {
+                childEntities.add(reservation);
+            }
+        }
+        else if (entity instanceof Reservation) {
+            Reservation reservation = (Reservation) entity;
+            Executable executable = reservation.getExecutable();
+            childEntities.addAll(reservation.getChildReservations());
+            if (executable != null) {
+                childEntities.add(executable);
+            }
+        }
+        return childEntities;
     }
 }

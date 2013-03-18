@@ -128,11 +128,12 @@ public class ReservationServiceImpl extends Component
         }
         reservationRequestApi.setupNewEntity();
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
+            entityManager.getTransaction().begin();
+
             reservationRequest = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                     reservationRequestApi, entityManager);
             reservationRequest.setUserId(userId);
@@ -142,9 +143,6 @@ public class ReservationServiceImpl extends Component
             reservationRequestManager.create(reservationRequest);
 
             entityManager.getTransaction().commit();
-
-            // Create ACL
-            authorization.onEntityCreated(userId, reservationRequest);
         }
         catch (FaultException exception) {
             throw exception;
@@ -158,6 +156,9 @@ public class ReservationServiceImpl extends Component
             }
             entityManager.close();
         }
+
+        // Create owner ACL
+        authorization.createAclRecord(userId, reservationRequest, Role.OWNER);
 
         return EntityIdentifier.formatId(reservationRequest);
     }
@@ -267,6 +268,7 @@ public class ReservationServiceImpl extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
+        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
         try {
             entityManager.getTransaction().begin();
 
@@ -277,8 +279,7 @@ public class ReservationServiceImpl extends Component
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
-            // Remove ACL
-            authorization.onEntityDeleted(reservationRequest);
+            aclRecordsToDelete = authorization.getAclRecordsForDeletion(reservationRequest);
 
             reservationRequestManager.delete(reservationRequest);
 
@@ -296,6 +297,8 @@ public class ReservationServiceImpl extends Component
             }
             entityManager.close();
         }
+
+        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override
