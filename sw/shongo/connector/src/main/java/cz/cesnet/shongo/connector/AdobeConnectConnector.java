@@ -596,7 +596,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public String dialParticipant(String roomId, Alias alias) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
     @java.lang.Override
@@ -725,7 +725,34 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if (sco.getAttributeValue("type").equals("meetings")) {
-                    meetingsFolderID = sco.getAttributeValue("sco-id");
+                    // Find sco-id of /shongo folder
+                    HashMap<String,String> searchAttributes = new HashMap<String, String>();
+                    searchAttributes.put("sco-id",sco.getAttributeValue("sco-id"));
+                    searchAttributes.put("filter-is-folder","1");
+
+                    Element shongoFolder = request("sco-contents",searchAttributes);
+
+                    for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
+                        if (folder.getChildText("name").equals("shongo")) {
+                            meetingsFolderID = folder.getAttributeValue("sco-id");
+                        }
+                    }
+
+                    // Creates /shongo folder if not exists
+                    if (meetingsFolderID == null) {
+                        logger.info("Folder /shongo for shongo meetings does not exists, creating...");
+
+                        HashMap<String,String> folderAttributes = new HashMap<String, String>();
+                        folderAttributes.put("folder-id",sco.getAttributeValue("sco-id"));
+                        folderAttributes.put("name","shongo");
+                        folderAttributes.put("type","folder");
+
+                        Element folder = request("sco-update",folderAttributes);
+
+                        meetingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
+
+                        logger.info("Folder /shongo for meetings created with sco-id: " + meetingsFolderID);
+                    }
 
                     break;
                 }
@@ -947,6 +974,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public static void main(String[] args) throws Exception
     {
         try {
+            /* Testovaci AC server */
             String server = "actest-w3.cesnet.cz";
 
             AdobeConnectConnector acc = new AdobeConnectConnector();
@@ -954,16 +982,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             acc.connect(address, "admin", "cip9skovi3t2");
 
-/*            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
-            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_URI,"xxx/testi")); }});
-            room.setOption(Room.Option.PARTICIPANTS,new ArrayList<String>() {{ add("pavelka@cesnet.cz"); }});
+            /************************/
 
-            String scoId = acc.createRoom(room);
-
-            System.out.println(scoId);
-            Thread.sleep(15000);
-            acc.deleteRoom(scoId); */
-
+            System.out.println(acc.getMeetingsFolderID());
 
             acc.disconnect();
 
