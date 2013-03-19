@@ -167,15 +167,10 @@ sub load_configuration
     $self->{'client'}->connect($controller_url);
 
     # Setup authorization
-    if ( defined($configuration->{'authorization'}) ) {
-        my $authorization = $configuration->{'authorization'};
-        if ( defined($authorization->{'client-id'}) ) {
-            $self->{'authorization'}->set_client_id($authorization->{'client-id'});
-        }
-        if ( defined($authorization->{'redirect-uri'}) ) {
-            $self->{'authorization'}->set_redirect_uri($authorization->{'redirect-uri'});
-        }
-    }
+    my $authorization = $configuration->{'authorization'};
+    $self->{'authorization'}->set_client_id($authorization->{'client-id'});
+    $self->{'authorization'}->set_redirect_uri($authorization->{'redirect-uri'});
+    $self->{'authorization'}->set_secret($authorization->{'secret'});
 }
 
 #

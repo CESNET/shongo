@@ -26,11 +26,7 @@ sub new()
 {
     my $class = shift;
     my ($state) = @_;
-    my $self = Shongo::Authorization->new(
-        'cz.cesnet.shongo.client-web-local',
-        'http://127.0.0.1:8182/',
-        $state
-    );
+    my $self = Shongo::Authorization->new($state);
     bless $self, $class;
 
     return $self;
