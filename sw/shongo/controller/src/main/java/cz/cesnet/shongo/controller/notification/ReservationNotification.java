@@ -38,9 +38,8 @@ public class ReservationNotification extends Notification
      *
      * @param type
      * @param reservation
-     * @param entityManager
      */
-    public ReservationNotification(Type type, Reservation reservation, EntityManager entityManager)
+    public ReservationNotification(Type type, Reservation reservation)
     {
         this.type = type;
 
@@ -50,9 +49,7 @@ public class ReservationNotification extends Notification
         }
         addRecipientByReservation(reservation);
 
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AbstractReservationRequest reservationRequest = reservationRequestManager.getByReservation(reservation.getId());
-
+        AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
         try {
             if (reservationRequest != null) {
                 this.reservationRequest = reservationRequest.toApi();

@@ -160,7 +160,6 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 else {
                     reservationRequest = new ReservationRequest();
                     reservationRequest.setUserId(reservationRequestSet.getUserId());
-                    reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
                     reservationRequest.setSlot(slot);
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
@@ -177,7 +176,9 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestManager.delete(reservationRequest);
 
                 // Remember for updating ACL
-                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
+                if (authorization != null) {
+                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
+                }
             }
 
             // All reservation requests that remains in list of all must be deleted
@@ -186,7 +187,9 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestManager.delete(reservationRequest);
 
                 // Remember for updating ACL
-                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
+                if (authorization != null) {
+                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
+                }
             }
 
             // Update reservation request

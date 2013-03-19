@@ -29,11 +29,6 @@ import java.util.Map;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
-     * @see {@link CreatedBy}.
-     */
-    private CreatedBy createdBy;
-
-    /**
      * Start date/time from which the reservation is requested.
      */
     private DateTime slotStart;
@@ -47,6 +42,11 @@ public class ReservationRequest extends AbstractReservationRequest
      * State of the compartment request.
      */
     private State state;
+
+    /**
+     * {@link ReservationRequestSet} for which the {@link ReservationRequest} is created.
+     */
+    private ReservationRequestSet reservationRequestSet;
 
     /**
      * Constructor.
@@ -64,24 +64,6 @@ public class ReservationRequest extends AbstractReservationRequest
     {
         setUserId(userId);
         setPurpose(purpose);
-    }
-
-    /**
-     * @return {@link #createdBy}
-     */
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    public CreatedBy getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    /**
-     * @return {@link #createdBy}
-     */
-    public void setCreatedBy(CreatedBy createdBy)
-    {
-        this.createdBy = createdBy;
     }
 
     /**
@@ -175,6 +157,35 @@ public class ReservationRequest extends AbstractReservationRequest
     public void clearState()
     {
         this.state = null;
+    }
+
+    /**
+     * @return {@link #reservationRequestSet}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public ReservationRequestSet getReservationRequestSet()
+    {
+        return reservationRequestSet;
+    }
+
+    /**
+     * @param reservationRequestSet sets the {@link #reservationRequestSet}
+     */
+    public void setReservationRequestSet(ReservationRequestSet reservationRequestSet)
+    {
+        // Manage bidirectional association
+        if (reservationRequestSet != this.reservationRequestSet) {
+            if (this.reservationRequestSet != null) {
+                ReservationRequestSet oldReservationRequestSet = this.reservationRequestSet;
+                this.reservationRequestSet = null;
+                oldReservationRequestSet.removeReservationRequest(this);
+            }
+            if (reservationRequestSet != null) {
+                this.reservationRequestSet = reservationRequestSet;
+                this.reservationRequestSet.addReservationRequest(this);
+            }
+        }
     }
 
     /**
@@ -302,17 +313,6 @@ public class ReservationRequest extends AbstractReservationRequest
         return getState().equals(State.ALLOCATED) && getReservation() != null;
     }
 
-    @PrePersist
-    protected void onCreate()
-    {
-        super.onCreate();
-
-        // Reservation requests are by default created by user
-        if (createdBy == null) {
-            createdBy = CreatedBy.USER;
-        }
-    }
-
     @Override
     public void validate() throws FaultException
     {
@@ -368,22 +368,6 @@ public class ReservationRequest extends AbstractReservationRequest
             setSlot(reservationRequestApi.getSlot());
         }
         super.fromApi(api, entityManager);
-    }
-
-    /**
-     * Enumeration defining who created the {@link ReservationRequest}.
-     */
-    public static enum CreatedBy
-    {
-        /**
-         * {@link ReservationRequest} was created by a user.
-         */
-        USER,
-
-        /**
-         * {@link ReservationRequest} was created by the {@link cz.cesnet.shongo.controller.Controller}.
-         */
-        CONTROLLER
     }
 
     /**

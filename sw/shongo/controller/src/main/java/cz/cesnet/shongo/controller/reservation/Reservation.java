@@ -7,6 +7,8 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -86,6 +88,22 @@ public class Reservation extends OwnedPersistentObject
     @Access(AccessType.FIELD)
     public AbstractReservationRequest getReservationRequest()
     {
+        return reservationRequest;
+    }
+
+    /**
+     * @return top {@link AbstractReservationRequest} which was created by a user
+     */
+    @Transient
+    public AbstractReservationRequest getTopReservationRequest()
+    {
+        if (reservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) this.reservationRequest;
+            ReservationRequestSet reservationRequestSet = reservationRequest.getReservationRequestSet();
+            if (reservationRequestSet != null) {
+                return reservationRequestSet;
+            }
+        }
         return reservationRequest;
     }
 

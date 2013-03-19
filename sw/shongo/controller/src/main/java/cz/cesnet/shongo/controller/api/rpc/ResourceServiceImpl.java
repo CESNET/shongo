@@ -111,6 +111,11 @@ public class ResourceServiceImpl extends Component
             resourceManager.create(resource);
 
             entityManager.getTransaction().commit();
+
+            // Add resource to the cache
+            if (cache != null) {
+                cache.addResource(resource, entityManager);
+            }
         }
         catch (FaultException exception) {
             throw exception;
@@ -127,11 +132,6 @@ public class ResourceServiceImpl extends Component
 
         // Create owner ACL
         authorization.createAclRecord(userId, resource, Role.OWNER);
-
-        // Add resource to the cache
-        if (cache != null) {
-            cache.addResource(resource, entityManager);
-        }
 
         // Return resource shongo-id
         return EntityIdentifier.formatId(resource);

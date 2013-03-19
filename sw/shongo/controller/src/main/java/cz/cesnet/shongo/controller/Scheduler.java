@@ -142,11 +142,15 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 Long reservationId = reservation.getId();
 
                 // Add notification
-                notificationByReservationId.put(reservationId, new ReservationNotification(
-                        ReservationNotification.Type.DELETED, reservation, entityManager));
+                if (notificationManager != null) {
+                    notificationByReservationId.put(reservationId, new ReservationNotification(
+                            ReservationNotification.Type.DELETED, reservation));
+                }
 
                 // Add record for updating ACL
-                aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation));
+                if (authorization != null) {
+                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation));
+                }
 
                 // Delete the reservation
                 ReservationRequest reservationRequest = toDeleteReservations.get(reservation);
@@ -188,36 +192,41 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Update ACL
-        try {
-            authorization.deleteAclRecords(aclRecordsToDelete);
-            for (Reservation reservation : newReservations.keySet()) {
-                authorization.createAclRecordsForChildEntity(reservation.getReservationRequest(), reservation);
+        if (authorization != null) {
+            try {
+                authorization.deleteAclRecords(aclRecordsToDelete);
+                for (Reservation reservation : newReservations.keySet()) {
+                    authorization.createAclRecordsForChildEntity(reservation.getReservationRequest(), reservation);
+                }
             }
-        } catch (FaultException exception) {
-            throw new IllegalStateException("Assigning permissions failed", exception);
+            catch (FaultException exception) {
+                throw new IllegalStateException("Assigning permissions failed", exception);
+            }
         }
 
         // Create new/modified reservation notifications
-        for (Map.Entry<Reservation, Long> newReservationEntry : newReservations.entrySet()) {
-            Reservation newReservation = newReservationEntry.getKey();
-            Long oldReservationId = newReservationEntry.getValue();
-            if (oldReservationId == null) {
-                // Add notification about new reservation
-                notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                        ReservationNotification.Type.NEW, newReservation, entityManager));
-            }
-            else {
-                // Remove notification about deleted reservation
-                notificationByReservationId.remove(oldReservationId);
-                // Add notification about modified reservation
-                notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                        ReservationNotification.Type.MODIFIED, newReservation, entityManager));
+        if (notificationManager != null) {
+            for (Map.Entry<Reservation, Long> newReservationEntry : newReservations.entrySet()) {
+                Reservation newReservation = newReservationEntry.getKey();
+                Long oldReservationId = newReservationEntry.getValue();
+                if (oldReservationId == null) {
+                    // Add notification about new reservation
+                    notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
+                            ReservationNotification.Type.NEW, newReservation));
+                }
+                else {
+                    // Remove notification about deleted reservation
+                    notificationByReservationId.remove(oldReservationId);
+                    // Add notification about modified reservation
+                    notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
+                            ReservationNotification.Type.MODIFIED, newReservation));
+                }
             }
         }
 
         // Notify about reservations
         if (notificationByReservationId.size() > 0) {
-            if ( notificationManager != null && notificationManager.hasExecutors()) {
+            if (notificationManager.hasExecutors()) {
                 logger.debug("Notifying about changes in reservations...");
                 for (ReservationNotification reservationNotification : notificationByReservationId.values()) {
                     notificationManager.executeNotification(reservationNotification);

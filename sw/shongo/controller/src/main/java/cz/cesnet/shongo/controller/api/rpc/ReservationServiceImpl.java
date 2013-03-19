@@ -180,8 +180,7 @@ public class ReservationServiceImpl extends Component
         if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
             cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                     (cz.cesnet.shongo.controller.request.ReservationRequest) reservationRequest;
-            if (reservationRequestImpl.getCreatedBy() ==
-                    cz.cesnet.shongo.controller.request.ReservationRequest.CreatedBy.CONTROLLER) {
+            if (reservationRequestImpl.getReservationRequestSet() != null) {
                 modifiable = false;
             }
 

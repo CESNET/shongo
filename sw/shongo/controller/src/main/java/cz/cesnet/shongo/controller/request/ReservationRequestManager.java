@@ -153,52 +153,6 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param reservation for which the {@link AbstractReservationRequest} should be returned
-     * @return {@link AbstractReservationRequest} for the given {@link Reservation} or null if doesn't exists
-     */
-    public ReservationRequest getReservationRequestByReservation(Reservation reservation)
-    {
-        try {
-            ReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                            + " LEFT JOIN reservationRequest.reservations reservation"
-                            + " WHERE reservation.id = :id",
-                    ReservationRequest.class)
-                    .setParameter("id", reservation.getId())
-                    .getSingleResult();
-            return reservationRequest;
-        }
-        catch (NoResultException exception) {
-            return null;
-        }
-    }
-
-    /**
-     * @param reservationId for {@link Reservation} which is allocated {@link AbstractReservationRequest} which should
-     *                      be returned
-     * @return {@link AbstractReservationRequest} for which is allocated {@link Reservation} with
-     *         given {@code reservationId}
-     */
-    public AbstractReservationRequest getByReservation(Long reservationId)
-    {
-        try {
-            AbstractReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                            + " LEFT JOIN reservationRequest.reservations reservation"
-                            + " LEFT JOIN reservationRequest.reservationRequests childReservationRequest"
-                            + " LEFT JOIN childReservationRequest.reservations childReservation"
-                            + " WHERE reservation.id = :id OR childReservation.id = :id)",
-                    AbstractReservationRequest.class)
-                    .setParameter("id", reservationId)
-                    .getSingleResult();
-            return reservationRequest;
-        }
-        catch (NoResultException exception) {
-            return null;
-        }
-    }
-
-    /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
      * @throws FaultException
@@ -251,8 +205,7 @@ public class ReservationRequestManager extends AbstractManager
             Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
-        filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
-        filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        filter.addFilter("(TYPE(request) != ReservationRequest OR request.reservationRequestSet IS NULL)");
         filter.addIds(ids);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {

@@ -159,7 +159,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @return {@link #reservationRequests}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequestSet")
     @Access(AccessType.FIELD)
     @OrderBy("slotStart")
     public List<ReservationRequest> getReservationRequests()
@@ -188,7 +188,11 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void addReservationRequest(ReservationRequest reservationRequest)
     {
-        reservationRequests.add(reservationRequest);
+        // Manage bidirectional association
+        if (reservationRequests.contains(reservationRequest) == false) {
+            reservationRequests.add(reservationRequest);
+            reservationRequest.setReservationRequestSet(this);
+        }
     }
 
     /**
@@ -196,8 +200,12 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
-        removedClonedSpecification(reservationRequest.getSpecification());
-        reservationRequests.remove(reservationRequest);
+        // Manage bidirectional association
+        if (reservationRequests.contains(reservationRequest)) {
+            removedClonedSpecification(reservationRequest.getSpecification());
+            reservationRequests.remove(reservationRequest);
+            reservationRequest.setReservationRequestSet(null);
+        }
     }
 
     /**
