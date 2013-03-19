@@ -38,7 +38,7 @@
     <!-- Security settings -->
     <security>
         <!-- Authorization server -->
-        <authorization-server>https://shongo-auth-dev.cesnet.cz/phpid-server/oic/</authorization-server>
+        <authorization-server>https://shongo-auth-dev.cesnet.cz</authorization-server>
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
         <testing-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</testing-access-token>
         <!-- Specifies authorization cache expirations -->

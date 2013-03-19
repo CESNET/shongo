@@ -174,7 +174,7 @@ public abstract class Authorization
                 userInformation = onGetUserInformationByUserId(userId);
             }
             catch (FaultException exception) {
-                throw new FaultRuntimeException(exception.getFault());
+                throw new FaultRuntimeException(exception, exception.getFault());
             }
             cache.putUserInformationByUserId(userId, userInformation);
             return userInformation;

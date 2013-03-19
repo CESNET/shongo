@@ -67,8 +67,13 @@ public class DatabaseFilter
     public void addIds(Set<Long> ids)
     {
         if (ids != null) {
-            addFilter(alias + ".id IN (:ids)");
-            addFilterParameter("ids", ids);
+            if (ids.isEmpty()) {
+                addFilter(alias + ".id IN (0)");
+            }
+            else  {
+                addFilter(alias + ".id IN (:ids)");
+                addFilterParameter("ids", ids);
+            }
         }
     }
 

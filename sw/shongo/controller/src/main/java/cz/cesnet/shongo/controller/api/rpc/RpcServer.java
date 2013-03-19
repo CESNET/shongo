@@ -170,11 +170,13 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
      * @param faultThrowable
      * @return fault converted to {@link XmlRpcException}
      */
-    public static XmlRpcException convertException(FaultThrowable faultThrowable, Throwable cause)
+    public static XmlRpcException convertException(FaultThrowable faultThrowable, Throwable throwable)
     {
         Fault fault = faultThrowable.getFault();
         FaultMessage faultMessage = FaultMessage.fromFault(fault);
-        return new XmlRpcException(fault.getCode(), faultMessage.toString(), cause);
+        XmlRpcException xmlRpcException = new XmlRpcException(fault.getCode(), faultMessage.toString(), throwable.getCause());
+        xmlRpcException.setStackTrace(throwable.getStackTrace());
+        return xmlRpcException;
     }
 
     /**
@@ -294,7 +296,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     userInformation = Authorization.getInstance().getUserInformation((SecurityToken) pArgs[0]);
                 }
                 catch (FaultException exception) {
-                    throw convertException(exception, null);
+                    throw convertException(exception, exception);
                 }
             }
             if (userInformation != null) {
@@ -333,8 +335,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 }
                 else if (throwable instanceof FaultThrowable) {
                     FaultThrowable faultThrowable = (FaultThrowable) throwable;
-                    XmlRpcException xmlRpcException = RpcServer.convertException(faultThrowable, throwable.getCause());
-                    xmlRpcException.setStackTrace(throwable.getStackTrace());
+                    XmlRpcException xmlRpcException = RpcServer.convertException(faultThrowable, throwable);
                     requestState = String.format("FAILED: %s", faultThrowable.getFault().getMessage());
                     throw xmlRpcException;
                 }
@@ -492,7 +493,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             if (pError instanceof RuntimeException || pError instanceof SAXException) {
                 Throwable cause = pError.getCause();
                 if (cause instanceof FaultThrowable) {
-                    return RpcServer.convertException((FaultThrowable) cause, cause.getCause());
+                    return RpcServer.convertException((FaultThrowable) cause, cause);
                 }
             }
             if (pError instanceof XmlRpcException) {

@@ -16,6 +16,12 @@ public class FaultException extends Exception implements FaultThrowable
         this.fault = fault;
     }
 
+    public FaultException(Throwable throwable, Fault fault)
+    {
+        super(throwable);
+        this.fault = fault;
+    }
+
     public FaultException(Throwable throwable)
     {
         super(throwable);

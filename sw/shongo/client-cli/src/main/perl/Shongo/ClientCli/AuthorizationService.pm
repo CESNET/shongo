@@ -21,6 +21,14 @@ sub populate()
 {
     my ($self, $shell) = @_;
     $shell->add_commands({
+        'get-user' => {
+            desc => 'Get user',
+            args => '<user-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_user(@args);
+            }
+        },
         'create-acl' => {
             desc => 'Create ACL record',
             args => '<user-id> <entity-id> <role>',
@@ -55,6 +63,27 @@ sub populate()
             }
         },
     });
+}
+
+sub get_user()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 1 ) {
+        console_print_error("Argument '<user-id>' must be specified.");
+        return;
+    }
+
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.getUser', RPC::XML::string->new($args[0]));
+    if ( defined($response) ) {
+        my $object = Shongo::ClientCli::API::Object->new();
+        $object->set_object_name('User Information');
+        $object->add_attribute('Id', {}, $response->{'id'});
+        $object->add_attribute('EPPN', {}, $response->{'eduPersonPrincipalName'});
+        $object->add_attribute('First Name', {}, $response->{'firstName'});
+        $object->add_attribute('Last Name', {}, $response->{'lastName'});
+        console_print_text($object);
+    }
+
 }
 
 sub create_acl()

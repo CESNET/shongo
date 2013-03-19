@@ -3,18 +3,10 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.authorization.AclEntityState;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.authorization.AclUserState;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,12 +18,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.util.*;
 
 /**
  * Provides methods for performing authentication and authorization.
@@ -43,9 +32,19 @@ public class ServerAuthorization extends Authorization
     private static Logger logger = LoggerFactory.getLogger(ServerAuthorization.class);
 
     /**
-     * User web service.
+     * Authentication service path in auth-server.
      */
-    private static final String USER_WEB_SERVICE = "https://hroch.cesnet.cz/perun-ws/resource/user";
+    private static final String AUTHENTICATION_SERVICE_PATH = "/authn/oic";
+
+    /**
+     * Authorization service path in auth-server.
+     */
+    private static final String AUTHORIZATION_SERVICE_PATH = "/authz/rest";
+
+    /**
+     * User web service path in auth-server.
+     */
+    private static final String USER_SERVICE_PATH = "/perun/resource";
 
     /**
      * Access token which won't be verified and can be used for testing purposes.
@@ -56,6 +55,11 @@ public class ServerAuthorization extends Authorization
      * URL to authorization server.
      */
     private String authorizationServer;
+
+    /**
+     * {@link HttpClient} for performing auth-server requests.
+     */
+    private HttpClient httpClient;
 
     /**
      * Constructor.
@@ -70,6 +74,9 @@ public class ServerAuthorization extends Authorization
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
         testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
+
+        // Create http client
+        httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
     }
 
     /**
@@ -78,6 +85,30 @@ public class ServerAuthorization extends Authorization
     public void setTestingAccessToken(String testingAccessToken)
     {
         this.testingAccessToken = testingAccessToken;
+    }
+
+    /**
+     * @return url to authentication service in auth-server
+     */
+    private String getAuthenticationUrl()
+    {
+        return authorizationServer + AUTHENTICATION_SERVICE_PATH;
+    }
+
+    /**
+     * @return url to authorization service in auth-server
+     */
+    private String getAuthorizationUrl()
+    {
+        return authorizationServer + AUTHORIZATION_SERVICE_PATH;
+    }
+
+    /**
+     * @return url to user service in auth-server
+     */
+    private String getUserServiceUrl()
+    {
+        return authorizationServer + USER_SERVICE_PATH;
     }
 
     @Override
@@ -91,6 +122,56 @@ public class ServerAuthorization extends Authorization
         return super.onValidate(securityToken);
     }
 
+    private <T> T performRequest(URI uri, Map<String, String> headers, Class<T> resultType) throws Exception
+    {
+        try {
+            // Prepare request
+            HttpGet httpGet = new HttpGet(uri);
+            if (headers != null) {
+                for (Map.Entry<String, String> header : headers.entrySet()) {
+                    httpGet.setHeader(header.getKey(), header.getValue());
+                }
+            }
+
+            logger.debug("Performing request {}...", uri);
+
+            // Execute request and get response
+            HttpResponse response = httpClient.execute(httpGet);
+            int responseStatus = response.getStatusLine().getStatusCode();
+            HttpEntity responseEntity = response.getEntity();
+
+            // Handle success
+            if (responseStatus == HttpStatus.SC_OK) {
+                InputStream inputStream = responseEntity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                T result = mapper.readValue(inputStream, resultType);
+                inputStream.close();
+                return result;
+            }
+            // Handle error
+            else {
+                InputStream inputStream = responseEntity.getContent();
+                String error;
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map result = mapper.readValue(inputStream, Map.class);
+                    inputStream.close();
+                    error = String.format("Error: %s. %s", result.get("error"), result.get("error_description"));
+                }
+                catch (Exception exception) {
+                    Scanner scanner = new Scanner(inputStream).useDelimiter("\\A");
+                    error = scanner.hasNext() ? scanner.next() : "";
+                    error = String.format("HTTP Error %d%s%s", responseStatus, (error.isEmpty() ? "" : ": "), error);
+                }
+                throw new Exception(error);
+            }
+        }
+        catch (Exception exception) {
+            throw  new Exception(String.format("Authorization request '%s' failed: %s",
+                    uri.toString(), exception.getMessage()), exception);
+        }
+    }
+
     @Override
     protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
     {
@@ -99,38 +180,20 @@ public class ServerAuthorization extends Authorization
             return ROOT_USER_INFORMATION;
         }
 
-        Map<String, Object> content = null;
         try {
-            // Build url
-            URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
+            URIBuilder uriBuilder = new URIBuilder(getAuthenticationUrl() + "/userinfo");
             uriBuilder.setParameter("schema", "openid");
-            String url = uriBuilder.build().toString();
 
-            // Perform request
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.setHeader("Authorization", "Bearer " + accessToken);
-            HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                content = mapper.readValue(inputStream, Map.class);
-                inputStream.close();
-            }
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                String error = "Error";
-                if (content != null) {
-                    error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
-                }
-                throw new Exception(error);
-            }
+            Map<String, String> headers = new HashMap<String, String>();
+            headers.put("Authorization", "Bearer " + accessToken);
+
+            Map<String, Object> result = performRequest(uriBuilder.build(), headers, Map.class);
+            return createUserInformationFromData(result);
         }
         catch (Exception exception) {
-            CommonFaultSet.throwSecurityErrorFault(
-                    String.format("Retrieving user information for access token failed. %s", exception.getMessage()));
+            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+                    String.format("Retrieving user information by access token failed: %s", exception.getMessage())));
         }
-        return createUserInformationFromData(content);
     }
 
     @Override
@@ -139,67 +202,41 @@ public class ServerAuthorization extends Authorization
         Map<String, Object> content = null;
         try {
             // Build url
-            URIBuilder uriBuilder = new URIBuilder(USER_WEB_SERVICE + "/" + userId);
-            String url = uriBuilder.build().toString();
+            URIBuilder uriBuilder = new URIBuilder(getUserServiceUrl() + "/user/" + userId);
 
-            // Perform request
-            HttpGet httpGet = new HttpGet(url);
-            HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                content = mapper.readValue(inputStream, Map.class);
-                inputStream.close();
-            }
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new Exception("Error while retrieving user information by id.");
-            }
+            Map<String, Object> result = performRequest(uriBuilder.build(), null, Map.class);
+            return createUserInformationFromData(result);
         }
+
         catch (Exception exception) {
-            throw new IllegalStateException(exception);
+            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+                    String.format("Retrieving user information by user-id failed: %s", exception.getMessage())));
         }
-        return createUserInformationFromData(content);
     }
 
     @Override
     protected Collection<UserInformation> onListUserInformation() throws FaultException
     {
-        List content = null;
         try {
             // Build url
-            URIBuilder uriBuilder = new URIBuilder(USER_WEB_SERVICE);
-            String url = uriBuilder.build().toString();
+            URIBuilder uriBuilder = new URIBuilder(getUserServiceUrl() + "/user");
 
-            // Perform request
-            HttpGet httpGet = new HttpGet(url);
-            HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
-            HttpResponse response = httpClient.execute(httpGet);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                content = mapper.readValue(inputStream, List.class);
-                inputStream.close();
-            }
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new Exception("Error while retrieving user information.");
-            }
-        }
-        catch (Exception exception) {
-            throw new IllegalStateException(exception);
-        }
-        List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-        if (content != null) {
-            for (Object object : content) {
-                if (object instanceof Map) {
-                    UserInformation userInformation = createUserInformationFromData((Map) object);
-                    userInformationList.add(userInformation);
+            List result = performRequest(uriBuilder.build(), null, List.class);
+            List<UserInformation> userInformationList = new LinkedList<UserInformation>();
+            if (result != null) {
+                for (Object object : result) {
+                    if (object instanceof Map) {
+                        UserInformation userInformation = createUserInformationFromData((Map) object);
+                        userInformationList.add(userInformation);
+                    }
                 }
             }
+            return userInformationList;
         }
-        return userInformationList;
+        catch (Exception exception) {
+            return CommonFaultSet.throwSecurityErrorFault(
+                    String.format("Retrieving user information failed. %s", exception.getMessage()));
+        }
     }
 
     @Override
