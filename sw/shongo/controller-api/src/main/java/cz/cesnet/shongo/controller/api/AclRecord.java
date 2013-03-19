@@ -97,4 +97,10 @@ public class AclRecord implements StructType
     {
         this.role = role;
     }
+
+    @Override
+    public String toString()
+    {
+        return String.format("AclRecord (id: %s, user: %s, entity: %s, role: %s)", id, userId, entityId, role);
+    }
 }

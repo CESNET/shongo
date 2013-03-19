@@ -282,64 +282,6 @@ public class ServerAuthorization extends Authorization
         return userInformation;
     }
 
-    @Override
-    protected AclUserState onFetchAclUserState(String userId) throws FaultException
-    {
-        AclUserState aclUserState = new AclUserState();
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            @SuppressWarnings("unchecked")
-            Class<? extends OwnedPersistentObject>[] PUBLIC_ENTITIES = (Class<? extends OwnedPersistentObject>[]) new Class[]{
-                    Resource.class,
-                    AbstractReservationRequest.class,
-                    Reservation.class,
-                    Executable.class,
-            };
-            for (Class<? extends OwnedPersistentObject> type : PUBLIC_ENTITIES) {
-                List entities = entityManager.createQuery(
-                        "SELECT entity FROM " + type.getSimpleName() + " entity WHERE entity.userId = :userId")
-                        .setParameter("userId", userId)
-                        .getResultList();
-                for (Object entity : entities) {
-                    OwnedPersistentObject ownedPersistentObject = type.cast(entity);
-                    EntityIdentifier entityId = new EntityIdentifier(ownedPersistentObject);
-                    AclRecord aclRecord = new AclRecord(userId, entityId, Role.OWNER);
-                    aclUserState.addAclRecord(aclRecord);
-                    cache.putAclRecordById(aclRecord);
-                }
-            }
-        }
-        finally {
-            entityManager.close();
-        }
-        return aclUserState;
-    }
-
-    @Override
-    protected AclEntityState onFetchAclEntityState(EntityIdentifier entityId) throws FaultException
-    {
-        AclEntityState aclEntityState = new AclEntityState();
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            Class type = entityId.getEntityClass();
-
-            Object entity = entityManager.createQuery(
-                    "SELECT entity FROM " + type.getSimpleName() + " entity WHERE entity.id = :entityId")
-                    .setParameter("entityId", entityId.getPersistenceId())
-                    .getSingleResult();
-            OwnedPersistentObject ownedPersistentObject = (OwnedPersistentObject) entity;
-            AclRecord aclRecord = new AclRecord(ownedPersistentObject.getUserId(), entityId, Role.OWNER);
-            aclEntityState.addAclRecord(aclRecord);
-            cache.putAclRecordById(aclRecord);
-        }
-        finally {
-            entityManager.close();
-        }
-        return aclEntityState;
-    }
-
     /**
      * @return new instance of {@link ServerAuthorization}
      * @throws IllegalStateException when other {@link Authorization} already exists

@@ -6,6 +6,11 @@ import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 
+/**
+ * Extension of {@link ControllerFaultSet}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class ControllerImplFaultSet extends ControllerFaultSet
 {
     /**

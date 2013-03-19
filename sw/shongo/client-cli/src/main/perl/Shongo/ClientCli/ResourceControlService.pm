@@ -794,6 +794,9 @@ sub resource_delete_room
     );
 }
 
+our $MAX_ROOM_NAME_LENGTH = 30;
+our $MAX_ROOM_DESCRIPTION_LENGTH = 60;
+
 sub resource_list_rooms
 {
     my ($resourceId) = @_;
@@ -807,10 +810,18 @@ sub resource_list_rooms
     }
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Start date/time', \' |');
     foreach my $room (@{$response}) {
+        my $name = $room->{'description'};
+        if ( defined($name) && length($name) > $MAX_ROOM_NAME_LENGTH ) {
+            $name = substr($name, 0, $MAX_ROOM_NAME_LENGTH - 3) . '...';
+        }
+        my $description = $room->{'description'};
+        if ( defined($description) && length($description) > $MAX_ROOM_DESCRIPTION_LENGTH ) {
+            $description = substr($description, 0, $MAX_ROOM_DESCRIPTION_LENGTH - 2) . '...';
+        }
         $table->add(
             $room->{'id'},
-            $room->{'name'},
-            $room->{'description'},
+            $name,
+            $description,
             datetime_format($room->{'startDateTime'})
         );
     }

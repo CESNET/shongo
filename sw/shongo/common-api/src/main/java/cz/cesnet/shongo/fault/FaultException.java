@@ -48,4 +48,10 @@ public class FaultException extends Exception implements FaultThrowable
     {
         return fault.getClass();
     }
+
+    @Override
+    public String getMessage()
+    {
+        return fault.getMessage();
+    }
 }

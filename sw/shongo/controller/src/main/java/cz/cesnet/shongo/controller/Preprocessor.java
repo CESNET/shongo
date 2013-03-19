@@ -59,7 +59,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
      */
     public synchronized void run(Interval interval, EntityManager entityManager)
     {
-        logger.info("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
+        logger.debug("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
 
         try {
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

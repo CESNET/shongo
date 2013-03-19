@@ -169,7 +169,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public synchronized void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
     {
         if (!workingInterval.equals(this.workingInterval)) {
-            logger.info("Setting new working interval '{}' to cache...",
+            logger.debug("Setting new working interval '{}' to cache...",
                     Temporal.formatInterval(workingInterval));
             this.workingInterval = workingInterval;
 

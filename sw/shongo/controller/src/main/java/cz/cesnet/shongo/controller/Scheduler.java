@@ -85,7 +85,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      */
     public void run(Interval interval, EntityManager entityManager)
     {
-        logger.info("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
+        logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
         // Set current interval as working to the cache (it will reload allocations only when
         // the interval changes)
