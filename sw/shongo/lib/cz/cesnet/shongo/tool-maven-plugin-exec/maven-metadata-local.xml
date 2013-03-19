@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>cz.cesnet.shongo</groupId>
+  <artifactId>tool-maven-plugin-exec</artifactId>
+  <version>1.0.0</version>
+  <versioning>
+    <versions>
+      <version>1.0.0</version>
+    </versions>
+    <lastUpdated>20130312132042</lastUpdated>
+  </versioning>
+</metadata>

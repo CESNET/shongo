@@ -72,9 +72,9 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>cz.cesnet.shongo.tools</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.0</version>
+                <groupId>cz.cesnet.shongo</groupId>
+                <artifactId>tool-maven-plugin-exec</artifactId>
+                <version>1.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

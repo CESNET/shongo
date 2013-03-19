@@ -3,13 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cz.cesnet.shongo.tools</groupId>
-    <artifactId>exec-maven-plugin</artifactId>
-    <version>1.0</version>
-    <name>Shongo Execution Maven Plugin</name>
-    <description>Shongo Execution Maven Plugin.</description>
+    <groupId>cz.cesnet.shongo</groupId>
+    <artifactId>tool-maven-plugin-exec</artifactId>
+    <version>1.0.0</version>
+    <name>Shongo Tool Maven Plugin Execution</name>
+    <description>Shongo Tool Maven Plugin for executing shell commands.</description>
     <packaging>maven-plugin</packaging>
 
     <dependencies>

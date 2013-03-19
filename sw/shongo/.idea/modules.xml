@@ -12,6 +12,8 @@
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller-api/controller-api.iml" filepath="$PROJECT_DIR$/controller-api/controller-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/shongo.iml" filepath="$PROJECT_DIR$/shongo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tool-maven-plugin-exec/tool-maven-plugin-exec.iml" filepath="$PROJECT_DIR$/tool-maven-plugin-exec/tool-maven-plugin-exec.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" filepath="$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" />
     </modules>
   </component>
 </project>

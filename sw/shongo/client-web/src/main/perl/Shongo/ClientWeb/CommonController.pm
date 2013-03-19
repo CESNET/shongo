@@ -581,7 +581,7 @@ sub format_aliases
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
             if ( $available ) {
-                $aliases_text .= '<a class="nowrap" href="' . $alias->{'value'} . '">' . $alias->{'value'} . '</a>';
+                $aliases_text .= '<a class="nowrap" href="' . $alias->{'value'} . '" target="_blank">' . $alias->{'value'} . '</a>';
             }
             else {
                 $aliases_text .= $aliasValue;
