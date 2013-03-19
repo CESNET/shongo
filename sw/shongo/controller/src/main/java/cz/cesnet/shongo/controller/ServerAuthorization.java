@@ -12,8 +12,16 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -82,6 +90,12 @@ public class ServerAuthorization extends Authorization
     private ServerAuthorization(Configuration configuration)
     {
         super(configuration);
+
+        // Debug HTTP requests
+        //System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+        //System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "debug");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");
 
         authorizationServer = configuration.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
         authorizationServerHeader = "id=testclient;secret=12345";
@@ -242,29 +256,117 @@ public class ServerAuthorization extends Authorization
     @Override
     protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
-        // TODO: create ACL in authorization server
+        logger.debug("Creating ACL record (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
 
-        return new AclRecord(userId, entityId, role);
+        StringEntity httpEntity;
+        try {
+            Map<String, String> data = new HashMap<String, String>();
+            data.put("user_id", userId);
+            data.put("resource_id", entityId.toId());
+            data.put("role_id", role.getId());
+            String jsonData = jsonMapper.writeValueAsString(data);
+            httpEntity = new StringEntity(jsonData);
+        }
+        catch (IOException exception) {
+            throw new FaultException(exception);
+        }
+        HttpPost httpPost = new HttpPost(getAuthorizationUrl() + "/acl");
+        httpPost.setHeader("Content-type", "application/json");
+        httpPost.setHeader("Authorization", authorizationServerHeader);
+        httpPost.setHeader("Accept", "application/hal+json");
+        httpPost.setEntity(httpEntity);
+        try {
+            HttpResponse response = httpClient.execute(httpPost);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
+                JsonNode acl = readJson(response.getEntity());
+                return createAclRecordFromData(acl);
+            }
+            else {
+                return handleAuthorizationRequestError(response);
+            }
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            return handleAuthorizationRequestError(exception);
+        }
     }
 
     @Override
     protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
     {
-        // TODO: delete ACL in authorization server
+        logger.debug("Deleting ACL record (id: {})", aclRecord.getId());
+
+        HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
+        httpDelete.setHeader("Authorization", authorizationServerHeader);
+        try {
+            HttpResponse response = httpClient.execute(httpDelete);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                HttpEntity responseEntity = response.getEntity();
+                if(responseEntity != null) {
+                    EntityUtils.toString(responseEntity);
+                }
+            }
+            else {
+                handleAuthorizationRequestError(response);
+            }
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            handleAuthorizationRequestError(exception);
+        }
+    }
+
+    private <T> T handleAuthorizationRequestError(HttpResponse httpResponse) throws FaultException
+    {
+        JsonNode jsonNode = readJson(httpResponse.getEntity());
+        throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+                String.format("Authorization request failed: %s, %s",
+                        jsonNode.get("title").getTextValue(),
+                        jsonNode.get("detail").getTextValue())));
+    }
+
+    private <T> T handleAuthorizationRequestError(Exception exception) throws FaultException
+    {
+        throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+                String.format("Authorization request failed. %s", exception.getMessage())));
     }
 
     @Override
     protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
     {
-        // TODO: get ACL from authorization server
+        logger.debug("Get ACL record (id: {})", aclRecordId);
 
-        return CommonFaultSet.throwSecurityErrorFault("ACL not found.");
+        HttpGet httpGet = new HttpGet(getAuthorizationUrl() + "/acl/" + aclRecordId);
+        httpGet.setHeader("Authorization", authorizationServerHeader);
+        httpGet.setHeader("Accept", "application/hal+json");
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode acl = readJson(response.getEntity());
+                return createAclRecordFromData(acl);
+            }
+            else {
+                return handleAuthorizationRequestError(response);
+            }
+        }
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            return handleAuthorizationRequestError(exception);
+        }
     }
 
     @Override
     protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
+        logger.debug("Listing ACL records (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+
         URI uri;
         try {
             URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
@@ -285,12 +387,30 @@ public class ServerAuthorization extends Authorization
         catch (Exception exception) {
             throw new FaultException(exception);
         }
-        List<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        for (JsonNode acl : performGetAuthorizationRequest(uri).get("acls")) {
-            AclRecord aclRecord = createAclRecordFromData(acl);
-            aclRecords.add(aclRecord);
+        HttpGet httpGet = new HttpGet(uri);
+        httpGet.setHeader("Authorization", authorizationServerHeader);
+        httpGet.setHeader("Accept", "application/hal+json");
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode result = readJson(response.getEntity());
+                List<AclRecord> aclRecords = new LinkedList<AclRecord>();
+                for (JsonNode acl : result.get("_embedded").get("acls")) {
+                    AclRecord aclRecord = createAclRecordFromData(acl);
+                    aclRecords.add(aclRecord);
+                }
+                return aclRecords;
+            }
+            else {
+                return handleAuthorizationRequestError(response);
+            }
         }
-        return aclRecords;
+        catch (FaultException exception) {
+            throw exception;
+        }
+        catch (Exception exception) {
+            return handleAuthorizationRequestError(exception);
+        }
     }
 
     private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
@@ -300,31 +420,6 @@ public class ServerAuthorization extends Authorization
         EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
         Role role = Role.forId(data.get("role_id").getTextValue());
         return new AclRecord(id, userId, entityId, role);
-    }
-
-    private JsonNode performGetAuthorizationRequest(URI uri) throws FaultException
-    {
-        try {
-            HttpGet httpGet = new HttpGet(uri);
-            httpGet.setHeader("Accept", "application/hal+json");
-            httpGet.setHeader("Authorization", authorizationServerHeader);
-
-            HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                return readJson(response.getEntity()).get("_embedded");
-            }
-            else {
-                JsonNode jsonNode = readJson(response.getEntity());
-                throw new FaultException(CommonFaultSet.createSecurityErrorFault(
-                        String.format("Authorization request failed: %s, %s",
-                                jsonNode.get("title").getTextValue(),
-                                jsonNode.get("detail").getTextValue())));
-            }
-        }
-        catch (Exception exception) {
-            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
-                    String.format("Authorization request failed. %s", exception.getMessage())));
-        }
     }
 
     /**

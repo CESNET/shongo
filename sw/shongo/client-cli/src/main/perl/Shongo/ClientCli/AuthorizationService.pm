@@ -45,6 +45,14 @@ sub populate()
                 delete_acl(@args);
             }
         },
+        'get-acl' => {
+            desc => 'Get ACL record',
+            args => '<id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_acl(@args);
+            }
+        },
         'list-acl' => {
             desc => 'List ACL records',
             options => 'user=s entity=s role=s',
@@ -83,7 +91,6 @@ sub get_user()
         $object->add_attribute('Last Name', {}, $response->{'lastName'});
         console_print_text($object);
     }
-
 }
 
 sub create_acl()
@@ -115,6 +122,26 @@ sub delete_acl()
     );
     if ( defined($response) ) {
         console_print_info("ACL record '%s' has been deleted.", $args[0]);
+    }
+}
+
+sub get_acl()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 1 ) {
+        console_print_error("Argument '<id>' must be specified.");
+        return;
+    }
+
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.getAclRecord', RPC::XML::string->new($args[0]));
+    if ( defined($response) ) {
+        my $object = Shongo::ClientCli::API::Object->new();
+        $object->set_object_name('ACL Record');
+        $object->add_attribute('Id', {}, $response->{'id'});
+        $object->add_attribute('User-id', {}, $response->{'userId'});
+        $object->add_attribute('Entity', {}, $response->{'entityId'});
+        $object->add_attribute('Role', {}, $response->{'role'});
+        console_print_text($object);
     }
 }
 
