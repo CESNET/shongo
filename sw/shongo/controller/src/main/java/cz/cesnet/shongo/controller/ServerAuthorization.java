@@ -14,10 +14,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.*;
@@ -57,9 +60,19 @@ public class ServerAuthorization extends Authorization
     private String authorizationServer;
 
     /**
+     * URL to authorization server.
+     */
+    private String authorizationServerHeader;
+
+    /**
      * {@link HttpClient} for performing auth-server requests.
      */
     private HttpClient httpClient;
+
+    /**
+     * @see ObjectMapper
+     */
+    private ObjectMapper jsonMapper = new ObjectMapper();
 
     /**
      * Constructor.
@@ -69,7 +82,9 @@ public class ServerAuthorization extends Authorization
     private ServerAuthorization(Configuration configuration)
     {
         super(configuration);
+
         authorizationServer = configuration.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
+        authorizationServerHeader = "id=testclient;secret=12345";
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
@@ -122,56 +137,6 @@ public class ServerAuthorization extends Authorization
         return super.onValidate(securityToken);
     }
 
-    private <T> T performRequest(URI uri, Map<String, String> headers, Class<T> resultType) throws Exception
-    {
-        try {
-            // Prepare request
-            HttpGet httpGet = new HttpGet(uri);
-            if (headers != null) {
-                for (Map.Entry<String, String> header : headers.entrySet()) {
-                    httpGet.setHeader(header.getKey(), header.getValue());
-                }
-            }
-
-            logger.debug("Performing request {}...", uri);
-
-            // Execute request and get response
-            HttpResponse response = httpClient.execute(httpGet);
-            int responseStatus = response.getStatusLine().getStatusCode();
-            HttpEntity responseEntity = response.getEntity();
-
-            // Handle success
-            if (responseStatus == HttpStatus.SC_OK) {
-                InputStream inputStream = responseEntity.getContent();
-                ObjectMapper mapper = new ObjectMapper();
-                T result = mapper.readValue(inputStream, resultType);
-                inputStream.close();
-                return result;
-            }
-            // Handle error
-            else {
-                InputStream inputStream = responseEntity.getContent();
-                String error;
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map result = mapper.readValue(inputStream, Map.class);
-                    inputStream.close();
-                    error = String.format("Error: %s. %s", result.get("error"), result.get("error_description"));
-                }
-                catch (Exception exception) {
-                    Scanner scanner = new Scanner(inputStream).useDelimiter("\\A");
-                    error = scanner.hasNext() ? scanner.next() : "";
-                    error = String.format("HTTP Error %d%s%s", responseStatus, (error.isEmpty() ? "" : ": "), error);
-                }
-                throw new Exception(error);
-            }
-        }
-        catch (Exception exception) {
-            throw  new Exception(String.format("Authorization request '%s' failed: %s",
-                    uri.toString(), exception.getMessage()), exception);
-        }
-    }
-
     @Override
     protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
     {
@@ -180,63 +145,98 @@ public class ServerAuthorization extends Authorization
             return ROOT_USER_INFORMATION;
         }
 
+        Exception errorException = null;
         try {
             URIBuilder uriBuilder = new URIBuilder(getAuthenticationUrl() + "/userinfo");
             uriBuilder.setParameter("schema", "openid");
-
-            Map<String, String> headers = new HashMap<String, String>();
-            headers.put("Authorization", "Bearer " + accessToken);
-
-            Map<String, Object> result = performRequest(uriBuilder.build(), headers, Map.class);
-            return createUserInformationFromData(result);
+            HttpGet httpGet = new HttpGet(uriBuilder.build());
+            httpGet.setHeader("Authorization", "Bearer " + accessToken);
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode jsonNode = readJson(response.getEntity());
+                return createUserInformationFromData(jsonNode);
+            }
+            else {
+                JsonNode jsonNode = readJson(response.getEntity());
+                throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+                        String.format("Retrieving user information by access token failed: %s, %s",
+                                jsonNode.get("error").getTextValue(),
+                                jsonNode.get("error_description").getTextValue())));
+            }
         }
         catch (Exception exception) {
-            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
-                    String.format("Retrieving user information by access token failed: %s", exception.getMessage())));
+            errorException = exception;
+        }
+        // Handle error
+        throw new FaultException(errorException,
+                CommonFaultSet.createSecurityErrorFault("Retrieving user information by access token failed."));
+    }
+
+    private JsonNode readJson(HttpEntity httpEntity) throws FaultException
+    {
+        try {
+            InputStream inputStream = httpEntity.getContent();
+            try {
+                return jsonMapper.readTree(inputStream);
+            }
+            catch (Exception exception) {
+                throw new FaultException("Reading JSON failed.", exception);
+            }
+            finally {
+                inputStream.close();
+            }
+        }
+        catch (EOFException exception) {
+            throw new FaultException("JSON is empty.", exception);
+        }
+        catch (IOException exception) {
+            throw new FaultException("Reading JSON failed.", exception);
         }
     }
 
     @Override
     protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
     {
-        Map<String, Object> content = null;
+        Exception errorException = null;
         try {
-            // Build url
-            URIBuilder uriBuilder = new URIBuilder(getUserServiceUrl() + "/user/" + userId);
-
-            Map<String, Object> result = performRequest(uriBuilder.build(), null, Map.class);
-            return createUserInformationFromData(result);
+            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/user/" + userId);
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode jsonNode = readJson(response.getEntity());
+                return createUserInformationFromData(jsonNode);
+            }
         }
-
         catch (Exception exception) {
-            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
-                    String.format("Retrieving user information by user-id failed: %s", exception.getMessage())));
+            errorException = exception;
         }
+        // Handle error
+        throw new FaultException(errorException,
+                CommonFaultSet.createSecurityErrorFault("Retrieving user information by user-id failed."));
     }
 
     @Override
     protected Collection<UserInformation> onListUserInformation() throws FaultException
     {
+        Exception errorException = null;
         try {
-            // Build url
-            URIBuilder uriBuilder = new URIBuilder(getUserServiceUrl() + "/user");
-
-            List result = performRequest(uriBuilder.build(), null, List.class);
-            List<UserInformation> userInformationList = new LinkedList<UserInformation>();
-            if (result != null) {
-                for (Object object : result) {
-                    if (object instanceof Map) {
-                        UserInformation userInformation = createUserInformationFromData((Map) object);
-                        userInformationList.add(userInformation);
-                    }
+            HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/user");
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode jsonNode = readJson(response.getEntity());
+                List<UserInformation> userInformationList = new LinkedList<UserInformation>();
+                for (JsonNode childJsonNode : jsonNode) {
+                    UserInformation userInformation = createUserInformationFromData(childJsonNode);
+                    userInformationList.add(userInformation);
                 }
+                return userInformationList;
             }
-            return userInformationList;
         }
         catch (Exception exception) {
-            return CommonFaultSet.throwSecurityErrorFault(
-                    String.format("Retrieving user information failed. %s", exception.getMessage()));
+            errorException = exception;
         }
+        // Handle error
+        throw new FaultException(errorException,
+                CommonFaultSet.createSecurityErrorFault("Retrieving user information failed."));
     }
 
     @Override
@@ -262,51 +262,96 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
+            throws FaultException
     {
-        // ToDO: get ACL from authorization server
-
+        URI uri;
+        try {
+            URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
+            if (userId != null) {
+                uriBuilder.setParameter("user_id", userId);
+            }
+            if (entityId != null) {
+                uriBuilder.setParameter("resource_id", entityId.toId());
+            }
+            else {
+                uriBuilder.setParameter("resource_id", "shongo:" + Domain.getLocalDomainName() + ":*:*");
+            }
+            if (role != null) {
+                uriBuilder.setParameter("role_id", role.getId());
+            }
+            uri = uriBuilder.build();
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception);
+        }
         List<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        for (AclRecord aclRecord : cache.getAclRecords()) {
-            if (userId != null && !userId.equals(aclRecord.getUserId())) {
-                continue;
-            }
-            if (entityId != null && !entityId.equals(aclRecord.getEntityId())) {
-                continue;
-            }
-            if (role != null && !role.equals(aclRecord.getRole())) {
-                continue;
-            }
+        for (JsonNode acl : performGetAuthorizationRequest(uri).get("acls")) {
+            AclRecord aclRecord = createAclRecordFromData(acl);
             aclRecords.add(aclRecord);
         }
         return aclRecords;
+    }
+
+    private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
+    {
+        String id = data.get("id").getTextValue();
+        String userId = data.get("user_id").getTextValue();
+        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
+        Role role = Role.forId(data.get("role_id").getTextValue());
+        return new AclRecord(id, userId, entityId, role);
+    }
+
+    private JsonNode performGetAuthorizationRequest(URI uri) throws FaultException
+    {
+        try {
+            HttpGet httpGet = new HttpGet(uri);
+            httpGet.setHeader("Accept", "application/hal+json");
+            httpGet.setHeader("Authorization", authorizationServerHeader);
+
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                return readJson(response.getEntity()).get("_embedded");
+            }
+            else {
+                JsonNode jsonNode = readJson(response.getEntity());
+                throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+                        String.format("Authorization request failed: %s, %s",
+                                jsonNode.get("title").getTextValue(),
+                                jsonNode.get("detail").getTextValue())));
+            }
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+                    String.format("Authorization request failed. %s", exception.getMessage())));
+        }
     }
 
     /**
      * @param data from authorization server
      * @return {@link UserInformation}
      */
-    private static UserInformation createUserInformationFromData(Map<String, Object> data)
+    private static UserInformation createUserInformationFromData(JsonNode data)
     {
-        if (!data.containsKey("id")) {
+        if (!data.has("id")) {
             throw new IllegalStateException("User information must contains identifier.");
         }
-        if (!data.containsKey("given_name") || !data.containsKey("family_name")) {
+        if (!data.has("given_name") || !data.has("family_name")) {
             throw new IllegalStateException("User information must contains given and family name.");
         }
         UserInformation userInformation = new UserInformation();
-        userInformation.setUserId((String) data.get("id"));
-        userInformation.setFirstName((String) data.get("given_name"));
-        userInformation.setLastName((String) data.get("family_name"));
+        userInformation.setUserId(data.get("id").getTextValue());
+        userInformation.setFirstName(data.get("given_name").getTextValue());
+        userInformation.setLastName(data.get("family_name").getTextValue());
 
-        if (data.containsKey("original_id")) {
-            userInformation.setEduPersonPrincipalName((String) data.get("original_id"));
+        if (data.has("original_id")) {
+            userInformation.setEduPersonPrincipalName(data.get("original_id").getTextValue());
         }
-        if (data.containsKey("organization")) {
-            userInformation.setOrganization((String) data.get("organization"));
+        if (data.has("organization")) {
+            userInformation.setOrganization(data.get("organization").getTextValue());
         }
-        if (data.containsKey("email")) {
-            String emails = (String) data.get("email");
+        if (data.has("email")) {
+            String emails = data.get("email").getTextValue();
             if (emails != null) {
                 for (String email : emails.split(";")) {
                     if (!email.isEmpty()) {
@@ -315,7 +360,6 @@ public class ServerAuthorization extends Authorization
                 }
             }
         }
-
         return userInformation;
     }
 
