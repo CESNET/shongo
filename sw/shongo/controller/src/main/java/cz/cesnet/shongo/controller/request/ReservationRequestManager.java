@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -103,25 +102,30 @@ public class ReservationRequestManager extends AbstractManager
     {
         Transaction transaction = beginTransaction();
 
-        // Keep reservation (it is deleted by scheduler)
-        while (abstractReservationRequest.getReservations().size() > 0) {
-            Reservation reservation = abstractReservationRequest.getReservations().get(0);
-            // Check if reservation can be deleted
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            if (reservationManager.isProvided(reservation)) {
-                ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
-                        abstractReservationRequest.getId());
-            }
-            reservation.setReservationRequest(null);
-            reservationManager.update(reservation);
-        }
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
 
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            // Delete all reservation requests from set
+            // Keep reservation (it is deleted by scheduler)
+            Reservation reservation = reservationRequest.getReservation();
+            if (reservation != null) {
+                // Check if reservation can be deleted
+                ReservationManager reservationManager = new ReservationManager(entityManager);
+                if (reservationManager.isProvided(reservation)) {
+                    ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
+                            abstractReservationRequest.getId());
+                }
+                reservation.setReservationRequest(null);
+                reservationManager.update(reservation);
+            }
+        }
+        else if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+
+            // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
                 delete(reservationRequest);
             }
+
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
         }
@@ -155,8 +159,7 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws FaultException
-     *          when the {@link ReservationRequest} doesn't exist
+     * @throws FaultException when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequest(Long reservationRequestId) throws FaultException
     {
@@ -189,7 +192,8 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
+            return ControllerImplFaultSet
+                    .throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
@@ -418,7 +422,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
      * @throws FaultException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
-     *                               the video conference yet
+     *                        the video conference yet
      */
     public void acceptPersonRequest(Long reservationRequestId, Long personId) throws FaultException
     {

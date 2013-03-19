@@ -64,11 +64,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     private List<Reservation> providedReservations = new ArrayList<Reservation>();
 
     /**
-     * List of allocated {@link Reservation}s.
-     */
-    protected List<Reservation> reservations = new ArrayList<Reservation>();
-
-    /**
      * @return {@link #created}
      */
     @Column
@@ -204,56 +199,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
                 providedReservations.remove(index);
                 break;
             }
-        }
-    }
-
-    /**
-     * @return {@link #reservations}
-     */
-    @OneToMany(mappedBy = "reservationRequest", targetEntity = Reservation.class)
-    @Access(AccessType.FIELD)
-    public List<Reservation> getReservations()
-    {
-        return Collections.unmodifiableList(reservations);
-    }
-
-    /**
-     * @param id of the {@link Reservation}
-     * @return {@link Reservation} with given {@code id}
-     * @throws FaultException when the {@link Reservation} doesn't exist
-     */
-    @Transient
-    protected Reservation getReservationById(Long id) throws FaultException
-    {
-        for (Reservation reservation : reservations) {
-            if (reservation.getId().equals(id)) {
-                return reservation;
-            }
-        }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Reservation.class, id);
-    }
-
-    /**
-     * @param reservation to be added to the {@link #reservations}
-     */
-    public void addReservation(Reservation reservation)
-    {
-        // Manage bidirectional association
-        if (reservations.contains(reservation) == false) {
-            reservations.add(reservation);
-            reservation.setReservationRequest(this);
-        }
-    }
-
-    /**
-     * @param reservation to be removed from the {@link #reservations}
-     */
-    public void removeReservation(Reservation reservation)
-    {
-        // Manage bidirectional association
-        if (reservations.contains(reservation)) {
-            reservations.remove(reservation);
-            reservation.setReservationRequest(null);
         }
     }
 

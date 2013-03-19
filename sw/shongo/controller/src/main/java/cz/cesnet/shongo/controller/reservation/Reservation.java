@@ -34,9 +34,9 @@ public class Reservation extends OwnedPersistentObject
     private CreatedBy createdBy;
 
     /**
-     * {@link AbstractReservationRequest} for which the {@link Reservation} is allocated.
+     * {@link ReservationRequest} for which the {@link Reservation} is allocated.
      */
-    private AbstractReservationRequest reservationRequest;
+    private ReservationRequest reservationRequest;
 
     /**
      * Interval start date/time.
@@ -86,7 +86,7 @@ public class Reservation extends OwnedPersistentObject
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public AbstractReservationRequest getReservationRequest()
+    public ReservationRequest getReservationRequest()
     {
         return reservationRequest;
     }
@@ -97,8 +97,7 @@ public class Reservation extends OwnedPersistentObject
     @Transient
     public AbstractReservationRequest getTopReservationRequest()
     {
-        if (reservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) this.reservationRequest;
+        if (reservationRequest != null) {
             ReservationRequestSet reservationRequestSet = reservationRequest.getReservationRequestSet();
             if (reservationRequestSet != null) {
                 return reservationRequestSet;
@@ -110,18 +109,18 @@ public class Reservation extends OwnedPersistentObject
     /**
      * @param reservationRequest sets the {@link #reservationRequest}
      */
-    public void setReservationRequest(AbstractReservationRequest reservationRequest)
+    public void setReservationRequest(ReservationRequest reservationRequest)
     {
         // Manage bidirectional association
         if (reservationRequest != this.reservationRequest) {
             if (this.reservationRequest != null) {
-                AbstractReservationRequest oldReservationRequest = this.reservationRequest;
+                ReservationRequest oldReservationRequest = this.reservationRequest;
                 this.reservationRequest = null;
-                oldReservationRequest.removeReservation(this);
+                oldReservationRequest.setReservation(null);
             }
             if (reservationRequest != null) {
                 this.reservationRequest = reservationRequest;
-                this.reservationRequest.addReservation(this);
+                this.reservationRequest.setReservation(this);
             }
         }
     }

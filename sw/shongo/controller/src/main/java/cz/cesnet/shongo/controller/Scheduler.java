@@ -155,7 +155,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 // Delete the reservation
                 ReservationRequest reservationRequest = toDeleteReservations.get(reservation);
                 if (reservationRequest != null) {
-                    reservationRequest.removeReservation(reservation);
+                    reservationRequest.setReservation(null);
                     reservationRequestManager.update(reservationRequest);
                 }
                 reservationManager.delete(reservation, cache);

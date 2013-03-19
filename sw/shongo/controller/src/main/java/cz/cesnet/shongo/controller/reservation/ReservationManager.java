@@ -207,14 +207,10 @@ public class ReservationManager extends AbstractManager
         if (reservationRequestId != null) {
             // List only reservations which are allocated for request with given id
             filter.addFilter("reservation IN ("
-                    + "   SELECT reservation FROM ReservationRequestSet reservationRequestSet"
-                    + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                    + "   LEFT JOIN reservationRequest.reservations reservation"
-                    + "   WHERE reservationRequestSet.id = :reservationRequestId"
-                    + " ) OR reservation IN ("
-                    + "   SELECT reservation FROM AbstractReservationRequest reservationRequest"
-                    + "   LEFT JOIN reservationRequest.reservations reservation"
-                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + "   SELECT reservation FROM Reservation reservation"
+                    + "   LEFT JOIN reservation.reservationRequest reservationRequest"
+                    + "   LEFT JOIN reservationRequest.reservationRequestSet reservationRequestSet"
+                    + "   WHERE reservationRequest.id = :reservationRequestId OR reservationRequestSet.id = :reservationRequestId"
                     + " )");
             filter.addFilterParameter("reservationRequestId", reservationRequestId);
         }

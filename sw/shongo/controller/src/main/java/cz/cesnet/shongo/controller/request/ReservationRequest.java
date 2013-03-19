@@ -49,6 +49,11 @@ public class ReservationRequest extends AbstractReservationRequest
     private ReservationRequestSet reservationRequestSet;
 
     /**
+     * Allocated {@link Reservation}.
+     */
+    private Reservation reservation;
+
+    /**
      * Constructor.
      */
     public ReservationRequest()
@@ -189,47 +194,32 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #reservations}
+     * @return {@link #reservation}
      */
-    @Transient
+    @OneToOne(mappedBy = "reservationRequest")
+    @Access(AccessType.FIELD)
     public Reservation getReservation()
     {
-        if (reservations.size() == 0) {
-            return null;
-        }
-        else if (reservations.size() == 1) {
-            return reservations.get(0);
-        }
-        else {
-            throw new IllegalStateException("Only one reservation is allowed.");
-        }
+        return reservation;
     }
 
     /**
-     * @param reservation sets the {@link #reservations}
+     * @param reservation sets the {@link #reservation}
      */
-    @Transient
     public void setReservation(Reservation reservation)
     {
-        if (reservations.size() > 1) {
-            throw new IllegalStateException("Only one reservation is allowed.");
+        // Manage bidirectional association
+        if (reservation != this.reservation) {
+            if (this.reservation != null) {
+                Reservation oldReservation = this.reservation;
+                this.reservation = null;
+                oldReservation.setReservationRequest(null);
+            }
+            if (reservation != null) {
+                this.reservation = reservation;
+                this.reservation.setReservationRequest(this);
+            }
         }
-        if (reservation == null) {
-            reservations.clear();
-        }
-        else {
-            super.addReservation(reservation);
-        }
-    }
-
-    @Override
-    public void addReservation(Reservation reservation)
-    {
-        if (reservations.size() > 1) {
-            throw new IllegalStateException("Only one reservation is allowed.");
-        }
-        reservations.clear();
-        super.addReservation(reservation);
     }
 
     /**
