@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -97,7 +98,7 @@ public class ResourceServiceImpl extends Component
         resourceApi.setupNewEntity();
 
         // Change user id (only root can do that)
-        if (resourceApi.getUserId() != null && userId.equals(Authorization.ROOT_USER_ID)) {
+        if (resourceApi.getUserId() != null && authorization.isAdmin(userId)) {
             userId = resourceApi.getUserId();
         }
 

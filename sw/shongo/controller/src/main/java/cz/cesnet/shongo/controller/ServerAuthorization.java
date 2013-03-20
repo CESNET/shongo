@@ -279,7 +279,7 @@ public class ServerAuthorization extends Authorization
             HttpResponse response = httpClient.execute(httpDelete);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 HttpEntity responseEntity = response.getEntity();
-                if(responseEntity != null) {
+                if (responseEntity != null) {
                     EntityUtils.toString(responseEntity);
                 }
             }

@@ -70,6 +70,14 @@ sub populate()
                 list_permissions(@args);
             }
         },
+        'set-entity-user' => {
+            desc => 'Change entity user',
+            args => '<entity-id> <user-id>',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                set_entity_user(@args);
+            }
+        },
     });
 }
 
@@ -105,7 +113,7 @@ sub create_acl()
         RPC::XML::string->new($args[1]),
         RPC::XML::string->new($args[2])
     );
-    if ( defined($response) ) {
+    if ( defined($response) && !ref($response) ) {
         console_print_info("ACL record '%s' has been created.", $response);
     }
 }
@@ -194,6 +202,22 @@ sub list_permissions()
         );
     }
     console_print_table($table);
+}
+
+sub set_entity_user()
+{
+    my (@args) = @_;
+    if ( scalar(@args) < 2 ) {
+        console_print_error("Arguments '<entity-id> <user-id>' must be specified.");
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.setEntityUser',
+        RPC::XML::string->new($args[0]),
+        RPC::XML::string->new($args[1])
+    );
+    if ( defined($response) && !ref($response) ) {
+        console_print_info("Entity '%s' user has been set to '%s'.", $args[0], $args[1]);
+    }
 }
 
 1;

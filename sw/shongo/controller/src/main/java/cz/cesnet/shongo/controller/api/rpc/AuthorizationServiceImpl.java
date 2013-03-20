@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -7,6 +8,10 @@ import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.StringUtils;
@@ -124,7 +129,7 @@ public class AuthorizationServiceImpl extends Component
                 authorization.checkPermission(requesterUserId, entityIdentifier, Permission.READ);
             }
             else {
-                if (!requesterUserId.equals(Authorization.ROOT_USER_ID)) {
+                if (!authorization.isAdmin(requesterUserId)) {
                     throw new TodoImplementException("List only ACL to which the requester has permission.");
                 }
             }
@@ -184,5 +189,72 @@ public class AuthorizationServiceImpl extends Component
             }
         }
         return users;
+    }
+
+    @Override
+    public void setEntityUser(SecurityToken token, String entityId, String newUserId) throws FaultException
+    {
+        String userId = authorization.validate(token);
+        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
+                    entityIdentifier.getPersistenceId());
+            if (entity == null) {
+                ControllerImplFaultSet.throwEntityNotFoundFault(entityIdentifier);
+            }
+            if (!authorization.isAdmin(userId)) {
+                CommonFaultSet.throwSecurityErrorFault("Only administrator can change entity user.");
+            }
+            entityManager.getTransaction().begin();
+            if (entity instanceof Resource) {
+                Resource resource = (Resource) entity;
+                for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : authorization.getAclRecords(
+                        resource.getUserId(), entityIdentifier, Role.OWNER)) {
+                    authorization.deleteAclRecord(aclRecord);
+                }
+                resource.setUserId(newUserId);
+                authorization.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
+            }
+            else if (entity instanceof ReservationRequestSet) {
+                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
+                // Change user to reservation request set
+                for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : authorization.getAclRecords(
+                        reservationRequestSet.getUserId(), entityIdentifier, Role.OWNER)) {
+                    authorization.deleteAclRecord(aclRecord);
+                }
+                reservationRequestSet.setUserId(newUserId);
+                authorization.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
+                // Change user to child reservation requests
+                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                    EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
+                    for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : authorization.getAclRecords(
+                            reservationRequest.getUserId(), reservationRequestId, Role.OWNER)) {
+                        authorization.deleteAclRecord(aclRecord);
+                    }
+                    reservationRequest.setUserId(newUserId);
+                    authorization.createAclRecord(newUserId, reservationRequestId, Role.OWNER);
+                }
+            }
+            else if (entity instanceof ReservationRequest) {
+                ReservationRequest reservationRequest = (ReservationRequest) entity;
+                for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : authorization.getAclRecords(
+                        reservationRequest.getUserId(), entityIdentifier, Role.OWNER)) {
+                    authorization.deleteAclRecord(aclRecord);
+                }
+                reservationRequest.setUserId(newUserId);
+                authorization.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
+            }
+            else {
+                CommonFaultSet.throwSecurityErrorFault("The user cannot be set for specified entity.");
+            }
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
     }
 }

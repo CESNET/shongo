@@ -93,4 +93,13 @@ public interface AuthorizationService extends Service
     @API
     public Collection<UserInformation> listUsers(SecurityToken token, String filter)
             throws FaultException;
+
+    /**
+     * @param token     token of the user requesting the operation
+     * @param entityId  of the entity
+     * @param newUserId new user-id for the given {@code entityId}
+     */
+    @API
+    public void setEntityUser(SecurityToken token, String entityId, String newUserId)
+            throws FaultException;
 }

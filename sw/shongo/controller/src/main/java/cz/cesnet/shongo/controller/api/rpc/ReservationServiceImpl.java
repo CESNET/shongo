@@ -127,7 +127,7 @@ public class ReservationServiceImpl extends Component
         reservationRequestApi.setupNewEntity();
 
         // Change user id (only root can do that)
-        if (reservationRequestApi.getUserId() != null && userId.equals(Authorization.ROOT_USER_ID)) {
+        if (reservationRequestApi.getUserId() != null && authorization.isAdmin(userId)) {
             userId = reservationRequestApi.getUserId();
         }
 

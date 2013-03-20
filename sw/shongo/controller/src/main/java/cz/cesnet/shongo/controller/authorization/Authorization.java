@@ -204,6 +204,16 @@ public abstract class Authorization
     }
 
     /**
+     * @param userId
+     * @return true if the use is Shongo admin (should have all permissions),
+     *         false otherwise
+     */
+    public boolean isAdmin(String userId)
+    {
+        return userId.equals(Authorization.ROOT_USER_ID);
+    }
+
+    /**
      * @param aclRecordId of the {@link AclRecord}
      * @return {@link AclRecord} with given {@code aclRecordId}
      * @throws FaultException
@@ -321,8 +331,8 @@ public abstract class Authorization
      */
     public Set<Permission> getPermissions(String userId, EntityIdentifier entityId) throws FaultException
     {
-        if (userId.equals(ROOT_USER_ID)) {
-            // Root user has all possible permissions
+        if (isAdmin(userId)) {
+            // Administrator has all possible permissions
             EntityType entityType = entityId.getEntityType();
             return entityType.getPermissions();
         }
@@ -343,12 +353,13 @@ public abstract class Authorization
      * @param entityType for entities which should be returned
      * @param permission which the user must have for the entities
      * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
+     *         or null if the user can view all entities
      * @throws FaultException
      */
     public Set<Long> getEntitiesWithPermission(String userId, EntityType entityType, Permission permission)
             throws FaultException
     {
-        if (userId.equals(ROOT_USER_ID)) {
+        if (isAdmin(userId)) {
             return null;
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
