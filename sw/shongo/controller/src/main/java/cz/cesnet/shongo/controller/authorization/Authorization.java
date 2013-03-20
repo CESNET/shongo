@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
@@ -558,8 +555,17 @@ public abstract class Authorization
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
         }
-        PersistentObject entity = getEntity(entityId);
-        return createAclRecordsWithChildren(userId, entityId, role, entity);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity == null) {
+                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+            }
+            return createAclRecordsWithChildren(userId, entityId, role, entity);
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
@@ -591,10 +597,19 @@ public abstract class Authorization
         // Delete all children records
         String userId = aclRecord.getUserId();
         EntityIdentifier entityId = aclRecord.getEntityId();
-        PersistentObject entity = getEntity(entityId);
-        for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
-            deleteSingleAclRecord(childAclRecord);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity != null) {
+                for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
+                    deleteSingleAclRecord(childAclRecord);
+                }
+            }
         }
+        finally {
+            entityManager.close();
+        }
+
     }
 
     public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity, boolean recursive)
@@ -627,8 +642,6 @@ public abstract class Authorization
      */
     private AclRecord createSingleAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
-        logger.debug("Creating ACL record (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
-
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
             CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
@@ -670,9 +683,6 @@ public abstract class Authorization
      */
     public void deleteSingleAclRecord(AclRecord aclRecord) throws FaultException
     {
-        logger.debug("Deleting ACL record (user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
-
         onDeleteAclRecord(aclRecord);
 
         // Update AclRecord cache

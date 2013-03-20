@@ -67,9 +67,15 @@ public class AuthorizationServiceImpl extends Component
      */
     private void checkEntityExistence(EntityIdentifier entityId) throws FaultException
     {
-        PersistentObject entity = authorization.getEntity(entityId);
-        if (entity == null) {
-            ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity == null) {
+                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+            }
+        }
+        finally {
+            entityManager.close();
         }
     }
 
