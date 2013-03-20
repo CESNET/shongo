@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.AtomicType;
 
 /**
@@ -18,7 +18,7 @@ public class SecurityToken implements AtomicType
     /**
      * Cached person information of the user.
      */
-    private PersonInformation cachedPersonInformation;
+    private UserInformation cachedUserInformation;
 
     /**
      * Constructor.
@@ -46,19 +46,19 @@ public class SecurityToken implements AtomicType
     }
 
     /**
-     * @return {@link #cachedPersonInformation}
+     * @return {@link #cachedUserInformation}
      */
-    public PersonInformation getCachedPersonInformation()
+    public UserInformation getCachedUserInformation()
     {
-        return cachedPersonInformation;
+        return cachedUserInformation;
     }
 
     /**
-     * @param cachedPersonInformation sets the {@link #cachedPersonInformation}
+     * @param cachedUserInformation sets the {@link #cachedUserInformation}
      */
-    public void setCachedPersonInformation(PersonInformation cachedPersonInformation)
+    public void setCachedUserInformation(UserInformation cachedUserInformation)
     {
-        this.cachedPersonInformation = cachedPersonInformation;
+        this.cachedUserInformation = cachedUserInformation;
     }
 
     @Override
@@ -72,6 +72,4 @@ public class SecurityToken implements AtomicType
     {
         return accessToken;
     }
-
-
 }

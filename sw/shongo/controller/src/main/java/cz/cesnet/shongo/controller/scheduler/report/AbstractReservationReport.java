@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
 import javax.persistence.Entity;
@@ -51,6 +50,6 @@ public abstract class AbstractReservationReport extends Report
     @Transient
     public String getReservationDescription()
     {
-        return String.format("reservation '%s'", IdentifierFormat.formatGlobalId(reservation));
+        return String.format("reservation '%s'", EntityIdentifier.formatId(reservation));
     }
 }

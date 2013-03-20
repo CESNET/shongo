@@ -30,8 +30,8 @@ public class ConfiguredSSLContextTest
 
         System.out.println(requestByConnection("https://actest-w3.cesnet.cz/api/xml"));
         System.out.println(requestByHttpClient("https://actest-w3.cesnet.cz/api/xml"));
-        System.out.println(requestByConnection("https://shongo-auth-dev.cesnet.cz/phpid-server/oic/authorize"));
-        System.out.println(requestByHttpClient("https://shongo-auth-dev.cesnet.cz/phpid-server/oic/authorize"));
+        System.out.println(requestByConnection("https://shongo-auth-dev.cesnet.cz/authn/oic/authorize"));
+        System.out.println(requestByHttpClient("https://shongo-auth-dev.cesnet.cz/authn/oic/authorize"));
     }
 
     private String requestByConnection(String url) throws Exception

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.fault;
 
 /**
- * Represents a error state.
+ * Represents an API fault.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -16,4 +16,9 @@ public interface Fault
      * @return fault message
      */
     public String getMessage();
+
+    /**
+     * @return {@link Exception}
+     */
+    public Exception createException();
 }

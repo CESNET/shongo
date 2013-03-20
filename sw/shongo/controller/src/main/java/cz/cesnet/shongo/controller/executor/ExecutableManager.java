@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -11,6 +12,7 @@ import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link Executable}.
@@ -54,10 +56,10 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executableId of the {@link Executable}
      * @return {@link Executable} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Executable} doesn't exist
+     * @throws FaultException when the {@link Executable} doesn't exist
      */
-    public Executable get(Long executableId) throws PersistentEntityNotFoundException
+    public Executable get(Long executableId)
+            throws FaultException
     {
         try {
             Executable executable = entityManager.createQuery(
@@ -70,17 +72,18 @@ public class ExecutableManager extends AbstractManager
             return executable;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(Executable.class, executableId);
+            return ControllerImplFaultSet.throwEntityNotFoundFault(Executable.class, executableId);
         }
     }
 
     /**
+     * @param ids    requested identifiers
      * @return list of all allocated {@link Executable}s
      */
-    public List<Executable> list(String userId)
+    public List<Executable> list(Set<Long> ids)
     {
         DatabaseFilter filter = new DatabaseFilter("executable");
-        filter.addUserId(userId);
+        filter.addIds(ids);
         TypedQuery<Executable> query = entityManager.createQuery("SELECT executable FROM Executable executable"
                 + " WHERE executable.state != :notAllocated"
                 + " AND executable NOT IN("
@@ -193,7 +196,8 @@ public class ExecutableManager extends AbstractManager
                     "SELECT room FROM ResourceRoomEndpoint room"
                             + " WHERE room.roomProviderCapability.resource.id = :resourceId"
                             + " AND room.roomId = :roomId"
-                            + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime", ResourceRoomEndpoint.class)
+                            + " AND room.slotStart <= :dateTime AND room.slotEnd > :dateTime",
+                    ResourceRoomEndpoint.class)
                     .setParameter("resourceId", deviceResourceId)
                     .setParameter("roomId", roomId)
                     .setParameter("dateTime", referenceDateTime)

@@ -1,5 +1,12 @@
-${type.getName()} reservation by
-  ${template.formatUser(reservation.userId)}
+${type.getName()} reservation owned by
+${"  "}<#rt>
+<#if owners?has_content>
+    <#list owners as owner>
+        ${template.formatUser(owner)}<#if owner_has_next>, </#if><#t>
+    </#list>
+<#else>
+    none<#t>
+</#if> <#lt>
 
 <#----------------------------------------------------------------------------->
 <#-- Reservation name                                                        -->

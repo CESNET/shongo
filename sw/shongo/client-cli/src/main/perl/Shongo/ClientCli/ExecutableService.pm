@@ -34,8 +34,8 @@ sub populate()
         },
         'list-executables' => {
             desc => 'List summary of all existing executables',
-            options => 'owner=s',
-            args => '[-owner=*|<user-id>]',
+            options => 'user=s',
+            args => '[-user=*|<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_executables($params->{'options'});
@@ -82,23 +82,19 @@ sub list_executables()
 {
     my ($options) = @_;
     my $filter = {};
-    if ( defined($options->{'owner'}) ) {
-        $filter->{'userId'} = $options->{'owner'};
-    }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Executable.listExecutables', $filter);
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'Owner',
         \' | ', 'Type',
         \' | ', 'Slot',
         \' | ', 'State',
         \' |'
     );
-    foreach my $executable (@{$response->value()}) {
+    foreach my $executable (@{$response}) {
         my $type = '';
         if ( $executable->{'type'} eq 'COMPARTMENT' ) {
             $type = 'Compartment';
@@ -108,7 +104,6 @@ sub list_executables()
         }
         $table->add(
             $executable->{'id'},
-            $application->format_user($executable->{'userId'}),
             $type,
             interval_format($executable->{'slot'}),
             Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)
@@ -124,12 +119,12 @@ sub get_executable()
     if ( !defined($id) ) {
         return;
     }
-    my $result = Shongo::ClientCli->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Executable.getExecutable',
         RPC::XML::string->new($id)
     );
-    if ( !$result->is_fault ) {
-        my $executable = Shongo::ClientCli::API::Executable->from_hash($result);
+    if ( defined($response) ) {
+        my $executable = Shongo::ClientCli::API::Executable->from_hash($response);
         if ( defined($executable) ) {
             console_print_text($executable->to_string());
         }

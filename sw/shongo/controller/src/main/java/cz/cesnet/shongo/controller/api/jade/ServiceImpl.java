@@ -4,13 +4,15 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.MessageNotification;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 
@@ -93,8 +95,9 @@ public class ServiceImpl implements Service
                         throw new CommandException(
                                 String.format("No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
-                    for ( PersonInformation person : Authorization.Permission.getExecutableOwners(roomEndpoint) ) {
-                        recipients.add(person);
+                    Authorization authorization = Authorization.getInstance();
+                    for ( UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER) ) {
+                        recipients.add(user);
                     }
                 }
                 finally {

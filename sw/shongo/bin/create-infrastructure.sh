@@ -8,13 +8,15 @@ fi
 
 case $MODE in
     shongo )
-        CONTROLLER=195.113.151.172
+        CONTROLLER=195.113.151.174
         NAME_PREFIX=ZZ-shongo-
         DEVICE_NAME_PREFIX=
         MCU_CESNET_LICENSE_COUNT=20
         MCU_CESNET_NAME_PREFIX=
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=200:399
+        CONNECT_CESNET=https://connect.cesnet.cz
+        CONNECT_CESNET_LICENSE_COUNT=20
         ;;
     shongo-dev )
         CONTROLLER=195.113.151.181
@@ -23,6 +25,8 @@ case $MODE in
         MCU_CESNET_LICENSE_COUNT=10
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=050:099
+        CONNECT_CESNET=https://actest-w3.cesnet.cz
+        CONNECT_CESNET_LICENSE_COUNT=20
         ;;
     * )
         CONTROLLER=127.0.0.1
@@ -31,6 +35,8 @@ case $MODE in
         MCU_CESNET_LICENSE_COUNT=10
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=090:099
+        CONNECT_CESNET=https://actest-w3.cesnet.cz
+        CONNECT_CESNET_LICENSE_COUNT=20
         ;;
 esac
 
@@ -38,6 +44,7 @@ esac
 echo "Configuration:"
 echo "  controller: $CONTROLLER"
 echo "  MCU CESNET: $MCU_CESNET_LICENSE_COUNT licenses, $MCU_CESNET_NUMBER_PREFIX$MCU_CESNET_NUMBER_RANGE"
+echo "  Connect:    $CONNECT_CESNET, $CONNECT_CESNET_LICENSE_COUNT licenses"
 echo -n "Presse enter to continue..."; read line
 
 ./client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
@@ -127,14 +134,14 @@ echo -n "Presse enter to continue..."; read line
         description: 'Adobe Connect server at CESNET',
         allocatable: 1,
         maximumFuture: 'P4M',
-        address: 'https://actest-w3.cesnet.cz',
+        address: '$CONNECT_CESNET',
         technologies: ['ADOBE_CONNECT'],
         mode: {
             connectorAgentName: 'connect-cesnet'
         },
         capabilities: [{
             class: 'RoomProviderCapability',
-            licenseCount: 10,
+            licenseCount: $CONNECT_CESNET_LICENSE_COUNT,
             requiredAliasTypes: ['ROOM_NAME'],
         },{
             class: 'AliasProviderCapability',

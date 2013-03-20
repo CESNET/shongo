@@ -149,7 +149,7 @@ public class Executor extends Component
      */
     public ExecutionResult execute(DateTime referenceDateTime)
     {
-        logger.info("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
+        logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);

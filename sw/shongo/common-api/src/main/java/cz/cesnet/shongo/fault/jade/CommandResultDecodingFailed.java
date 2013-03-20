@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
-
 /**
  * Represents a {@link CommandFailure} which happens when a requester is not able to decode the received result
  * for a command.
@@ -25,12 +23,6 @@ public class CommandResultDecodingFailed extends CommandFailure
     public CommandResultDecodingFailed(Throwable throwable)
     {
         setCause(throwable);
-    }
-
-    @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_RESULT_DECODING;
     }
 
     @Override

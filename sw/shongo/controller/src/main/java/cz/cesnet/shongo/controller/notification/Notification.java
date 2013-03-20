@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.fault.FaultException;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -31,11 +31,6 @@ import java.util.Set;
 public abstract class Notification
 {
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
-    /**
-     * @see NotificationManager
-     */
-    private NotificationManager notificationManager;
 
     /**
      * Notification recipients.
@@ -247,8 +242,17 @@ public abstract class Notification
         }
 
         /**
-         * @param userId to be formatted by it's {@link cz.cesnet.shongo.controller.common.Person}
-         * @return {@link cz.cesnet.shongo.controller.common.Person} formatted to string
+         * @param userInformation to be formatted
+         * @return {@link UserInformation} formatted to string
+         */
+        public String formatUser(UserInformation userInformation)
+        {
+            return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
+        }
+
+        /**
+         * @param userId to be formatted by it's {@link UserInformation}
+         * @return {@link UserInformation} formatted to string
          */
         public String formatUser(String userId)
         {

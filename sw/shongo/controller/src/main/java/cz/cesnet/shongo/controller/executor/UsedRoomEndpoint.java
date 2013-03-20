@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -203,7 +204,8 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         for (Alias alias : getAssignedAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+        Authorization authorization = Authorization.getInstance();
+        for ( UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER) ) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;

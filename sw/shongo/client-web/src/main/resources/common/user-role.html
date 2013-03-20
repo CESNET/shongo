@@ -27,7 +27,6 @@
                     var results = [];
                     for ( var index = 0; index < data.length; index++ ) {
                         var dataItem = data[index];
-
                         results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
                     }
                     return {results: results};
@@ -59,11 +58,11 @@
 <input name="id" type="hidden" value="[% id %]"/>
 
 <div class="control-group">
-    <label class="control-label">For [% resourceTitle %]:</label>
+    <label class="control-label">For [% entityTitle %]:</label>
     <div class="controls">
-        <input name="resource" type="hidden" value="[% resource %]"/>
-        <span class="uneditable-input">[% resource %]</span>
-        [% error.resource %]
+        <input name="entity" type="hidden" value="[% entity %]"/>
+        <span class="uneditable-input">[% entity %]</span>
+        [% error.entity %]
     </div>
 </div>
 
@@ -79,8 +78,8 @@
     <label class="control-label" for="selectRole">Role:</label>
     <div class="controls">
         <select id="selectRole" name="role">
-            <option value="owner" [% IF role == 'owner' %]selected[% END %]>Owner</option>
-            <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>User</option>
+            <option value="OWNER" [% IF role == 'OWNER' %]selected[% END %]>Owner</option>
+            <option value="RESERVATION_USER" [% IF role == 'RESERVATION_USER' %]selected[% END %]>User</option>
         </select>
         [% error.role %]
     </div>

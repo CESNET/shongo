@@ -2,11 +2,9 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
-import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.cache.RoomCache;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -43,7 +41,6 @@ public class CacheRoomTest extends AbstractDatabaseTest
         cache.addResource(mcu1);
 
         RoomReservation room1 = new RoomReservation();
-        room1.setUserId(Authorization.ROOT_USER_ID);
         room1.setRoomProviderCapability(mcu1.getCapability(RoomProviderCapability.class));
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
         room1.getRoomConfiguration().setLicenseCount(25);
@@ -58,14 +55,12 @@ public class CacheRoomTest extends AbstractDatabaseTest
         cache.addResource(mcu2);
 
         RoomReservation room2 = new RoomReservation();
-        room2.setUserId(Authorization.ROOT_USER_ID);
         room2.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
         room2.getRoomConfiguration().setLicenseCount(50);
         cache.addReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
-        room3.setUserId(Authorization.ROOT_USER_ID);
         room3.setRoomProviderCapability(mcu2.getCapability(RoomProviderCapability.class));
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
         room3.getRoomConfiguration().setLicenseCount(30);

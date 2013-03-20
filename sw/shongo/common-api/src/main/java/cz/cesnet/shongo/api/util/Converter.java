@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.rpc.AtomicType;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.joda.time.*;
@@ -281,10 +281,10 @@ public class Converter
                     targetType = getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    throw new FaultException(CommonFault.CLASS_NOT_DEFINED, className);
+                    CommonFaultSet.throwClassUndefinedFault(className);
                 }
                 if (!declaredType.isAssignableFrom(targetType)) {
-                    throw new FaultException(CommonFault.UNKNOWN, "Cannot convert map to object of class '%s'"
+                    throw new FaultException("Cannot convert map to object of class '%s'"
                             + " because map specifies not assignable class '%s'.",
                             getClassShortName(declaredType), className);
                 }
@@ -296,7 +296,7 @@ public class Converter
                 object = targetType.newInstance();
             }
             catch (Exception exception) {
-                throw new FaultException(exception, CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
+                CommonFaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
             }
 
             ChangesTracking changesTrackingObject =
@@ -323,7 +323,7 @@ public class Converter
 
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
                 if (property.isReadOnly() && !options.isLoadReadOnly()) {
-                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+                    CommonFaultSet.throwClassAttributeReadonlyFault(object.getClass().getSimpleName(), propertyName);
                 }
 
                 // Set changes for items
@@ -361,8 +361,12 @@ public class Converter
                         if (value instanceof String) {
                             givenType = String.format("String(%s)", value);
                         }
-                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
-                                object.getClass(), requiredType, givenType);
+                        else {
+                            givenType = givenType.getClass().getSimpleName();
+                        }
+                        CommonFaultSet.throwClassAttributeTypeMismatchFault(
+                                object.getClass().getSimpleName(), propertyName,
+                                requiredType.getClass().getSimpleName(), givenType.toString());
                     }
                 }
 
@@ -641,7 +645,7 @@ public class Converter
                 for (Object item : collectionValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     collection.add(item);
                 }
@@ -672,11 +676,12 @@ public class Converter
         else if (value instanceof String) {
             // If Class is required
             if (targetType.equals(Class.class)) {
+                String className = (String) value;
                 try {
-                    return ClassHelper.getClassFromShortName((String) value);
+                    return ClassHelper.getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    throw new FaultException(CommonFault.CLASS_NOT_DEFINED, value);
+                    CommonFaultSet.throwClassUndefinedFault(className);
                 }
             }
             // If boolean is required
@@ -698,8 +703,7 @@ public class Converter
                     atomicType = (AtomicType) targetType.newInstance();
                 }
                 catch (Exception exception) {
-                    throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
-                            targetType));
+                    CommonFaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
                 }
                 atomicType.fromString((String) value);
                 return atomicType;
@@ -741,7 +745,7 @@ public class Converter
                 for (int index = 0; index < arrayValue.length; index++) {
                     Object item = convert(arrayValue[index], componentType, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     newArray[index] = item;
                 }
@@ -755,7 +759,7 @@ public class Converter
                 for (Object item : arrayValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     collection.add(item);
                 }
@@ -813,7 +817,7 @@ public class Converter
          * @param value
          * @param enumClass
          * @return enum value for given string from specified enum class
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
+         * @throws FaultRuntimeException when converting fails
          *
          */
         public static <T extends Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
@@ -823,16 +827,15 @@ public class Converter
                 return Enum.valueOf(enumClass, value);
             }
             catch (IllegalArgumentException exception) {
-                throw new FaultRuntimeException(CommonFault.ENUM_VALUE_NOT_DEFINED, value,
-                        getClassShortName(enumClass));
+                throw new FaultRuntimeException(exception,
+                        CommonFaultSet.createTypeIllegalValueFault(getClassShortName(enumClass), value));
             }
         }
 
         /**
          * @param value
          * @return parsed date/time from string
-         * @throws FaultRuntimeException
-         *          when parsing fails
+         * @throws FaultRuntimeException when parsing fails
          */
         public static DateTime convertStringToDateTime(String value) throws FaultRuntimeException
         {
@@ -841,11 +844,13 @@ public class Converter
                 dateTime = ISODateTimeFormat.dateTimeParser().parseDateTime(value);
             }
             catch (Exception exception) {
-                throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
+                throw new FaultRuntimeException(exception,
+                        CommonFaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
             }
             final long millis = dateTime.getMillis();
             if (millis < DATETIME_INFINITY_START_MILLIS || millis > DATETIME_INFINITY_END_MILLIS) {
-                throw new FaultRuntimeException(CommonFault.DATETIME_PARSING_FAILED, value);
+                throw new FaultRuntimeException(
+                        CommonFaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
             }
             return dateTime;
         }
@@ -853,8 +858,7 @@ public class Converter
         /**
          * @param value
          * @return parsed partial date/time from string
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
-         *          when parsing fails
+         * @throws FaultRuntimeException when parsing fails
          */
         public static ReadablePartial convertStringToReadablePartial(String value) throws FaultRuntimeException
         {
@@ -875,14 +879,14 @@ public class Converter
                 }
                 return partial;
             }
-            throw new FaultRuntimeException(CommonFault.PARTIAL_DATETIME_PARSING_FAILED, value);
+            throw new FaultRuntimeException(
+                    CommonFaultSet.createTypeIllegalValueFault("PartialDateTime", value));
         }
 
         /**
          * @param value
          * @return parsed period from string
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
-         *          when parsing fails
+         * @throws FaultRuntimeException when parsing fails
          */
         public static Period convertStringToPeriod(String value) throws FaultRuntimeException
         {
@@ -891,7 +895,8 @@ public class Converter
                 return period;
             }
             catch (Exception exception) {
-                throw new FaultRuntimeException(CommonFault.PERIOD_PARSING_FAILED, value);
+                throw new FaultRuntimeException(exception,
+                        CommonFaultSet.createTypeIllegalValueFault(Period.class.getSimpleName(), value));
             }
         }
 
@@ -907,8 +912,7 @@ public class Converter
          *
          * @param value string value to be converted to the {@link Interval}
          * @return parsed {@link Interval} from given {@code value}
-         * @throws cz.cesnet.shongo.fault.FaultRuntimeException
-         *          when parsing fails
+         * @throws FaultRuntimeException when parsing fails
          */
         public static Interval convertStringToInterval(String value) throws FaultRuntimeException
         {
@@ -934,10 +938,12 @@ public class Converter
                     return new Interval(start, end);
                 }
                 catch (IllegalArgumentException exception) {
-                    throw new FaultRuntimeException(exception, CommonFault.INTERVAL_PARSING_FAILED, value);
+                    throw new FaultRuntimeException(exception,
+                            CommonFaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
                 }
             }
-            throw new FaultRuntimeException(CommonFault.INTERVAL_PARSING_FAILED, value);
+            throw new FaultRuntimeException(
+                    CommonFaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
         }
 
         /**

@@ -151,7 +151,7 @@
                     <xs:attribute name="severity" type="severity"/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="params">
+            <xs:element name="params" minOccurs="0">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="param" type="report-param" maxOccurs="unbounded"/>

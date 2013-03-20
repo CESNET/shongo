@@ -19,11 +19,6 @@ import java.util.Set;
 public class Executable extends IdentifiedObject
 {
     /**
-     * User-id of the owner user.
-     */
-    private String userId;
-
-    /**
      * Slot of the {@link cz.cesnet.shongo.controller.api.Executable}.
      */
     private Interval slot;
@@ -37,22 +32,6 @@ public class Executable extends IdentifiedObject
      * Description of state.
      */
     private String stateReport;
-
-    /**
-     * @return {@link #userId}
-     */
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #slot}

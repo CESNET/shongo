@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.rpc.CommonService;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.FaultException;
 import jade.core.AID;
 
 import javax.persistence.EntityManager;
@@ -81,7 +81,7 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public Collection<Domain> listDomains(SecurityToken token)
+    public Collection<Domain> listDomains(SecurityToken token) throws FaultException
     {
         authorization.validate(token);
 
@@ -91,7 +91,7 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public Collection<Connector> listConnectors(SecurityToken token)
+    public Collection<Connector> listConnectors(SecurityToken token) throws FaultException
     {
         authorization.validate(token);
 
@@ -116,7 +116,7 @@ public class CommonServiceImpl extends Component
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
-                connector.setResourceId(IdentifierFormat.formatGlobalId(deviceResource));
+                connector.setResourceId(EntityIdentifier.formatId(deviceResource));
                 deviceResourceMap.remove(agentName);
             }
 
@@ -126,7 +126,7 @@ public class CommonServiceImpl extends Component
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());
-            connector.setResourceId(IdentifierFormat.formatGlobalId(entry.getValue()));
+            connector.setResourceId(EntityIdentifier.formatId(entry.getValue()));
             connector.setStatus(Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }

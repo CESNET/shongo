@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
@@ -11,8 +12,11 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.jade.CommandError;
+import cz.cesnet.shongo.fault.jade.CommandNotSupported;
+import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
@@ -42,7 +46,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(String deviceResourceId) throws FaultException
+            protected String getAgentName(EntityIdentifier entityId) throws FaultException
             {
                 return "mcu";
             }
@@ -64,29 +68,37 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addJadeAgent("mcu", new ConnectorAgent());
         getController().waitForJadeAgentsToStart();
 
-
         try {
-            getResourceControlService().listRooms(SECURITY_TOKEN, mcuId);
+            getResourceControlService().listRooms(SECURITY_TOKEN_ROOT, mcuId);
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            Assert.assertEquals(CommonFault.JADE_COMMAND_NOT_SUPPORTED, exception.getCode());
+            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            // TODO: Implement command failure serialization
+            //Assert.assertEquals(CommandNotSupported.class, deviceCommandFailedFault.getError().getClass());
         }
 
         try {
-            getResourceControlService().createRoom(SECURITY_TOKEN, mcuId, new Room());
+            getResourceControlService().createRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            Assert.assertEquals(CommonFault.JADE_COMMAND_ERROR, exception.getCode());
+            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            // TODO: Implement command failure serialization
+            //Assert.assertEquals(CommandError.class, deviceCommandFailedFault.getError().getClass());
         }
 
         try {
-            getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, new Room());
+            getResourceControlService().modifyRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            Assert.assertEquals(CommonFault.JADE_COMMAND_UNKNOWN, exception.getCode());
+            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            // TODO: Implement command failure serialization
+            //Assert.assertEquals(CommandUnknownFailure.class, deviceCommandFailedFault.getError().getClass());
         }
     }
 

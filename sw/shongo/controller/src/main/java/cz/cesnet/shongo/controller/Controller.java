@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
@@ -26,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -68,7 +68,7 @@ public class Controller
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see Authorization
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 
@@ -200,6 +200,14 @@ public class Controller
     }
 
     /**
+     * @return {@link #entityManagerFactory}
+     */
+    public EntityManagerFactory getEntityManagerFactory()
+    {
+        return entityManagerFactory;
+    }
+
+    /**
      * Set domain information.
      *
      * @param name         sets the {@link Domain#name}
@@ -213,11 +221,11 @@ public class Controller
     }
 
     /**
-     * @return {@link #authorization}
+     * @param authorization sets the {@link #authorization}
      */
-    public Authorization getAuthorization()
+    public void setAuthorization(Authorization authorization)
     {
-        return authorization;
+        this.authorization = authorization;
     }
 
     /**
@@ -377,7 +385,10 @@ public class Controller
         }
 
         // Initialize authorization
-        authorization = Authorization.createInstance(configuration);
+        if(authorization == null) {
+            throw new IllegalStateException("Authorization is not set.");
+        }
+        authorization.setEntityManagerFactory(entityManagerFactory);
 
         logger.info("Controller for domain '{}' is starting...", Domain.getLocalDomain().getName());
 
@@ -807,7 +818,8 @@ public class Controller
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 
-        // Run controller
+        // Setup controller
+        controller.setAuthorization(ServerAuthorization.createInstance(configuration));
         controller.setEntityManagerFactory(entityManagerFactory);
 
         // Add components

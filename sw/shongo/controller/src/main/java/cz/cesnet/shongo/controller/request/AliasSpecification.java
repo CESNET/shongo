@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -374,7 +374,7 @@ public class AliasSpecification extends Specification
         aliasSpecificationApi.setValue(getValue());
         if (getAliasProviderCapability() != null) {
             aliasSpecificationApi.setResourceId(
-                    IdentifierFormat.formatGlobalId(getAliasProviderCapability().getResource()));
+                    EntityIdentifier.formatId(getAliasProviderCapability().getResource()));
         }
         super.toApi(specificationApi);
     }
@@ -393,7 +393,7 @@ public class AliasSpecification extends Specification
                 setAliasProviderCapability(null);
             }
             else {
-                Long resourceId = IdentifierFormat.parseLocalId(
+                Long resourceId = EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.resource.Resource.class, aliasSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 Resource resource = resourceManager.get(resourceId);

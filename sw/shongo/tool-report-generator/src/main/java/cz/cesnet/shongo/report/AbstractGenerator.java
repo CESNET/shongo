@@ -138,7 +138,7 @@ public abstract class AbstractGenerator
             case STRING:
                 return "String";
             case JADE_REPORT:
-                return "JadeError";
+                return "CommandFailure";
             default:
                 throw new TodoException(type.toString());
         }

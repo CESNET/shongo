@@ -26,14 +26,28 @@ sub new()
 {
     my $class = shift;
     my ($state) = @_;
-    my $self = Shongo::Authorization->new(
-        'cz.cesnet.shongo.client-web-local',
-        'http://127.0.0.1:8182/',
-        $state
-    );
+    my $self = Shongo::Authorization->new($state);
     bless $self, $class;
 
     return $self;
+}
+
+#
+# Load configuration
+#
+# @param $configuration
+#
+sub load_configuration
+{
+    my ($self, $configuration) = @_;
+
+    $configuration = $configuration->{'security'};
+
+    # Setup authorization
+    $self->set_url($configuration->{'server'});
+    $self->set_client_id($configuration->{'client-id'});
+    $self->set_redirect_uri($configuration->{'redirect-uri'});
+    $self->set_secret($configuration->{'secret'});
 }
 
 # @Override

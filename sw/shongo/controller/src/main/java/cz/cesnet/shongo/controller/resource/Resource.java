@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
-import cz.cesnet.shongo.fault.EntityValidationException;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 
@@ -22,7 +22,7 @@ import java.util.*;
 public class Resource extends PersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link Resource}.
+     * User-id of an user who created the {@link Resource}.
      */
     private String userId;
 
@@ -140,17 +140,16 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when capability doesn't exist
+     * @throws FaultException when capability doesn't exist
      */
-    public Capability getCapabilityById(Long id) throws PersistentEntityNotFoundException
+    public Capability getCapabilityById(Long id) throws FaultException
     {
         for (Capability capability : capabilities) {
             if (capability.getId().equals(id)) {
                 return capability;
             }
         }
-        throw new PersistentEntityNotFoundException(Capability.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Capability.class, id);
     }
 
     /**
@@ -298,17 +297,16 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when administrator doesn't exist
+     * @throws FaultException when administrator doesn't exist
      */
-    public Person getAdministratorById(Long id) throws PersistentEntityNotFoundException
+    public Person getAdministratorById(Long id) throws FaultException
     {
         for (Person person : administrators) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        throw new PersistentEntityNotFoundException(Person.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**
@@ -409,7 +407,7 @@ public class Resource extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
-        resourceApi.setId(IdentifierFormat.formatGlobalId(this));
+        resourceApi.setId(EntityIdentifier.formatId(this));
         resourceApi.setUserId(getUserId());
         resourceApi.setName(getName());
         resourceApi.setAllocatable(isAllocatable());
@@ -421,7 +419,7 @@ public class Resource extends PersistentObject
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resourceApi.setParentResourceId(IdentifierFormat.formatGlobalId(parentResource));
+            resourceApi.setParentResourceId(EntityIdentifier.formatId(parentResource));
         }
 
         for (Capability capability : getCapabilities()) {
@@ -433,7 +431,7 @@ public class Resource extends PersistentObject
         }
 
         for (Resource childResource : getChildResources()) {
-            resourceApi.addChildResourceId(IdentifierFormat.formatGlobalId(childResource));
+            resourceApi.addChildResourceId(EntityIdentifier.formatId(childResource));
         }
     }
 
@@ -479,7 +477,7 @@ public class Resource extends PersistentObject
         if (resourceApi.isPropertyFilled(resourceApi.PARENT_RESOURCE_ID)) {
             Long newParentResourceId = null;
             if (resourceApi.getParentResourceId() != null) {
-                newParentResourceId = IdentifierFormat.parseLocalId(
+                newParentResourceId = EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.resource.Resource.class, resourceApi.getParentResourceId());
             }
             Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
@@ -539,7 +537,7 @@ public class Resource extends PersistentObject
     /**
      * Validate resource
      */
-    public void validate() throws EntityValidationException
+    public void validate() throws FaultException
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
@@ -548,8 +546,8 @@ public class Resource extends PersistentObject
             }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
-                    throw new EntityValidationException(getClass(), getId(), "Resource cannot contain multiple '"
-                            + capabilityType.getSimpleName() + "'.");
+                    CommonFaultSet.throwEntityInvalidFault(getClass().getSimpleName(),
+                            "Resource cannot contain multiple '" + capabilityType.getSimpleName() + "'.");
 
                 }
             }

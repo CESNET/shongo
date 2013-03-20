@@ -24,24 +24,20 @@ use Shongo::Common;
 sub new
 {
     my $class = shift;
-    my ($client_id, $redirect_uri, $state) = @_;
+    my ($state, $client_id, $redirect_uri, $secret) = @_;
     my $self = {};
     bless $self, $class;
 
-    if ( !defined($client_id) || !defined($redirect_uri) ) {
-        die("Arguments 'client_id' and 'redirect_uri' must be passed.");
-    }
     if ( !defined($state) ) {
         # Generate random state identifier (against XSRF attacks)
         $state = join "", map { unpack "H*", chr(rand(256)) } 1..10;
     }
 
-    $self->{'url'} = 'https://shongo-auth-dev.cesnet.cz/phpid-server/oic/';
-    $self->{'ws_url'} = 'https://hroch.cesnet.cz/perun-ws/resource/user';
-    $self->{'client_id'} = $client_id;
-    $self->{'redirect_uri'} = $redirect_uri;
-    $self->{'secret-string'} = 'testclientsecret';
     $self->{'state'} = $state;
+    $self->{'url'} = '';
+    $self->{'client_id'} = '';
+    $self->{'redirect_uri'} = '';
+    $self->{'secret'} = '';
 
     return $self;
 }
@@ -53,6 +49,15 @@ sub get_url()
 {
     my ($self) = @_;
     return $self->{'url'};
+}
+
+#
+# @param $url
+#
+sub set_url()
+{
+    my ($self, $url) = @_;
+    $self->{'url'} = $url;
 }
 
 #
@@ -92,6 +97,24 @@ sub set_redirect_uri()
 }
 
 #
+# @return secret
+#
+sub get_secret()
+{
+    my ($self) = @_;
+    return $self->{'secret'};
+}
+
+#
+# @param $secret
+#
+sub set_secret()
+{
+    my ($self, $secret) = @_;
+    $self->{'secret'} = $secret;
+}
+
+#
 # @return user agent
 #
 sub get_user_agent()
@@ -117,7 +140,7 @@ sub get_state()
 sub get_authorize_url()
 {
     my ($self) = @_;
-    my $url = URI->new($self->{'url'} . 'authorize');
+    my $url = URI->new($self->{'url'} . '/authn/oic/authorize');
     $url->query_form(
         'client_id'     => $self->{'client_id'},
         'redirect_uri'  => $self->{'redirect_uri'},
@@ -135,7 +158,7 @@ sub get_authorize_url()
 sub get_token_url()
 {
     my ($self) = @_;
-    my $url = URI->new($self->{'url'} . 'authorize');
+    my $url = URI->new($self->{'url'} . '/authn/oic/authorize');
     $url->query_form(
         'client_id'     => $self->{'client_id'},
         'redirect_uri'  => $self->{'redirect_uri'},
@@ -177,10 +200,10 @@ sub authentication_authorize
 sub authentication_token
 {
     my ($self, $authorization_code) = @_;
-    my $request = HTTP::Request->new(POST => $self->get_url() . 'token');
+    my $request = HTTP::Request->new(POST => $self->get_url() . '/authn/oic/token');
     $request->content_type('application/x-www-form-urlencoded');
-    if ( defined($self->{'secret-string'}) ) {
-        my $secret_string = $self->{'secret-string'};
+    if ( defined($self->{'secret'}) ) {
+        my $secret_string = $self->{'secret'};
         $request->header('Authorization' => "secret auth=$secret_string");
     }
     $request->content($self->escape_hash(
@@ -207,12 +230,12 @@ sub authentication_token
 }
 
 #
-# Retrieve user information
+# Retrieve user information by $access_token
 #
 # @param $access_token
 # @return user information
 #
-sub get_user_info
+sub get_user_information
 {
     my ($self, $access_token) = @_;
     if (!defined($access_token)) {
@@ -221,7 +244,7 @@ sub get_user_info
     }
 
     # Setup request url
-    my $url = URI->new($self->{'url'} . 'userinfo');
+    my $url = URI->new($self->{'url'} . '/authn/oic/userinfo');
     $url->query_form('schema' => 'openid');
 
     # Request user information
@@ -236,42 +259,6 @@ sub get_user_info
         return undef;
     }
 
-    $response_data->{'name'} = $response_data->{'given_name'} . ' ' . $response_data->{'family_name'};
-    return $response_data;
-}
-
-#
-# Retrieve user information by user-id
-#
-# @param $userId
-# @return user information
-#
-sub get_user_info_by_id
-{
-    my ($self, $user_id) = @_;
-    if (!defined($user_id)) {
-        self->error("User-id must be passed.");
-        return;
-    }
-    if ( $user_id eq "0" ) {
-        return {'name' => 'root'};
-    }
-
-    # Setup request url
-    my $url = URI->new($self->{'ws_url'} . '/' . $user_id);
-
-    # Request user information
-    my $request = HTTP::Request->new(GET => $url);
-    my $user_agent = $self->get_user_agent();
-    my $response = $user_agent->simple_request($request);
-    my $response_data = undef;
-    if ( defined($response) && $response ne '' ) {
-        $response_data = decode_json($response->content);
-    }
-    if (!$response->is_success) {
-        $self->error("Retrieving user information for user-id '$user_id' failed!");
-        return undef;
-    }
     $response_data->{'name'} = $response_data->{'given_name'} . ' ' . $response_data->{'family_name'};
     return $response_data;
 }

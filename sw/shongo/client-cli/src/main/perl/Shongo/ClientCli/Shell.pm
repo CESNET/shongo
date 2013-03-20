@@ -12,6 +12,7 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::ClientCli;
+use Shongo::ClientCli::AuthorizationService;
 use Shongo::ClientCli::CommonService;
 use Shongo::ClientCli::ResourceService;
 use Shongo::ClientCli::ResourceControlService;
@@ -42,6 +43,7 @@ sub new
 
     # Populate commands
     Shongo::ClientCli->populate($self);
+    Shongo::ClientCli::AuthorizationService->populate($self);
     Shongo::ClientCli::CommonService->populate($self);
     Shongo::ClientCli::ResourceService->populate($self);
     Shongo::ClientCli::ResourceControlService->populate($self);

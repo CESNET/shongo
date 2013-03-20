@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -22,11 +22,6 @@ import java.util.*;
 public abstract class Executable extends ReportablePersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link Executable}.
-     */
-    private String userId;
-
-    /**
      * Interval start date/time.
      */
     private DateTime slotStart;
@@ -45,23 +40,6 @@ public abstract class Executable extends ReportablePersistentObject
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new ArrayList<Executable>();
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #slotStart}
@@ -201,8 +179,7 @@ public abstract class Executable extends ReportablePersistentObject
     public cz.cesnet.shongo.controller.api.Executable toApi()
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
-        executableApi.setId(IdentifierFormat.formatGlobalId(this));
-        executableApi.setUserId(getUserId());
+        executableApi.setId(EntityIdentifier.formatId(this));
         toApi(executableApi);
         return executableApi;
     }

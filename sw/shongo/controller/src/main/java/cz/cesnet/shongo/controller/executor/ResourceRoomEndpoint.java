@@ -5,11 +5,12 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
@@ -118,7 +119,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         resourceRoomEndpointApi.setState(getState().toApi());
         resourceRoomEndpointApi.setStateReport(getReportText());
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
-        resourceRoomEndpointApi.setResourceId(IdentifierFormat.formatGlobalId(getDeviceResource()));
+        resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
         for (Technology technology : getTechnologies()) {
             resourceRoomEndpointApi.addTechnology(technology);
         }
@@ -232,7 +233,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         for (Alias alias : getAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+        Authorization authorization = Authorization.getInstance();
+        for ( UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER) ) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;

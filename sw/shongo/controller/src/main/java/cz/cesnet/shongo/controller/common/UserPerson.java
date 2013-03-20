@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

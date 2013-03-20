@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultSet;
 
 /**
  * Represents a {@link CommandFailure} which happens when an agent which is receiver of the command is not available.
@@ -48,14 +48,8 @@ public class CommandAgentNotFound extends CommandFailure
     }
 
     @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_CONNECTOR_NOT_FOUND;
-    }
-
-    @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Jade agent '%s' was not found.", agentName);
+        return FaultSet.formatMessage("Jade agent '%s' was not found.", agentName);
     }
 }

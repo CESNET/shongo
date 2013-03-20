@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
@@ -14,6 +15,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import org.hibernate.cfg.SetSimpleValueTypeSecondPass;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -364,9 +366,8 @@ public abstract class ReservationTask
             reservation = createReservation();
         }
 
-        reservation.setUserId(context.getUserId());
+        // Add child reservations
         for (Reservation childReservation : getChildReservations()) {
-            childReservation.setUserId(context.getUserId());
             reservation.addChildReservation(childReservation);
         }
 
@@ -565,6 +566,25 @@ public abstract class ReservationTask
         public CacheTransaction getCacheTransaction()
         {
             return cacheTransaction;
+        }
+
+        /**
+         * @param userIds       to be checked
+         * @param authorization which is used for retrieving owners for the {@link #reservationRequest}
+         * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
+         *         false otherwise
+         */
+        public boolean containsOwnerId(Set<String> userIds, Authorization authorization)
+        {
+            if (reservationRequest == null) {
+                throw new IllegalStateException("Reservation request must not be null.");
+            }
+            Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
+            if (ownerIds.size() == 0) {
+                ownerIds = new HashSet<String>();
+                ownerIds.add(reservationRequest.getUserId());
+            }
+            return !Collections.disjoint(userIds, ownerIds);
         }
     }
 }

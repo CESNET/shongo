@@ -2,10 +2,10 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.fault.FaultException;
@@ -13,6 +13,8 @@ import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Capability tells that the resource acts as alias provider which can allocate aliases for itself and/or
@@ -60,6 +62,11 @@ public class AliasProviderCapability extends Capability
      * Cache for provided {@link AliasType}s.
      */
     private Set<AliasType> cachedProvidedAliasTypes;
+
+    /**
+     * Cache for value patterns.
+     */
+    private List<Pattern> cachedValuePatterns;
 
     /**
      * Constructor.
@@ -125,17 +132,16 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when alias doesn't exist
+     * @throws FaultException when alias doesn't exist
      */
-    public Alias getAliasById(Long id) throws PersistentEntityNotFoundException
+    public Alias getAliasById(Long id) throws FaultException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(id)) {
                 return alias;
             }
         }
-        throw new PersistentEntityNotFoundException(Alias.class, id);
+        return ControllerImplFaultSet.throwEntityNotFoundFault(Alias.class, id);
     }
 
     /**
@@ -148,6 +154,7 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
+        this.cachedValuePatterns = null;
     }
 
     /**
@@ -160,6 +167,7 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
+        this.cachedValuePatterns = null;
     }
 
     /**
@@ -324,7 +332,7 @@ public class AliasProviderCapability extends Capability
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getResource()) {
-            aliasProviderApi.setValueProvider(IdentifierFormat.formatGlobalId(valueProviderResource));
+            aliasProviderApi.setValueProvider(EntityIdentifier.formatId(valueProviderResource));
         }
         else {
             aliasProviderApi.setValueProvider(valueProvider.toApi());
@@ -388,5 +396,28 @@ public class AliasProviderCapability extends Capability
         }
 
         super.fromApi(capabilityApi, entityManager);
+    }
+
+
+
+    public String parseValue(String value)
+    {
+        if (cachedValuePatterns == null) {
+            cachedValuePatterns = new LinkedList<Pattern>();
+            for (Alias alias : aliases) {
+                String aliasValue = alias.getValue();
+                aliasValue = aliasValue.replaceAll("\\{.+\\}", "(.+)");
+                cachedValuePatterns.add(Pattern.compile(aliasValue));
+            }
+        }
+        for (Pattern pattern : cachedValuePatterns) {
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.matches()) {
+                if (matcher.groupCount() > 0) {
+                    return matcher.group(1);
+                }
+            }
+        }
+        return value;
     }
 }
