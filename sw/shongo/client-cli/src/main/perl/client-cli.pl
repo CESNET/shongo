@@ -41,12 +41,13 @@ sub usage {
    print STDERR (
       $message,
       "usage: $command [options]\n" .
-      "    -help                  Show this usage information\n" .
-      "    -connect=URL           Connect to a controller\n" .
-      "    -testing-access-token  Use testing access token for authentication\n" .
-      "    -scripting             Switch to scripting mode\n" .
-      "    -cmd=COMMAND           Perform given command in controller\n" .
-      "    -file=FILE             Perform commands from file in controller\n"
+      "    -help                        Show this usage information\n" .
+      "    -connect=URL                 Connect to a controller\n" .
+      "    -testing-access-token        Use testing access token for authentication\n" .
+      "    -authentication-server=HOST  Use given authentication server\n" .
+      "    -scripting                   Switch to scripting mode\n" .
+      "    -cmd=COMMAND                 Perform given command in controller\n" .
+      "    -file=FILE                   Perform commands from file in controller\n"
    );
    exit(0);
 }
@@ -55,6 +56,7 @@ sub usage {
 my $connect;
 my $cmd;
 my $file;
+my $authentication_server = undef;
 my $testing_access_token = undef;
 my $scripting = 0;
 my $help = 0;
@@ -62,6 +64,7 @@ Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
     'testing-access-token:s' => \$testing_access_token,
+    'authentication-server:s' => \$authentication_server,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
@@ -70,8 +73,13 @@ if ( $help == 1) {
     usage();
 }
 
+if ( !defined($authentication_server) ) {
+    $authentication_server = 'shongo-auth.cesnet.cz';
+}
+
 my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
+$controller->set_authorization_url('https://' . $authentication_server);
 
 # Set testing access token
 if (defined($testing_access_token)) {

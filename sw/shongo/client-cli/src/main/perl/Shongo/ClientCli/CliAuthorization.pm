@@ -28,7 +28,6 @@ sub new()
     my $class = shift;
     my (%attributes) = @_;
     my $self = Shongo::Authorization->new();
-    $self->set_url('https://shongo-auth-dev.cesnet.cz');
     $self->set_client_id('cz.cesnet.shongo.client-cli');
     $self->set_redirect_uri('https://client-cli.shongo.cesnet.cz');
     $self->set_secret('testclientsecret');
