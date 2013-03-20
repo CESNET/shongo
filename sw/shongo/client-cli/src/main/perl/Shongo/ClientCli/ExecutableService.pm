@@ -82,9 +82,6 @@ sub list_executables()
 {
     my ($options) = @_;
     my $filter = {};
-    if ( defined($options->{'user'}) ) {
-        $filter->{'userId'} = $options->{'user'};
-    }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Executable.listExecutables', $filter);
     if ( !defined($response) ) {
@@ -92,7 +89,6 @@ sub list_executables()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'User',
         \' | ', 'Type',
         \' | ', 'Slot',
         \' | ', 'State',
@@ -108,7 +104,6 @@ sub list_executables()
         }
         $table->add(
             $executable->{'id'},
-            $application->format_user($executable->{'userId'}),
             $type,
             interval_format($executable->{'slot'}),
             Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)

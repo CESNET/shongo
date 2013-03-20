@@ -107,15 +107,12 @@ public class ExecutorServiceImpl extends Component
 
         Set<Long> executableIds =
                 authorization.getEntitiesWithPermission(userId, EntityType.EXECUTABLE, Permission.READ);
-        String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
-        List<cz.cesnet.shongo.controller.executor.Executable> list =
-                executableManager.list(executableIds, filterUserId);
+        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(executableIds);
 
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
             summary.setId(EntityIdentifier.formatId(executable));
-            summary.setUserId(executable.getUserId());
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
             if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {

@@ -1,19 +1,17 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.fault.FaultException;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -28,8 +26,12 @@ public class ReservationNotification extends Notification
      */
     private Type type;
 
-    cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
+    /**
+     * Parameters.
+     */
+    List<UserInformation> owners = new LinkedList<UserInformation>();
     cz.cesnet.shongo.controller.api.Reservation reservation = null;
+    cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
     List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
             new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
 
@@ -44,8 +46,9 @@ public class ReservationNotification extends Notification
         this.type = type;
 
         // Add recipients
-        for (String userId : Authorization.getInstance().getUserIdsWithRole(reservation, Role.OWNER)) {
-            addUserRecipient(userId);
+        for (UserInformation userInformation : Authorization.getInstance().getUsersWithRole(reservation, Role.OWNER)) {
+            addUserRecipient(userInformation.getUserId());
+            owners.add(userInformation);
         }
         addRecipientByReservation(reservation);
 
@@ -116,8 +119,9 @@ public class ReservationNotification extends Notification
     {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("type", type);
-        parameters.put("reservationRequest", reservationRequest);
+        parameters.put("owners", owners);
         parameters.put("reservation", reservation);
+        parameters.put("reservationRequest", reservationRequest);
         parameters.put("aliasReservations", aliasReservations);
         return renderTemplate("reservation-mail.ftl", parameters);
     }

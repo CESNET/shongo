@@ -279,9 +279,7 @@ public class ReservationServiceImpl extends Component
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
-            aclRecordsToDelete = authorization.getAclRecordsForDeletion(reservationRequest);
-
-            reservationRequestManager.delete(reservationRequest);
+            aclRecordsToDelete = reservationRequestManager.delete(reservationRequest, authorization);
 
             entityManager.getTransaction().commit();
         }
@@ -435,7 +433,6 @@ public class ReservationServiceImpl extends Component
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         try {
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
             Set<Long> reservationIds =
                     authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION, Permission.READ);
             Long reservationRequestId = null;
@@ -452,8 +449,7 @@ public class ReservationServiceImpl extends Component
                             cz.cesnet.shongo.controller.reservation.Reservation.class);
 
             List<cz.cesnet.shongo.controller.reservation.Reservation> reservations =
-                    reservationManager.list(reservationIds, filterUserId, reservationRequestId,
-                            reservationClasses, technologies);
+                    reservationManager.list(reservationIds, reservationRequestId, reservationClasses, technologies);
             List<Reservation> apiReservations = new ArrayList<Reservation>();
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
                 apiReservations.add(reservation.toApi());

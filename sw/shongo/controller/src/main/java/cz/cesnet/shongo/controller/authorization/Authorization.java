@@ -591,12 +591,15 @@ public abstract class Authorization
         }
     }
 
-    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity) throws FaultException
+    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity, boolean recursive)
+            throws FaultException
     {
         EntityIdentifier entityId = new EntityIdentifier(entity);
         Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
         aclRecords.addAll(getAclRecords(null, entityId, null));
-        aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
+        if (recursive) {
+            aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
+        }
         return aclRecords;
     }
 

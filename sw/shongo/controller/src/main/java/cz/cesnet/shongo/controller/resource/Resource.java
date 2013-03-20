@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
@@ -19,8 +19,13 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Resource extends OwnedPersistentObject
+public class Resource extends PersistentObject
 {
+    /**
+     * User-id of an user who created the {@link Resource}.
+     */
+    private String userId;
+
     /**
      * Name of a resource that is visible to users.
      */
@@ -69,6 +74,23 @@ public class Resource extends OwnedPersistentObject
      */
     public Resource()
     {
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
     }
 
     /**
@@ -366,7 +388,6 @@ public class Resource extends OwnedPersistentObject
     /**
      * @return converted capability to API
      * @throws FaultException
-     *
      */
     public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager)
     {
@@ -383,7 +404,6 @@ public class Resource extends OwnedPersistentObject
     /**
      * @return converted resource to API
      * @throws FaultException
-     *
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {

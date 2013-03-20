@@ -149,7 +149,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
                 // Add record for updating ACL
                 if (authorization != null) {
-                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation));
+                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation, true));
                 }
 
                 // Delete the reservation

@@ -279,8 +279,7 @@ sub get_reservation_for_request()
         return;
     }
     my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservations', {
-        'reservationRequestId' => $id,
-        'userId' => '*'
+        'reservationRequestId' => $id
     });
     if ( !defined($response) ) {
         return;
@@ -309,9 +308,6 @@ sub list_reservations()
             push(@{$filter->{'technology'}}, $technology);
         }
     }
-    if ( defined($options->{'user'}) ) {
-        $filter->{'userId'} = $options->{'user'};
-    }
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_request('Reservation.listReservations', $filter);
     if ( !defined($response) ) {
@@ -319,14 +315,12 @@ sub list_reservations()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
-        \' | ', 'User',
         \' | ', 'Type',
         \' | ', 'Slot', \' |'
     );
     foreach my $reservation (@{$response}) {
         $table->add(
             $reservation->{'id'},
-            $application->format_user($reservation->{'userId'}),
             $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}},
             interval_format($reservation->{'slot'})
         );

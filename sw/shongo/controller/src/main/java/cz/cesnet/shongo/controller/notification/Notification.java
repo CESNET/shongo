@@ -242,8 +242,17 @@ public abstract class Notification
         }
 
         /**
-         * @param userId to be formatted by it's {@link cz.cesnet.shongo.controller.common.Person}
-         * @return {@link cz.cesnet.shongo.controller.common.Person} formatted to string
+         * @param userInformation to be formatted
+         * @return {@link UserInformation} formatted to string
+         */
+        public String formatUser(UserInformation userInformation)
+        {
+            return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
+        }
+
+        /**
+         * @param userId to be formatted by it's {@link UserInformation}
+         * @return {@link UserInformation} formatted to string
          */
         public String formatUser(String userId)
         {

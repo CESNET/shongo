@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -12,6 +14,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -97,10 +100,20 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
+     * @return {@link AclRecord}s which should be deleted
      * @throws FaultException when the deletion failed
      */
-    public void delete(AbstractReservationRequest abstractReservationRequest) throws FaultException
+    public Collection<AclRecord> delete(AbstractReservationRequest abstractReservationRequest,
+            Authorization authorization) throws FaultException
     {
+        Collection<AclRecord> aclRecordsToDelete;
+        if (authorization != null) {
+            aclRecordsToDelete = authorization.getAclRecordsForDeletion(abstractReservationRequest, false);
+        }
+        else {
+            aclRecordsToDelete = Collections.emptyList();
+        }
+
         Transaction transaction = beginTransaction();
 
         if (abstractReservationRequest instanceof ReservationRequest) {
@@ -124,7 +137,7 @@ public class ReservationRequestManager extends AbstractManager
 
             // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                delete(reservationRequest);
+                delete(reservationRequest, authorization);
             }
 
             // Clear state
@@ -134,6 +147,8 @@ public class ReservationRequestManager extends AbstractManager
         super.delete(abstractReservationRequest);
 
         transaction.commit();
+
+        return aclRecordsToDelete;
     }
 
     /**

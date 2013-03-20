@@ -173,23 +173,13 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             // All reservation requests that remains in map must be deleted
             for (ReservationRequest reservationRequest : map.values()) {
                 reservationRequestSet.removeReservationRequest(reservationRequest);
-                reservationRequestManager.delete(reservationRequest);
-
-                // Remember for updating ACL
-                if (authorization != null) {
-                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
-                }
+                aclRecordsToDelete.addAll(reservationRequestManager.delete(reservationRequest, authorization));
             }
 
             // All reservation requests that remains in list of all must be deleted
             for (ReservationRequest reservationRequest : reservationRequests) {
                 reservationRequestSet.removeReservationRequest(reservationRequest);
-                reservationRequestManager.delete(reservationRequest);
-
-                // Remember for updating ACL
-                if (authorization != null) {
-                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservationRequest));
-                }
+                aclRecordsToDelete.addAll(reservationRequestManager.delete(reservationRequest, authorization));
             }
 
             // Update reservation request

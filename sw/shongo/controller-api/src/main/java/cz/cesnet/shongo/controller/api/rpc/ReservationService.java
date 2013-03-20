@@ -65,7 +65,7 @@ public interface ReservationService extends Service
      *
      * @param token  token of the user requesting the operation
      * @param filter attributes for filtering reservation requests (map of name => value pairs)::
-     *               -{@code userId}                restricts reservation request owner by his user-id
+     *               -{@code userId}                restricts reservation request creator by his user-id
      *               -{@code technology}            technology or set of technologies of virtual room, compartment or alias
      *               -{@code specificationClass}    specification class or set of specification classes which the requests can specify
      *               -{@code providedReservationId} restricts reservation requests to which must be provided reservation with given identifier(s)
@@ -108,7 +108,6 @@ public interface ReservationService extends Service
     /**
      * @param token
      * @param filter attributes for filtering reservations (map of name => value pairs)::
-     *               -{@code userId}                restricts reservation owner by his user-id
      *               -{@code reservationRequestId}  restricts reservation request for which the {@link Reservation} is allocated
      *               -{@code reservationClass}      set of allowed reservation classes
      *               -{@code technology}            set of technologies of virtual room or compartment

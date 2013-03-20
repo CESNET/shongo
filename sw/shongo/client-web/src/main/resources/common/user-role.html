@@ -27,7 +27,6 @@
                     var results = [];
                     for ( var index = 0; index < data.length; index++ ) {
                         var dataItem = data[index];
-
                         results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
                     }
                     return {results: results};

@@ -15,11 +15,6 @@ import java.util.List;
 public class Reservation extends IdentifiedObject implements StructType
 {
     /**
-     * User-id of the owner user.
-     */
-    private String userId;
-
-    /**
      * Reservation request for which is {@link Reservation} allocated.
      */
     private String reservationRequestId;
@@ -43,22 +38,6 @@ public class Reservation extends IdentifiedObject implements StructType
      * @see Executable
      */
     private Executable executable;
-
-    /**
-     * @return {@link #userId}
-     */
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #reservationRequestId}

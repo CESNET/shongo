@@ -304,7 +304,6 @@ public class AliasReservationTask extends ReservationTask
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setUserId(context.getUserId());
             roomEndpoint.setSlot(getInterval());
             roomEndpoint.setRoomProviderCapability(roomProvider);
             roomEndpoint.setRoomDescription(context.getReservationDescription());

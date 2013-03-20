@@ -366,9 +366,8 @@ public abstract class ReservationTask
             reservation = createReservation();
         }
 
-        reservation.setUserId(context.getUserId());
+        // Add child reservations
         for (Reservation childReservation : getChildReservations()) {
-            childReservation.setUserId(context.getUserId());
             reservation.addChildReservation(childReservation);
         }
 

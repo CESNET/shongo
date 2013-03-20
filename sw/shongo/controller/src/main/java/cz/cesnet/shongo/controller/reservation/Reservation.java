@@ -4,7 +4,6 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.common.OwnedPersistentObject;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Reservation extends OwnedPersistentObject
+public class Reservation extends PersistentObject
 {
     /**
      * @see {@link CreatedBy}.
@@ -379,7 +378,6 @@ public class Reservation extends OwnedPersistentObject
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
         api.setId(EntityIdentifier.formatId(this));
-        api.setUserId(getUserId());
         if (getReservationRequest() != null) {
             api.setReservationRequestId(EntityIdentifier.formatId(getReservationRequest()));
         }

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -27,6 +26,11 @@ import java.util.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
+    /**
+     * User-id of an user who created the {@link AbstractReservationRequest}.
+     */
+    private String userId;
+
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
@@ -62,6 +66,23 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
      */
     private List<Reservation> providedReservations = new ArrayList<Reservation>();
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #created}

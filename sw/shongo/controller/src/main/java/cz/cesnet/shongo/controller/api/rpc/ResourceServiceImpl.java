@@ -203,7 +203,7 @@ public class ResourceServiceImpl extends Component
 
             authorization.checkPermission(userId, entityId, Permission.WRITE);
 
-            aclRecordsToDelete = authorization.getAclRecordsForDeletion(resource);
+            aclRecordsToDelete = authorization.getAclRecordsForDeletion(resource, true);
 
             // Delete the resource
             resourceManager.delete(resource);
