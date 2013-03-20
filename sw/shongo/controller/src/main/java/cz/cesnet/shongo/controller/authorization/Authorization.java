@@ -273,14 +273,24 @@ public abstract class Authorization
     public final Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
-        if (role == null) {
-            if (entityId != null && !entityId.isGroup()) {
-                if (userId != null) {
-                    return authorization.getAclRecords(userId, entityId);
+        if (entityId != null && !entityId.isGroup()) {
+            if (userId != null) {
+                if (role != null) {
+                    Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
+                    for (AclRecord aclRecord : authorization.getAclRecords(userId, entityId)) {
+                        if (role.equals(aclRecord.getRole())) {
+                            aclRecords.add(aclRecord);
+                        }
+                    }
+                    return aclRecords;
                 }
                 else {
-                    return authorization.getAclRecords(entityId);
+                    return authorization.getAclRecords(userId, entityId);
+
                 }
+            }
+            else {
+                return authorization.getAclRecords(entityId);
             }
         }
         return onListAclRecords(userId, entityId, role);
@@ -424,9 +434,9 @@ public abstract class Authorization
     /**
      * Create a new {@link AclRecord}.
      *
-     * @param userId   of user for which the ACL is created.
+     * @param userId of user for which the ACL is created.
      * @param entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
+     * @param role   which is created for given user and given entity
      * @throws FaultException when the creation failed.
      */
     public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
@@ -443,7 +453,7 @@ public abstract class Authorization
      * {@code childEntity} allows.
      *
      * @param parentEntity from which should be fetch all existing {@link AclRecord}s
-     * @param childEntity to which should be created new {@link AclRecord}s
+     * @param childEntity  to which should be created new {@link AclRecord}s
      * @throws FaultException
      */
     public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
@@ -485,13 +495,12 @@ public abstract class Authorization
         finally {
             entityManager.close();
         }
-
     }
 
     /**
      * Retrieve collection of {@link AclRecord}s which should be deleted when the given {@code entity} is deleted.
      *
-     * @param entity for which should be returned all {@link AclRecord}s.
+     * @param entity    for which should be returned all {@link AclRecord}s.
      * @param recursive specifies whether {@link AclRecord}s for child entities should be also returned
      * @return collection of {@link AclRecord}s for given {@code entity} (and optionally for all child entities)
      * @throws FaultException
