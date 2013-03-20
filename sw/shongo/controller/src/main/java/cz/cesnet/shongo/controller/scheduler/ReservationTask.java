@@ -580,6 +580,10 @@ public abstract class ReservationTask
                 throw new IllegalStateException("Reservation request must not be null.");
             }
             Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
+            if (ownerIds.size() == 0) {
+                ownerIds = new HashSet<String>();
+                ownerIds.add(reservationRequest.getUserId());
+            }
             return !Collections.disjoint(userIds, ownerIds);
         }
     }

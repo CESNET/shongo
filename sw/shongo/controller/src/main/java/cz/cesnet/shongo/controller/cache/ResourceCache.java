@@ -252,6 +252,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             String userId = context.getUserId();
             Authorization authorization = Authorization.getInstance();
             Set<String> resourceOwnerIds = authorization.getUserIdsWithRole(resource, Role.OWNER);
+            if (resourceOwnerIds.size() == 0) {
+                resourceOwnerIds = new HashSet<String>();
+                resourceOwnerIds.add(resource.getUserId());
+            }
             if (!context.containsOwnerId(resourceOwnerIds, authorization)) {
                 throw new UserNotOwnerReport(userId).exception();
             }
