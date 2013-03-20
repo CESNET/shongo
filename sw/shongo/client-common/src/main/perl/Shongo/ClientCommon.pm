@@ -182,7 +182,11 @@ sub request()
         $self->{'on-fault'}($response);
         return undef;
     }
-    return $response->value();
+    my $result = $response->value();
+    if ( ref($result) eq 'HASH' && !%{$result} ) {
+        $result = undef;
+    }
+    return $result;
 }
 
 #

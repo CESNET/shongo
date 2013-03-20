@@ -83,7 +83,7 @@ public class AuthorizationServiceImpl extends Component
         authorization.checkPermission(requesterUserId, entityIdentifier, Permission.WRITE);
         cz.cesnet.shongo.controller.authorization.AclRecord userAclRecord =
                 authorization.createAclRecord(userId, entityIdentifier, role);
-        return userAclRecord.getId();
+        return (userAclRecord != null ? userAclRecord.getId() : null);
     }
 
     @Override

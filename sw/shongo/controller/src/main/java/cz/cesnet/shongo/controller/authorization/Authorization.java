@@ -555,13 +555,19 @@ public abstract class Authorization
 
     public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
+        if (userId.equals(Authorization.ROOT_USER_ID)) {
+            return null;
+        }
         PersistentObject entity = getEntity(entityId);
         return createAclRecordsWithChildren(userId, entityId, role, entity);
     }
 
-    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
+    public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
     {
-        return createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
+        if (userId.equals(Authorization.ROOT_USER_ID)) {
+            return;
+        }
+        createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
     }
 
     public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)

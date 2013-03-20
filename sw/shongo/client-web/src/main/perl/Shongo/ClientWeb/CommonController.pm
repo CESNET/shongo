@@ -137,7 +137,7 @@ sub modify_user_role_action
             RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
-        if ( $id ne $params->{'id'} ) {
+        if ( defined($id) && $id ne $params->{'id'} ) {
             $self->{'application'}->secure_request('Authorization.deleteAclRecord',
                 RPC::XML::string->new($params->{'id'})
             );
