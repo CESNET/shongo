@@ -681,6 +681,15 @@ public abstract class Authorization
             CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
         }
 
+        Collection<AclRecord> aclRecords = getAclRecords(userId, entityId, role);
+        int size = aclRecords.size();
+        if (size == 1) {
+            return aclRecords.iterator().next();
+        }
+        else if (size > 1) {
+            throw new IllegalStateException();
+        }
+
         AclRecord newAclRecord = onCreateAclRecord(userId, entityId, role);
 
         // Update AclUserState cache

@@ -98,7 +98,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Map from new reservations to old reservations identifiers
         Map<Reservation, Long> newReservations = new HashMap<Reservation, Long>();
         // Collections of ACL records for deletion
-        Set<AclRecord> aclRecordsToDelete = new HashSet<AclRecord>();
+        List<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
 
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);

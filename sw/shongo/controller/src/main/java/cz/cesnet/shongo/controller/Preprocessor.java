@@ -84,7 +84,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
     {
         // Store created and deleted reservation requests for updating ACL
         Set<ReservationRequest> createdReservationRequests = new HashSet<ReservationRequest>();
-        Set<AclRecord> aclRecordsToDelete = new HashSet<AclRecord>();
+        List<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
 
         reservationRequestSet.checkPersisted();
         try {
@@ -172,6 +172,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
             // All reservation requests that remains in map must be deleted
             for (ReservationRequest reservationRequest : map.values()) {
+                reservationRequests.remove(reservationRequest);
                 reservationRequestSet.removeReservationRequest(reservationRequest);
                 aclRecordsToDelete.addAll(reservationRequestManager.delete(reservationRequest, authorization));
             }

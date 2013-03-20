@@ -125,11 +125,13 @@ sub delete_acl()
         console_print_error("Argument '<id>' must be specified.");
         return;
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.deleteAclRecord',
-        RPC::XML::string->new($args[0])
-    );
-    if ( defined($response) ) {
-        console_print_info("ACL record '%s' has been deleted.", $args[0]);
+    foreach my $id (split(/,/, $args[0])) {
+        my $response = Shongo::ClientCli->instance()->secure_request('Authorization.deleteAclRecord',
+            RPC::XML::string->new($id)
+        );
+        if ( defined($response) ) {
+            console_print_info("ACL record '%s' has been deleted.", $id);
+        }
     }
 }
 
