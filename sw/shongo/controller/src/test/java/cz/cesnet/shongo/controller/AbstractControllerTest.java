@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -19,10 +20,16 @@ import static junit.framework.Assert.*;
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
     /**
-     * {@link SecurityToken} which is validated in the {@link #controller}
+     * {@link SecurityToken} for normal user.
      */
     protected static final SecurityToken SECURITY_TOKEN =
             new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
+
+    /**
+     * {@link SecurityToken} for admin.
+     */
+    protected static final SecurityToken SECURITY_TOKEN_ROOT =
+            new SecurityToken("302be4e89def6d9de3021fd7566d3bc7131284ec");
 
     /**
      * @see Controller
@@ -32,7 +39,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * @see Authorization
      */
-    private Authorization authorization;
+    private TestingAuthorization authorization;
 
     /**
      * @see Cache
@@ -92,6 +99,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public ReservationService getReservationService()
     {
         return controllerClient.getService(ReservationService.class);
+    }
+
+    /**
+     * @param securityToken for which the user-id should be returned
+     * @return user-id for given {@code securityToken}
+     * @throws FaultException
+     */
+    public String getUserId(SecurityToken securityToken) throws FaultException
+    {
+        return authorization.getUserInformation(securityToken).getUserId();
     }
 
     /**

@@ -118,6 +118,7 @@ public class AuthorizationServiceImpl extends Component
     {
         String requesterUserId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+
         if (!requesterUserId.equals(userId)) {
             if (entityIdentifier != null) {
                 authorization.checkPermission(requesterUserId, entityIdentifier, Permission.READ);
@@ -129,25 +130,13 @@ public class AuthorizationServiceImpl extends Component
             }
         }
 
-        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = null;
-        if (role == null) {
-            if (entityIdentifier != null) {
-                checkEntityExistence(entityIdentifier);
-                if (userId != null) {
-                    aclRecords = authorization.getAclRecords(userId, entityIdentifier);
-                }
-                else {
-                    aclRecords = authorization.getAclRecords(entityIdentifier);
-                }
-            }
-        }
-
-        if (aclRecords == null) {
-            aclRecords = authorization.getAclRecords(userId, entityIdentifier, role);
+        if (entityIdentifier != null && !entityIdentifier.isGroup()) {
+            checkEntityExistence(entityIdentifier);
         }
 
         List<AclRecord> aclRecordApiList = new LinkedList<AclRecord>();
-        for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
+        for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
+                authorization.getAclRecords(userId, entityIdentifier, role)) {
             aclRecordApiList.add(aclRecord.toApi());
         }
         return aclRecordApiList;

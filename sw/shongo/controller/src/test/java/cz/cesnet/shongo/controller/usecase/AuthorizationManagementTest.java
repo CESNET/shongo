@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.FilterType;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.fault.FaultException;
@@ -80,7 +77,8 @@ public class AuthorizationManagementTest extends AbstractControllerTest
 
     private Collection<AclRecord> getAclRecords() throws Exception
     {
-        Collection<AclRecord> aclRecords = getAuthorizationService().listAclRecords(SECURITY_TOKEN, null, null, null);
+        Collection<AclRecord> aclRecords = getAuthorizationService().listAclRecords(SECURITY_TOKEN,
+                TestingAuthorization.TESTING_USER_ID, null, null);
         for (AclRecord aclRecord : aclRecords) {
             System.out.println(aclRecord.toString());
         }

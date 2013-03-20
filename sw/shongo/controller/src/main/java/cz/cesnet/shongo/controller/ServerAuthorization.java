@@ -183,28 +183,6 @@ public class ServerAuthorization extends Authorization
                 CommonFaultSet.createSecurityErrorFault("Retrieving user information by access token failed."));
     }
 
-    private JsonNode readJson(HttpEntity httpEntity) throws FaultException
-    {
-        try {
-            InputStream inputStream = httpEntity.getContent();
-            try {
-                return jsonMapper.readTree(inputStream);
-            }
-            catch (Exception exception) {
-                throw new FaultException("Reading JSON failed.", exception);
-            }
-            finally {
-                inputStream.close();
-            }
-        }
-        catch (EOFException exception) {
-            throw new FaultException("JSON is empty.", exception);
-        }
-        catch (IOException exception) {
-            throw new FaultException("Reading JSON failed.", exception);
-        }
-    }
-
     @Override
     protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
     {
@@ -317,21 +295,6 @@ public class ServerAuthorization extends Authorization
         }
     }
 
-    private <T> T handleAuthorizationRequestError(HttpResponse httpResponse) throws FaultException
-    {
-        JsonNode jsonNode = readJson(httpResponse.getEntity());
-        throw new FaultException(CommonFaultSet.createSecurityErrorFault(
-                String.format("Authorization request failed: %s, %s",
-                        jsonNode.get("title").getTextValue(),
-                        jsonNode.get("detail").getTextValue())));
-    }
-
-    private <T> T handleAuthorizationRequestError(Exception exception) throws FaultException
-    {
-        throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
-                String.format("Authorization request failed. %s", exception.getMessage())));
-    }
-
     @Override
     protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
     {
@@ -410,15 +373,6 @@ public class ServerAuthorization extends Authorization
         }
     }
 
-    private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
-    {
-        String id = data.get("id").getTextValue();
-        String userId = data.get("user_id").getTextValue();
-        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
-        Role role = Role.forId(data.get("role_id").getTextValue());
-        return new AclRecord(id, userId, entityId, role);
-    }
-
     /**
      * @param data from authorization server
      * @return {@link UserInformation}
@@ -453,6 +407,70 @@ public class ServerAuthorization extends Authorization
             }
         }
         return userInformation;
+    }
+
+    /**
+     * @param httpEntity
+     * @return {@link JsonNode} from given {@code httpEntity}
+     * @throws FaultException
+     */
+    private JsonNode readJson(HttpEntity httpEntity) throws FaultException
+    {
+        try {
+            InputStream inputStream = httpEntity.getContent();
+            try {
+                return jsonMapper.readTree(inputStream);
+            }
+            catch (Exception exception) {
+                throw new FaultException("Reading JSON failed.", exception);
+            }
+            finally {
+                inputStream.close();
+            }
+        }
+        catch (EOFException exception) {
+            throw new FaultException("JSON is empty.", exception);
+        }
+        catch (IOException exception) {
+            throw new FaultException("Reading JSON failed.", exception);
+        }
+    }
+
+    /**
+     * @param data {@link JsonNode}
+     * @return {@link AclRecord} from given {@code data}
+     * @throws FaultException
+     */
+    private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
+    {
+        String id = data.get("id").getTextValue();
+        String userId = data.get("user_id").getTextValue();
+        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
+        Role role = Role.forId(data.get("role_id").getTextValue());
+        return new AclRecord(id, userId, entityId, role);
+    }
+
+    /**
+     * @param httpResponse to be handled as {@link FaultException}
+     * @throws FaultException is always thrown
+     */
+    private <T> T handleAuthorizationRequestError(HttpResponse httpResponse) throws FaultException
+    {
+        JsonNode jsonNode = readJson(httpResponse.getEntity());
+        throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+                String.format("Authorization request failed: %s, %s",
+                        jsonNode.get("title").getTextValue(),
+                        jsonNode.get("detail").getTextValue())));
+    }
+
+    /**
+     * @param exception to be handled as {@link FaultException}
+     * @throws FaultException is always thrown
+     */
+    private <T> T handleAuthorizationRequestError(Exception exception) throws FaultException
+    {
+        throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+                String.format("Authorization request failed. %s", exception.getMessage())));
     }
 
     /**

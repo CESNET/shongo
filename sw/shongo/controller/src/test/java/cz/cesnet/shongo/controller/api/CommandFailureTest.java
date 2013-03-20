@@ -69,7 +69,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().waitForJadeAgentsToStart();
 
         try {
-            getResourceControlService().listRooms(SECURITY_TOKEN, mcuId);
+            getResourceControlService().listRooms(SECURITY_TOKEN_ROOT, mcuId);
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
@@ -80,7 +80,7 @@ public class CommandFailureTest extends AbstractControllerTest
         }
 
         try {
-            getResourceControlService().createRoom(SECURITY_TOKEN, mcuId, new Room());
+            getResourceControlService().createRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
@@ -91,7 +91,7 @@ public class CommandFailureTest extends AbstractControllerTest
         }
 
         try {
-            getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, new Room());
+            getResourceControlService().modifyRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {

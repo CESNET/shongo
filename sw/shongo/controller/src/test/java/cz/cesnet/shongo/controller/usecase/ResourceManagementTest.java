@@ -259,8 +259,9 @@ public class ResourceManagementTest extends AbstractControllerTest
         resource.setMaximumFuture("P1M");
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        AclRecord aclRecord = getAuthorizationService().listAclRecords(SECURITY_TOKEN, Authorization.ROOT_USER_ID,
-                resourceId, Role.OWNER).iterator().next();
+        String userId = getUserId(SECURITY_TOKEN);
+        AclRecord aclRecord = getAuthorizationService().listAclRecords(SECURITY_TOKEN, userId, resourceId, Role.OWNER)
+                .iterator().next();
         getAuthorizationService().deleteAclRecord(SECURITY_TOKEN, aclRecord.getId());
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
@@ -277,7 +278,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         final String secondReservationRequestId = allocate(secondReservationRequest);
         checkAllocationFailed(secondReservationRequestId);
 
-        getAuthorizationService().createAclRecord(SECURITY_TOKEN, Authorization.ROOT_USER_ID, resourceId, Role.OWNER);
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_ROOT, userId, resourceId, Role.OWNER);
 
         reallocate(firstReservationRequestId);
         checkAllocated(firstReservationRequestId);

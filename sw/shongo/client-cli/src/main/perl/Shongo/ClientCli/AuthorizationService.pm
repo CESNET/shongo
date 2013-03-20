@@ -160,7 +160,8 @@ sub list_acl()
     if ( defined($options->{'role'}) ) {
         $role = RPC::XML::string->new($options->{'role'});
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listAclRecords', $user_id, $entity_id, $role);
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Authorization.listAclRecords', $user_id, $entity_id, $role);
     if ( !defined($response) ) {
         return;
     }
@@ -168,7 +169,7 @@ sub list_acl()
     foreach my $record (@{$response}) {
         $table->add(
             $record->{'id'},
-            $record->{'userId'},
+            $application->format_user($record->{'userId'}),
             $record->{'entityId'},
             $record->{'role'},
         );

@@ -40,6 +40,26 @@ public class EntityIdentifier
 
     /**
      * Constructor.
+     */
+    public EntityIdentifier()
+    {
+        this.entityType = null;
+        this.persistenceId = null;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param entityType sets the {@link #entityType}
+     */
+    public EntityIdentifier(EntityType entityType)
+    {
+        this.entityType = entityType;
+        this.persistenceId = null;
+    }
+
+    /**
+     * Constructor.
      *
      * @param entityType    sets the {@link #entityType}
      * @param persistenceId sets the {@link #persistenceId}
@@ -62,6 +82,15 @@ public class EntityIdentifier
     public EntityType getEntityType()
     {
         return entityType;
+    }
+
+    /**
+     * @return true whether {@link #entityType} is empty or {@link #persistenceId} is empty,
+     *         false otherwise
+     */
+    public boolean isGroup()
+    {
+        return entityType == null || persistenceId == null;
     }
 
     /**
@@ -213,6 +242,10 @@ public class EntityIdentifier
         if (entityId == null) {
             return null;
         }
+        Matcher matcher = LOCAL_TYPE_IDENTIFIER_PATTERN.matcher(entityId);
+        if (matcher.matches()) {
+            return new EntityIdentifier(entityTypeByCode.get(matcher.group(1)), parsePersistenceId(matcher.group(2)));
+        }
         return parse(Domain.getLocalDomainName(), entityId);
     }
 
@@ -310,12 +343,29 @@ public class EntityIdentifier
     /**
      * Local identifier pattern.
      */
-    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d+");
+    private static Pattern LOCAL_IDENTIFIER_PATTERN = Pattern.compile("\\d+|\\*");
+
+    /**
+     * Local identifier pattern with type.
+     */
+    private static Pattern LOCAL_TYPE_IDENTIFIER_PATTERN = Pattern.compile("([a-z]+|\\*):(\\d+|\\*)");
 
     /**
      * Global identifier pattern.
      */
-    private static Pattern GLOBAL_IDENTIFIER_PATTERN = Pattern.compile("shongo:(.+):([a-z]+):(\\d+)");
+    private static Pattern GLOBAL_IDENTIFIER_PATTERN = Pattern.compile("shongo:(.+):([a-z]+|\\*):(\\d+|\\*)");
+
+    /**
+     * @param persistenceId to be parsed
+     * @return parsed persistence id
+     */
+    private static Long parsePersistenceId(String persistenceId)
+    {
+        if (persistenceId.equals("*")) {
+            return null;
+        }
+        return Long.parseLong(persistenceId);
+    }
 
     /**
      * @param domain   required domain
@@ -332,7 +382,7 @@ public class EntityIdentifier
             ControllerFaultSet.throwIdentifierInvalidDomainFault(entityId, domain);
         }
         EntityType entityType = entityTypeByCode.get(matcher.group(2));
-        return new EntityIdentifier(entityType, Long.parseLong(matcher.group(3)));
+        return new EntityIdentifier(entityType, parsePersistenceId(matcher.group(3)));
     }
 
     /**
@@ -344,7 +394,7 @@ public class EntityIdentifier
     private static EntityIdentifier parse(String domain, EntityType entityType, String entityId) throws FaultException
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
-            return new EntityIdentifier(entityType, Long.parseLong(entityId));
+            return new EntityIdentifier(entityType, parsePersistenceId(entityId));
         }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         if (entityIdentifier.entityType != entityType) {
@@ -362,7 +412,7 @@ public class EntityIdentifier
     private static Long parseId(String domain, Class entityClass, String entityId) throws FaultException
     {
         if (LOCAL_IDENTIFIER_PATTERN.matcher(entityId).matches()) {
-            return Long.parseLong(entityId);
+            return parsePersistenceId(entityId);
         }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         EntityType requiredType = getEntityType(entityClass);
@@ -380,7 +430,7 @@ public class EntityIdentifier
      */
     private static String formatId(String domain, Class entityClass, Long entityLocalId)
     {
-        return formatId(domain, entityClass, entityLocalId.toString());
+        return formatId(domain, entityClass, (entityLocalId == null ? null : entityLocalId.toString()));
     }
 
     /**
@@ -391,7 +441,7 @@ public class EntityIdentifier
      */
     private static String formatId(String domain, EntityType entityType, Long entityLocalId)
     {
-        return formatId(domain, entityType, entityLocalId.toString());
+        return formatId(domain, entityType, (entityLocalId == null ? null : entityLocalId.toString()));
     }
 
     /**
@@ -413,7 +463,9 @@ public class EntityIdentifier
      */
     private static String formatId(String domain, EntityType entityType, String entityLocalId)
     {
-        return String.format("shongo:%s:%s:%s", domain, entityType.getCode(), entityLocalId);
+        return String.format("shongo:%s:%s:%s", domain,
+                (entityType == null ? "*" : entityType.getCode()),
+                (entityLocalId == null ? "*" : entityLocalId.toString()));
     }
 }
 

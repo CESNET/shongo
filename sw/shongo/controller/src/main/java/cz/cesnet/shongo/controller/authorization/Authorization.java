@@ -273,6 +273,16 @@ public abstract class Authorization
     public final Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
+        if (role == null) {
+            if (entityId != null && !entityId.isGroup()) {
+                if (userId != null) {
+                    return authorization.getAclRecords(userId, entityId);
+                }
+                else {
+                    return authorization.getAclRecords(entityId);
+                }
+            }
+        }
         return onListAclRecords(userId, entityId, role);
     }
 
@@ -382,6 +392,133 @@ public abstract class Authorization
             users.add(getUserInformation(userId));
         }
         return users;
+    }
+
+    /**
+     * Create a new {@link AclRecord}.
+     *
+     * @param userId   of user for which the ACL is created.
+     * @param entityId of entity for which the ACL is created.
+     * @param role     which is created for given user and given entity
+     * @return new {@link AclRecord}
+     * @throws FaultException when the creation failed.
+     */
+    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    {
+        if (userId.equals(Authorization.ROOT_USER_ID)) {
+            return null;
+        }
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity == null) {
+                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+            }
+            return createAclRecordsWithChildren(userId, entityId, role, entity);
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    /**
+     * Create a new {@link AclRecord}.
+     *
+     * @param userId   of user for which the ACL is created.
+     * @param entity for which the ACL is created.
+     * @param role     which is created for given user and given entity
+     * @throws FaultException when the creation failed.
+     */
+    public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
+    {
+        if (userId.equals(Authorization.ROOT_USER_ID)) {
+            return;
+        }
+        createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
+    }
+
+
+    /**
+     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
+     * {@code childEntity} allows.
+     *
+     * @param parentEntity from which should be fetch all existing {@link AclRecord}s
+     * @param childEntity to which should be created new {@link AclRecord}s
+     * @throws FaultException
+     */
+    public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
+            throws FaultException
+    {
+        EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
+        EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
+        EntityType childEntityType = childEntityId.getEntityType();
+        for (AclRecord aclRecord : getAclRecords(parentEntityId)) {
+            Role role = aclRecord.getRole();
+            if (childEntityType.allowsRole(role)) {
+                createAclRecordsWithChildren(aclRecord.getUserId(), childEntityId, role, childEntity);
+            }
+        }
+    }
+
+    /**
+     * Delete given {@code aclRecord} and all corresponding {@link AclRecord}s from child entities.
+     *
+     * @param aclRecord to be deleted
+     * @throws FaultException when the deletion failed
+     */
+    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
+    {
+        deleteSingleAclRecord(aclRecord);
+
+        // Delete all children records
+        String userId = aclRecord.getUserId();
+        EntityIdentifier entityId = aclRecord.getEntityId();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
+            if (entity != null) {
+                for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
+                    deleteSingleAclRecord(childAclRecord);
+                }
+            }
+        }
+        finally {
+            entityManager.close();
+        }
+
+    }
+
+    /**
+     * Retrieve collection of {@link AclRecord}s which should be deleted when the given {@code entity} is deleted.
+     *
+     * @param entity for which should be returned all {@link AclRecord}s.
+     * @param recursive specifies whether {@link AclRecord}s for child entities should be also returned
+     * @return collection of {@link AclRecord}s for given {@code entity} (and optionally for all child entities)
+     * @throws FaultException
+     */
+    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity, boolean recursive)
+            throws FaultException
+    {
+        EntityIdentifier entityId = new EntityIdentifier(entity);
+        Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
+        aclRecords.addAll(getAclRecords(null, entityId, null));
+        if (recursive) {
+            aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
+        }
+        return aclRecords;
+    }
+
+    /**
+     * Delete all given {@link AclRecord}s.
+     *
+     * @param aclRecords to be deleted
+     * @throws FaultException
+     */
+    public void deleteAclRecords(Collection<AclRecord> aclRecords) throws FaultException
+    {
+        for (AclRecord aclRecord : aclRecords) {
+            deleteSingleAclRecord(aclRecord);
+        }
     }
 
     /**
@@ -509,129 +646,6 @@ public abstract class Authorization
             throws FaultException;
 
     /**
-     * Single instance of {@link Authorization}.
-     */
-    protected static Authorization authorization;
-
-    /**
-     * @param authorization sets the {@link #authorization}
-     * @throws IllegalStateException when the {@link #authorization} is already set
-     */
-    protected static void setInstance(Authorization authorization)
-    {
-        if (Authorization.authorization != null) {
-            throw new IllegalStateException("Another instance of " + Authorization.class.getSimpleName()
-                    + "has been created and wasn't destroyed.");
-        }
-        Authorization.authorization = authorization;
-    }
-
-    /**
-     * @return {@link #authorization}
-     * @throws IllegalStateException when the no {@link Authorization} has been created
-     */
-    public static Authorization getInstance() throws IllegalStateException
-    {
-        if (authorization == null) {
-            throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
-                    + "has been created.");
-        }
-        return authorization;
-    }
-
-    public PersistentObject getEntity(EntityIdentifier entityId) throws FaultException
-    {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            return entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
-    {
-        if (userId.equals(Authorization.ROOT_USER_ID)) {
-            return null;
-        }
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
-            if (entity == null) {
-                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
-            }
-            return createAclRecordsWithChildren(userId, entityId, role, entity);
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
-    {
-        if (userId.equals(Authorization.ROOT_USER_ID)) {
-            return;
-        }
-        createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
-    }
-
-    public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
-            throws FaultException
-    {
-        EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
-        EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-        EntityType childEntityType = childEntityId.getEntityType();
-        for (AclRecord aclRecord : authorization.getAclRecords(parentEntityId)) {
-            Role role = aclRecord.getRole();
-            if (childEntityType.allowsRole(role)) {
-                authorization.createAclRecordsWithChildren(aclRecord.getUserId(), childEntityId, role, childEntity);
-            }
-        }
-    }
-
-    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
-    {
-        deleteSingleAclRecord(aclRecord);
-
-        // Delete all children records
-        String userId = aclRecord.getUserId();
-        EntityIdentifier entityId = aclRecord.getEntityId();
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
-            if (entity != null) {
-                for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
-                    deleteSingleAclRecord(childAclRecord);
-                }
-            }
-        }
-        finally {
-            entityManager.close();
-        }
-
-    }
-
-    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity, boolean recursive)
-            throws FaultException
-    {
-        EntityIdentifier entityId = new EntityIdentifier(entity);
-        Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        aclRecords.addAll(getAclRecords(null, entityId, null));
-        if (recursive) {
-            aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
-        }
-        return aclRecords;
-    }
-
-    public void deleteAclRecords(Collection<AclRecord> aclRecords) throws FaultException
-    {
-        for (AclRecord aclRecord : aclRecords) {
-            deleteSingleAclRecord(aclRecord);
-        }
-    }
-
-    /**
      * Create a new single {@link AclRecord}.
      *
      * @param userId   of user for which the ACL is created.
@@ -681,7 +695,7 @@ public abstract class Authorization
      * @param aclRecord to be deleted
      * @throws FaultException when the deletion failed
      */
-    public void deleteSingleAclRecord(AclRecord aclRecord) throws FaultException
+    private void deleteSingleAclRecord(AclRecord aclRecord) throws FaultException
     {
         onDeleteAclRecord(aclRecord);
 
@@ -707,6 +721,16 @@ public abstract class Authorization
         aclEntityState.removeAclRecord(aclRecord);
     }
 
+    /**
+     * Create {@link AclRecord} for given parameters and also corresponding {@link AclRecord}s for children entities.
+     *
+     * @param userId   of user for which the ACL is created.
+     * @param entityId of entity for which the ACL is created.
+     * @param role     which is created for given user and given entity
+     * @param entity   entity for which the ACL is created.
+     * @return newly created {@link AclRecord}
+     * @throws FaultException
+     */
     private AclRecord createAclRecordsWithChildren(String userId, EntityIdentifier entityId, Role role,
             PersistentObject entity) throws FaultException
     {
@@ -721,6 +745,16 @@ public abstract class Authorization
         return aclRecord;
     }
 
+    /**
+     * Retrieve all child {@link AclRecord}s for given parameters.
+     *
+     * @param userId   of the parent {@link AclRecord}
+     * @param entityId of entity of the parent {@link AclRecord}
+     * @param role     of the parent {@link AclRecord}
+     * @param entity   of the parent {@link AclRecord}
+     * @return collection of child {@link AclRecord}s
+     * @throws FaultException
+     */
     private Collection<AclRecord> getChildAclRecords(String userId, EntityIdentifier entityId, Role role,
             PersistentObject entity) throws FaultException
     {
@@ -736,6 +770,10 @@ public abstract class Authorization
         return aclRecords;
     }
 
+    /**
+     * @param entity for which the child entities should be returned
+     * @return child entities for given {@code entity}
+     */
     private Collection<PersistentObject> getChildEntities(PersistentObject entity)
     {
         Collection<PersistentObject> childEntities = new LinkedList<PersistentObject>();
@@ -759,5 +797,36 @@ public abstract class Authorization
             }
         }
         return childEntities;
+    }
+
+    /**
+     * Single instance of {@link Authorization}.
+     */
+    protected static Authorization authorization;
+
+    /**
+     * @param authorization sets the {@link #authorization}
+     * @throws IllegalStateException when the {@link #authorization} is already set
+     */
+    protected static void setInstance(Authorization authorization)
+    {
+        if (Authorization.authorization != null) {
+            throw new IllegalStateException("Another instance of " + Authorization.class.getSimpleName()
+                    + "has been created and wasn't destroyed.");
+        }
+        Authorization.authorization = authorization;
+    }
+
+    /**
+     * @return {@link #authorization}
+     * @throws IllegalStateException when the no {@link Authorization} has been created
+     */
+    public static Authorization getInstance() throws IllegalStateException
+    {
+        if (authorization == null) {
+            throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
+                    + "has been created.");
+        }
+        return authorization;
     }
 }

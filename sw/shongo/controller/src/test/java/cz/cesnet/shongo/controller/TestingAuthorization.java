@@ -19,6 +19,25 @@ import java.util.List;
 */
 public class TestingAuthorization extends Authorization
 {
+    /**
+     * Testing user-id.
+     */
+    public static final String TESTING_USER_ID = "1";
+
+    /**
+     * Testing user-information.
+     */
+    protected static final UserInformation TESTING_USER_INFORMATION;
+
+    /**
+     * Static initialization.
+     */
+    static {
+        TESTING_USER_INFORMATION = new UserInformation();
+        TESTING_USER_INFORMATION.setUserId(TESTING_USER_ID);
+        TESTING_USER_INFORMATION.setFirstName("test");
+    }
+
     public TestingAuthorization()
     {
         super(new Configuration());
@@ -30,12 +49,30 @@ public class TestingAuthorization extends Authorization
     }
 
     @Override
-    protected String onValidate(SecurityToken securityToken) throws FaultException
+    protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
     {
-        if (AbstractControllerTest.SECURITY_TOKEN.getAccessToken().equals(securityToken.getAccessToken())) {
-            return ROOT_USER_ID;
+        if (AbstractControllerTest.SECURITY_TOKEN.getAccessToken().equals(accessToken)) {
+            return TESTING_USER_INFORMATION;
         }
-        return super.onValidate(securityToken);
+        else if (AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken().equals(accessToken)) {
+            return Authorization.ROOT_USER_INFORMATION;
+        }
+        throw new TodoImplementException();
+    }
+
+    @Override
+    protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
+    {
+        if (TESTING_USER_ID.equals(userId)) {
+            return TESTING_USER_INFORMATION;
+        }
+        throw new TodoImplementException();
+    }
+
+    @Override
+    protected Collection<UserInformation> onListUserInformation() throws FaultException
+    {
+        throw new TodoImplementException();
     }
 
     @Override
@@ -73,27 +110,6 @@ public class TestingAuthorization extends Authorization
             aclRecords.add(aclRecord);
         }
         return aclRecords;
-    }
-
-    @Override
-    protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
-    {
-        if (AbstractControllerTest.SECURITY_TOKEN.getAccessToken().equals(accessToken)) {
-            return ROOT_USER_INFORMATION;
-        }
-        throw new TodoImplementException();
-    }
-
-    @Override
-    protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
-    {
-        throw new TodoImplementException();
-    }
-
-    @Override
-    protected Collection<UserInformation> onListUserInformation() throws FaultException
-    {
-        throw new TodoImplementException();
     }
 
     public static TestingAuthorization createInstance(Configuration configuration) throws IllegalStateException
