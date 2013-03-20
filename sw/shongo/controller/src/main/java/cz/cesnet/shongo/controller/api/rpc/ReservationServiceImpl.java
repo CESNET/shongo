@@ -124,10 +124,12 @@ public class ReservationServiceImpl extends Component
     {
         String userId = authorization.validate(token);
 
-        if (reservationRequestApi == null) {
-            throw new IllegalArgumentException("Reservation request should not be null.");
-        }
         reservationRequestApi.setupNewEntity();
+
+        // Change user id (only root can do that)
+        if (reservationRequestApi.getUserId() != null && userId.equals(Authorization.ROOT_USER_ID)) {
+            userId = reservationRequestApi.getUserId();
+        }
 
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 

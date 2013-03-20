@@ -96,6 +96,11 @@ public class ResourceServiceImpl extends Component
 
         resourceApi.setupNewEntity();
 
+        // Change user id (only root can do that)
+        if (resourceApi.getUserId() != null && userId.equals(Authorization.ROOT_USER_ID)) {
+            userId = resourceApi.getUserId();
+        }
+
         cz.cesnet.shongo.controller.resource.Resource resource;
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
