@@ -90,9 +90,9 @@ public class Configuration extends CombinedConfiguration
     public static final String EXECUTOR_STARTINT_DURATION_ROOM = "executor.starting-duration.room";
 
     /**
-     * Authorization server.
+     * Security server.
      */
-    public static final String SECURITY_AUTHORIZATION_SERVER = "security.authorization-server";
+    public static final String SECURITY_SERVER = "security.server";
 
     /**
      * Specifies expiration of cache for user-id by access-token.

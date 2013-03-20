@@ -145,9 +145,9 @@ sub instance
 }
 
 #
-# Connect to to url
+# Load configuration
 #
-# @param controller_url
+# @param $configuration
 #
 sub load_configuration
 {
@@ -165,12 +165,7 @@ sub load_configuration
         $controller_url .= ':8181';
     }
     $self->{'client'}->connect($controller_url);
-
-    # Setup authorization
-    my $authorization = $configuration->{'authorization'};
-    $self->{'authorization'}->set_client_id($authorization->{'client-id'});
-    $self->{'authorization'}->set_redirect_uri($authorization->{'redirect-uri'});
-    $self->{'authorization'}->set_secret($authorization->{'secret'});
+    $self->{'authorization'}->load_configuration($configuration);
 }
 
 #

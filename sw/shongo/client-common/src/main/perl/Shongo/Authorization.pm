@@ -34,7 +34,7 @@ sub new
     }
 
     $self->{'state'} = $state;
-    $self->{'url'} = 'https://shongo-auth-dev.cesnet.cz/authn/oic/';
+    $self->{'url'} = '';
     $self->{'client_id'} = '';
     $self->{'redirect_uri'} = '';
     $self->{'secret'} = '';
@@ -49,6 +49,15 @@ sub get_url()
 {
     my ($self) = @_;
     return $self->{'url'};
+}
+
+#
+# @param $url
+#
+sub set_url()
+{
+    my ($self, $url) = @_;
+    $self->{'url'} = $url;
 }
 
 #
@@ -131,7 +140,7 @@ sub get_state()
 sub get_authorize_url()
 {
     my ($self) = @_;
-    my $url = URI->new($self->{'url'} . 'authorize');
+    my $url = URI->new($self->{'url'} . '/authn/oic/authorize');
     $url->query_form(
         'client_id'     => $self->{'client_id'},
         'redirect_uri'  => $self->{'redirect_uri'},
@@ -149,7 +158,7 @@ sub get_authorize_url()
 sub get_token_url()
 {
     my ($self) = @_;
-    my $url = URI->new($self->{'url'} . 'authorize');
+    my $url = URI->new($self->{'url'} . '/authn/oic/authorize');
     $url->query_form(
         'client_id'     => $self->{'client_id'},
         'redirect_uri'  => $self->{'redirect_uri'},
@@ -191,7 +200,7 @@ sub authentication_authorize
 sub authentication_token
 {
     my ($self, $authorization_code) = @_;
-    my $request = HTTP::Request->new(POST => $self->get_url() . 'token');
+    my $request = HTTP::Request->new(POST => $self->get_url() . '/authn/oic/token');
     $request->content_type('application/x-www-form-urlencoded');
     if ( defined($self->{'secret'}) ) {
         my $secret_string = $self->{'secret'};
@@ -235,7 +244,7 @@ sub get_user_information
     }
 
     # Setup request url
-    my $url = URI->new($self->{'url'} . 'userinfo');
+    my $url = URI->new($self->{'url'} . '/authn/oic/userinfo');
     $url->query_form('schema' => 'openid');
 
     # Request user information

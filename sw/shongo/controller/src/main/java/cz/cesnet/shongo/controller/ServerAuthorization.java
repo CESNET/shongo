@@ -15,12 +15,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -97,7 +93,8 @@ public class ServerAuthorization extends Authorization
         //System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire", "debug");
         //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");
 
-        authorizationServer = configuration.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
+        authorizationServer = configuration.getString(Configuration.SECURITY_SERVER);
+        logger.info("Using authorization server '{}'.", authorizationServer);
         authorizationServerHeader = "id=testclient;secret=12345";
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
