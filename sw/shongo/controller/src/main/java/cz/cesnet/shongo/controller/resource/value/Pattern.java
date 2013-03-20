@@ -313,6 +313,11 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         private String format;
 
         /**
+         * Regex pattern.
+         */
+        private String regexPattern;
+
+        /**
          * Current number.
          */
         private int currentValue;
@@ -331,6 +336,15 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
                 throw new IllegalArgumentException("Min value must be greater than max value.");
             }
             this.format = "%0" + Integer.valueOf(minValue.length()).toString() + "d";
+
+            StringBuilder regexPatternBuilder = new StringBuilder();
+            regexPatternBuilder.append("\\d{");
+            regexPatternBuilder.append(minValue.length());
+            regexPatternBuilder.append(",");
+            regexPatternBuilder.append(maxValue.length());
+            regexPatternBuilder.append("}");
+            this.regexPattern = regexPatternBuilder.toString();
+
             reset();
         }
 
@@ -364,13 +378,7 @@ public class Pattern extends ArrayList<Pattern.PatternComponent>
         @Override
         public String getRegexPattern()
         {
-            StringBuilder regexPatternBuilder = new StringBuilder();
-            regexPatternBuilder.append("\\d{");
-            regexPatternBuilder.append(String.valueOf(minValue).length());
-            regexPatternBuilder.append(",");
-            regexPatternBuilder.append(String.valueOf(maxValue).length());
-            regexPatternBuilder.append("}");
-            return regexPatternBuilder.toString();
+            return regexPattern;
         }
 
         @Override

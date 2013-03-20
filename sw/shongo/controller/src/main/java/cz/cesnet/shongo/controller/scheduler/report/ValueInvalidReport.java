@@ -14,7 +14,7 @@ import javax.persistence.Transient;
 public class ValueInvalidReport extends Report
 {
     /**
-     * Identification of resource.
+     * Value.
      */
     private String value;
 

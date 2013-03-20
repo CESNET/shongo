@@ -13,6 +13,8 @@ import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Capability tells that the resource acts as alias provider which can allocate aliases for itself and/or
@@ -60,6 +62,11 @@ public class AliasProviderCapability extends Capability
      * Cache for provided {@link AliasType}s.
      */
     private Set<AliasType> cachedProvidedAliasTypes;
+
+    /**
+     * Cache for value patterns.
+     */
+    private List<Pattern> cachedValuePatterns;
 
     /**
      * Constructor.
@@ -147,6 +154,7 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
+        this.cachedValuePatterns = null;
     }
 
     /**
@@ -159,6 +167,7 @@ public class AliasProviderCapability extends Capability
         // Reset caches
         this.cachedProvidedAliasTypes = null;
         this.cachedProvidedTechnologies = null;
+        this.cachedValuePatterns = null;
     }
 
     /**
@@ -387,5 +396,28 @@ public class AliasProviderCapability extends Capability
         }
 
         super.fromApi(capabilityApi, entityManager);
+    }
+
+
+
+    public String parseValue(String value)
+    {
+        if (cachedValuePatterns == null) {
+            cachedValuePatterns = new LinkedList<Pattern>();
+            for (Alias alias : aliases) {
+                String aliasValue = alias.getValue();
+                aliasValue = aliasValue.replaceAll("\\{.+\\}", "(.+)");
+                cachedValuePatterns.add(Pattern.compile(aliasValue));
+            }
+        }
+        for (Pattern pattern : cachedValuePatterns) {
+            Matcher matcher = pattern.matcher(value);
+            if (matcher.matches()) {
+                if (matcher.groupCount() > 0) {
+                    return matcher.group(1);
+                }
+            }
+        }
+        return value;
     }
 }
