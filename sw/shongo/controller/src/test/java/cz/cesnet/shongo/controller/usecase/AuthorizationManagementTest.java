@@ -1,18 +1,12 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.fault.FaultException;
-import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.Resource}s.
@@ -78,7 +72,7 @@ public class AuthorizationManagementTest extends AbstractControllerTest
     private Collection<AclRecord> getAclRecords() throws Exception
     {
         Collection<AclRecord> aclRecords = getAuthorizationService().listAclRecords(SECURITY_TOKEN,
-                TestingAuthorization.TESTING_USER_ID, null, null);
+                DummyAuthorization.TESTING_USER_ID, null, null);
         for (AclRecord aclRecord : aclRecords) {
             System.out.println(aclRecord.toString());
         }

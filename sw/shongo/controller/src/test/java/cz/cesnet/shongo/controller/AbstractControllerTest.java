@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -39,7 +38,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * @see Authorization
      */
-    private TestingAuthorization authorization;
+    private DummyAuthorization authorization;
 
     /**
      * @see Cache
@@ -161,7 +160,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         controller.setEntityManagerFactory(getEntityManagerFactory());
 
         // Create authorization
-        authorization = TestingAuthorization.createInstance(controller.getConfiguration());
+        authorization = DummyAuthorization.createInstance(controller.getConfiguration());
         controller.setAuthorization(authorization);
 
         onInit();

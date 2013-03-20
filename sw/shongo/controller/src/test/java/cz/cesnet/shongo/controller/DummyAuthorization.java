@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -17,7 +16,7 @@ import java.util.List;
 *
 * @author Martin Srom <martin.srom@cesnet.cz>
 */
-public class TestingAuthorization extends Authorization
+public class DummyAuthorization extends Authorization
 {
     /**
      * Testing user-id.
@@ -38,12 +37,12 @@ public class TestingAuthorization extends Authorization
         TESTING_USER_INFORMATION.setFirstName("test");
     }
 
-    public TestingAuthorization()
+    public DummyAuthorization()
     {
         super(new Configuration());
     }
 
-    public TestingAuthorization(Configuration config)
+    public DummyAuthorization(Configuration config)
     {
         super(config);
     }
@@ -112,9 +111,9 @@ public class TestingAuthorization extends Authorization
         return aclRecords;
     }
 
-    public static TestingAuthorization createInstance(Configuration configuration) throws IllegalStateException
+    public static DummyAuthorization createInstance(Configuration configuration) throws IllegalStateException
     {
-        TestingAuthorization authorization = new TestingAuthorization(configuration);
+        DummyAuthorization authorization = new DummyAuthorization(configuration);
         Authorization.setInstance(authorization);
         return authorization;
     }
