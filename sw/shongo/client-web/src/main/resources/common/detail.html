@@ -154,7 +154,7 @@
 <div class="pull-right">
     <a class="btn btn-primary" href="[% back %]">Back</a>
     [%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' -%]
-    [% IF request.reservationId %]
+    [% IF request.reservationId && (request.stateCode == 'allocated' || request.stateCode == 'started') %]
     <a class="btn" href="[% location %]/create?alias=[% request.reservationId %]">Request Room Capacity</a>
     [% ELSE %]
     <span class="btn disabled">Request Room Capacity</span>

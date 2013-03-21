@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
+import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -247,8 +248,18 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         }
     }
 
+    /**
+     * @param roomApi to be modified
+     * @param executor
+     * @return result
+     */
     public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
     {
+        if (roomApi.getId() == null) {
+            addReport(new UsedRoomNotExistReport());
+            return false;
+        }
+
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
                 new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
 
