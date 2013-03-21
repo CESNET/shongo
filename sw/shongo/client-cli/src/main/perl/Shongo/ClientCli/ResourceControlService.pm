@@ -808,9 +808,9 @@ sub resource_list_rooms
     if ( !defined($response) ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Start date/time', \' |');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Alias', \' | ', 'Start date/time', \' |');
     foreach my $room (@{$response}) {
-        my $name = $room->{'description'};
+        my $name = $room->{'name'};
         if ( defined($name) && length($name) > $MAX_ROOM_NAME_LENGTH ) {
             $name = substr($name, 0, $MAX_ROOM_NAME_LENGTH - 3) . '...';
         }
@@ -822,6 +822,7 @@ sub resource_list_rooms
             $room->{'id'},
             $name,
             $description,
+            $room->{'alias'},
             datetime_format($room->{'startDateTime'})
         );
     }

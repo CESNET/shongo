@@ -25,6 +25,11 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     private String description;
 
     /**
+     * Description of main alias(es).
+     */
+    private String alias;
+
+    /**
      * Date/time when the room was started.
      */
     private DateTime startDateTime;
@@ -66,6 +71,22 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     public void setDescription(String description)
     {
         this.description = description;
+    }
+
+    /**
+     * @return {@link #alias}
+     */
+    public String getAlias()
+    {
+        return alias;
+    }
+
+    /**
+     * @param alias {@link #alias}
+     */
+    public void setAlias(String alias)
+    {
+        this.alias = alias;
     }
 
     /**
