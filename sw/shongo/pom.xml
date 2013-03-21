@@ -19,15 +19,15 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>client-common</module>
+        <module>client-cli</module>
+        <module>client-web</module>
         <module>common-api</module>
         <module>common</module>
         <module>controller-api</module>
         <module>controller</module>
         <module>connector-api</module>
         <module>connector</module>
-        <module>client-common</module>
-        <module>client-cli</module>
-        <module>client-web</module>
         <module>tool-report-generator</module>
         <module>tool-maven-plugin-exec</module>
     </modules>
