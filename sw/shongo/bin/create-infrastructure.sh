@@ -86,7 +86,7 @@ echo -n "Presse enter to continue..."; read line
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{value}' }
             ],
             maximumFuture: 'P1Y',
-            restrictedToResource: 1,
+            permanentRoom: 1,
         },{
             class: 'AliasProviderCapability',
             valueProvider: {
@@ -101,7 +101,7 @@ echo -n "Presse enter to continue..."; read line
                 { type: 'SIP_URI', value: '$MCU_CESNET_NUMBER_PREFIX{value}@cesnet.cz' }
             ],
             maximumFuture: 'P1Y',
-            restrictedToResource: 1,
+            permanentRoom: 1,
         }],
         administrators: [
             { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},

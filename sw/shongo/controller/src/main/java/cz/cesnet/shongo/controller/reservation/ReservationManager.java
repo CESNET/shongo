@@ -89,15 +89,39 @@ public class ReservationManager extends AbstractManager
      */
     public void delete(Reservation reservation, Cache cache)
     {
-        Collection<Reservation> additionalReservations = new ArrayList<Reservation>();
-        onBeforeDelete(reservation, additionalReservations);
+        Collection<Reservation> reservations = new LinkedList<Reservation>();
+        reservations.add(reservation);
+        onBeforeDelete(reservation, reservations);
 
+        // Date/time now for stopping executables
+        DateTime dateTimeNow = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+        stopReservationExecutables(reservation, dateTimeNow);
+
+        // Delete all reservations
+        for (Reservation additionalReservation : reservations) {
+            // Remove additional reservation from the cache
+            cache.removeReservation(additionalReservation);
+
+            // Delete additional reservation
+            super.delete(additionalReservation);
+        }
+    }
+
+    /**
+     * Prepare for stopping all executables from given {@code reservation} and all child reservations.
+     *
+     * @param reservation
+     * @param dateTimeNow
+     */
+    private void stopReservationExecutables(Reservation reservation, DateTime dateTimeNow)
+    {
+        // Process current reservation
         Executable executable = reservation.getExecutable();
         if (executable != null) {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             if (executable.getState().equals(Executable.State.STARTED)) {
-                if (executable.getSlotEnd().isAfter(DateTime.now())) {
-                    DateTime newSlotEnd = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+                if (executable.getSlotEnd().isAfter(dateTimeNow)) {
+                    DateTime newSlotEnd = dateTimeNow;
                     if (newSlotEnd.isBefore(executable.getSlotStart())) {
                         newSlotEnd = executable.getSlotStart();
                     }
@@ -106,20 +130,9 @@ public class ReservationManager extends AbstractManager
                 }
             }
         }
-
-        // Remove the reservation from cache (and also all child reservations)
-        cache.removeReservation(reservation);
-
-        // Delete the reservation
-        super.delete(reservation);
-
-        // Delete also all additional reservations
-        for (Reservation additionalReservation : additionalReservations) {
-            // Remove additional reservation from the cache
-            cache.removeReservation(additionalReservation);
-
-            // Delete additional reservation
-            super.delete(additionalReservation);
+        // Process all child reservations
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            stopReservationExecutables(childReservation, dateTimeNow);
         }
     }
 
