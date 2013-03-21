@@ -231,7 +231,7 @@ public class ServerAuthorization extends Authorization
     @Override
     protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
-        logger.debug("Creating ACL record (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+        Controller.loggerAcl.info("Create ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
 
         StringEntity httpEntity;
         try {
@@ -271,7 +271,8 @@ public class ServerAuthorization extends Authorization
     @Override
     protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
     {
-        logger.debug("Deleting ACL record (id: {})", aclRecord.getId());
+        Controller.loggerAcl.info("Delete ACL (user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
 
         HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
         httpDelete.setHeader("Authorization", authorizationServerHeader);
@@ -298,8 +299,6 @@ public class ServerAuthorization extends Authorization
     @Override
     protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
     {
-        logger.debug("Get ACL record (id: {})", aclRecordId);
-
         HttpGet httpGet = new HttpGet(getAuthorizationUrl() + "/acl/" + aclRecordId);
         httpGet.setHeader("Authorization", authorizationServerHeader);
         httpGet.setHeader("Accept", "application/hal+json");
@@ -325,8 +324,6 @@ public class ServerAuthorization extends Authorization
     protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
-        logger.debug("Listing ACL records (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
-
         URI uri;
         try {
             URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");

@@ -43,18 +43,23 @@ public class Controller
     /**
      * {@link Logger} for all performed requests.
      */
-    public static Logger apiLogger = LoggerFactory.getLogger(Controller.class.getName() + ".Api");
+    public static Logger loggerApi = LoggerFactory.getLogger(Controller.class.getName() + ".Api");
+
+    /**
+     * {@link Logger} for all performed requests.
+     */
+    public static Logger loggerAcl = LoggerFactory.getLogger(Controller.class.getName() + ".Acl");
 
     /**
      * {@link Logger} for all JADE requested agent actions.
      */
-    public static Logger requestedCommands =
+    public static Logger loggerRequestedCommands =
             LoggerFactory.getLogger(Controller.class.getName() + ".RequestedCommand");
 
     /**
      * {@link Logger} for all JADE executed agent actions.
      */
-    public static Logger executedCommands =
+    public static Logger loggerExecutedCommands =
             LoggerFactory.getLogger(Controller.class.getName() + ".ExecutedCommand");
 
     /**

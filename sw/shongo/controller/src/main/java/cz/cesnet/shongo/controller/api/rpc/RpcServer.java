@@ -300,13 +300,13 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 }
             }
             if (userInformation != null) {
-                Controller.apiLogger.info("Request:{} {}.{} by {} (userId: {})",
+                Controller.loggerApi.info("Request:{} {}.{} by {} (userId: {})",
                         new Object[]{requestId, className, methodName,
                                 userInformation.getFullName(), userInformation.getUserId()
                         });
             }
             else {
-                Controller.apiLogger.info("Request:{} {}.{}", new Object[]{requestId, className, methodName});
+                Controller.loggerApi.info("Request:{} {}.{}", new Object[]{requestId, className, methodName});
             }
 
             String requestState = "OK";
@@ -347,7 +347,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             }
             finally {
                 long duration = requestTimer.stop();
-                Controller.apiLogger.info("Request:{} Done in {} ms ({}).",
+                Controller.loggerApi.info("Request:{} Done in {} ms ({}).",
                         new Object[]{requestId, duration, requestState});
             }
         }
