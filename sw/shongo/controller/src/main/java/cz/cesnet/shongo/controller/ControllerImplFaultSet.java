@@ -26,7 +26,7 @@ public class ControllerImplFaultSet extends ControllerFaultSet
      */
     public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId) throws FaultException
     {
-        return throwEntityNotFoundFault(entityType.getClass().getSimpleName(),
+        return throwEntityNotFoundFault(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
@@ -36,7 +36,7 @@ public class ControllerImplFaultSet extends ControllerFaultSet
      */
     public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId) throws FaultException
     {
-        return throwEntityNotDeletableReferencedFault(entityType.getClass().getSimpleName(),
+        return throwEntityNotDeletableReferencedFault(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
