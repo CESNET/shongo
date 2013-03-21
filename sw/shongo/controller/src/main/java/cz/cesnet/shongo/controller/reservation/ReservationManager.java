@@ -118,7 +118,6 @@ public class ReservationManager extends AbstractManager
         // Process current reservation
         Executable executable = reservation.getExecutable();
         if (executable != null) {
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
             if (executable.getState().equals(Executable.State.STARTED)) {
                 if (executable.getSlotEnd().isAfter(dateTimeNow)) {
                     DateTime newSlotEnd = dateTimeNow;
@@ -126,6 +125,7 @@ public class ReservationManager extends AbstractManager
                         newSlotEnd = executable.getSlotStart();
                     }
                     executable.setSlotEnd(newSlotEnd);
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
                     executableManager.update(executable);
                 }
             }

@@ -16,9 +16,7 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a request created by an user to get allocated some resources for video conference calls.
@@ -294,7 +292,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservations} is filled
+     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservation} is filled
      *         false otherwise
      */
     @Transient
