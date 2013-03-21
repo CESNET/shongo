@@ -7,10 +7,7 @@ import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
@@ -59,6 +56,8 @@ public class ValueReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        validateReservationSlot(ValueReservation.class);
+
         Context context = getContext();
         Interval interval = getInterval();
         Cache cache = getCache();

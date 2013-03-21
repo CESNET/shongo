@@ -181,13 +181,12 @@ public class AliasProviderCapability extends Capability
     }
 
     @Override
-    public final boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
+    public DateTime getMaximumFutureDateTime(DateTime referenceDateTime)
     {
-        if (maximumFuture != null) {
-            DateTime earliestDateTime = maximumFuture.getEarliest(referenceDateTime);
-            return !dateTime.isAfter(earliestDateTime);
+        if (maximumFuture == null) {
+            return super.getMaximumFutureDateTime(referenceDateTime);
         }
-        return super.isAvailableInFuture(dateTime, referenceDateTime);
+        return maximumFuture.getEarliest(referenceDateTime);
     }
 
     /**

@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.scheduler.report.ResourceAlreadyAllocatedRepo
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.UserNotOwnerReport;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -294,7 +295,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
             if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-                throw new ResourceNotAvailableReport(resource).exception();
+                DateTime maxDateTime = capability.getMaximumFutureDateTime(getReferenceDateTime());
+                throw new ResourceNotAvailableReport(resource, maxDateTime).exception();
             }
         }
     }
@@ -314,7 +316,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
             if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-                throw new ResourceNotAvailableReport(resource).exception();
+                DateTime maxDateTime = resource.getMaximumFutureDateTime(getReferenceDateTime());
+                throw new ResourceNotAvailableReport(resource, maxDateTime).exception();
             }
         }
     }

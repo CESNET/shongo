@@ -59,6 +59,8 @@ public class AliasSetReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        validateReservationSlot(AliasReservation.class);
+
         Context context = getContext();
         ResourceRoomEndpoint allocatedRoomEndpoint = null;
 

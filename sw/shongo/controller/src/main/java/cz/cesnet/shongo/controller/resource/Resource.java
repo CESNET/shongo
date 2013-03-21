@@ -336,6 +336,18 @@ public class Resource extends PersistentObject
     }
 
     /**
+     * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
+     * @return {@link DateTime} representing a maximum future fot the {@link Resource}
+     */
+    public DateTime getMaximumFutureDateTime(DateTime referenceDateTime)
+    {
+        if (maximumFuture == null) {
+            return null;
+        }
+        return maximumFuture.getEarliest(referenceDateTime);
+    }
+
+    /**
      * @param dateTime          date/time which is checked for availability
      * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
      * @return true if resource is available at given {@code dateTime},
@@ -343,11 +355,8 @@ public class Resource extends PersistentObject
      */
     public final boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
     {
-        if (maximumFuture == null) {
-            return true;
-        }
-        DateTime earliestDateTime = maximumFuture.getEarliest(referenceDateTime);
-        return !dateTime.isAfter(earliestDateTime);
+        DateTime maxDateTime = getMaximumFutureDateTime(referenceDateTime);
+        return maxDateTime == null || !dateTime.isAfter(maxDateTime);
     }
 
     /**

@@ -10,10 +10,7 @@ import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import org.hibernate.cfg.SetSimpleValueTypeSecondPass;
 import org.joda.time.Interval;
@@ -395,18 +392,18 @@ public abstract class ReservationTask
     protected abstract Reservation createReservation() throws ReportException;
 
     /**
-     * @param reservation to be validated
+     * @param type to be validated
      * @throws ReportException when the validation failed
      */
-    protected void validateReservationSlot(Reservation reservation) throws ReportException
+    protected void validateReservationSlot(Class<? extends Reservation> type) throws ReportException
     {
         // Check maximum duration
         if (context.isMaximumFutureAndDurationRestricted()) {
-            if (reservation instanceof ResourceReservation) {
-                checkMaximumDuration(reservation.getSlot(), context.getCache().getResourceReservationMaximumDuration());
+            if (type.equals(ResourceReservation.class)) {
+                checkMaximumDuration(getInterval(), context.getCache().getResourceReservationMaximumDuration());
             }
-            else if (reservation instanceof ValueReservation) {
-                checkMaximumDuration(reservation.getSlot(), context.getCache().getValueReservationMaximumDuration());
+            else if (type.equals(ValueReservation.class) || type.equals(AliasReservation.class)) {
+                checkMaximumDuration(getInterval(), context.getCache().getValueReservationMaximumDuration());
             }
         }
     }
@@ -417,7 +414,7 @@ public abstract class ReservationTask
      */
     protected void validateReservation(Reservation reservation) throws ReportException
     {
-        validateReservationSlot(reservation);
+        validateReservationSlot(reservation.getClass());
     }
 
     /**
