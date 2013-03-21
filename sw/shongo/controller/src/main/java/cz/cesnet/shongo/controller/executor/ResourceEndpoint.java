@@ -102,7 +102,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getDescription()
     {
         return ResourceReport.formatResource(getDeviceResource());
     }
@@ -117,7 +117,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
             return managedMode.getConnectorAgentName();
         }
         else {
-            throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
+            throw new IllegalStateException("Resource " + getDescription() + " is not managed!");
         }
     }
 
@@ -128,7 +128,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
         if (aliases.size() > 0) {
             for (Alias alias : aliases) {
                 StringBuilder message = new StringBuilder();
-                message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
+                message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getDescription()));
                 executor.getLogger().debug(message.toString());
             }
             return State.STARTED;
@@ -144,7 +144,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
             for (Alias alias : aliases) {
                 StringBuilder message = new StringBuilder();
                 message.append(
-                        String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
+                        String.format("Removing alias '%s' from %s .", alias.getValue(), getDescription()));
                 executor.getLogger().debug(message.toString());
             }
             return State.STOPPED;

@@ -192,7 +192,7 @@ sub delete_action
     my $confirmed = $self->get_param('confirmed');
     if ( defined($confirmed) ) {
         $self->{'application'}->secure_request('Reservation.deleteReservationRequest', $id);
-        $self->redirect('list');
+        $self->redirect_back();
     }
     else {
         my $reservations = $self->{'application'}->secure_request('Reservation.listReservations', {'reservationRequestId' => $id});

@@ -121,7 +121,7 @@ public abstract class Authorization
         // Try to use the user-id from access token cache to get the user information
         String userId = cache.getUserIdByAccessToken(accessToken);
         if (userId != null) {
-            logger.debug("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
+            logger.trace("Using cached user-id '{}' for access token '{}'...", userId, accessToken);
             userInformation = getUserInformation(userId);
 
             // Store the user information inside the security token
@@ -161,7 +161,7 @@ public abstract class Authorization
         // Try to use the user information from the cache
         UserInformation userInformation = cache.getUserInformationByUserId(userId);
         if (userInformation != null) {
-            logger.debug("Using cached user information for user-id '{}'...", userId);
+            logger.trace("Using cached user information for user-id '{}'...", userId);
             return userInformation;
         }
         else {
@@ -553,7 +553,7 @@ public abstract class Authorization
         // Validate access token by getting user info
         try {
             UserInformation userInformation = getUserInformation(securityToken);
-            logger.debug("Access token '{}' is valid for {} (id: {}).",
+            logger.trace("Access token '{}' is valid for {} (id: {}).",
                     new Object[]{securityToken.getAccessToken(), userInformation.getFullName(),
                             userInformation.getUserId()
                     });

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -114,10 +113,10 @@ public abstract class Endpoint extends Executable
     }
 
     /**
-     * @return description of the {@link Endpoint} for a {@link Report}
+     * @return description of the {@link Endpoint}
      */
     @Transient
-    public String getReportDescription()
+    public String getDescription()
     {
         return toString();
     }
@@ -141,10 +140,11 @@ public abstract class Endpoint extends Executable
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
+        super.toApi(executableApi);
+
         cz.cesnet.shongo.controller.api.Executable.Endpoint endpointApi =
                 (cz.cesnet.shongo.controller.api.Executable.Endpoint) executableApi;
-        endpointApi.setId(EntityIdentifier.formatId(this));
-        endpointApi.setDescription(getReportDescription());
+        endpointApi.setDescription(getDescription());
         for (Alias alias : getAssignedAliases()) {
             endpointApi.addAlias(alias.toApi());
         }

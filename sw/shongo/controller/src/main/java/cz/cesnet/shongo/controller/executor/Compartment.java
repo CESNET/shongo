@@ -118,10 +118,6 @@ public class Compartment extends Executable
 
         cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
                 (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
-        compartmentApi.setId(EntityIdentifier.formatId(this));
-        compartmentApi.setSlot(getSlot());
-        compartmentApi.setState(getState().toApi());
-        compartmentApi.setStateReport(getReportText());
         for (Endpoint endpoint : getEndpoints()) {
             compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi());
         }

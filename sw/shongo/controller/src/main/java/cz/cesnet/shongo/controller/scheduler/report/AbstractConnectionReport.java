@@ -60,7 +60,7 @@ public abstract class AbstractConnectionReport extends Report
     @Transient
     public String getEndpointFromAsString()
     {
-        return endpointFrom.getReportDescription();
+        return endpointFrom.getDescription();
     }
 
     /**
@@ -80,7 +80,7 @@ public abstract class AbstractConnectionReport extends Report
     @Transient
     public String getEndpointToAsString()
     {
-        return endpointTo.getReportDescription();
+        return endpointTo.getDescription();
     }
 
     @PreRemove

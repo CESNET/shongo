@@ -19,12 +19,6 @@ sub new
     return $self;
 }
 
-sub index_action
-{
-    my ($self) = @_;
-    $self->redirect('list');
-}
-
 sub list_action
 {
     my ($self) = @_;

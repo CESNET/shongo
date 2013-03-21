@@ -142,7 +142,7 @@ public class ServerAuthorization extends Authorization
     {
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
-            logger.debug("Access token '{}' is valid for testing.", securityToken.getAccessToken());
+            logger.trace("Access token '{}' is valid for testing.", securityToken.getAccessToken());
             return ROOT_USER_ID;
         }
         return super.onValidate(securityToken);

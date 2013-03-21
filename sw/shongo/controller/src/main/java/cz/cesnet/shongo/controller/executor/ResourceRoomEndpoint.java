@@ -115,6 +115,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
         Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
+        resourceRoomEndpointApi.setId(EntityIdentifier.formatId(this));
         resourceRoomEndpointApi.setSlot(getSlot());
         resourceRoomEndpointApi.setState(getState().toApi());
         resourceRoomEndpointApi.setStateReport(getReportText());
@@ -198,7 +199,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getDescription()
     {
         return String.format("room in %s",
                 ResourceReport.formatResource(getDeviceResource()));
@@ -214,7 +215,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             return managedMode.getConnectorAgentName();
         }
         else {
-            throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
+            throw new IllegalStateException("Resource " + getDescription() + " is not managed!");
         }
     }
 
@@ -268,33 +269,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         }
         else {
             throw new TodoImplementException("TODO: Implement creating room in not managed device resource.");
-        }
-    }
-
-    @Override
-    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
-    {
-        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
-
-        if (getDeviceResource().isManaged()) {
-            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-
-            // TODO: Retrieve current room state and only apply changes
-
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                return true;
-            }
-            else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
-                return false;
-            }
-        }
-        else {
-            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
         }
     }
 
