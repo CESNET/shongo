@@ -1,0 +1,54 @@
+BBMRI-CZ
+CC
+CEITEC CSR - telekonference
+CESNET
+CESNET office
+CESNET2011
+Datova uloziste
+DELLIISS
+eduID
+EInfrastruktura
+ELI
+EUAsiaGrid
+FEE CTU
+FEL-Recording
+Fond rozvoje
+FROV JCU
+Gridy
+ICASSP
+ICRC
+IMETE-ICT
+IPv6-wg
+Klub reditelu
+LiveSurgery2012
+MMPS
+Mneme
+Monitoring a konfigurace
+Multimedia
+MZK
+NEAT-FT
+OKaVV
+OOaP
+Opticke site
+PHW 602
+Podpora_VaVaI
+Pokusna
+pokustemppstn
+Povros
+Predstavenstvo
+PSaC
+PSaC_Akce
+Roadmap
+RR
+ServiceDesk
+shongo-test
+Sitova identita
+Sitova infrastruktura
+Sitove aplikace
+Skoda Power
+TWAREN
+UJV REZ
+UPa-IC
+UVN
+VSB-CIT
+VSB-IT4I

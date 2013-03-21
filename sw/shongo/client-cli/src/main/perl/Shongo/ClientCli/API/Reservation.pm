@@ -59,6 +59,9 @@ sub new()
         'order' => 1,
         'format' => sub {
             my ($executable, $options) = @_;
+            if ( !defined($executable) ) {
+                return undef;
+            }
             if ( defined($options->{'sub-call'}) ) {
                 return $executable->{'id'};
             }

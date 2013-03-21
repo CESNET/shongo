@@ -11,7 +11,7 @@ case $MODE in
         CONTROLLER=195.113.151.174
         NAME_PREFIX=ZZ-shongo-
         DEVICE_NAME_PREFIX=
-        MCU_CESNET_LICENSE_COUNT=20
+        MCU_CESNET_LICENSE_COUNT=15
         MCU_CESNET_NAME_PREFIX=
         MCU_CESNET_NUMBER_PREFIX=950087
         MCU_CESNET_NUMBER_RANGE=200:399
@@ -47,7 +47,14 @@ echo "  MCU CESNET: $MCU_CESNET_LICENSE_COUNT licenses, $MCU_CESNET_NUMBER_PREFI
 echo "  Connect:    $CONNECT_CESNET, $CONNECT_CESNET_LICENSE_COUNT licenses"
 echo -n "Presse enter to continue..."; read line
 
-./client-cli.sh --connect $CONTROLLER --testing-access-token --scripting <<EOF
+RUN_CLIENT_CLI="cat"
+RUN_CLIENT_CLI="./client-cli.sh --connect $CONTROLLER --testing-access-token --scripting"
+
+################################################################################
+#
+# CREATE RESOURCES
+#
+$RUN_CLIENT_CLI <<EOF
 
     create-resource {
         class: 'Resource',
@@ -196,6 +203,24 @@ echo -n "Presse enter to continue..."; read line
         }]
     }
 
+EOF
+
+################################################################################
+#
+# CREATE RESERVATIONS
+#
+
+# Pattern for each line from room files
+PATTERN="[ \t]*\(.\+\)[ \t]*"
+
+# Alias specification from matched line
+REPLACE=$(cat <<EOF
+                { technologies: ['<TECHNOLOGY>'], aliasTypes: ['ROOM_NAME'], value: '\1' },
+EOF
+)
+
+$RUN_CLIENT_CLI <<EOF
+
     create-reservation-request {
         class: 'ReservationRequest',
         purpose: 'OWNER',
@@ -203,60 +228,8 @@ echo -n "Presse enter to continue..."; read line
         specification: {
             class: 'AliasSetSpecification',
             aliases: [
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Pokusna' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'MMPS' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'EUAsiaGrid' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'EInfrastruktura' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Predstavenstvo' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'TWAREN' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'eduID' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'PHW 602' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'FEE CTU' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'CC' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'RR' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'UJV REZ' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'DELLIISS' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'MZK' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'CESNET' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'ICASSP' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'CESNET2011' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Fond rozvoje' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'IPv6-wg' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'FEL-Recording' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Mneme' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Gridy' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'BBMRI-CZ' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'PSaC' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Roadmap' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Povros' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'OKaVV' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Datova uloziste' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'OOaP' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Klub reditelu' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Opticke site' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'VSB-IT4I' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Sitova infrastruktura'},
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'CESNET office' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'FROV JCU' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'ELI' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'CEITEC CSR - telekonference' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Podpora_VaVaI' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Multimedia' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Sitove aplikace' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Monitoring a konfigurace' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Sitova identita' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'ServiceDesk' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'IMETE-ICT' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'LiveSurgery2012' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'UVN' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'NEAT-FT' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'shongo-test' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'PSaC_Akce' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'ICRC' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'pokustemppstn' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'VSB-CIT' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'Skoda Power' },
-                { technologies: ['H323'], aliasTypes: ['ROOM_NAME'], value: 'UPa-IC' },
+`cat rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/H323/g"`
+`cat rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/ADOBE_CONNECT/g"`
             ]
         }
     }

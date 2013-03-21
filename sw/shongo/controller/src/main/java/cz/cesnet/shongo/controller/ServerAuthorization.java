@@ -194,6 +194,9 @@ public class ServerAuthorization extends Authorization
                 JsonNode jsonNode = readJson(response.getEntity());
                 return createUserInformationFromData(jsonNode);
             }
+            else {
+                readContent(response.getEntity());
+            }
         }
         catch (Exception exception) {
             errorException = exception;
@@ -218,6 +221,9 @@ public class ServerAuthorization extends Authorization
                     userInformationList.add(userInformation);
                 }
                 return userInformationList;
+            }
+            else {
+                readContent(response.getEntity());
             }
         }
         catch (Exception exception) {
@@ -279,10 +285,7 @@ public class ServerAuthorization extends Authorization
         try {
             HttpResponse response = httpClient.execute(httpDelete);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                HttpEntity responseEntity = response.getEntity();
-                if (responseEntity != null) {
-                    EntityUtils.toString(responseEntity);
-                }
+                readContent(response.getEntity());
             }
             else {
                 handleAuthorizationRequestError(response);
@@ -431,6 +434,24 @@ public class ServerAuthorization extends Authorization
         catch (IOException exception) {
             throw new FaultException("Reading JSON failed.", exception);
         }
+    }
+
+    /**
+     * Read all content from given {@code httpEntity}.
+     *
+     * @param httpEntity
+     */
+    private String readContent(HttpEntity httpEntity) throws FaultException
+    {
+        if (httpEntity != null) {
+            try {
+                return EntityUtils.toString(httpEntity);
+            }
+            catch (IOException exception) {
+                throw new FaultException("Reading content failed.", exception);
+            }
+        }
+        return null;
     }
 
     /**
