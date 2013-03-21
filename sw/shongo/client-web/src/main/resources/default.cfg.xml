@@ -9,7 +9,7 @@
     <!-- Authorization -->
     <security>
         <server>https://shongo-auth-dev.cesnet.cz</server>
-        <client-id>cz.cesnet.shongo.client-web-local</client-id>
+        <client-id>shongo-client-web</client-id>
         <redirect-uri>http://127.0.0.1:8182</redirect-uri>
         <secret>testclientsecret</secret>
     </security>

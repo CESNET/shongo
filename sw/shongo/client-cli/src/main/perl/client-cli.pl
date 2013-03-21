@@ -74,7 +74,7 @@ if ( $help == 1) {
 }
 
 if ( !defined($authentication_server) ) {
-    $authentication_server = 'shongo-auth.cesnet.cz';
+    $authentication_server = 'shongo-auth-dev.cesnet.cz';
 }
 
 my $controller = Shongo::ClientCli->instance();
