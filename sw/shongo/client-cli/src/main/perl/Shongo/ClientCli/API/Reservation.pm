@@ -39,6 +39,8 @@ sub new()
     $self->set_object_name('Reservation');
     $self->set_object_class('Reservation');
     $self->add_attribute('id', {'title' => 'Identifier'});
+    $self->add_attribute('parentReservationId', {'title' => 'Parent'});
+    $self->add_attribute('reservationRequestId', {'title' => 'Request'});
     $self->add_attribute('slot', {
         'type' => 'interval'
     });
@@ -54,8 +56,16 @@ sub new()
         'order' => 2
     });
     $self->add_attribute('executable', {
-        'display' => 'newline',
-        'order' => 1
+        'order' => 1,
+        'format' => sub {
+            my ($executable, $options) = @_;
+            if ( defined($options->{'sub-call'}) ) {
+                return $executable->{'id'};
+            }
+            else {
+                return $executable->to_string();
+            }
+        }
     });
 
     return $self;

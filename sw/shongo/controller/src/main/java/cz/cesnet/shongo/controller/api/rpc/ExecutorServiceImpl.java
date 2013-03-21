@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
@@ -140,11 +140,18 @@ public class ExecutorServiceImpl extends Component
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
         try {
-            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(entityId.getPersistenceId());
+            cz.cesnet.shongo.controller.executor.Executable executable = executableManager
+                    .get(entityId.getPersistenceId());
 
             authorization.checkPermission(userId, entityId, Permission.READ);
 
-            return executable.toApi();
+            Executable executableApi = executable.toApi();
+            cz.cesnet.shongo.controller.reservation.Reservation reservation =
+                    executableManager.getReservation(executable);
+            if (reservation != null) {
+                executableApi.setReservationId(EntityIdentifier.formatId(reservation));
+            }
+            return executableApi;
         }
         finally {
             entityManager.close();

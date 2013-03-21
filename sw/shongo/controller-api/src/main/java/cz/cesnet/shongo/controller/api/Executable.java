@@ -19,6 +19,11 @@ import java.util.Set;
 public class Executable extends IdentifiedObject
 {
     /**
+     * Reservation for which the {@link Executable} is allocated.
+     */
+    private String reservationId;
+
+    /**
      * Slot of the {@link cz.cesnet.shongo.controller.api.Executable}.
      */
     private Interval slot;
@@ -32,6 +37,22 @@ public class Executable extends IdentifiedObject
      * Description of state.
      */
     private String stateReport;
+
+    /**
+     * @return {@link #reservationId}
+     */
+    public String getReservationId()
+    {
+        return reservationId;
+    }
+
+    /**
+     * @param reservationId sets the {@link #reservationId}
+     */
+    public void setReservationId(String reservationId)
+    {
+        this.reservationId = reservationId;
+    }
 
     /**
      * @return {@link #slot}

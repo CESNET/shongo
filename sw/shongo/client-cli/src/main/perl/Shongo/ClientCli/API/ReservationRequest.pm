@@ -45,6 +45,7 @@ sub new()
         'complex' => 1,
         'required' => 1
     });
+    $self->add_attribute('reservationId', {'title' => 'Reservation'});
     $self->add_attribute('state', {
         'title' =>'Current State',
         'format' => sub {
@@ -66,7 +67,6 @@ sub new()
         },
         'read-only' => 1
     });
-    $self->add_attribute_preserve('reservationId');
     $self->add_attribute_preserve('stateReport');
 
     return $self;

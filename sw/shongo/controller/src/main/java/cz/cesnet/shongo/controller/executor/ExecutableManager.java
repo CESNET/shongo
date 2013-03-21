@@ -11,6 +11,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -221,5 +222,44 @@ public class ExecutableManager extends AbstractManager
         }
         throw new IllegalStateException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
                 + "s taking place at " + referenceDateTime.toString() + ".");
+    }
+
+    /**
+     * @param executable
+     * @return {@link Reservation} for which is given {@code executable} allocated
+     */
+    public Reservation getReservation(Executable executable)
+    {
+        // Go to top parent executable
+        Set<Executable> executables = new HashSet<Executable>();
+        while (!executables.contains(executable)) {
+            executables.add(executable);
+            List<Executable> parentExecutables = entityManager.createQuery(
+                    "SELECT executable FROM Executable executable"
+                            + " LEFT JOIN executable.childExecutables AS childExecutable"
+                            + " WHERE childExecutable = :executable", Executable.class)
+                    .setParameter("executable", executable)
+                    .getResultList();
+            if (parentExecutables.size() > 0) {
+                executable = parentExecutables.get(0);
+            }
+        }
+
+        List<Reservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM Reservation reservation"
+                        + " WHERE reservation.executable = :executable", Reservation.class)
+                .setParameter("executable", executable)
+                .getResultList();
+        Set<Reservation> topReservations = new HashSet<Reservation>();
+        for (Reservation reservation : reservations) {
+            while (reservation.getParentReservation() != null) {
+                reservation = reservation.getParentReservation();
+            }
+            topReservations.add(reservation);
+        }
+        if (topReservations.size() > 0) {
+            return topReservations.iterator().next();
+        }
+        return null;
     }
 }

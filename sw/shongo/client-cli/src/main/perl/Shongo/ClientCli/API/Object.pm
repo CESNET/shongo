@@ -923,7 +923,7 @@ sub format_value
         }
     }
     elsif ( defined($options->{'format'}) && ref($options->{'format'}) eq 'CODE' ) {
-        return $options->{'format'}($value);
+        return $options->{'format'}($value, $options);
     }
     elsif ( defined($options->{'enum'}) && defined($value) && defined($options->{'enum'}->{$value}) ) {
         return $options->{'enum'}->{$value};
@@ -982,7 +982,7 @@ sub format_value
             }
             else {
                 if ( !(ref($value) eq 'HASH') && $value->can('to_string') ) {
-                    $value = $value->to_string();
+                    $value = $value->to_string(1);
                 }
                 else {
                     var_dump($value);
@@ -1001,13 +1001,14 @@ sub format_value
 #
 sub format_attribute_value
 {
-    my ($self, $attribute_name, $single_line) = @_;
+    my ($self, $attribute_name, $single_line, $sub_call) = @_;
     my $attribute = $self->get_attribute($attribute_name);
     my $options = {};
     if ( !defined($single_line) ) {
         $single_line = 0;
     }
     $options->{'short'} = $single_line;
+    $options->{'sub-call'} = $sub_call;
     $options->{'format'} = $attribute->{'format'};
 
     my $attribute_value = $self->get($attribute_name);
@@ -1063,7 +1064,7 @@ sub format_attribute_value
 #
 sub format_attributes
 {
-    my ($self, $single_line) = @_;
+    my ($self, $single_line, $sub_call) = @_;
 
     # determine maximum attribute title length
     my $max_length = 0;
@@ -1090,7 +1091,7 @@ sub format_attributes
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         my $attribute_title = $self->get_attribute_title($attribute_name);
-        my $attribute_value = $self->format_attribute_value($attribute_name, $single_line);
+        my $attribute_value = $self->format_attribute_value($attribute_name, $single_line, $sub_call);
 
         if ( $attribute->{'display-empty'} == 1 || defined($attribute_value) && length($attribute_value) > 0 ) {
             if ( !defined($attribute_value) ) {
@@ -1133,10 +1134,10 @@ sub format_attributes
 #
 sub to_string
 {
-    my ($self) = @_;
+    my ($self, $sub_call) = @_;
 
     my $content = '';
-    $content .= $self->format_attributes(0);
+    $content .= $self->format_attributes(0, $sub_call);
 
     my $name = $self->{'__name'};
     if ( !defined($name) ) {

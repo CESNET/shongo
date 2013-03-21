@@ -75,6 +75,7 @@ sub on_init()
     }
 
     $self->add_attribute('id', {'title' => 'Identifier'});
+    $self->add_attribute('reservationId', {'title' => 'Reservation'});
     $self->add_attribute('state', {
         'format' => sub {
             my ($attribute_value) = @_;
