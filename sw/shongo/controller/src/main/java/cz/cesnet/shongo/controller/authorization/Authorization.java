@@ -266,6 +266,20 @@ public abstract class Authorization
     }
 
     /**
+     * Retrieve all {@link AclRecord}s for given {@code entity}.
+     *
+     * @param entity to restrict the entity of the {@link AclRecord}
+     * @return collection of matching {@link AclRecord}s
+     * @throws FaultException
+     */
+    public Collection<AclRecord> getAclRecords(PersistentObject entity)
+            throws FaultException
+    {
+        EntityIdentifier entityId = new EntityIdentifier(entity);
+        return getAclRecords(entityId);
+    }
+
+    /**
      * List of all {@link AclRecord}s which matches given criteria.
      *
      * @param userId   to restrict the user of the {@link AclRecord}
@@ -504,26 +518,6 @@ public abstract class Authorization
         finally {
             entityManager.close();
         }
-    }
-
-    /**
-     * Retrieve collection of {@link AclRecord}s which should be deleted when the given {@code entity} is deleted.
-     *
-     * @param entity    for which should be returned all {@link AclRecord}s.
-     * @param recursive specifies whether {@link AclRecord}s for child entities should be also returned
-     * @return collection of {@link AclRecord}s for given {@code entity} (and optionally for all child entities)
-     * @throws FaultException
-     */
-    public Collection<AclRecord> getAclRecordsForDeletion(PersistentObject entity, boolean recursive)
-            throws FaultException
-    {
-        EntityIdentifier entityId = new EntityIdentifier(entity);
-        Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        aclRecords.addAll(getAclRecords(null, entityId, null));
-        if (recursive) {
-            aclRecords.addAll(getChildAclRecords(null, entityId, null, entity));
-        }
-        return aclRecords;
     }
 
     /**

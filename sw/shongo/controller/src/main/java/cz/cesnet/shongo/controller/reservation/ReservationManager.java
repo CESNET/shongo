@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -54,57 +56,59 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * Process given {@code reservation} before deletion (recursive).
+     * Get all reservations recursive and remove the child reservations from it's parents.
+     * <p/>
+     * This operation is required because value reservations should be deleted in the end
+     * and not automatically by cascade.
      *
-     * @param reservation            to be processed
-     * @param additionalReservations collection of {@link Reservation} which should be also deleted in the end
+     * @param reservation  current reservation
+     * @param reservations collection of all {@link Reservation}s with children
      */
-    public void onBeforeDelete(Reservation reservation, Collection<Reservation> additionalReservations)
+    private void getChildReservations(Reservation reservation, Collection<Reservation> reservations)
     {
-        // Remove value reservation at first
-        if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            ValueReservation valueReservation = aliasReservation.getValueReservation();
+        reservations.add(reservation);
 
-            // Search child reservation for the value reservation
-            for (Reservation childReservation : reservation.getChildReservations()) {
-                // The value reservation should be deleted in the end (and not automatically by cascade)
-                if (childReservation.equals(valueReservation)) {
-                    valueReservation.setParentReservation(null);
-                    additionalReservations.add(valueReservation);
-                    break;
-                }
-            }
-        }
-        else {
-            // Process all child reservations
-            for (Reservation childReservation : reservation.getChildReservations()) {
-                onBeforeDelete(childReservation, additionalReservations);
-            }
+        List<Reservation> childReservations = reservation.getChildReservations();
+        while (childReservations.size() > 0) {
+            Reservation childReservation = childReservations.get(0);
+            getChildReservations(childReservation, reservations);
+            childReservation.setParentReservation(null);
         }
     }
 
     /**
      * @param reservation to be deleted in the database
+     * @return {@link AclRecord}s which should be deleted
      */
-    public void delete(Reservation reservation, Cache cache)
+    public Collection<AclRecord> delete(Reservation reservation, Authorization authorization, Cache cache)
+            throws FaultException
     {
+        // Get all reservations and disconnect them from parents
         Collection<Reservation> reservations = new LinkedList<Reservation>();
-        reservations.add(reservation);
-        onBeforeDelete(reservation, reservations);
+        getChildReservations(reservation, reservations);
+
+        // Get ACL records for deletion
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
+        if (authorization != null) {
+            for (Reservation reservationToDelete : reservations) {
+                aclRecordsToDelete.addAll(authorization.getAclRecords(reservationToDelete));
+            }
+        }
 
         // Date/time now for stopping executables
         DateTime dateTimeNow = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+        // Stop all executables
         stopReservationExecutables(reservation, dateTimeNow);
 
         // Delete all reservations
-        for (Reservation additionalReservation : reservations) {
+        for (Reservation reservationToDelete : reservations) {
             // Remove additional reservation from the cache
-            cache.removeReservation(additionalReservation);
+            cache.removeReservation(reservationToDelete);
 
             // Delete additional reservation
-            super.delete(additionalReservation);
+            super.delete(reservationToDelete);
         }
+        return aclRecordsToDelete;
     }
 
     /**

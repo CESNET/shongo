@@ -147,18 +147,13 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                             ReservationNotification.Type.DELETED, reservation));
                 }
 
-                // Add record for updating ACL
-                if (authorization != null) {
-                    aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(reservation, true));
-                }
-
-                // Delete the reservation
+                // Delete the reservation and add ACL records to be deleted in the end
                 ReservationRequest reservationRequest = toDeleteReservations.get(reservation);
                 if (reservationRequest != null) {
                     reservationRequest.setReservation(null);
                     reservationRequestManager.update(reservationRequest);
                 }
-                reservationManager.delete(reservation, cache);
+                aclRecordsToDelete.addAll(reservationManager.delete(reservation, authorization, cache));
 
                 // Remember the old reservation for the reservation request
                 oldReservationIds.put(reservationRequest, reservationId);
@@ -174,7 +169,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             // Delete all executables which should be deleted
-            executableManager.deleteAllNotReferenced();
+            aclRecordsToDelete.addAll(executableManager.deleteAllNotReferenced(authorization));
 
             entityManager.getTransaction().commit();
         }

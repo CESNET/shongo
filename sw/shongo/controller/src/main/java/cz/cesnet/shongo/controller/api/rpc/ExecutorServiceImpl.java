@@ -69,6 +69,7 @@ public class ExecutorServiceImpl extends Component
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
+        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
         try {
             entityManager.getTransaction().begin();
 
@@ -79,13 +80,14 @@ public class ExecutorServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
-            executableManager.delete(executable);
+            aclRecordsToDelete = executableManager.delete(executable, authorization);
 
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
             ControllerFaultSet.throwEntityNotDeletableReferencedFault(
                     cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
+            return;
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -96,6 +98,7 @@ public class ExecutorServiceImpl extends Component
         finally {
             entityManager.close();
         }
+        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override

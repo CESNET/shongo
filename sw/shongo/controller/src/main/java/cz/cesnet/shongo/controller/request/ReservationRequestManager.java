@@ -105,7 +105,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
         if (authorization != null) {
-            aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(abstractReservationRequest, false));
+            aclRecordsToDelete.addAll(authorization.getAclRecords(abstractReservationRequest));
         }
 
         Transaction transaction = beginTransaction();

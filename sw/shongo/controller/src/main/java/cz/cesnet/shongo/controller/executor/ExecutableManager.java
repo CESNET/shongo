@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
@@ -10,10 +12,7 @@ import org.joda.time.DateTime;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for {@link Executable}.
@@ -48,10 +47,16 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param executable to be deleted in the database
+     * @return {@link AclRecord}s which should be deleted
      */
-    public void delete(Executable executable)
+    public Collection<AclRecord> delete(Executable executable, Authorization authorization) throws FaultException
     {
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
+        if (authorization != null) {
+            aclRecordsToDelete.addAll(authorization.getAclRecords(executable));
+        }
         super.delete(executable);
+        return aclRecordsToDelete;
     }
 
     /**
@@ -159,8 +164,11 @@ public class ExecutableManager extends AbstractManager
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
      * any {@link Reservation} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
+     *
+     * @return {@link AclRecord}s which should be deleted
+     * @param authorization
      */
-    public void deleteAllNotReferenced()
+    public Collection<AclRecord> deleteAllNotReferenced(Authorization authorization) throws FaultException
     {
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
@@ -177,9 +185,11 @@ public class ExecutableManager extends AbstractManager
                 .setParameter("notStarted", Executable.State.NOT_STARTED)
                 .setParameter("toDelete", Executable.State.TO_DELETE)
                 .getResultList();
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
         for (Executable executable : executables) {
-            delete(executable);
+            aclRecordsToDelete.addAll(delete(executable, authorization));
         }
+        return aclRecordsToDelete;
     }
 
     /**

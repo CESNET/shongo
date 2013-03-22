@@ -299,7 +299,7 @@ sub parse_reservation_request
         $request->{'class'} = 'ReservationRequestSet';
         my $slot = {
             'class' => 'PeriodicDateTimeSlot',
-            'start' => $slotStart,
+            'start' => RPC::XML::string->new($slotStart),
             'duration' => $slotDuration
         };
         if ( $params->{'periodicity'} eq 'daily' ) {
