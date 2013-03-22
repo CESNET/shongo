@@ -430,13 +430,33 @@
         </report>
 
         <report>
-            <id>security-error</id>
+            <id>acl-invalid-role</id>
             <classification severity="error"/>
             <params>
-                <param name="description" type="string"/>
+                <param name="entity" type="string"/>
+                <param name="role" type="string"/>
             </params>
             <description>
-                Authentication or authorization has failed: {description}
+                ACL Role {role} is invalid for entity {entity}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
+        <report>
+            <id>security-invalid-token</id>
+            <classification severity="error"/>
+            <params>
+                <param name="token" type="string"/>
+            </params>
+            <description>
+                Invalid security token {token}.
             </description>
             <example>
                 TODO:

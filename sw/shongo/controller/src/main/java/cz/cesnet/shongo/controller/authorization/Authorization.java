@@ -109,7 +109,7 @@ public abstract class Authorization
      * @return {@link UserInformation} for the user with given {@code securityToken}
      * @throws FaultException when the {@link UserInformation} cannot be retrieved
      */
-    public final UserInformation getUserInformation(SecurityToken securityToken) throws FaultException
+    public final UserInformation getUserInformation(SecurityToken securityToken)
     {
         UserInformation userInformation = securityToken.getCachedUserInformation();
         if (userInformation != null) {
@@ -166,12 +166,7 @@ public abstract class Authorization
         else {
             logger.debug("Retrieving user information by user-id '{}'...", userId);
 
-            try {
-                userInformation = onGetUserInformationByUserId(userId);
-            }
-            catch (FaultException exception) {
-                throw new FaultRuntimeException(exception, exception.getFault());
-            }
+            userInformation = onGetUserInformationByUserId(userId);
             cache.putUserInformationByUserId(userId, userInformation);
             return userInformation;
         }
@@ -562,9 +557,10 @@ public abstract class Authorization
                     });
             return userInformation.getUserId();
         }
-        catch (IllegalStateException exception) {
-            return ControllerFaultSet.throwSecurityErrorFault(String.format("Access token '%s' cannot be validated. %s",
-                    securityToken.getAccessToken(), exception.getMessage()));
+        catch (Exception exception) {
+            String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
+            logger.error(message, exception);
+            return ControllerFaultSet.throwSecurityInvalidTokenFault(securityToken.getAccessToken());
         }
     }
 
@@ -605,18 +601,16 @@ public abstract class Authorization
      *
      * @param accessToken of an user
      * @return {@link UserInformation} for the user with given {@code accessToken}
-     * @throws FaultException when the {@link UserInformation} cannot be retrieved
      */
-    protected abstract UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException;
+    protected abstract UserInformation onGetUserInformationByAccessToken(String accessToken);
 
     /**
      * Retrieve {@link UserInformation} for given {@code userId}.
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
-     * @throws FaultException when the {@link UserInformation} cannot be retrieved
      */
-    protected abstract UserInformation onGetUserInformationByUserId(String userId) throws FaultException;
+    protected abstract UserInformation onGetUserInformationByUserId(String userId);
 
     /**
      * Retrieve all {@link UserInformation}s.
@@ -681,7 +675,7 @@ public abstract class Authorization
     {
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
-            ControllerFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
+            ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
         }
 
         Collection<AclRecord> aclRecords = getAclRecords(userId, entityId, role);

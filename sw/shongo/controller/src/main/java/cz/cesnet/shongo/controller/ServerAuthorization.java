@@ -148,7 +148,7 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
+    protected UserInformation onGetUserInformationByAccessToken(String accessToken)
     {
         // Testing security token represents root user
         if (testingAccessToken != null && accessToken.equals(testingAccessToken)) {
@@ -156,6 +156,7 @@ public class ServerAuthorization extends Authorization
         }
 
         Exception errorException = null;
+        String errorReason = null;
         try {
             URIBuilder uriBuilder = new URIBuilder(getAuthenticationUrl() + "/userinfo");
             uriBuilder.setParameter("schema", "openid");
@@ -168,22 +169,23 @@ public class ServerAuthorization extends Authorization
             }
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
-                throw new FaultException(ControllerFaultSet.createSecurityErrorFault(
-                        String.format("Retrieving user information by access token failed: %s, %s",
-                                jsonNode.get("error").getTextValue(),
-                                jsonNode.get("error_description").getTextValue())));
+                errorReason = String.format("%s, %s",
+                        jsonNode.get("error").getTextValue(), jsonNode.get("error_description").getTextValue());
             }
         }
         catch (Exception exception) {
             errorException = exception;
         }
         // Handle error
-        throw new FaultException(errorException,
-                ControllerFaultSet.createSecurityErrorFault("Retrieving user information by access token failed."));
+        String errorMessage = String.format("Retrieving user information by access token '%s' failed.", accessToken);
+        if (errorReason != null) {
+            errorMessage += " " + errorReason;
+        }
+        throw new IllegalStateException(errorMessage, errorException);
     }
 
     @Override
-    protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
+    protected UserInformation onGetUserInformationByUserId(String userId)
     {
         Exception errorException = null;
         try {
@@ -201,8 +203,8 @@ public class ServerAuthorization extends Authorization
             errorException = exception;
         }
         // Handle error
-        throw new FaultException(errorException,
-                ControllerFaultSet.createSecurityErrorFault("Retrieving user information by user-id failed."));
+        throw new IllegalStateException("Retrieving user information by user-id '" + userId + "' failed.",
+                errorException);
     }
 
     @Override
@@ -229,8 +231,7 @@ public class ServerAuthorization extends Authorization
             errorException = exception;
         }
         // Handle error
-        throw new FaultException(errorException,
-                ControllerFaultSet.createSecurityErrorFault("Retrieving user information failed."));
+        throw new FaultException(errorException, "Retrieving user information failed.");
     }
 
     @Override
@@ -413,25 +414,22 @@ public class ServerAuthorization extends Authorization
      * @return {@link JsonNode} from given {@code httpEntity}
      * @throws FaultException
      */
-    private JsonNode readJson(HttpEntity httpEntity) throws FaultException
+    private JsonNode readJson(HttpEntity httpEntity)
     {
         try {
             InputStream inputStream = httpEntity.getContent();
             try {
                 return jsonMapper.readTree(inputStream);
             }
-            catch (Exception exception) {
-                throw new FaultException("Reading JSON failed.", exception);
-            }
             finally {
                 inputStream.close();
             }
         }
         catch (EOFException exception) {
-            throw new FaultException("JSON is empty.", exception);
+            throw new IllegalStateException("JSON is empty.", exception);
         }
         catch (IOException exception) {
-            throw new FaultException("Reading JSON failed.", exception);
+            throw new IllegalStateException("Reading JSON failed.", exception);
         }
     }
 
@@ -471,23 +469,21 @@ public class ServerAuthorization extends Authorization
      * @param httpResponse to be handled as {@link FaultException}
      * @throws FaultException is always thrown
      */
-    private <T> T handleAuthorizationRequestError(HttpResponse httpResponse) throws FaultException
+    private <T> T handleAuthorizationRequestError(HttpResponse httpResponse)
     {
         JsonNode jsonNode = readJson(httpResponse.getEntity());
-        throw new FaultException(ControllerFaultSet.createSecurityErrorFault(
-                String.format("Authorization request failed: %s, %s",
-                        jsonNode.get("title").getTextValue(),
-                        jsonNode.get("detail").getTextValue())));
+        throw new IllegalStateException(String.format("Authorization request failed: %s, %s",
+                jsonNode.get("title").getTextValue(),
+                jsonNode.get("detail").getTextValue()));
     }
 
     /**
      * @param exception to be handled as {@link FaultException}
      * @throws FaultException is always thrown
      */
-    private <T> T handleAuthorizationRequestError(Exception exception) throws FaultException
+    private <T> T handleAuthorizationRequestError(Exception exception)
     {
-        throw new FaultException(exception, ControllerFaultSet.createSecurityErrorFault(
-                String.format("Authorization request failed. %s", exception.getMessage())));
+        throw new IllegalStateException(String.format("Authorization request failed. %s", exception.getMessage()));
     }
 
     /**

@@ -330,20 +330,29 @@ sub fault_action
     }
 
     my $code = $faultResponse->code();
-    if ( $code == 40 ) {
+    if ( $code == 11 ) {
         my $Type = {
             'AbstractReservationRequest' => 'Reservation request'
         };
-        my $entityId = $params->{'entityId'};
-        my $entity = $params->{'entityType'};
+        my $entityId = $params->{'id'};
+        my $entity = $params->{'entity'};
         if ( defined($Type->{$entity}) ) {
             $entity = $Type->{$entity};
         }
         $title = "$entity not found";
         $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
     }
-    elsif ( $code == 200 ) {
-        my $reservationRequestId = $params->{'reservationRequestId'};
+    elsif ( $code == 16 ) {
+        my $action = $params->{'action'};
+        $title = "Not authorized";
+        $message = "You are not authorized to <strong>$action</strong>.";
+        $message .= '<p>If you think that you should be authorized to specified action try to <a href="">refresh</a> page. ';
+        $message .= 'Sometimes it takes a few seconds before the scheduler creates the user roles in authorization server. ';
+        $message .= 'If it doesn\'t help contact the <a href="mailto: shongo-dev@cesnet.cz">developers</a>.</p>';
+
+    }
+    elsif ( $code == 21 ) {
+        my $reservationRequestId = $params->{'id'};
         $title = "Reservation request cannot be deleted";
         $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";
     }

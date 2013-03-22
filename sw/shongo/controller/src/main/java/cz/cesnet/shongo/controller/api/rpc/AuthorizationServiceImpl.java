@@ -210,7 +210,7 @@ public class AuthorizationServiceImpl extends Component
                 ControllerFaultSet.throwEntityNotFoundFault(entityIdentifier);
             }
             if (!authorization.isAdmin(userId)) {
-                ControllerFaultSet.throwSecurityErrorFault("Only administrator can change entity user.");
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
             entityManager.getTransaction().begin();
             if (entity instanceof Resource) {
@@ -252,7 +252,8 @@ public class AuthorizationServiceImpl extends Component
                 authorization.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
             }
             else {
-                ControllerFaultSet.throwSecurityErrorFault("The user cannot be set for specified entity.");
+                throw new FaultException("The user cannot be set for entity of type "
+                        + entity.getClass().getSimpleName() + ".");
             }
             entityManager.getTransaction().commit();
         }

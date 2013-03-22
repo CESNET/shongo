@@ -48,7 +48,7 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected UserInformation onGetUserInformationByAccessToken(String accessToken) throws FaultException
+    protected UserInformation onGetUserInformationByAccessToken(String accessToken)
     {
         if (AbstractControllerTest.SECURITY_TOKEN.getAccessToken().equals(accessToken)) {
             return TESTING_USER_INFORMATION;
@@ -60,7 +60,7 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected UserInformation onGetUserInformationByUserId(String userId) throws FaultException
+    protected UserInformation onGetUserInformationByUserId(String userId)
     {
         if (TESTING_USER_ID.equals(userId)) {
             return TESTING_USER_INFORMATION;

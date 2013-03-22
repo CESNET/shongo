@@ -20,8 +20,9 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     public static final int ENTITY_NOT_FOUND_FAULT = 11;
     public static final int ENTITY_INVALID_FAULT = 12;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_FAULT = 13;
-    public static final int SECURITY_ERROR_FAULT = 14;
-    public static final int SECURITY_NOT_AUTHORIZED_FAULT = 15;
+    public static final int ACL_INVALID_ROLE_FAULT = 14;
+    public static final int SECURITY_INVALID_TOKEN_FAULT = 15;
+    public static final int SECURITY_NOT_AUTHORIZED_FAULT = 16;
 
     /**
      * Unknown error: {@link #description}
@@ -991,33 +992,45 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     }
 
     /**
-     * Authentication or authorization has failed: {@link #description}
+     * ACL Role {@link #role} is invalid for entity {entity}.
      */
-    public static class SecurityErrorFault implements Fault
+    public static class AclInvalidRoleFault implements Fault
     {
-        private String description;
+        private String entity;
+        private String role;
 
-        public String getDescription()
+        public String getEntity()
         {
-            return description;
+            return entity;
         }
 
-        public void setDescription(String description)
+        public void setEntity(String entity)
         {
-            this.description = description;
+            this.entity = entity;
+        }
+
+        public String getRole()
+        {
+            return role;
+        }
+
+        public void setRole(String role)
+        {
+            this.role = role;
         }
 
         @Override
         public int getCode()
         {
-            return SECURITY_ERROR_FAULT;
+            return ACL_INVALID_ROLE_FAULT;
         }
 
         @Override
         public String getMessage()
         {
-            String message = "Authentication or authorization has failed: {description}";
-            message = message.replace("{description}", (description == null ? "" : description));
+            String message = "ACL Role {role} is invalid for entity {entity}.";
+            message = message.replace("{entity}", (entity == null ? "" : entity));
+            message = message.replace("{role}", (role == null ? "" : role));
             return message;
         }
 
@@ -1029,22 +1042,80 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     }
 
     /**
-     * @return new instance of {@link SecurityErrorFault}
+     * @return new instance of {@link AclInvalidRoleFault}
      */
-    public static SecurityErrorFault createSecurityErrorFault(String description)
+    public static AclInvalidRoleFault createAclInvalidRoleFault(String entity, String role)
     {
-        SecurityErrorFault securityErrorFault = new SecurityErrorFault();
-        securityErrorFault.setDescription(description);
-        return securityErrorFault;
+        AclInvalidRoleFault aclInvalidRoleFault = new AclInvalidRoleFault();
+        aclInvalidRoleFault.setEntity(entity);
+        aclInvalidRoleFault.setRole(role);
+        return aclInvalidRoleFault;
     }
 
     /**
-     * @return new instance of {@link SecurityErrorFault}
+     * @return new instance of {@link AclInvalidRoleFault}
      */
-    public static <T> T throwSecurityErrorFault(String description) throws FaultException
+    public static <T> T throwAclInvalidRoleFault(String entity, String role) throws FaultException
     {
-        SecurityErrorFault securityErrorFault = createSecurityErrorFault(description);
-        throw securityErrorFault.createException();
+        AclInvalidRoleFault aclInvalidRoleFault = createAclInvalidRoleFault(entity, role);
+        throw aclInvalidRoleFault.createException();
+    }
+
+    /**
+     * Invalid security token {@link #token}.
+     */
+    public static class SecurityInvalidTokenFault implements Fault
+    {
+        private String token;
+
+        public String getToken()
+        {
+            return token;
+        }
+
+        public void setToken(String token)
+        {
+            this.token = token;
+        }
+
+        @Override
+        public int getCode()
+        {
+            return SECURITY_INVALID_TOKEN_FAULT;
+        }
+
+        @Override
+        public String getMessage()
+        {
+            String message = "Invalid security token {token}.";
+            message = message.replace("{token}", (token == null ? "" : token));
+            return message;
+        }
+
+        @Override
+        public FaultException createException()
+        {
+            return new FaultException(this);
+        }
+    }
+
+    /**
+     * @return new instance of {@link SecurityInvalidTokenFault}
+     */
+    public static SecurityInvalidTokenFault createSecurityInvalidTokenFault(String token)
+    {
+        SecurityInvalidTokenFault securityInvalidTokenFault = new SecurityInvalidTokenFault();
+        securityInvalidTokenFault.setToken(token);
+        return securityInvalidTokenFault;
+    }
+
+    /**
+     * @return new instance of {@link SecurityInvalidTokenFault}
+     */
+    public static <T> T throwSecurityInvalidTokenFault(String token) throws FaultException
+    {
+        SecurityInvalidTokenFault securityInvalidTokenFault = createSecurityInvalidTokenFault(token);
+        throw securityInvalidTokenFault.createException();
     }
 
     /**
@@ -1122,7 +1193,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
         addFault(ENTITY_NOT_FOUND_FAULT, EntityNotFoundFault.class);
         addFault(ENTITY_INVALID_FAULT, EntityInvalidFault.class);
         addFault(ENTITY_NOT_DELETABLE_REFERENCED_FAULT, EntityNotDeletableReferencedFault.class);
-        addFault(SECURITY_ERROR_FAULT, SecurityErrorFault.class);
+        addFault(ACL_INVALID_ROLE_FAULT, AclInvalidRoleFault.class);
+        addFault(SECURITY_INVALID_TOKEN_FAULT, SecurityInvalidTokenFault.class);
         addFault(SECURITY_NOT_AUTHORIZED_FAULT, SecurityNotAuthorizedFault.class);
     }
 }

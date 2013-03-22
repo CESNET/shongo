@@ -6,12 +6,12 @@ import cz.cesnet.shongo.fault.jade.CommandFailure;
 
 public class FaultSet extends cz.cesnet.shongo.api.FaultSet
 {
-    public static final int DEVICE_COMMAND_FAILED_FAULT = 16;
-    public static final int IDENTIFIER_INVALID_FAULT = 17;
-    public static final int IDENTIFIER_INVALID_DOMAIN_FAULT = 18;
-    public static final int IDENTIFIER_INVALID_TYPE_FAULT = 19;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_FAULT = 20;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_FAULT = 21;
+    public static final int DEVICE_COMMAND_FAILED_FAULT = 17;
+    public static final int IDENTIFIER_INVALID_FAULT = 18;
+    public static final int IDENTIFIER_INVALID_DOMAIN_FAULT = 19;
+    public static final int IDENTIFIER_INVALID_TYPE_FAULT = 20;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_FAULT = 21;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_FAULT = 22;
 
     /**
      * Command {@link #command} for device {device} failed: {error}
