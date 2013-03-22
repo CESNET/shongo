@@ -49,7 +49,7 @@ sub on_create()
     my ($self, $attributes) = @_;
 
     my $person = $attributes->{'class'};
-    if ( !defined($person) ) {
+    if ( !defined($person) || $person eq 'Person' ) {
         $person = $self->select_type();
     }
     if ( defined($person) ) {
@@ -63,6 +63,7 @@ sub on_init()
     my ($self) = @_;
 
     my $class = $self->get_object_class();
+
     if ( !defined($class) ) {
         return;
     }

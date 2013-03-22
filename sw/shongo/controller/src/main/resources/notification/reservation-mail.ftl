@@ -116,7 +116,9 @@ DETAILS (for administrators):
   Request-id:         ${reservationRequest.id}
 </#if>
   Reservation-id:     ${reservation.id}
-<#if reservation.class.simpleName == "RoomReservation">
+<#if reservation.class.simpleName == "ResourceReservation">
+  Resource:           ${reservation.resourceName} (id: ${reservation.resourceId})
+<#elseif reservation.class.simpleName == "RoomReservation">
   Room Provider:      ${reservation.resourceName} (id: ${reservation.resourceId}, licenses: ${reservation.licenseCount})
 <#elseif aliasReservations?has_content>
   Alias Provider(s):  <#rt>

@@ -747,7 +747,9 @@ sub modify_interval
         }
     }
     $end = console_edit_value("Type a end date/time", 1, $Shongo::Common::DateTimeOrInfinitePattern, $end);
-    $end = datetime_fill_timezone($end);
+    if ( $end ne '*' ) {
+        $end = datetime_fill_timezone($end);
+    }
     return $start_new . '/' . $end;
 }
 
