@@ -387,7 +387,7 @@ sub get_reservation_request
             if ( $child_request->{'slot'} =~ /(.*)\/(.*)/ ) {
                 $child_request->{'start'} = $1;
                 $child_request->{'end'} = $2;
-                $request->{'duration'} = interval_get_duration($1, $2);
+                $child_request->{'duration'} = interval_get_duration($1, $2);
             }
             push(@{$child_requests}, $child_request);
         }

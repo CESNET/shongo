@@ -14,10 +14,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -106,12 +103,9 @@ public class ReservationRequestManager extends AbstractManager
     public Collection<AclRecord> delete(AbstractReservationRequest abstractReservationRequest,
             Authorization authorization) throws FaultException
     {
-        Collection<AclRecord> aclRecordsToDelete;
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
         if (authorization != null) {
-            aclRecordsToDelete = authorization.getAclRecordsForDeletion(abstractReservationRequest, false);
-        }
-        else {
-            aclRecordsToDelete = Collections.emptyList();
+            aclRecordsToDelete.addAll(authorization.getAclRecordsForDeletion(abstractReservationRequest, false));
         }
 
         Transaction transaction = beginTransaction();
@@ -137,7 +131,7 @@ public class ReservationRequestManager extends AbstractManager
 
             // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                delete(reservationRequest, authorization);
+                aclRecordsToDelete.addAll(delete(reservationRequest, authorization));
             }
 
             // Clear state
