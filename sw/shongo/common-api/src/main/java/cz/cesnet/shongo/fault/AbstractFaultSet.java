@@ -10,7 +10,7 @@ import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class FaultSet
+public abstract class AbstractFaultSet
 {
     /**
      * List of {@link Fault} classes bound to fault code.

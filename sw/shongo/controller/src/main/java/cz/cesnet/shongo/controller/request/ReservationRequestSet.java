@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
@@ -63,7 +63,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 return dateTimeSlot;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(DateTimeSlot.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(DateTimeSlot.class, id);
     }
 
     /**
@@ -180,7 +180,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 return reservationRequest;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(ReservationRequest.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, id);
     }
 
     /**

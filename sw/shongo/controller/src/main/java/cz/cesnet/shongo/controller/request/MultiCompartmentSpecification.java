@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -65,7 +65,7 @@ public class MultiCompartmentSpecification extends Specification
                 return compartmentSpecification;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(CompartmentSpecification.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(CompartmentSpecification.class, id);
     }
 
     /**

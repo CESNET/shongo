@@ -3,9 +3,8 @@ package ${package};
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
-import ${base_package}.${base_name};
 
-public class ${name}FaultSet extends ${base_name}
+public class ${name} extends ${base_name}
 {
 <#list reports as report>
     <#assign reportCode = reportCodes[report.getId()]>
@@ -50,7 +49,7 @@ public class ${name}FaultSet extends ${base_name}
         {
             String message = "${this.formatString(report.getDescription())}";
             <#list report.params.getParam() as param>
-            message = message.replace("{${param.getName()}}", ${this.formatParamToString(param)});
+            message = message.replace("{${param.getName()}}", (${this.formatIdentifier(param.getName())} == null ? "" : ${this.formatParamToString(param)}));
             </#list>
             return message;
         }

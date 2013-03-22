@@ -5,14 +5,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
 import java.util.HashSet;
 
 /**

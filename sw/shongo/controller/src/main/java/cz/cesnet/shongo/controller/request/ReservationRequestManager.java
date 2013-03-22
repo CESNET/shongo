@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -125,7 +125,7 @@ public class ReservationRequestManager extends AbstractManager
                 // Check if reservation can be deleted
                 ReservationManager reservationManager = new ReservationManager(entityManager);
                 if (reservationManager.isProvided(reservation)) {
-                    ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
+                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
                             abstractReservationRequest.getId());
                 }
                 reservation.setReservationRequest(null);
@@ -167,8 +167,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(
-                    AbstractReservationRequest.class, reservationRequestId);
+            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
@@ -188,7 +187,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(ReservationRequest.class, reservationRequestId);
+            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, reservationRequestId);
         }
     }
 
@@ -208,8 +207,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet
-                    .throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
+            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
@@ -296,8 +294,7 @@ public class ReservationRequestManager extends AbstractManager
             return getReservationRequest(reservationRequestId);
         }
         catch (FaultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(
-                    AbstractReservationRequest.class, reservationRequestId);
+            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 

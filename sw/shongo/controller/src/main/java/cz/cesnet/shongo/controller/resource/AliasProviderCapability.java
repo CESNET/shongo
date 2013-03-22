@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -141,7 +141,7 @@ public class AliasProviderCapability extends Capability
                 return alias;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Alias.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(Alias.class, id);
     }
 
     /**

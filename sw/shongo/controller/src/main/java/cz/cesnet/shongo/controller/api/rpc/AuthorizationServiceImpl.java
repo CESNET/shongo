@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -8,7 +7,6 @@ import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -76,7 +74,7 @@ public class AuthorizationServiceImpl extends Component
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity == null) {
-                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+                ControllerFaultSet.throwEntityNotFoundFault(entityId);
             }
         }
         finally {
@@ -91,7 +89,9 @@ public class AuthorizationServiceImpl extends Component
         String requesterUserId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
-        authorization.checkPermission(requesterUserId, entityIdentifier, Permission.WRITE);
+        if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.WRITE)) {
+            ControllerFaultSet.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
+        }
         cz.cesnet.shongo.controller.authorization.AclRecord userAclRecord =
                 authorization.createAclRecord(userId, entityIdentifier, role);
         return (userAclRecord != null ? userAclRecord.getId() : null);
@@ -103,7 +103,9 @@ public class AuthorizationServiceImpl extends Component
     {
         String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
-        authorization.checkPermission(userId, aclRecord.getEntityId(), Permission.WRITE);
+        if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.WRITE)) {
+            ControllerFaultSet.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
+        }
         authorization.deleteAclRecord(aclRecord);
     }
 
@@ -113,7 +115,9 @@ public class AuthorizationServiceImpl extends Component
     {
         String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
-        authorization.checkPermission(userId, aclRecord.getEntityId(), Permission.READ);
+        if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.READ)) {
+            ControllerFaultSet.throwSecurityNotAuthorizedFault("read ACL for %s", aclRecord.getEntityId());
+        }
         return aclRecord.toApi();
     }
 
@@ -126,7 +130,9 @@ public class AuthorizationServiceImpl extends Component
 
         if (!requesterUserId.equals(userId)) {
             if (entityIdentifier != null) {
-                authorization.checkPermission(requesterUserId, entityIdentifier, Permission.READ);
+                if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.READ)) {
+                    ControllerFaultSet.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
+                }
             }
             else {
                 if (!authorization.isAdmin(requesterUserId)) {
@@ -201,10 +207,10 @@ public class AuthorizationServiceImpl extends Component
             PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
                     entityIdentifier.getPersistenceId());
             if (entity == null) {
-                ControllerImplFaultSet.throwEntityNotFoundFault(entityIdentifier);
+                ControllerFaultSet.throwEntityNotFoundFault(entityIdentifier);
             }
             if (!authorization.isAdmin(userId)) {
-                CommonFaultSet.throwSecurityErrorFault("Only administrator can change entity user.");
+                ControllerFaultSet.throwSecurityErrorFault("Only administrator can change entity user.");
             }
             entityManager.getTransaction().begin();
             if (entity instanceof Resource) {
@@ -246,7 +252,7 @@ public class AuthorizationServiceImpl extends Component
                 authorization.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
             }
             else {
-                CommonFaultSet.throwSecurityErrorFault("The user cannot be set for specified entity.");
+                ControllerFaultSet.throwSecurityErrorFault("The user cannot be set for specified entity.");
             }
             entityManager.getTransaction().commit();
         }

@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault;
 
-import cz.cesnet.shongo.CommonFaultSet;
-
 /**
  * TODO:
  *
@@ -25,7 +23,7 @@ public class FaultRuntimeException extends RuntimeException implements FaultThro
     public FaultRuntimeException(Throwable throwable)
     {
         super(throwable);
-        this.fault = CommonFaultSet.createUnknownErrorFault(throwable.getMessage());
+        this.fault = cz.cesnet.shongo.api.FaultSet.createUnknownErrorFault(throwable.getMessage());
     }
 
     @Override

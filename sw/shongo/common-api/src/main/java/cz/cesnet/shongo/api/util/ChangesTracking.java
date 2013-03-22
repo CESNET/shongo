@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 import jade.content.Concept;
 
@@ -292,7 +292,7 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
-                        CommonFaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
+                        FaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
                     }
                     for (Object item : array) {
                         setupNewEntity(item);
@@ -301,14 +301,14 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
-                        CommonFaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
+                        FaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
                     }
                     for (Object item : collection) {
                         setupNewEntity(item);
                     }
                 }
                 else if (required && value == null) {
-                    CommonFaultSet.throwClassAttributeRequiredFault(type.getSimpleName(), propertyName);
+                    FaultSet.throwClassAttributeRequiredFault(type.getSimpleName(), propertyName);
                 }
             }
         }

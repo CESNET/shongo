@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.fault.FaultException;
@@ -200,7 +200,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 }
                 catch (java.lang.Exception exception) {
                     throw new FaultRuntimeException(
-                            CommonFaultSet.createClassInstantiationErrorFault(clazz.getSimpleName()));
+                            FaultSet.createClassInstantiationErrorFault(clazz.getSimpleName()));
                 }
                 atomicType.fromString(value);
                 return atomicType;

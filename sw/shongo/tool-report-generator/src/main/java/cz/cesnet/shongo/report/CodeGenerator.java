@@ -41,9 +41,9 @@ public class CodeGenerator extends AbstractGenerator
     {
         Map<ReportModule, ModuleFaultSet> modules = new HashMap<ReportModule, ModuleFaultSet>();
         modules.put(ReportModule.COMMON, new ModuleFaultSet(
-                "common-api/src/main/java", "cz.cesnet.shongo", "Common"));
+                "common-api/src/main/java", "cz.cesnet.shongo.api", "FaultSet"));
         modules.put(ReportModule.CONTROLLER, new ModuleFaultSet(
-                "controller-api/src/main/java", "cz.cesnet.shongo.controller", "Controller"));
+                "controller-api/src/main/java", "cz.cesnet.shongo.controller.api", "FaultSet"));
         ReportModule[] modulesOrder = new ReportModule[]{
                 ReportModule.COMMON,
                 ReportModule.CONTROLLER
@@ -67,21 +67,22 @@ public class CodeGenerator extends AbstractGenerator
 
         for (ReportModule key : modulesOrder) {
             ModuleFaultSet module = modules.get(key);
+            String className = module.name;
+            String fileName = module.path + "/" + module.packageName.replace(".", "/") + "/" + className + ".java";
+
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("name", module.name);
+            parameters.put("name", className);
             parameters.put("package", module.packageName);
             if (key.equals(ReportModule.COMMON)) {
-                parameters.put("base_package", "cz.cesnet.shongo.fault");
-                parameters.put("base_name", "FaultSet");
+                parameters.put("base_name", "cz.cesnet.shongo.fault.AbstractFaultSet");
             }
             else {
-                parameters.put("base_package", "cz.cesnet.shongo");
-                parameters.put("base_name", "CommonFaultSet");
+                parameters.put("base_name", "cz.cesnet.shongo.api.FaultSet");
             }
             parameters.put("reports", module.reports);
             parameters.put("reportCodes", reportCodes);
-            renderFile(module.path + "/" + module.packageName.replace(".", "/") + "/" + module.name + "FaultSet.java",
-                    "FaultSet.java.ftl", parameters);
+
+            renderFile(fileName, "FaultSet.java.ftl", parameters);
         }
     }
 

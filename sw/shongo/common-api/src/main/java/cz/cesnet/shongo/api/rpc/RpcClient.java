@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.fault.AbstractFaultSet;
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultMessage;
-import cz.cesnet.shongo.fault.FaultSet;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -43,9 +43,9 @@ public class RpcClient
     private Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
-     * @see {@link FaultSet}
+     * @see {@link cz.cesnet.shongo.fault.AbstractFaultSet}
      */
-    private FaultSet faultSet = new CommonFaultSet();
+    private AbstractFaultSet faultSet = new FaultSet();
 
     /**
      * Constructor.
@@ -69,7 +69,7 @@ public class RpcClient
     /**
      * @param faultSet sets the {@link #faultSet}
      */
-    public void setFaultSet(FaultSet faultSet)
+    public void setFaultSet(AbstractFaultSet faultSet)
     {
         this.faultSet = faultSet;
     }

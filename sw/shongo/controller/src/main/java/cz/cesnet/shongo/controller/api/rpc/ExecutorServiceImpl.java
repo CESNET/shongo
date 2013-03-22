@@ -75,14 +75,16 @@ public class ExecutorServiceImpl extends Component
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.WRITE);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
+            }
 
             executableManager.delete(executable);
 
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
-            ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(
+            ControllerFaultSet.throwEntityNotDeletableReferencedFault(
                     cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
         }
         catch (FaultException exception) {
@@ -140,10 +142,12 @@ public class ExecutorServiceImpl extends Component
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
         try {
-            cz.cesnet.shongo.controller.executor.Executable executable = executableManager
-                    .get(entityId.getPersistenceId());
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.READ);
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+            }
 
             Executable executableApi = executable.toApi();
             cz.cesnet.shongo.controller.reservation.Reservation reservation =

@@ -1,11 +1,10 @@
-package cz.cesnet.shongo;
+package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
-import cz.cesnet.shongo.fault.FaultSet;
 
-public class CommonFaultSet extends FaultSet
+public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
 {
     public static final int UNKNOWN_ERROR_FAULT = 0;
     public static final int TYPE_ILLEGAL_VALUE_FAULT = 1;
@@ -22,6 +21,7 @@ public class CommonFaultSet extends FaultSet
     public static final int ENTITY_INVALID_FAULT = 12;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_FAULT = 13;
     public static final int SECURITY_ERROR_FAULT = 14;
+    public static final int SECURITY_NOT_AUTHORIZED_FAULT = 15;
 
     /**
      * Unknown error: {@link #description}
@@ -50,7 +50,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Unknown error: {description}";
-            message = message.replace("{description}", description != null ? description : "");
+            message = message.replace("{description}", (description == null ? "" : description));
             return message;
         }
 
@@ -118,8 +118,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Value {value} is illegal for type {type}.";
-            message = message.replace("{type}", type);
-            message = message.replace("{value}", value);
+            message = message.replace("{type}", (type == null ? "" : type));
+            message = message.replace("{value}", (value == null ? "" : value));
             return message;
         }
 
@@ -177,7 +177,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Class {class} is not defined.";
-            message = message.replace("{class}", className);
+            message = message.replace("{class}", (className == null ? "" : className));
             return message;
         }
 
@@ -234,7 +234,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Class {class} cannot be instanced.";
-            message = message.replace("{class}", className);
+            message = message.replace("{class}", (className == null ? "" : className));
             return message;
         }
 
@@ -302,8 +302,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Attribute {attribute} is not defined in class {class}.";
-            message = message.replace("{class}", className);
-            message = message.replace("{attribute}", attribute);
+            message = message.replace("{class}", (className == null ? "" : className));
+            message = message.replace("{attribute}", (attribute == null ? "" : attribute));
             return message;
         }
 
@@ -394,10 +394,10 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Type mismatch of value in attribute {attribute} in class {class}. Present type {given-type} doesn't match required type {required-type}.";
-            message = message.replace("{class}", className);
-            message = message.replace("{attribute}", attribute);
-            message = message.replace("{required-type}", requiredType);
-            message = message.replace("{present-type}", presentType);
+            message = message.replace("{class}", (className == null ? "" : className));
+            message = message.replace("{attribute}", (attribute == null ? "" : attribute));
+            message = message.replace("{required-type}", (requiredType == null ? "" : requiredType));
+            message = message.replace("{present-type}", (presentType == null ? "" : presentType));
             return message;
         }
 
@@ -468,8 +468,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Attribute {attribute} in class {class} wasn't present but it is required.";
-            message = message.replace("{class}", className);
-            message = message.replace("{attribute}", attribute);
+            message = message.replace("{class}", (className == null ? "" : className));
+            message = message.replace("{attribute}", (attribute == null ? "" : attribute));
             return message;
         }
 
@@ -538,8 +538,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Value for attribute {attribute} in class {class} was present but the attribute is read-only.";
-            message = message.replace("{class}", className);
-            message = message.replace("{attribute}", attribute);
+            message = message.replace("{class}", (className == null ? "" : className));
+            message = message.replace("{attribute}", (attribute == null ? "" : attribute));
             return message;
         }
 
@@ -608,8 +608,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Collection {collection} in class {class} wasn't present or was empty but it is required.";
-            message = message.replace("{class}", className);
-            message = message.replace("{collection}", collection);
+            message = message.replace("{class}", (className == null ? "" : className));
+            message = message.replace("{collection}", (collection == null ? "" : collection));
             return message;
         }
 
@@ -667,7 +667,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Null item cannot be present in collection {collection}.";
-            message = message.replace("{collection}", collection);
+            message = message.replace("{collection}", (collection == null ? "" : collection));
             return message;
         }
 
@@ -746,9 +746,9 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Collection {collection} contains item of type {present-type} which dosn't match the required type {required-type}.";
-            message = message.replace("{collection}", collection);
-            message = message.replace("{required-type}", requiredType);
-            message = message.replace("{present-type}", presentType);
+            message = message.replace("{collection}", (collection == null ? "" : collection));
+            message = message.replace("{required-type}", (requiredType == null ? "" : requiredType));
+            message = message.replace("{present-type}", (presentType == null ? "" : presentType));
             return message;
         }
 
@@ -818,8 +818,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Entity {entity} with identifier {id} was not found.";
-            message = message.replace("{entity}", entity);
-            message = message.replace("{id}", id);
+            message = message.replace("{entity}", (entity == null ? "" : entity));
+            message = message.replace("{id}", (id == null ? "" : id));
             return message;
         }
 
@@ -888,8 +888,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Entity {entity} validation failed: {reason}";
-            message = message.replace("{entity}", entity);
-            message = message.replace("{reason}", reason);
+            message = message.replace("{entity}", (entity == null ? "" : entity));
+            message = message.replace("{reason}", (reason == null ? "" : reason));
             return message;
         }
 
@@ -958,8 +958,8 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Entity {entity} with identifier {id} cannot be deleted because it is still referenced.";
-            message = message.replace("{entity}", entity);
-            message = message.replace("{id}", id);
+            message = message.replace("{entity}", (entity == null ? "" : entity));
+            message = message.replace("{id}", (id == null ? "" : id));
             return message;
         }
 
@@ -1017,7 +1017,7 @@ public class CommonFaultSet extends FaultSet
         public String getMessage()
         {
             String message = "Authentication or authorization has failed: {description}";
-            message = message.replace("{description}", description);
+            message = message.replace("{description}", (description == null ? "" : description));
             return message;
         }
 
@@ -1047,6 +1047,63 @@ public class CommonFaultSet extends FaultSet
         throw securityErrorFault.createException();
     }
 
+    /**
+     * You are not authorized to {@link #action}.
+     */
+    public static class SecurityNotAuthorizedFault implements Fault
+    {
+        private String action;
+
+        public String getAction()
+        {
+            return action;
+        }
+
+        public void setAction(String action)
+        {
+            this.action = action;
+        }
+
+        @Override
+        public int getCode()
+        {
+            return SECURITY_NOT_AUTHORIZED_FAULT;
+        }
+
+        @Override
+        public String getMessage()
+        {
+            String message = "You are not authorized to {action}.";
+            message = message.replace("{action}", (action == null ? "" : action));
+            return message;
+        }
+
+        @Override
+        public FaultException createException()
+        {
+            return new FaultException(this);
+        }
+    }
+
+    /**
+     * @return new instance of {@link SecurityNotAuthorizedFault}
+     */
+    public static SecurityNotAuthorizedFault createSecurityNotAuthorizedFault(String action)
+    {
+        SecurityNotAuthorizedFault securityNotAuthorizedFault = new SecurityNotAuthorizedFault();
+        securityNotAuthorizedFault.setAction(action);
+        return securityNotAuthorizedFault;
+    }
+
+    /**
+     * @return new instance of {@link SecurityNotAuthorizedFault}
+     */
+    public static <T> T throwSecurityNotAuthorizedFault(String action) throws FaultException
+    {
+        SecurityNotAuthorizedFault securityNotAuthorizedFault = createSecurityNotAuthorizedFault(action);
+        throw securityNotAuthorizedFault.createException();
+    }
+
     @Override
     protected void fillFaults()
     {
@@ -1066,5 +1123,6 @@ public class CommonFaultSet extends FaultSet
         addFault(ENTITY_INVALID_FAULT, EntityInvalidFault.class);
         addFault(ENTITY_NOT_DELETABLE_REFERENCED_FAULT, EntityNotDeletableReferencedFault.class);
         addFault(SECURITY_ERROR_FAULT, SecurityErrorFault.class);
+        addFault(SECURITY_NOT_AUTHORIZED_FAULT, SecurityNotAuthorizedFault.class);
     }
 }

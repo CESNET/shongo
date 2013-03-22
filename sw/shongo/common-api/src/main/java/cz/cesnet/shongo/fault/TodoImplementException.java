@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault;
 
-import cz.cesnet.shongo.CommonFaultSet;
-
 /**
  * Exception thrown when some feature isn't implemented yet.
  *
@@ -64,6 +62,6 @@ public class TodoImplementException extends RuntimeException implements FaultThr
     @Override
     public Fault getFault()
     {
-        return CommonFaultSet.createUnknownErrorFault(description);
+        return cz.cesnet.shongo.api.FaultSet.createUnknownErrorFault(description);
     }
 }

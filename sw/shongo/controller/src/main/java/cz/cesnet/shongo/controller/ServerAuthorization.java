@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
@@ -169,7 +168,7 @@ public class ServerAuthorization extends Authorization
             }
             else {
                 JsonNode jsonNode = readJson(response.getEntity());
-                throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+                throw new FaultException(ControllerFaultSet.createSecurityErrorFault(
                         String.format("Retrieving user information by access token failed: %s, %s",
                                 jsonNode.get("error").getTextValue(),
                                 jsonNode.get("error_description").getTextValue())));
@@ -180,7 +179,7 @@ public class ServerAuthorization extends Authorization
         }
         // Handle error
         throw new FaultException(errorException,
-                CommonFaultSet.createSecurityErrorFault("Retrieving user information by access token failed."));
+                ControllerFaultSet.createSecurityErrorFault("Retrieving user information by access token failed."));
     }
 
     @Override
@@ -203,7 +202,7 @@ public class ServerAuthorization extends Authorization
         }
         // Handle error
         throw new FaultException(errorException,
-                CommonFaultSet.createSecurityErrorFault("Retrieving user information by user-id failed."));
+                ControllerFaultSet.createSecurityErrorFault("Retrieving user information by user-id failed."));
     }
 
     @Override
@@ -231,7 +230,7 @@ public class ServerAuthorization extends Authorization
         }
         // Handle error
         throw new FaultException(errorException,
-                CommonFaultSet.createSecurityErrorFault("Retrieving user information failed."));
+                ControllerFaultSet.createSecurityErrorFault("Retrieving user information failed."));
     }
 
     @Override
@@ -475,7 +474,7 @@ public class ServerAuthorization extends Authorization
     private <T> T handleAuthorizationRequestError(HttpResponse httpResponse) throws FaultException
     {
         JsonNode jsonNode = readJson(httpResponse.getEntity());
-        throw new FaultException(CommonFaultSet.createSecurityErrorFault(
+        throw new FaultException(ControllerFaultSet.createSecurityErrorFault(
                 String.format("Authorization request failed: %s, %s",
                         jsonNode.get("title").getTextValue(),
                         jsonNode.get("detail").getTextValue())));
@@ -487,7 +486,7 @@ public class ServerAuthorization extends Authorization
      */
     private <T> T handleAuthorizationRequestError(Exception exception) throws FaultException
     {
-        throw new FaultException(exception, CommonFaultSet.createSecurityErrorFault(
+        throw new FaultException(exception, ControllerFaultSet.createSecurityErrorFault(
                 String.format("Authorization request failed. %s", exception.getMessage())));
     }
 

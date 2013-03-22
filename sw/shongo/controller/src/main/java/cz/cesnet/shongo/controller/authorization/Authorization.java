@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -310,17 +309,21 @@ public abstract class Authorization
      * @param userId     of the user
      * @param entityId   of the entity
      * @param permission which the user must have for the entity
-     * @throws FaultException when the user doesn't have given {@code permission} for the entity
+     * @return true if the user has given {@code permission} for the entity,
+     *         false otherwise
      */
-    public void checkPermission(String userId, EntityIdentifier entityId, Permission permission)
-            throws FaultException
+    public boolean hasPermission(String userId, EntityIdentifier entityId, Permission permission) throws FaultException
     {
-        Set<Permission> permissions = getPermissions(userId, entityId);
-        if (!permissions.contains(permission)) {
-            CommonFaultSet.throwSecurityErrorFault(
-                    String.format("User with id '%s' doesn't have '%s' permission for the '%s'",
-                            userId, permission.getCode(), entityId));
+        if (isAdmin(userId)) {
+            // Administrator has all possible permissions
+            return true;
         }
+        AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
+        if (aclUserState == null) {
+            aclUserState = onFetchAclUserState(userId);
+            cache.putAclUserStateByUserId(userId, aclUserState);
+        }
+        return aclUserState.hasPermission(entityId, permission);
     }
 
     /**
@@ -433,7 +436,7 @@ public abstract class Authorization
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity == null) {
-                ControllerImplFaultSet.throwEntityNotFoundFault(entityId);
+                ControllerFaultSet.throwEntityNotFoundFault(entityId);
             }
             return createAclRecordsWithChildren(userId, entityId, role, entity);
         }
@@ -560,7 +563,7 @@ public abstract class Authorization
             return userInformation.getUserId();
         }
         catch (IllegalStateException exception) {
-            return CommonFaultSet.throwSecurityErrorFault(String.format("Access token '%s' cannot be validated. %s",
+            return ControllerFaultSet.throwSecurityErrorFault(String.format("Access token '%s' cannot be validated. %s",
                     securityToken.getAccessToken(), exception.getMessage()));
         }
     }
@@ -678,7 +681,7 @@ public abstract class Authorization
     {
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
-            CommonFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
+            ControllerFaultSet.throwSecurityErrorFault("Role is not allowed to specified entity");
         }
 
         Collection<AclRecord> aclRecords = getAclRecords(userId, entityId, role);

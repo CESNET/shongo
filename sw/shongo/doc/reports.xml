@@ -448,6 +448,25 @@
             <device-admin visible="false"/>
         </report>
 
+        <report>
+            <id>security-not-authorized</id>
+            <classification severity="error"/>
+            <params>
+                <param name="action" type="string"/>
+            </params>
+            <description>
+                You are not authorized to {action}.
+            </description>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="ui">
+                <description>TODO:</description>
+            </user>
+            <domain-admin visible="false"/>
+            <device-admin visible="false"/>
+        </report>
+
         <report module="controller">
             <id>device-command-failed</id>
             <classification severity="error"/>

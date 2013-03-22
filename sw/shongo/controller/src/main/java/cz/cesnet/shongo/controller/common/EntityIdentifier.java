@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.executor.Executable;
@@ -376,10 +376,10 @@ public class EntityIdentifier
     {
         Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(entityId);
         if (!matcher.matches()) {
-            ControllerFaultSet.throwIdentifierInvalidFault(entityId);
+            FaultSet.throwIdentifierInvalidFault(entityId);
         }
         if (!domain.equals(matcher.group(1))) {
-            ControllerFaultSet.throwIdentifierInvalidDomainFault(entityId, domain);
+            FaultSet.throwIdentifierInvalidDomainFault(entityId, domain);
         }
         EntityType entityType = entityTypeByCode.get(matcher.group(2));
         return new EntityIdentifier(entityType, parsePersistenceId(matcher.group(3)));
@@ -398,7 +398,7 @@ public class EntityIdentifier
         }
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         if (entityIdentifier.entityType != entityType) {
-            ControllerFaultSet.throwIdentifierInvalidTypeFault(entityId, entityType.getCode());
+            FaultSet.throwIdentifierInvalidTypeFault(entityId, entityType.getCode());
         }
         return entityIdentifier;
     }
@@ -417,7 +417,7 @@ public class EntityIdentifier
         EntityIdentifier entityIdentifier = parse(domain, entityId);
         EntityType requiredType = getEntityType(entityClass);
         if (entityIdentifier.entityType != requiredType) {
-            ControllerFaultSet.throwIdentifierInvalidTypeFault(entityId, requiredType.getCode());
+            FaultSet.throwIdentifierInvalidTypeFault(entityId, requiredType.getCode());
         }
         return entityIdentifier.persistenceId;
     }

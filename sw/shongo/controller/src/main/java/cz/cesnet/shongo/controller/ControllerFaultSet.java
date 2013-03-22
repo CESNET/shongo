@@ -1,20 +1,17 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 
 /**
- * Extension of {@link ControllerFaultSet}.
+ * Extension of {@link cz.cesnet.shongo.controller.api.FaultSet}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ControllerImplFaultSet extends ControllerFaultSet
+public class ControllerFaultSet extends cz.cesnet.shongo.controller.api.FaultSet
 {
     /**
-     * @return new instance of {@link CommonFaultSet.EntityNotFoundFault}
+     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotFoundFault}
      */
     public static <T> T throwEntityNotFoundFault(EntityIdentifier entityId) throws FaultException
     {
@@ -22,7 +19,7 @@ public class ControllerImplFaultSet extends ControllerFaultSet
     }
 
     /**
-     * @return new instance of {@link CommonFaultSet.EntityNotFoundFault}
+     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotFoundFault}
      */
     public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId) throws FaultException
     {
@@ -32,12 +29,23 @@ public class ControllerImplFaultSet extends ControllerFaultSet
     }
 
     /**
-     * @return new instance of {@link CommonFaultSet.EntityNotDeletableReferencedFault}
+     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotDeletableReferencedFault}
      */
     public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId) throws FaultException
     {
         return throwEntityNotDeletableReferencedFault(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
+    }
+
+    /**
+     * @return new instance of {@link SecurityNotAuthorizedFault}
+     */
+    public static <T> T throwSecurityNotAuthorizedFault(String action, Object... objects)
+            throws FaultException
+    {
+        SecurityNotAuthorizedFault securityNotAuthorizedFault =
+                createSecurityNotAuthorizedFault(String.format(action, objects));
+        throw securityNotAuthorizedFault.createException();
     }
 }

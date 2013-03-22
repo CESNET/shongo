@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -64,7 +64,7 @@ public class AliasSetSpecification extends Specification
                 return aliasSpecification;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**

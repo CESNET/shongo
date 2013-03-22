@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault;
 
-import cz.cesnet.shongo.CommonFaultSet;
-
 /**
  * TODO:
  *
@@ -25,18 +23,20 @@ public class FaultException extends Exception implements FaultThrowable
     public FaultException(Throwable throwable)
     {
         super(throwable);
-        this.fault = CommonFaultSet.createUnknownErrorFault(throwable.getMessage());
+        this.fault = cz.cesnet.shongo.api.FaultSet.createUnknownErrorFault(throwable.getMessage());
     }
 
     public FaultException(String message, Object... objects)
     {
-        this.fault = CommonFaultSet.createUnknownErrorFault(FaultSet.formatMessage(message, objects));
+        this.fault = cz.cesnet.shongo.api.FaultSet
+                .createUnknownErrorFault(AbstractFaultSet.formatMessage(message, objects));
     }
 
     public FaultException(Throwable throwable, String message, Object... objects)
     {
         super(throwable);
-        this.fault = CommonFaultSet.createUnknownErrorFault(FaultSet.formatMessage(message, objects));
+        this.fault = cz.cesnet.shongo.api.FaultSet
+                .createUnknownErrorFault(AbstractFaultSet.formatMessage(message, objects));
     }
 
     @Override

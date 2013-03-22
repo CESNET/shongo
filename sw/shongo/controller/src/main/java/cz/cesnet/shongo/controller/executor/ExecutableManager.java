@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
@@ -73,7 +73,7 @@ public class ExecutableManager extends AbstractManager
             return executable;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(Executable.class, executableId);
+            return ControllerFaultSet.throwEntityNotFoundFault(Executable.class, executableId);
         }
     }
 

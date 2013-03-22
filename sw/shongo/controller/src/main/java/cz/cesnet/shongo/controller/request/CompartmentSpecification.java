@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -113,7 +113,7 @@ public class CompartmentSpecification extends Specification
                 return specification;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(ParticipantSpecification.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(ParticipantSpecification.class, id);
     }
 
     /**

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -152,7 +152,7 @@ public class ReservationManager extends AbstractManager
             return reservation;
         }
         catch (NoResultException exception) {
-            return ControllerImplFaultSet.throwEntityNotFoundFault(Reservation.class, reservationId);
+            return ControllerFaultSet.throwEntityNotFoundFault(Reservation.class, reservationId);
         }
     }
 

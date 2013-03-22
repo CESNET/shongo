@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -111,7 +111,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 return roomSetting;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(RoomSetting.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(RoomSetting.class, id);
     }
 
     /**
@@ -164,7 +164,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 return aliasSpecification;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**

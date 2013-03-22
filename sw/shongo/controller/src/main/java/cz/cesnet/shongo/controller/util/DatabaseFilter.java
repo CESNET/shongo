@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.util;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Query;
@@ -165,7 +165,7 @@ public class DatabaseFilter
                         classes.add(specificationType);
                     }
                     catch (ClassNotFoundException exception) {
-                        CommonFaultSet.throwClassUndefinedFault(className);
+                        ControllerFaultSet.throwClassUndefinedFault(className);
                     }
                 }
                 return classes;

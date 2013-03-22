@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -206,7 +205,8 @@ public class ReservationServiceImpl extends Component
         }
 
         if (!modifiable) {
-            ControllerFaultSet.throwReservationRequestNotModifiableFault(EntityIdentifier.formatId(reservationRequest));
+            ControllerFaultSet.throwReservationRequestNotModifiableFault(
+                    EntityIdentifier.formatId(reservationRequest));
         }
     }
 
@@ -228,7 +228,9 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.WRITE);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
+            }
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
             reservationRequest.fromApi(reservationRequestApi, entityManager);
@@ -277,7 +279,9 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.WRITE);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
+            }
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
@@ -370,7 +374,9 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.READ);
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
+            }
 
             return reservationRequest.toApi();
         }
@@ -392,7 +398,9 @@ public class ReservationServiceImpl extends Component
             cz.cesnet.shongo.controller.reservation.Reservation reservation =
                     reservationManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.READ);
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read reservation %s", entityId);
+            }
 
             return reservation.toApi();
         }

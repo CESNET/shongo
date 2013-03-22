@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
@@ -43,7 +43,7 @@ public class TerminalCapability extends DeviceCapability
                 return alias;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Alias.class, aliasId);
+        return ControllerFaultSet.throwEntityNotFoundFault(Alias.class, aliasId);
     }
 
     /**

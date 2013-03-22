@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.rpc.AtomicType;
 import cz.cesnet.shongo.fault.FaultException;
@@ -281,7 +281,7 @@ public class Converter
                     targetType = getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    CommonFaultSet.throwClassUndefinedFault(className);
+                    FaultSet.throwClassUndefinedFault(className);
                 }
                 if (!declaredType.isAssignableFrom(targetType)) {
                     throw new FaultException("Cannot convert map to object of class '%s'"
@@ -296,7 +296,7 @@ public class Converter
                 object = targetType.newInstance();
             }
             catch (Exception exception) {
-                CommonFaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
+                FaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
             }
 
             ChangesTracking changesTrackingObject =
@@ -323,7 +323,7 @@ public class Converter
 
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
                 if (property.isReadOnly() && !options.isLoadReadOnly()) {
-                    CommonFaultSet.throwClassAttributeReadonlyFault(object.getClass().getSimpleName(), propertyName);
+                    FaultSet.throwClassAttributeReadonlyFault(object.getClass().getSimpleName(), propertyName);
                 }
 
                 // Set changes for items
@@ -364,7 +364,7 @@ public class Converter
                         else {
                             givenType = givenType.getClass().getSimpleName();
                         }
-                        CommonFaultSet.throwClassAttributeTypeMismatchFault(
+                        FaultSet.throwClassAttributeTypeMismatchFault(
                                 object.getClass().getSimpleName(), propertyName,
                                 requiredType.getClass().getSimpleName(), givenType.toString());
                     }
@@ -645,7 +645,7 @@ public class Converter
                 for (Object item : collectionValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
+                        FaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     collection.add(item);
                 }
@@ -681,7 +681,7 @@ public class Converter
                     return ClassHelper.getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    CommonFaultSet.throwClassUndefinedFault(className);
+                    FaultSet.throwClassUndefinedFault(className);
                 }
             }
             // If boolean is required
@@ -703,7 +703,7 @@ public class Converter
                     atomicType = (AtomicType) targetType.newInstance();
                 }
                 catch (Exception exception) {
-                    CommonFaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
+                    FaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
                 }
                 atomicType.fromString((String) value);
                 return atomicType;
@@ -745,7 +745,7 @@ public class Converter
                 for (int index = 0; index < arrayValue.length; index++) {
                     Object item = convert(arrayValue[index], componentType, targetAllowedTypes, null, options);
                     if (item == null) {
-                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
+                        FaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     newArray[index] = item;
                 }
@@ -759,7 +759,7 @@ public class Converter
                 for (Object item : arrayValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        CommonFaultSet.throwCollectionItemNullFault(property.getName());
+                        FaultSet.throwCollectionItemNullFault(property.getName());
                     }
                     collection.add(item);
                 }
@@ -828,7 +828,7 @@ public class Converter
             }
             catch (IllegalArgumentException exception) {
                 throw new FaultRuntimeException(exception,
-                        CommonFaultSet.createTypeIllegalValueFault(getClassShortName(enumClass), value));
+                        FaultSet.createTypeIllegalValueFault(getClassShortName(enumClass), value));
             }
         }
 
@@ -845,12 +845,12 @@ public class Converter
             }
             catch (Exception exception) {
                 throw new FaultRuntimeException(exception,
-                        CommonFaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
+                        FaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
             }
             final long millis = dateTime.getMillis();
             if (millis < DATETIME_INFINITY_START_MILLIS || millis > DATETIME_INFINITY_END_MILLIS) {
                 throw new FaultRuntimeException(
-                        CommonFaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
+                        FaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
             }
             return dateTime;
         }
@@ -880,7 +880,7 @@ public class Converter
                 return partial;
             }
             throw new FaultRuntimeException(
-                    CommonFaultSet.createTypeIllegalValueFault("PartialDateTime", value));
+                    FaultSet.createTypeIllegalValueFault("PartialDateTime", value));
         }
 
         /**
@@ -896,7 +896,7 @@ public class Converter
             }
             catch (Exception exception) {
                 throw new FaultRuntimeException(exception,
-                        CommonFaultSet.createTypeIllegalValueFault(Period.class.getSimpleName(), value));
+                        FaultSet.createTypeIllegalValueFault(Period.class.getSimpleName(), value));
             }
         }
 
@@ -939,11 +939,11 @@ public class Converter
                 }
                 catch (IllegalArgumentException exception) {
                     throw new FaultRuntimeException(exception,
-                            CommonFaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
+                            FaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
                 }
             }
             throw new FaultRuntimeException(
-                    CommonFaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
+                    FaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
         }
 
         /**

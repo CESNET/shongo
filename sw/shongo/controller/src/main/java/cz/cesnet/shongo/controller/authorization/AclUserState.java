@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -142,6 +141,17 @@ public class AclUserState
             return Collections.unmodifiableSet(entityState.permissions);
         }
         return null;
+    }
+
+    /**
+     * @param entityId for which the {@link Permission}s should be returned
+     * @return true if the user has given {@code permission} for the entity,
+     *         false otherwise
+     */
+    public synchronized boolean hasPermission(EntityIdentifier entityId, Permission permission)
+    {
+        EntityState entityState = entityStateByEntityId.get(entityId);
+        return entityState != null && entityState.permissions.contains(permission);
     }
 
     /**

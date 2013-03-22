@@ -333,7 +333,8 @@ public class ResourceControlServiceImpl extends Component
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
             return sendLocalCommand.getResult();
         }
-        return ControllerImplFaultSet.throwDeviceCommandFailedFault(deviceResourceId, action.toString(), sendLocalCommand.getFailure());
+        return ControllerFaultSet.throwDeviceCommandFailedFault(
+                deviceResourceId, action.toString(), sendLocalCommand.getFailure());
     }
 
     /**
@@ -348,7 +349,9 @@ public class ResourceControlServiceImpl extends Component
         EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             String agentName = getAgentName(entityId);
 
-        authorization.checkPermission(userId, entityId, Permission.CONTROL_RESOURCE);
+        if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
+            ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", entityId);
+        }
 
         return agentName;
     }

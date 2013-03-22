@@ -1,18 +1,17 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
-import cz.cesnet.shongo.CommonFaultSet;
 
-public class ControllerFaultSet extends CommonFaultSet
+public class FaultSet extends cz.cesnet.shongo.api.FaultSet
 {
-    public static final int DEVICE_COMMAND_FAILED_FAULT = 15;
-    public static final int IDENTIFIER_INVALID_FAULT = 16;
-    public static final int IDENTIFIER_INVALID_DOMAIN_FAULT = 17;
-    public static final int IDENTIFIER_INVALID_TYPE_FAULT = 18;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_FAULT = 19;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_FAULT = 20;
+    public static final int DEVICE_COMMAND_FAILED_FAULT = 16;
+    public static final int IDENTIFIER_INVALID_FAULT = 17;
+    public static final int IDENTIFIER_INVALID_DOMAIN_FAULT = 18;
+    public static final int IDENTIFIER_INVALID_TYPE_FAULT = 19;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_FAULT = 20;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_FAULT = 21;
 
     /**
      * Command {@link #command} for device {device} failed: {error}
@@ -63,9 +62,9 @@ public class ControllerFaultSet extends CommonFaultSet
         public String getMessage()
         {
             String message = "Command {command} for device {device} failed: {error}";
-            message = message.replace("{device}", device);
-            message = message.replace("{command}", command);
-            message = message.replace("{error}", error.toString());
+            message = message.replace("{device}", (device == null ? "" : device));
+            message = message.replace("{command}", (command == null ? "" : command));
+            message = message.replace("{error}", (error == null ? "" : error.toString()));
             return message;
         }
 
@@ -124,7 +123,7 @@ public class ControllerFaultSet extends CommonFaultSet
         public String getMessage()
         {
             String message = "Identifier {id} is invalid.";
-            message = message.replace("{id}", id);
+            message = message.replace("{id}", (id == null ? "" : id));
             return message;
         }
 
@@ -192,8 +191,8 @@ public class ControllerFaultSet extends CommonFaultSet
         public String getMessage()
         {
             String message = "Identifier {id} doesn't belong to domain {required-domain}.";
-            message = message.replace("{id}", id);
-            message = message.replace("{required-domain}", requiredDomain);
+            message = message.replace("{id}", (id == null ? "" : id));
+            message = message.replace("{required-domain}", (requiredDomain == null ? "" : requiredDomain));
             return message;
         }
 
@@ -262,8 +261,8 @@ public class ControllerFaultSet extends CommonFaultSet
         public String getMessage()
         {
             String message = "Identifier {id} isn't of required type {required-type}.";
-            message = message.replace("{id}", id);
-            message = message.replace("{required-type}", requiredType);
+            message = message.replace("{id}", (id == null ? "" : id));
+            message = message.replace("{required-type}", (requiredType == null ? "" : requiredType));
             return message;
         }
 
@@ -321,7 +320,7 @@ public class ControllerFaultSet extends CommonFaultSet
         public String getMessage()
         {
             String message = "Reservation request with identifier {id} cannot be modified or deleted.";
-            message = message.replace("{id}", id);
+            message = message.replace("{id}", (id == null ? "" : id));
             return message;
         }
 

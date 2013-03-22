@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
@@ -76,8 +76,8 @@ public class ReservationManagementTest extends AbstractControllerTest
             fail("Reservation request should not exist.");
         }
         catch (FaultException exception) {
-            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
-                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            FaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(FaultSet.EntityNotFoundFault.class);
             assertEquals(id, entityNotFoundFault.getId());
         }
     }
@@ -132,8 +132,8 @@ public class ReservationManagementTest extends AbstractControllerTest
             fail("Reservation request should not exist.");
         }
         catch (FaultException exception) {
-            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
-                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            FaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(FaultSet.EntityNotFoundFault.class);
             assertEquals(id, entityNotFoundFault.getId());
         }
     }
@@ -241,7 +241,7 @@ public class ReservationManagementTest extends AbstractControllerTest
             Assert.fail("Exception of empty duration should has been thrown.");
         }
         catch (FaultException exception) {
-            Assert.assertEquals(ControllerFaultSet.ReservationRequestEmptyDurationFault.class, exception.getFaultClass());
+            Assert.assertEquals(FaultSet.ReservationRequestEmptyDurationFault.class, exception.getFaultClass());
         }
     }
 

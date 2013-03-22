@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
@@ -115,14 +115,14 @@ public class Property
                 return;
             }
             else if (readMethod != null) {
-                CommonFaultSet.throwClassAttributeReadonlyFault(classType.getSimpleName(), name);
+                FaultSet.throwClassAttributeReadonlyFault(classType.getSimpleName(), name);
             }
         }
         catch (FaultException exception) {
             throw exception;
         }
         catch (IllegalArgumentException exception) {
-            CommonFaultSet.throwClassAttributeTypeMismatchFault(classType.getSimpleName(), name,
+            FaultSet.throwClassAttributeTypeMismatchFault(classType.getSimpleName(), name,
                     getType().getSimpleName(), value.getClass().getSimpleName());
         }
         catch (Exception exception) {
@@ -500,7 +500,7 @@ public class Property
     {
         Property property = getProperty(type, name);
         if (property == null) {
-            CommonFaultSet.throwClassAttributeUndefinedFault(type.getSimpleName(), name);
+            FaultSet.throwClassAttributeUndefinedFault(type.getSimpleName(), name);
         }
         return property;
     }

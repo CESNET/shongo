@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.CommonFaultSet;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
 
@@ -120,7 +120,7 @@ public class ClassHelper
             instance = type.newInstance();
         }
         catch (Exception exception) {
-            CommonFaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
+            FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
         }
         return instance;
     }
@@ -137,7 +137,7 @@ public class ClassHelper
             instance = type.newInstance();
         }
         catch (Exception exception) {
-            throw new FaultRuntimeException(CommonFaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
+            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
         }
         return instance;
     }
@@ -154,7 +154,7 @@ public class ClassHelper
             instance = type.getDeclaredConstructor(argumentType).newInstance(argumentValue);
         }
         catch (Exception exception) {
-            throw new FaultRuntimeException(CommonFaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
+            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
         }
         return instance;
     }
@@ -187,6 +187,6 @@ public class ClassHelper
         else if (Collection.class.equals(type)) {
             return new ArrayList<Object>(size);
         }
-        return CommonFaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
+        return FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
     }
 }

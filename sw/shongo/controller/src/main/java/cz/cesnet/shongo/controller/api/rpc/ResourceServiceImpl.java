@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -161,7 +160,9 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.WRITE);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
+            }
 
             // Synchronize from API
             resource.fromApi(resourceApi, entityManager);
@@ -207,7 +208,9 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.WRITE);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
+            }
 
             aclRecordsToDelete = authorization.getAclRecordsForDeletion(resource, true);
 
@@ -230,7 +233,7 @@ public class ResourceServiceImpl extends Component
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    ControllerImplFaultSet.throwEntityNotDeletableReferencedFault(Resource.class, entityId.getPersistenceId());
+                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(Resource.class, entityId.getPersistenceId());
                     return;
                 }
             }
@@ -306,7 +309,9 @@ public class ResourceServiceImpl extends Component
         try {
             cz.cesnet.shongo.controller.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.READ);
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read resource %s", entityId);
+            }
 
             return resource.toApi(entityManager);
         }
@@ -336,7 +341,9 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resourceImpl =
                     resourceManager.get(entityId.getPersistenceId());
 
-            authorization.checkPermission(userId, entityId, Permission.READ);
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
+            }
 
             RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
 

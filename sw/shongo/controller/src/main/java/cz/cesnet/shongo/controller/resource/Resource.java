@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
@@ -149,7 +148,7 @@ public class Resource extends PersistentObject
                 return capability;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Capability.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(Capability.class, id);
     }
 
     /**
@@ -306,7 +305,7 @@ public class Resource extends PersistentObject
                 return person;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Person.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**
@@ -555,7 +554,7 @@ public class Resource extends PersistentObject
             }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
-                    CommonFaultSet.throwEntityInvalidFault(getClass().getSimpleName(),
+                    ControllerFaultSet.throwEntityInvalidFault(getClass().getSimpleName(),
                             "Resource cannot contain multiple '" + capabilityType.getSimpleName() + "'.");
 
                 }

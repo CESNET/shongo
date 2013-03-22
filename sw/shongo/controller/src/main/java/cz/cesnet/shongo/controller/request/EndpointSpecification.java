@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.ControllerImplFaultSet;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
@@ -54,7 +54,7 @@ public abstract class EndpointSpecification extends ParticipantSpecification
                 return person;
             }
         }
-        return ControllerImplFaultSet.throwEntityNotFoundFault(Person.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.CommonFaultSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -324,7 +324,7 @@ public class DeviceResource extends Resource
                     setMode(null);
                 }
                 else {
-                    CommonFaultSet.throwTypeIllegalValueFault("Mode", (String) mode);
+                    ControllerFaultSet.throwTypeIllegalValueFault("Mode", (String) mode);
                 }
             }
             else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
@@ -340,7 +340,7 @@ public class DeviceResource extends Resource
                         ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
             }
             else {
-                CommonFaultSet.throwClassAttributeTypeMismatchFault(DeviceResource.class.getSimpleName(),
+                ControllerFaultSet.throwClassAttributeTypeMismatchFault(DeviceResource.class.getSimpleName(),
                         cz.cesnet.shongo.controller.api.DeviceResource.MODE,
                         cz.cesnet.shongo.controller.api.ManagedMode.class.getSimpleName() + "|String",
                         mode.getClass().getSimpleName());

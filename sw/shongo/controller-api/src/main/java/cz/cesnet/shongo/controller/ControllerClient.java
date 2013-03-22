@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.rpc.RpcClient;
+import cz.cesnet.shongo.controller.api.FaultSet;
 
 /**
  * Client for a domain controller from Shongo.
@@ -14,7 +15,7 @@ public class ControllerClient extends RpcClient
      */
     public ControllerClient()
     {
-        setFaultSet(new ControllerFaultSet());
+        setFaultSet(new FaultSet());
     }
 
     /**
@@ -27,6 +28,6 @@ public class ControllerClient extends RpcClient
     public ControllerClient(String host, int port) throws Exception
     {
         super(host, port);
-        setFaultSet(new ControllerFaultSet());
+        setFaultSet(new FaultSet());
     }
 }

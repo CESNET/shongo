@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -276,7 +276,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected static void validateSlotDuration(Period duration) throws FaultException
     {
         if (duration.equals(new Period())) {
-            ControllerFaultSet.throwReservationRequestEmptyDurationFault();
+            FaultSet.throwReservationRequestEmptyDurationFault();
         }
     }
 

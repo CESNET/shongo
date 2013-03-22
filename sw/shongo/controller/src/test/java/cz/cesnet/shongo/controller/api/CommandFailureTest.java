@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
@@ -14,9 +13,6 @@ import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.jade.CommandError;
-import cz.cesnet.shongo.fault.jade.CommandNotSupported;
-import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
@@ -73,8 +69,8 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandNotSupported.class, deviceCommandFailedFault.getError().getClass());
         }
@@ -84,8 +80,8 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandError.class, deviceCommandFailedFault.getError().getClass());
         }
@@ -95,8 +91,8 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (FaultException exception) {
-            ControllerFaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(ControllerFaultSet.DeviceCommandFailedFault.class);
+            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
+                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandUnknownFailure.class, deviceCommandFailedFault.getError().getClass());
         }
