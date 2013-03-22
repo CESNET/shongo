@@ -312,7 +312,11 @@ public class ServerAuthorization extends Authorization
                 return createAclRecordFromData(acl);
             }
             else {
-                return handleAuthorizationRequestError(response);
+                JsonNode jsonNode = readJson(response.getEntity());
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    ControllerFaultSet.throwEntityNotFoundFault(AclRecord.class.getSimpleName(), aclRecordId);
+                }
+                return handleAuthorizationRequestError(jsonNode);
             }
         }
         catch (FaultException exception) {
@@ -472,6 +476,15 @@ public class ServerAuthorization extends Authorization
     private <T> T handleAuthorizationRequestError(HttpResponse httpResponse)
     {
         JsonNode jsonNode = readJson(httpResponse.getEntity());
+        return handleAuthorizationRequestError(jsonNode);
+    }
+
+    /**
+     * @param jsonNode to be handled as {@link FaultException}
+     * @throws FaultException is always thrown
+     */
+    private <T> T handleAuthorizationRequestError(JsonNode jsonNode)
+    {
         throw new IllegalStateException(String.format("Authorization request failed: %s, %s",
                 jsonNode.get("title").getTextValue(),
                 jsonNode.get("detail").getTextValue()));
