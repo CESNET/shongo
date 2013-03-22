@@ -3,7 +3,6 @@
 <table class="table table-striped table-hover">
     <thead>
     <tr>
-        <th>Identifier</th>
         <th>Description</th>
         <th>Starting date/time</th>
         <th>Duration</th>
@@ -14,12 +13,11 @@
     <tbody>
     [%- FOREACH aliasUsageRequest IN childRequest.aliasUsageRequests %]
     <tr>
-        <td><a href="[% location%]/detail?id=[% aliasUsageRequest.id %]">[% aliasUsageRequest.id %]</a></td>
-        <td>[% aliasUsageRequest.description %]</td>
+        <td><a href="[% location%]/detail?id=[% aliasUsageRequest.id %]">[% aliasUsageRequest.description %]</a></td>
         <td>[% util.datetime_format(aliasUsageRequest.start) %]</td>
         <td>[% util.period_format(aliasUsageRequest.duration) %]</td>
         <td style="text-align: right;">[% aliasUsageRequest.type.participantCount %]</td>
-        <td><a href="[% location %]/detail?id=[% aliasUsageRequest.id %]" class="state-[% aliasUsageRequest.stateCode %]">[% aliasUsageRequest.state %]</a></td>
+        <td><a href="[% location %]/detail?id=[% aliasUsageRequest.id %]" class="state-[% aliasUsageRequest.stateCode %]">[% aliasUsageRequest.state %]<div class="info-icon"></div></a></td>
     </tr>
     [%- END %]
     [%- IF !childRequest.aliasUsageRequests.size %]

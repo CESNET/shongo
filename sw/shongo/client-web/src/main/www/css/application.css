@@ -32,6 +32,18 @@ p { font-size: 16px;}
     margin-left: 150px;
 }
 
+/** Info icon */
+.info-icon {
+    margin-top: -3px;
+    vertical-align:middle;
+    display: inline-block;
+    background-image: url(../img/info.gif);
+    background-repeat: no-repeat;
+    background-position: right;
+    width: 20px;
+    height: 16px;
+}
+
 /** Navigation pull right margin */
 .navbar .pull-right {
     margin-right: 10px;

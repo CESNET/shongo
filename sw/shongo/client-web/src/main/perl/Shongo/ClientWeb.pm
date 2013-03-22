@@ -104,8 +104,8 @@ sub new
     # Load resources
     my $resources = {};
     open my $in, $directory . "/../resources/text.properties" or die $!;
-    while(<$in>) {
-        while ( m/(\S+)=(.+)/g ) {
+    while(my $line = <$in>) {
+        if ( $line =~ m/(.+)=(.+)/g ) {
             my @name_parts = split('\.', $1);
             my $name_parts_count = scalar(@name_parts) - 1;
             my $index = 0;
