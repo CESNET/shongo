@@ -153,6 +153,10 @@ sub load_configuration
 {
     my ($self, $configuration) = @_;
 
+    # Set configuration
+    $self->{'configuration'} = $configuration;
+    $self->{'template-parameters'}->{'configuration'} = $configuration;
+
     # Connect to controller
     my $controller_url = $configuration->{'controller'};
     if ( !defined($controller_url) ) {
@@ -165,6 +169,8 @@ sub load_configuration
         $controller_url .= ':8181';
     }
     $self->{'client'}->connect($controller_url);
+
+    # Init authorization
     $self->{'authorization'}->load_configuration($configuration);
 }
 
@@ -348,7 +354,7 @@ sub fault_action
         $message = "You are not authorized to <strong>$action</strong>.";
         $message .= '<p>If you think that you should be authorized to specified action try to <a href="">refresh</a> page. ';
         $message .= 'Sometimes it takes a few seconds before the scheduler creates the user roles in authorization server. ';
-        $message .= 'If it doesn\'t help contact the <a href="mailto: shongo-dev@cesnet.cz">developers</a>.</p>';
+        $message .= 'If it doesn\'t help contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
 
     }
     elsif ( $code == 21 ) {
