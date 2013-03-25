@@ -1,13 +1,8 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import org.joda.time.Period;
 
 import javax.persistence.*;
 
@@ -90,7 +85,7 @@ public class ValueReservation extends Reservation
         cz.cesnet.shongo.controller.api.ValueReservation valueReservationApi =
                 (cz.cesnet.shongo.controller.api.ValueReservation) api;
         Resource valueProviderResource = valueProvider.getCapabilityResource();
-        valueReservationApi.setResourceId(IdentifierFormat.formatGlobalId(valueProviderResource));
+        valueReservationApi.setResourceId(EntityIdentifier.formatId(valueProviderResource));
         valueReservationApi.setResourceName(valueProviderResource.getName());
         valueReservationApi.setValue(getValue());
         super.toApi(api);

@@ -3,17 +3,13 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.FilterType;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
 import java.util.HashSet;
 
 /**
@@ -67,9 +63,10 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, resourceId);
             Assert.fail("Resource should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            Assert.assertEquals(Resource.class, exception.getEntityType());
-            Assert.assertEquals(resourceId, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            Assert.assertEquals(resourceId, entityNotFoundFault.getId());
         }
     }
 
@@ -117,9 +114,10 @@ public class ResourceManagementTest extends AbstractControllerTest
             getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
             Assert.fail("Device resource should not exist.");
         }
-        catch (EntityNotFoundException exception) {
-            Assert.assertEquals(Resource.class, exception.getEntityType());
-            Assert.assertEquals(deviceResourceId, exception.getEntityId());
+        catch (FaultException exception) {
+            ControllerFaultSet.EntityNotFoundFault entityNotFoundFault =
+                    exception.getFault(ControllerFaultSet.EntityNotFoundFault.class);
+            Assert.assertEquals(deviceResourceId, entityNotFoundFault.getId());
         }
     }
 
@@ -252,24 +250,14 @@ public class ResourceManagementTest extends AbstractControllerTest
     @Test
     public void testOwner() throws Exception
     {
-        String ownerUserId = "owner-id";
-
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
         resource.setMaximumFuture("P1M");
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
-        EntityManager entityManager = getEntityManager();
-        entityManager.getTransaction().begin();
-        entityManager.createQuery(
-                "UPDATE Resource resource SET resource.userId = :userId WHERE resource.id = :resourceId")
-                .setParameter("userId", ownerUserId)
-                .setParameter("resourceId", IdentifierFormat.parseLocalId(
-                        cz.cesnet.shongo.controller.resource.Resource.class, resourceId))
-                .executeUpdate();
-        entityManager.getTransaction().commit();
-        entityManager.close();
+        String rootUserId = getUserId(SECURITY_TOKEN_ROOT);
+        getAuthorizationService().setEntityUser(SECURITY_TOKEN_ROOT, resourceId, rootUserId);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-01-01T12:00", "P1Y");
@@ -285,30 +273,11 @@ public class ResourceManagementTest extends AbstractControllerTest
         final String secondReservationRequestId = allocate(secondReservationRequest);
         checkAllocationFailed(secondReservationRequestId);
 
-        entityManager = getEntityManager();
-        entityManager.getTransaction().begin();
-        entityManager.createQuery(
-                "UPDATE ReservationRequest request SET request.userId = :userId WHERE request.id = :requestId")
-                .setParameter("userId", ownerUserId)
-                .setParameter("requestId", IdentifierFormat.parseLocalId(
-                        cz.cesnet.shongo.controller.request.ReservationRequest.class, firstReservationRequestId))
-                .executeUpdate();
-        entityManager.getTransaction().commit();
-        entityManager.close();
+        String userId = getUserId(SECURITY_TOKEN);
+        getAuthorizationService().setEntityUser(SECURITY_TOKEN_ROOT, resourceId, userId);
 
         reallocate(firstReservationRequestId);
         checkAllocated(firstReservationRequestId);
-
-        entityManager = getEntityManager();
-        entityManager.getTransaction().begin();
-        entityManager.createQuery(
-                "UPDATE ReservationRequest request SET request.userId = :userId WHERE request.id = :requestId")
-                .setParameter("userId", ownerUserId)
-                .setParameter("requestId", IdentifierFormat.parseLocalId(
-                        cz.cesnet.shongo.controller.request.ReservationRequest.class, secondReservationRequestId))
-                .executeUpdate();
-        entityManager.getTransaction().commit();
-        entityManager.close();
 
         reallocate(secondReservationRequestId);
         checkAllocated(secondReservationRequestId);

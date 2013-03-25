@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
-
 /**
  * Represents a {@link CommandFailure} which happens when a requester sends a command which is not implemented by
  * target agent.
@@ -10,12 +8,6 @@ import cz.cesnet.shongo.fault.CommonFault;
  */
 public class CommandNotSupported extends CommandFailure
 {
-    @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_NOT_SUPPORTED;
-    }
-
     @Override
     public String getMessage()
     {

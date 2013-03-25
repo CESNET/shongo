@@ -101,7 +101,6 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
-        compartment.setUserId(getContext().getUserId());
         compartment.setSlot(getInterval());
     }
 
@@ -166,7 +165,6 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        endpoint.setUserId(getContext().getUserId());
         endpoint.setSlot(getContext().getInterval());
         compartment.addChildExecutable(endpoint);
 
@@ -344,7 +342,6 @@ public class CompartmentReservationTask extends ReservationTask
                 connection.setAlias(alias.clone());
             }
 
-            connection.setUserId(getContext().getUserId());
             connection.setSlot(getContext().getInterval());
             connection.setEndpointFrom(endpointFrom);
             connection.setEndpointTo(endpointTo);

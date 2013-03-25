@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
 import jade.lang.acl.ACLMessage;
 
 /**
@@ -11,12 +10,6 @@ import jade.lang.acl.ACLMessage;
  */
 public class CommandRefused extends CommandFailure
 {
-    @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_REFUSED;
-    }
-
     @Override
     public String getMessage()
     {

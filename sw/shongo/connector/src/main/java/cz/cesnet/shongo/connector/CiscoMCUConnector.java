@@ -306,6 +306,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         roomSummary.setId((String) conference.get("conferenceName"));
         roomSummary.setName((String) conference.get("conferenceName"));
         roomSummary.setDescription((String) conference.get("description"));
+        roomSummary.setAlias((String) conference.get("numericId"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         roomSummary.setStartDateTime(new DateTime(conference.get(timeField)));
         return roomSummary;

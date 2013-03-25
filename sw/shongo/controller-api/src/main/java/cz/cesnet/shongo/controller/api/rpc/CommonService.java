@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.Connector;
 import cz.cesnet.shongo.controller.api.Controller;
 import cz.cesnet.shongo.controller.api.Domain;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
 
@@ -25,11 +26,13 @@ public interface CommonService extends Service
      * @return array of all known domains
      */
     @API
-    public Collection<Domain> listDomains(SecurityToken token);
+    public Collection<Domain> listDomains(SecurityToken token)
+            throws FaultException;
 
     /**
      * @return list of connector
      */
     @API
-    public Collection<Connector> listConnectors(SecurityToken token);
+    public Collection<Connector> listConnectors(SecurityToken token)
+            throws FaultException;
 }

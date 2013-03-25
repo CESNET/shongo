@@ -13,15 +13,13 @@
         stateReport.style.display = show ? 'block' : 'none';
     };
     $(function () {
-        $(".tooltip-role-owner").tooltip({
-            title: 'Owners can view the reservation request, delete the request, ' +
-                   'use allocated reservations for new reservation requests ' +
-                   'and manage user roles for the request.'
-        });
-        $(".tooltip-role-reuser").tooltip({
-            title: 'Users can view the reservation request ' +
-                   'and use allocated reservations for new reservation requests.'
-        });
+        $(".state-not-allocated"    ).tooltip({ title: "[% resources.request.state.notAllocated %]" });
+        $(".state-allocated"        ).tooltip({ title: "[% resources.request.state.allocated %]" });
+        $(".state-finished"         ).tooltip({ title: "[% resources.request.state.finished %]" });
+        $(".state-allocation-failed").tooltip({ title: "[% resources.request.state.allocationFailed %]" });
+        $(".state-starting-failed"  ).tooltip({ title: "[% resources.request.state.startingFailed %]" });
+        $(".role-owner"             ).tooltip({ title: "[% resources.security.role.owner %]" });
+        $(".role-reservationUser"   ).tooltip({ title: "[% resources.security.role.reservationUser %]" });
     });
 </script>
 
@@ -70,7 +68,7 @@
         [%- END -%]
         [%- INCLUDE common/text_with_tooltip.html
                 class        = 'state-' _ childRequest.stateCode
-                text         = childRequest.state
+                text         = childRequest.state _ '<div class="info-icon"></div>'
                 tooltipId    = 'state-report-' _ loop.index
                 tooltipClass = 'state-report'
                 tooltipText  = childRequest.stateReport
@@ -118,11 +116,11 @@
     <tr>
         <td>[% userRole.user.firstName%] [% userRole.user.lastName%]</td>
         <td>
-            [% IF userRole.roleId == 'owner' %]
-            <span class="tooltip-role-owner">Owner</span>
+            [% IF userRole.role == 'OWNER' %]
+            <span class="role-owner">Owner<div class="info-icon"></div></span>
             [% END %]
-            [% IF userRole.roleId == 'reuser' %]
-            <span class="tooltip-role-reuser">User</span>
+            [% IF userRole.role == 'RESERVATION_USER' %]
+            <span class="role-reservationUser">User<div class="info-icon"></div></span>
             [% END %]
         </td>
         <td>[% userRole.user.emails.0 %]</td>
@@ -140,7 +138,7 @@
     </tbody>
 </table>
 <div class="pull-right">
-    <a class="btn" href="[% location %]/create-user-role?resource=[% request.id %]">Add User Role</a>
+    <a class="btn" href="[% location %]/create-user-role?entity=[% request.id %]">Add User Role</a>
 </div>&nbsp;
 
 [% IF request.specification.class == 'RoomSpecification' -%]
@@ -154,7 +152,7 @@
 <div class="pull-right">
     <a class="btn btn-primary" href="[% back %]">Back</a>
     [%- IF request.specification.class == 'AliasSpecification' || request.specification.class == 'AliasSetSpecification' -%]
-    [% IF request.reservationId %]
+    [% IF request.reservationId && (request.stateCode == 'allocated' || request.stateCode == 'started') %]
     <a class="btn" href="[% location %]/create?alias=[% request.reservationId %]">Request Room Capacity</a>
     [% ELSE %]
     <span class="btn disabled">Request Room Capacity</span>

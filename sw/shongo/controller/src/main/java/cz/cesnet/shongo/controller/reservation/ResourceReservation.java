@@ -1,13 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import cz.cesnet.shongo.Temporal;
-import org.joda.time.Period;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -66,7 +60,7 @@ public class ResourceReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
-        resourceReservationApi.setResourceId(IdentifierFormat.formatGlobalId(resource));
+        resourceReservationApi.setResourceId(EntityIdentifier.formatId(resource));
         resourceReservationApi.setResourceName(resource.getName());
         super.toApi(api);
     }

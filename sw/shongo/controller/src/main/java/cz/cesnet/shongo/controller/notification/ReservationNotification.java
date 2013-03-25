@@ -1,17 +1,17 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.fault.FaultException;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -27,29 +27,55 @@ public class ReservationNotification extends Notification
     private Type type;
 
     /**
-     * @see Reservation
+     * Parameters.
      */
-    private Reservation reservation;
-
-    /**
-     * @see EntityManager
-     */
-    EntityManager entityManager;
+    List<UserInformation> owners = new LinkedList<UserInformation>();
+    cz.cesnet.shongo.controller.api.Reservation reservation = null;
+    cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
+    List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
+            new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
 
     /**
      * Constructor.
      *
      * @param type
      * @param reservation
-     * @param entityManager
      */
-    public ReservationNotification(Type type, Reservation reservation, EntityManager entityManager)
+    public ReservationNotification(Type type, Reservation reservation)
     {
         this.type = type;
-        this.reservation = reservation;
-        this.entityManager = entityManager;
-        addUserRecipient(reservation.getUserId());
+
+        // Add recipients
+        for (UserInformation userInformation : Authorization.getInstance().getUsersWithRole(reservation, Role.OWNER)) {
+            addUserRecipient(userInformation.getUserId());
+            owners.add(userInformation);
+        }
         addRecipientByReservation(reservation);
+
+        AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
+        try {
+            if (reservationRequest != null) {
+                this.reservationRequest = reservationRequest.toApi();
+            }
+            this.reservation = reservation.toApi();
+
+            if (reservation.getClass().equals(Reservation.class)) {
+                Collection<AliasReservation> childAliasReservations =
+                        reservation.getChildReservations(AliasReservation.class);
+                if (childAliasReservations.size() > 0) {
+                    for (AliasReservation aliasReservation : childAliasReservations) {
+                        aliasReservations.add(aliasReservation.toApi());
+                    }
+                }
+            }
+            else if (reservation instanceof AliasReservation) {
+                AliasReservation aliasReservation = (AliasReservation) reservation;
+                aliasReservations.add(aliasReservation.toApi());
+            }
+        }
+        catch (FaultException exception) {
+            logger.error("Failed to create reservation notification.", exception);
+        }
     }
 
     /**
@@ -85,51 +111,19 @@ public class ReservationNotification extends Notification
     @Override
     public String getName()
     {
-        return type.getName() + " reservation " + IdentifierFormat.formatGlobalId(reservation);
+        return type.getName() + " reservation " + reservation.getId();
     }
 
     @Override
     public String getContent()
     {
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-
-        AbstractReservationRequest reservationRequest =
-                reservationRequestManager.getByReservation(reservation.getId());
-        String content = null;
-        try {
-            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi = null;
-            if (reservationRequest != null) {
-                reservationRequestApi = reservationRequest.toApi();
-            }
-
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("type", type);
-            parameters.put("reservationRequest", reservationRequestApi);
-            parameters.put("reservation", reservation.toApi());
-
-            List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
-                    new ArrayList<cz.cesnet.shongo.controller.api.AliasReservation>();
-            if (reservation.getClass().equals(Reservation.class)) {
-                Collection<AliasReservation> childAliasReservations =
-                        reservation.getChildReservations(AliasReservation.class);
-                if (childAliasReservations.size() > 0) {
-                    for (AliasReservation aliasReservation : childAliasReservations) {
-                        aliasReservations.add(aliasReservation.toApi());
-                    }
-                }
-            }
-            else if (reservation instanceof AliasReservation) {
-                AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasReservations.add(aliasReservation.toApi());
-            }
-            parameters.put("aliasReservations", aliasReservations);
-
-            content = renderTemplate("reservation-mail.ftl", parameters);
-        }
-        catch (FaultException exception) {
-            logger.error("Failed to notify about new reservations.", exception);
-        }
-        return content;
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        parameters.put("type", type);
+        parameters.put("owners", owners);
+        parameters.put("reservation", reservation);
+        parameters.put("reservationRequest", reservationRequest);
+        parameters.put("aliasReservations", aliasReservations);
+        return renderTemplate("reservation-mail.ftl", parameters);
     }
 
     /**

@@ -105,7 +105,7 @@ public class ExternalEndpoint extends Endpoint
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getDescription()
     {
         return String.format("external endpoint(%s)", Technology.formatTechnologies(technologies));
     }

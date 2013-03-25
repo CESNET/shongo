@@ -87,12 +87,12 @@ public class ExecutorThread extends Thread
     public static enum Type
     {
         /**
-         * Call {@link Executable#start(cz.cesnet.shongo.controller.Executor, javax.persistence.EntityManager)}.
+         * Call {@link Executable#start}.
          */
         START,
 
         /**
-         * Call {@link Executable#stop(cz.cesnet.shongo.controller.Executor, javax.persistence.EntityManager)}.
+         * Call {@link Executable#stop}.
          */
         STOP
     }

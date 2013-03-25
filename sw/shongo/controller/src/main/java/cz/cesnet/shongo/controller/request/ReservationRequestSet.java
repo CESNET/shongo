@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -53,18 +53,17 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.common.DateTimeSlot}
      * @return {@link cz.cesnet.shongo.controller.common.DateTimeSlot} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
+     * @throws FaultException when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
      */
     @Transient
-    private DateTimeSlot getSlotById(Long id) throws PersistentEntityNotFoundException
+    private DateTimeSlot getSlotById(Long id) throws FaultException
     {
         for (DateTimeSlot dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new PersistentEntityNotFoundException(DateTimeSlot.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(DateTimeSlot.class, id);
     }
 
     /**
@@ -160,7 +159,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @return {@link #reservationRequests}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequestSet")
     @Access(AccessType.FIELD)
     @OrderBy("slotStart")
     public List<ReservationRequest> getReservationRequests()
@@ -171,18 +170,17 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link ReservationRequest} doesn't exist
+     * @throws FaultException when the {@link ReservationRequest} doesn't exist
      */
     @Transient
-    private ReservationRequest getReservationRequestById(Long id) throws PersistentEntityNotFoundException
+    private ReservationRequest getReservationRequestById(Long id) throws FaultException
     {
         for (ReservationRequest reservationRequest : reservationRequests) {
             if (reservationRequest.getId().equals(id)) {
                 return reservationRequest;
             }
         }
-        throw new PersistentEntityNotFoundException(ReservationRequest.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, id);
     }
 
     /**
@@ -190,7 +188,11 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void addReservationRequest(ReservationRequest reservationRequest)
     {
-        reservationRequests.add(reservationRequest);
+        // Manage bidirectional association
+        if (reservationRequests.contains(reservationRequest) == false) {
+            reservationRequests.add(reservationRequest);
+            reservationRequest.setReservationRequestSet(this);
+        }
     }
 
     /**
@@ -198,8 +200,12 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
-        removedClonedSpecification(reservationRequest.getSpecification());
-        reservationRequests.remove(reservationRequest);
+        // Manage bidirectional association
+        if (reservationRequests.contains(reservationRequest)) {
+            removedClonedSpecification(reservationRequest.getSpecification());
+            reservationRequests.remove(reservationRequest);
+            reservationRequest.setReservationRequestSet(null);
+        }
     }
 
     /**

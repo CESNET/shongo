@@ -1,10 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -28,7 +27,7 @@ import java.util.*;
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link AbstractReservationRequest}.
+     * User-id of an user who created the {@link AbstractReservationRequest}.
      */
     private String userId;
 
@@ -67,11 +66,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
      */
     private List<Reservation> providedReservations = new ArrayList<Reservation>();
-
-    /**
-     * List of allocated {@link Reservation}s.
-     */
-    protected List<Reservation> reservations = new ArrayList<Reservation>();
 
     /**
      * @return {@link #userId}
@@ -230,57 +224,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @return {@link #reservations}
-     */
-    @OneToMany(mappedBy = "reservationRequest", targetEntity = Reservation.class)
-    @Access(AccessType.FIELD)
-    public List<Reservation> getReservations()
-    {
-        return Collections.unmodifiableList(reservations);
-    }
-
-    /**
-     * @param id of the {@link Reservation}
-     * @return {@link Reservation} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Reservation} doesn't exist
-     */
-    @Transient
-    protected Reservation getReservationById(Long id) throws PersistentEntityNotFoundException
-    {
-        for (Reservation reservation : reservations) {
-            if (reservation.getId().equals(id)) {
-                return reservation;
-            }
-        }
-        throw new PersistentEntityNotFoundException(Reservation.class, id);
-    }
-
-    /**
-     * @param reservation to be added to the {@link #reservations}
-     */
-    public void addReservation(Reservation reservation)
-    {
-        // Manage bidirectional association
-        if (reservations.contains(reservation) == false) {
-            reservations.add(reservation);
-            reservation.setReservationRequest(this);
-        }
-    }
-
-    /**
-     * @param reservation to be removed from the {@link #reservations}
-     */
-    public void removeReservation(Reservation reservation)
-    {
-        // Manage bidirectional association
-        if (reservations.contains(reservation)) {
-            reservations.remove(reservation);
-            reservation.setReservationRequest(null);
-        }
-    }
-
-    /**
      * Synchronize properties from given {@code abstractReservationRequest}.
      *
      * @param abstractReservationRequest from which will be copied all properties values to
@@ -326,13 +269,14 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
 
     /**
      * Validate given slot {@code duration} if it is longer than 0 seconds.
+     *
      * @param duration to be validated
      * @throws FaultException
      */
     protected static void validateSlotDuration(Period duration) throws FaultException
     {
         if (duration.equals(new Period())) {
-            throw new FaultException(ControllerFault.RESERVATION_REQUEST_EMPTY_DURATION);
+            FaultSet.throwReservationRequestEmptyDurationFault();
         }
     }
 
@@ -384,7 +328,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
             throws FaultException
     {
-        api.setId(IdentifierFormat.formatGlobalId(this));
+        api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setPurpose(getPurpose());
@@ -393,7 +337,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         api.setSpecification(getSpecification().toApi());
         api.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
-            api.addProvidedReservationId(IdentifierFormat.formatGlobalId(providedReservation));
+            api.addProvidedReservationId(EntityIdentifier.formatId(providedReservation));
         }
     }
 
@@ -437,7 +381,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (String providedReservationId : api.getProvidedReservationIds()) {
             if (api.isPropertyItemMarkedAsNew(api.PROVIDED_RESERVATION_IDS, providedReservationId)) {
-                Long id = IdentifierFormat.parseLocalId(
+                Long id = EntityIdentifier.parseId(
                         Reservation.class, providedReservationId);
                 Reservation providedReservation = reservationManager.get(id);
                 addProvidedReservation(providedReservation);
@@ -447,7 +391,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         Set<String> apiDeletedProvidedReservationIds =
                 api.getPropertyItemsMarkedAsDeleted(api.PROVIDED_RESERVATION_IDS);
         for (String providedReservationId : apiDeletedProvidedReservationIds) {
-            Long id = IdentifierFormat.parseLocalId(
+            Long id = EntityIdentifier.parseId(
                     Reservation.class, providedReservationId);
             removeProvidedReservation(id);
         }

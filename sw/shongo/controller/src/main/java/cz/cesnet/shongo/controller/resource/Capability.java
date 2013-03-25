@@ -51,14 +51,24 @@ public abstract class Capability extends PersistentObject
     }
 
     /**
+     * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
+     * @return {@link DateTime} representing a maximum future fot the {@link Resource}
+     */
+    public DateTime getMaximumFutureDateTime(DateTime referenceDateTime)
+    {
+        return resource.getMaximumFutureDateTime(referenceDateTime);
+    }
+
+    /**
      * @param dateTime          date/time which is checked for availability
      * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
      * @return true if the {@link Capability} (or the {@link #resource}) is available at given {@code dateTime},
      *         false otherwise
      */
-    public boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
+    public final boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
     {
-        return resource.isAvailableInFuture(dateTime, referenceDateTime);
+        DateTime maxDateTime = getMaximumFutureDateTime(referenceDateTime);
+        return maxDateTime == null || !dateTime.isAfter(maxDateTime);
     }
 
     /**

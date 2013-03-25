@@ -3,14 +3,17 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
@@ -53,82 +56,96 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * Process given {@code reservation} before deletion (recursive).
+     * Get all reservations recursive and remove the child reservations from it's parents.
+     * <p/>
+     * This operation is required because value reservations should be deleted in the end
+     * and not automatically by cascade.
      *
-     * @param reservation            to be processed
-     * @param additionalReservations collection of {@link Reservation} which should be also deleted in the end
+     * @param reservation  current reservation
+     * @param reservations collection of all {@link Reservation}s with children
      */
-    public void onBeforeDelete(Reservation reservation, Collection<Reservation> additionalReservations)
+    private void getChildReservations(Reservation reservation, Collection<Reservation> reservations)
     {
-        // Remove value reservation at first
-        if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
-            ValueReservation valueReservation = aliasReservation.getValueReservation();
+        reservations.add(reservation);
 
-            // Search child reservation for the value reservation
-            for (Reservation childReservation : reservation.getChildReservations()) {
-                // The value reservation should be deleted in the end (and not automatically by cascade)
-                if (childReservation.equals(valueReservation)) {
-                    valueReservation.setParentReservation(null);
-                    additionalReservations.add(valueReservation);
-                    break;
-                }
-            }
-        }
-        else {
-            // Process all child reservations
-            for (Reservation childReservation : reservation.getChildReservations()) {
-                onBeforeDelete(childReservation, additionalReservations);
-            }
+        List<Reservation> childReservations = reservation.getChildReservations();
+        while (childReservations.size() > 0) {
+            Reservation childReservation = childReservations.get(0);
+            getChildReservations(childReservation, reservations);
+            childReservation.setParentReservation(null);
         }
     }
 
     /**
      * @param reservation to be deleted in the database
+     * @return {@link AclRecord}s which should be deleted
      */
-    public void delete(Reservation reservation, Cache cache)
+    public Collection<AclRecord> delete(Reservation reservation, Authorization authorization, Cache cache)
+            throws FaultException
     {
-        Collection<Reservation> additionalReservations = new ArrayList<Reservation>();
-        onBeforeDelete(reservation, additionalReservations);
+        // Get all reservations and disconnect them from parents
+        Collection<Reservation> reservations = new LinkedList<Reservation>();
+        getChildReservations(reservation, reservations);
 
+        // Get ACL records for deletion
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
+        if (authorization != null) {
+            for (Reservation reservationToDelete : reservations) {
+                aclRecordsToDelete.addAll(authorization.getAclRecords(reservationToDelete));
+            }
+        }
+
+        // Date/time now for stopping executables
+        DateTime dateTimeNow = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+        // Stop all executables
+        stopReservationExecutables(reservation, dateTimeNow);
+
+        // Delete all reservations
+        for (Reservation reservationToDelete : reservations) {
+            // Remove additional reservation from the cache
+            cache.removeReservation(reservationToDelete);
+
+            // Delete additional reservation
+            super.delete(reservationToDelete);
+        }
+        return aclRecordsToDelete;
+    }
+
+    /**
+     * Prepare for stopping all executables from given {@code reservation} and all child reservations.
+     *
+     * @param reservation
+     * @param dateTimeNow
+     */
+    private void stopReservationExecutables(Reservation reservation, DateTime dateTimeNow)
+    {
+        // Process current reservation
         Executable executable = reservation.getExecutable();
         if (executable != null) {
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
             if (executable.getState().equals(Executable.State.STARTED)) {
-                if (executable.getSlotEnd().isAfter(DateTime.now())) {
-                    DateTime newSlotEnd = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+                if (executable.getSlotEnd().isAfter(dateTimeNow)) {
+                    DateTime newSlotEnd = dateTimeNow;
                     if (newSlotEnd.isBefore(executable.getSlotStart())) {
                         newSlotEnd = executable.getSlotStart();
                     }
                     executable.setSlotEnd(newSlotEnd);
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
                     executableManager.update(executable);
                 }
             }
         }
-
-        // Remove the reservation from cache (and also all child reservations)
-        cache.removeReservation(reservation);
-
-        // Delete the reservation
-        super.delete(reservation);
-
-        // Delete also all additional reservations
-        for (Reservation additionalReservation : additionalReservations) {
-            // Remove additional reservation from the cache
-            cache.removeReservation(additionalReservation);
-
-            // Delete additional reservation
-            super.delete(additionalReservation);
+        // Process all child reservations
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            stopReservationExecutables(childReservation, dateTimeNow);
         }
     }
 
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link Reservation} doesn't exist
+     * @throws FaultException when the {@link Reservation} doesn't exist
      */
-    public Reservation get(Long reservationId) throws PersistentEntityNotFoundException
+    public Reservation get(Long reservationId) throws FaultException
     {
         try {
             Reservation reservation = entityManager.createQuery(
@@ -139,7 +156,7 @@ public class ReservationManager extends AbstractManager
             return reservation;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(Reservation.class, reservationId);
+            return ControllerFaultSet.throwEntityNotFoundFault(Reservation.class, reservationId);
         }
     }
 
@@ -172,16 +189,16 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param userId
-     * @param reservationClasses
-     * @param technologies
+     * @param ids                requested identifiers
+     * @param reservationClasses set of reservation classes which are allowed
+     * @param technologies       requested technologies
      * @return list of {@link Reservation}s
      */
-    public List<Reservation> list(String userId, Long reservationRequestId,
+    public List<Reservation> list(Set<Long> ids, Long reservationRequestId,
             Set<Class<? extends Reservation>> reservationClasses, Set<Technology> technologies)
     {
         DatabaseFilter filter = new DatabaseFilter("reservation");
-        filter.addUserId(userId);
+        filter.addIds(ids);
         if (reservationClasses != null && reservationClasses.size() > 0) {
 
             if (reservationClasses.contains(AliasReservation.class)) {
@@ -205,14 +222,10 @@ public class ReservationManager extends AbstractManager
         if (reservationRequestId != null) {
             // List only reservations which are allocated for request with given id
             filter.addFilter("reservation IN ("
-                    + "   SELECT reservation FROM ReservationRequestSet reservationRequestSet"
-                    + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                    + "   LEFT JOIN reservationRequest.reservations reservation"
-                    + "   WHERE reservationRequestSet.id = :reservationRequestId"
-                    + " ) OR reservation IN ("
-                    + "   SELECT reservation FROM AbstractReservationRequest reservationRequest"
-                    + "   LEFT JOIN reservationRequest.reservations reservation"
-                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + "   SELECT reservation FROM Reservation reservation"
+                    + "   LEFT JOIN reservation.reservationRequest reservationRequest"
+                    + "   LEFT JOIN reservationRequest.reservationRequestSet reservationRequestSet"
+                    + "   WHERE reservationRequest.id = :reservationRequestId OR reservationRequestSet.id = :reservationRequestId"
                     + " )");
             filter.addFilterParameter("reservationRequestId", reservationRequestId);
         }

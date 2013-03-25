@@ -79,16 +79,4 @@ public abstract class RoomEndpoint extends Endpoint
      */
     @Transient
     public abstract cz.cesnet.shongo.api.Room getRoomApi();
-
-    /**
-     * Modify this {@link RoomEndpoint}.
-     *
-     * @param roomApi
-     * @param executor          thread which is executing
-     * @return new {@link State}
-     */
-    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
-    {
-        return true;
-    }
 }

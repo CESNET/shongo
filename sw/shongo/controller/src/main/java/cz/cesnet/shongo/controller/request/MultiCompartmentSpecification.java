@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -55,18 +55,17 @@ public class MultiCompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.request.CompartmentSpecification}
      * @return {@link cz.cesnet.shongo.controller.request.CompartmentSpecification} with given {@code id}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
+     * @throws FaultException when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
      */
     @Transient
-    private CompartmentSpecification getSpecificationById(Long id) throws PersistentEntityNotFoundException
+    private CompartmentSpecification getSpecificationById(Long id) throws FaultException
     {
         for (CompartmentSpecification compartmentSpecification : specifications) {
             if (compartmentSpecification.getId().equals(id)) {
                 return compartmentSpecification;
             }
         }
-        throw new PersistentEntityNotFoundException(CompartmentSpecification.class, id);
+        return ControllerFaultSet.throwEntityNotFoundFault(CompartmentSpecification.class, id);
     }
 
     /**

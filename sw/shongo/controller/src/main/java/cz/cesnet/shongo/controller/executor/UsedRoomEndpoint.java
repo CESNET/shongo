@@ -2,14 +2,23 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
+import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -93,36 +102,41 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
     {
-        roomEndpoint.toApi(executableApi);
+        cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
+                (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
+        resourceRoomEndpointApi.setId(EntityIdentifier.formatId(this));
+        resourceRoomEndpointApi.setSlot(getSlot());
+        resourceRoomEndpointApi.setState(getState().toApi());
+        resourceRoomEndpointApi.setStateReport(getReportText());
 
-        if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.ResourceRoom) {
-            RoomConfiguration mergedRoomConfiguration = getMergedRoomConfiguration();
-            cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
-                    (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
-
-            // Set merged license count
-            resourceRoomEndpointApi.setLicenseCount(mergedRoomConfiguration.getLicenseCount());
-
-            // Set merged technologies
-            resourceRoomEndpointApi.clearTechnologies();
-            for (Technology technology : mergedRoomConfiguration.getTechnologies()) {
-                resourceRoomEndpointApi.addTechnology(technology);
-            }
-
-            // Set merged aliases
-            resourceRoomEndpointApi.clearAliases();
-            for (Alias alias : getAliases()) {
-                resourceRoomEndpointApi.addAlias(alias.toApi());
-            }
-
-            // Set merged room settings
-            resourceRoomEndpointApi.clearRoomSettings();
-            for (RoomSetting roomSetting : mergedRoomConfiguration.getRoomSettings()) {
-                resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
-            }
+        if (roomEndpoint instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+            resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(resourceRoomEndpoint.getDeviceResource()));
         }
         else {
-            throw new TodoImplementException(executableApi.getClass().getName());
+            throw new TodoImplementException(roomEndpoint.getClass().getName());
+        }
+
+        RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+
+        // Set merged license count
+        resourceRoomEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());
+
+        // Set merged technologies
+        resourceRoomEndpointApi.clearTechnologies();
+        for (Technology technology : roomConfiguration.getTechnologies()) {
+            resourceRoomEndpointApi.addTechnology(technology);
+        }
+
+        // Set merged aliases
+        for (Alias alias : getAliases()) {
+            resourceRoomEndpointApi.addAlias(alias.toApi());
+        }
+
+        // Set merged room settings
+        resourceRoomEndpointApi.clearRoomSettings();
+        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+            resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
         }
     }
 
@@ -172,9 +186,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getDescription()
     {
-        return roomEndpoint.getReportDescription();
+        return roomEndpoint.getDescription();
     }
 
     @Override
@@ -203,7 +217,8 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         for (Alias alias : getAssignedAliases()) {
             roomApi.addAlias(alias.toApi());
         }
-        for (UserInformation executableOwner : Authorization.Permission.getExecutableOwners(this)) {
+        Authorization authorization = Authorization.getInstance();
+        for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;
@@ -212,7 +227,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStart(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(getRoomApi(), executor)) {
+        if (modifyRoom(getRoomApi(), executor)) {
             return State.STARTED;
         }
         else {
@@ -224,12 +239,57 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor)) {
+        if (modifyRoom(roomEndpoint.getRoomApi(), executor)) {
             return State.STOPPED;
         }
         else {
             executor.getLogger().error("Stopping used room '{}' failed (should always succeed).", getId());
             return State.STOPPING_FAILED;
+        }
+    }
+
+    /**
+     * @param roomApi to be modified
+     * @param executor
+     * @return result
+     */
+    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
+    {
+        if (roomApi.getId() == null) {
+            addReport(new UsedRoomNotExistReport());
+            return false;
+        }
+
+        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
+                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
+
+        DeviceResource deviceResource;
+        if (roomEndpoint instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+            deviceResource = resourceRoomEndpoint.getDeviceResource();
+        }
+        else {
+            throw new TodoImplementException(roomEndpoint.getClass().getName());
+        }
+
+        if (deviceResource.isManaged()) {
+            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
+
+            // TODO: Retrieve current room state and only apply changes
+
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                return true;
+            }
+            else {
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                return false;
+            }
+        }
+        else {
+            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
         }
     }
 }

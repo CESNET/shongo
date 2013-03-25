@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.FaultRuntimeException;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -119,7 +120,7 @@ public class ClassHelper
             instance = type.newInstance();
         }
         catch (Exception exception) {
-            throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type);
+            FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
         }
         return instance;
     }
@@ -127,7 +128,7 @@ public class ClassHelper
     /**
      * @param type for the new instance
      * @return new instance of given {@code type}.
-     * @throws RuntimeException when class cannot be instanced
+     * @throws FaultRuntimeException when class cannot be instanced
      */
     public static <T> T createInstanceFromClassRuntime(Class<T> type)
     {
@@ -136,7 +137,24 @@ public class ClassHelper
             instance = type.newInstance();
         }
         catch (Exception exception) {
-            throw new IllegalStateException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type));
+            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
+        }
+        return instance;
+    }
+
+    /**
+     * @param type for the new instance
+     * @return new instance of given {@code type}.
+     * @throws FaultRuntimeException when class cannot be instanced
+     */
+    public static <T,A> T createInstanceFromClassRuntime(Class<T> type, Class<A> argumentType, A argumentValue)
+    {
+        T instance = null;
+        try {
+            instance = type.getDeclaredConstructor(argumentType).newInstance(argumentValue);
+        }
+        catch (Exception exception) {
+            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
         }
         return instance;
     }
@@ -155,7 +173,7 @@ public class ClassHelper
      * @param type type of {@link Collection}
      * @param size size of {@link Collection}
      * @return new instance of {@link Collection} of given size
-     * @throws cz.cesnet.shongo.fault.FaultException
+     * @throws FaultException
      *
      */
     public static Collection<Object> createCollection(Class type, int size) throws FaultException
@@ -169,6 +187,6 @@ public class ClassHelper
         else if (Collection.class.equals(type)) {
             return new ArrayList<Object>(size);
         }
-        throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type);
+        return FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
     }
 }

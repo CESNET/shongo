@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link Resource}.
@@ -99,11 +100,14 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
+     * @param ids    requested identifiers
+     * @param userId requested userId
      * @return list of all resources in the database
      */
-    public List<Resource> list(String userId)
+    public List<Resource> list(Set<Long> ids, String userId)
     {
         DatabaseFilter filter = new DatabaseFilter("resource");
+        filter.addIds(ids);
         filter.addUserId(userId);
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
                 + " WHERE " + filter.toQueryWhere(),
@@ -116,10 +120,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when resource doesn't exist
+     * @throws FaultException when resource doesn't exist
      */
-    public Resource get(Long resourceId) throws PersistentEntityNotFoundException
+    public Resource get(Long resourceId) throws FaultException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -129,17 +132,16 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(Resource.class, resourceId);
+            return ControllerFaultSet.throwEntityNotFoundFault(Resource.class, resourceId);
         }
     }
 
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when device resource doesn't exist
+     * @throws FaultException when device resource doesn't exist
      */
-    public DeviceResource getDevice(Long deviceResourceId) throws PersistentEntityNotFoundException
+    public DeviceResource getDevice(Long deviceResourceId) throws FaultException
     {
         try {
             DeviceResource deviceResource = entityManager.createQuery(
@@ -149,7 +151,7 @@ public class ResourceManager extends AbstractManager
             return deviceResource;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(DeviceResource.class, deviceResourceId);
+            return ControllerFaultSet.throwEntityNotFoundFault(DeviceResource.class, deviceResourceId);
         }
     }
 

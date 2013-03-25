@@ -52,6 +52,8 @@ public class ResourceReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        validateReservationSlot(ResourceReservation.class);
+
         Context context = getContext();
         Interval interval = context.getInterval();
 
@@ -107,7 +109,6 @@ public class ResourceReservationTask extends ReservationTask
         // Set attributes to resource reservation
         resourceReservation.setSlot(interval);
         resourceReservation.setResource(resource);
-        validateReservationSlot(resourceReservation);
 
         // Add resource as referenced to the cache to prevent from multiple checking of the same parent
         cacheTransaction.addReferencedResource(resource);

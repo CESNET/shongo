@@ -19,12 +19,6 @@ sub new
     return $self;
 }
 
-sub index_action
-{
-    my ($self) = @_;
-    $self->redirect('list');
-}
-
 sub list_action
 {
     my ($self) = @_;
@@ -120,6 +114,7 @@ sub create_alias_action
             my $reservation_request = $self->parse_reservation_request($params);
             my $specification = {
                 'class' => 'AliasSetSpecification',
+                'sharedExecutable' => 1,
                 'aliases' => [{
                     'aliasTypes' => ['ROOM_NAME'],
                     'technologies' => ['H323', 'SIP'],

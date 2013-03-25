@@ -1,4 +1,15 @@
 <h1>List of existing [% technologies %] reservation requests</h1>
+
+<script type="text/javascript">
+    $(function () {
+        $(".state-not-allocated"    ).tooltip({ title: "[% resources.request.state.notAllocated %]" });
+        $(".state-allocated"        ).tooltip({ title: "[% resources.request.state.allocated %]" });
+        $(".state-finished"         ).tooltip({ title: "[% resources.request.state.finished %]" });
+        $(".state-allocation-failed").tooltip({ title: "[% resources.request.state.allocationFailed %]" });
+        $(".state-starting-failed"  ).tooltip({ title: "[% resources.request.state.startingFailed %]" });
+    });
+</script>
+
 <h2>Aliases</h2>
 <table class="table table-striped table-hover">
     <thead>
@@ -18,7 +29,7 @@
         <td>[% aliasRequest.description %]</td>
         <td>[% aliasRequest.purpose %]</td>
         <td>[% util.interval_format_date(aliasRequest.earliestSlot) %]</td>
-        <td><a href="[% location %]/detail?id=[% aliasRequest.id %]" class="state-[% aliasRequest.stateCode %]">[% aliasRequest.state %]</a></td>
+        <td><a href="[% location %]/detail?id=[% aliasRequest.id %]" class="state-[% aliasRequest.stateCode %]">[% aliasRequest.state %]<div class="info-icon"></div></a></td>
         <td><a href="[% location %]/delete?id=[% aliasRequest.id %]">delete</a></td>
     </tr>
     [%- END %]
@@ -54,7 +65,7 @@
         <td>[% util.datetime_format(roomRequest.start) %]</td>
         <td>[% util.period_format(roomRequest.duration) %]</td>
         <td style="text-align: right;">[% roomRequest.type.participantCount %]</td>
-        <td><a href="[% location %]/detail?id=[% roomRequest.id %]" class="state-[% roomRequest.stateCode %]">[% roomRequest.state %]</a></td>
+        <td><a href="[% location %]/detail?id=[% roomRequest.id %]" class="state-[% roomRequest.stateCode %]">[% roomRequest.state %]<div class="info-icon"></div></a></td>
         <td><a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a></td>
     </tr>
     [%- END %]

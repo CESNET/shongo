@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
-import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -119,10 +118,6 @@ public class Compartment extends Executable
 
         cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
                 (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
-        compartmentApi.setId(IdentifierFormat.formatGlobalId(this));
-        compartmentApi.setSlot(getSlot());
-        compartmentApi.setState(getState().toApi());
-        compartmentApi.setStateReport(getReportText());
         for (Endpoint endpoint : getEndpoints()) {
             compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi());
         }
@@ -135,8 +130,8 @@ public class Compartment extends Executable
         for (Connection connection : getConnections()) {
             cz.cesnet.shongo.controller.api.Executable.Compartment.Connection connectionApi =
                     new cz.cesnet.shongo.controller.api.Executable.Compartment.Connection();
-            connectionApi.setEndpointFromId(IdentifierFormat.formatGlobalId(connection.getEndpointFrom()));
-            connectionApi.setEndpointToId(IdentifierFormat.formatGlobalId(connection.getEndpointTo()));
+            connectionApi.setEndpointFromId(EntityIdentifier.formatId(connection.getEndpointFrom()));
+            connectionApi.setEndpointToId(EntityIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
             connectionApi.setStateReport(getReportText());

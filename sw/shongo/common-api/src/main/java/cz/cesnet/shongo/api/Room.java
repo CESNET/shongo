@@ -8,7 +8,6 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import jade.content.Concept;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**

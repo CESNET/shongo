@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -29,6 +31,10 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
+        // Preprocessor
+        Preprocessor preprocessor = null;
+        // Scheduler
+        Scheduler scheduler = null;
         // Cache
         Cache cache = null;
         // Interval for which a preprocessor and a scheduler runs and
@@ -49,6 +55,14 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             cache = new Cache();
             cache.setEntityManagerFactory(getEntityManagerFactory());
             cache.init();
+
+            preprocessor = new Preprocessor();
+            preprocessor.setCache(cache);
+            preprocessor.init();
+
+            scheduler = new Scheduler();
+            scheduler.setCache(cache);
+            scheduler.init();
 
             EntityManager entityManager = getEntityManager();
 
@@ -111,7 +125,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             assertNotNull("The reservation request set should be stored in database",
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId));
 
-            Preprocessor.createAndRun(interval, entityManager);
+            preprocessor.run(interval, entityManager);
 
             List<ReservationRequest> compartmentRequestList =
                     reservationRequestManager.listReservationRequestsBySet(reservationRequestSetId);
@@ -145,7 +159,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
                 reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
                 fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
-            catch (IllegalStateException exception) {
+            catch (FaultException exception) {
             }
 
             // Second person accepts
@@ -165,7 +179,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         {
             EntityManager entityManager = getEntityManager();
 
-            Scheduler.createAndRun(interval, entityManager, cache, null);
+            scheduler.run(interval, entityManager);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -201,9 +215,9 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule compartment request
-            Preprocessor.createAndRun(interval, entityManager);
+            preprocessor.run(interval, entityManager);
 
-            Scheduler.createAndRun(interval, entityManager, cache, null);
+            scheduler.run(interval, entityManager);
 
             // Checks allocation failed
             ReservationRequest reservationRequest = reservationRequestManager
@@ -222,8 +236,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule compartment request
-            Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache, null);
+            preprocessor.run(interval, entityManager);
+            scheduler.run(interval, entityManager);
 
             // Checks allocated
             entityManager.refresh(reservationRequest);
@@ -245,12 +259,12 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().begin();
             ReservationRequestSet reservationRequestSet =
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
-            reservationRequestManager.delete(reservationRequestSet);
+            reservationRequestManager.delete(reservationRequestSet, null);
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule
-            Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache, null);
+            preprocessor.run(interval, entityManager);
+            scheduler.run(interval, entityManager);
 
             entityManager.close();
         }

@@ -747,6 +747,9 @@ sub datetime_format_date
     my ($dateTime, $timeZoneOffset) = @_;
     if ( defined($dateTime) ) {
         if ( !ref($dateTime) ) {
+            if ( $dateTime eq '*' ) {
+                return '*';
+            }
             $dateTime = iso8601_datetime_parse($dateTime);
             if ( defined($timeZoneOffset) ) {
                 $dateTime->set_time_zone(DateTime::TimeZone->new(name => DateTime::TimeZone->offset_as_string($timeZoneOffset)));

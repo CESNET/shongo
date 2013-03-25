@@ -1,19 +1,18 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import org.hibernate.cfg.SetSimpleValueTypeSecondPass;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -364,9 +363,8 @@ public abstract class ReservationTask
             reservation = createReservation();
         }
 
-        reservation.setUserId(context.getUserId());
+        // Add child reservations
         for (Reservation childReservation : getChildReservations()) {
-            childReservation.setUserId(context.getUserId());
             reservation.addChildReservation(childReservation);
         }
 
@@ -394,18 +392,18 @@ public abstract class ReservationTask
     protected abstract Reservation createReservation() throws ReportException;
 
     /**
-     * @param reservation to be validated
+     * @param type to be validated
      * @throws ReportException when the validation failed
      */
-    protected void validateReservationSlot(Reservation reservation) throws ReportException
+    protected void validateReservationSlot(Class<? extends Reservation> type) throws ReportException
     {
         // Check maximum duration
         if (context.isMaximumFutureAndDurationRestricted()) {
-            if (reservation instanceof ResourceReservation) {
-                checkMaximumDuration(reservation.getSlot(), context.getCache().getResourceReservationMaximumDuration());
+            if (type.equals(ResourceReservation.class)) {
+                checkMaximumDuration(getInterval(), context.getCache().getResourceReservationMaximumDuration());
             }
-            else if (reservation instanceof ValueReservation) {
-                checkMaximumDuration(reservation.getSlot(), context.getCache().getValueReservationMaximumDuration());
+            else if (type.equals(ValueReservation.class) || type.equals(AliasReservation.class)) {
+                checkMaximumDuration(getInterval(), context.getCache().getValueReservationMaximumDuration());
             }
         }
     }
@@ -416,7 +414,7 @@ public abstract class ReservationTask
      */
     protected void validateReservation(Reservation reservation) throws ReportException
     {
-        validateReservationSlot(reservation);
+        validateReservationSlot(reservation.getClass());
     }
 
     /**
@@ -565,6 +563,25 @@ public abstract class ReservationTask
         public CacheTransaction getCacheTransaction()
         {
             return cacheTransaction;
+        }
+
+        /**
+         * @param userIds       to be checked
+         * @param authorization which is used for retrieving owners for the {@link #reservationRequest}
+         * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
+         *         false otherwise
+         */
+        public boolean containsOwnerId(Set<String> userIds, Authorization authorization)
+        {
+            if (reservationRequest == null) {
+                throw new IllegalStateException("Reservation request must not be null.");
+            }
+            Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
+            if (ownerIds.size() == 0) {
+                ownerIds = new HashSet<String>();
+                ownerIds.add(reservationRequest.getUserId());
+            }
+            return !Collections.disjoint(userIds, ownerIds);
         }
     }
 }

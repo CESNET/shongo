@@ -16,7 +16,7 @@ use Shongo::Console;
 our $Status = ordered_hash('AVAILABLE' => 'Available', 'NOT_AVAILABLE' => 'Not-Available');
 
 #
-# Populate shell by options for management of reservations.
+# Populate shell by options for common management.
 #
 # @param shell
 #
@@ -48,11 +48,11 @@ sub list_domains()
     my $response = Shongo::ClientCli->instance()->secure_request(
         'Common.listDomains'
     );
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(\'| ', 'Name', \' | ', 'Organization', \' | ', 'Status', \' |');
-    foreach my $domain (@{$response->value()}) {
+    foreach my $domain (@{$response}) {
         $table->add(
             $domain->{'name'},
             $domain->{'organization'},
@@ -67,11 +67,11 @@ sub list_connectors()
     my $response = Shongo::ClientCli->instance()->secure_request(
         'Common.listConnectors'
     );
-    if ( $response->is_fault() ) {
+    if ( !defined($response) ) {
         return
     }
     my $table = Text::Table->new(\'| ', 'Agent Name', \' | ', 'Managed Resource', \' | ', 'Status', \' |');
-    foreach my $connector (@{$response->value()}) {
+    foreach my $connector (@{$response}) {
         $table->add(
             $connector->{'name'},
             $connector->{'resourceId'},

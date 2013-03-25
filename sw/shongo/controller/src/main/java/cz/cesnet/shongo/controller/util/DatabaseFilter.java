@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Query;
@@ -60,6 +60,24 @@ public class DatabaseFilter
     }
 
     /**
+     * Add identifier filter.
+     *
+     * @param ids allowed identifiers of the entity.
+     */
+    public void addIds(Set<Long> ids)
+    {
+        if (ids != null) {
+            if (ids.isEmpty()) {
+                addFilter(alias + ".id IN (0)");
+            }
+            else  {
+                addFilter(alias + ".id IN (:ids)");
+                addFilterParameter("ids", ids);
+            }
+        }
+    }
+
+    /**
      * Add user-id filter (entity referenced by {@link #alias} must contain "userId" property).
      *
      * @param userId user-id of the user
@@ -98,20 +116,14 @@ public class DatabaseFilter
 
     /**
      * @param filter        from which the user-id should be parsed
-     * @param defaultUserId value which will be returned when the user-id isn't present in the {@code filter}
      * @return user-id from given {@code filter}
      */
-    public static String getUserIdFromFilter(Map<String, Object> filter, String defaultUserId)
+    public static String getUserIdFromFilter(Map<String, Object> filter)
     {
-        String userId = defaultUserId;
+        String userId = null;
         if (filter != null && filter.containsKey("userId")) {
             Object value = filter.get("userId");
-            // All users
-            if (value.equals("*")) {
-                userId = null;
-            }
-            // One selected user
-            else {
+            if (!value.equals("*")) {
                 userId = (value != null ? value.toString() : null);
             }
         }
@@ -153,7 +165,7 @@ public class DatabaseFilter
                         classes.add(specificationType);
                     }
                     catch (ClassNotFoundException exception) {
-                        throw new FaultException(exception, CommonFault.CLASS_NOT_DEFINED, className);
+                        ControllerFaultSet.throwClassUndefinedFault(className);
                     }
                 }
                 return classes;

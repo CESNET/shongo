@@ -84,7 +84,7 @@ public class ControllerAgent extends Agent
     @Override
     public SendLocalCommand sendCommand(String receiverAgentName, Command command)
     {
-        Controller.requestedCommands.info("Action:{} {}.", command.getId(), command);
+        Controller.loggerRequestedCommands.info("Action:{} {}.", command.getId(), command);
         SendLocalCommand sendLocalCommand = super.sendCommand(receiverAgentName, command);
         String commandState;
         switch (sendLocalCommand.getState()) {
@@ -104,7 +104,7 @@ public class ControllerAgent extends Agent
                 commandState = "UNKNOWN";
                 break;
         }
-        Controller.requestedCommands.info("Action:{} Done ({}).", command.getId(), commandState);
+        Controller.loggerRequestedCommands.info("Action:{} Done ({}).", command.getId(), commandState);
         return sendLocalCommand;
     }
 
@@ -113,7 +113,8 @@ public class ControllerAgent extends Agent
     {
         if (service != null && command instanceof ControllerCommand) {
             ControllerCommand controllerCommand = (ControllerCommand) command;
-            Controller.executedCommands.info("Action:{} {}.", controllerCommand.getId(), controllerCommand.toString());
+            Controller.loggerExecutedCommands.info("Action:{} {}.",
+                    controllerCommand.getId(), controllerCommand.toString());
             Object result = null;
             String resultState = "OK";
             try {
@@ -131,8 +132,8 @@ public class ControllerAgent extends Agent
                 throw exception;
             }
             finally {
-                Controller.executedCommands
-                        .info("Action:{} Done ({}).", controllerCommand.getId(), resultState);
+                Controller.loggerExecutedCommands.info("Action:{} Done ({}).",
+                        controllerCommand.getId(), resultState);
             }
             return result;
         }

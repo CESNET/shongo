@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.ssl;
 
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.*;
+import org.apache.http.conn.ssl.AbstractVerifier;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.BasicClientConnectionManager;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +106,8 @@ public class ConfiguredSSLContext
         org.apache.http.conn.ssl.SSLSocketFactory socketFactory = new org.apache.http.conn.ssl.SSLSocketFactory(
                 configuredSSLContext.getContext(), configuredSSLContext.getHostnameVerifier());
         registry.register(new Scheme("https", 443, socketFactory));
-        BasicClientConnectionManager mgr = new BasicClientConnectionManager(registry);
-        return new DefaultHttpClient(mgr);
+        ClientConnectionManager connectionManager = new PoolingClientConnectionManager(registry);
+        return new DefaultHttpClient(connectionManager);
     }
 
     /**

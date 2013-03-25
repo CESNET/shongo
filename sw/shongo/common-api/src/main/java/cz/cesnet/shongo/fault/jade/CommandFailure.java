@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
 import jade.content.Concept;
 
 /**
@@ -68,11 +67,9 @@ public abstract class CommandFailure implements Concept
      */
     public abstract String getMessage();
 
-    /**
-     * @return code of the failure
-     */
-    public int getCode()
+    @Override
+    public String toString()
     {
-        return CommonFault.JADE_COMMAND_UNKNOWN;
+        return getMessage();
     }
 }

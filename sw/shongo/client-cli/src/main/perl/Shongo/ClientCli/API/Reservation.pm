@@ -39,6 +39,8 @@ sub new()
     $self->set_object_name('Reservation');
     $self->set_object_class('Reservation');
     $self->add_attribute('id', {'title' => 'Identifier'});
+    $self->add_attribute('parentReservationId', {'title' => 'Parent'});
+    $self->add_attribute('reservationRequestId', {'title' => 'Request'});
     $self->add_attribute('slot', {
         'type' => 'interval'
     });
@@ -54,8 +56,19 @@ sub new()
         'order' => 2
     });
     $self->add_attribute('executable', {
-        'display' => 'newline',
-        'order' => 1
+        'order' => 1,
+        'format' => sub {
+            my ($executable, $options) = @_;
+            if ( !defined($executable) ) {
+                return undef;
+            }
+            if ( defined($options->{'sub-call'}) ) {
+                return $executable->{'id'};
+            }
+            else {
+                return $executable->to_string();
+            }
+        }
     });
 
     return $self;
@@ -133,15 +146,14 @@ sub fetch_child_reservations
     if ( defined($self->{'childReservationIds'}) && @{$self->{'childReservationIds'}} > 0) {
         my $child_reservations = [];
         foreach my $reservation (@{$self->{'childReservationIds'}}) {
-            my $result = Shongo::ClientCli->instance()->secure_request(
+            my $response = Shongo::ClientCli->instance()->secure_request(
                 'Reservation.getReservation',
                 RPC::XML::string->new($reservation)
             );
-            if ( $result->is_fault ) {
+            if ( !defined($response) ) {
                 return;
             }
-            my $reservationXml = $result->value();
-            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
+            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($response);
             if ( $recursive ) {
                 $reservation->fetch_child_reservations($recursive);
             }

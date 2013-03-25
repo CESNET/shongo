@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.controller.Authorization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -22,7 +22,7 @@ public class NotificationManager extends Component implements Component.Authoriz
     private static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
 
     /**
-     * @see cz.cesnet.shongo.controller.Authorization
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 
@@ -86,34 +86,6 @@ public class NotificationManager extends Component implements Component.Authoriz
         // Execute notification in all executors
         for (NotificationExecutor notificationExecutor : notificationExecutors) {
             notificationExecutor.executeNotification(notification);
-        }
-    }
-
-    /**
-     * Notify about new reservations.
-     *
-     * @param newReservations
-     * @param modifiedReservations
-     * @param deletedReservations
-     */
-    public void notifyReservations(Set<Reservation> newReservations, Set<Reservation> modifiedReservations,
-            Set<Reservation> deletedReservations, EntityManager entityManager)
-    {
-        if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
-            return;
-        }
-        logger.debug("Notifying about changes in reservations...");
-        for (Reservation reservation : newReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.NEW, reservation, entityManager));
-        }
-        for (Reservation reservation : modifiedReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.MODIFIED, reservation, entityManager));
-        }
-        for (Reservation reservation : deletedReservations) {
-            executeNotification(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, reservation, entityManager));
         }
     }
 }

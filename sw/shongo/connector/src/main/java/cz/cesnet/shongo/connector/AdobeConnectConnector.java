@@ -361,6 +361,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             roomSummary.setId(room.getAttributeValue("sco-id"));
             roomSummary.setName(room.getChildText("name"));
             roomSummary.setDescription(room.getChildText("description"));
+            roomSummary.setAlias(room.getChildText("url"));
 
             String dateCreated = room.getChildText("date-created");
             if (dateCreated != null) {
@@ -382,16 +383,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.put("sco-id", roomId);
 
         Element response = request("sco-info", attributes);
+        Element sco = response.getChild("sco");
 
         Room room = new Room();
         room.setId(roomId);
-        room.setName(response.getChild("sco").getChildText("name"));
-        room.setDescription(response.getChild("sco").getChildText("description"));
+        room.setName(sco.getChildText("name"));
+        room.setDescription(sco.getChildText("description"));
         room.addTechnology(Technology.ADOBE_CONNECT);
 
         List<Alias> aliasList = new ArrayList<Alias>();
-        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
-                .getChild("sco").getChildText("url-path");
+        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() +
+                sco.getChildText("url-path");
         aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
 
         room.setAliases(aliasList);

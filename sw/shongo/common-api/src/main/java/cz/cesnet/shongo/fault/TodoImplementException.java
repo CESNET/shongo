@@ -5,7 +5,7 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoImplementException extends RuntimeException implements Fault, SerializableException
+public class TodoImplementException extends RuntimeException implements FaultThrowable
 {
     /**
      * Message.
@@ -49,12 +49,6 @@ public class TodoImplementException extends RuntimeException implements Fault, S
     }
 
     @Override
-    public int getCode()
-    {
-        return CommonFault.TODO_IMPLEMENT;
-    }
-
-    @Override
     public String getMessage()
     {
         if (description != null) {
@@ -63,5 +57,11 @@ public class TodoImplementException extends RuntimeException implements Fault, S
         else {
             return "TODO: Implement";
         }
+    }
+
+    @Override
+    public Fault getFault()
+    {
+        return cz.cesnet.shongo.api.FaultSet.createUnknownErrorFault(description);
     }
 }

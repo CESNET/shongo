@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -141,7 +141,7 @@ public class ResourceReport extends Report
     {
         return String.format("%s '%s'",
                 (resource instanceof DeviceResource ? "device" : "resource"),
-                IdentifierFormat.formatGlobalId(resource));
+                EntityIdentifier.formatId(resource));
     }
 
     @Override

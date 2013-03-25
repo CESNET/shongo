@@ -12,9 +12,11 @@ use RPC::XML;
 use RPC::XML::Client;
 use XML::Twig;
 use Shongo::Common;
+use Shongo::ClientCommon;
 use Shongo::ClientWeb::WebAuthorization;
 use Shongo::ClientWeb::H323SipController;
 use Shongo::ClientWeb::AdobeConnectController;
+use Log::Log4perl;
 
 # Get directory
 use File::Spec::Functions;
@@ -42,11 +44,56 @@ sub new
     }
     $singleInstance = $self;
 
+    # Logger
+    $singleInstance->{'logger'} = Log::Log4perl->get_logger('cz.cesnet.shongo.client-web');
+
+    # Initialize client
+    $singleInstance->{'client'} = Shongo::ClientCommon->new();
+    $singleInstance->{'client'}->{'on-error'} = sub {
+        my ($error) = @_;
+        if ( $error =~ /(Connection refused)/ ) {
+            $self->not_available_action();
+        }
+        else {
+            $self->error_action($error);
+        }
+    };
+    $singleInstance->{'client'}->{'on-fault'} = sub {
+        my ($fault) = @_;
+        $self->fault_action($fault);
+    };
+    $singleInstance->{'client'}->{'on-get-access-token'} = sub {
+        my $user = $self->get_authenticated_user();
+        if ( !defined($user) || !defined($user->{'access_token'}) ) {
+            $self->redirect('/sign-in');
+            exit(0);
+        }
+        return $user->{'access_token'};
+    };
+    $singleInstance->{'client'}->{'user-cache-get'} = sub {
+        my ($user_id) = @_;
+        my $user_cache = $self->{'session'}->param('user-cache');
+        if ( defined($user_cache) && defined($user_cache->{$user_id}) ) {
+            return $user_cache->{$user_id};
+        }
+        return undef;
+    };
+    $singleInstance->{'client'}->{'user-cache-put'} = sub {
+        my ($user_id, $user_information) = @_;
+        my $user_cache = $self->{'session'}->param('user-cache');
+        if ( !defined($user_cache) ) {
+            $user_cache = {};
+        }
+        $user_cache->{$user_id} = $user_information;
+        $self->{'session'}->param('user-cache', $user_cache);
+    };
+
     # We must reuse existing authorization state (because the case when the user click on "Sign in" then he go back
     # and again click on "Sing in" and then login, the authorization server returns the first "state" so it must be same)
     my $state = $self->{'session'}->param('authorization_state');
     $self->{'authorization'} = Shongo::ClientWeb::WebAuthorization->new($state);
 
+    # Initialize actions
     $self->add_action('index', sub { $self->index_action(); });
     $self->add_action('time-zone-offset', sub { $self->time_zone_offset_action(); });
     $self->add_action('sign-in', sub { $self->sign_in_action(); });
@@ -57,8 +104,8 @@ sub new
     # Load resources
     my $resources = {};
     open my $in, $directory . "/../resources/text.properties" or die $!;
-    while(<$in>) {
-        while ( m/(\S+)=(.+)/g ) {
+    while(my $line = <$in>) {
+        if ( $line =~ m/(.+)=(.+)/g ) {
             my @name_parts = split('\.', $1);
             my $name_parts_count = scalar(@name_parts) - 1;
             my $index = 0;
@@ -82,9 +129,6 @@ sub new
         return "\$('#$id').tooltip({'title': '$text', 'placement': 'right', 'trigger':'focus'});";
     };
 
-    # Set RPC::XML encoding
-    $RPC::XML::ENCODING = 'utf-8';
-
     return $self;
 }
 
@@ -101,49 +145,33 @@ sub instance
 }
 
 #
-# Connect to to url
+# Load configuration
 #
-# @param controller_url
+# @param $configuration
 #
 sub load_configuration
 {
     my ($self, $configuration) = @_;
+
+    # Set configuration
+    $self->{'configuration'} = $configuration;
+    $self->{'template-parameters'}->{'configuration'} = $configuration;
+
+    # Connect to controller
     my $controller_url = $configuration->{'controller'};
+    if ( !defined($controller_url) ) {
+        $self->error_action("Controller url isn't specified.");
+    }
     if ( !($controller_url =~ /http(s)?:\/\//) ) {
         $controller_url = 'http://' . $controller_url;
     }
     if ( !($controller_url =~ /:\d+/) ) {
         $controller_url .= ':8181';
     }
-    $self->{'controller-url'} = $controller_url;
-    if ( defined($configuration->{'authorization'}) ) {
-        my $authorization = $configuration->{'authorization'};
-        if ( defined($authorization->{'client-id'}) ) {
-            $self->{'authorization'}->set_client_id($authorization->{'client-id'});
-        }
-        if ( defined($authorization->{'redirect-uri'}) ) {
-            $self->{'authorization'}->set_redirect_uri($authorization->{'redirect-uri'});
-        }
-    }
-}
+    $self->{'client'}->connect($controller_url);
 
-#
-# Connect to to url
-#
-# @param controller_url
-#
-sub check_connected
-{
-    my ($self) = @_;
-    if ( defined($self->{'controller-client'}) ) {
-        return;
-    }
-
-    if ( !defined($self->{'controller-url'}) ) {
-        $self->error_action("Controller url isn't specified.");
-    }
-
-    $self->{'controller-client'} = RPC::XML::Client->new($self->{'controller-url'});
+    # Init authorization
+    $self->{'authorization'}->load_configuration($configuration);
 }
 
 #
@@ -155,21 +183,8 @@ sub check_connected
 #
 sub request()
 {
-    my ($self, $method, @args) = @_;
-    $self->check_connected();
-
-    my $response = $self->{'controller-client'}->send_request($method, @args);
-    if ( !ref($response) ) {
-        if ( $response =~ /(Connection refused)/ ) {
-            $self->not_available_action();
-        }
-        $self->error_action("Failed to send request to controller!\n" . $response);
-        return undef;
-    }
-    if ( $response->is_fault() ) {
-        $self->fault_action($response);
-    }
-    return $response->value();
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->request(@arguments);
 }
 
 #
@@ -181,19 +196,30 @@ sub request()
 #
 sub secure_request()
 {
-    my ($self, $method, @args) = @_;
-    my $user = $self->get_user();
-    if ( !defined($user) || !defined($user->{'access_token'}) ) {
-        $self->redirect('/sign-in');
-        return undef;
-    }
-    my $securityToken = RPC::XML::string->new($user->{'access_token'});
-    return $self->request(
-        $method,
-        $securityToken,
-        @args
-    );
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->secure_request(@arguments);
 }
+
+#
+# @return current signed user
+#
+sub get_authenticated_user
+{
+    my ($self) = @_;
+    return $self->{'session'}->param('user');
+}
+
+
+#
+# @param $user_id
+# @return user information by $user_id
+#
+sub get_user_information
+{
+    my ($self, $user_id) = @_;
+    return $self->{'client'}->get_user_information($user_id);
+}
+
 
 # @Override
 sub run
@@ -218,13 +244,15 @@ sub run
         my $access_token = $self->{'authorization'}->authentication_token($code);
 
         # Set user to session
-        my $user_info = $self->{'authorization'}->get_user_info($access_token);
+        my $user_info = $self->{'authorization'}->get_user_information($access_token);
         $self->{'session'}->param('user', {
             'access_token' => $access_token,
             'id' => $user_info->{'id'},
             'original_id' => $user_info->{'original_id'},
             'name' => $user_info->{'name'}
         });
+
+        $self->{'logger'}->debug("User '$user_info->{'id'}' signed in (token: $access_token).");
 
         # Redirect to previous page
         $self->redirect();
@@ -308,20 +336,29 @@ sub fault_action
     }
 
     my $code = $faultResponse->code();
-    if ( $code == 40 ) {
+    if ( $code == 11 ) {
         my $Type = {
             'AbstractReservationRequest' => 'Reservation request'
         };
-        my $entityId = $params->{'entityId'};
-        my $entity = $params->{'entityType'};
+        my $entityId = $params->{'id'};
+        my $entity = $params->{'entity'};
         if ( defined($Type->{$entity}) ) {
             $entity = $Type->{$entity};
         }
         $title = "$entity not found";
         $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
     }
-    elsif ( $code == 200 ) {
-        my $reservationRequestId = $params->{'reservationRequestId'};
+    elsif ( $code == 16 ) {
+        my $action = $params->{'action'};
+        $title = "Not authorized";
+        $message = "You are not authorized to <strong>$action</strong>.";
+        $message .= '<p>If you think that you should be authorized to specified action try to <a href="">refresh</a> page. ';
+        $message .= 'Sometimes it takes a few seconds before the scheduler creates the user roles in authorization server. ';
+        $message .= 'If it doesn\'t help contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
+
+    }
+    elsif ( $code == 21 ) {
+        my $reservationRequestId = $params->{'id'};
         $title = "Reservation request cannot be deleted";
         $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";
     }
@@ -337,14 +374,8 @@ sub fault_action
 }
 
 #
-# @return current signed user
+# Set time zone offset action
 #
-sub get_user
-{
-    my ($self) = @_;
-    return $self->{'session'}->param('user');
-}
-
 sub time_zone_offset_action
 {
     my ($self) = @_;

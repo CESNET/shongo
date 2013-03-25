@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import org.junit.Test;
 
 import java.util.List;
@@ -236,6 +237,31 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
         assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+    }
+
+    /**
+     * Test allocation of part of requested alias value.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRequestedValuePart() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability();
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "950087{value}"));
+        aliasProviderCapability.setValueProvider(new ValueProvider.Pattern("{number:090:099}"));
+        aliasProvider.addCapability(aliasProviderCapability);
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164).withValue("950087095"));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
+        assertEquals("Requested value should be allocated.", "095", aliasReservation.getValue());
     }
 
     /**

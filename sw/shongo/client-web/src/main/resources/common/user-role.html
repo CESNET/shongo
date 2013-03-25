@@ -1,3 +1,14 @@
+<style type="text/css">
+    .roles-tooltip {
+        position: absolute;
+        display: none;
+        margin-top: 5px;
+        padding: 5px 10px;
+        border: 1px solid #BBBBBB;
+        border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
+        background-color: #FFFFFF;
+    }
+</style>
 <script type="text/javascript">
     window.formatUser = function(user) {
         var text = user.firstName;
@@ -11,8 +22,17 @@
         return text;
     };
     $(function() {
+        $(".users").tooltip({ title: "[% resources.user.list %]"});
+        $(".roles").bind({
+            mouseover: function(){
+                $(".roles-tooltip").fadeIn();
+            },
+            mouseleave: function(){
+                $(".roles-tooltip").fadeOut();
+            }
+        });
         $("#selectUser").select2({
-            placeholder: "Select an user",
+            placeholder: "Select user by name/email",
             width: 'resolve',
             minimumInputLength: 2,
             ajax: {
@@ -27,7 +47,6 @@
                     var results = [];
                     for ( var index = 0; index < data.length; index++ ) {
                         var dataItem = data[index];
-
                         results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
                     }
                     return {results: results};
@@ -59,11 +78,11 @@
 <input name="id" type="hidden" value="[% id %]"/>
 
 <div class="control-group">
-    <label class="control-label">For [% resourceTitle %]:</label>
+    <label class="control-label">For [% entityTitle %]:</label>
     <div class="controls">
-        <input name="resource" type="hidden" value="[% resource %]"/>
-        <span class="uneditable-input">[% resource %]</span>
-        [% error.resource %]
+        <input name="entity" type="hidden" value="[% entity %]"/>
+        <span class="uneditable-input" style="width: 300px;">[% entity %]</span>
+        [% error.entity %]
     </div>
 </div>
 
@@ -71,6 +90,7 @@
     <label class="control-label" for="selectUser">User:</label>
     <div class="controls">
         <input id="selectUser" name="user" type="text" value="[% user %]"/>
+        <div class="users info-icon"></div>
         [% error.user %]
     </div>
 </div>
@@ -79,10 +99,19 @@
     <label class="control-label" for="selectRole">Role:</label>
     <div class="controls">
         <select id="selectRole" name="role">
-            <option value="owner" [% IF role == 'owner' %]selected[% END %]>Owner</option>
-            <option value="reuser" [% IF role == 'reuser' %]selected[% END %]>User</option>
+            <option value="OWNER" [% IF role == 'OWNER' %]selected[% END %]>Owner</option>
+            <option value="RESERVATION_USER" [% IF role == 'RESERVATION_USER' %]selected[% END %]>User</option>
         </select>
+        <div class="roles info-icon"></div>
         [% error.role %]
+        <div style="display: inline-block;">
+            <div class="roles-tooltip">
+                <strong>Owner</strong><br>
+                [% resources.security.role.owner %]<br>
+                <strong>User</strong><br>
+                [% resources.security.role.reservationUser %]
+            </div>
+        </div>
     </div>
 </div>
 

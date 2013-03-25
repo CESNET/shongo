@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.SendLocalCommand;
-import cz.cesnet.shongo.jade.LocalCommand;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -132,7 +131,7 @@ public class Connection extends Executable
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
-                    getEndpointFrom().getReportDescription(), getAlias().getValue(),
+                    getEndpointFrom().getDescription(), getAlias().getValue(),
                     getAlias().getTechnology().getName()));
             executor.getLogger().debug(message.toString());
 
@@ -164,7 +163,7 @@ public class Connection extends Executable
     protected State onStop(Executor executor)
     {
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
+        message.append(String.format("Hanging up the %s.", getEndpointFrom().getDescription()));
         executor.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {

@@ -59,6 +59,8 @@ public class AliasSetReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        validateReservationSlot(AliasReservation.class);
+
         Context context = getContext();
         ResourceRoomEndpoint allocatedRoomEndpoint = null;
 
@@ -106,6 +108,9 @@ public class AliasSetReservationTask extends ReservationTask
             // Create compound reservation request
             Reservation reservation = new Reservation();
             reservation.setSlot(getInterval());
+            if (sharedExecutable) {
+                reservation.setExecutable(allocatedRoomEndpoint);
+            }
             for (Reservation createdReservation : createdReservations) {
                 addChildReservation(createdReservation);
             }

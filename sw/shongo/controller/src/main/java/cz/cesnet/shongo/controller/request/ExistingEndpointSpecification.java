@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -119,7 +119,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        existingEndpointSpecificationApi.setResourceId(IdentifierFormat.formatGlobalId(resource));
+        existingEndpointSpecificationApi.setResourceId(EntityIdentifier.formatId(resource));
         super.toApi(specificationApi);
     }
 
@@ -134,7 +134,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 setResource(null);
             }
             else {
-                Long resourceId = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.resource.Resource.class,
+                Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
                         existingEndpointSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));

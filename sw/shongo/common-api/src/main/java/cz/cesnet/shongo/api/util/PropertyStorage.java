@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.FaultRuntimeException;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -104,7 +105,7 @@ public class PropertyStorage
                 collection = ClassHelper.createCollection(collectionType, 0);
             }
             catch (FaultException exception) {
-                throw new RuntimeException(exception);
+                throw new FaultRuntimeException(exception.getFault());
             }
             values.put(property, collection);
         }

@@ -1,24 +1,18 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.controller.Authorization;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.rpc.ExecutorService;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Reservation service implementation
@@ -35,7 +29,7 @@ public class ExecutorServiceImpl extends Component
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * @see Authorization
+     * @see cz.cesnet.shongo.controller.authorization.Authorization
      */
     private Authorization authorization;
 
@@ -66,27 +60,34 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public void deleteExecutable(SecurityToken token, String executableId) throws FaultException
+    public void deleteExecutable(SecurityToken token, String executableId)
+            throws FaultException
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
-
+        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
         try {
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
+            entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(id);
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
 
-            executableManager.delete(executable);
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
+            }
+
+            aclRecordsToDelete = executableManager.delete(executable, authorization);
 
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
-            throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
-                    id);
+            ControllerFaultSet.throwEntityNotDeletableReferencedFault(
+                    cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
+            return;
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -97,24 +98,26 @@ public class ExecutorServiceImpl extends Component
         finally {
             entityManager.close();
         }
+        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override
     public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
+            throws FaultException
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
-        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(userId);
+        Set<Long> executableIds =
+                authorization.getEntitiesWithPermission(userId, EntityType.EXECUTABLE, Permission.READ);
+        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(executableIds);
 
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
-            summary.setId(IdentifierFormat.formatGlobalId(executable));
-            summary.setUserId(executable.getUserId());
+            summary.setId(EntityIdentifier.formatId(executable));
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
             if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {
@@ -135,18 +138,30 @@ public class ExecutorServiceImpl extends Component
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
             throws FaultException
     {
-        authorization.validate(token);
-
-        Long id = IdentifierFormat.parseLocalId(cz.cesnet.shongo.controller.executor.Executable.class, executableId);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
-        cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(id);
-        cz.cesnet.shongo.controller.api.Executable executableApi = executable.toApi();
+        try {
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
 
-        entityManager.close();
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+            }
 
-        return executableApi;
+            Executable executableApi = executable.toApi();
+            cz.cesnet.shongo.controller.reservation.Reservation reservation =
+                    executableManager.getReservation(executable);
+            if (reservation != null) {
+                executableApi.setReservationId(EntityIdentifier.formatId(reservation));
+            }
+            return executableApi;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 }

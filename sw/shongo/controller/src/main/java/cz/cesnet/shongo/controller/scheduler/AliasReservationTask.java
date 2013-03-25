@@ -149,6 +149,7 @@ public class AliasReservationTask extends ReservationTask
         // Find matching alias providers
         beginReport(new FindingAvailableResourceReport(), true);
         List<AliasProviderCapability> aliasProviders = new ArrayList<AliasProviderCapability>();
+        Map<AliasProviderCapability, String> valueByAliasProvider = new HashMap<AliasProviderCapability, String>();
         for (AliasProviderCapability aliasProvider : possibleAliasProviders) {
             // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
@@ -162,6 +163,10 @@ public class AliasReservationTask extends ReservationTask
             }
             if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
                 continue;
+            }
+            if (value != null) {
+                String value = aliasProvider.parseValue(this.value);
+                valueByAliasProvider.put(aliasProvider, value);
             }
             aliasProviders.add(aliasProvider);
             addReport(new ResourceReport(aliasProvider, Report.State.NONE));
@@ -179,6 +184,7 @@ public class AliasReservationTask extends ReservationTask
                     cacheTransaction.getProvidedAliasReservations(aliasProvider);
             if (providedAliasReservations.size() > 0) {
                 AliasReservation providedAliasReservation = null;
+                String value = valueByAliasProvider.get(aliasProvider);
                 if (value != null) {
                     for (AliasReservation possibleProvidedAliasReservation : providedAliasReservations) {
                         if (possibleProvidedAliasReservation.getValue().equals(value)) {
@@ -264,6 +270,7 @@ public class AliasReservationTask extends ReservationTask
             // Get new available value
             CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
+                String value = valueByAliasProvider.get(aliasProvider);
                 ValueReservationTask valueReservationTask =
                         new ValueReservationTask(context, aliasProvider.getValueProvider(), value);
                 availableValueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
@@ -304,7 +311,6 @@ public class AliasReservationTask extends ReservationTask
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setUserId(context.getUserId());
             roomEndpoint.setSlot(getInterval());
             roomEndpoint.setRoomProviderCapability(roomProvider);
             roomEndpoint.setRoomDescription(context.getReservationDescription());

@@ -2,10 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationServiceImpl;
-import cz.cesnet.shongo.controller.api.rpc.ResourceService;
-import cz.cesnet.shongo.controller.api.rpc.ResourceServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
@@ -21,10 +19,16 @@ import static junit.framework.Assert.*;
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
     /**
-     * {@link SecurityToken} which is validated in the {@link #controller}
+     * {@link SecurityToken} for normal user.
      */
     protected static final SecurityToken SECURITY_TOKEN =
             new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
+
+    /**
+     * {@link SecurityToken} for admin.
+     */
+    protected static final SecurityToken SECURITY_TOKEN_ROOT =
+            new SecurityToken("302be4e89def6d9de3021fd7566d3bc7131284ec");
 
     /**
      * @see Controller
@@ -32,9 +36,24 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private cz.cesnet.shongo.controller.Controller controller;
 
     /**
+     * @see Authorization
+     */
+    private DummyAuthorization authorization;
+
+    /**
      * @see Cache
      */
     private Cache cache;
+
+    /**
+     * @see Preprocessor
+     */
+    private Preprocessor preprocessor;
+
+    /**
+     * @see Scheduler
+     */
+    private Scheduler scheduler;
 
     /**
      * @see ControllerClient
@@ -58,6 +77,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.AuthorizationService} from the {@link #controllerClient}
+     */
+    public AuthorizationService getAuthorizationService()
+    {
+        return controllerClient.getService(AuthorizationService.class);
+    }
+
+    /**
      * @return {@link cz.cesnet.shongo.controller.api.rpc.ResourceService} from the {@link #controllerClient}
      */
     public ResourceService getResourceService()
@@ -74,6 +101,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @param securityToken for which the user-id should be returned
+     * @return user-id for given {@code securityToken}
+     * @throws FaultException
+     */
+    public String getUserId(SecurityToken securityToken) throws FaultException
+    {
+        return authorization.getUserInformation(securityToken).getUserId();
+    }
+
+    /**
      * On controller initialized.
      */
     protected void onInit()
@@ -82,6 +119,18 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         cache.setEntityManagerFactory(getEntityManagerFactory());
         cache.init(controller.getConfiguration());
 
+        preprocessor = new Preprocessor();
+        preprocessor.setCache(cache);
+        preprocessor.setAuthorization(authorization);
+        preprocessor.init();
+
+        scheduler = new Scheduler();
+        scheduler.setCache(cache);
+        scheduler.setAuthorization(authorization);
+        scheduler.setNotificationManager(controller.getNotificationManager());
+        scheduler.init();
+
+        controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
         controller.addRpcService(new ReservationServiceImpl(cache));
     }
@@ -105,16 +154,20 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         System.setProperty(Configuration.RPC_PORT, "8484");
         System.setProperty(Configuration.JADE_PORT, "8585");
 
-        // Start controller
+        // Create controller
         controller = new cz.cesnet.shongo.controller.Controller();
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
 
+        // Create authorization
+        authorization = DummyAuthorization.createInstance(controller.getConfiguration());
+        controller.setAuthorization(authorization);
+
         onInit();
 
+        // Start controller
         controller.start();
         controller.startRpc();
-        controller.getAuthorization().setTestingAccessToken(SECURITY_TOKEN.getAccessToken());
 
         // Start client
         controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
@@ -127,6 +180,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         controller.stop();
         controller.destroy();
+        preprocessor.destroy();
+        scheduler.destroy();
 
         super.after();
     }
@@ -140,7 +195,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void runPreprocessor(Interval interval) throws FaultException
     {
         EntityManager entityManagerForPreprocessor = getEntityManager();
-        Preprocessor.createAndRun(interval, entityManagerForPreprocessor, cache);
+        preprocessor.run(interval, entityManagerForPreprocessor);
         entityManagerForPreprocessor.close();
     }
 
@@ -153,7 +208,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void runScheduler(Interval interval) throws FaultException
     {
         EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache, controller.getNotificationManager());
+        scheduler.run(interval, entityManagerForScheduler);
         entityManagerForScheduler.close();
     }
 
@@ -186,10 +241,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler() throws FaultException
     {
-        EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(Temporal.INTERVAL_INFINITE, entityManagerForScheduler, cache,
-                controller.getNotificationManager());
-        entityManagerForScheduler.close();
+        runScheduler(Temporal.INTERVAL_INFINITE);
     }
 
     /**

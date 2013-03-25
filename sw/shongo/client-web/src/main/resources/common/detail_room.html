@@ -20,7 +20,7 @@
             [%- END -%]
             [%- INCLUDE common/text_with_tooltip.html
                     class        = 'state-' _ childRequest.stateCode
-                    text         = childRequest.state
+                    text         = childRequest.state _ '<div class="info-icon"></div>'
                     tooltipId    = 'state-report-' _ loop.index
                     tooltipClass = 'state-report'
                     tooltipText  = childRequest.stateReport

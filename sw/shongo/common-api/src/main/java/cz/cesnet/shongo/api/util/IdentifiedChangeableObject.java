@@ -58,8 +58,7 @@ public abstract class IdentifiedChangeableObject extends IdentifiedObject
      * Checks whether all properties with {@link Required} annotation are marked as filled and
      * sets the {@link ChangesTracking#collectionItemIsByDefaultNew} to true (recursive).
      *
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *          when some required field isn't filled
+     * @throws FaultException when some required field isn't filled
      */
     public void setupNewEntity() throws FaultException
     {

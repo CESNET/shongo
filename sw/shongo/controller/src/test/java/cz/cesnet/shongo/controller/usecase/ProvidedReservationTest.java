@@ -5,7 +5,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
+import cz.cesnet.shongo.controller.api.FaultSet;
+import cz.cesnet.shongo.fault.FaultException;
+import org.junit.Assert;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -154,7 +156,8 @@ public class ProvidedReservationTest extends AbstractControllerTest
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (ReservationRequestNotModifiableException exception) {
+        catch (FaultException exception) {
+            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
         }
     }
 
@@ -369,14 +372,16 @@ public class ProvidedReservationTest extends AbstractControllerTest
                     getReservationService().getReservationRequest(SECURITY_TOKEN, aliasReservationRequestId));
             fail("Exception that reservation request cannot be modified should be thrown");
         }
-        catch (ReservationRequestNotModifiableException exception) {
+        catch (FaultException exception) {
+            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
         }
 
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (ReservationRequestNotModifiableException exception) {
+        catch (FaultException exception) {
+            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
         }
     }
 }

@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -29,19 +28,14 @@ import java.util.List;
 public class Reservation extends PersistentObject
 {
     /**
-     * User-id of an user who is owner of the {@link Reservation}.
-     */
-    private String userId;
-
-    /**
      * @see {@link CreatedBy}.
      */
     private CreatedBy createdBy;
 
     /**
-     * {@link AbstractReservationRequest} for which the {@link Reservation} is allocated.
+     * {@link ReservationRequest} for which the {@link Reservation} is allocated.
      */
-    private AbstractReservationRequest reservationRequest;
+    private ReservationRequest reservationRequest;
 
     /**
      * Interval start date/time.
@@ -69,23 +63,6 @@ public class Reservation extends PersistentObject
     private Executable executable;
 
     /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
-
-    /**
      * @return {@link #createdBy}
      */
     @Column(nullable = false, columnDefinition = "varchar(255) default 'CONTROLLER'")
@@ -108,26 +85,41 @@ public class Reservation extends PersistentObject
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public AbstractReservationRequest getReservationRequest()
+    public ReservationRequest getReservationRequest()
     {
+        return reservationRequest;
+    }
+
+    /**
+     * @return top {@link AbstractReservationRequest} which was created by a user
+     */
+    @Transient
+    public AbstractReservationRequest getTopReservationRequest()
+    {
+        if (reservationRequest != null) {
+            ReservationRequestSet reservationRequestSet = reservationRequest.getReservationRequestSet();
+            if (reservationRequestSet != null) {
+                return reservationRequestSet;
+            }
+        }
         return reservationRequest;
     }
 
     /**
      * @param reservationRequest sets the {@link #reservationRequest}
      */
-    public void setReservationRequest(AbstractReservationRequest reservationRequest)
+    public void setReservationRequest(ReservationRequest reservationRequest)
     {
         // Manage bidirectional association
         if (reservationRequest != this.reservationRequest) {
             if (this.reservationRequest != null) {
-                AbstractReservationRequest oldReservationRequest = this.reservationRequest;
+                ReservationRequest oldReservationRequest = this.reservationRequest;
                 this.reservationRequest = null;
-                oldReservationRequest.removeReservation(this);
+                oldReservationRequest.setReservation(null);
             }
             if (reservationRequest != null) {
                 this.reservationRequest = reservationRequest;
-                this.reservationRequest.addReservation(this);
+                this.reservationRequest.setReservation(this);
             }
         }
     }
@@ -385,20 +377,19 @@ public class Reservation extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
     {
-        api.setId(IdentifierFormat.formatGlobalId(this));
-        api.setUserId(getUserId());
+        api.setId(EntityIdentifier.formatId(this));
         if (getReservationRequest() != null) {
-            api.setReservationRequestId(IdentifierFormat.formatGlobalId(getReservationRequest()));
+            api.setReservationRequestId(EntityIdentifier.formatId(getReservationRequest()));
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi());
         }
         if (getParentReservation() != null) {
-            api.setParentReservationId(IdentifierFormat.formatGlobalId(getParentReservation()));
+            api.setParentReservationId(EntityIdentifier.formatId(getParentReservation()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationId(IdentifierFormat.formatGlobalId(childReservation));
+            api.addChildReservationId(EntityIdentifier.formatId(childReservation));
         }
     }
 

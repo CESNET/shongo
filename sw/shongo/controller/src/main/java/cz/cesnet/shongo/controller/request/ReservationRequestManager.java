@@ -2,19 +2,19 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException;
+import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.authorization.AclRecord;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -97,31 +97,43 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
+     * @return {@link AclRecord}s which should be deleted
      * @throws FaultException when the deletion failed
      */
-    public void delete(AbstractReservationRequest abstractReservationRequest) throws FaultException
+    public Collection<AclRecord> delete(AbstractReservationRequest abstractReservationRequest,
+            Authorization authorization) throws FaultException
     {
-        Transaction transaction = beginTransaction();
-
-        // Keep reservation (it is deleted by scheduler)
-        while (abstractReservationRequest.getReservations().size() > 0) {
-            Reservation reservation = abstractReservationRequest.getReservations().get(0);
-            // Check if reservation can be deleted
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            if (reservationManager.isProvided(reservation)) {
-                throw new EntityToDeleteIsReferencedException(abstractReservationRequest.getClass(),
-                        abstractReservationRequest.getId());
-            }
-            reservation.setReservationRequest(null);
-            reservationManager.update(reservation);
+        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
+        if (authorization != null) {
+            aclRecordsToDelete.addAll(authorization.getAclRecords(abstractReservationRequest));
         }
 
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            // Delete all reservation requests from set
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                delete(reservationRequest);
+        Transaction transaction = beginTransaction();
+
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+
+            // Keep reservation (it is deleted by scheduler)
+            Reservation reservation = reservationRequest.getReservation();
+            if (reservation != null) {
+                // Check if reservation can be deleted
+                ReservationManager reservationManager = new ReservationManager(entityManager);
+                if (reservationManager.isProvided(reservation)) {
+                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
+                            abstractReservationRequest.getId());
+                }
+                reservation.setReservationRequest(null);
+                reservationManager.update(reservation);
             }
+        }
+        else if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+
+            // Delete all reservation requests from set
+            for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                aclRecordsToDelete.addAll(delete(reservationRequest, authorization));
+            }
+
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
         }
@@ -129,15 +141,16 @@ public class ReservationRequestManager extends AbstractManager
         super.delete(abstractReservationRequest);
 
         transaction.commit();
+
+        return aclRecordsToDelete;
     }
 
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link AbstractReservationRequest} doesn't exist
+     * @throws FaultException when the {@link AbstractReservationRequest} doesn't exist
      */
-    public AbstractReservationRequest get(Long reservationRequestId) throws PersistentEntityNotFoundException
+    public AbstractReservationRequest get(Long reservationRequestId) throws FaultException
     {
         try {
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
@@ -148,63 +161,16 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
-        }
-    }
-
-    /**
-     * @param reservation for which the {@link AbstractReservationRequest} should be returned
-     * @return {@link AbstractReservationRequest} for the given {@link Reservation} or null if doesn't exists
-     */
-    public ReservationRequest getReservationRequestByReservation(Reservation reservation)
-    {
-        try {
-            ReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                            + " LEFT JOIN reservationRequest.reservations reservation"
-                            + " WHERE reservation.id = :id",
-                    ReservationRequest.class)
-                    .setParameter("id", reservation.getId())
-                    .getSingleResult();
-            return reservationRequest;
-        }
-        catch (NoResultException exception) {
-            return null;
-        }
-    }
-
-    /**
-     * @param reservationId for {@link Reservation} which is allocated {@link AbstractReservationRequest} which should
-     *                      be returned
-     * @return {@link AbstractReservationRequest} for which is allocated {@link Reservation} with
-     *         given {@code reservationId}
-     */
-    public AbstractReservationRequest getByReservation(Long reservationId)
-    {
-        try {
-            AbstractReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                            + " LEFT JOIN reservationRequest.reservations reservation"
-                            + " LEFT JOIN reservationRequest.reservationRequests childReservationRequest"
-                            + " LEFT JOIN childReservationRequest.reservations childReservation"
-                            + " WHERE reservation.id = :id OR childReservation.id = :id)",
-                    AbstractReservationRequest.class)
-                    .setParameter("id", reservationId)
-                    .getSingleResult();
-            return reservationRequest;
-        }
-        catch (NoResultException exception) {
-            return null;
+            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link ReservationRequest} doesn't exist
+     * @throws FaultException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequest(Long reservationRequestId) throws PersistentEntityNotFoundException
+    public ReservationRequest getReservationRequest(Long reservationRequestId) throws FaultException
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
@@ -215,18 +181,16 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(ReservationRequest.class, reservationRequestId);
+            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws cz.cesnet.shongo.controller.fault.PersistentEntityNotFoundException
-     *          when the {@link ReservationRequestSet} doesn't exist
+     * @throws FaultException when the {@link ReservationRequestSet} doesn't exist
      */
-    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws
-                                                                                        PersistentEntityNotFoundException
+    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws FaultException
     {
         try {
             ReservationRequestSet reservationRequestSet = entityManager.createQuery(
@@ -237,23 +201,24 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            throw new PersistentEntityNotFoundException(ReservationRequestSet.class, reservationRequestSetId);
+            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
     /**
-     * @param userId                 requested owner
+     * @param ids                    requested identifiers
+     * @param userId                 requested user
      * @param technologies           requested technologies
      * @param specificationClasses   set of classes for specifications which are allowed
      * @param providedReservationIds identifier of reservation which must be provided
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
+    public List<AbstractReservationRequest> list(Set<Long> ids, String userId, Set<Technology> technologies,
             Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
-        filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
-        filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        filter.addFilter("(TYPE(request) != ReservationRequest OR request.reservationRequestSet IS NULL)");
+        filter.addIds(ids);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {
             // List only reservation requests which specifies given technologies
@@ -315,15 +280,15 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws IllegalArgumentException when the {@link ReservationRequest} doesn't exist
+     * @throws FaultException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId) throws IllegalArgumentException
+    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId) throws FaultException
     {
         try {
             return getReservationRequest(reservationRequestId);
         }
-        catch (PersistentEntityNotFoundException e) {
-            throw new IllegalArgumentException("Reservation request '" + reservationRequestId + "' doesn't exist!");
+        catch (FaultException exception) {
+            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
@@ -443,15 +408,15 @@ public class ReservationRequestManager extends AbstractManager
      * @param personId           id for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
      * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link cz.cesnet.shongo.controller.common.Person}
      *         with given id
-     * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
+     * @throws FaultException when {@link PersonSpecification} isn't found
      */
     private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
-            throws IllegalArgumentException
+            throws FaultException
     {
         Specification specification = reservationRequest.getSpecification();
         PersonSpecification personSpecification = getPersonSpecification(specification, personId);
         if (personSpecification == null) {
-            throw new IllegalArgumentException(
+            throw new FaultException(
                     String.format("Requested person '%d' doesn't exist in specification '%d'!",
                             personId, specification.getId()));
         }
@@ -463,15 +428,15 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
-     * @throws IllegalStateException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
-     *                               the video conference yet
+     * @throws FaultException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
+     *                        the video conference yet
      */
-    public void acceptPersonRequest(Long reservationRequestId, Long personId) throws IllegalStateException
+    public void acceptPersonRequest(Long reservationRequestId, Long personId) throws FaultException
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
         if (personSpecification.getEndpointSpecification() == null) {
-            throw new IllegalStateException(
+            throw new FaultException(
                     String.format("Cannot accept person '%d' to compartment request '%d' because person hasn't "
                             + "selected the device be which he will connect to the compartment yet!",
                             personId, reservationRequestId));
@@ -487,7 +452,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
      */
-    public void rejectPersonRequest(Long reservationRequestId, Long personId)
+    public void rejectPersonRequest(Long reservationRequestId, Long personId) throws FaultException
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
@@ -502,7 +467,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param endpointSpecification
      */
     public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
-            EndpointSpecification endpointSpecification)
+            EndpointSpecification endpointSpecification) throws FaultException
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);

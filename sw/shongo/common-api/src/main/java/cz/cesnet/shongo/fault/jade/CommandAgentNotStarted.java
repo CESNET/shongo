@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.fault.jade;
 
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.AbstractFaultSet;
 
 /**
  * Represents a {@link CommandFailure} which happens when a command should be sent from a sender agent
@@ -49,14 +49,8 @@ public class CommandAgentNotStarted extends CommandFailure
     }
 
     @Override
-    public int getCode()
-    {
-        return CommonFault.JADE_COMMAND_AGENT_NOT_STARTED;
-    }
-
-    @Override
     public String getMessage()
     {
-        return CommonFault.formatMessage("Jade agent '%s' was not started yet.", agentName);
+        return AbstractFaultSet.formatMessage("Jade agent '%s' was not started yet.", agentName);
     }
 }

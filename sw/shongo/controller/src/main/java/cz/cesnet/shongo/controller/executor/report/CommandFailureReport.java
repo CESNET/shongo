@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.executor.report;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.fault.jade.CommandFailure;
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -11,9 +10,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
- * Represents a {@link cz.cesnet.shongo.controller.report.Report} for {@link cz.cesnet.shongo.controller.executor.Executable}.
- *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see {@link #getText()}
  */
 @Entity
 public class CommandFailureReport extends ExecutableReport
@@ -70,9 +68,8 @@ public class CommandFailureReport extends ExecutableReport
     @Transient
     public String getText()
     {
-        String dateTime = DateTimeFormat.mediumDateTime().print(getDateTime());
+        String dateTime = Temporal.formatDateTime(getDateTime());
         if (commandFailure != null) {
-
             return String.format("Command '%s' failed at %s:\n%s",
                     commandFailure.getCommand(), dateTime, commandFailure.getMessage());
         }

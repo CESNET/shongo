@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.controller.FilterType;
-import cz.cesnet.shongo.controller.common.IdentifierFormat;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
@@ -105,7 +105,7 @@ public class FilteredValueProvider extends ValueProvider
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getCapability().getResource()) {
-            filteredValueProviderApi.setValueProvider(IdentifierFormat.formatGlobalId(valueProviderResource));
+            filteredValueProviderApi.setValueProvider(EntityIdentifier.formatId(valueProviderResource));
         }
         else {
             filteredValueProviderApi.setValueProvider(valueProvider.toApi());

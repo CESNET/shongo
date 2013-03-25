@@ -14,7 +14,9 @@ use JSON;
 
 our $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
-    'EDUCATION' => 'Education'
+    'EDUCATION' => 'Education',
+    'OWNER' => 'Owner',
+    'MAINTENANCE' => 'Maintenance'
 };
 
 our $ReservationRequestState = {
@@ -42,7 +44,7 @@ sub pre_dispatch
 {
     my ($self, $action) = @_;
     my $application = Shongo::ClientWeb->instance();
-    if ( !defined($application->get_user()) ) {
+    if ( !defined($application->get_authenticated_user()) ) {
         $application->redirect('/sign-in');
         return 0;
     }
@@ -110,9 +112,9 @@ sub create_user_role_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( $self->modify_user_role('Create user role', $params) ) {
-        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+        $self->{'application'}->secure_request('Authorization.createAclRecord',
             RPC::XML::string->new($params->{'user'}),
-            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
         $self->redirect_back();
@@ -124,20 +126,22 @@ sub modify_user_role_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( !defined($self->get_param('confirmed')) ) {
-        my $user_role = $self->{'application'}->secure_request('Authorization.getUserResourceRole', RPC::XML::string->new($params->{'id'}));
-        $params->{'user'} = $user_role->{'user'}->{'userId'};
-        $params->{'resource'} = $user_role->{'resourceId'};
-        $params->{'role'} = $user_role->{'roleId'};
+        my $user_role = $self->{'application'}->secure_request('Authorization.getAclRecord', RPC::XML::string->new($params->{'id'}));
+        $params->{'user'} = $user_role->{'userId'};
+        $params->{'entity'} = $user_role->{'entityId'};
+        $params->{'role'} = $user_role->{'role'};
     }
     if ( $self->modify_user_role('Create user role', $params) ) {
-        $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
-            RPC::XML::string->new($params->{'id'})
-        );
-        $self->{'application'}->secure_request('Authorization.createUserResourceRole',
+        my $id = $self->{'application'}->secure_request('Authorization.createAclRecord',
             RPC::XML::string->new($params->{'user'}),
-            RPC::XML::string->new($params->{'resource'}),
+            RPC::XML::string->new($params->{'entity'}),
             RPC::XML::string->new($params->{'role'})
         );
+        if ( defined($id) && $id ne $params->{'id'} ) {
+            $self->{'application'}->secure_request('Authorization.deleteAclRecord',
+                RPC::XML::string->new($params->{'id'})
+            );
+        }
         $self->redirect_back();
     }
 }
@@ -145,7 +149,7 @@ sub modify_user_role_action
 sub delete_user_role_action
 {
     my ($self) = @_;
-    $self->{'application'}->secure_request('Authorization.deleteUserResourceRole',
+    $self->{'application'}->secure_request('Authorization.deleteAclRecord',
         RPC::XML::string->new($self->get_param('id'))
     );
     $self->redirect_back();
@@ -157,7 +161,7 @@ sub modify_user_role
     if ( defined($self->get_param('confirmed')) ) {
         $params->{'error'} = $self->validate_form($params, {
             required => [
-                'resource',
+                'entity',
                 'user',
                 'role',
             ]
@@ -167,13 +171,13 @@ sub modify_user_role
         }
     }
 
-    my $resource_title = 'resource';
-    if ( defined($params->{'resource'}) ) {
-        if ( $params->{'resource'} =~ 'shongo:.+:req:.+' ) {
-            $resource_title = 'request';
+    my $entity_title = 'entity';
+    if ( defined($params->{'entity'}) ) {
+        if ( $params->{'entity'} =~ 'shongo:.+:req:.+' ) {
+            $entity_title = 'request';
         }
     }
-    $params->{'resourceTitle'} = $resource_title;
+    $params->{'entityTitle'} = $entity_title;
     $params->{'options'} = {
         'ui' => 1
     };
@@ -295,7 +299,7 @@ sub parse_reservation_request
         $request->{'class'} = 'ReservationRequestSet';
         my $slot = {
             'class' => 'PeriodicDateTimeSlot',
-            'start' => $slotStart,
+            'start' => RPC::XML::string->new($slotStart),
             'duration' => $slotDuration
         };
         if ( $params->{'periodicity'} eq 'daily' ) {
@@ -330,7 +334,10 @@ sub get_reservation_request
 
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
-    $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listUserResourceRoles', {}, $id, {});
+    $request->{'userRoles'} = $self->{'application'}->secure_request('Authorization.listAclRecords', {}, $id, {});
+    foreach my $user_role (@{$request->{'userRoles'}}) {
+        $user_role->{'user'} = $self->{'application'}->get_user_information($user_role->{'userId'});
+    }
 
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {
@@ -380,7 +387,7 @@ sub get_reservation_request
             if ( $child_request->{'slot'} =~ /(.*)\/(.*)/ ) {
                 $child_request->{'start'} = $1;
                 $child_request->{'end'} = $2;
-                $request->{'duration'} = interval_get_duration($1, $2);
+                $child_request->{'duration'} = interval_get_duration($1, $2);
             }
             push(@{$child_requests}, $child_request);
         }

@@ -124,6 +124,8 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        validateReservationSlot(RoomReservation.class);
+
         Context context = getContext();
         Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
@@ -252,7 +254,6 @@ public class RoomReservationTask extends ReservationTask
                 RoomReservation roomReservation = new RoomReservation();
                 roomReservation.setSlot(getInterval());
                 roomReservation.setRoomProviderCapability(roomProvider);
-                validateReservationSlot(roomReservation);
 
                 // Room configuration
                 RoomConfiguration roomConfiguration = new RoomConfiguration();
@@ -392,7 +393,6 @@ public class RoomReservationTask extends ReservationTask
                     }
 
                     // Setup abstract room endpoint
-                    roomEndpoint.setUserId(context.getUserId());
                     roomEndpoint.setSlot(getInterval());
                     roomEndpoint.setRoomDescription(context.getReservationDescription());
                     roomEndpoint.setRoomConfiguration(roomConfiguration);
