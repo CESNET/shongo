@@ -518,6 +518,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             // Set room attributes
             setRoomAttributes(attributes, room);
 
+            // Remove all participants first
+            HashMap<String,String> permissionsResetAttributes = new HashMap<String, String>();
+            permissionsResetAttributes.put("acl-id",roomId);
+            request("permissions-reset",permissionsResetAttributes);
+
             // Add/modify participants
             for (UserInformation participant : room.getParticipants()) {
                 addRoomParticipant(roomId, participant);
@@ -740,7 +745,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
                     // Creates /shongo folder if not exists
                     if (meetingsFolderID == null) {
-                        logger.info("Folder /shongo for shongo meetings does not exists, creating...");
+                        logger.debug("Folder /shongo for shongo meetings does not exists, creating...");
 
                         HashMap<String,String> folderAttributes = new HashMap<String, String>();
                         folderAttributes.put("folder-id",sco.getAttributeValue("sco-id"));
@@ -751,7 +756,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
                         meetingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
 
-                        logger.info("Folder /shongo for meetings created with sco-id: " + meetingsFolderID);
+                        logger.debug("Folder /shongo for meetings created with sco-id: " + meetingsFolderID);
                     }
 
                     break;
@@ -984,7 +989,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             /************************/
 
-            System.out.println(acc.getMeetingsFolderID());
 
             acc.disconnect();
 
