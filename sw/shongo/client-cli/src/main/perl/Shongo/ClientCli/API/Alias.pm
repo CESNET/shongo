@@ -32,7 +32,7 @@ our $TypePattern = {
     'H323_IP' => '.*',
     'SIP_URI' => '.+@.+',
     'SIP_IP' => '.*',
-    'ADOBE_CONNECT_URI' => '.+@.+'
+    'ADOBE_CONNECT_URI' => '.+'
 };
 
 #
