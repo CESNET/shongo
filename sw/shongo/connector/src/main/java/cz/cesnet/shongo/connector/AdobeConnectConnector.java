@@ -493,8 +493,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String roomId = response.getChild("sco").getAttributeValue("sco-id");
 
             // Add room participants
-            for (UserInformation participant : room.getParticipants()) {
-                addRoomParticipant(roomId, participant);
+            if (room.getLicenseCount() > 0) {
+                for (UserInformation participant : room.getParticipants()) {
+                    addRoomParticipant(roomId, participant);
+                }
             }
 
             //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
@@ -526,14 +528,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             request("permissions-reset",permissionsResetAttributes);
 
             // Add/modify participants
-            for (UserInformation participant : room.getParticipants()) {
-                addRoomParticipant(roomId, participant);
+            if(room.getLicenseCount() > 0){
+                for (UserInformation participant : room.getParticipants()) {
+                    addRoomParticipant(roomId, participant);
+                }
             }
 
             // Delete participants
             Set<UserInformation> deletedParticipants = room.getPropertyItemsMarkedAsDeleted(Room.PARTICIPANTS);
             for (UserInformation deleteParticipant : deletedParticipants) {
-                throw new TodoImplementException("Delete room participant.");
+                throw new TodoImplementException("Delete room participant.?");
             }
 
             request("sco-update", attributes);
