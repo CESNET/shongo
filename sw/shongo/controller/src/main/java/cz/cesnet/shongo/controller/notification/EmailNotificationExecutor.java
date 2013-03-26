@@ -34,6 +34,11 @@ public class EmailNotificationExecutor extends NotificationExecutor
     private String emailSender = null;
 
     /**
+     * Subject prefix.
+     */
+    private String subjectPrefix = null;
+
+    /**
      * Session for sending emails.
      */
     private Session session;
@@ -60,6 +65,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
         }
 
         emailSender = configuration.getString(Configuration.SMTP_SENDER);
+        subjectPrefix = configuration.getString(Configuration.SMTP_SUBJECT_PREFIX);
 
         Authenticator authenticator = null;
         if (configuration.containsKey(Configuration.SMTP_USERNAME)) {
@@ -123,7 +129,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
             }
 
             message.setFrom(new InternetAddress(emailSender));
-            message.setSubject(notification.getName());
+            message.setSubject(subjectPrefix + notification.getName());
             message.setContent(multipart);
 
             logger.debug("Sending email '{}' from '{}' to '{}'...\n",

@@ -104,8 +104,8 @@ $RUN_CLIENT_CLI <<EOF
                 { type: 'H323_E164', value: '$MCU_CESNET_NUMBER_PREFIX{value}' },
                 { type: 'H323_URI', value: '$MCU_CESNET_NUMBER_PREFIX{value}@{device.address}' },
                 { type: 'H323_IP', value: '195.113.222.60 {value}#' },
-                { type: 'SIP_IP', value: '195.113.222.60 {value}#' },
-                { type: 'SIP_URI', value: '$MCU_CESNET_NUMBER_PREFIX{value}@cesnet.cz' }
+                { type: 'SIP_URI', value: '$MCU_CESNET_NUMBER_PREFIX{value}@cesnet.cz' },
+                { type: 'SIP_IP', value: '195.113.222.60 {value}#' }
             ],
             maximumFuture: 'P1Y',
             permanentRoom: 1,

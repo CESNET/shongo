@@ -20,7 +20,7 @@ our $Type = ordered_hash(
     'H323_URI' => 'H.323 URI',
     'H323_IP' => 'H.323 IP',
     'SIP_URI' => 'SIP URI',
-    'SIP_URI' => 'SIP IP',
+    'SIP_IP' => 'SIP IP',
     'ADOBE_CONNECT_URI' => 'Adobe Connect URI'
 );
 

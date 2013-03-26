@@ -68,6 +68,7 @@ public class Configuration extends CombinedConfiguration
     public static final String SMTP_PORT = "smtp.port";
     public static final String SMTP_USERNAME = "smtp.username";
     public static final String SMTP_PASSWORD = "smtp.password";
+    public static final String SMTP_SUBJECT_PREFIX = "smtp.subject-prefix";
 
     /**
      * Period in which the executor works.

@@ -54,7 +54,7 @@
 
     <!-- SSL configuration -->
     <ssl>
-        <!-- Mapping hosts to different hosts for cerfificate verification -->
+        <!-- Mapping hosts to different hosts for certificate verification -->
         <host-verification-mapping mapped-host="shongo-auth-dev.cesnet.cz" target-host="hroch.cesnet.cz"/>
     </ssl>
 
@@ -101,8 +101,9 @@
 
     <!-- Configuration for sending emails -->
     <smtp>
-        <sender>no-reply@shongo.cz</sender>
         <port>25</port>
+        <sender>no-reply@shongo.cz</sender>
+        <subject-prefix></subject-prefix>
     </smtp>
 
 </configuration>
