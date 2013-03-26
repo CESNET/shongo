@@ -61,7 +61,7 @@
     <!-- Worker periodically starts preprocessor and scheduler -->
     <worker>
         <!-- Period in which the worker is periodically working -->
-        <period>PT10S</period>
+        <period>PT5S</period>
         <!-- Length of working interval -->
         <interval>P31D</interval>
     </worker>

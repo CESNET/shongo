@@ -111,9 +111,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
-            { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
-            { class: 'OtherPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
+            { class: 'OtherPerson', name: 'Admins', email: 'vidcon@cesnet.cz'}
         ]
     }
 
@@ -165,9 +163,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'},
-            { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'},
-            { class: 'OtherPerson', name: 'Milos Liska', email: 'xliska@fi.muni.cz'}
+            { class: 'OtherPerson', name: 'Admins', email: 'vidcon@cesnet.cz'}
         ]
     }
 
