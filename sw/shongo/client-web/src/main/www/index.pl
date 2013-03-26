@@ -87,6 +87,7 @@ $application->load_configuration($configuration);
 my $response = '';
 {
     open(CAUGHT_OUTPUT, '>', \$response);
+    binmode CAUGHT_OUTPUT, ':utf8';
     select CAUGHT_OUTPUT;
 
     # Print history before

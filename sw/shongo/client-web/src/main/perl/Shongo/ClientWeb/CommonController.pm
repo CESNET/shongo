@@ -538,9 +538,10 @@ sub process_reservation
 }
 
 #
-# @param $reference  reference to hash where the 'aliases' and 'aliasesDescription' keys should be placed
-# @param $aliases    collection of aliases
-# @param $available  specifies whether aliases are available now
+# @param $reference      reference to hash where the 'aliases' and 'aliasesDescription' keys should be placed
+# @param $aliases        collection of aliases
+# @param $available      specifies whether aliases are available now
+# @param $not_available  specifies whether $available should be ignored
 #
 sub format_aliases
 {
