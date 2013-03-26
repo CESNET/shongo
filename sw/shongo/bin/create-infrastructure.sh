@@ -17,6 +17,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=200:399
         CONNECT_CESNET=https://connect.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
+        RESOURCE_ADMIN_EMAIL=vidcon@cesnet.cz
         ;;
     shongo-dev )
         CONTROLLER=195.113.151.181
@@ -27,6 +28,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=050:099
         CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
+        RESOURCE_ADMIN_EMAIL=vidcon@cesnet.cz
         ;;
     * )
         CONTROLLER=127.0.0.1
@@ -37,6 +39,7 @@ case $MODE in
         MCU_CESNET_NUMBER_RANGE=090:099
         CONNECT_CESNET=https://actest-w3.cesnet.cz
         CONNECT_CESNET_LICENSE_COUNT=20
+        RESOURCE_ADMIN_EMAIL=srom.martin@gmail.com
         ;;
 esac
 
@@ -111,7 +114,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Admins', email: 'vidcon@cesnet.cz'}
+            { class: 'OtherPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
         ]
     }
 
@@ -163,7 +166,7 @@ $RUN_CLIENT_CLI <<EOF
             permanentRoom: 1,
         }],
         administrators: [
-            { class: 'OtherPerson', name: 'Admins', email: 'vidcon@cesnet.cz'}
+            { class: 'OtherPerson', name: 'Admins', email: '$RESOURCE_ADMIN_EMAIL'}
         ]
     }
 

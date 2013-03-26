@@ -401,15 +401,15 @@ sub get_reservation_request
 
     # Requested specification
     my $specification = $request->{'specification'};
+    my $not_available = 0;
     if ( !defined($specification) ) {
         $self->error("Reservation request should have specification defined.");
     }
     if ( $specification->{'class'} eq 'RoomSpecification' ) {
         $request->{'participantCount'} = $specification->{'participantCount'};
     }
-    elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
-    }
-    elsif ( $specification->{'class'} eq 'AliasSetSpecification' ) {
+    elsif ( $specification->{'class'} eq 'AliasSpecification' || $specification->{'class'} eq 'AliasSetSpecification' ) {
+        $not_available = 1;
     }
     else {
         $self->error("Reservation request has unknown specification '$specification->{'class'}'.");
@@ -441,7 +441,7 @@ sub get_reservation_request
         # Allocated reservation
         if ( defined($child_request->{'reservationId'}) ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation', $child_request->{'reservationId'});
-            $self->process_reservation($reservation, $state_code eq 'started');
+            $self->process_reservation($reservation, $state_code eq 'started', $not_available);
 
             if ( $specification->{'class'} eq 'AliasSpecification' || $specification->{'class'} eq 'AliasSetSpecification') {
                 my $aliasUsageRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
@@ -507,16 +507,16 @@ sub process_reservation_request_summary
 #
 sub process_reservation
 {
-    my ($self, $reservation, $available) = @_;
+    my ($self, $reservation, $available, $not_available) = @_;
     if ( $reservation->{'class'} eq 'AliasReservation' ) {
-        $self->format_aliases($reservation, $reservation->{'aliases'}, $available);
+        $self->format_aliases($reservation, $reservation->{'aliases'}, $available, $not_available);
     }
     elsif ( $reservation->{'class'} eq 'RoomReservation' ) {
-        $self->format_aliases($reservation, $reservation->{'executable'}->{'aliases'}, $available);
+        $self->format_aliases($reservation, $reservation->{'executable'}->{'aliases'}, $available, $not_available);
     }
     elsif ( $reservation->{'class'} eq 'ExistingReservation' ) {
         my $reusedReservation = $reservation->{'reservation'};
-        $self->process_reservation($reusedReservation, $available);
+        $self->process_reservation($reusedReservation, $available, $not_available);
         delete $reservation->{'reservation'};
         for my $key (keys %{$reusedReservation}) {
             $reservation->{$key} = $reusedReservation->{$key};
@@ -532,7 +532,7 @@ sub process_reservation
         }
 
         if ( scalar(@{$aliases}) > 0 ) {
-            $self->format_aliases($reservation, $aliases, $available);
+            $self->format_aliases($reservation, $aliases, $available, $not_available);
         }
     }
 }
@@ -544,7 +544,7 @@ sub process_reservation
 #
 sub format_aliases
 {
-    my ($self, $reference, $aliases, $available) = @_;
+    my ($self, $reference, $aliases, $available, $not_available) = @_;
     my $aliases_text = '';
     my $aliases_description = '';
     my $previous_type = '';
@@ -587,7 +587,7 @@ sub format_aliases
             $aliases_description .= '<dt>SIP IP:</dt><dd>' . $aliasValue . '&nbsp;</dd>';
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
-            if ( $available ) {
+            if ( $available && !$not_available ) {
                 $aliases_text .= '<a class="nowrap" href="' . $alias->{'value'} . '" target="_blank">' . $alias->{'value'} . '</a>';
             }
             else {
@@ -600,7 +600,7 @@ sub format_aliases
         }
         $previous_type = $alias->{'type'};
     }
-    if ( !$available ) {
+    if ( !$available && !$not_available) {
         $aliases_text .= "<span class='muted nowrap' style='float:left'>&nbsp;(not available now)</span>";
     }
     if ( length($aliases_description) == 0 ){
