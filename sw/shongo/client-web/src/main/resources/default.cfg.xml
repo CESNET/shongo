@@ -6,6 +6,9 @@
     <!-- Controller url -->
     <controller>http://127.0.0.1:8181</controller>
 
+    <!-- Application title suffix -->
+    <suffix> (BETA)</suffix>
+
     <!-- Contact email -->
     <contact>vidcon@cesnet.cz</contact>
 
