@@ -11,6 +11,7 @@ use warnings;
 use Shongo::Common;
 use DateTime::Format::Duration;
 use JSON;
+use Encode;
 
 our $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
@@ -90,7 +91,7 @@ sub get_user_action
     my ($self) = @_;
     my $user_id = $self->get_param('id');
     my $user = $self->{'application'}->secure_request('Authorization.getUser', RPC::XML::string->new($user_id));
-    print to_json($user, { utf8  => 1 });
+    print to_json($user);
 }
 
 sub list_users_action
@@ -104,7 +105,7 @@ sub list_users_action
         $filter = {};
     }
     my $users = $self->{'application'}->secure_request('Authorization.listUsers', $filter);
-    print to_json($users, { utf8  => 1 });
+    print to_json($users);
 }
 
 sub create_user_role_action
