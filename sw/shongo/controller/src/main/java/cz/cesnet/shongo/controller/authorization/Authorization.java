@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
@@ -447,7 +448,13 @@ public abstract class Authorization
             if (entity == null) {
                 ControllerFaultSet.throwEntityNotFoundFault(entityId);
             }
-            return createAclRecordsWithChildren(userId, entityId, role, entity);
+            EntityType entityType = entityId.getEntityType();
+            if (!entityType.allowsRole(role)) {
+                ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
+            }
+            AclRecord aclRecord = createSingleAclRecord(userId, entityId, role);
+            createChildAclRecords(userId, entity, role);
+            return aclRecord;
         }
         finally {
             entityManager.close();
@@ -460,16 +467,19 @@ public abstract class Authorization
      * @param userId of user for which the ACL is created.
      * @param entity for which the ACL is created.
      * @param role   which is created for given user and given entity
+     * @return new {@link AclRecord}
      * @throws FaultException when the creation failed.
      */
-    public void createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
+    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
     {
         if (userId.equals(Authorization.ROOT_USER_ID)) {
-            return;
+            return null;
         }
-        createAclRecordsWithChildren(userId, new EntityIdentifier(entity), role, entity);
+        EntityIdentifier entityId = new EntityIdentifier(entity);
+        AclRecord aclRecord = createSingleAclRecord(userId, entityId, role);
+        createChildAclRecords(userId, entity, role);
+        return aclRecord;
     }
-
 
     /**
      * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
@@ -484,12 +494,14 @@ public abstract class Authorization
     {
         EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
         EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-        EntityType childEntityType = childEntityId.getEntityType();
         for (AclRecord aclRecord : getAclRecords(parentEntityId)) {
+            String userId = aclRecord.getUserId();
             Role role = aclRecord.getRole();
+            EntityType childEntityType = childEntityId.getEntityType();
             if (childEntityType.allowsRole(role)) {
-                createAclRecordsWithChildren(aclRecord.getUserId(), childEntityId, role, childEntity);
+                createSingleAclRecord(userId, childEntityId, role);
             }
+            createChildAclRecords(userId, childEntity, role);
         }
     }
 
@@ -510,7 +522,7 @@ public abstract class Authorization
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity != null) {
-                for (AclRecord childAclRecord : getChildAclRecords(userId, entityId, aclRecord.getRole(), entity)) {
+                for (AclRecord childAclRecord : getChildAclRecords(userId, entity, aclRecord.getRole())) {
                     deleteSingleAclRecord(childAclRecord);
                 }
             }
@@ -671,7 +683,6 @@ public abstract class Authorization
         if (!entityType.allowsRole(role)) {
             ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
         }
-
         Collection<AclRecord> aclRecords = getAclRecords(userId, entityId, role);
         int size = aclRecords.size();
         if (size == 1) {
@@ -743,49 +754,46 @@ public abstract class Authorization
 
     /**
      * Create {@link AclRecord} for given parameters and also corresponding {@link AclRecord}s for children entities.
+     * Each {@link AclRecord} is created only when a role make se for it.
      *
-     * @param userId   of user for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
-     * @param entity   entity for which the ACL is created.
-     * @return newly created {@link AclRecord}
+     * @param userId of user for which the ACL is created.
+     * @param entity entity for which the ACL is created.
+     * @param role   which is created for given user and given entity
+     * @return newly created {@link AclRecord} or null if given {@code role} does not make sense for the entity
      * @throws FaultException
      */
-    private AclRecord createAclRecordsWithChildren(String userId, EntityIdentifier entityId, Role role,
-            PersistentObject entity) throws FaultException
+    private void createChildAclRecords(String userId, PersistentObject entity, Role role) throws FaultException
     {
-        AclRecord aclRecord = createSingleAclRecord(userId, entityId, role);
-        for (PersistentObject childEntity : getChildEntities(entity)) {
+        Map<PersistentObject, Role> childEntities = new HashMap<PersistentObject, Role>();
+        getChildEntities(entity, role, childEntities);
+        for (Map.Entry<PersistentObject, Role> entry : childEntities.entrySet()) {
+            PersistentObject childEntity = entry.getKey();
             EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-            if (role == null || !childEntityId.getEntityType().allowsRole(role)) {
-                continue;
-            }
-            createAclRecordsWithChildren(userId, childEntityId, role, childEntity);
+            Role childRole = entry.getValue();
+            createSingleAclRecord(userId, childEntityId, childRole);
         }
-        return aclRecord;
     }
 
     /**
      * Retrieve all child {@link AclRecord}s for given parameters.
      *
-     * @param userId   of the parent {@link AclRecord}
-     * @param entityId of entity of the parent {@link AclRecord}
-     * @param role     of the parent {@link AclRecord}
-     * @param entity   of the parent {@link AclRecord}
+     * @param userId of the parent {@link AclRecord}
+     * @param entity of the parent {@link AclRecord}
+     * @param role   of the parent {@link AclRecord}
      * @return collection of child {@link AclRecord}s
      * @throws FaultException
      */
-    private Collection<AclRecord> getChildAclRecords(String userId, EntityIdentifier entityId, Role role,
-            PersistentObject entity) throws FaultException
+    private Collection<AclRecord> getChildAclRecords(String userId, PersistentObject entity, Role role)
+            throws FaultException
     {
+        Map<PersistentObject, Role> childEntities = new HashMap<PersistentObject, Role>();
+        getChildEntities(entity, role, childEntities);
         Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        for (PersistentObject childEntity : getChildEntities(entity)) {
+        for (Map.Entry<PersistentObject, Role> entry : childEntities.entrySet()) {
+            PersistentObject childEntity = entry.getKey();
             EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-            if (role != null && !childEntityId.getEntityType().allowsRole(role)) {
-                continue;
-            }
-            aclRecords.addAll(getAclRecords(userId, childEntityId, role));
-            aclRecords.addAll(getChildAclRecords(userId, childEntityId, role, childEntity));
+            Role childRole = entry.getValue();
+            aclRecords.addAll(getAclRecords(userId, childEntityId, childRole));
         }
         return aclRecords;
     }
@@ -794,29 +802,55 @@ public abstract class Authorization
      * @param entity for which the child entities should be returned
      * @return child entities for given {@code entity}
      */
-    private Collection<PersistentObject> getChildEntities(PersistentObject entity)
+    private void getChildEntities(PersistentObject entity, Role role, Map<PersistentObject, Role> childEntities)
     {
-        Collection<PersistentObject> childEntities = new LinkedList<PersistentObject>();
         if (entity instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
-            childEntities.addAll(reservationRequestSet.getReservationRequests());
+            for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
+                    childEntities.put(reservationRequest, role);
+                }
+                getChildEntities(reservationRequest, role, childEntities);
+            }
         }
         else if (entity instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) entity;
             Reservation reservation = reservationRequest.getReservation();
             if (reservation != null) {
-                childEntities.add(reservation);
+                if (EntityType.EXECUTABLE.allowsRole(role)) {
+                    childEntities.put(reservation, role);
+                }
+                getChildEntities(reservation, role, childEntities);
             }
         }
         else if (entity instanceof Reservation) {
             Reservation reservation = (Reservation) entity;
+
+            // Child reservations
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                if (EntityType.RESERVATION.allowsRole(role)) {
+                    childEntities.put(childReservation, role);
+                }
+                getChildEntities(childReservation, role, childEntities);
+            }
+
+            // Executable
             Executable executable = reservation.getExecutable();
-            childEntities.addAll(reservation.getChildReservations());
             if (executable != null) {
-                childEntities.add(executable);
+                if (EntityType.EXECUTABLE.allowsRole(role)) {
+                    childEntities.put(executable, role);
+                }
+                getChildEntities(executable, role, childEntities);
+            }
+
+            // Reused reservation
+            if (reservation instanceof ExistingReservation) {
+                ExistingReservation existingReservation = (ExistingReservation) reservation;
+                Reservation reusedReservation = existingReservation.getReservation();
+                childEntities.put(reusedReservation, Role.READER);
+                getChildEntities(reusedReservation, Role.READER, childEntities);
             }
         }
-        return childEntities;
     }
 
     /**

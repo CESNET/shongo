@@ -22,7 +22,14 @@ public enum Role
      *
      * @see {@link Permission#PROVIDE_RESERVATION}
      */
-    RESERVATION_USER("2");
+    RESERVATION_USER("2"),
+
+    /**
+     * This role allows the user to read/view entity.
+     *
+     * @see {@link Permission#READ}
+     */
+    READER("3");
 
     /**
      * Role unique identifier.

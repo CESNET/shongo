@@ -19,6 +19,9 @@ public enum EntityType
                     Permission.WRITE,
                     Permission.CONTROL_RESOURCE,
             });
+            put(Role.READER, new Permission[]{
+                    Permission.READ
+            });
         }}),
 
     /**
@@ -30,6 +33,9 @@ public enum EntityType
                     Permission.READ,
                     Permission.WRITE,
                     Permission.PROVIDE_RESERVATION
+            });
+            put(Role.READER, new Permission[]{
+                    Permission.READ
             });
             put(Role.RESERVATION_USER, new Permission[]{
                     Permission.READ,
@@ -47,6 +53,9 @@ public enum EntityType
                     Permission.WRITE,
                     Permission.PROVIDE_RESERVATION
             });
+            put(Role.READER, new Permission[]{
+                    Permission.READ
+            });
             put(Role.RESERVATION_USER, new Permission[]{
                     Permission.READ,
                     Permission.PROVIDE_RESERVATION
@@ -60,6 +69,9 @@ public enum EntityType
     {{
             put(Role.OWNER, new Permission[]{
                     Permission.READ, Permission.WRITE
+            });
+            put(Role.READER, new Permission[]{
+                    Permission.READ
             });
         }});
 
