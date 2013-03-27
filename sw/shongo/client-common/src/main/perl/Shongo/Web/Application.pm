@@ -11,6 +11,7 @@ use warnings;
 use URI::Escape;
 use Shongo::Common;
 use Log::Log4perl;
+use Encode;
 
 #
 # Create a new instance of object.
@@ -219,6 +220,14 @@ sub render_page
     # Render given file content
     if ( !defined($parameters) ) {
         $parameters = {};
+    }
+    else {
+        # Decode all string values
+        foreach my $key (keys %{$parameters}) {
+            if ( !ref($parameters->{$key}) ) {
+                $parameters->{$key} = decode_utf8($parameters->{$key});
+            }
+        }
     }
     $parameters->{'title'} = $title;
     $parameters->{'back'} = $self->get_back();
