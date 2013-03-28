@@ -73,7 +73,7 @@ sub get_params_post
         my $hash = $self->{'application'}->{'cgi'}->Vars;
         my $params = {};
         foreach my $name (keys %{$hash}) {
-            $params->{$name} = decode_utf8($hash->{$name});
+            $params->{$name} = $hash->{$name};
         }
         return $params;
     }
@@ -90,13 +90,13 @@ sub get_params_get
         my $hash = $self->{'application'}->{'cgi'}->Vars;
         my $params = {};
         foreach my $name (keys %{$hash}) {
-            $params->{$name} = decode_utf8($hash->{$name});
+            $params->{$name} = $hash->{$name};
         }
         return $params;
     }
     my $result = {};
     foreach my $param ($self->{'application'}->{'cgi'}->url_param()) {
-        $result->{$param} = decode_utf8($self->{'application'}->{'cgi'}->url_param($param));
+        $result->{$param} = $self->{'application'}->{'cgi'}->url_param($param);
     }
     return $result;
 }
@@ -108,9 +108,9 @@ sub get_params_get
 sub get_param
 {
     my ($self, $name) = @_;
-    my $value = decode_utf8($self->{'application'}->{'cgi'}->param($name));
+    my $value = $self->{'application'}->{'cgi'}->param($name);
     if ( !defined($value) ) {
-        $value = decode_utf8($self->{'application'}->{'cgi'}->url_param($name));
+        $value = $self->{'application'}->{'cgi'}->url_param($name);
         if ( !defined($value) ) {
             my @keywords = $self->{'application'}->{'cgi'}->url_param('keywords');
             if ( scalar(@keywords) == 0 ) {
