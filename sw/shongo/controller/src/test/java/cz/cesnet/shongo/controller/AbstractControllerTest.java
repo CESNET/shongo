@@ -19,16 +19,27 @@ import static junit.framework.Assert.*;
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
     /**
-     * {@link SecurityToken} for normal user.
-     */
-    protected static final SecurityToken SECURITY_TOKEN =
-            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
-
-    /**
      * {@link SecurityToken} for admin.
      */
     protected static final SecurityToken SECURITY_TOKEN_ROOT =
             new SecurityToken("302be4e89def6d9de3021fd7566d3bc7131284ec");
+
+    /**
+     * {@link SecurityToken} for normal user #1.
+     */
+    protected static final SecurityToken SECURITY_TOKEN_USER1 =
+            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
+
+    /**
+     * {@link SecurityToken} for normal user #2.
+     */
+    protected static final SecurityToken SECURITY_TOKEN_USER2 =
+            new SecurityToken("8f474989e2b0011b8fa285c2346e5f6ca3dc809c");
+
+    /**
+     * @see #SECURITY_TOKEN_USER1
+     */
+    protected static final SecurityToken SECURITY_TOKEN = SECURITY_TOKEN_USER1;
 
     /**
      * @see Controller
@@ -265,7 +276,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected Reservation checkAllocated(String reservationRequestId) throws Exception
     {
         AbstractReservationRequest abstractReservationRequest =
-                getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestId);
+                getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         ReservationRequest reservationRequest;
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
@@ -283,7 +294,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
                 ReservationRequestState.ALLOCATED, reservationRequest.getState());
         String reservationId = reservationRequest.getReservationId();
         assertNotNull(reservationId);
-        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationId);
+        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
         assertNotNull("Reservation should be allocated for the reservation request.", reservation);
         return reservation;
     }
@@ -298,7 +309,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     protected void checkAllocationFailed(String reservationRequestId) throws Exception
     {
         AbstractReservationRequest abstractReservationRequest = getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestId);
+                SECURITY_TOKEN_ROOT, reservationRequestId);
         ReservationRequest reservationRequest;
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
@@ -315,21 +326,30 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @see #allocate(SecurityToken, AbstractReservationRequest)
+     */
+    protected String allocate(AbstractReservationRequest reservationRequest) throws Exception
+    {
+        return allocate(SECURITY_TOKEN, reservationRequest);
+    }
+
+    /**
      * Allocate given {@code reservationRequest}.
      *
+     * @param securityToken
      * @param reservationRequest to be allocated
      * @return shongo-id of created or modified {@link ReservationRequest}
      * @throws Exception
      */
-    protected String allocate(AbstractReservationRequest reservationRequest) throws Exception
+    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest) throws Exception
     {
         String reservationRequestId;
         if (reservationRequest.getId() == null) {
-            reservationRequestId = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+            reservationRequestId = getReservationService().createReservationRequest(securityToken, reservationRequest);
         }
         else {
             reservationRequestId = reservationRequest.getId();
-            getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+            getReservationService().modifyReservationRequest(securityToken, reservationRequest);
         }
         if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();
@@ -346,9 +366,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     public void reallocate(String reservationRequestId) throws Exception
     {
-        AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(
+                SECURITY_TOKEN_ROOT, reservationRequestId);
+        getReservationService().modifyReservationRequest(SECURITY_TOKEN_ROOT, reservationRequest);
         if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();
         }

@@ -20,7 +20,7 @@ public class TechnologyTest
      * @param array
      * @return set of technologies from array of technologies
      */
-    private Set<Technology> buildSet(Technology[] array)
+    private static Set<Technology> buildSet(Technology[] array)
     {
         Set<Technology> set = new HashSet<Technology>();
         for (Technology technology : array) {
@@ -33,7 +33,7 @@ public class TechnologyTest
      * @param arrays
      * @return set of sets from array of arrays of {@link Technology}
      */
-    private Set<Set<Technology>> buildSet(Technology[][] arrays)
+    private static Set<Set<Technology>> buildSet(Technology[][] arrays)
     {
         Set<Set<Technology>> sets = new HashSet<Set<Technology>>();
         for (Technology[] array : arrays) {

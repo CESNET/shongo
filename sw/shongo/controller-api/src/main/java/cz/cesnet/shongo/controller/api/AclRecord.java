@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.rpc.StructType;
 import cz.cesnet.shongo.controller.Role;
 
@@ -33,6 +31,27 @@ public class AclRecord implements StructType
      * {@link cz.cesnet.shongo.controller.Role} which the user gets granted for the entity with {@link #entityId}.
      */
     Role role;
+
+    /**
+     * Constructor.
+     */
+    public AclRecord()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userId   sets the {@link #userId}
+     * @param entityId sets the {@link #entityId}
+     * @param role     sets the {@link #role}
+     */
+    public AclRecord(String userId, String entityId, Role role)
+    {
+        this.userId = userId;
+        this.entityId = entityId;
+        this.role = role;
+    }
 
     /**
      * @return {@link #id}
@@ -101,6 +120,40 @@ public class AclRecord implements StructType
     @Override
     public String toString()
     {
-        return String.format("AclRecord (id: %s, user: %s, entity: %s, role: %s)", id, userId, entityId, role);
+        return String.format("AclRecord (user: %s, entity: %s, role: %s)", userId, entityId, role);
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AclRecord record = (AclRecord) o;
+
+        if (entityId != null ? !entityId.equals(record.entityId) : record.entityId != null) {
+            return false;
+        }
+        if (role != record.role) {
+            return false;
+        }
+        if (userId != null ? !userId.equals(record.userId) : record.userId != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = userId != null ? userId.hashCode() : 0;
+        result = 31 * result + (entityId != null ? entityId.hashCode() : 0);
+        result = 31 * result + (role != null ? role.hashCode() : 0);
+        return result;
     }
 }
