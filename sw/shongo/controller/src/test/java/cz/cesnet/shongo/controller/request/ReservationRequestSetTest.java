@@ -28,6 +28,22 @@ import static junit.framework.Assert.*;
  */
 public class ReservationRequestSetTest extends AbstractDatabaseTest
 {
+    @Override
+    public void before() throws Exception
+    {
+        super.before();
+
+        Domain.setLocalDomain(new Domain("cz.cesnet"));
+    }
+
+    @Override
+    public void after()
+    {
+        Domain.setLocalDomain(null);
+
+        super.after();
+    }
+
     @Test
     public void test() throws Exception
     {
@@ -58,10 +74,12 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             preprocessor = new Preprocessor();
             preprocessor.setCache(cache);
+            preprocessor.setAuthorization(new DummyAuthorization());
             preprocessor.init();
 
             scheduler = new Scheduler();
             scheduler.setCache(cache);
+            scheduler.setAuthorization(new DummyAuthorization());
             scheduler.init();
 
             EntityManager entityManager = getEntityManager();

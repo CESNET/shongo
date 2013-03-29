@@ -28,6 +28,22 @@ import static org.junit.Assert.assertThat;
  */
 public class PreprocessorTest extends AbstractDatabaseTest
 {
+    @Override
+    public void before() throws Exception
+    {
+        super.before();
+
+        Domain.setLocalDomain(new Domain("cz.cesnet"));
+    }
+
+    @Override
+    public void after()
+    {
+        Domain.setLocalDomain(null);
+
+        super.after();
+    }
+
     @Test
     public void test() throws Exception
     {
@@ -35,6 +51,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
+        preprocessor.setAuthorization(new DummyAuthorization());
         preprocessor.init();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -115,6 +132,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
+        preprocessor.setAuthorization(new DummyAuthorization());
         preprocessor.init();
 
         EntityManager entityManager = getEntityManager();
@@ -163,6 +181,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
+        preprocessor.setAuthorization(new DummyAuthorization());
         preprocessor.init();
 
         Interval preprocessorInterval = new Interval(DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03"));

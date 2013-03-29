@@ -45,6 +45,9 @@ public class AuthorizationManager extends AbstractManager
     {
         super(entityManager);
 
+        if (authorization == null) {
+            throw new IllegalArgumentException("Authorization must not be null.");
+        }
         this.authorization = authorization;
     }
 

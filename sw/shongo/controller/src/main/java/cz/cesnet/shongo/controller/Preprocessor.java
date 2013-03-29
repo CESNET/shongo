@@ -138,6 +138,9 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 }
             }
 
+            // New reservation requests for creating ACL records
+            Collection<ReservationRequest> newReservationRequests = new LinkedList<ReservationRequest>();
+
             // For each requested slot we must create or modify reservation request.
             // If we find date/time slot in prepared map we modify the corresponding request
             // and remove it from map, otherwise we create a new reservation request.
@@ -162,8 +165,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
 
-                    // Create ACL records
-                    authorizationManager.createAclRecordForChildEntity(reservationRequestSet, reservationRequest);
+                    newReservationRequests.add(reservationRequest);
                 }
                 reservationRequest.updateStateBySpecification();
             }
@@ -199,6 +201,11 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             // Set state preprocessed state for the interval to reservation request
             PreprocessorStateManager.setState(entityManager, reservationRequestSet,
                     PreprocessorState.PREPROCESSED, interval);
+
+            // Create ACL records
+            for (ReservationRequest reservationRequest : newReservationRequests) {
+                authorizationManager.createAclRecordForChildEntity(reservationRequestSet, reservationRequest);
+            }
 
             entityManager.getTransaction().commit();
         }
