@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -405,21 +406,63 @@ public class AuthorizationManager extends AbstractManager
         return childEntities;
     }
 
-    public AclRecord executeAclRecordCreateRequest(AclRecordCreateRequest aclRecordCreateRequest)
+    public AclRecord executeAclRecordCreateRequest(AclRecordCreateRequest aclRecordCreateRequest) throws FaultException
     {
-        entityManager.getTransaction().begin();
+        String userId = aclRecordCreateRequest.getUserId();
+        EntityIdentifier entityId = EntityIdentifier.parse(aclRecordCreateRequest.getEntityId());
+        Role role = aclRecordCreateRequest.getRole();
+        AclRecord aclRecord = authorization.createAclRecord(userId, entityId, role);
+        entityManager.remove(aclRecordCreateRequest);
 
-        entityManager.getTransaction().commit();
+        for (AclRecordCreateRequest childAclRecordCreateRequest : aclRecordCreateRequest.getChildCreateRequests()) {
+            executeAclRecordCreateRequest(childAclRecordCreateRequest);
+        }
 
-        return null;
+        return aclRecord;
     }
 
     public void executeAclRecordRequests()
     {
-        entityManager.getTransaction().begin();
+        Collection<AclRecordCreateRequest> aclRecordCreateRequests = entityManager.createQuery(
+                "SELECT request FROM AclRecordCreateRequest request ORDER BY id ASC", AclRecordCreateRequest.class)
+                .getResultList();
 
+        Collection<AclRecordDeleteRequest> aclRecordDeleteRequests = entityManager.createQuery(
+                "SELECT request FROM AclRecordDeleteRequest request ORDER BY id ASC", AclRecordDeleteRequest.class)
+                .getResultList();
 
-        //throw new TodoImplementException();
-        entityManager.getTransaction().commit();
+        try {
+            entityManager.getTransaction().begin();
+
+            for (AclRecordCreateRequest aclRecordCreateRequest : aclRecordCreateRequests) {
+                String userId = aclRecordCreateRequest.getUserId();
+                EntityIdentifier entityId = EntityIdentifier.parse(aclRecordCreateRequest.getEntityId());
+                Role role = aclRecordCreateRequest.getRole();
+                authorization.createAclRecord(userId, entityId, role);
+
+                // TODO: Create AclRecordDependency
+
+                entityManager.remove(aclRecordCreateRequest);
+            }
+
+            for (AclRecordDeleteRequest aclRecordDeleteRequest: aclRecordDeleteRequests) {
+                AclRecord aclRecord = authorization.getAclRecord(aclRecordDeleteRequest.getAclRecordId());
+                authorization.deleteAclRecord(aclRecord);
+
+                // TODO: Delete AclRecordDependency
+
+                entityManager.remove(aclRecordDeleteRequest);
+            }
+
+            entityManager.getTransaction().commit();
+        }
+        catch (Exception exception) {
+            logger.error("Executing ACL failed", exception);
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+        }
     }
 }

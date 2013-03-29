@@ -561,7 +561,7 @@ public abstract class Authorization
      * @return new {@link AclRecord}
      * @throws FaultException when the creation failed.
      */
-    private AclRecord createSingleAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
@@ -610,7 +610,7 @@ public abstract class Authorization
      * @param aclRecord to be deleted
      * @throws FaultException when the deletion failed
      */
-    private void deleteSingleAclRecord(AclRecord aclRecord) throws FaultException
+    void deleteAclRecord(AclRecord aclRecord) throws FaultException
     {
         onDeleteAclRecord(aclRecord);
 

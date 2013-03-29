@@ -96,11 +96,18 @@ public class AuthorizationServiceImpl extends Component
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
-        AclRecordCreateRequest aclRecordCreateRequest;
         try {
             entityManager.getTransaction().begin();
-            aclRecordCreateRequest = authorizationManager.createAclRecord(userId, entityIdentifier, role);
+            AclRecordCreateRequest aclRecordCreateRequest =
+                    authorizationManager.createAclRecord(userId, entityIdentifier, role);
             entityManager.getTransaction().commit();
+            if (aclRecordCreateRequest == null) {
+                return null;
+            }
+            entityManager.getTransaction().begin();
+            String aclRecordId = authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest).getId();
+            entityManager.getTransaction().commit();
+            return aclRecordId;
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -108,10 +115,6 @@ public class AuthorizationServiceImpl extends Component
             }
             entityManager.close();
         }
-        if (aclRecordCreateRequest == null) {
-            return null;
-        }
-        return authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest).getId();
     }
 
     @Override
