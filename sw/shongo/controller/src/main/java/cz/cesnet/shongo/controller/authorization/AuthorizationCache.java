@@ -17,27 +17,27 @@ public class AuthorizationCache
     /**
      * Cache of user-id by access token.
      */
-    private Cache<String, String> userIdCache = new Cache<String, String>();
+    private ExpirationMap<String, String> userIdCache = new ExpirationMap<String, String>();
 
     /**
      * Cache of {@link cz.cesnet.shongo.api.UserInformation} by user-id.
      */
-    private Cache<String, UserInformation> userInformationCache = new Cache<String, UserInformation>();
+    private ExpirationMap<String, UserInformation> userInformationCache = new ExpirationMap<String, UserInformation>();
 
     /**
      * Cache of {@link AclRecord} by {@link AclRecord#id}.
      */
-    private Cache<String, AclRecord> aclRecordCache = new Cache<String, AclRecord>();
+    private ExpirationMap<String, AclRecord> aclRecordCache = new ExpirationMap<String, AclRecord>();
 
     /**
      * Cache of {@link AclUserState} by user-id.
      */
-    private Cache<String, AclUserState> aclUserStateCache = new Cache<String, AclUserState>();
+    private ExpirationMap<String, AclUserState> aclUserStateCache = new ExpirationMap<String, AclUserState>();
 
     /**
      * Cache of {@link AclEntityState} by {@link EntityIdentifier}.
      */
-    private Cache<EntityIdentifier, AclEntityState> aclEntityStateCache = new Cache<EntityIdentifier, AclEntityState>();
+    private ExpirationMap<EntityIdentifier, AclEntityState> aclEntityStateCache = new ExpirationMap<EntityIdentifier, AclEntityState>();
 
     /**
      * @param expiration sets the {@link #userIdCache} expiration
@@ -180,123 +180,5 @@ public class AuthorizationCache
     public synchronized void putAclEntityStateByEntityId(EntityIdentifier entityId, AclEntityState aclEntityState)
     {
         aclEntityStateCache.put(entityId, aclEntityState);
-    }
-
-    /**
-     * Represents a cache of {@link V} by {@link K} with {@link #expiration}.
-     * @param <K>
-     * @param <V>
-     */
-    private static class Cache<K, V> implements Iterable<V>
-    {
-        /**
-         * Cache of {@link V} by {@link K}.
-         */
-        private Map<K, CacheEntry<V>> entries = new HashMap<K, CacheEntry<V>>();
-
-        /**
-         * Specifies expiration for the {@link #entries}.
-         */
-        private Duration expiration = null;
-
-        /**
-         * @param expiration sets the {@link #expiration}
-         */
-        public void setExpiration(Duration expiration)
-        {
-            this.expiration = expiration;
-        }
-
-        /**
-         * @param key
-         * @return {@link V} by given {@code key}
-         */
-        public synchronized V get(K key)
-        {
-            CacheEntry<V> entry = entries.get(key);
-            if (entry != null) {
-                if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
-                    return entry.value;
-                }
-                else {
-                    entries.remove(key);
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Put given {@code value} to the cache by the given {@code key}.
-         *
-         * @param key
-         * @param value
-         */
-        public synchronized void put(K key, V value)
-        {
-            Cache.CacheEntry<V> entry = entries.get(key);
-            if (entry == null) {
-                entry = new CacheEntry<V>();
-                entries.put(key, entry);
-            }
-            if (expiration != null) {
-                entry.expirationDateTime = DateTime.now().plus(expiration);
-            }
-            else {
-                entry.expirationDateTime = null;
-            }
-            entry.value = value;
-        }
-
-        /**
-         * Remove given {@code key}.
-         *
-         * @param key
-         */
-        public synchronized void remove(K key)
-        {
-            entries.remove(key);
-        }
-
-        /**
-         * Entry for {@link Cache}.
-         */
-        public static class CacheEntry<V>
-        {
-            /**
-             * Expiration {@link DateTime}.
-             */
-            private DateTime expirationDateTime;
-
-            /**
-             * Value.
-             */
-            private V value;
-        }
-
-        @Override
-        public Iterator<V> iterator()
-        {
-            final Iterator<CacheEntry<V>> iterator = entries.values().iterator();
-            return new Iterator<V>()
-            {
-                @Override
-                public boolean hasNext()
-                {
-                    return iterator.hasNext();
-                }
-
-                @Override
-                public V next()
-                {
-                    return iterator.next().value;
-                }
-
-                @Override
-                public void remove()
-                {
-                    iterator.remove();
-                }
-            };
-        }
     }
 }

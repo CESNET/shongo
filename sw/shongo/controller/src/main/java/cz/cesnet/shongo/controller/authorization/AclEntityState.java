@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 
 import java.util.*;
 
@@ -26,7 +27,7 @@ public class AclEntityState
      */
     public synchronized void addAclRecord(AclRecord aclRecord)
     {
-        if ( aclRecords.add(aclRecord) ) {
+        if (aclRecords.add(aclRecord)) {
             Role role = aclRecord.getRole();
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds == null) {
