@@ -22,6 +22,8 @@ public abstract class AbstractManager extends TransactionHelper
     protected EntityManager entityManager;
 
     /**
+     * Constructor.
+     *
      * @param entityManager sets the {@link #entityManager}
      */
     public AbstractManager(EntityManager entityManager)

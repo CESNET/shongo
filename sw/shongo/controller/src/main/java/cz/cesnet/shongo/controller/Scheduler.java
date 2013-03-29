@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
@@ -17,7 +18,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotUsableReport;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -91,17 +91,15 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
-
         // Storage for reservation notifications
         Map<Long, ReservationNotification> notificationByReservationId =
                 new HashMap<Long, ReservationNotification>();
         // Map from new reservations to old reservations identifiers
         Map<Reservation, Long> newReservations = new HashMap<Reservation, Long>();
-        // Collections of ACL records for deletion
-        List<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
 
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
@@ -153,7 +151,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     reservationRequest.setReservation(null);
                     reservationRequestManager.update(reservationRequest);
                 }
-                aclRecordsToDelete.addAll(reservationManager.delete(reservation, authorization, cache));
+
+                Collection<AclRecord> aclRecords = reservationManager.delete(reservation, authorization, cache);
+                authorizationManager.deleteAclRecords(aclRecords);
 
                 // Remember the old reservation for the reservation request
                 oldReservationIds.put(reservationRequest, reservationId);
@@ -168,8 +168,15 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 }
             }
 
+            // Create ACL records
+            for (Reservation reservation : newReservations.keySet()) {
+                ReservationRequest reservationRequest = reservation.getReservationRequest();
+                authorizationManager.createAclRecordForChildEntity(reservationRequest, reservation);
+            }
+
             // Delete all executables which should be deleted
-            aclRecordsToDelete.addAll(executableManager.deleteAllNotReferenced(authorization));
+            Collection<AclRecord> aclRecords = executableManager.deleteAllNotReferenced(authorization);
+            authorizationManager.deleteAclRecords(aclRecords);
 
             entityManager.getTransaction().commit();
         }
@@ -186,18 +193,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             throw new IllegalStateException("Scheduler failed", exception);
         }
 
-        // Update ACL
-        if (authorization != null) {
-            try {
-                authorization.deleteAclRecords(aclRecordsToDelete);
-                for (Reservation reservation : newReservations.keySet()) {
-                    authorization.createAclRecordsForChildEntity(reservation.getReservationRequest(), reservation);
-                }
-            }
-            catch (FaultException exception) {
-                throw new IllegalStateException("Assigning permissions failed", exception);
-            }
-        }
+        authorizationManager.executeAclRecordRequests();
 
         // Create new/modified reservation notifications
         if (notificationManager != null) {

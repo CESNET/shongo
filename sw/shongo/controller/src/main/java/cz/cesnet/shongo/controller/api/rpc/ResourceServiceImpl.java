@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -104,6 +105,8 @@ public class ResourceServiceImpl extends Component
         cz.cesnet.shongo.controller.resource.Resource resource;
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
@@ -112,8 +115,9 @@ public class ResourceServiceImpl extends Component
             resource.setUserId(userId);
 
             // Save it
-            ResourceManager resourceManager = new ResourceManager(entityManager);
             resourceManager.create(resource);
+
+            authorizationManager.createAclRecord(userId, resource, Role.OWNER);
 
             entityManager.getTransaction().commit();
 
@@ -121,6 +125,8 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.addResource(resource, entityManager);
             }
+
+            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -134,9 +140,6 @@ public class ResourceServiceImpl extends Component
             }
             entityManager.close();
         }
-
-        // Create owner ACL
-        authorization.createAclRecord(userId, resource, Role.OWNER);
 
         // Return resource shongo-id
         return EntityIdentifier.formatId(resource);
@@ -195,12 +198,11 @@ public class ResourceServiceImpl extends Component
             throws FaultException
     {
         String userId = authorization.validate(token);
+        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
-
-        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
@@ -212,7 +214,7 @@ public class ResourceServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
-            aclRecordsToDelete = authorization.getAclRecords(resource);
+            authorizationManager.deleteAclRecords(authorization.getAclRecords(resource));
 
             // Delete the resource
             resourceManager.delete(resource);
@@ -223,6 +225,8 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.removeResource(resource);
             }
+
+            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -248,8 +252,6 @@ public class ResourceServiceImpl extends Component
             }
             entityManager.close();
         }
-
-        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override

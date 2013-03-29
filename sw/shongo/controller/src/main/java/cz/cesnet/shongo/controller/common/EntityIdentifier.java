@@ -290,6 +290,15 @@ public class EntityIdentifier
     }
 
     /**
+     * @param entity for which the global identifier should be formatted
+     * @return given {@code entity} global identifier.
+     */
+    public static String formatId(PersistentObject entity)
+    {
+        return formatId(entity.getClass(), entity.getId());
+    }
+
+    /**
      * @param resource for which the global identifier should be formatted
      * @return given {@code resource} global identifier.
      */

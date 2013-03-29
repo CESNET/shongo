@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -82,17 +83,14 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
     private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
             EntityManager entityManager) throws Exception
     {
-        // Store created and deleted reservation requests for updating ACL
-        Set<ReservationRequest> createdReservationRequests = new HashSet<ReservationRequest>();
-        List<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
-
         reservationRequestSet.checkPersisted();
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
             logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
-
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             // Get list of date/time slots
             Collection<Interval> slots = reservationRequestSet.enumerateSlots(interval);
@@ -164,8 +162,8 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
 
-                    // Remember for updating ACL
-                    createdReservationRequests.add(reservationRequest);
+                    // Create ACL records
+                    authorizationManager.createAclRecordForChildEntity(reservationRequestSet, reservationRequest);
                 }
                 reservationRequest.updateStateBySpecification();
             }
@@ -174,13 +172,19 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             for (ReservationRequest reservationRequest : map.values()) {
                 reservationRequests.remove(reservationRequest);
                 reservationRequestSet.removeReservationRequest(reservationRequest);
-                aclRecordsToDelete.addAll(reservationRequestManager.delete(reservationRequest, authorization));
+
+                // Delete ACL records
+                Collection<AclRecord> aclRecords = reservationRequestManager.delete(reservationRequest, authorization);
+                authorizationManager.deleteAclRecords(aclRecords);
             }
 
             // All reservation requests that remains in list of all must be deleted
             for (ReservationRequest reservationRequest : reservationRequests) {
                 reservationRequestSet.removeReservationRequest(reservationRequest);
-                aclRecordsToDelete.addAll(reservationRequestManager.delete(reservationRequest, authorization));
+
+                // Delete ACL records
+                Collection<AclRecord> aclRecords = reservationRequestManager.delete(reservationRequest, authorization);
+                authorizationManager.deleteAclRecords(aclRecords);
             }
 
             // Update reservation request
@@ -205,13 +209,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             throw exception;
         }
 
-        // Update ACL
-        if (authorization != null) {
-            authorization.deleteAclRecords(aclRecordsToDelete);
-            for (ReservationRequest reservationRequest : createdReservationRequests) {
-                authorization.createAclRecordsForChildEntity(reservationRequestSet, reservationRequest);
-            }
-        }
+        authorizationManager.executeAclRecordRequests();
     }
 
     /**

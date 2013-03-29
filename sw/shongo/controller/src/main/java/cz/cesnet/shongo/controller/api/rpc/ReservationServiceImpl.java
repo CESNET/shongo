@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
@@ -133,6 +134,8 @@ public class ReservationServiceImpl extends Component
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
@@ -141,10 +144,13 @@ public class ReservationServiceImpl extends Component
             reservationRequest.setUserId(userId);
             reservationRequest.validate();
 
-            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.create(reservationRequest);
 
+            authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
+
             entityManager.getTransaction().commit();
+
+            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -158,9 +164,6 @@ public class ReservationServiceImpl extends Component
             }
             entityManager.close();
         }
-
-        // Create owner ACL
-        authorization.createAclRecord(userId, reservationRequest, Role.OWNER);
 
         return EntityIdentifier.formatId(reservationRequest);
     }
@@ -267,12 +270,11 @@ public class ReservationServiceImpl extends Component
     public void deleteReservationRequest(SecurityToken token, String reservationRequestId) throws FaultException
     {
         String userId = authorization.validate(token);
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
-
-        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
 
@@ -285,9 +287,12 @@ public class ReservationServiceImpl extends Component
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
-            aclRecordsToDelete = reservationRequestManager.delete(reservationRequest, authorization);
+            authorizationManager.deleteAclRecords(
+                    reservationRequestManager.delete(reservationRequest, authorization));
 
             entityManager.getTransaction().commit();
+
+            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -301,8 +306,6 @@ public class ReservationServiceImpl extends Component
             }
             entityManager.close();
         }
-
-        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override

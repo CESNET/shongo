@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -67,9 +68,9 @@ public class ExecutorServiceImpl extends Component
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
 
-        Collection<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecordsToDelete;
         try {
             entityManager.getTransaction().begin();
 
@@ -80,14 +81,15 @@ public class ExecutorServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
-            aclRecordsToDelete = executableManager.delete(executable, authorization);
+            authorizationManager.deleteAclRecords(executableManager.delete(executable, authorization));
 
             entityManager.getTransaction().commit();
+
+            authorizationManager.executeAclRecordRequests();
         }
         catch (javax.persistence.RollbackException exception) {
             ControllerFaultSet.throwEntityNotDeletableReferencedFault(
                     cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
-            return;
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -98,7 +100,6 @@ public class ExecutorServiceImpl extends Component
         finally {
             entityManager.close();
         }
-        authorization.deleteAclRecords(aclRecordsToDelete);
     }
 
     @Override
