@@ -91,16 +91,19 @@ public class DummyAuthorization extends Authorization
     @Override
     protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
-        logger.info("Create ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+        AclRecord aclRecord = new AclRecord(userId, entityId, role);
 
-        return new AclRecord(userId, entityId, role);
+        logger.info("Created ACL (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), userId, entityId, role});
+
+        return aclRecord;
     }
 
     @Override
     protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
     {
-        logger.info("Delete ACL (user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
+        logger.info("Deleted ACL (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
     }
 
     @Override

@@ -15,7 +15,7 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-//@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "role"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "role"}))
 public class AclRecordCreateRequest extends PersistentObject
 {
     private String userId;
@@ -67,6 +67,17 @@ public class AclRecordCreateRequest extends PersistentObject
         this.role = role;
     }
 
+    @Column
+    public String getParentAclRecordId()
+    {
+        return parentAclRecordId;
+    }
+
+    public void setParentAclRecordId(String parentAclRecordId)
+    {
+        this.parentAclRecordId = parentAclRecordId;
+    }
+
     @OneToOne
     @Access(AccessType.FIELD)
     public AclRecordCreateRequest getParentCreateRequest()
@@ -88,17 +99,6 @@ public class AclRecordCreateRequest extends PersistentObject
                 this.parentCreateRequest.childCreateRequests.add(this);
             }
         }
-    }
-
-
-    public String getParentAclRecordId()
-    {
-        return parentAclRecordId;
-    }
-
-    public void setParentAclRecordId(String parentAclRecordId)
-    {
-        this.parentAclRecordId = parentAclRecordId;
     }
 
     @OneToMany(mappedBy = "parentCreateRequest")

@@ -12,15 +12,11 @@ import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO:
@@ -236,21 +232,6 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
-     * Create {@link AclRecordDependency} for given parameters.
-     *
-     * @param parentAclRecordId {@link AclRecordDependency#parentAclRecordId}
-     * @param childAclRecordId  {@link AclRecordDependency#childAclRecordId}
-     */
-    private void createAclRecordDependency(String parentAclRecordId, String childAclRecordId)
-    {
-        AclRecordDependency aclRecordDependency = new AclRecordDependency();
-        aclRecordDependency.setParentAclRecordId(parentAclRecordId);
-        aclRecordDependency.setChildAclRecordId(childAclRecordId);
-        entityManager.persist(aclRecordDependency);
-        throw new TodoImplementException();
-    }
-
-    /**
      * Create {@link AclRecord} for given parameters and also corresponding {@link AclRecord}s for child
      * entities (recursive). Each {@link AclRecord} is created only when the role make sense for it.
      *
@@ -409,21 +390,9 @@ public class AuthorizationManager extends AbstractManager
         return childEntities;
     }
 
-    public AclRecord executeAclRecordCreateRequest(AclRecordCreateRequest aclRecordCreateRequest) throws FaultException
-    {
-        String userId = aclRecordCreateRequest.getUserId();
-        EntityIdentifier entityId = EntityIdentifier.parse(aclRecordCreateRequest.getEntityId());
-        Role role = aclRecordCreateRequest.getRole();
-        AclRecord aclRecord = authorization.createAclRecord(userId, entityId, role);
-        entityManager.remove(aclRecordCreateRequest);
-
-        for (AclRecordCreateRequest childAclRecordCreateRequest : aclRecordCreateRequest.getChildCreateRequests()) {
-            executeAclRecordCreateRequest(childAclRecordCreateRequest);
-        }
-
-        return aclRecord;
-    }
-
+    /**
+     * Execute all existing {@link AclRecordCreateRequest}s and {@link AclRecordDeleteRequest}s.
+     */
     public void executeAclRecordRequests()
     {
         Collection<AclRecordCreateRequest> aclRecordCreateRequests = entityManager.createQuery(
@@ -434,29 +403,237 @@ public class AuthorizationManager extends AbstractManager
                 "SELECT request FROM AclRecordDeleteRequest request ORDER BY id ASC", AclRecordDeleteRequest.class)
                 .getResultList();
 
+        executeAclRecordCreateRequests(aclRecordCreateRequests);
+        executeAclRecordDeleteRequests(aclRecordDeleteRequests);
+    }
+
+    /**
+     *
+     * @param aclRecordCreateRequest to be executed
+     * @return {@link AclRecord} which has been created
+     * @throws FaultException
+     */
+    public AclRecord executeAclRecordCreateRequest(AclRecordCreateRequest aclRecordCreateRequest) throws FaultException
+    {
+        List<AclRecordCreateRequest> aclRecordCreateRequests = new LinkedList<AclRecordCreateRequest>();
+        fillAclRecordCreateRequests(aclRecordCreateRequest, aclRecordCreateRequests);
+
+        Map<AclRecordCreateRequest, AclRecord> aclRecordByCreateRequest =
+                executeAclRecordCreateRequests(aclRecordCreateRequests);
+        AclRecord aclRecord = aclRecordByCreateRequest.get(aclRecordCreateRequest);
+        if (aclRecord == null) {
+            throw new IllegalStateException("ACL record must be returned for given create request.");
+        }
+        return aclRecord;
+    }
+
+    /**
+     * Fill given {@code aclRecordCreateRequest} to given {@code aclRecordCreateRequests} (recursive).
+     *
+     * @param aclRecordCreateRequest to be added to given {@code aclRecordCreateRequests}
+     * @param aclRecordCreateRequests to be filled
+     */
+    private void fillAclRecordCreateRequests(AclRecordCreateRequest aclRecordCreateRequest,
+            Collection<AclRecordCreateRequest> aclRecordCreateRequests)
+    {
+        aclRecordCreateRequests.add(aclRecordCreateRequest);
+        for (AclRecordCreateRequest childAclRecordCreateRequest : aclRecordCreateRequest.getChildCreateRequests()) {
+            fillAclRecordCreateRequests(childAclRecordCreateRequest, aclRecordCreateRequests);
+        }
+    }
+
+    /**
+     * @param aclRecordCreateRequests to be executed
+     * @return map of {@link AclRecord}s by {@link AclRecordCreateRequest} for which they have been created
+     */
+    private Map<AclRecordCreateRequest, AclRecord> executeAclRecordCreateRequests(
+            Collection<AclRecordCreateRequest> aclRecordCreateRequests)
+    {
+        // Map of create requests by parent to which they are dependent
+        Map<AclRecordCreateRequest, List<AclRecordCreateRequest>> createRequestsByParent =
+                new HashMap<AclRecordCreateRequest, List<AclRecordCreateRequest>>();
+        for (AclRecordCreateRequest createRequest : aclRecordCreateRequests) {
+            AclRecordCreateRequest parentCreateRequest = createRequest.getParentCreateRequest();
+            List<AclRecordCreateRequest> createRequests = createRequestsByParent.get(parentCreateRequest);
+            if (createRequests == null) {
+                createRequests = new LinkedList<AclRecordCreateRequest>();
+                createRequestsByParent.put(parentCreateRequest, createRequests);
+            }
+            createRequests.add(createRequest);
+        }
+
+        // Map of created AclRecords for create requests
+        Map<AclRecordCreateRequest, AclRecord> aclRecordByCreateRequest =
+                new HashMap<AclRecordCreateRequest, AclRecord>();
+
         try {
             entityManager.getTransaction().begin();
 
-            for (AclRecordCreateRequest aclRecordCreateRequest : aclRecordCreateRequests) {
-                String userId = aclRecordCreateRequest.getUserId();
-                EntityIdentifier entityId = EntityIdentifier.parse(aclRecordCreateRequest.getEntityId());
-                Role role = aclRecordCreateRequest.getRole();
-                authorization.createAclRecord(userId, entityId, role);
+            Collection<AclRecordCreateRequest> satisfiedParentCreateRequests = new LinkedList<AclRecordCreateRequest>();
+            satisfiedParentCreateRequests.add(null);
+            while (satisfiedParentCreateRequests.size() > 0) {
+                AclRecordCreateRequest parentCreateRequest = satisfiedParentCreateRequests.iterator().next();
+                satisfiedParentCreateRequests.remove(parentCreateRequest);
 
-                // TODO: Create AclRecordDependency
+                List<AclRecordCreateRequest> createRequests = createRequestsByParent.get(parentCreateRequest);
+                if (createRequests == null) {
+                    continue;
+                }
+                createRequestsByParent.remove(parentCreateRequest);
 
-                entityManager.remove(aclRecordCreateRequest);
+                for (AclRecordCreateRequest createRequest : createRequests) {
+                    String userId = createRequest.getUserId();
+                    EntityIdentifier entityId = EntityIdentifier.parse(createRequest.getEntityId());
+                    Role role = createRequest.getRole();
+                    AclRecord aclRecord = authorization.createAclRecord(userId, entityId, role);
+
+                    entityManager.remove(createRequest);
+
+                    // Keep the created AclRecord for the create request
+                    aclRecordByCreateRequest.put(createRequest, aclRecord);
+
+                    // Determine parent ACL record identifier
+                    String parentAclRecordId = createRequest.getParentAclRecordId();
+                    if (parentCreateRequest != null) {
+                        AclRecord parentAclRecord = aclRecordByCreateRequest.get(parentCreateRequest);
+                        parentAclRecordId = parentAclRecord.getId();
+
+                    }
+                    // Create dependency to parent
+                    if (parentAclRecordId != null) {
+                        AclRecordDependencyId id = new AclRecordDependencyId(parentAclRecordId, aclRecord.getId());
+                        AclRecordDependency aclRecordDependency = entityManager.find(AclRecordDependency.class, id);
+                        if (aclRecordDependency == null) {
+                            logger.debug("Creating ACL dependency (parent: {}, child: {})",
+                                    parentAclRecordId, aclRecord.getId());
+                            aclRecordDependency = new AclRecordDependency();
+                            aclRecordDependency.setId(id);
+                            entityManager.persist(aclRecordDependency);
+                        }
+                        else {
+                            logger.debug("ACL dependency already exists (parent: {}, child: {})",
+                                    parentAclRecordId, aclRecord.getId());
+                        }
+                    }
+
+                    // Child create requests can now be also created
+                    satisfiedParentCreateRequests.add(createRequest);
+                }
             }
 
-            for (AclRecordDeleteRequest aclRecordDeleteRequest: aclRecordDeleteRequests) {
-                AclRecord aclRecord = authorization.getAclRecord(aclRecordDeleteRequest.getAclRecordId());
-                authorization.deleteAclRecord(aclRecord);
+            // No requests should remain
+            if (createRequestsByParent.size() > 0 ) {
+                throw new IllegalStateException("Cycle detected in ACL record create requests.");
+            }
 
-                // TODO: Delete AclRecordDependency
+            entityManager.getTransaction().commit();
+        }
+        catch (FaultException exception) {
+            throw new IllegalStateException(exception);
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+        }
+        return aclRecordByCreateRequest;
+    }
 
+    /**
+     * @param aclRecordDeleteRequests to be executed
+     */
+    private void executeAclRecordDeleteRequests(Collection<AclRecordDeleteRequest> aclRecordDeleteRequests)
+    {
+        if(aclRecordDeleteRequests.size() == 0) {
+            return;
+        }
+        try {
+            entityManager.getTransaction().begin();
+
+            // Map of parent ACL record count by child identifier
+            Map<String, Integer> parentAclRecordCountByChildId = new HashMap<String, Integer>();
+
+            // Set of ACL records which can be deleted
+            Set<String> aclRecordIds = new HashSet<String>();
+
+            // Build set and initialize map
+            for (AclRecordDeleteRequest aclRecordDeleteRequest : aclRecordDeleteRequests) {
+                String aclRecordId = aclRecordDeleteRequest.getAclRecordId();
+                aclRecordIds.add(aclRecordId);
+                parentAclRecordCountByChildId.put(aclRecordId, 0);
                 entityManager.remove(aclRecordDeleteRequest);
             }
 
+            // Get dependencies for ACL records
+            Collection<AclRecordDependency> aclRecordDependencies = entityManager.createQuery(
+                    "SELECT dependency FROM AclRecordDependency dependency WHERE dependency.id.childAclRecordId IN(:ids)",
+                    AclRecordDependency.class)
+                    .setParameter("ids", aclRecordIds)
+                    .getResultList();
+
+            // Map of ACL record identifiers by parent identifiers to which they are dependent
+            Map<String, List<String>> childAclRecordIdsByParentId = new HashMap<String, List<String>>();
+
+            // Build maps
+            for (AclRecordDependency aclRecordDependency : aclRecordDependencies) {
+                String parentAclRecordId = aclRecordDependency.getParentAclRecordId();
+
+                // Add child ACL record to parent collection
+                List<String> childAclRecordIds = childAclRecordIdsByParentId.get(parentAclRecordId);
+                if (childAclRecordIds == null) {
+                    childAclRecordIds = new LinkedList<String>();
+                    childAclRecordIdsByParentId.put(parentAclRecordId, childAclRecordIds);
+                }
+                String childAclRecordId = aclRecordDependency.getChildAclRecordId();
+                childAclRecordIds.add(childAclRecordId);
+
+                // Update parent count for the child ACL record
+                Integer parentCount = parentAclRecordCountByChildId.get(childAclRecordId);
+                parentAclRecordCountByChildId.put(childAclRecordId, parentCount + 1);
+
+                // Child ACL record has parent so it can't be deleted now
+                aclRecordIds.remove(childAclRecordId);
+            }
+
+            // Delete all ACL records which can be deleted
+            while (aclRecordIds.size() > 0) {
+                String aclRecordId = aclRecordIds.iterator().next();
+                aclRecordIds.remove(aclRecordId);
+
+                // Delete the ACL record
+                AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+                authorization.deleteAclRecord(aclRecord);
+
+                // Delete all dependencies
+                entityManager.createQuery(
+                        "DELETE FROM AclRecordDependency dependency WHERE dependency.id.parentAclRecordId = :id")
+                        .setParameter("id", aclRecordId)
+                        .executeUpdate();
+
+                // Add all child ACL records which depends only to the deleted ACL record as deletable or decrease
+                // it's parent record count
+                List<String> childAclRecordIds = childAclRecordIdsByParentId.get(aclRecordId);
+                if (childAclRecordIds != null) {
+                    for (String childAclRecordId : childAclRecordIds) {
+                        Integer parentCount = parentAclRecordCountByChildId.get(childAclRecordId);
+                        if (parentCount == 1) {
+                            aclRecordIds.add(childAclRecordId);
+                        }
+                        else {
+                            parentAclRecordCountByChildId.put(childAclRecordId, parentCount - 1);
+                        }
+                    }
+                    childAclRecordIdsByParentId.remove(aclRecordId);
+                }
+            }
+
+            // Log all ACL records which cannot be deleted due to parent dependencies
+            for (String parentAclRecordId : childAclRecordIdsByParentId.keySet()) {
+                for (String childAclRecordId : childAclRecordIdsByParentId.get(parentAclRecordId)) {
+                    logger.debug("ACL (id: {}) cannot be deleted because is referenced by parent ACL (id: {}).",
+                            childAclRecordId, parentAclRecordId);
+                }
+            }
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {

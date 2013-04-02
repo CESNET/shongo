@@ -6,18 +6,11 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
@@ -236,7 +229,7 @@ public abstract class Authorization
     {
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<AclRecord> aclRecords = aclUserState.getAclRecords(entityId);
@@ -257,7 +250,7 @@ public abstract class Authorization
     {
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = onFetchAclEntityState(entityId);
+            aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         Set<AclRecord> aclRecords = aclEntityState.getAclRecords();
@@ -331,7 +324,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         return aclUserState.hasPermission(entityId, permission);
@@ -352,7 +345,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Permission> permissions = aclUserState.getPermissions(entityId);
@@ -378,7 +371,7 @@ public abstract class Authorization
         }
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         Set<Long> entities = aclUserState.getEntitiesByPermission(entityType, permission);
@@ -400,7 +393,7 @@ public abstract class Authorization
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
             try {
-                aclEntityState = onFetchAclEntityState(entityId);
+                aclEntityState = fetchAclEntityState(entityId);
             }
             catch (FaultException exception) {
                 throw new FaultRuntimeException(exception.getFault());
@@ -452,38 +445,6 @@ public abstract class Authorization
             logger.error(message, exception);
             return ControllerFaultSet.throwSecurityInvalidTokenFault(securityToken.getAccessToken());
         }
-    }
-
-    /**
-     * Fetch {@link AclUserState} for given {@code userId}.
-     *
-     * @param userId of user for which the ACL should be fetched
-     * @return fetched {@link AclUserState} for given {@code userId}
-     */
-    protected AclUserState onFetchAclUserState(String userId) throws FaultException
-    {
-        AclUserState aclUserState = new AclUserState();
-        for (AclRecord aclRecord : onListAclRecords(userId, null, null)) {
-            aclUserState.addAclRecord(aclRecord);
-            cache.putAclRecordById(aclRecord);
-        }
-        return aclUserState;
-    }
-
-    /**
-     * Fetch {@link AclEntityState} for given {@code entityId}.
-     *
-     * @param entityId of entity for which the ACL should be fetched
-     * @return fetched {@link AclEntityState} for given {@code entityId}
-     */
-    protected AclEntityState onFetchAclEntityState(EntityIdentifier entityId) throws FaultException
-    {
-        AclEntityState aclEntityState = new AclEntityState();
-        for (AclRecord aclRecord : onListAclRecords(null, entityId, null)) {
-            aclEntityState.addAclRecord(aclRecord);
-            cache.putAclRecordById(aclRecord);
-        }
-        return aclEntityState;
     }
 
     /**
@@ -581,7 +542,7 @@ public abstract class Authorization
         // Update AclUserState cache
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         AclRecord addedAclRecord = aclUserState.addAclRecord(newAclRecord);
@@ -596,7 +557,7 @@ public abstract class Authorization
         // Update AclEntityState cache
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = onFetchAclEntityState(entityId);
+            aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         aclEntityState.addAclRecord(newAclRecord);
@@ -621,7 +582,7 @@ public abstract class Authorization
         String userId = aclRecord.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
-            aclUserState = onFetchAclUserState(userId);
+            aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
         aclUserState.removeAclRecord(aclRecord);
@@ -630,10 +591,42 @@ public abstract class Authorization
         EntityIdentifier entityId = aclRecord.getEntityId();
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = onFetchAclEntityState(entityId);
+            aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         aclEntityState.removeAclRecord(aclRecord);
+    }
+
+    /**
+     * Fetch {@link AclUserState} for given {@code userId}.
+     *
+     * @param userId of user for which the ACL should be fetched
+     * @return fetched {@link AclUserState} for given {@code userId}
+     */
+    private AclUserState fetchAclUserState(String userId) throws FaultException
+    {
+        AclUserState aclUserState = new AclUserState();
+        for (AclRecord aclRecord : onListAclRecords(userId, null, null)) {
+            aclUserState.addAclRecord(aclRecord);
+            cache.putAclRecordById(aclRecord);
+        }
+        return aclUserState;
+    }
+
+    /**
+     * Fetch {@link AclEntityState} for given {@code entityId}.
+     *
+     * @param entityId of entity for which the ACL should be fetched
+     * @return fetched {@link AclEntityState} for given {@code entityId}
+     */
+    private AclEntityState fetchAclEntityState(EntityIdentifier entityId) throws FaultException
+    {
+        AclEntityState aclEntityState = new AclEntityState();
+        for (AclRecord aclRecord : onListAclRecords(null, entityId, null)) {
+            aclEntityState.addAclRecord(aclRecord);
+            cache.putAclRecordById(aclRecord);
+        }
+        return aclEntityState;
     }
 
     /**

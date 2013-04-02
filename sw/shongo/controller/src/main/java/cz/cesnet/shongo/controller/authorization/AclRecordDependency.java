@@ -1,11 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import cz.cesnet.shongo.PersistentObject;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 /**
  * TODO:
@@ -13,34 +8,40 @@ import javax.persistence.UniqueConstraint;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"parent_acl_record_id", "child_acl_record_id"}))
-public class AclRecordDependency extends PersistentObject
+public class AclRecordDependency
 {
-    private String parentAclRecordId;
+    private AclRecordDependencyId id;
 
-    private String childAclRecordId;
+    public AclRecordDependency()
+    {
+    }
 
-    @Column
+    public AclRecordDependency(String parentAclRecordId, String childAclRecordId)
+    {
+        this.id = new AclRecordDependencyId(parentAclRecordId, childAclRecordId);
+    }
+
+    @EmbeddedId
+    public AclRecordDependencyId getId()
+    {
+        return id;
+    }
+
+    public void setId(AclRecordDependencyId id)
+    {
+        this.id = id;
+    }
+
+    @Transient
     public String getParentAclRecordId()
     {
-        return parentAclRecordId;
+        return id.getParentAclRecordId();
     }
 
-    public void setParentAclRecordId(String parentAclRecordId)
-    {
-        this.parentAclRecordId = parentAclRecordId;
-    }
-
-    @Column
+    @Transient
     public String getChildAclRecordId()
     {
-        return childAclRecordId;
+        return id.getChildAclRecordId();
     }
-
-    public void setChildAclRecordId(String childAclRecordId)
-    {
-        this.childAclRecordId = childAclRecordId;
-    }
-
 
 }

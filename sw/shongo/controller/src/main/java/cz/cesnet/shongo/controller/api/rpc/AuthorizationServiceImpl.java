@@ -104,10 +104,7 @@ public class AuthorizationServiceImpl extends Component
             if (aclRecordCreateRequest == null) {
                 return null;
             }
-            entityManager.getTransaction().begin();
-            String aclRecordId = authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest).getId();
-            entityManager.getTransaction().commit();
-            return aclRecordId;
+            return authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest).getId();
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
