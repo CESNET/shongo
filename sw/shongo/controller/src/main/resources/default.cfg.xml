@@ -101,9 +101,18 @@
 
     <!-- Configuration for sending emails -->
     <smtp>
-        <port>25</port>
         <sender>no-reply@shongo.cz</sender>
+        <!--<host></host>-->
+        <port>25</port>
+        <!--<username></username>-->
+        <!--<password></password>-->
         <subject-prefix></subject-prefix>
     </smtp>
+
+    <!-- Configuration of domain administrators-->
+    <administrator>
+        <!--<email></email>-->
+        <!--<email></email>-->
+    </administrator>
 
 </configuration>

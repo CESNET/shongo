@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
@@ -108,7 +109,12 @@ public class Controller
     private ControllerAgent jadeAgent = new ControllerAgent();
 
     /**
-     * {@link NotificationManager}.
+     * @see EmailSender
+     */
+    private EmailSender emailSender;
+
+    /**
+     * @see  NotificationManager
      */
     private NotificationManager notificationManager = new NotificationManager();
 
@@ -202,6 +208,9 @@ public class Controller
         localDomain.setName(this.configuration.getString(Configuration.DOMAIN_NAME));
         localDomain.setOrganization(this.configuration.getString(Configuration.DOMAIN_ORGANIZATION));
         Domain.setLocalDomain(localDomain);
+
+        // Initialize email sender
+        this.emailSender = new EmailSender(this.configuration);
     }
 
     /**
@@ -351,6 +360,14 @@ public class Controller
             }
         }
         return null;
+    }
+
+    /**
+     * @return {@link #emailSender}
+     */
+    public EmailSender getEmailSender()
+    {
+        return emailSender;
     }
 
     /**
@@ -839,7 +856,7 @@ public class Controller
         controller.addComponent(new Executor());
 
         // Add mail notification executor
-        controller.addNotificationExecutor(new EmailNotificationExecutor());
+        controller.addNotificationExecutor(new EmailNotificationExecutor(controller.getEmailSender()));
 
         // Add XML-RPC services
         controller.addRpcService(new CommonServiceImpl());

@@ -27,6 +27,14 @@ public class Configuration extends CombinedConfiguration
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
 
     /**
+     * Database configuration.
+     */
+    public static final String DATABASE_DRIVER = "database.driver";
+    public static final String DATABASE_URL = "database.url";
+    public static final String DATABASE_USERNAME = "database.username";
+    public static final String DATABASE_PASSWORD = "database.password";
+
+    /**
      * API XML-RPC configuration.
      */
     public static final String RPC_HOST = "rpc.host";
@@ -51,14 +59,6 @@ public class Configuration extends CombinedConfiguration
      */
     public static final String RESERVATION_RESOURCE_MAX_DURATION = "reservation.resource.max-duration";
     public static final String RESERVATION_VALUE_MAX_DURATION = "reservation.value.max-duration";
-
-    /**
-     * Database configuration.
-     */
-    public static final String DATABASE_DRIVER = "database.driver";
-    public static final String DATABASE_URL = "database.url";
-    public static final String DATABASE_USERNAME = "database.username";
-    public static final String DATABASE_PASSWORD = "database.password";
 
     /**
      * SMTP configuration.
@@ -121,12 +121,18 @@ public class Configuration extends CombinedConfiguration
     public static final String SSL_HOST_VERIFICATION_MAPPINGS = "ssl.host-verification-mapping";
 
     /**
+     * Administrator emails to which error are reported.
+     */
+    public static final String ADMINISTRATOR_EMAIL = "administrator.email";
+
+    /**
      * Constructor.
      */
     public Configuration()
     {
         NodeCombiner nodeCombiner = new UnionCombiner();
         nodeCombiner.addListNode("host-verification-mapping");
+        nodeCombiner.addListNode("email");
         setNodeCombiner(nodeCombiner);
     }
 
