@@ -588,7 +588,7 @@ public class ExecutorTest extends AbstractControllerTest
                     return type.cast(command);
                 }
             }
-            throw new IllegalStateException("Command of type '" + type.getSimpleName() + "' was not found.");
+            throw new RuntimeException("Command of type '" + type.getSimpleName() + "' was not found.");
         }
 
         @Override

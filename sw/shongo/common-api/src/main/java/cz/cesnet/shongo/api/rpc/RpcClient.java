@@ -142,7 +142,7 @@ public class RpcClient
     {
         Class<? extends Fault> type = faultSet.getFaultClass(xmlRpcException.code);
         if (type == null) {
-            throw new IllegalStateException(String.valueOf(xmlRpcException.code));
+            throw new RuntimeException(String.valueOf(xmlRpcException.code));
         }
         Fault fault = ClassHelper.createInstanceFromClassRuntime(type);
 

@@ -307,7 +307,7 @@ public class AliasReservationTask extends ReservationTask
             Resource resource = availableAliasProvider.getResource();
             RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
             if (roomProvider == null) {
-                throw new IllegalStateException("Permanent room should be enabled only for device resource"
+                throw new RuntimeException("Permanent room should be enabled only for device resource"
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();

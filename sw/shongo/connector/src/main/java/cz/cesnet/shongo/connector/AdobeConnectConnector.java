@@ -431,19 +431,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                             attributes.put("url-path", matcher.group(1));
                             break;
                         default:
-                            throw new IllegalStateException("Unrecognized alias: " + alias.toString());
+                            throw new RuntimeException("Unrecognized alias: " + alias.toString());
                     }
                 }
                 // Modify existing alias
                 else {
-                    throw new IllegalStateException("TODO: Implement room alias modification.");
+                    throw new RuntimeException("TODO: Implement room alias modification.");
                 }
             }
         }
         // Delete aliases
         Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
         for (Alias alias : aliasesToDelete) {
-            throw new IllegalStateException("TODO: Implement room alias deletion.");
+            throw new RuntimeException("TODO: Implement room alias deletion.");
         }
     }
 
@@ -471,7 +471,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             room.setupNewEntity();
         }
         catch (FaultException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
 
         try {
@@ -486,7 +486,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             // Room name must be filled
             if (attributes.get("name") == null) {
-                throw new IllegalStateException("Room name must be filled for the new room.");
+                throw new RuntimeException("Room name must be filled for the new room.");
             }
 
             Element response = request("sco-update", attributes);

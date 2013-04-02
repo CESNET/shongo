@@ -290,15 +290,15 @@ public class AliasProviderCapability extends Capability
             setRestrictedToResource(true);
         }
         if (isRestrictedToResource() && !(getResource() instanceof DeviceResource)) {
-            throw new IllegalStateException("Restricted to resource option can be enabled only in a device resource.");
+            throw new RuntimeException("Restricted to resource option can be enabled only in a device resource.");
         }
         if (isPermanentRoom()) {
             Resource resource = getResource();
             if (!(resource instanceof DeviceResource)) {
-                throw new IllegalStateException("Permanent room option can be enabled only in a device resource.");
+                throw new RuntimeException("Permanent room option can be enabled only in a device resource.");
             }
             if (!resource.hasCapability(RoomProviderCapability.class)) {
-                throw new IllegalStateException("Permanent room option can be enabled only in a device resource"
+                throw new RuntimeException("Permanent room option can be enabled only in a device resource"
                         + " with alias provider capability.");
             }
         }

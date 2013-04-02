@@ -170,8 +170,8 @@ public class FaultMessage
             }
         }
         catch (FaultException exception) {
-            throw new IllegalStateException("Cannot get property value from fault '"
-                    + fault.getClass().getCanonicalName() + "'!", exception);
+            throw new RuntimeException(
+                    "Cannot get property value from fault '" + fault.getClass().getCanonicalName() + "'!", exception);
         }
         return content;
     }
@@ -195,8 +195,8 @@ public class FaultMessage
             }
         }
         catch (Exception exception) {
-            throw new IllegalStateException("Cannot set property value to fault '"
-                    + fault.getClass().getCanonicalName() + "'!", exception);
+            throw new RuntimeException(
+                    "Cannot set property value to fault '" + fault.getClass().getCanonicalName() + "'!", exception);
         }
     }
 }

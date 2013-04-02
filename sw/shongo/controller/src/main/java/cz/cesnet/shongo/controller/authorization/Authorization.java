@@ -536,7 +536,7 @@ public abstract class Authorization
             return aclRecords.iterator().next();
         }
         else if (size > 1) {
-            throw new IllegalStateException();
+            throw new RuntimeException("Multiple existing ACL records were found.");
         }
 
         AclRecord newAclRecord = onCreateAclRecord(userId, entityId, role);

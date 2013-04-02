@@ -214,7 +214,7 @@ public class CompartmentReservationTask extends ReservationTask
                 }
                 break;
             default:
-                throw new IllegalStateException("Unknown call initiation '" + callInitiation.toString() + "'.");
+                throw new RuntimeException("Unknown call initiation '" + callInitiation.toString() + "'.");
         }
 
         // Determine technology by which the resources will connect
@@ -333,7 +333,7 @@ public class CompartmentReservationTask extends ReservationTask
                     }
                 }
                 if (alias == null) {
-                    throw new IllegalStateException(
+                    throw new RuntimeException(
                             "Alias reservation doesn't contain alias for requested technology (should never happen).");
                 }
 
@@ -403,7 +403,7 @@ public class CompartmentReservationTask extends ReservationTask
         Endpoint endpointTo = null;
         if (endpoints.size() == 2) {
             if (compartment.getTotalEndpointCount() != 2) {
-                throw new IllegalStateException();
+                throw new RuntimeException();
             }
             endpointFrom = endpoints.get(0);
             endpointTo = endpoints.get(1);

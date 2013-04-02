@@ -45,12 +45,12 @@ public class ClassHelper
      *
      * @param type
      * @param typeShortName
-     * @throws IllegalStateException when the short name is already set
+     * @throws RuntimeException when the short name is already set
      */
-    public static void setClassShortName(Class type, String typeShortName) throws IllegalStateException
+    public static void setClassShortName(Class type, String typeShortName) throws RuntimeException
     {
         if (classByShortNameCache.containsKey(typeShortName)) {
-            throw new IllegalStateException("Short name '" + typeShortName + "' is already set.");
+            throw new RuntimeException("Short name '" + typeShortName + "' is already set.");
         }
         classByShortNameCache.put(typeShortName, type);
     }

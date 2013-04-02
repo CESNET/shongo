@@ -230,7 +230,7 @@ public class ExecutableManager extends AbstractManager
         if (usedRoomEndpoints.size() == 1) {
             return usedRoomEndpoints.get(0);
         }
-        throw new IllegalStateException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
+        throw new RuntimeException("Found multiple " + UsedRoomEndpoint.class.getSimpleName()
                 + "s taking place at " + referenceDateTime.toString() + ".");
     }
 

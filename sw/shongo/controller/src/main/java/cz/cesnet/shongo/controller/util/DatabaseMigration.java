@@ -137,7 +137,7 @@ public class DatabaseMigration
                 return getDatabaseVersion(entityManager);
             }
             catch (Exception createException) {
-                throw new IllegalStateException("Failed to create table 'migration_version'.", createException);
+                throw new RuntimeException("Failed to create table 'migration_version'.", createException);
             }
         }
     }
@@ -248,7 +248,7 @@ public class DatabaseMigration
                 }
                 catch (Exception migrationException) {
                     entityManagerFactory.close();
-                    throw new IllegalStateException("Failed to generate database migration.", migrationException);
+                    throw new RuntimeException("Failed to generate database migration.", migrationException);
                 }
 
                 // Migrate new migration

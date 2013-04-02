@@ -41,12 +41,12 @@ public abstract class Component
      *
      * @param dependency
      * @param dependencyType
-     * @throws IllegalStateException
+     * @throws RuntimeException
      */
-    protected void checkDependency(Object dependency, Class dependencyType) throws IllegalStateException
+    protected void checkDependency(Object dependency, Class dependencyType) throws RuntimeException
     {
         if (dependency == null) {
-            throw new IllegalStateException("Component " + getClass().getName()
+            throw new RuntimeException("Component " + getClass().getName()
                     + " doesn't have the " + dependencyType.getSimpleName() + " set!");
         }
     }

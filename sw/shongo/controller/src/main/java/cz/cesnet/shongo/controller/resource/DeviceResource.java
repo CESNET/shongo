@@ -370,7 +370,7 @@ public class DeviceResource extends Resource
                 }
             }
             else {
-                throw new IllegalStateException(String.format("Variable '%s' cannot be evaluated.", component));
+                throw new RuntimeException(String.format("Variable '%s' cannot be evaluated.", component));
             }
             if (component == null) {
                 component = "";

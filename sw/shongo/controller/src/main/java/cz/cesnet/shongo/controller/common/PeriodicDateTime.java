@@ -313,7 +313,7 @@ public class PeriodicDateTime extends PersistentObject
             // Enable/disable rule
             RuleType type = rule.getType();
             if (type != RuleType.ENABLE && type != RuleType.DISABLE) {
-                throw new IllegalStateException("Rule type should be enable or disable.");
+                throw new RuntimeException("Rule type should be enable or disable.");
             }
             // Interval
             if (rule.isInterval()) {

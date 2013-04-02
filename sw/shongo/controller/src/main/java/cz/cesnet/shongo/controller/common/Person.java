@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.PersonInformation;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -39,7 +40,7 @@ public abstract class Person extends PersistentObject implements Cloneable
             person = new UserPerson();
         }
         else {
-            throw new IllegalStateException(api.getClass().getSimpleName());
+            throw new TodoImplementException(api.getClass().getSimpleName());
         }
         person.fromApi(api);
         return person;

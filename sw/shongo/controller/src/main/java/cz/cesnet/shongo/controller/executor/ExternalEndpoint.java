@@ -100,7 +100,7 @@ public class ExternalEndpoint extends Endpoint
     @Transient
     public void addAssignedAlias(Alias alias) throws ReportException
     {
-        throw new IllegalStateException("Cannot assign alias to external endpoint.");
+        throw new RuntimeException("Cannot assign alias to external endpoint.");
     }
 
     @Override

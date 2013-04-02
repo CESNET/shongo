@@ -427,7 +427,7 @@ public class CompartmentReservationTaskTest
         @Override
         protected cz.cesnet.shongo.controller.api.Specification createApi()
         {
-            throw new IllegalStateException("Not implemented.");
+            throw new RuntimeException("Not implemented.");
         }
     }
 }

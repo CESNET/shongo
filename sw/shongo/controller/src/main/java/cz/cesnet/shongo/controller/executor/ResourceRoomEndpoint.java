@@ -283,7 +283,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             ControllerAgent controllerAgent = executor.getControllerAgent();
             String roomId = getRoomId();
             if (roomId == null) {
-                throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
+                throw new RuntimeException("Cannot delete virtual room because it's identifier is null.");
             }
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new DeleteRoom(roomId));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {

@@ -141,7 +141,7 @@ public class JadeSerializationTest extends AbstractControllerTest
                     room.setupNewEntity();
                 }
                 catch (FaultException exception) {
-                    throw new IllegalStateException(exception);
+                    throw new RuntimeException(exception);
                 }
                 Assert.assertTrue(room.isPropertyFilled(room.NAME));
                 Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));

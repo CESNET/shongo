@@ -108,7 +108,7 @@ public abstract class Notification
             return stringWriter.toString();
         }
         catch (Exception exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
     }
 

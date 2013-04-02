@@ -65,7 +65,7 @@ public class ConnectorAgent extends Agent
 
     /**
      * @return name of the controller agent or null if it doesn't exists
-     * @throws IllegalStateException when multiple controller agents are present
+     * @throws RuntimeException when multiple controller agents are present
      */
     public String getCachedControllerAgentName()
     {
@@ -73,7 +73,7 @@ public class ConnectorAgent extends Agent
             AID[] controllerAgents = findAgentsByService(ControllerScope.CONTROLLER_AGENT_SERVICE, 100);
             if (controllerAgents.length > 0) {
                 if (controllerAgents.length > 1) {
-                    throw new IllegalStateException("Multiple controller agents were found.");
+                    throw new RuntimeException("Multiple controller agents were found.");
                 }
                 cachedControllerAgentName = controllerAgents[0].getLocalName();
             }

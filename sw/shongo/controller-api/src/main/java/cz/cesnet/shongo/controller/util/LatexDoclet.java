@@ -47,7 +47,7 @@ public class LatexDoclet extends Doclet
         for (String className : classOrder) {
             ClassDoc classDoc = classDocByName.get(className);
             if (classDoc == null) {
-                throw new IllegalStateException(className);
+                throw new RuntimeException(className);
             }
             classDocByName.remove(className);
 
@@ -223,7 +223,7 @@ public class LatexDoclet extends Doclet
             return Class.forName(typeName);
         }
         catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -270,7 +270,7 @@ public class LatexDoclet extends Doclet
             }
         }
         if (fileName == null) {
-            throw new IllegalStateException("Filename must be specified!");
+            throw new RuntimeException("Filename must be specified!");
         }
 
         // Format classes
@@ -285,7 +285,7 @@ public class LatexDoclet extends Doclet
             fileWriter.close();
         }
         catch (IOException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
         finally {
             try {
@@ -294,7 +294,7 @@ public class LatexDoclet extends Doclet
                 }
             }
             catch (IOException exception) {
-                throw new IllegalStateException(exception);
+                throw new RuntimeException(exception);
             }
         }
         return true;

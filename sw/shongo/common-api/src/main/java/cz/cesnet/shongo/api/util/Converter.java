@@ -425,7 +425,7 @@ public class Converter
                     newItems.add(item);
                 }
                 else if (collectionChanges.isItemDeleted(item)) {
-                    throw new IllegalStateException(
+                    throw new RuntimeException(
                             "Item has been marked as delete but not removed from the collection.");
                 }
                 else {

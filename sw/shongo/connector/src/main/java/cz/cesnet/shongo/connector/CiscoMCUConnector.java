@@ -692,7 +692,7 @@ ParamsLoop:
             room.setupNewEntity();
         }
         catch (FaultException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
 
         Command cmd = new Command("conference.create");
@@ -718,7 +718,7 @@ ParamsLoop:
 
         // Room name must be filled
         if (cmd.getParameterValue("conferenceName") == null) {
-            throw new IllegalStateException("Room name must be filled for the new room.");
+            throw new RuntimeException("Room name must be filled for the new room.");
         }
 
         exec(cmd);
@@ -823,7 +823,7 @@ ParamsLoop:
                             cmd.setParameter("numericId", truncateString(alias.getValue()));
                             break;
                         default:
-                            throw new IllegalStateException("TODO: Implement modification of "
+                            throw new RuntimeException("TODO: Implement modification of "
                                     + alias.getType().toString() + " alias.");
                     }
                 }
@@ -832,7 +832,7 @@ ParamsLoop:
         // Delete aliases
         Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
         for (Alias alias : aliasesToDelete) {
-            throw new IllegalStateException("TODO: Implement room alias deletion.");
+            throw new RuntimeException("TODO: Implement room alias deletion.");
         }
 
         H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);

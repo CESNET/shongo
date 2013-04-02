@@ -248,7 +248,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     addResource(resource, entityManager);
                 }
                 catch (FaultException exception) {
-                    throw new IllegalStateException("Failed to add resource to the cache.", exception);
+                    throw new RuntimeException("Failed to add resource to the cache.", exception);
                 }
             }
             reusedReservationCache.loadObjects(entityManager);
@@ -343,7 +343,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             addResource(resource, entityManager);
         }
         catch (FaultException exception) {
-            throw new IllegalStateException("Failed to update resource in the resource cache.", exception);
+            throw new RuntimeException("Failed to update resource in the resource cache.", exception);
         }
     }
 

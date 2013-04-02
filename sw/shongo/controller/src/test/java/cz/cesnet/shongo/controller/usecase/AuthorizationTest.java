@@ -186,7 +186,7 @@ public class AuthorizationTest extends AbstractControllerTest
             return null;
         }
         if (aclRecords.size() > 1) {
-            throw new IllegalStateException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
+            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
         }
         return aclRecords.iterator().next();
     }
@@ -203,7 +203,7 @@ public class AuthorizationTest extends AbstractControllerTest
     {
         AclRecord aclRecord = getAclRecord(userId, entityId, role);
         if (aclRecord == null) {
-            throw new IllegalStateException(new AclRecord(userId, entityId, role).toString() + " doesn't exist.");
+            throw new RuntimeException(new AclRecord(userId, entityId, role).toString() + " doesn't exist.");
         }
         getAuthorizationService().deleteAclRecord(SECURITY_TOKEN, aclRecord.getId());
     }

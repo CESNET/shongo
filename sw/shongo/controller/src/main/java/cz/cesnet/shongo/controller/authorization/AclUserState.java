@@ -72,7 +72,7 @@ public class AclUserState
                 }
             }
         }
-        throw new IllegalStateException();
+        throw new RuntimeException("Acl record was not found.");
     }
 
     /**

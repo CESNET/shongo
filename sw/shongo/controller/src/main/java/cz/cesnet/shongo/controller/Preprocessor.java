@@ -124,7 +124,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             // Reservation requests are synchronized per specification from the set
             Specification specification = reservationRequestSet.getSpecification();
             if (specification == null) {
-                throw new IllegalStateException("Specification should not be null!");
+                throw new RuntimeException("Specification should not be null!");
             }
             // List existing reservation requests for the set in the interval
             Set<ReservationRequest> reservationRequestsForSpecification =

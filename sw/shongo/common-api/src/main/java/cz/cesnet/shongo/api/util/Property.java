@@ -265,7 +265,7 @@ public class Property
         // Check if type is same as already set
         if (this.type != null) {
             if (!this.type.equals(type)) {
-                throw new IllegalStateException(String.format(
+                throw new RuntimeException(String.format(
                         "Property '%s' in object of class '%s' should have same type in getter and setter.",
                         name, getClassShortName(classType)));
             }
@@ -287,34 +287,34 @@ public class Property
         }
         else if (TypeFlags.isCollection(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
-                throw new IllegalStateException("Array or collection class should be ParameterizedType.");
+                throw new RuntimeException("Array or collection class should be ParameterizedType.");
             }
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] arguments = parameterizedType.getActualTypeArguments();
             // We support only one argument
             if (arguments.length != 1) {
-                throw new IllegalStateException("Array or collection class should have one generic argument.");
+                throw new RuntimeException("Array or collection class should have one generic argument.");
             }
             // Argument should be Class
             if (!(arguments[0] instanceof Class)) {
-                throw new IllegalStateException("Generic argument should be class");
+                throw new RuntimeException("Generic argument should be class");
             }
             valueAllowedType = (Class) arguments[0];
         }
         // If type is map
         else if (TypeFlags.isMap(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
-                throw new IllegalStateException("Map class should be ParameterizedType.");
+                throw new RuntimeException("Map class should be ParameterizedType.");
             }
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] arguments = parameterizedType.getActualTypeArguments();
             // We support only one argument
             if (arguments.length != 2) {
-                throw new IllegalStateException("Map class should have two generic arguments.");
+                throw new RuntimeException("Map class should have two generic arguments.");
             }
             // Argument should be Class
             if (!(arguments[0] instanceof Class)) {
-                throw new IllegalStateException("Generic argument should be class");
+                throw new RuntimeException("Generic argument should be class");
             }
             keyAllowedType = (Class) arguments[0];
             valueAllowedType = (Class) arguments[1];
@@ -326,7 +326,7 @@ public class Property
             if (this.valueAllowedTypes != null) {
                 // Check it it same as new value allowed type
                 if (this.valueAllowedTypes.length != 1 || !this.valueAllowedTypes[0].equals(valueAllowedType)) {
-                    throw new IllegalStateException(
+                    throw new RuntimeException(
                             String.format("Property '%s' in object of class '%s' should have same generic type.",
                                     name, getClassShortName(classType)));
                 }
@@ -341,7 +341,7 @@ public class Property
             if (this.keyAllowedType != null) {
                 // Check it it same as new key allowed type
                 if (!this.keyAllowedType.equals(keyAllowedType)) {
-                    throw new IllegalStateException(String.format(
+                    throw new RuntimeException(String.format(
                             "Property '%s' in object of class '%s' should have same generic type.",
                             name, getClassShortName(classType)));
                 }
@@ -433,7 +433,7 @@ public class Property
                         }
                     }
                     if (property.writeMethod == null) {
-                        throw new IllegalStateException(
+                        throw new RuntimeException(
                                 String.format("No write method '%s' has one parameter of type '%s'"
                                         + " (which comes from the return type of the getter).",
                                         writeMethodName, readMethodReturnType.getCanonicalName()));
@@ -458,7 +458,7 @@ public class Property
             if (property.writeMethod != null) {
                 if (property.writeMethod.getParameterTypes().length != 1
                         || property.writeMethod.getGenericParameterTypes().length != 1) {
-                    throw new IllegalStateException("Setter should have one parameter.");
+                    throw new RuntimeException("Setter should have one parameter.");
                 }
                 property.setType(property.writeMethod.getParameterTypes()[0],
                         property.writeMethod.getGenericParameterTypes()[0]);

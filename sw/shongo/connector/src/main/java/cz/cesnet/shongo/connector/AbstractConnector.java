@@ -85,7 +85,7 @@ abstract public class AbstractConnector implements CommonService
         }
         String agentName = connectorAgent.getCachedControllerAgentName();
         if (agentName == null) {
-            throw new IllegalStateException("Controller agent was not found.");
+            throw new RuntimeException("Controller agent was not found.");
         }
         SendLocalCommand sendLocalCommand = connectorAgent.sendCommand(agentName, controllerCommand);
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {

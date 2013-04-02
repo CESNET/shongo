@@ -389,7 +389,7 @@ public abstract class Executable extends ReportablePersistentObject
                 case STOPPING_FAILED:
                     return cz.cesnet.shongo.controller.api.Executable.State.STOPPING_FAILED;
                 default:
-                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
+                    throw new RuntimeException("Cannot convert " + this.toString() + " to API.");
             }
         }
     }

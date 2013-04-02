@@ -134,6 +134,11 @@ public class DummyAuthorization extends Authorization
         return aclRecords;
     }
 
+    /**
+     * @param configuration to be used for initialization
+     * @return new instance of {@link DummyAuthorization}
+     * @throws IllegalStateException when other {@link Authorization} already exists
+     */
     public static DummyAuthorization createInstance(Configuration configuration) throws IllegalStateException
     {
         DummyAuthorization authorization = new DummyAuthorization(configuration);

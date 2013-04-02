@@ -242,7 +242,7 @@ public class InMemoryAclPropagationCache
         public boolean addAclRecord(AclRecord aclRecord)
         {
             if (!entityId.equals(aclRecord.getEntityId())) {
-                throw new IllegalStateException();
+                throw new RuntimeException();
             }
 
             String userId = aclRecord.getUserId();

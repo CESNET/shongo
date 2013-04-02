@@ -176,7 +176,7 @@ public class EntityIdentifier
     /**
      * @param entityClass entity type class
      * @return entity type string
-     * @throws IllegalStateException when entity type class isn't mapped to any entity type
+     * @throws RuntimeException when entity type class isn't mapped to any entity type
      */
     public synchronized static EntityType getEntityType(Class entityClass)
     {
@@ -189,7 +189,7 @@ public class EntityIdentifier
                 }
             }
             if (entityType == null) {
-                throw new IllegalStateException(
+                throw new RuntimeException(
                         String.format("Unknown identifier type for entity '%s'", entityClass.getName()));
             }
             entityTypeByClass.put(entityClass, entityType);
@@ -228,7 +228,7 @@ public class EntityIdentifier
             getEntityType(entityClass);
             return true;
         }
-        catch (IllegalStateException exception) {
+        catch (RuntimeException exception) {
             return false;
         }
     }

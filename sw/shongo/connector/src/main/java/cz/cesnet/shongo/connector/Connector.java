@@ -330,13 +330,13 @@ public class Connector
         Properties properties = new Properties();
         InputStream inputStream = Connector.class.getClassLoader().getResourceAsStream(filename);
         if (inputStream == null) {
-            throw new IllegalStateException("Properties file '" + filename + "' was not found in the classpath.");
+            throw new RuntimeException("Properties file '" + filename + "' was not found in the classpath.");
         }
         try {
             properties.load(inputStream);
         }
         catch (IOException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
         return properties.getProperty("version");
     }

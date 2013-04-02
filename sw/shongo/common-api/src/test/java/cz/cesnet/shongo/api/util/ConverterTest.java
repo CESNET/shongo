@@ -28,7 +28,7 @@ public class ConverterTest
             ClassHelper.registerClassShortName(Entity.class);
             ClassHelper.registerClassShortName(SubEntity.class);
         }
-        catch (IllegalStateException exception) {
+        catch (RuntimeException exception) {
         }
     }
 

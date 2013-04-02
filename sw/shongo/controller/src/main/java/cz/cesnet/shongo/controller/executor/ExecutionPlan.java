@@ -30,9 +30,9 @@ public class ExecutionPlan
      * Constructor.
      *
      * @param executables from which the {@link ExecutablePlan} should be constructed
-     * @throws IllegalStateException when the plan cannot be constructed (because of cycle)
+     * @throws RuntimeException when the plan cannot be constructed (because of cycle)
      */
-    public ExecutionPlan(Collection<Executable> executables) throws IllegalStateException
+    public ExecutionPlan(Collection<Executable> executables) throws RuntimeException
     {
         // Execution plan is empty
         if (executables.size() == 0) {
@@ -62,7 +62,7 @@ public class ExecutionPlan
 
         // Check for cycles
         if (satisfiedExecutables.size() == 0) {
-            throw new IllegalStateException("Execution plan cannot be constructed (contains a cycle).");
+            throw new RuntimeException("Execution plan cannot be constructed (contains a cycle).");
         }
     }
 

@@ -181,7 +181,7 @@ public class ServerAuthorization extends Authorization
         if (errorReason != null) {
             errorMessage += " " + errorReason;
         }
-        throw new IllegalStateException(errorMessage, errorException);
+        throw new RuntimeException(errorMessage, errorException);
     }
 
     @Override
@@ -203,8 +203,7 @@ public class ServerAuthorization extends Authorization
             errorException = exception;
         }
         // Handle error
-        throw new IllegalStateException("Retrieving user information by user-id '" + userId + "' failed.",
-                errorException);
+        throw new RuntimeException("Retrieving user information by user-id '" + userId + "' failed.", errorException);
     }
 
     @Override
@@ -384,10 +383,10 @@ public class ServerAuthorization extends Authorization
     private static UserInformation createUserInformationFromData(JsonNode data)
     {
         if (!data.has("id")) {
-            throw new IllegalStateException("User information must contains identifier.");
+            throw new IllegalArgumentException("User information must contains identifier.");
         }
         if (!data.has("given_name") || !data.has("family_name")) {
-            throw new IllegalStateException("User information must contains given and family name.");
+            throw new IllegalArgumentException("User information must contains given and family name.");
         }
         UserInformation userInformation = new UserInformation();
         userInformation.setUserId(data.get("id").getTextValue());
@@ -430,10 +429,10 @@ public class ServerAuthorization extends Authorization
             }
         }
         catch (EOFException exception) {
-            throw new IllegalStateException("JSON is empty.", exception);
+            throw new RuntimeException("JSON is empty.", exception);
         }
         catch (IOException exception) {
-            throw new IllegalStateException("Reading JSON failed.", exception);
+            throw new RuntimeException("Reading JSON failed.", exception);
         }
     }
 
@@ -485,7 +484,7 @@ public class ServerAuthorization extends Authorization
      */
     private <T> T handleAuthorizationRequestError(JsonNode jsonNode)
     {
-        throw new IllegalStateException(String.format("Authorization request failed: %s, %s",
+        throw new RuntimeException(String.format("Authorization request failed: %s, %s",
                 jsonNode.get("title").getTextValue(),
                 jsonNode.get("detail").getTextValue()));
     }
@@ -496,7 +495,7 @@ public class ServerAuthorization extends Authorization
      */
     private <T> T handleAuthorizationRequestError(Exception exception)
     {
-        throw new IllegalStateException(String.format("Authorization request failed. %s", exception.getMessage()));
+        throw new RuntimeException(String.format("Authorization request failed. %s", exception.getMessage()));
     }
 
     /**

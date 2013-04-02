@@ -28,7 +28,7 @@ public class SendLocalCommandTest
     {
         jadeContainer = Container.createMainContainer("localhost", 8585, "Shongo");
         if (!jadeContainer.start()) {
-            throw new IllegalStateException("Failed to start JADE container.");
+            throw new RuntimeException("Failed to start JADE container.");
         }
     }
 

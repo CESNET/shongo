@@ -216,7 +216,7 @@ public class PreprocessorStateManager extends AbstractManager
                     // If the interval overlaps the end of the record, update the record
                     else if (startIsInside && endIsAfterOrEqual) {
                         if (newPreprocessedState != null) {
-                            throw new IllegalStateException("Should never happen!");
+                            throw new RuntimeException("Should never happen!");
                         }
                         newPreprocessedState = preprocessedState;
                         newPreprocessedState.setEnd(end);

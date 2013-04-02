@@ -521,7 +521,7 @@ public class AuthorizationManager extends AbstractManager
 
             // No requests should remain
             if (createRequestsByParent.size() > 0 ) {
-                throw new IllegalStateException("Cycle detected in ACL record create requests.");
+                throw new RuntimeException("Cycle detected in ACL record create requests.");
             }
 
             entityManager.getTransaction().commit();

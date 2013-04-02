@@ -39,7 +39,7 @@ public abstract class AbstractGenerator
             reports = (Reports) um.unmarshal(new File(FILE_NAME));
         }
         catch (JAXBException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
     }
 

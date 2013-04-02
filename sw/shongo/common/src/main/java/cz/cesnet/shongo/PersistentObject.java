@@ -92,24 +92,24 @@ public abstract class PersistentObject extends PrintableObject
     /**
      * Checks whether object has already been persisted.
      *
-     * @throws IllegalStateException
+     * @throws RuntimeException
      */
-    public void checkPersisted() throws IllegalStateException
+    public void checkPersisted() throws RuntimeException
     {
         if (!isPersisted()) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " hasn't been persisted yet!");
+            throw new RuntimeException(this.getClass().getSimpleName() + " hasn't been persisted yet!");
         }
     }
 
     /**
      * Checks whether object has not been persisted yet.
      *
-     * @throws IllegalStateException
+     * @throws RuntimeException
      */
-    public void checkNotPersisted() throws IllegalStateException
+    public void checkNotPersisted() throws RuntimeException
     {
         if (isPersisted()) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " has already been persisted!");
+            throw new RuntimeException(this.getClass().getSimpleName() + " has already been persisted!");
         }
     }
 

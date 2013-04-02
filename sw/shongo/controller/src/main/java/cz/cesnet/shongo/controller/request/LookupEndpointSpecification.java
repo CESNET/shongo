@@ -70,7 +70,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                 for (Long terminalId : terminals) {
                     DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(terminalId);
                     if (deviceResource == null) {
-                        throw new IllegalStateException("Device resource should be added to the cache.");
+                        throw new RuntimeException("Device resource should be added to the cache.");
                     }
                     if (resourceCache.isResourceAvailableByParent(deviceResource, getContext())) {
                         deviceResources.add(deviceResource);

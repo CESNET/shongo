@@ -322,7 +322,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
             Long reservationId = reservation.getId();
             reservation = reservationsById.get(reservationId);
             if (reservation == null) {
-                throw new IllegalStateException("Reservation doesn't exist in the cache.");
+                throw new RuntimeException("Reservation doesn't exist in the cache.");
             }
             reservations.remove(reservation);
             reservationsById.remove(reservationId);

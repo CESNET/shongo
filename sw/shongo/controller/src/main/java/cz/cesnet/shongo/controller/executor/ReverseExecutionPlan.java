@@ -13,9 +13,9 @@ public class ReverseExecutionPlan extends ExecutionPlan
      * Constructor.
      *
      * @param executables from which the {@link ExecutablePlan} should be constructed
-     * @throws IllegalStateException when the plan cannot be constructed (because of cycle)
+     * @throws RuntimeException when the plan cannot be constructed (because of cycle)
      */
-    public ReverseExecutionPlan(Collection<Executable> executables) throws IllegalStateException
+    public ReverseExecutionPlan(Collection<Executable> executables) throws RuntimeException
     {
         super(executables);
     }

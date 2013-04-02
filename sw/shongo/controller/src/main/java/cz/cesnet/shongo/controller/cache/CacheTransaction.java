@@ -395,7 +395,7 @@ public class CacheTransaction
     {
         if (currentSavepoint != null) {
             if (currentSavepoint.nextSavepoint != null) {
-                throw new IllegalStateException("Current savepoint shouldn't have next savepoint.");
+                throw new RuntimeException("Current savepoint shouldn't have next savepoint.");
             }
             Map<Object, ObjectState> objectTypeChanges = currentSavepoint.changes.get(objectType);
             if (objectTypeChanges == null) {
@@ -408,7 +408,7 @@ public class CacheTransaction
                     objectTypeChanges.remove(object);
                 }
                 else {
-                    throw new IllegalStateException("Cannot do the same change.");
+                    throw new RuntimeException("Cannot do the same change.");
                 }
             }
             else {

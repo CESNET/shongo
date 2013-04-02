@@ -38,7 +38,7 @@ public class ExecutionPlanTest
                     add(executable5);
                 }});
             Assert.fail("Exception should be thrown (contains cycle).");
-        } catch (IllegalStateException exception) {
+        } catch (RuntimeException exception) {
         }
 
         try {
@@ -68,7 +68,7 @@ public class ExecutionPlanTest
             executables = executionPlan.popExecutables();
             Assert.assertEquals(1, executables.size());
             Assert.assertEquals(executable5, executables.iterator().next());
-        } catch (IllegalStateException exception) {
+        } catch (RuntimeException exception) {
             Assert.fail("Exception should not be thrown (doesn't contain cycle).");
         }
 
@@ -99,7 +99,7 @@ public class ExecutionPlanTest
             executables = executionPlan.popExecutables();
             Assert.assertEquals(1, executables.size());
             Assert.assertEquals(executable2, executables.iterator().next());
-        } catch (IllegalStateException exception) {
+        } catch (RuntimeException exception) {
             Assert.fail("Exception should not be thrown (doesn't contain cycle).");
         }
     }

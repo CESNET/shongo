@@ -51,7 +51,7 @@ public class ConfiguredSSLContext
             javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
         }
         catch (Exception exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
     }
 

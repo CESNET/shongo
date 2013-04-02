@@ -399,7 +399,7 @@ public class Controller
     /**
      * Start the domain controller (but do not start rpc web server or jade container).
      */
-    public void start() throws IllegalStateException
+    public void start()
     {
         // Set single instance of domain controller.
         if (instance == null) {
@@ -475,10 +475,8 @@ public class Controller
 
     /**
      * Start JADE container.
-     *
-     * @throws IllegalStateException
      */
-    public void startJade() throws IllegalStateException
+    public void startJade()
     {
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
@@ -486,7 +484,7 @@ public class Controller
         // Start jade container
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
         if (!jadeContainer.start()) {
-            throw new IllegalStateException(
+            throw new RuntimeException(
                     "Failed to start JADE container. Is not the port used by any other program?");
         }
 
@@ -696,13 +694,13 @@ public class Controller
         Properties properties = new Properties();
         InputStream inputStream = Controller.class.getClassLoader().getResourceAsStream(filename);
         if (inputStream == null) {
-            throw new IllegalStateException("Properties file '" + filename + "' was not found in the classpath.");
+            throw new RuntimeException("Properties file '" + filename + "' was not found in the classpath.");
         }
         try {
             properties.load(inputStream);
         }
         catch (IOException exception) {
-            throw new IllegalStateException(exception);
+            throw new RuntimeException(exception);
         }
         return properties.getProperty("version");
     }
