@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,21 +118,16 @@ public class WorkerThread extends Thread
         Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-
         try {
             preprocessor.run(interval, entityManager);
-        }
-        catch (Exception exception) {
-            logger.error("Preprocessor failed: ", exception);
-        }
-
-        try {
             scheduler.run(interval, entityManager);
         }
         catch (Exception exception) {
-            logger.error("Scheduler failed: ", exception);
+            InternalErrorHandler.handle(InternalErrorType.WORKER, exception);
+        }
+        finally {
+            entityManager.close();
         }
 
-        entityManager.close();
     }
 }

@@ -104,7 +104,9 @@ public class AuthorizationServiceImpl extends Component
             if (aclRecordCreateRequest == null) {
                 return null;
             }
-            return authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest).getId();
+            cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
+                    authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest);
+            return (aclRecord != null ? aclRecord.getId() : null);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

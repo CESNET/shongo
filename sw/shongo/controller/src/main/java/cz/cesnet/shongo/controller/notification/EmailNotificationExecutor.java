@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +139,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
             sendMail(message);
         }
         catch (Exception exception) {
-            logger.error("Failed to send email.", exception);
+            InternalErrorHandler.handle(InternalErrorType.NOTIFICATION, "Failed to send email", exception);
         }
     }
 

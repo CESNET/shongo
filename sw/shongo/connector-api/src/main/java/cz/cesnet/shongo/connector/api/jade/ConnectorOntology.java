@@ -49,7 +49,7 @@ public class ConnectorOntology extends AbstractOntology
             }
         }
         catch (BeanOntologyException exception) {
-            logger.error("Creating the ontology failed.", exception);
+            throw new RuntimeException("Creating the ontology failed.", exception);
         }
     }
 }

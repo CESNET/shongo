@@ -6,7 +6,9 @@ import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -420,11 +422,7 @@ public class AuthorizationManager extends AbstractManager
 
         Map<AclRecordCreateRequest, AclRecord> aclRecordByCreateRequest =
                 executeAclRecordCreateRequests(aclRecordCreateRequests);
-        AclRecord aclRecord = aclRecordByCreateRequest.get(aclRecordCreateRequest);
-        if (aclRecord == null) {
-            throw new IllegalStateException("ACL record must be returned for given create request.");
-        }
-        return aclRecord;
+        return aclRecordByCreateRequest.get(aclRecordCreateRequest);
     }
 
     /**
@@ -529,7 +527,7 @@ public class AuthorizationManager extends AbstractManager
             entityManager.getTransaction().commit();
         }
         catch (FaultException exception) {
-            throw new IllegalStateException(exception);
+            InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, "Creating ACL records", exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -637,7 +635,7 @@ public class AuthorizationManager extends AbstractManager
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
-            logger.error("Executing ACL failed", exception);
+            InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, "Deleting ACL records", exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

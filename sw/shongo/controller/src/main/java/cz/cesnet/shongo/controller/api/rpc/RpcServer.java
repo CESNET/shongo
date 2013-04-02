@@ -112,7 +112,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             handlerMapping.load(Thread.currentThread().getContextClassLoader(), mappingFile);
         }
         catch (Exception exception) {
-            logger.error("Failed to load handler mappings from file.", exception);
+            throw new IllegalStateException("Failed to load handler mappings from file.", exception);
         }
     }
 
@@ -128,7 +128,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             handlerMapping.addHandler(name, handler.getClass());
         }
         catch (XmlRpcException exception) {
-            logger.error("Failed to add new handler.", exception);
+            throw new IllegalStateException("Failed to add new handler.", exception);
         }
         // Add instance to request processory factory
         RequestProcessorFactory factory = (RequestProcessorFactory) handlerMapping.getRequestProcessorFactoryFactory();

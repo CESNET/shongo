@@ -35,7 +35,7 @@ public class CommonOntology extends AbstractOntology
             add(PingCommand.class);
         }
         catch (OntologyException exception) {
-            logger.error("Creating the ontology failed.", exception);
+            throw new RuntimeException("Creating the ontology failed.", exception);
         }
     }
 }

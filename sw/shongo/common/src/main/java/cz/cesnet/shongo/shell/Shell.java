@@ -192,7 +192,7 @@ public class Shell extends CommandSet
             console = null;
         }
         catch (Exception exception) {
-            logger.error("Failed to create shell console.", exception);
+            throw new RuntimeException("Failed to create shell console.", exception);
         }
     }
 

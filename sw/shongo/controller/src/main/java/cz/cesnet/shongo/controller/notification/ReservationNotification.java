@@ -5,6 +5,8 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -74,7 +76,8 @@ public class ReservationNotification extends Notification
             }
         }
         catch (FaultException exception) {
-            logger.error("Failed to create reservation notification.", exception);
+            InternalErrorHandler.handle(InternalErrorType.NOTIFICATION,
+                    "Failed to create reservation notification", exception);
         }
     }
 
