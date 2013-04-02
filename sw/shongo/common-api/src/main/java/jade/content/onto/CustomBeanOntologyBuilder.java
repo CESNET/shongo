@@ -4,22 +4,9 @@ import jade.content.AgentAction;
 import jade.content.Concept;
 import jade.content.Predicate;
 import jade.content.lang.sl.SLCodec;
-import jade.content.onto.annotations.AggregateResult;
-import jade.content.onto.annotations.AggregateSlot;
-import jade.content.onto.annotations.Element;
-import jade.content.onto.annotations.Result;
-import jade.content.onto.annotations.Slot;
-import jade.content.onto.annotations.SuppressSlot;
-import jade.content.schema.AgentActionSchema;
-import jade.content.schema.ConceptSchema;
-import jade.content.schema.ObjectSchema;
-import jade.content.schema.PredicateSchema;
-import jade.content.schema.TermSchema;
-import jade.content.schema.facets.DefaultValueFacet;
-import jade.content.schema.facets.DocumentationFacet;
-import jade.content.schema.facets.JavaTypeFacet;
-import jade.content.schema.facets.PermittedValuesFacet;
-import jade.content.schema.facets.RegexFacet;
+import jade.content.onto.annotations.*;
+import jade.content.schema.*;
+import jade.content.schema.facets.*;
 import jade.util.Logger;
 
 import java.lang.annotation.Annotation;
@@ -27,13 +14,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,13 +38,15 @@ class CustomBeanOntologyBuilder
     private Ontology ontology;
     private BeanIntrospector introspector;
 
-    CustomBeanOntologyBuilder(Ontology ontology) {
+    CustomBeanOntologyBuilder(Ontology ontology)
+    {
         this.ontology = ontology;
         Introspector ontoIntrospector = ontology.getIntrospector();
-        introspector = (BeanIntrospector)ontoIntrospector;
+        introspector = (BeanIntrospector) ontoIntrospector;
     }
 
-    private static boolean isGetter(Method method) {
+    private static boolean isGetter(Method method)
+    {
         /*
            * a getter method
            *   - takes no parameters
@@ -85,7 +68,8 @@ class CustomBeanOntologyBuilder
         char c;
         if (methodName.startsWith(BOOLEAN_GETTER_PREFIX)) {
             c = methodName.charAt(2);
-        } else {
+        }
+        else {
             c = methodName.charAt(3);
         }
         if (!Character.isUpperCase(c) && '_' != c) {
@@ -107,7 +91,8 @@ class CustomBeanOntologyBuilder
         return true;
     }
 
-    private static boolean isSetter(Method method) {
+    private static boolean isSetter(Method method)
+    {
         /*
            * a setter method takes one parameter, does not have a return value and its name starts with "set" and its 4th char is uppercase or is "_"
            */
@@ -135,7 +120,8 @@ class CustomBeanOntologyBuilder
         return true;
     }
 
-    private static String buildPropertyNameFromGetter(Method getter) {
+    private static String buildPropertyNameFromGetter(Method getter)
+    {
         /*
            * 1) rip of the "get" or "is" prefix from method's name
            * 2) make lower case the 1st char of the result
@@ -152,18 +138,20 @@ class CustomBeanOntologyBuilder
             pos = 2;
         }
         sb.append(Character.toLowerCase(getterName.charAt(pos)));
-        sb.append(getterName.substring(pos+1));
+        sb.append(getterName.substring(pos + 1));
         return sb.toString();
     }
 
-    private static String buildSetterNameFromBeanPropertyName(String beanPropertyName) {
+    private static String buildSetterNameFromBeanPropertyName(String beanPropertyName)
+    {
         StringBuilder sb = new StringBuilder(SETTER_PREFIX);
         sb.append(Character.toUpperCase(beanPropertyName.charAt(0)));
         sb.append(beanPropertyName.substring(1));
         return sb.toString();
     }
 
-    private static boolean accessorsAreConsistent(Method getter, Method setter) {
+    private static boolean accessorsAreConsistent(Method getter, Method setter)
+    {
         /*
            *  we have for sure a getter and a setter, so we don't need
            *  to check the number of parameters and the existence of the return value
@@ -176,10 +164,11 @@ class CustomBeanOntologyBuilder
     private static org.slf4j.Logger CLASS_NAME_LOGGER =
             org.slf4j.LoggerFactory.getLogger(CustomBeanOntologyBuilder.class);
 
-    private static String getSchemaNameFromClass(Class clazz) {
+    private static String getSchemaNameFromClass(Class clazz)
+    {
         // We allow multiple classes with same simple name (e.g., "controller:GetRoom" and "connector:GetRoom")
         String result;
-        Matcher classNameMatcher =  CLASS_NAME_PATTERN.matcher(clazz.getName());
+        Matcher classNameMatcher = CLASS_NAME_PATTERN.matcher(clazz.getName());
         if (classNameMatcher.matches()) {
             result = String.format("%s:%s", classNameMatcher.group(1), classNameMatcher.group(2));
             CLASS_NAME_LOGGER.debug("Using schema name '{}' for class '{}'.", result, clazz.getName());
@@ -187,7 +176,7 @@ class CustomBeanOntologyBuilder
         else {
             result = clazz.getSimpleName();
         }
-        Element annotationElement = (Element)clazz.getAnnotation(Element.class);
+        Element annotationElement = (Element) clazz.getAnnotation(Element.class);
         if (annotationElement != null) {
             if (!Element.USE_CLASS_SIMPLE_NAME.equals(annotationElement.name())) {
                 result = annotationElement.name();
@@ -196,15 +185,18 @@ class CustomBeanOntologyBuilder
         return result;
     }
 
-    private static Map<SlotKey, SlotAccessData> buildAccessorsMap(String schemaName, Class clazz, Method[] methodsArray) throws BeanOntologyException {
+    private static Map<SlotKey, SlotAccessData> buildAccessorsMap(String schemaName, Class clazz, Method[] methodsArray)
+            throws BeanOntologyException
+    {
         Map<SlotKey, SlotAccessData> result = new TreeMap<SlotKey, SlotAccessData>();
         List<Method> getters = new ArrayList<Method>();
         Map<String, Method> setters = new HashMap<String, Method>();
-        for (Method method: methodsArray) {
+        for (Method method : methodsArray) {
             if (method.getAnnotation(SuppressSlot.class) == null) {
                 if (isGetter(method)) {
                     getters.add(method);
-                } else if (isSetter(method)) {
+                }
+                else if (isSetter(method)) {
                     setters.put(method.getName(), method);
                 }
             }
@@ -297,12 +289,12 @@ class CustomBeanOntologyBuilder
                         }
                         Type slotType = getter.getGenericReturnType();
                         if (slotType instanceof ParameterizedType) {
-                            ParameterizedType slotParameterizedType = (ParameterizedType)slotType;
+                            ParameterizedType slotParameterizedType = (ParameterizedType) slotType;
                             Type[] actuals = slotParameterizedType.getActualTypeArguments();
                             // slotType must be an array or a Collection => we expect only 1 item in actuals
                             // get first element
                             if (actuals.length > 0) {
-                                aggregateType = (Class)actuals[0];
+                                aggregateType = (Class) actuals[0];
                             }
                         }
 //						if (slotType has generics) {
@@ -320,7 +312,7 @@ class CustomBeanOntologyBuilder
                             }
                         }
                     }
-                    sad = new SlotAccessData(	slotClazz,
+                    sad = new SlotAccessData(slotClazz,
                             getter,
                             setter,
                             mandatory,
@@ -334,7 +326,8 @@ class CustomBeanOntologyBuilder
                             manageAsSerializable);
 
                     result.put(new SlotKey(schemaName, slotName, position), sad);
-                } else {
+                }
+                else {
                     // TODO it's not a bean property, maybe we could generate a warning...
                 }
             }
@@ -362,23 +355,26 @@ class CustomBeanOntologyBuilder
 
                     // Check position duplication
                     if (positionedSK[position] != null) {
-                        throw new BeanOntologyException("duplicated position #" + position + " in slot " + key.slotName);
+                        throw new BeanOntologyException(
+                                "duplicated position #" + position + " in slot " + key.slotName);
                     }
 
                     positionedSK[position] = key;
-                } else {
+                }
+                else {
                     nonPositionedSAD.add(key);
                 }
             }
 
             int nonPositionedSADIndex = 0;
             Map<SlotKey, SlotAccessData> orderedMap = new LinkedHashMap<SlotKey, SlotAccessData>();
-            for (int i=0; i<result.size(); i++) {
+            for (int i = 0; i < result.size(); i++) {
 
                 SlotKey key;
                 if (positionedSK[i] != null) {
                     key = positionedSK[i];
-                } else {
+                }
+                else {
                     key = nonPositionedSAD.get(nonPositionedSADIndex);
                     nonPositionedSADIndex++;
                 }
@@ -390,26 +386,31 @@ class CustomBeanOntologyBuilder
         return result;
     }
 
-    private static String getAggregateSchemaName(Class clazz) {
+    private static String getAggregateSchemaName(Class clazz)
+    {
         String result = null;
         if (SlotAccessData.isSequence(clazz)) {
             result = BasicOntology.SEQUENCE;
-        } else if (SlotAccessData.isSet(clazz)) {
+        }
+        else if (SlotAccessData.isSet(clazz)) {
             result = BasicOntology.SET;
         }
         return result;
     }
 
-    private ObjectSchema getSchema(Class clazz) throws OntologyException {
+    private ObjectSchema getSchema(Class clazz) throws OntologyException
+    {
         ObjectSchema os;
         // Manage classes that require special handling:
         // Calendar --> Date
         if (java.util.Calendar.class.isAssignableFrom(clazz)) {
             os = ontology.getSchema(java.util.Date.class);
-        } else if (clazz == Object.class) {
+        }
+        else if (clazz == Object.class) {
             // Object results in a generic TermSchema
             os = TermSchema.getBaseSchema();
-        } else {
+        }
+        else {
             // If a schema is already associated to clazz, avoid overriding it
             os = ontology.getSchema(clazz);
         }
@@ -417,14 +418,17 @@ class CustomBeanOntologyBuilder
         return os;
     }
 
-    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy, boolean manageAsSerializable) throws BeanOntologyException {
+    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy, boolean manageAsSerializable)
+            throws BeanOntologyException
+    {
         // If slot is marked 'manageAsSerializable' and is present the SerializableOntology use
         // serializable-schema to manage the slot
         if (manageAsSerializable) {
             ObjectSchema serializableSchema = null;
             try {
                 serializableSchema = ontology.getSchema(SerializableOntology.SERIALIZABLE);
-            } catch(OntologyException oe) {
+            }
+            catch (OntologyException oe) {
                 throw new BeanOntologyException("Error getting SerializableOntology schema", oe);
             }
             if (serializableSchema != null) {
@@ -436,22 +440,27 @@ class CustomBeanOntologyBuilder
         return doAddSchema(clazz, buildHierarchy);
     }
 
-    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
+    private ObjectSchema doAddSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException
+    {
         try {
             if (buildHierarchy) {
                 return doAddHierarchicalSchema(clazz);
-            } else {
+            }
+            else {
                 return doAddFlatSchema(clazz);
             }
-        } catch(BeanOntologyException boe) {
+        }
+        catch (BeanOntologyException boe) {
             throw boe;
 
-        } catch(Exception oe) {
-            throw new BeanOntologyException("Error addind schema for class "+clazz, oe);
+        }
+        catch (Exception oe) {
+            throw new BeanOntologyException("Error addind schema for class " + clazz, oe);
         }
     }
 
-    private ObjectSchema doAddHierarchicalSchema(Class clazz) throws OntologyException {
+    private ObjectSchema doAddHierarchicalSchema(Class clazz) throws OntologyException
+    {
         ObjectSchema schema = getSchema(clazz);
         if (schema != null) {
             return schema;
@@ -462,7 +471,8 @@ class CustomBeanOntologyBuilder
 
         if (clazz.isEnum()) {
             manageEnum(clazz, schema);
-        } else {
+        }
+        else {
             manageSuperClass(clazz, schema);
 
             manageInterfaces(clazz, schema);
@@ -477,7 +487,8 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    private ObjectSchema doAddFlatSchema(Class clazz) throws OntologyException {
+    private ObjectSchema doAddFlatSchema(Class clazz) throws OntologyException
+    {
         ObjectSchema schema = getSchema(clazz);
         if (schema != null) {
             return schema;
@@ -488,7 +499,8 @@ class CustomBeanOntologyBuilder
 
         if (clazz.isEnum()) {
             manageEnum(clazz, schema);
-        } else {
+        }
+        else {
             manageSlots(clazz, schema, false);
 
             if (schema instanceof AgentActionSchema) {
@@ -499,7 +511,8 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    private void manageSuperClass(Class clazz, ObjectSchema schema) throws OntologyException {
+    private void manageSuperClass(Class clazz, ObjectSchema schema) throws OntologyException
+    {
         Class superClazz = clazz.getSuperclass();
         if (superClazz != null) {
             if (!Object.class.equals(superClazz)) {
@@ -508,16 +521,18 @@ class CustomBeanOntologyBuilder
                     ObjectSchema superSchema = doAddHierarchicalSchema(superClazz);
 
                     if (schema instanceof ConceptSchema) {
-                        ((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
-                    } else {
-                        ((PredicateSchema)schema).addSuperSchema((PredicateSchema)superSchema);
+                        ((ConceptSchema) schema).addSuperSchema((ConceptSchema) superSchema);
+                    }
+                    else {
+                        ((PredicateSchema) schema).addSuperSchema((PredicateSchema) superSchema);
                     }
                 }
             }
         }
     }
 
-    private void manageInterfaces(Class clazz, ObjectSchema schema) throws OntologyException {
+    private void manageInterfaces(Class clazz, ObjectSchema schema) throws OntologyException
+    {
         Class[] interfaces = clazz.getInterfaces();
         if (interfaces != null) {
             for (Class interfaceClass : interfaces) {
@@ -525,81 +540,91 @@ class CustomBeanOntologyBuilder
                     // We add a new schema only for interfaces that extends Concept (if we are dealing with a Concept)
                     // or Predicate (if we are dealing with a Predicate). This is to avoid adding schemas for interfaces
                     // like Serializable, Cloanable....
-                    if (schema instanceof ConceptSchema && Concept.class.isAssignableFrom(interfaceClass) && interfaceClass != Concept.class && interfaceClass != AgentAction.class) {
+                    if (schema instanceof ConceptSchema && Concept.class.isAssignableFrom(
+                            interfaceClass) && interfaceClass != Concept.class && interfaceClass != AgentAction.class) {
                         ObjectSchema superSchema = doAddHierarchicalSchema(interfaceClass);
-                        ((ConceptSchema)schema).addSuperSchema((ConceptSchema)superSchema);
+                        ((ConceptSchema) schema).addSuperSchema((ConceptSchema) superSchema);
                     }
-                    else if (schema instanceof PredicateSchema && Predicate.class.isAssignableFrom(interfaceClass) && interfaceClass != Predicate.class) {
+                    else if (schema instanceof PredicateSchema && Predicate.class
+                            .isAssignableFrom(interfaceClass) && interfaceClass != Predicate.class) {
                         ObjectSchema superSchema = doAddHierarchicalSchema(interfaceClass);
-                        ((PredicateSchema)schema).addSuperSchema((PredicateSchema)superSchema);
+                        ((PredicateSchema) schema).addSuperSchema((PredicateSchema) superSchema);
                     }
                 }
             }
         }
     }
 
-    private void manageEnum(Class clazz, ObjectSchema schema) throws OntologyException {
-        ConceptSchema cs = (ConceptSchema)schema;
+    private void manageEnum(Class clazz, ObjectSchema schema) throws OntologyException
+    {
+        ConceptSchema cs = (ConceptSchema) schema;
 
-        cs.add(ENUM_SLOT_NAME, (TermSchema)ontology.getSchema(String.class));
+        cs.add(ENUM_SLOT_NAME, (TermSchema) ontology.getSchema(String.class));
 
         // Add enum permitted values
-        Enum[] enumValues = ((Class<? extends Enum>)clazz).getEnumConstants();
+        Enum[] enumValues = ((Class<? extends Enum>) clazz).getEnumConstants();
         String[] enumStrValues = new String[enumValues.length];
-        for(int i=0; i<enumValues.length; i++) {
+        for (int i = 0; i < enumValues.length; i++) {
             enumStrValues[i] = enumValues[i].toString();
         }
         cs.addFacet(ENUM_SLOT_NAME, new PermittedValuesFacet(enumStrValues));
     }
 
-    private void manageActionResult(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException {
+    private void manageActionResult(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
+    {
         Annotation annotation;
         if ((annotation = clazz.getAnnotation(Result.class)) != null) {
-            Result r = (Result)annotation;
-            TermSchema ts = (TermSchema)doAddSchema(r.type(), buildHierarchy);
-            ((AgentActionSchema)schema).setResult(ts);
-        } else if ((annotation = clazz.getAnnotation(AggregateResult.class)) != null) {
-            AggregateResult ar = (AggregateResult)annotation;
-            TermSchema ts = (TermSchema)doAddSchema(ar.type(), buildHierarchy);
-            ((AgentActionSchema)schema).setResult(ts, ar.cardMin(), ar.cardMax());
+            Result r = (Result) annotation;
+            TermSchema ts = (TermSchema) doAddSchema(r.type(), buildHierarchy);
+            ((AgentActionSchema) schema).setResult(ts);
+        }
+        else if ((annotation = clazz.getAnnotation(AggregateResult.class)) != null) {
+            AggregateResult ar = (AggregateResult) annotation;
+            TermSchema ts = (TermSchema) doAddSchema(ar.type(), buildHierarchy);
+            ((AgentActionSchema) schema).setResult(ts, ar.cardMin(), ar.cardMax());
         }
 
     }
 
-    private void manageSlots(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException {
+    private void manageSlots(Class clazz, ObjectSchema schema, boolean buildHierarchy) throws OntologyException
+    {
         Method[] methods = clazz.getMethods();
         List<Method> concreteMethodsList = new ArrayList<Method>();
         int modifiers;
-        for (Method m: methods) {
+        for (Method m : methods) {
             modifiers = m.getModifiers();
             if (!Modifier.isStatic(modifiers) && !Modifier.isAbstract(modifiers)) {
                 concreteMethodsList.add(m);
             }
         }
 
-        Map<SlotKey, SlotAccessData> slotAccessorsMap = buildAccessorsMap(schema.getTypeName(), clazz, (Method[])concreteMethodsList.toArray(new Method[0]));
+        Map<SlotKey, SlotAccessData> slotAccessorsMap = buildAccessorsMap(schema.getTypeName(), clazz,
+                (Method[]) concreteMethodsList.toArray(new Method[0]));
         introspector.addAccessors(slotAccessorsMap);
 
-        for (Entry<SlotKey, SlotAccessData> entry: slotAccessorsMap.entrySet()) {
+        for (Entry<SlotKey, SlotAccessData> entry : slotAccessorsMap.entrySet()) {
             String slotName = entry.getKey().slotName;
             // Avoid overriding slots defined in super-schemas
             if (!schema.containsSlot(slotName)) {
                 if (schema instanceof ConceptSchema) {
-                    addSlot((ConceptSchema)schema, slotName, entry.getValue(), buildHierarchy);
-                } else {
-                    addSlot((PredicateSchema)schema, slotName, entry.getValue(), buildHierarchy);
+                    addSlot((ConceptSchema) schema, slotName, entry.getValue(), buildHierarchy);
+                }
+                else {
+                    addSlot((PredicateSchema) schema, slotName, entry.getValue(), buildHierarchy);
                 }
             }
         }
     }
 
-    private void addSlot(ConceptSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy) throws OntologyException {
+    private void addSlot(ConceptSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy)
+            throws OntologyException
+    {
         if (logger.isLoggable(Logger.FINE)) {
-            logger.log(Logger.FINE, "concept "+schema.getTypeName()+": adding slot "+slotName);
+            logger.log(Logger.FINE, "concept " + schema.getTypeName() + ": adding slot " + slotName);
         }
 
         if (!sad.aggregate) {
-            TermSchema ts = (TermSchema)doAddSchema(sad.type, buildHierarchy, sad.manageAsSerializable);
+            TermSchema ts = (TermSchema) doAddSchema(sad.type, buildHierarchy, sad.manageAsSerializable);
             schema.add(slotName, ts, sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
 
             if (sad.defaultValue != null) {
@@ -616,32 +641,37 @@ class CustomBeanOntologyBuilder
                 // This is necessary because in the annotation the permitted values are string
                 Object[] typizedPermittedValues = new Object[sad.permittedValues.length];
                 if (sad.type != null) {
-                    for(int i=0; i<sad.permittedValues.length; i++) {
-                        typizedPermittedValues[i] = BasicOntology.adjustPrimitiveValue(sad.permittedValues[i], sad.type);
+                    for (int i = 0; i < sad.permittedValues.length; i++) {
+                        typizedPermittedValues[i] = BasicOntology
+                                .adjustPrimitiveValue(sad.permittedValues[i], sad.type);
                     }
                 }
                 schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
             }
             if ("true".equalsIgnoreCase(System.getProperty(SLCodec.PRESERVE_JAVA_TYPES)) &&
-                    (	sad.type == Long.class ||
-                                 sad.type == long.class ||
-                                 sad.type == Double.class ||
-                                 sad.type == double.class)) {
+                    (sad.type == Long.class ||
+                             sad.type == long.class ||
+                             sad.type == Double.class ||
+                             sad.type == double.class)) {
                 schema.addFacet(slotName, new JavaTypeFacet(sad.type.getName()));
             }
-        } else {
+        }
+        else {
             TermSchema ats = null;
             if (sad.aggregateClass != null) {
                 // try to get a schema for the contained type
-                ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
+                ats = (TermSchema) doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
             }
-            schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type), sad.mandatory?ObjectSchema.MANDATORY:ObjectSchema.OPTIONAL);
+            schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type),
+                    sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
         }
     }
 
-    private void addSlot(PredicateSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy) throws OntologyException {
+    private void addSlot(PredicateSchema schema, String slotName, SlotAccessData sad, boolean buildHierarchy)
+            throws OntologyException
+    {
         if (logger.isLoggable(Logger.FINE)) {
-            logger.log(Logger.FINE, "concept "+schema.getTypeName()+": adding slot "+slotName);
+            logger.log(Logger.FINE, "concept " + schema.getTypeName() + ": adding slot " + slotName);
         }
 
         if (!sad.aggregate) {
@@ -662,32 +692,37 @@ class CustomBeanOntologyBuilder
                 // This is necessary because in the annotation the permitted values are string
                 Object[] typizedPermittedValues = new Object[sad.permittedValues.length];
                 if (sad.type != null) {
-                    for(int i=0; i<sad.permittedValues.length; i++) {
-                        typizedPermittedValues[i] = BasicOntology.adjustPrimitiveValue(sad.permittedValues[i], sad.type);
+                    for (int i = 0; i < sad.permittedValues.length; i++) {
+                        typizedPermittedValues[i] = BasicOntology
+                                .adjustPrimitiveValue(sad.permittedValues[i], sad.type);
                     }
                 }
                 schema.addFacet(slotName, new PermittedValuesFacet(typizedPermittedValues));
             }
-        } else {
+        }
+        else {
             TermSchema ats = null;
             if (sad.aggregateClass != null) {
                 // try to get a schema for the contained type
-                ats = (TermSchema)doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
+                ats = (TermSchema) doAddSchema(sad.aggregateClass, buildHierarchy, sad.manageAsSerializable);
             }
-            schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type), sad.mandatory?ObjectSchema.MANDATORY:ObjectSchema.OPTIONAL);
+            schema.add(slotName, ats, sad.cardMin, sad.cardMax, getAggregateSchemaName(sad.type),
+                    sad.mandatory ? ObjectSchema.MANDATORY : ObjectSchema.OPTIONAL);
         }
     }
 
-    private boolean isPrivate(Class clazz) {
+    private boolean isPrivate(Class clazz)
+    {
         int scms = clazz.getModifiers();
         return Modifier.isPrivate(scms);
     }
 
-    private ObjectSchema createEmptySchema(Class clazz) {
+    private ObjectSchema createEmptySchema(Class clazz)
+    {
         ObjectSchema schema;
         String schemaName = getSchemaNameFromClass(clazz);
         if (logger.isLoggable(Logger.FINE)) {
-            logger.log(Logger.FINE, "building concept "+schemaName);
+            logger.log(Logger.FINE, "building concept " + schemaName);
         }
         if (AgentAction.class.isAssignableFrom(clazz)) {
             schema = new AgentActionSchema(schemaName);
@@ -702,22 +737,25 @@ class CustomBeanOntologyBuilder
         return schema;
     }
 
-    void addSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
+    void addSchema(Class clazz, boolean buildHierarchy) throws BeanOntologyException
+    {
         doAddSchema(clazz, buildHierarchy);
     }
 
-    void addSchemas(String pkgname, boolean buildHierarchy) throws BeanOntologyException {
+    void addSchemas(String pkgname, boolean buildHierarchy) throws BeanOntologyException
+    {
         try {
             List<Class> classesForPackage = ClassDiscover.getClassesForPackage(pkgname);
             if (classesForPackage.size() < 1) {
                 throw new BeanOntologyException("no suitable classes found");
             }
-            for (Class clazz: classesForPackage) {
+            for (Class clazz : classesForPackage) {
                 if (Concept.class.isAssignableFrom(clazz) || Predicate.class.isAssignableFrom(clazz)) {
                     doAddSchema(clazz, buildHierarchy);
                 }
             }
-        } catch (ClassNotFoundException cnfe) {
+        }
+        catch (ClassNotFoundException cnfe) {
             throw new BeanOntologyException("Class not found", cnfe);
         }
     }

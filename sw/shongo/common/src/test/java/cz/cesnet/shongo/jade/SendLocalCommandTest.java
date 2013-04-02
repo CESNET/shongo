@@ -50,7 +50,8 @@ public class SendLocalCommandTest
         Agent agent2 = new Agent()
         {
             @Override
-            public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
+            public Object handleCommand(Command command, AID sender)
+                    throws CommandException, CommandUnsupportedException
             {
                 if (command instanceof PingCommand) {
                     logger.info("Received Ping by {} from {}.", getLocalName(), sender.getLocalName());

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api.jade;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.jade.Command;
 import jade.content.onto.Ontology;
-import jade.core.Agent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +24,7 @@ public abstract class ControllerCommand extends Command
      *         encapsulating a primitive type, e.g., Integer, ...),
      *         or NULL if it does not return anything
      * @throws cz.cesnet.shongo.api.CommandException
+     *
      */
     public abstract Object execute(Service commonService, String senderAgentName) throws CommandException;
 

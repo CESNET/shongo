@@ -2,7 +2,6 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 
 public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
 {
@@ -331,7 +330,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
      */
     public static <T> T throwClassAttributeUndefinedFault(String className, String attribute) throws FaultException
     {
-        ClassAttributeUndefinedFault classAttributeUndefinedFault = createClassAttributeUndefinedFault(className, attribute);
+        ClassAttributeUndefinedFault classAttributeUndefinedFault = createClassAttributeUndefinedFault(className,
+                attribute);
         throw classAttributeUndefinedFault.createException();
     }
 
@@ -412,7 +412,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     /**
      * @return new instance of {@link ClassAttributeTypeMismatchFault}
      */
-    public static ClassAttributeTypeMismatchFault createClassAttributeTypeMismatchFault(String className, String attribute, String requiredType, String presentType)
+    public static ClassAttributeTypeMismatchFault createClassAttributeTypeMismatchFault(String className,
+            String attribute, String requiredType, String presentType)
     {
         ClassAttributeTypeMismatchFault classAttributeTypeMismatchFault = new ClassAttributeTypeMismatchFault();
         classAttributeTypeMismatchFault.setClassName(className);
@@ -425,9 +426,11 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     /**
      * @return new instance of {@link ClassAttributeTypeMismatchFault}
      */
-    public static <T> T throwClassAttributeTypeMismatchFault(String className, String attribute, String requiredType, String presentType) throws FaultException
+    public static <T> T throwClassAttributeTypeMismatchFault(String className, String attribute, String requiredType,
+            String presentType) throws FaultException
     {
-        ClassAttributeTypeMismatchFault classAttributeTypeMismatchFault = createClassAttributeTypeMismatchFault(className, attribute, requiredType, presentType);
+        ClassAttributeTypeMismatchFault classAttributeTypeMismatchFault = createClassAttributeTypeMismatchFault(
+                className, attribute, requiredType, presentType);
         throw classAttributeTypeMismatchFault.createException();
     }
 
@@ -497,7 +500,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
      */
     public static <T> T throwClassAttributeRequiredFault(String className, String attribute) throws FaultException
     {
-        ClassAttributeRequiredFault classAttributeRequiredFault = createClassAttributeRequiredFault(className, attribute);
+        ClassAttributeRequiredFault classAttributeRequiredFault = createClassAttributeRequiredFault(className,
+                attribute);
         throw classAttributeRequiredFault.createException();
     }
 
@@ -567,7 +571,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
      */
     public static <T> T throwClassAttributeReadonlyFault(String className, String attribute) throws FaultException
     {
-        ClassAttributeReadonlyFault classAttributeReadonlyFault = createClassAttributeReadonlyFault(className, attribute);
+        ClassAttributeReadonlyFault classAttributeReadonlyFault = createClassAttributeReadonlyFault(className,
+                attribute);
         throw classAttributeReadonlyFault.createException();
     }
 
@@ -637,7 +642,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
      */
     public static <T> T throwClassCollectionRequiredFault(String className, String collection) throws FaultException
     {
-        ClassCollectionRequiredFault classCollectionRequiredFault = createClassCollectionRequiredFault(className, collection);
+        ClassCollectionRequiredFault classCollectionRequiredFault = createClassCollectionRequiredFault(className,
+                collection);
         throw classCollectionRequiredFault.createException();
     }
 
@@ -763,7 +769,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     /**
      * @return new instance of {@link CollectionItemTypeMismatchFault}
      */
-    public static CollectionItemTypeMismatchFault createCollectionItemTypeMismatchFault(String collection, String requiredType, String presentType)
+    public static CollectionItemTypeMismatchFault createCollectionItemTypeMismatchFault(String collection,
+            String requiredType, String presentType)
     {
         CollectionItemTypeMismatchFault collectionItemTypeMismatchFault = new CollectionItemTypeMismatchFault();
         collectionItemTypeMismatchFault.setCollection(collection);
@@ -775,9 +782,11 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
     /**
      * @return new instance of {@link CollectionItemTypeMismatchFault}
      */
-    public static <T> T throwCollectionItemTypeMismatchFault(String collection, String requiredType, String presentType) throws FaultException
+    public static <T> T throwCollectionItemTypeMismatchFault(String collection, String requiredType, String presentType)
+            throws FaultException
     {
-        CollectionItemTypeMismatchFault collectionItemTypeMismatchFault = createCollectionItemTypeMismatchFault(collection, requiredType, presentType);
+        CollectionItemTypeMismatchFault collectionItemTypeMismatchFault = createCollectionItemTypeMismatchFault(
+                collection, requiredType, presentType);
         throw collectionItemTypeMismatchFault.createException();
     }
 
@@ -987,7 +996,8 @@ public class FaultSet extends cz.cesnet.shongo.fault.AbstractFaultSet
      */
     public static <T> T throwEntityNotDeletableReferencedFault(String entity, String id) throws FaultException
     {
-        EntityNotDeletableReferencedFault entityNotDeletableReferencedFault = createEntityNotDeletableReferencedFault(entity, id);
+        EntityNotDeletableReferencedFault entityNotDeletableReferencedFault = createEntityNotDeletableReferencedFault(
+                entity, id);
         throw entityNotDeletableReferencedFault.createException();
     }
 

@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -15,7 +15,10 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.

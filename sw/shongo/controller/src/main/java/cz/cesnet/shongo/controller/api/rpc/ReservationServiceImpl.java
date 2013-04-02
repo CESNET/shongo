@@ -173,7 +173,6 @@ public class ReservationServiceImpl extends Component
      *
      * @param reservationRequest
      * @throws FaultException
-     *
      */
     private void checkModifiableReservationRequest(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,

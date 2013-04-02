@@ -1,12 +1,6 @@
 package cz.cesnet.shongo.controller.executor.report;
 
-import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
-import org.joda.time.DateTime;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**

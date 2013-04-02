@@ -16,7 +16,9 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a request created by an user to get allocated some resources for video conference calls.

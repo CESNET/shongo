@@ -16,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * TODO:
@@ -93,7 +92,7 @@ public abstract class AbstractGenerator
         String[] parts = text.split("[ -]");
         StringBuilder camelCase = new StringBuilder();
         for (String part : parts) {
-            if (camelCase.length() > 0 ) {
+            if (camelCase.length() > 0) {
                 camelCase.append(formatFirstUpperCase(part));
             }
             else {

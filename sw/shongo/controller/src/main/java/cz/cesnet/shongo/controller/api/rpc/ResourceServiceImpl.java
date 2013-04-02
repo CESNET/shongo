@@ -237,7 +237,8 @@ public class ResourceServiceImpl extends Component
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(Resource.class, entityId.getPersistenceId());
+                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(
+                            Resource.class, entityId.getPersistenceId());
                     return;
                 }
             }

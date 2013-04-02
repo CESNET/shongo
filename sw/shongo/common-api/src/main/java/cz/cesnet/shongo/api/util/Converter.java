@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.api.rpc.AtomicType;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.FaultRuntimeException;
@@ -818,7 +818,6 @@ public class Converter
          * @param enumClass
          * @return enum value for given string from specified enum class
          * @throws FaultRuntimeException when converting fails
-         *
          */
         public static <T extends Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
                 throws FaultRuntimeException

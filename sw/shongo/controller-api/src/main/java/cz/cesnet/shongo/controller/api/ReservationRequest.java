@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.util.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -68,7 +67,7 @@ public class ReservationRequest extends AbstractReservationRequest
 
     /**
      * @param start sets the starting date/time from the {@link #SLOT}
-     * @param end sets the ending date/time from the {@link #SLOT}
+     * @param end   sets the ending date/time from the {@link #SLOT}
      */
     public void setSlot(DateTime start, DateTime end)
     {
@@ -85,7 +84,7 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @param startDateTime sets the starting date/time for the {@link #SLOT}
+     * @param startDateTime         sets the starting date/time for the {@link #SLOT}
      * @param endDateTimeOrDuration sets the ending date/time or duration for the {@link #SLOT}
      */
     public void setSlot(String startDateTime, String endDateTimeOrDuration)

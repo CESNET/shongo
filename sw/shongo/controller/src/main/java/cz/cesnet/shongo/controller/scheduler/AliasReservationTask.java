@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.*;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -262,7 +261,8 @@ public class AliasReservationTask extends ReservationTask
             // Check whether alias provider can be allocated
             try {
                 resourceCache.checkCapabilityAvailable(aliasProvider, context);
-            } catch (ReportException exception) {
+            }
+            catch (ReportException exception) {
                 endReportError(exception.getReport());
                 continue;
             }

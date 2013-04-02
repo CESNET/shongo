@@ -249,7 +249,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     /**
-     * @param roomApi to be modified
+     * @param roomApi  to be modified
      * @param executor
      * @return result
      */

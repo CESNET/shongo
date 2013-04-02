@@ -162,6 +162,6 @@ public class CallInfo
                 (audioContained == null ? "?" : (audioContained ? "on" : "off")),
                 (videoContained == null ? "?" : (videoContained ? "on" : "off")),
                 (startTime == null ? "?" : startTime)
-                );
+        );
     }
 }

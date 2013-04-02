@@ -83,7 +83,7 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param ids    requested identifiers
+     * @param ids requested identifiers
      * @return list of all allocated {@link Executable}s
      */
     public List<Executable> list(Set<Long> ids)
@@ -165,8 +165,8 @@ public class ExecutableManager extends AbstractManager
      * any {@link Reservation} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
      *
-     * @return {@link AclRecord}s which should be deleted
      * @param authorization
+     * @return {@link AclRecord}s which should be deleted
      */
     public Collection<AclRecord> deleteAllNotReferenced(Authorization authorization) throws FaultException
     {

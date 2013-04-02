@@ -166,30 +166,31 @@ public class CompartmentReservationTaskTest
     public void testSingleRoomFromMultipleEndpoints() throws Exception
     {
         try {
-        Cache cache = Cache.createTestingCache();
+            Cache cache = Cache.createTestingCache();
 
-        DeviceResource mcu = new DeviceResource();
-        mcu.setAllocatable(true);
-        mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(100));
-        mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
-        cache.addResource(mcu);
+            DeviceResource mcu = new DeviceResource();
+            mcu.setAllocatable(true);
+            mcu.addTechnology(Technology.H323);
+            mcu.addCapability(new RoomProviderCapability(100));
+            mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
+            cache.addResource(mcu);
 
-        DeviceResource terminal = new DeviceResource();
-        terminal.setAllocatable(true);
-        terminal.setTechnology(Technology.H323);
-        terminal.addCapability(new StandaloneTerminalCapability());
-        cache.addResource(terminal);
+            DeviceResource terminal = new DeviceResource();
+            terminal.setAllocatable(true);
+            terminal.setTechnology(Technology.H323);
+            terminal.addCapability(new StandaloneTerminalCapability());
+            cache.addResource(terminal);
 
-        ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
-        CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 50));
-        compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
-        Reservation reservation = compartmentReservationTask.perform();
-        Assert.assertEquals(3, reservation.getChildReservations().size());
-        Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
-        Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
-        } catch (Exception exception) {
+            ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
+            CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
+            compartmentReservationTask.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 50));
+            compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
+            Reservation reservation = compartmentReservationTask.perform();
+            Assert.assertEquals(3, reservation.getChildReservations().size());
+            Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
+            Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
+        }
+        catch (Exception exception) {
             exception.printStackTrace();
             throw exception;
         }
@@ -318,7 +319,8 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(endpoint));
             Reservation reservation = compartmentReservationTask.perform();
             Assert.fail("Exception that resource is requested multiple times should be thrown");
-        } catch (ReportException exception) {
+        }
+        catch (ReportException exception) {
             Assert.assertEquals(ResourceRequestedMultipleTimesReport.class,
                     exception.getReport().getChildReports().get(0).getClass());
         }

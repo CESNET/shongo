@@ -70,7 +70,7 @@ public class DatabaseFilter
             if (ids.isEmpty()) {
                 addFilter(alias + ".id IN (0)");
             }
-            else  {
+            else {
                 addFilter(alias + ".id IN (:ids)");
                 addFilterParameter("ids", ids);
             }
@@ -115,7 +115,7 @@ public class DatabaseFilter
     }
 
     /**
-     * @param filter        from which the user-id should be parsed
+     * @param filter from which the user-id should be parsed
      * @return user-id from given {@code filter}
      */
     public static String getUserIdFromFilter(Map<String, Object> filter)

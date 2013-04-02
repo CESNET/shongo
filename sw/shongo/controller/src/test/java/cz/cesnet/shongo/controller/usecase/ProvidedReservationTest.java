@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.fault.FaultException;
 import org.junit.Assert;
 import org.junit.Test;

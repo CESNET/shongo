@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;

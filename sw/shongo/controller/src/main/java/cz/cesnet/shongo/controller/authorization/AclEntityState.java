@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 
 import java.util.*;
 

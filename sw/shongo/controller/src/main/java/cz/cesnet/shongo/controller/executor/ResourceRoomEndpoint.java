@@ -4,12 +4,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -85,7 +84,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      */
     @Override
     @Column
-    @org.hibernate.annotations.Index(name="room_id")
+    @org.hibernate.annotations.Index(name = "room_id")
     public String getRoomId()
     {
         return roomId;
@@ -235,7 +234,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             roomApi.addAlias(alias.toApi());
         }
         Authorization authorization = Authorization.getInstance();
-        for ( UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER) ) {
+        for (UserInformation executableOwner : authorization.getUsersWithRole(this, Role.OWNER)) {
             roomApi.addParticipant(executableOwner);
         }
         return roomApi;

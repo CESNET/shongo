@@ -1,12 +1,9 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
-import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
-import java.util.List;
 
 /**
  * Represents an {@link Endpoint} which represents a {@link RoomConfiguration} (is able to

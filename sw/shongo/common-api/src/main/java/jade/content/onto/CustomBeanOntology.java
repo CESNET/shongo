@@ -8,7 +8,8 @@ import java.io.ObjectInputStream;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CustomBeanOntology extends Ontology {
+public class CustomBeanOntology extends Ontology
+{
 
     private static final long serialVersionUID = -2013125499000302494L;
 
@@ -21,7 +22,8 @@ public class CustomBeanOntology extends Ontology {
      *
      * @param name The identifier of the ontology.
      */
-    public CustomBeanOntology(String name) {
+    public CustomBeanOntology(String name)
+    {
         this(name, BasicOntology.getInstance());
     }
 
@@ -33,8 +35,9 @@ public class CustomBeanOntology extends Ontology {
      * @param name The identifier of the ontology.
      * @param base The base ontology.
      */
-    public CustomBeanOntology(String name, Ontology base) {
-        this(name, new Ontology[] { base });
+    public CustomBeanOntology(String name, Ontology base)
+    {
+        this(name, new Ontology[]{base});
     }
 
     /**
@@ -46,7 +49,8 @@ public class CustomBeanOntology extends Ontology {
      * @param name The identifier of the ontology.
      * @param base The base ontologies
      */
-    public CustomBeanOntology(String name, Ontology[] base) {
+    public CustomBeanOntology(String name, Ontology[] base)
+    {
         super(name, base, new BeanIntrospector());
         bob = new CustomBeanOntologyBuilder(this);
     }
@@ -59,7 +63,8 @@ public class CustomBeanOntology extends Ontology {
      * @param clazz class from which to build the ontological schema
      * @throws BeanOntologyException
      */
-    public void add(Class clazz) throws BeanOntologyException {
+    public void add(Class clazz) throws BeanOntologyException
+    {
         add(clazz, true);
     }
 
@@ -71,7 +76,8 @@ public class CustomBeanOntology extends Ontology {
      * @param pkgname name of the package containing the beans
      * @throws BeanOntologyException
      */
-    public void add(String pkgname) throws BeanOntologyException {
+    public void add(String pkgname) throws BeanOntologyException
+    {
         add(pkgname, true);
     }
 
@@ -86,7 +92,8 @@ public class CustomBeanOntology extends Ontology {
      *                       flat unrelated elements
      * @throws BeanOntologyException
      */
-    public void add(Class clazz, boolean buildHierarchy) throws BeanOntologyException {
+    public void add(Class clazz, boolean buildHierarchy) throws BeanOntologyException
+    {
         bob.addSchema(clazz, buildHierarchy);
     }
 
@@ -95,17 +102,19 @@ public class CustomBeanOntology extends Ontology {
      * <code>Concept</code> or <code>Predicate</code>) found in the
      * specified package.
      *
-     * @param pkgname name of the package containing the beans
+     * @param pkgname        name of the package containing the beans
      * @param buildHierarchy if <code>true</code>, build the full hierarchy
      *                       ontological elements. Otherwise, build a set of
      *                       flat unrelated elements
      * @throws BeanOntologyException
      */
-    public void add(String pkgname, boolean buildHierarchy) throws BeanOntologyException {
+    public void add(String pkgname, boolean buildHierarchy) throws BeanOntologyException
+    {
         bob.addSchemas(pkgname, buildHierarchy);
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException
+    {
         in.defaultReadObject();
 
         // Create a new instance of BOB

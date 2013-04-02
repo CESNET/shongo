@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.report;
 
 /**
-* Type of internal errors where they can happen.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Type of internal errors where they can happen.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public enum InternalErrorType
 {
     AUTHORIZATION("Authorization"),

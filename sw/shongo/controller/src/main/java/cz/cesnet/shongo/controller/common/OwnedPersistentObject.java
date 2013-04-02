@@ -1,12 +1,9 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.report.Report;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
 
 /**
  * Represents a {@link cz.cesnet.shongo.PersistentObject} which is owned by shongo user.

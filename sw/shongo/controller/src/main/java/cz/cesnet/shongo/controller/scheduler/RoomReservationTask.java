@@ -358,7 +358,8 @@ public class RoomReservationTask extends ReservationTask
                         AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
                         aliasReservationTask.addAliasType(missingAliasType);
                         aliasReservationTask.setTargetResource(deviceResource);
-                        AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
+                        AliasReservation aliasReservation =
+                                addChildReservation(aliasReservationTask, AliasReservation.class);
                         // Assign allocated aliases to the room
                         for (Alias alias : aliasReservation.getAliases()) {
                             // Assign only aliases which can be assigned to the room (according to room technologies)
@@ -372,14 +373,15 @@ public class RoomReservationTask extends ReservationTask
                     }
 
                     // Allocate aliases for technologies which are missing
-                    if ( withTechnologyAliases ) {
+                    if (withTechnologyAliases) {
                         while (missingAliasTechnologies.size() > 0) {
                             // Allocate missing alias
                             Technology technology = missingAliasTechnologies.iterator().next();
                             AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
                             aliasReservationTask.addTechnology(technology);
                             aliasReservationTask.setTargetResource(deviceResource);
-                            AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
+                            AliasReservation aliasReservation =
+                                    addChildReservation(aliasReservationTask, AliasReservation.class);
                             // Assign allocated aliases to the room
                             for (Alias alias : aliasReservation.getAliases()) {
                                 // Assign only aliases which can be assigned to the room (according to room technologies)

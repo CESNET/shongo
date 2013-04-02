@@ -3,7 +3,8 @@ package cz.cesnet.shongo.controller.scheduler.report;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.report.Report;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -65,6 +66,7 @@ public class UserNotOwnerReport extends Report
     public static String formatUser(String userId)
     {
 
-        return String.format("%s (id: %s)'", Authorization.getInstance().getUserInformation(userId).getFullName(), userId);
+        return String.format("%s (id: %s)'",
+                Authorization.getInstance().getUserInformation(userId).getFullName(), userId);
     }
 }

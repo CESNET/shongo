@@ -78,7 +78,8 @@ public class FaultSet extends cz.cesnet.shongo.api.FaultSet
     /**
      * @return new instance of {@link DeviceCommandFailedFault}
      */
-    public static DeviceCommandFailedFault createDeviceCommandFailedFault(String device, String command, CommandFailure error)
+    public static DeviceCommandFailedFault createDeviceCommandFailedFault(String device, String command,
+            CommandFailure error)
     {
         DeviceCommandFailedFault deviceCommandFailedFault = new DeviceCommandFailedFault();
         deviceCommandFailedFault.setDevice(device);
@@ -90,7 +91,8 @@ public class FaultSet extends cz.cesnet.shongo.api.FaultSet
     /**
      * @return new instance of {@link DeviceCommandFailedFault}
      */
-    public static <T> T throwDeviceCommandFailedFault(String device, String command, CommandFailure error) throws FaultException
+    public static <T> T throwDeviceCommandFailedFault(String device, String command, CommandFailure error)
+            throws FaultException
     {
         DeviceCommandFailedFault deviceCommandFailedFault = createDeviceCommandFailedFault(device, command, error);
         throw deviceCommandFailedFault.createException();
@@ -219,7 +221,8 @@ public class FaultSet extends cz.cesnet.shongo.api.FaultSet
      */
     public static <T> T throwIdentifierInvalidDomainFault(String id, String requiredDomain) throws FaultException
     {
-        IdentifierInvalidDomainFault identifierInvalidDomainFault = createIdentifierInvalidDomainFault(id, requiredDomain);
+        IdentifierInvalidDomainFault identifierInvalidDomainFault = createIdentifierInvalidDomainFault(id,
+                requiredDomain);
         throw identifierInvalidDomainFault.createException();
     }
 
@@ -346,7 +349,8 @@ public class FaultSet extends cz.cesnet.shongo.api.FaultSet
      */
     public static <T> T throwReservationRequestNotModifiableFault(String id) throws FaultException
     {
-        ReservationRequestNotModifiableFault reservationRequestNotModifiableFault = createReservationRequestNotModifiableFault(id);
+        ReservationRequestNotModifiableFault reservationRequestNotModifiableFault = createReservationRequestNotModifiableFault(
+                id);
         throw reservationRequestNotModifiableFault.createException();
     }
 

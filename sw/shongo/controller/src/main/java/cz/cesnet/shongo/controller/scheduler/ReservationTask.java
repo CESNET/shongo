@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import org.hibernate.cfg.SetSimpleValueTypeSecondPass;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 

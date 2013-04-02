@@ -12,7 +12,6 @@ import java.util.Map;
  *
  * @param <K>
  * @param <V>
- *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 class ExpirationMap<K, V> implements Iterable<V>

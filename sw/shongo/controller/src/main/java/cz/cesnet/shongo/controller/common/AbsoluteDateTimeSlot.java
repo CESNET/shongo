@@ -49,7 +49,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      * Constructor.
      *
      * @param slotStart sets the {@link #slotStart}
-     * @param duration   sets the {@link #slotEnd} as {@code slotStart} plus {@code duration}
+     * @param duration  sets the {@link #slotEnd} as {@code slotStart} plus {@code duration}
      */
     public AbsoluteDateTimeSlot(DateTime slotStart, Period duration)
     {

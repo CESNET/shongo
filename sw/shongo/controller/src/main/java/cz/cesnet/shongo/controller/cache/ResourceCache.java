@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
@@ -336,7 +336,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         }
     }
 
-    public void checkResourceAvailableByParent(Resource resource, ReservationTask.Context context) throws ReportException
+    public void checkResourceAvailableByParent(Resource resource, ReservationTask.Context context)
+            throws ReportException
     {
         checkResourceAvailable(resource, context);
 

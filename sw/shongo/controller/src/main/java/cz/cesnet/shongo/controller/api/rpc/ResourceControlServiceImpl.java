@@ -322,12 +322,12 @@ public class ResourceControlServiceImpl extends Component
     /**
      * Asks the local controller agent to send a command to be performed by a device.
      *
-     *
      * @param agentName on which the command should be performed
-     * @param action           command to be performed by the device
+     * @param action    command to be performed by the device
      * @throws FaultException
      */
-    private Object performDeviceAction(String deviceResourceId, String agentName, ConnectorCommand action) throws FaultException
+    private Object performDeviceAction(String deviceResourceId, String agentName, ConnectorCommand action)
+            throws FaultException
     {
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, action);
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
@@ -338,7 +338,7 @@ public class ResourceControlServiceImpl extends Component
     }
 
     /**
-     * @param token to be validated against given {@code deviceResourceId}
+     * @param token            to be validated against given {@code deviceResourceId}
      * @param deviceResourceId
      * @return agent name
      * @throws FaultException
@@ -347,7 +347,7 @@ public class ResourceControlServiceImpl extends Component
     {
         String userId = authorization.validate(token);
         EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
-            String agentName = getAgentName(entityId);
+        String agentName = getAgentName(entityId);
 
         if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
             ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", entityId);
@@ -358,7 +358,6 @@ public class ResourceControlServiceImpl extends Component
 
     /**
      * Gets name of agent managing a given device.
-     *
      *
      * @param entityId shongo-id of device agent of which to get
      * @return agent name of managed resource with given {@code deviceResourceId}

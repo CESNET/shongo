@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;

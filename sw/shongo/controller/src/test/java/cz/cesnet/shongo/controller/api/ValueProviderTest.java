@@ -55,7 +55,7 @@ public class ValueProviderTest extends AbstractControllerTest
         // Test remove value provider from filtered value provider by setting resourceId
         aliasProvider = getResourceService().getResource(SECURITY_TOKEN, aliasProviderId);
         aliasProviderCapability = (AliasProviderCapability) aliasProvider.getCapabilities().get(0);
-        ((ValueProvider.Filtered)aliasProviderCapability.getValueProvider()).setValueProvider(valueProviderId);
+        ((ValueProvider.Filtered) aliasProviderCapability.getValueProvider()).setValueProvider(valueProviderId);
         getResourceService().modifyResource(SECURITY_TOKEN, aliasProvider);
         Assert.assertEquals(2, getAliasProviderCount());
 
@@ -77,7 +77,7 @@ public class ValueProviderTest extends AbstractControllerTest
         // Test remove value provider from filtered value provider by setting new value provider
         aliasProvider = getResourceService().getResource(SECURITY_TOKEN, aliasProviderId);
         aliasProviderCapability = (AliasProviderCapability) aliasProvider.getCapabilities().get(0);
-        ((ValueProvider.Filtered)aliasProviderCapability.getValueProvider()).setValueProvider(
+        ((ValueProvider.Filtered) aliasProviderCapability.getValueProvider()).setValueProvider(
                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL,
                         new ValueProvider.Filtered(FilterType.CONVERT_TO_URL,
                                 new ValueProvider.Filtered(FilterType.CONVERT_TO_URL, valueProviderId))));

@@ -147,7 +147,7 @@ public class ClassHelper
      * @return new instance of given {@code type}.
      * @throws FaultRuntimeException when class cannot be instanced
      */
-    public static <T,A> T createInstanceFromClassRuntime(Class<T> type, Class<A> argumentType, A argumentValue)
+    public static <T, A> T createInstanceFromClassRuntime(Class<T> type, Class<A> argumentType, A argumentValue)
     {
         T instance = null;
         try {
@@ -174,7 +174,6 @@ public class ClassHelper
      * @param size size of {@link Collection}
      * @return new instance of {@link Collection} of given size
      * @throws FaultException
-     *
      */
     public static Collection<Object> createCollection(Class type, int size) throws FaultException
     {

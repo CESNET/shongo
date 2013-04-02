@@ -4,7 +4,6 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.fault.FaultException;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;

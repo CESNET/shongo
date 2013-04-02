@@ -1,21 +1,13 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.EmailSender;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 
 /**

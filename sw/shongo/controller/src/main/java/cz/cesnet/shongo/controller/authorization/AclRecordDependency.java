@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import javax.persistence.*;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents a dependency from child {@link AclRecord} to a parent {@link AclRecord}. Child {@link AclRecord} is

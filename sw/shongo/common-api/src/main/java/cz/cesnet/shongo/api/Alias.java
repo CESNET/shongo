@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import jade.content.Concept;
 
 /**

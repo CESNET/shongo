@@ -3,8 +3,6 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 
-import javax.persistence.Transient;
-
 /**
  * Represents an available {@link cz.cesnet.shongo.controller.common.RoomConfiguration} in
  * a {@link DeviceResource} with a

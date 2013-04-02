@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
@@ -114,7 +113,7 @@ public class Controller
     private EmailSender emailSender;
 
     /**
-     * @see  NotificationManager
+     * @see NotificationManager
      */
     private NotificationManager notificationManager = new NotificationManager();
 
@@ -407,7 +406,7 @@ public class Controller
         }
 
         // Initialize authorization
-        if(authorization == null) {
+        if (authorization == null) {
             throw new IllegalStateException("Authorization is not set.");
         }
         authorization.setEntityManagerFactory(entityManagerFactory);

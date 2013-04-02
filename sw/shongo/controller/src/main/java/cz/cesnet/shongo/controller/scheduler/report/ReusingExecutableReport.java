@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.reservation.Reservation;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;

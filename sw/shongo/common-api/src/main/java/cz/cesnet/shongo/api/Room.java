@@ -2,8 +2,8 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import jade.content.Concept;
 

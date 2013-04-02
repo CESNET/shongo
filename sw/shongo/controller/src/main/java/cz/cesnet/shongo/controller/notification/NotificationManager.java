@@ -1,16 +1,13 @@
 package cz.cesnet.shongo.controller.notification;
 
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a {@link Component} for executing {@link Notification}s by multiple {@link NotificationExecutor}s.

@@ -17,7 +17,7 @@ public interface SpecificationCheckAvailability
     /**
      * Check availability of this {@link Specification} in given {@code slot}.
      *
-     * @param slot to be checked
+     * @param slot          to be checked
      * @param entityManager which can be used for checking
      */
     public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException;

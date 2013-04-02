@@ -69,7 +69,7 @@ public interface ResourceService extends Service
      */
     @API
     Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
-        throws FaultException;
+            throws FaultException;
 
     /**
      * Gets the complete resource object.

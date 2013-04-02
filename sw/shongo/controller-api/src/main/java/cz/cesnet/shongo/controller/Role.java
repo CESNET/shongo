@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.fault.TodoImplementException;
-
 import java.util.HashMap;
 import java.util.Map;
 

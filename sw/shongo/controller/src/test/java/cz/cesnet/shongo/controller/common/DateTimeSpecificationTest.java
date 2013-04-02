@@ -38,6 +38,7 @@ public class DateTimeSpecificationTest
         Assert.assertNotNull(dateTimeSpecification.getRelativeDateTime());
 
         DateTime referenceDateTime = DateTime.parse("2012-01-01T12:00:00");
-        Assert.assertEquals(DateTime.parse("2013-03-04T16:05:06"), dateTimeSpecification.getEarliest(referenceDateTime));
+        Assert.assertEquals(DateTime.parse("2013-03-04T16:05:06"),
+                dateTimeSpecification.getEarliest(referenceDateTime));
     }
 }

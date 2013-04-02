@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import org.joda.time.DateTime;
 import org.joda.time.Duration;
-
-import java.util.*;
 
 /**
  * Represents a cache of {@link AclRecord}s

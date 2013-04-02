@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.executor.Executable;
 import org.apache.commons.configuration.CombinedConfiguration;
-import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
 import org.joda.time.Duration;

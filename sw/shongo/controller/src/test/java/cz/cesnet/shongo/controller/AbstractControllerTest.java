@@ -341,7 +341,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * @return shongo-id of created or modified {@link ReservationRequest}
      * @throws Exception
      */
-    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest) throws Exception
+    protected String allocate(SecurityToken securityToken, AbstractReservationRequest reservationRequest)
+            throws Exception
     {
         String reservationRequestId;
         if (reservationRequest.getId() == null) {

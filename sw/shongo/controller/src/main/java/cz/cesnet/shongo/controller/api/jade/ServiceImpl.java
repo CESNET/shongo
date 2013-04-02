@@ -4,15 +4,14 @@ import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.MessageNotification;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 
@@ -81,7 +80,8 @@ public class ServiceImpl implements Service
             case USER:
                 try {
                     recipients.add(Authorization.getInstance().getUserInformation(targetId));
-                } catch (Exception exception) {
+                }
+                catch (Exception exception) {
                     throw new CommandException(String.format("Cannot notify user with id '%s'.", targetId), exception);
                 }
                 break;
@@ -90,13 +90,14 @@ public class ServiceImpl implements Service
                 EntityManager entityManager = entityManagerFactory.createEntityManager();
                 try {
                     ExecutableManager executableManager = new ExecutableManager(entityManager);
-                    RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(deviceResourceId, targetId, DateTime.now());
+                    RoomEndpoint roomEndpoint =
+                            executableManager.getRoomEndpoint(deviceResourceId, targetId, DateTime.now());
                     if (roomEndpoint == null) {
-                        throw new CommandException(
-                                String.format("No room '%s' was found for resource with agent '%s'.", targetId, agentName));
+                        throw new CommandException(String.format(
+                                "No room '%s' was found for resource with agent '%s'.", targetId, agentName));
                     }
                     Authorization authorization = Authorization.getInstance();
-                    for ( UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER) ) {
+                    for (UserInformation user : authorization.getUsersWithRole(roomEndpoint, Role.OWNER)) {
                         recipients.add(user);
                     }
                 }

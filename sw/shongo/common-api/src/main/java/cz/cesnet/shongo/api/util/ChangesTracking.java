@@ -272,7 +272,6 @@ public class ChangesTracking implements Concept
      *
      * @param object
      * @throws FaultException
-     *
      */
     public static void setupNewEntity(Object object) throws FaultException
     {

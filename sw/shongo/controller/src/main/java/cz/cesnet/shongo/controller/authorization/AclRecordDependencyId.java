@@ -5,10 +5,10 @@ import javax.persistence.Embeddable;
 import java.io.Serializable;
 
 /**
-* Represents an identifier for {@link AclRecordDependency}.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Represents an identifier for {@link AclRecordDependency}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 @Embeddable
 public class AclRecordDependencyId implements Serializable
 {
@@ -33,7 +33,7 @@ public class AclRecordDependencyId implements Serializable
      * Constructor.
      *
      * @param parentAclRecordId sets the {@link #parentAclRecordId}
-     * @param childAclRecordId sets the {@link #childAclRecordId}
+     * @param childAclRecordId  sets the {@link #childAclRecordId}
      */
     public AclRecordDependencyId(String parentAclRecordId, String childAclRecordId)
     {

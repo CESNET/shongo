@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;

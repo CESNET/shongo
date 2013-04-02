@@ -8,8 +8,6 @@ import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.TimeZone;
-
 /**
  * Tests for {@link DateTime}, {@link Period} and {@link Interval}.
  *

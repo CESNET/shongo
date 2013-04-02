@@ -7,8 +7,6 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-
 /**
  * Tests for {@link cz.cesnet.shongo.controller.api.ReservationRequestSet}.
  *

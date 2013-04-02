@@ -107,6 +107,7 @@ public class CacheTransaction
     {
         return roomCacheTransaction;
     }
+
     /**
      * @return {@link #currentSavepoint}
      */

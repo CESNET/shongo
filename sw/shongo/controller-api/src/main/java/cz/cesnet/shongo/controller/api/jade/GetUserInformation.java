@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import jade.core.Agent;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>

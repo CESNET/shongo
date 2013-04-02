@@ -161,7 +161,7 @@ public class UserInformation implements PersonInformation, Concept
             }
             fullName.append(lastName);
         }
-        if (fullName.length() > 0 ) {
+        if (fullName.length() > 0) {
             return fullName.toString();
         }
         return null;

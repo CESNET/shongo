@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.Reservation;

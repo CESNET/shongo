@@ -40,9 +40,7 @@ public enum CallState
     /**
      * Some other, technology specific state. Used when the concrete device state cannot be mapped to any CallState.
      */
-    OTHER,
-
-    ;
+    OTHER;
 
     public boolean isActive()
     {

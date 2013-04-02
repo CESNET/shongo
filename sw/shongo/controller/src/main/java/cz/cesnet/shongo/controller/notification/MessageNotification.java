@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.notification;
 
 /**
-* {@link Notification} for simple message.
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * {@link Notification} for simple message.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class MessageNotification extends Notification
 {
     /**
@@ -20,7 +20,7 @@ public class MessageNotification extends Notification
     /**
      * Constructor.
      *
-     * @param name sets the {@link #name}
+     * @param name    sets the {@link #name}
      * @param message sets the {@link #message}
      */
     public MessageNotification(String name, String message)

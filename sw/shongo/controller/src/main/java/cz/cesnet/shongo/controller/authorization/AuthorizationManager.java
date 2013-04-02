@@ -6,8 +6,8 @@ import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
@@ -410,7 +410,6 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
-     *
      * @param aclRecordCreateRequest to be executed
      * @return {@link AclRecord} which has been created
      * @throws FaultException
@@ -428,7 +427,7 @@ public class AuthorizationManager extends AbstractManager
     /**
      * Fill given {@code aclRecordCreateRequest} to given {@code aclRecordCreateRequests} (recursive).
      *
-     * @param aclRecordCreateRequest to be added to given {@code aclRecordCreateRequests}
+     * @param aclRecordCreateRequest  to be added to given {@code aclRecordCreateRequests}
      * @param aclRecordCreateRequests to be filled
      */
     private void fillAclRecordCreateRequests(AclRecordCreateRequest aclRecordCreateRequest,
@@ -520,7 +519,7 @@ public class AuthorizationManager extends AbstractManager
             }
 
             // No requests should remain
-            if (createRequestsByParent.size() > 0 ) {
+            if (createRequestsByParent.size() > 0) {
                 throw new RuntimeException("Cycle detected in ACL record create requests.");
             }
 
@@ -542,7 +541,7 @@ public class AuthorizationManager extends AbstractManager
      */
     private void executeAclRecordDeleteRequests(Collection<AclRecordDeleteRequest> aclRecordDeleteRequests)
     {
-        if(aclRecordDeleteRequests.size() == 0) {
+        if (aclRecordDeleteRequests.size() == 0) {
             return;
         }
         try {

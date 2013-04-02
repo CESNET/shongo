@@ -1,15 +1,18 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Mute;
 import cz.cesnet.shongo.connector.api.jade.endpoint.Unmute;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.api.jade.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.jade.Agent;
@@ -46,7 +49,8 @@ public class JadeServiceTest extends AbstractControllerTest
 
         cz.cesnet.shongo.controller.Controller controller = getController();
         controller.addNotificationExecutor(notificationExecutor);
-        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(), controller.getNotificationManager()) {
+        controller.setJadeService(new ServiceImpl(getEntityManagerFactory(), controller.getNotificationManager())
+        {
             @Override
             public Room getRoom(String agentName, String roomId) throws CommandException
             {
@@ -124,8 +128,8 @@ public class JadeServiceTest extends AbstractControllerTest
                 return roomApi;
             }
             else if (command instanceof Unmute) {
-                SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(),
-                        new NotifyTarget(Service.NotifyTargetType.USER, Authorization.ROOT_USER_ID, "title", "message"));
+                SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(), new NotifyTarget(
+                        Service.NotifyTargetType.USER, Authorization.ROOT_USER_ID, "title", "message"));
                 Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
                 return null;
             }
