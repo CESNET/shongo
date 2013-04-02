@@ -7,20 +7,41 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import javax.persistence.EntityManager;
 
 /**
- * TODO:
+ * Represent a {@link Thread} which is responsible to perform one action of specified {@link #type} for
+ * specified {@link #executable}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ExecutorThread extends Thread
 {
+    /**
+     * @see Type
+     */
     private Type type;
 
+    /**
+     * For which the action will be performed.
+     */
     private Executable executable;
 
+    /**
+     * Reference to {@link Executor}.
+     */
     private Executor executor;
 
+    /**
+     * {@link ExecutionPlan} which planned this action.
+     */
     private ExecutionPlan executionPlan;
 
+    /**
+     * Constructor.
+     *
+     * @param type          sets the {@link #type}
+     * @param executable    sets the {@link #executable}
+     * @param executor      sets the {@link #executor}
+     * @param executionPlan sets the {@link #executionPlan}
+     */
     public ExecutorThread(Type type, Executable executable, Executor executor, ExecutionPlan executionPlan)
     {
         this.type = type;

@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.Executor;
 import java.util.*;
 
 /**
- * Represents an {@link Executor} for collection of {@link Executable}s.
+ * Represents an {@link Executor} plan for collection of {@link Executable}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.joda.time.*;
@@ -114,20 +115,28 @@ public class WorkerThread extends Thread
      */
     private void work()
     {
-        ReadableDateTime dateTimeNow = DateMidnight.now();
-        Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
+        // Globally synchronized (see ThreadLock documentation)
+        //logger.debug("Worker waiting for lock...........................");
+        synchronized (ThreadLock.class) {
+            //logger.debug("Worker lock acquired...   [[[[[")
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            preprocessor.run(interval, entityManager);
-            scheduler.run(interval, entityManager);
-        }
-        catch (Exception exception) {
-            InternalErrorHandler.handle(InternalErrorType.WORKER, exception);
-        }
-        finally {
-            entityManager.close();
-        }
+            ReadableDateTime dateTimeNow = DateMidnight.now();
+            Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
 
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                preprocessor.run(interval, entityManager);
+                scheduler.run(interval, entityManager);
+            }
+            catch (Exception exception) {
+                InternalErrorHandler.handle(InternalErrorType.WORKER, exception);
+            }
+            finally {
+                entityManager.close();
+            }
+
+            //logger.debug("Worker releasing lock...  ]]]]]");
+        }
+        //logger.debug("Worker lock released...");
     }
 }
