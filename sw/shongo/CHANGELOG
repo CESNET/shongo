@@ -1,0 +1,16 @@
+0.5.0 (2013-03-27) [e651c8264976d9513f0be7c34eea5489e263d234]
+
+    * First public BETA version
+
+0.5.1 (2013-04-03) [dbd6388a3f49494e9cc1502b8a3ad63ad11f8322]
+
+    * Fixed assigning user roles for the case when user creates an alias reservation,
+      then a room capacity reservation for the alias and then assigns a new owner
+      to the room capacity reservation.
+
+    * Propagating user roles to devices (e.g., Adobe Connect) which are created while
+      reservation is already in "started" state
+
+    * Sending internal error reports to configured Shongo administrators
+
+    * Scheduler and Executor are now mutually exclusive
