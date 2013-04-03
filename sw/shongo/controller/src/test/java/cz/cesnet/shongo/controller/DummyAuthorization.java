@@ -9,9 +9,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Testing {@link Authorization},
@@ -33,6 +31,21 @@ public class DummyAuthorization extends Authorization
     protected static final UserInformation USER2_INFORMATION;
 
     /**
+     * Testing user #3 information.
+     */
+    protected static final UserInformation USER3_INFORMATION;
+
+    /**
+     * Known users.
+     */
+    private static final Map<String, UserInformation> userInformationByAccessToken;
+
+    /**
+     * Known users.
+     */
+    private static final Map<String, UserInformation> userInformationById;
+
+    /**
      * Static initialization.
      */
     static {
@@ -43,6 +56,25 @@ public class DummyAuthorization extends Authorization
         USER2_INFORMATION = new UserInformation();
         USER2_INFORMATION.setUserId("2");
         USER2_INFORMATION.setFirstName("test2");
+
+        USER3_INFORMATION = new UserInformation();
+        USER3_INFORMATION.setUserId("3");
+        USER3_INFORMATION.setFirstName("test3");
+
+        userInformationByAccessToken = new HashMap<String, UserInformation>();
+        userInformationByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken(), Authorization.ROOT_USER_INFORMATION);
+        userInformationByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER1.getAccessToken(), USER1_INFORMATION);
+        userInformationByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER2.getAccessToken(), USER2_INFORMATION);
+        userInformationByAccessToken.put(
+                AbstractControllerTest.SECURITY_TOKEN_USER3.getAccessToken(), USER3_INFORMATION);
+
+        userInformationById = new HashMap<String, UserInformation>();
+        for (UserInformation userInformation : userInformationByAccessToken.values()) {
+            userInformationById.put(userInformation.getUserId(), userInformation);
+        }
     }
 
     public DummyAuthorization()
@@ -58,14 +90,9 @@ public class DummyAuthorization extends Authorization
     @Override
     protected UserInformation onGetUserInformationByAccessToken(String accessToken)
     {
-        if (AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken().equals(accessToken)) {
-            return Authorization.ROOT_USER_INFORMATION;
-        }
-        else if (AbstractControllerTest.SECURITY_TOKEN_USER1.getAccessToken().equals(accessToken)) {
-            return USER1_INFORMATION;
-        }
-        else if (AbstractControllerTest.SECURITY_TOKEN_USER2.getAccessToken().equals(accessToken)) {
-            return USER2_INFORMATION;
+        UserInformation userInformation = userInformationByAccessToken.get(accessToken);
+        if (userInformation != null) {
+            return userInformation;
         }
         throw new TodoImplementException();
     }
@@ -73,11 +100,9 @@ public class DummyAuthorization extends Authorization
     @Override
     protected UserInformation onGetUserInformationByUserId(String userId)
     {
-        if (USER1_INFORMATION.getUserId().equals(userId)) {
-            return USER1_INFORMATION;
-        }
-        else if (USER2_INFORMATION.getUserId().equals(userId)) {
-            return USER2_INFORMATION;
+        UserInformation userInformation = userInformationById.get(userId);
+        if (userInformation != null) {
+            return userInformation;
         }
         throw new TodoImplementException();
     }

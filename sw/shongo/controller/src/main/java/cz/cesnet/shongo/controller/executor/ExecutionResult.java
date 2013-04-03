@@ -18,6 +18,11 @@ public class ExecutionResult
     private List<Executable> startedExecutables = new ArrayList<Executable>();
 
     /**
+     * List of {@link cz.cesnet.shongo.controller.executor.Executable} which were updated.
+     */
+    private List<Executable> updatedExecutables = new ArrayList<Executable>();
+
+    /**
      * List of {@link cz.cesnet.shongo.controller.executor.Executable} which were stopped.
      */
     private List<Executable> stoppedExecutables = new ArrayList<Executable>();
@@ -28,6 +33,14 @@ public class ExecutionResult
     public synchronized void addStartedExecutable(Executable startedExecutable)
     {
         startedExecutables.add(startedExecutable);
+    }
+
+    /**
+     * @param updatedExecutable to be added to the {@link #updatedExecutables}
+     */
+    public synchronized void addUpdatedExecutable(Executable updatedExecutable)
+    {
+        updatedExecutables.add(updatedExecutable);
     }
 
     /**
@@ -44,6 +57,14 @@ public class ExecutionResult
     public synchronized List<Executable> getStartedExecutables()
     {
         return startedExecutables;
+    }
+
+    /**
+     * @return {@link #updatedExecutables}
+     */
+    public synchronized List<Executable> getUpdatedExecutables()
+    {
+        return updatedExecutables;
     }
 
     /**

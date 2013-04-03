@@ -15,6 +15,8 @@ public enum InternalErrorType
 
     SCHEDULER("Scheduler"),
 
+    EXECUTOR("Executor"),
+
     NOTIFICATION("Notification");
 
     /**

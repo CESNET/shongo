@@ -418,7 +418,7 @@ public class ExecutorTest extends AbstractControllerTest
         // Start compartment
         result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
-        assertEquals("The started executable should be virtual room.",
+        assertEquals("The started executable should be compartment.",
                 Compartment.class, result.getStartedExecutables().get(0).getClass());
 
         // Stop virtual room and compartment
@@ -481,7 +481,7 @@ public class ExecutorTest extends AbstractControllerTest
         assertEquals("Two executables should be started.", 2, result.getStartedExecutables().size());
         assertEquals("The first started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
-        assertEquals("The second started executable should be copartment.",
+        assertEquals("The second started executable should be compartment.",
                 Compartment.class, result.getStartedExecutables().get(1).getClass());
 
         // Stop compartment
@@ -492,6 +492,71 @@ public class ExecutorTest extends AbstractControllerTest
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedCommandClasses());
+    }
+
+    /**
+     * TODO:
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomUpdate() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        String user2Id = getUserId(SECURITY_TOKEN_USER2);
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN_USER1, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(5);
+        reservationRequest.setSpecification(roomSpecification);
+
+        // Allocate reservation request
+        String reservationRequestId = allocate(SECURITY_TOKEN_USER1, reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        // Start virtual room
+        ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+
+        // Update room
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequestId, Role.OWNER);
+        result = executor.execute(dateTime);
+        assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
+
+        // Update room
+        deleteAclRecord(user2Id, reservationRequestId, Role.OWNER);
+        result = executor.execute(dateTime);
+        assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
+
+        // Stop virtual room
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
     }
@@ -544,7 +609,7 @@ public class ExecutorTest extends AbstractControllerTest
         runScheduler();
 
         // Stop compartment
-        result = executor.execute(dateTime.plus(duration));
+        result = executor.execute(DateTime.now());
         assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents

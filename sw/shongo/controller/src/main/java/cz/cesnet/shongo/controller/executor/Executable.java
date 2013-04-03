@@ -212,7 +212,7 @@ public abstract class Executable extends ReportablePersistentObject
      */
     public final void start(Executor executor)
     {
-        if (!STATES_FOR_STARTING.contains(getState())) {
+        if (!STATES_NOT_STARTED.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be started only if it is not started yet.", getId()));
         }
@@ -225,9 +225,26 @@ public abstract class Executable extends ReportablePersistentObject
      *
      * @param executor which is executing
      */
+    public final void update(Executor executor)
+    {
+        if (!STATES_STARTED.contains(getState())) {
+            throw new IllegalStateException(
+                    String.format("Executable '%d' can be updated only if it is started.", getId()));
+        }
+        State state = onUpdate(executor);
+        if (state != null) {
+            setState(state);
+        }
+    }
+
+    /**
+     * Start given {@code executable}.
+     *
+     * @param executor which is executing
+     */
     public final void stop(Executor executor)
     {
-        if (!STATES_FOR_STOPPING.contains(getState())) {
+        if (!STATES_STARTED.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be stopped only if it is started.", getId()));
         }
@@ -244,6 +261,17 @@ public abstract class Executable extends ReportablePersistentObject
     protected State onStart(Executor executor)
     {
         return getDefaultState();
+    }
+
+    /**
+     * Update this {@link Executable}.
+     *
+     * @param executor which is executing
+     * @return new {@link State} or null when the state should not change
+     */
+    protected State onUpdate(Executor executor)
+    {
+        return null;
     }
 
     /**
@@ -321,8 +349,7 @@ public abstract class Executable extends ReportablePersistentObject
     public static enum State
     {
         /**
-         * {@link Executable} which has not been fully allocated (e.g., {@link Executable} is stored for
-         * {@link Report}).
+         * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for {@link Report}).
          */
         NOT_ALLOCATED,
 
@@ -344,12 +371,18 @@ public abstract class Executable extends ReportablePersistentObject
         SKIPPED,
 
         /**
-         * {@link Executable} is already started.
+         * {@link Executable} is started.
          */
         STARTED,
 
         /**
-         * {@link Executable} is started partially (some child executables failed to start).
+         * {@link Executable} is started, but the {@link Executable} has been modified and the change(s) has
+         * not been propagated to the device yet.
+         */
+        MODIFIED,
+
+        /**
+         * {@link Executable} is partially started (e.g., some child executables failed to start).
          */
         PARTIALLY_STARTED,
 
@@ -359,7 +392,7 @@ public abstract class Executable extends ReportablePersistentObject
         STARTING_FAILED,
 
         /**
-         * {@link Executable} has been already stopped.
+         * {@link Executable} has been stopped.
          */
         STOPPED,
 
@@ -381,6 +414,7 @@ public abstract class Executable extends ReportablePersistentObject
                 case SKIPPED:
                     return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
                 case STARTED:
+                case MODIFIED:
                     return cz.cesnet.shongo.controller.api.Executable.State.STARTED;
                 case STARTING_FAILED:
                     return cz.cesnet.shongo.controller.api.Executable.State.STARTING_FAILED;
@@ -395,20 +429,32 @@ public abstract class Executable extends ReportablePersistentObject
     }
 
     /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which should be started.
+     * Collection of {@link Executable.State}s which represents that the {@link Executable}s is not started and
+     * can be started.
      */
-    public static Set<State> STATES_FOR_STARTING = new HashSet<State>()
+    public static Set<State> STATES_NOT_STARTED = new HashSet<State>()
     {{
-            add(Executable.State.NOT_STARTED);
+            add(State.NOT_STARTED);
         }};
 
     /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which should be stopped.
+     * Collection of {@link Executable.State}s for {@link Executable}s which represents that the {@link Executable}
+     * is started and can should be updated.
      */
-    public static Set<Executable.State> STATES_FOR_STOPPING = new HashSet<Executable.State>()
+    public static Set<Executable.State> STATES_MODIFIED = new HashSet<Executable.State>()
     {{
-            add(Executable.State.STARTED);
-            add(Executable.State.PARTIALLY_STARTED);
-            add(Executable.State.STOPPING_FAILED);
+            add(State.MODIFIED);
+        }};
+
+    /**
+     * Collection of {@link Executable.State}s for {@link Executable}s which represents that the {@link Executable}
+     * is started and can be updated or stopped.
+     */
+    public static Set<Executable.State> STATES_STARTED = new HashSet<Executable.State>()
+    {{
+            add(State.STARTED);
+            add(State.MODIFIED);
+            add(State.PARTIALLY_STARTED);
+            add(State.STOPPING_FAILED);
         }};
 }

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 
 import javax.persistence.*;
@@ -76,4 +77,12 @@ public abstract class RoomEndpoint extends Endpoint
      */
     @Transient
     public abstract cz.cesnet.shongo.api.Room getRoomApi();
+
+    /**
+     * @param roomApi to be modified
+     * @param executor to be used
+     * @return true if modification succeeded,
+     *         false otherwise
+     */
+    public abstract boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor);
 }

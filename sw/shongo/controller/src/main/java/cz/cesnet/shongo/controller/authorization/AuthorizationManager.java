@@ -484,6 +484,8 @@ public class AuthorizationManager extends AbstractManager
                     Role role = createRequest.getRole();
                     AclRecord aclRecord = authorization.createAclRecord(userId, entityId, role);
 
+                    onAclRecordCreated(entityId, role);
+
                     entityManager.remove(createRequest);
 
                     // Keep the created AclRecord for the create request
@@ -601,6 +603,8 @@ public class AuthorizationManager extends AbstractManager
                 AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
                 authorization.deleteAclRecord(aclRecord);
 
+                onAclRecordDeleted(aclRecord.getEntityId(), aclRecord.getRole());
+
                 // Delete all dependencies
                 entityManager.createQuery(
                         "DELETE FROM AclRecordDependency dependency WHERE dependency.id.parentAclRecordId = :id")
@@ -639,6 +643,44 @@ public class AuthorizationManager extends AbstractManager
         finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
+            }
+        }
+    }
+
+    /**
+     * Method which is called when new {@link AclRecord} is created.
+     *
+     * @param entityId
+     * @param role
+     */
+    private void onAclRecordCreated(EntityIdentifier entityId, Role role)
+    {
+        EntityType entityType = entityId.getEntityType();
+        if (entityType.equals(EntityType.EXECUTABLE) && role.equals(Role.OWNER)) {
+            Executable executable = entityManager.find(Executable.class, entityId.getPersistenceId());
+            Executable.State state = executable.getState();
+            if (state.equals(Executable.State.STARTED)) {
+                executable.setState(Executable.State.MODIFIED);
+            }
+        }
+    }
+
+    /**
+     * Method which is called when existing {@link AclRecord} is deleted.
+     *
+     * @param entityId
+     * @param role
+     */
+    private void onAclRecordDeleted(EntityIdentifier entityId, Role role)
+    {
+        EntityType entityType = entityId.getEntityType();
+        if (entityType.equals(EntityType.EXECUTABLE) && role.equals(Role.OWNER)) {
+            Executable executable = entityManager.find(Executable.class, entityId.getPersistenceId());
+            if (executable != null) {
+                Executable.State state = executable.getState();
+                if (state.equals(Executable.State.STARTED)) {
+                    executable.setState(Executable.State.MODIFIED);
+                }
             }
         }
     }

@@ -261,7 +261,8 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     @Override
     public String toString()
     {
-        return String.format(Room.class.getSimpleName() + " (id: %s, name: %s, description: %s, licenses: %d)",
-                getId(), getName(), getDescription(), getLicenseCount());
+        return String.format(Room.class.getSimpleName()
+                + " (id: %s, name: %s, description: %s, licenses: %d, participants: %d)",
+                getId(), getName(), getDescription(), getLicenseCount(), getParticipants().size());
     }
 }

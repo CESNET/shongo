@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -225,9 +226,15 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
+    public boolean modifyRoom(Room roomApi, Executor executor)
+    {
+        return roomEndpoint.modifyRoom(roomApi, executor);
+    }
+
+    @Override
     protected State onStart(Executor executor)
     {
-        if (modifyRoom(getRoomApi(), executor)) {
+        if (roomEndpoint.modifyRoom(getRoomApi(), executor)) {
             return State.STARTED;
         }
         else {
@@ -237,59 +244,23 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
+    protected State onUpdate(Executor executor)
+    {
+        if (modifyRoom(getRoomApi(), executor)) {
+            return State.STARTED;
+        }
+        return null;
+    }
+
+    @Override
     protected State onStop(Executor executor)
     {
-        if (modifyRoom(roomEndpoint.getRoomApi(), executor)) {
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor)) {
             return State.STOPPED;
         }
         else {
             executor.getLogger().error("Stopping used room '{}' failed (should always succeed).", getId());
             return State.STOPPING_FAILED;
-        }
-    }
-
-    /**
-     * @param roomApi  to be modified
-     * @param executor
-     * @return result
-     */
-    public boolean modifyRoom(cz.cesnet.shongo.api.Room roomApi, Executor executor)
-    {
-        if (roomApi.getId() == null) {
-            addReport(new UsedRoomNotExistReport());
-            return false;
-        }
-
-        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
-                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
-
-        DeviceResource deviceResource;
-        if (roomEndpoint instanceof ResourceRoomEndpoint) {
-            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-            deviceResource = resourceRoomEndpoint.getDeviceResource();
-        }
-        else {
-            throw new TodoImplementException(roomEndpoint.getClass().getName());
-        }
-
-        if (deviceResource.isManaged()) {
-            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
-            String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executor.getControllerAgent();
-
-            // TODO: Retrieve current room state and only apply changes
-
-            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                return true;
-            }
-            else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
-                return false;
-            }
-        }
-        else {
-            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
         }
     }
 }

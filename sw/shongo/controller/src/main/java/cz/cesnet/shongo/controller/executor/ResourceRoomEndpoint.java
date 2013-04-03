@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Role;
@@ -13,6 +15,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
+import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
@@ -241,6 +244,38 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
+    public boolean modifyRoom(Room roomApi, Executor executor)
+    {
+        if (roomApi.getId() == null) {
+            addReport(new UsedRoomNotExistReport());
+            return false;
+        }
+        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
+                new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
+
+        DeviceResource deviceResource = getDeviceResource();
+        if (deviceResource.isManaged()) {
+            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
+
+            // TODO: Retrieve current room state and only apply changes
+
+            SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                return true;
+            }
+            else {
+                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                return false;
+            }
+        }
+        else {
+            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
+        }
+    }
+
+    @Override
     protected State onStart(Executor executor)
     {
         executor.getLogger().debug("Starting room '{}' for {} licenses.", new Object[]{getId(), getLicenseCount()});
@@ -249,8 +284,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             executor.getLogger().debug("Room '{}' has allocated alias '{}'.", getId(), alias.getValue());
         }
 
-        if (getDeviceResource().isManaged()) {
-            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
+        DeviceResource deviceResource = getDeviceResource();
+        if (deviceResource.isManaged()) {
+            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
@@ -272,12 +308,22 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
+    protected State onUpdate(Executor executor)
+    {
+        if (modifyRoom(getRoomApi(), executor)) {
+            return State.STARTED;
+        }
+        return null;
+    }
+
+    @Override
     protected State onStop(Executor executor)
     {
         executor.getLogger().debug("Stopping room '{}' for {} licenses.", getId(), getLicenseCount());
 
-        if (getDeviceResource().isManaged()) {
-            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
+        DeviceResource deviceResource = getDeviceResource();
+        if (deviceResource.isManaged()) {
+            ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
             String roomId = getRoomId();

@@ -170,41 +170,4 @@ public class AuthorizationTest extends AbstractControllerTest
         return new HashSet<AclRecord>(getAuthorizationService().listAclRecords(
                 SECURITY_TOKEN, getUserId(SECURITY_TOKEN), null, null));
     }
-
-    /**
-     * @param userId
-     * @param entityId
-     * @param role
-     * @return {@link AclRecord} with given parameters
-     * @throws Exception
-     */
-    private AclRecord getAclRecord(String userId, String entityId, Role role) throws Exception
-    {
-        Collection<AclRecord> aclRecords =
-                getAuthorizationService().listAclRecords(SECURITY_TOKEN, userId, entityId, role);
-        if (aclRecords.size() == 0) {
-            return null;
-        }
-        if (aclRecords.size() > 1) {
-            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
-        }
-        return aclRecords.iterator().next();
-    }
-
-    /**
-     * Delete {@link AclRecord} with given parameters.
-     *
-     * @param userId
-     * @param entityId
-     * @param role
-     * @throws Exception
-     */
-    private void deleteAclRecord(String userId, String entityId, Role role) throws Exception
-    {
-        AclRecord aclRecord = getAclRecord(userId, entityId, role);
-        if (aclRecord == null) {
-            throw new RuntimeException(new AclRecord(userId, entityId, role).toString() + " doesn't exist.");
-        }
-        getAuthorizationService().deleteAclRecord(SECURITY_TOKEN, aclRecord.getId());
-    }
 }

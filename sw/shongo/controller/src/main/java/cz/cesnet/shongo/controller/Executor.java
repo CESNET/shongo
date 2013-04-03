@@ -12,6 +12,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -167,14 +169,14 @@ public class Executor extends Component
             DateTime stopDateTime = referenceDateTime.minus(executableEnd);
             ExecutionPlan stoppingExecutionPlan =
                     new ReverseExecutionPlan(
-                            executableManager.listNotTakingPlace(Executable.STATES_FOR_STOPPING, stopDateTime));
-            Collection<Executable> stoppingExecutables = new ArrayList<Executable>();
+                            executableManager.listNotTakingPlace(Executable.STATES_STARTED, stopDateTime));
+            Set<Executable> stoppingExecutables = new HashSet<Executable>();
             while (!stoppingExecutionPlan.isEmpty()) {
                 Collection<Executable> executables = stoppingExecutionPlan.popExecutables();
                 for (Executable executable : executables) {
                     stoppingExecutables.add(executable);
-                    ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.STOP, executable, this,
-                            stoppingExecutionPlan);
+                    ExecutorThread executorThread =
+                            new ExecutorThread(ExecutorThread.Type.STOP, executable, this, stoppingExecutionPlan);
                     executorThread.start();
                 }
                 try {
@@ -199,14 +201,14 @@ public class Executor extends Component
             // List executables which should be started
             DateTime startDateTime = referenceDateTime.minus(executableStart);
             ExecutionPlan startingExecutionPlan =
-                    new ExecutionPlan(executableManager.listTakingPlace(Executable.STATES_FOR_STARTING, startDateTime));
+                    new ExecutionPlan(executableManager.listTakingPlace(Executable.STATES_NOT_STARTED, startDateTime));
             Collection<Executable> startingExecutables = new ArrayList<Executable>();
             while (!startingExecutionPlan.isEmpty()) {
                 Collection<Executable> executables = startingExecutionPlan.popExecutables();
                 for (Executable executable : executables) {
                     startingExecutables.add(executable);
-                    ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.START, executable, this,
-                            startingExecutionPlan);
+                    ExecutorThread executorThread =
+                            new ExecutorThread(ExecutorThread.Type.START, executable, this, startingExecutionPlan);
                     executorThread.start();
                 }
                 try {
@@ -220,6 +222,32 @@ public class Executor extends Component
                 entityManager.refresh(executable);
                 if (executable.getState().equals(Executable.State.STARTED)) {
                     executionResult.addStartedExecutable(executable);
+                }
+            }
+
+            // List executables which should be updated
+            ExecutionPlan updatingExecutionPlan =
+                    new ExecutionPlan(executableManager.listTakingPlace(Executable.STATES_MODIFIED, startDateTime));
+            Collection<Executable> updatingExecutables = new ArrayList<Executable>();
+            while (!updatingExecutionPlan.isEmpty()) {
+                Collection<Executable> executables = updatingExecutionPlan.popExecutables();
+                for (Executable executable : executables) {
+                    updatingExecutables.add(executable);
+                    ExecutorThread executorThread =
+                            new ExecutorThread(ExecutorThread.Type.UPDATE, executable, this, updatingExecutionPlan);
+                    executorThread.start();
+                }
+                try {
+                    Thread.sleep(100);
+                }
+                catch (InterruptedException exception) {
+                    logger.error("Execution interrupted.", exception);
+                }
+            }
+            for (Executable executable : updatingExecutables) {
+                entityManager.refresh(executable);
+                if (!Executable.STATES_MODIFIED.contains(executable.getState())) {
+                    executionResult.addUpdatedExecutable(executable);
                 }
             }
 

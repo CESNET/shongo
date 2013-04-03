@@ -9,6 +9,8 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 
+import java.util.Collection;
+
 import static junit.framework.Assert.*;
 
 /**
@@ -35,6 +37,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected static final SecurityToken SECURITY_TOKEN_USER2 =
             new SecurityToken("8f474989e2b0011b8fa285c2346e5f6ca3dc809c");
+
+    /**
+     * {@link SecurityToken} for normal user #3.
+     */
+    protected static final SecurityToken SECURITY_TOKEN_USER3 =
+            new SecurityToken("53a0bbcbb6086add8c232ff5eddf662035a02908");
 
     /**
      * @see #SECURITY_TOKEN_USER1
@@ -400,5 +408,42 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
+    }
+
+    /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return {@link AclRecord} with given parameters
+     * @throws Exception
+     */
+    protected AclRecord getAclRecord(String userId, String entityId, Role role) throws Exception
+    {
+        Collection<AclRecord> aclRecords =
+                getAuthorizationService().listAclRecords(SECURITY_TOKEN_ROOT, userId, entityId, role);
+        if (aclRecords.size() == 0) {
+            return null;
+        }
+        if (aclRecords.size() > 1) {
+            throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
+        }
+        return aclRecords.iterator().next();
+    }
+
+    /**
+     * Delete {@link AclRecord} with given parameters.
+     *
+     * @param userId
+     * @param entityId
+     * @param role
+     * @throws Exception
+     */
+    protected void deleteAclRecord(String userId, String entityId, Role role) throws Exception
+    {
+        AclRecord aclRecord = getAclRecord(userId, entityId, role);
+        if (aclRecord == null) {
+            throw new RuntimeException(new AclRecord(userId, entityId, role).toString() + " doesn't exist.");
+        }
+        getAuthorizationService().deleteAclRecord(SECURITY_TOKEN_ROOT, aclRecord.getId());
     }
 }

@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -53,52 +55,67 @@ public class ExecutorThread extends Thread
     @Override
     public void run()
     {
-        switch (type) {
-            case START:
-                try {
-                    EntityManager entityManager = executor.getEntityManager();
-                    ExecutableManager executableManager = new ExecutableManager(entityManager);
-                    Executable executable = executableManager.get(this.executable.getId());
-                    entityManager.getTransaction().begin();
-                    executable.start(executor);
-                    if (executable.getState().equals(Executable.State.STARTED)) {
-                        if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
-                            executor.getStartingDurationRoom();
-                            executor.getLogger().info("Waiting for room '{}' to be created...", executable.getId());
-                            try {
-                                Thread.sleep(executor.getStartingDurationRoom().getMillis());
-                            }
-                            catch (InterruptedException exception) {
-                                executor.getLogger().error("Waiting for room was interrupted...");
-                                exception.printStackTrace();
+        EntityManager entityManager = executor.getEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        try {
+            entityManager.getTransaction().begin();
+
+            // Perform proper action for executable
+            switch (type) {
+                case START:
+                    try {
+                        Executable executable = executableManager.get(this.executable.getId());
+                        executable.start(executor);
+                        if (executable.getState().equals(Executable.State.STARTED)) {
+                            if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
+                                executor.getStartingDurationRoom();
+                                executor.getLogger().info("Waiting for room '{}' to be created...", executable.getId());
+                                try {
+                                    Thread.sleep(executor.getStartingDurationRoom().getMillis());
+                                }
+                                catch (InterruptedException exception) {
+                                    executor.getLogger().error("Waiting for room was interrupted...");
+                                    exception.printStackTrace();
+                                }
                             }
                         }
                     }
-                    entityManager.getTransaction().commit();
-                    entityManager.close();
-                }
-                catch (FaultException exception) {
-                    executor.getLogger().error("Failed to load executable", exception);
-                }
-                executionPlan.removeExecutable(executable);
-                break;
-            case STOP:
-                try {
-                    EntityManager entityManager = executor.getEntityManager();
-                    ExecutableManager executableManager = new ExecutableManager(entityManager);
-                    Executable executable = executableManager.get(this.executable.getId());
-                    entityManager.getTransaction().begin();
-                    executable.stop(executor);
-                    entityManager.getTransaction().commit();
-                    entityManager.close();
-                }
-                catch (FaultException exception) {
-                    executor.getLogger().error("Failed to load executable", exception);
-                }
-                executionPlan.removeExecutable(executable);
-                break;
-            default:
-                throw new TodoImplementException(type.toString());
+                    catch (Exception exception) {
+                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Starting failed", exception);
+                    }
+                    break;
+                case UPDATE:
+                    try {
+                        Executable executable = executableManager.get(this.executable.getId());
+                        executable.update(executor);
+                    }
+                    catch (Exception exception) {
+                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Updating failed", exception);
+                    }
+                    break;
+                case STOP:
+                    try {
+                        Executable executable = executableManager.get(this.executable.getId());
+                        executable.stop(executor);
+                    }
+                    catch (Exception exception) {
+                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Stopping failed", exception);
+                    }
+                    break;
+                default:
+                    throw new TodoImplementException(type.toString());
+            }
+
+            // Remove executable from plan
+            executionPlan.removeExecutable(executable);
+
+            entityManager.getTransaction().commit();
+        }
+        catch (Exception exception) {
+            InternalErrorHandler.handle(InternalErrorType.EXECUTOR, exception);
+        }
+        finally {
+            entityManager.close();
         }
     }
 
@@ -111,6 +128,11 @@ public class ExecutorThread extends Thread
          * Call {@link Executable#start}.
          */
         START,
+
+        /**
+         * Call {@link Executable#update}.
+         */
+        UPDATE,
 
         /**
          * Call {@link Executable#stop}.
