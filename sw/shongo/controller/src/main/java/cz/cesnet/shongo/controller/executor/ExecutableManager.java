@@ -235,6 +235,29 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
+     * @return started {@link UsedRoomEndpoint} for given {@code ResourceRoomEndpoint} or null if none exists
+     */
+    public UsedRoomEndpoint getStartedUsedRoomEndpoint(ResourceRoomEndpoint resourceRoomEndpoint)
+    {
+        List<UsedRoomEndpoint> usedRoomEndpoints = entityManager.createQuery(
+                "SELECT room FROM UsedRoomEndpoint room"
+                        + " WHERE room.roomEndpoint = :roomEndpoint"
+                        + " AND room.state = :stateStarted",
+                UsedRoomEndpoint.class)
+                .setParameter("roomEndpoint", resourceRoomEndpoint)
+                .setParameter("stateStarted", Executable.State.STARTED)
+                .getResultList();
+        if (usedRoomEndpoints.size() == 0) {
+            return null;
+        }
+        if (usedRoomEndpoints.size() == 1) {
+            return usedRoomEndpoints.get(0);
+        }
+        throw new RuntimeException("Found multiple started " + UsedRoomEndpoint.class.getSimpleName()
+                + "s for " + ResourceRoomEndpoint.class + " with id " + resourceRoomEndpoint.getId() + ".");
+    }
+
+    /**
      * @param executable
      * @return {@link Reservation} for which is given {@code executable} allocated
      */

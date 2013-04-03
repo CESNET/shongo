@@ -293,6 +293,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         // Add resource to resource cache
         checkPersisted(resource);
+        resource.loadLazyCollections();
         resourceCache.addObject(resource, entityManager);
 
         // Add value provider

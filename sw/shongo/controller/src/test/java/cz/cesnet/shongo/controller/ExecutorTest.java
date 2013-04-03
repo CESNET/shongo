@@ -5,13 +5,22 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.H323RoomSetting;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
+import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.rpc.ExecutorService;
+import cz.cesnet.shongo.controller.api.rpc.ExecutorServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
+import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
+import junit.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -19,9 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
  * Tests for {@link Executor}.
@@ -48,12 +60,31 @@ public class ExecutorTest extends AbstractControllerTest
         System.setProperty(Configuration.EXECUTOR_STARTINT_DURATION_ROOM, "PT0S");
     }
 
+    /**
+     * @return {@link ResourceControlService} from the {@link #controllerClient}
+     */
+    public ResourceControlService getResourceControlService()
+    {
+        return getControllerClient().getService(ResourceControlService.class);
+    }
+
+    /**
+     * @return {@link ExecutorService} from the {@link #controllerClient}
+     */
+    public ExecutorService getExecutorService()
+    {
+        return getControllerClient().getService(ExecutorService.class);
+    }
+
     @Override
     protected void onInit()
     {
         super.onInit();
 
         Controller controller = getController();
+        getController().addRpcService(new ResourceControlServiceImpl());
+        getController().addRpcService(new ExecutorServiceImpl());
+
         executor = new Executor();
         executor.setEntityManagerFactory(getEntityManagerFactory());
         executor.init(controller.getConfiguration());
@@ -299,7 +330,7 @@ public class ExecutorTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testProvidedPermanentAlias() throws Exception
+    public void testProvidedAlias() throws Exception
     {
         ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
 
@@ -562,6 +593,110 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
+     * TODO:
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProvidedAliasUpdate() throws Exception
+    {
+        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        String user2Id = getUserId(SECURITY_TOKEN_USER2);
+        String user3Id = getUserId(SECURITY_TOKEN_USER3);
+
+        DeviceResource connectServerFake = new DeviceResource();
+        connectServerFake.setName("connectServerFake");
+        connectServerFake.addTechnology(Technology.ADOBE_CONNECT);
+        connectServerFake.addCapability(new RoomProviderCapability(10));
+        connectServerFake.addCapability(new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
+        connectServerFake.setAllocatable(true);
+        connectServerFake.setMode(new ManagedMode(connectServerAgent.getName()));
+        getResourceService().createResource(SECURITY_TOKEN_USER1, connectServerFake);
+
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10));
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI,
+                "{device.address}/{value}").withPermanentRoom());
+        connectServer.setAllocatable(true);
+        connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
+        String connectServerId = getResourceService().createResource(SECURITY_TOKEN_USER1, connectServer);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot(dateTime, duration);
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(
+                new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
+        String aliasReservationRequestId = allocate(SECURITY_TOKEN_USER1, aliasReservationRequest);
+        AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
+        assertEquals("Alias should not be allocated from the fake connect server.",
+                "test", aliasReservation.getValue());
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        reservationRequest.addProvidedReservationId(aliasReservation.getId());
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequestId, Role.OWNER);
+
+        // Start virtual rooms
+        ExecutionResult result = executor.execute(dateTime);
+        assertEquals("Two executables should be started.", 2, result.getStartedExecutables().size());
+        assertEquals("The first started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        assertEquals("The second started executable should be used virtual room.",
+                UsedRoomEndpoint.class, result.getStartedExecutables().get(1).getClass());
+
+        // Get room id
+        Executable.ResourceRoom resourceRoom = (Executable.ResourceRoom) getExecutorService().getExecutable(
+                SECURITY_TOKEN_USER1, aliasReservation.getExecutable().getId());
+        String roomId = resourceRoom.getRoomId();
+        String roomResourceId = resourceRoom.getResourceId();
+        Assert.assertNotNull("Alias room should have roomId.", roomId);
+
+        // Check room
+        Room room = getResourceControlService().getRoom(SECURITY_TOKEN_USER1, roomResourceId, roomId);
+        assertEquals("Room should have 10 licenses.", 10, room.getLicenseCount());
+        assertEquals("Room should have 2 participants.", 2, room.getParticipants().size());
+
+        // Update alias
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user3Id, aliasReservationRequestId, Role.OWNER);
+        result = executor.execute(dateTime);
+        assertEquals("One executable should be updated.", 1, result.getUpdatedExecutables().size());
+        // Check room
+        room = getResourceControlService().getRoom(SECURITY_TOKEN_USER1, roomResourceId, roomId);
+        assertEquals("Room should have 10 licenses.", 10, room.getLicenseCount());
+        assertEquals("Room should have 3 participants.", 3, room.getParticipants().size());
+
+        // Stop virtual rooms
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
+
+        // Check performed actions on connector agents
+        List<Class<? extends Command>> performedCommandClasses = connectServerAgent.getPerformedCommandClasses();
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
+            }}, performedCommandClasses);
+    }
+
+    /**
      * Test delete {@link ReservationRequest} with started {@link ResourceRoomEndpoint}.
      *
      * @throws Exception
@@ -631,6 +766,11 @@ public class ExecutorTest extends AbstractControllerTest
         private List<Command> performedCommands = new ArrayList<Command>();
 
         /**
+         * Rooms.
+         */
+        private Map<String, Room> rooms = new HashMap<String, Room>();
+
+        /**
          * @return {@link Class}es for {@link #performedCommands}
          */
         public List<Class<? extends Command>> getPerformedCommandClasses()
@@ -669,7 +809,24 @@ public class ExecutorTest extends AbstractControllerTest
             performedCommands.add(command);
             logger.debug("ConnectorAgent '{}' receives command '{}'.", getName(), command.getClass().getSimpleName());
             if (command instanceof CreateRoom) {
-                return "roomId";
+                CreateRoom createRoom = (CreateRoom) command;
+                String roomId = String.valueOf(rooms.size() + 1);
+                rooms.put(roomId, createRoom.getRoom());
+                return roomId;
+            }
+            else if (command instanceof ModifyRoom) {
+                ModifyRoom modifyRoom = (ModifyRoom) command;
+                Room room = modifyRoom.getRoom();
+                String roomId = room.getId();
+                if (!rooms.containsKey(roomId)) {
+                    throw new RuntimeException("Room not found.");
+                }
+                rooms.put(roomId, room);
+            }
+            else if (command instanceof GetRoom) {
+                GetRoom getRoom = (GetRoom) command;
+                String roomId = getRoom.getRoomId();
+                return rooms.get(roomId);
             }
             return null;
         }

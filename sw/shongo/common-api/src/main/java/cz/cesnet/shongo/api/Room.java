@@ -247,6 +247,13 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public void addParticipant(UserInformation participant)
     {
+        String userId = participant.getUserId();
+        for (UserInformation existingParticipant : getParticipants()) {
+            if (userId.equals(existingParticipant.getUserId())) {
+                // Participant is already added to the room
+                return;
+            }
+        }
         getPropertyStorage().addCollectionItem(PARTICIPANTS, participant, List.class);
     }
 

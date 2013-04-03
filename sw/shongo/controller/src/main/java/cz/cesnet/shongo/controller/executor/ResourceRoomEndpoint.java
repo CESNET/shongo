@@ -22,10 +22,7 @@ import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -123,6 +120,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         resourceRoomEndpointApi.setStateReport(getReportText());
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
         resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
+        resourceRoomEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
             resourceRoomEndpointApi.addTechnology(technology);
         }
@@ -308,9 +306,17 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    protected State onUpdate(Executor executor)
+    protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        if (modifyRoom(getRoomApi(), executor)) {
+        cz.cesnet.shongo.api.Room roomApi;
+        UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
+        if (usedRoomEndpoint != null) {
+            roomApi = usedRoomEndpoint.getRoomApi();
+        }
+        else {
+            roomApi = getRoomApi();
+        }
+        if (modifyRoom(roomApi, executor)) {
             return State.STARTED;
         }
         return null;

@@ -252,6 +252,13 @@ public class DeviceResource extends Resource
     }
 
     @Override
+    public void loadLazyCollections()
+    {
+        getTechnologies().size();
+        super.loadLazyCollections();
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);

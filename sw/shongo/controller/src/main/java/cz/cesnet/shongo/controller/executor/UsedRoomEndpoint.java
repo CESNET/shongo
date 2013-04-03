@@ -3,23 +3,16 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
-import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
-import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -113,6 +106,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         if (roomEndpoint instanceof ResourceRoomEndpoint) {
             ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
             resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(resourceRoomEndpoint.getDeviceResource()));
+            resourceRoomEndpointApi.setRoomId(resourceRoomEndpoint.getRoomId());
         }
         else {
             throw new TodoImplementException(roomEndpoint.getClass().getName());
@@ -244,7 +238,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onUpdate(Executor executor)
+    protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
         if (modifyRoom(getRoomApi(), executor)) {
             return State.STARTED;

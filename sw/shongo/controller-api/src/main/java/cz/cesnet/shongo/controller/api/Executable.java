@@ -324,6 +324,11 @@ public class Executable extends IdentifiedObject
         private String resourceId;
 
         /**
+         * Technology specific room identifier.
+         */
+        private String roomId;
+
+        /**
          * Set of technologies which the virtual room shall support.
          */
         private Set<Technology> technologies = new HashSet<Technology>();
@@ -373,6 +378,22 @@ public class Executable extends IdentifiedObject
         public void setResourceId(String resourceId)
         {
             this.resourceId = resourceId;
+        }
+
+        /**
+         * @return {@link #roomId}
+         */
+        public String getRoomId()
+        {
+            return roomId;
+        }
+
+        /**
+         * @param roomId sets the {@link #roomId}
+         */
+        public void setRoomId(String roomId)
+        {
+            this.roomId = roomId;
         }
 
         /**

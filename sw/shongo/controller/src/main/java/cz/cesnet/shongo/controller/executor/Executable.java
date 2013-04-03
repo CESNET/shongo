@@ -224,14 +224,15 @@ public abstract class Executable extends ReportablePersistentObject
      * Start given {@code executable}.
      *
      * @param executor which is executing
+     * @param executableManager
      */
-    public final void update(Executor executor)
+    public final void update(Executor executor, ExecutableManager executableManager)
     {
         if (!STATES_STARTED.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be updated only if it is started.", getId()));
         }
-        State state = onUpdate(executor);
+        State state = onUpdate(executor, executableManager);
         if (state != null) {
             setState(state);
         }
@@ -266,10 +267,13 @@ public abstract class Executable extends ReportablePersistentObject
     /**
      * Update this {@link Executable}.
      *
+     *
+     *
      * @param executor which is executing
+     * @param executableManager
      * @return new {@link State} or null when the state should not change
      */
-    protected State onUpdate(Executor executor)
+    protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
         return null;
     }

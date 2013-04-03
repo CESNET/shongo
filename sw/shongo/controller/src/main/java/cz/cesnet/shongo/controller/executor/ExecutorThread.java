@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.EntityManager;
@@ -87,7 +86,7 @@ public class ExecutorThread extends Thread
                 case UPDATE:
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
-                        executable.update(executor);
+                        executable.update(executor, executableManager);
                     }
                     catch (Exception exception) {
                         InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Updating failed", exception);

@@ -49,9 +49,12 @@ public class AuthorizationManager extends AbstractManager
         this.authorization = authorization;
     }
 
+    /**
+     * @param request to be stored
+     */
     private void createRequest(PersistentObject request)
     {
-        if (request instanceof AclRecordCreateRequest) {
+        /*if (request instanceof AclRecordCreateRequest) {
             AclRecordCreateRequest aclRecordCreateRequest = (AclRecordCreateRequest) request;
             logger.debug("Storing Request to Create ACL (user: {}, entity: {}, role: {})", new Object[]{
                     aclRecordCreateRequest.getUserId(),
@@ -64,13 +67,16 @@ public class AuthorizationManager extends AbstractManager
             logger.debug("Storing Request to Delete ACL (id: {})", new Object[]{
                     aclRecordDeleteRequest.getAclRecordId()
             });
-        }
+        }*/
         entityManager.persist(request);
     }
 
+    /**
+     * @param request to be deleted
+     */
     private void removeRequest(PersistentObject request)
     {
-        if (request instanceof AclRecordCreateRequest) {
+        /*if (request instanceof AclRecordCreateRequest) {
             AclRecordCreateRequest aclRecordCreateRequest = (AclRecordCreateRequest) request;
             logger.debug("Removing Request to Create ACL (user: {}, entity: {}, role: {})", new Object[]{
                     aclRecordCreateRequest.getUserId(),
@@ -83,7 +89,7 @@ public class AuthorizationManager extends AbstractManager
             logger.debug("Removing Request to Delete ACL (id: {})", new Object[]{
                     aclRecordDeleteRequest.getAclRecordId()
             });
-        }
+        }*/
         entityManager.remove(request);
     }
 
@@ -321,6 +327,12 @@ public class AuthorizationManager extends AbstractManager
         }
     }
 
+    /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return collection of {@link AclRecordCreateRequest}s for given parameters
+     */
     private Collection<AclRecordCreateRequest> getAclRecordCreateRequests(String userId, EntityIdentifier entityId,
             Role role)
     {
@@ -332,6 +344,10 @@ public class AuthorizationManager extends AbstractManager
                 .getResultList();
     }
 
+    /**
+     * @param entityId
+     * @return collection of {@link AclRecordCreateRequest}s for given {@code entityId}
+     */
     private Collection<AclRecordCreateRequest> getAclRecordCreateRequests(EntityIdentifier entityId)
     {
         return entityManager.createQuery("SELECT request FROM AclRecordCreateRequest request"
@@ -486,7 +502,7 @@ public class AuthorizationManager extends AbstractManager
 
                     onAclRecordCreated(entityId, role);
 
-                    entityManager.remove(createRequest);
+                    removeRequest(createRequest);
 
                     // Keep the created AclRecord for the create request
                     aclRecordByCreateRequest.put(createRequest, aclRecord);
@@ -560,7 +576,7 @@ public class AuthorizationManager extends AbstractManager
                 String aclRecordId = aclRecordDeleteRequest.getAclRecordId();
                 aclRecordIds.add(aclRecordId);
                 parentAclRecordCountByChildId.put(aclRecordId, 0);
-                entityManager.remove(aclRecordDeleteRequest);
+                removeRequest(aclRecordDeleteRequest);
             }
 
             // Get dependencies for ACL records
