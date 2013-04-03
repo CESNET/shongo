@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import org.junit.Test;
 
 /**
  * TODO: Delete this tests, it was only testing implementation of in-memory propagation of ACL records.
@@ -9,6 +10,11 @@ import cz.cesnet.shongo.controller.AbstractDatabaseTest;
  */
 public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
 {
+    @Test
+    public void test() throws Exception
+    {
+    }
+
     /*private AclRecordCache aclRecordCache;
 
     @Override
