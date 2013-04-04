@@ -40,7 +40,7 @@
         <!-- Authorization server -->
         <server>https://shongo-auth-dev.cesnet.cz</server>
         <!-- Specifies access token which won't be verified and can be used for testing purposes -->
-        <testing-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</testing-access-token>
+        <root-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</root-access-token>
         <!-- Specifies authorization cache expirations -->
         <expiration>
             <!-- Expiration of user-id by access-token -->

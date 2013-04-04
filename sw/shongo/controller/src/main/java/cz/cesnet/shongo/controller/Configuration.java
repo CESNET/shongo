@@ -112,7 +112,7 @@ public class Configuration extends CombinedConfiguration
     /**
      * Specifies access token which won't be verified and can be used for testing purposes.
      */
-    public static final String SECURITY_TESTING_ACCESS_TOKEN = "security.testing-access-token";
+    public static final String SECURITY_ROOT_ACCESS_TOKEN = "security.root-access-token";
 
     /**
      * SSL host verification mappings.

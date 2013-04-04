@@ -55,7 +55,7 @@ public class ServerAuthorization extends Authorization
     /**
      * Access token which won't be verified and can be used for testing purposes.
      */
-    private String testingAccessToken;
+    private String rootAccessToken;
 
     /**
      * URL to authorization server.
@@ -98,18 +98,18 @@ public class ServerAuthorization extends Authorization
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
-        testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
+        rootAccessToken = configuration.getString(Configuration.SECURITY_ROOT_ACCESS_TOKEN);
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
     }
 
     /**
-     * @param testingAccessToken sets the {@link #testingAccessToken}
+     * @param rootAccessToken sets the {@link #rootAccessToken}
      */
-    public void setTestingAccessToken(String testingAccessToken)
+    public void setRootAccessToken(String rootAccessToken)
     {
-        this.testingAccessToken = testingAccessToken;
+        this.rootAccessToken = rootAccessToken;
     }
 
     /**
@@ -140,7 +140,7 @@ public class ServerAuthorization extends Authorization
     protected String onValidate(SecurityToken securityToken) throws FaultException
     {
         // Always allow testing access token
-        if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
+        if (rootAccessToken != null && securityToken.getAccessToken().equals(rootAccessToken)) {
             logger.trace("Access token '{}' is valid for testing.", securityToken.getAccessToken());
             return ROOT_USER_ID;
         }
@@ -151,7 +151,7 @@ public class ServerAuthorization extends Authorization
     protected UserInformation onGetUserInformationByAccessToken(String accessToken)
     {
         // Testing security token represents root user
-        if (testingAccessToken != null && accessToken.equals(testingAccessToken)) {
+        if (rootAccessToken != null && accessToken.equals(rootAccessToken)) {
             return ROOT_USER_INFORMATION;
         }
 

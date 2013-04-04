@@ -41,13 +41,14 @@ sub usage {
    print STDERR (
       $message,
       "usage: $command [options]\n" .
-      "    -help                        Show this usage information\n" .
-      "    -connect=URL                 Connect to a controller\n" .
-      "    -testing-access-token        Use testing access token for authentication\n" .
-      "    -authentication-server=HOST  Use given authentication server\n" .
-      "    -scripting                   Switch to scripting mode\n" .
-      "    -cmd=COMMAND                 Perform given command in controller\n" .
-      "    -file=FILE                   Perform commands from file in controller\n"
+      "    -help                          Show this usage information\n" .
+      "    -connect=<URL>                 Connect to a controller\n" .
+      "    -root                          Use root access token for authentication\n" .
+      "    -access-token=<TOKEN>          Use specified access token for authentication\n" .
+      "    -authentication-server=<HOST>  Use given authentication server\n" .
+      "    -scripting                     Switch to scripting mode\n" .
+      "    -cmd=<COMMAND>                 Perform given command in controller\n" .
+      "    -file=<FILE>                   Perform commands from file in controller\n"
    );
    exit(0);
 }
@@ -57,13 +58,15 @@ my $connect;
 my $cmd;
 my $file;
 my $authentication_server = undef;
-my $testing_access_token = undef;
+my $root_access_token = undef;
+my $access_token = undef;
 my $scripting = 0;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
-    'testing-access-token:s' => \$testing_access_token,
+    'root' => \$root_access_token,
+    'access-token=s' => \$access_token,
     'authentication-server:s' => \$authentication_server,
     'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
@@ -81,12 +84,13 @@ my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
 $controller->set_authorization_url('https://' . $authentication_server);
 
-# Set testing access token
-if (defined($testing_access_token)) {
-    if ( $testing_access_token eq '' ) {
-        $testing_access_token = '1e3f174ceaa8e515721b989b19f71727060d0839';
-    }
-    $controller->{'client'}->set_access_token($testing_access_token);
+# Set root access token
+if (defined($root_access_token)) {
+    $controller->{'client'}->set_access_token('1e3f174ceaa8e515721b989b19f71727060d0839');
+}
+# Set specified access token
+elsif (defined($access_token)) {
+    $controller->{'client'}->set_access_token($access_token);
 }
 
 if ( $scripting eq 0 ) {
