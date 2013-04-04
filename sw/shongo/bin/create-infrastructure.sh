@@ -123,7 +123,7 @@ $RUN_CLIENT_CLI <<EOF
         class: 'DeviceResource',
         name: 'mcu-muni',
         description: 'H.323/SIP MCU at MUNI',
-        allocatable: 1,
+        allocatable: 0,
         maximumFuture: 'P4M',
         technologies: ['H323','SIP'],
         address: '147.251.15.253',
