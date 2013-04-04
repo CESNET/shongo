@@ -282,6 +282,14 @@ public class Controller
     }
 
     /**
+     * @return {@link #jadeContainer}
+     */
+    public Container getJadeContainer()
+    {
+        return jadeContainer;
+    }
+
+    /**
      * @return Jade platform id
      */
     public String getJadePlatformId()
@@ -542,89 +550,8 @@ public class Controller
      */
     public void run()
     {
-        Shell shell = new Shell();
-        shell.setPrompt("controller");
-        shell.setExitCommand("exit", "Shutdown the controller");
-        shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-        if (jadeAgent != null) {
-            shell.addCommands(
-                    ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, jadeAgent.getLocalName()));
-            shell.addCommands(jadeAgent.createCommandSet());
-        }
-        shell.addCommand("log", "Toggle logging of [rpc|sql|sql-param]", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                String[] args = commandLine.getArgs();
-                if (args.length <= 1) {
-                    return;
-                }
-                org.apache.log4j.Logger logger = null;
-                Boolean enabled = null;
-                if (args[1].equals("rpc")) {
-                    enabled = !RpcServerRequestLogger.isEnabled();
-                    RpcServerRequestLogger.setEnabled(enabled);
-                    logger = org.apache.log4j.Logger.getLogger(
-                            RpcServerRequestLogger.class);
-                }
-                else if (args[1].equals("sql")) {
-                    logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
-                }
-                else if (args[1].equals("sql-param")) {
-                    logger = org.apache.log4j.Logger.getLogger("org.hibernate.type");
-                }
-                if (logger == null) {
-                    return;
-                }
-                if (enabled == null) {
-                    enabled = logger.getLevel() == null || logger.getLevel().isGreaterOrEqual(Level.INFO);
-                }
-                if (enabled) {
-                    Controller.logger.info("Enabling '{}' logger.", args[1]);
-                    logger.setLevel(Level.TRACE);
-                }
-                else {
-                    Controller.logger.info("Disabling '{}' logger.", args[1]);
-                    logger.setLevel(Level.INFO);
-                }
-            }
-        });
-        shell.addCommand("filter", "Filter logging by string (warning and errors are always not filtered)",
-                new CommandHandler()
-                {
-                    @Override
-                    public void perform(CommandLine commandLine)
-                    {
-                        org.apache.log4j.Logger logger = org.apache.log4j.Logger.getRootLogger();
-                        ConsoleAppender consoleAppender = (ConsoleAppender) logger.getAppender("CONSOLE");
-                        String[] args = commandLine.getArgs();
-                        String filter = null;
-                        if (args.length > 1) {
-                            filter = args[1].trim();
-                            if (filter.equals("*")) {
-                                filter = null;
-                            }
-                        }
-                        consoleAppender.setFilter(null);
-                        if (filter != null) {
-                            Controller.logger.info("Enabling logger filter for '{}'.", filter);
-                        }
-                        else {
-                            Controller.logger.info("Disabling logger filter.", filter);
-                        }
-                        consoleAppender.setFilter(filter);
-                    }
-                });
-        shell.addCommand("database", "Show database browser", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                DatabaseHelper.runDatabaseManager(entityManagerFactory.createEntityManager());
-            }
-        });
-        shell.run();
+        ControllerShell controllerShell = new ControllerShell(this);
+        controllerShell.run();
     }
 
     /**

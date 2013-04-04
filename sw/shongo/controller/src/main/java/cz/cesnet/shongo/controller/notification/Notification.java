@@ -45,6 +45,14 @@ public abstract class Notification
     }
 
     /**
+     * Remove all added {@link #recipients}.
+     */
+    public void clearRecipients()
+    {
+        recipients.clear();
+    }
+
+    /**
      * @param recipient to be added to the {@link #recipients}
      */
     public void addRecipient(PersonInformation recipient)
