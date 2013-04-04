@@ -376,7 +376,7 @@ public class AuthorizationManager extends AbstractManager
             ReservationRequest reservationRequest = (ReservationRequest) entity;
             Reservation reservation = reservationRequest.getReservation();
             if (reservation != null) {
-                if (EntityType.EXECUTABLE.allowsRole(role)) {
+                if (EntityType.RESERVATION.allowsRole(role)) {
                     childEntities.put(reservation, role);
                 }
             }
@@ -396,6 +396,9 @@ public class AuthorizationManager extends AbstractManager
             if (executable != null) {
                 if (EntityType.EXECUTABLE.allowsRole(role)) {
                     childEntities.put(executable, role);
+                }
+                else if (role.equals(Role.RESERVATION_USER)) {
+                    childEntities.put(executable, Role.READER);
                 }
             }
 
