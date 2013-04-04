@@ -39,10 +39,11 @@ sub populate()
         },
         'delete-acl' => {
             desc => 'Delete ACL record',
-            args => '<id>',
+            options => 'user=s entity=s role=s',
+            args => '<id> [-user=<user-id>] [-entity=<entity-id>] [-role=<role>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_acl(@args);
+                delete_acl($params->{'options'}, @args);
             }
         },
         'get-acl' => {
@@ -120,12 +121,45 @@ sub create_acl()
 
 sub delete_acl()
 {
-    my (@args) = @_;
-    if ( scalar(@args) < 1 ) {
+    my ($options, @args) = @_;
+
+    my $ids = [];
+
+    my $user_id = {};
+    my $entity_id = {};
+    my $role = {};
+    if ( defined($options->{'user'}) ) {
+        $user_id = RPC::XML::string->new($options->{'user'});
+    }
+    if ( defined($options->{'entity'}) ) {
+        $entity_id = RPC::XML::string->new($options->{'entity'});
+    }
+    if ( defined($options->{'role'}) ) {
+        $role = RPC::XML::string->new($options->{'role'});
+    }
+    if ( ref($user_id) ne 'HASH' || ref($entity_id) ne 'HASH' || ref($role) ne 'HASH' ) {
+        my $application = Shongo::ClientCli->instance();
+        my $response = $application->secure_request('Authorization.listAclRecords', $user_id, $entity_id, $role);
+        if ( defined($response) ) {
+            foreach my $record (@{$response}) {
+                push(@{$ids}, $record->{'id'});
+            }
+        }
+    }
+
+    if ( scalar(@args) >= 1 ) {
+        foreach my $arg (@args) {
+            foreach my $id (split(/,/, $arg)) {
+                push(@{$ids}, $id);
+            }
+        }
+    }
+    elsif ( scalar(@{$ids}) == 0 ) {
         console_print_error("Argument '<id>' must be specified.");
         return;
     }
-    foreach my $id (split(/,/, $args[0])) {
+
+    foreach my $id (@{$ids}) {
         my $response = Shongo::ClientCli->instance()->secure_request('Authorization.deleteAclRecord',
             RPC::XML::string->new($id)
         );

@@ -51,12 +51,6 @@ public class InternalErrorHandler
         // Log error
         logger.error(message, exception);
 
-        // Format error stack trace
-        final Writer result = new StringWriter();
-        final PrintWriter printWriter = new PrintWriter(result);
-        exception.printStackTrace(printWriter);
-        String stackTrace = result.toString();
-
         StringBuilder contentBuilder = new StringBuilder();
         contentBuilder.append("CONFIGURATION\n\n");
 
@@ -80,8 +74,14 @@ public class InternalErrorHandler
                 .append(hostName)
                 .append("\n");
 
-        contentBuilder.append("\nEXCEPTION\n\n");
-        contentBuilder.append(stackTrace);
+        if (exception != null) {
+            contentBuilder.append("\nEXCEPTION\n\n");
+            final Writer result = new StringWriter();
+            final PrintWriter printWriter = new PrintWriter(result);
+            exception.printStackTrace(printWriter);
+            String stackTrace = result.toString();
+            contentBuilder.append(stackTrace);
+        }
 
         // Send error to administrators
         EmailSender emailSender = Controller.getInstance().getEmailSender();
@@ -91,6 +91,17 @@ public class InternalErrorHandler
         catch (MessagingException messagingException) {
             logger.error("Failed sending error email.", messagingException);
         }
+    }
+
+    /**
+     * Handle internal error.
+     *
+     * @param type
+     * @param message
+     */
+    public static void handle(InternalErrorType type, String message)
+    {
+        handle(type, message, null);
     }
 
     /**

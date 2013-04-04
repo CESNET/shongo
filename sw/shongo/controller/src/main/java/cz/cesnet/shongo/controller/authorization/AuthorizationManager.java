@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
@@ -413,16 +414,19 @@ public class AuthorizationManager extends AbstractManager
      */
     public void executeAclRecordRequests()
     {
-        Collection<AclRecordCreateRequest> aclRecordCreateRequests = entityManager.createQuery(
-                "SELECT request FROM AclRecordCreateRequest request ORDER BY id ASC", AclRecordCreateRequest.class)
-                .getResultList();
+        // Only one authorization manager can execute ACL requests at the time
+        synchronized (AuthorizationManager.class) {
+            Collection<AclRecordCreateRequest> aclRecordCreateRequests = entityManager.createQuery(
+                    "SELECT request FROM AclRecordCreateRequest request ORDER BY id ASC", AclRecordCreateRequest.class)
+                    .getResultList();
 
-        Collection<AclRecordDeleteRequest> aclRecordDeleteRequests = entityManager.createQuery(
-                "SELECT request FROM AclRecordDeleteRequest request ORDER BY id ASC", AclRecordDeleteRequest.class)
-                .getResultList();
+            Collection<AclRecordDeleteRequest> aclRecordDeleteRequests = entityManager.createQuery(
+                    "SELECT request FROM AclRecordDeleteRequest request ORDER BY id ASC", AclRecordDeleteRequest.class)
+                    .getResultList();
 
-        executeAclRecordCreateRequests(aclRecordCreateRequests);
-        executeAclRecordDeleteRequests(aclRecordDeleteRequests);
+            executeAclRecordCreateRequests(aclRecordCreateRequests);
+            executeAclRecordDeleteRequests(aclRecordDeleteRequests);
+        }
     }
 
     /**
@@ -432,12 +436,43 @@ public class AuthorizationManager extends AbstractManager
      */
     public AclRecord executeAclRecordCreateRequest(AclRecordCreateRequest aclRecordCreateRequest) throws FaultException
     {
-        List<AclRecordCreateRequest> aclRecordCreateRequests = new LinkedList<AclRecordCreateRequest>();
-        fillAclRecordCreateRequests(aclRecordCreateRequest, aclRecordCreateRequests);
+        // Only one authorization manager can execute ACL requests at the time
+        synchronized (AuthorizationManager.class) {
+            AclRecordCreateRequest fetchedAclRecordCreateRequest =
+                    entityManager.find(AclRecordCreateRequest.class, aclRecordCreateRequest.getId());
+            if (fetchedAclRecordCreateRequest != null) {
+                // Create request has not been processed
+                List<AclRecordCreateRequest> aclRecordCreateRequests = new LinkedList<AclRecordCreateRequest>();
+                fillAclRecordCreateRequests(aclRecordCreateRequest, aclRecordCreateRequests);
 
-        Map<AclRecordCreateRequest, AclRecord> aclRecordByCreateRequest =
-                executeAclRecordCreateRequests(aclRecordCreateRequests);
-        return aclRecordByCreateRequest.get(aclRecordCreateRequest);
+                Map<AclRecordCreateRequest, AclRecord> aclRecordByCreateRequest =
+                        executeAclRecordCreateRequests(aclRecordCreateRequests);
+                return aclRecordByCreateRequest.get(aclRecordCreateRequest);
+            }
+            else {
+                // Create request has already been processed, so fetch the ACL
+                String userId = aclRecordCreateRequest.getUserId();
+                EntityIdentifier entityId = EntityIdentifier.parse(aclRecordCreateRequest.getEntityId());
+                Role role = aclRecordCreateRequest.getRole();
+                Collection<AclRecord> aclRecords = authorization.getAclRecords(userId, entityId, role);
+                if (aclRecords.size() == 1) {
+                    return aclRecords.iterator().next();
+                }
+                else {
+                    if (aclRecords.size() > 1) {
+                        InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, String.format(
+                                "Multiple ACL for request (user: %s, entity: %s, role: %s) were found.",
+                                userId, entityId, role));
+                    }
+                    else {
+                        InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, String.format(
+                                "No ACL for request (user: %s, entity: %s, role: %s) was found.",
+                                userId, entityId, role));
+                    }
+                    return null;
+                }
+            }
+        }
     }
 
     /**
@@ -616,10 +651,22 @@ public class AuthorizationManager extends AbstractManager
                 aclRecordIds.remove(aclRecordId);
 
                 // Delete the ACL record
-                AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
-                authorization.deleteAclRecord(aclRecord);
+                AclRecord aclRecord = null;
+                try {
+                    aclRecord = authorization.getAclRecord(aclRecordId);
 
-                onAclRecordDeleted(aclRecord.getEntityId(), aclRecord.getRole());
+                    authorization.deleteAclRecord(aclRecord);
+
+                    onAclRecordDeleted(aclRecord.getEntityId(), aclRecord.getRole());
+                }
+                catch (FaultException faultException) {
+                    if (faultException.getFault() instanceof FaultSet.EntityNotFoundFault) {
+                        // If ACL record was not found, it is OK and we don't have to delete it
+                    }
+                    else {
+                        throw faultException;
+                    }
+                }
 
                 // Delete all dependencies
                 entityManager.createQuery(
