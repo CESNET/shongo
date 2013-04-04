@@ -275,6 +275,8 @@ public class ReservationRequest extends AbstractReservationRequest
                     switch (executable.getState()) {
                         case STARTED:
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
+                        case MODIFIED:
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
                         case STARTING_FAILED:
                             return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTING_FAILED;
                         case STOPPED:
