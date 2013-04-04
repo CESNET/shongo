@@ -33,6 +33,9 @@ public class InternalErrorHandler
      */
     public static void handle(InternalErrorType type, String message, Exception exception)
     {
+        Controller controller = Controller.getInstance();
+        EmailSender emailSender = controller.getEmailSender();
+
         StringBuilder messageBuilder = new StringBuilder();
         if (type != null) {
             messageBuilder.append(type.getName() + " Error");
@@ -48,6 +51,11 @@ public class InternalErrorHandler
         }
         message = messageBuilder.toString();
 
+        // If email sender is not initialized propagate runtime exception
+        if (!emailSender.isInitialized()) {
+            throw new RuntimeException(message, exception);
+        }
+
         // Log error
         logger.error(message, exception);
 
@@ -61,7 +69,7 @@ public class InternalErrorHandler
                 .append(domain.getOrganization())
                 .append(")\n");
 
-        String hostName = Controller.getInstance().getRpcHost();
+        String hostName = controller.getRpcHost();
         if (hostName.isEmpty()) {
             try {
                 hostName = java.net.InetAddress.getLocalHost().getHostName();
@@ -84,7 +92,6 @@ public class InternalErrorHandler
         }
 
         // Send error to administrators
-        EmailSender emailSender = Controller.getInstance().getEmailSender();
         try {
             emailSender.sendEmail(getAdministratorEmails(), message, contentBuilder.toString());
         }

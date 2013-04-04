@@ -298,7 +298,9 @@ public class CacheTransaction
         if (reservation.getSlot().contains(getInterval())) {
             Executable executable = reservation.getExecutable();
             if (executable != null) {
-                providedReservationByExecutable.put(executable, reservation);
+                if (!providedReservationByExecutable.containsKey(executable)) {
+                    providedReservationByExecutable.put(executable, reservation);
+                }
             }
 
             if (reservation instanceof ExistingReservation) {

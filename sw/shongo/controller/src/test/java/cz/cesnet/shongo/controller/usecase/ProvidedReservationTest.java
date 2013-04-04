@@ -383,4 +383,44 @@ public class ProvidedReservationTest extends AbstractControllerTest
             Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
         }
     }
+
+    @Test
+    public void testAliasRoomCapacity() throws Exception
+    {
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAllocatable(true);
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10,
+                new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
+        connectServer.addCapability(new AliasProviderCapability(
+                "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withPermanentRoom());
+        connectServer.addCapability(new AliasProviderCapability(
+                "test", AliasType.ROOM_NAME).withPermanentRoom());
+        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.setSharedExecutable(true);
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
+        aliasReservationRequest.setSpecification(aliasSetSpecification);
+        Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        reservationRequest.addProvidedReservationId(aliasReservation.getId());
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+
+        runScheduler();
+    }
 }

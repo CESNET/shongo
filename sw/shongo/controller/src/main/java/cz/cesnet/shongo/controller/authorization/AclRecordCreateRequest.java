@@ -14,7 +14,6 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "role"}))
 public class AclRecordCreateRequest extends PersistentObject
 {
     /**

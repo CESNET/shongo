@@ -93,7 +93,7 @@ public class EmailSender
     public void sendEmail(Collection<String> recipients, String subject, String content) throws MessagingException
     {
         if (session == null) {
-            return;
+            throw new IllegalStateException("Email sender is not initialized.");
         }
 
         MimeBodyPart textPart = new MimeBodyPart();
