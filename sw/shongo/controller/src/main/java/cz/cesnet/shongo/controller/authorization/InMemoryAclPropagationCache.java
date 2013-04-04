@@ -38,7 +38,7 @@ import java.util.*;
  */
 public class InMemoryAclPropagationCache
 {
-    private static Logger logger = LoggerFactory.getLogger(EntityState.class);
+    /*private static Logger logger = LoggerFactory.getLogger(EntityState.class);
 
     private EntityManagerFactory entityManagerFactory;
 
@@ -124,10 +124,6 @@ public class InMemoryAclPropagationCache
         }
     }
 
-    /**
-     * @param entity for which the child entities should be returned
-     * @return child entities for given {@code entity}
-     */
     private Map<PersistentObject, AclRecordPropagator> getPropagatorByParentEntity(PersistentObject entity)
     {
         logger.debug("Get parent for {}...", new EntityIdentifier(entity));
@@ -229,9 +225,6 @@ public class InMemoryAclPropagationCache
 
         private Map<String, EntityUserState> entityUserStateByUserId = new HashMap<String, EntityUserState>();
 
-        /**
-         * Map of user-ids which by role which has the role for the entity.
-         */
         private Map<Role, Set<String>> userIdsByRole = new HashMap<Role, Set<String>>();
 
         public EntityState(EntityIdentifier entityId)
@@ -278,9 +271,6 @@ public class InMemoryAclPropagationCache
 
     private static class EntityUserState
     {
-        /**
-         * Set of {@link AclRecord}s for the entity.
-         */
         private Set<AclRecord> aclRecords = new HashSet<AclRecord>();
 
         private Set<Role> roles = new HashSet<Role>();
@@ -330,18 +320,11 @@ public class InMemoryAclPropagationCache
         }
     }
 
-    /**
-     * @return number of entities which are present in the cache
-     */
     int getEntityCount()
     {
         return entityStateById.size();
     }
 
-    /**
-     * @param entityId
-     * @return number of {@link AclRecord}s which are present in the cache for given {@code entityId}
-     */
     int getAclRecordCount(EntityIdentifier entityId)
     {
         EntityState entityState = entityStateById.get(entityId);
@@ -350,5 +333,5 @@ public class InMemoryAclPropagationCache
             aclRecordCount += entityUserState.aclRecords.size();
         }
         return aclRecordCount;
-    }
+    }*/
 }

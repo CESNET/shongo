@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.authorization.AclRecordCreateRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -98,15 +97,10 @@ public class AuthorizationServiceImpl extends Component
         AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
         try {
             entityManager.getTransaction().begin();
-            AclRecordCreateRequest aclRecordCreateRequest =
+            cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.createAclRecord(userId, entityIdentifier, role);
             entityManager.getTransaction().commit();
-            if (aclRecordCreateRequest == null) {
-                return null;
-            }
-            cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
-                    authorizationManager.executeAclRecordCreateRequest(aclRecordCreateRequest);
-            return (aclRecord != null ? aclRecord.getId() : null);
+            return (aclRecord != null ? aclRecord.getId().toString() : null);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -121,7 +115,8 @@ public class AuthorizationServiceImpl extends Component
             throws FaultException
     {
         String userId = authorization.validate(token);
-        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
+                authorization.getAclRecord(Long.valueOf(aclRecordId));
         if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.WRITE)) {
             ControllerFaultSet.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
         }
@@ -131,7 +126,6 @@ public class AuthorizationServiceImpl extends Component
             entityManager.getTransaction().begin();
             authorizationManager.deleteAclRecord(aclRecord);
             entityManager.getTransaction().commit();
-            authorizationManager.executeAclRecordRequests();
         }
         finally {
             if (entityManager.getTransaction().isActive()) {
@@ -146,7 +140,8 @@ public class AuthorizationServiceImpl extends Component
             throws FaultException
     {
         String userId = authorization.validate(token);
-        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord = authorization.getAclRecord(aclRecordId);
+        cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
+                authorization.getAclRecord(Long.valueOf(aclRecordId));
         if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.READ)) {
             ControllerFaultSet.throwSecurityNotAuthorizedFault("read ACL for %s", aclRecord.getEntityId());
         }
@@ -289,7 +284,6 @@ public class AuthorizationServiceImpl extends Component
                         + entity.getClass().getSimpleName() + ".");
             }
             entityManager.getTransaction().commit();
-            authorizationManager.executeAclRecordRequests();
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

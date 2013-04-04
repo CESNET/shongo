@@ -20,7 +20,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotUsableReport;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -174,7 +173,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Create ACL records
             for (Reservation reservation : newReservations.keySet()) {
                 ReservationRequest reservationRequest = reservation.getReservationRequest();
-                authorizationManager.createAclRecordForChildEntity(reservationRequest, reservation);
+                authorizationManager.createAclRecordsForChildEntity(reservationRequest, reservation);
             }
 
             // Delete all executables which should be deleted
@@ -196,8 +195,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             InternalErrorHandler.handle(InternalErrorType.SCHEDULER, exception);
             return;
         }
-
-        authorizationManager.executeAclRecordRequests();
 
         // Create new/modified reservation notifications
         if (notificationManager != null) {

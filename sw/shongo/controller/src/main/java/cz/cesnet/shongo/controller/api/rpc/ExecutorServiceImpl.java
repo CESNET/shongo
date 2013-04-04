@@ -84,8 +84,6 @@ public class ExecutorServiceImpl extends Component
             authorizationManager.deleteAclRecords(executableManager.delete(executable, authorization));
 
             entityManager.getTransaction().commit();
-
-            authorizationManager.executeAclRecordRequests();
         }
         catch (javax.persistence.RollbackException exception) {
             ControllerFaultSet.throwEntityNotDeletableReferencedFault(

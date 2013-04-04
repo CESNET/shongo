@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -238,7 +239,8 @@ public class ServerAuthorization extends Authorization
     {
         Controller.loggerAcl.info("Create ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
 
-        StringEntity httpEntity;
+        throw new TodoImplementException();
+        /*StringEntity httpEntity;
         try {
             Map<String, String> data = new HashMap<String, String>();
             data.put("user_id", userId);
@@ -270,7 +272,7 @@ public class ServerAuthorization extends Authorization
         }
         catch (Exception exception) {
             return handleAuthorizationRequestError(exception);
-        }
+        }*/
     }
 
     @Override
@@ -279,7 +281,8 @@ public class ServerAuthorization extends Authorization
         Controller.loggerAcl.info("Delete ACL (user: {}, entity: {}, role: {})",
                 new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
 
-        HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
+        throw new TodoImplementException();
+        /*HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
         httpDelete.setHeader("Authorization", authorizationServerHeader);
         try {
             HttpResponse response = httpClient.execute(httpDelete);
@@ -295,13 +298,14 @@ public class ServerAuthorization extends Authorization
         }
         catch (Exception exception) {
             handleAuthorizationRequestError(exception);
-        }
+        }*/
     }
 
     @Override
-    protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
+    protected AclRecord onGetAclRecord(Long aclRecordId) throws FaultException
     {
-        HttpGet httpGet = new HttpGet(getAuthorizationUrl() + "/acl/" + aclRecordId);
+        throw new TodoImplementException();
+        /*HttpGet httpGet = new HttpGet(getAuthorizationUrl() + "/acl/" + aclRecordId);
         httpGet.setHeader("Authorization", authorizationServerHeader);
         httpGet.setHeader("Accept", "application/hal+json");
         try {
@@ -323,14 +327,16 @@ public class ServerAuthorization extends Authorization
         }
         catch (Exception exception) {
             return handleAuthorizationRequestError(exception);
-        }
+        }*/
     }
 
     @Override
     protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
-        URI uri;
+        throw new TodoImplementException();
+
+        /*URI uri;
         try {
             URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
             if (userId != null) {
@@ -373,7 +379,7 @@ public class ServerAuthorization extends Authorization
         }
         catch (Exception exception) {
             return handleAuthorizationRequestError(exception);
-        }
+        }*/
     }
 
     /**
@@ -411,6 +417,20 @@ public class ServerAuthorization extends Authorization
         }
         return userInformation;
     }
+
+    /**
+     * @param data {@link JsonNode}
+     * @return {@link AclRecord} from given {@code data}
+     * @throws FaultException
+     */
+    /*private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
+    {
+        String id = data.get("id").getTextValue();
+        String userId = data.get("user_id").getTextValue();
+        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
+        Role role = Role.forId(data.get("role_id").getTextValue());
+        return new AclRecord(id, userId, entityId, role);
+    }*/
 
     /**
      * @param httpEntity
@@ -452,20 +472,6 @@ public class ServerAuthorization extends Authorization
             }
         }
         return null;
-    }
-
-    /**
-     * @param data {@link JsonNode}
-     * @return {@link AclRecord} from given {@code data}
-     * @throws FaultException
-     */
-    private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
-    {
-        String id = data.get("id").getTextValue();
-        String userId = data.get("user_id").getTextValue();
-        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
-        Role role = Role.forId(data.get("role_id").getTextValue());
-        return new AclRecord(id, userId, entityId, role);
     }
 
     /**

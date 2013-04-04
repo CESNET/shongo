@@ -206,7 +206,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
             // Create ACL records
             for (ReservationRequest reservationRequest : newReservationRequests) {
-                authorizationManager.createAclRecordForChildEntity(reservationRequestSet, reservationRequest);
+                authorizationManager.createAclRecordsForChildEntity(reservationRequestSet, reservationRequest);
             }
 
             entityManager.getTransaction().commit();
@@ -217,8 +217,6 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
             throw exception;
         }
-
-        authorizationManager.executeAclRecordRequests();
     }
 
     /**

@@ -149,8 +149,6 @@ public class ReservationServiceImpl extends Component
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
 
             entityManager.getTransaction().commit();
-
-            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -290,8 +288,6 @@ public class ReservationServiceImpl extends Component
                     reservationRequestManager.delete(reservationRequest, authorization));
 
             entityManager.getTransaction().commit();
-
-            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;

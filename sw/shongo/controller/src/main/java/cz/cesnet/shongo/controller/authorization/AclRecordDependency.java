@@ -1,57 +1,98 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import cz.cesnet.shongo.PersistentObject;
+
+import javax.persistence.*;
 
 /**
- * Represents a dependency from child {@link AclRecord} to a parent {@link AclRecord}. Child {@link AclRecord} is
- * automatically created for the parent {@link AclRecord} and child {@link AclRecord} can be deleted only when all
- * parent {@link AclRecord}s has been deleted.
+ * TODO:
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AclRecordDependency
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"parent_acl_record_id", "child_acl_record_id"}))
+public class AclRecordDependency extends PersistentObject
 {
     /**
-     * @see AclRecordDependencyId
+     * Parent {@link AclRecord}.
      */
-    private AclRecordDependencyId id;
+    private AclRecord parentAclRecord;
 
     /**
-     * @return {@link #id}
+     * Parent {@link AclRecord}.
      */
-    @EmbeddedId
-    public AclRecordDependencyId getId()
+    private AclRecord childAclRecord;
+
+    /**
+     * @see Type
+     */
+    private Type type;
+
+    /**
+     * @return {@link #parentAclRecord}
+     */
+    @ManyToOne
+    @JoinColumn(name = "parent_acl_record_id")
+    public AclRecord getParentAclRecord()
     {
-        return id;
+        return parentAclRecord;
     }
 
     /**
-     * @param id sets the {@link #id}
+     * @param parentAclRecord sets the {@link #parentAclRecord}
      */
-    public void setId(AclRecordDependencyId id)
+    public void setParentAclRecord(AclRecord parentAclRecord)
     {
-        this.id = id;
+        this.parentAclRecord = parentAclRecord;
     }
 
     /**
-     * @return {@link #id#getParentAclRecordId()}
+     * @return {@link #childAclRecord}
      */
-    @Transient
-    public String getParentAclRecordId()
+    @ManyToOne
+    @JoinColumn(name = "child_acl_record_id")
+    public AclRecord getChildAclRecord()
     {
-        return id.getParentAclRecordId();
+        return childAclRecord;
     }
 
     /**
-     * @return {@link #id#getChildAclRecordId()}
+     * @param childAclRecord sets the {@link #childAclRecord}
      */
-    @Transient
-    public String getChildAclRecordId()
+    public void setChildAclRecord(AclRecord childAclRecord)
     {
-        return id.getChildAclRecordId();
+        this.childAclRecord = childAclRecord;
     }
 
+    /**
+     * @return {@link #type}
+     */
+    public Type getType()
+    {
+        return type;
+    }
+
+    /**
+     * @param type {@link #type}
+     */
+    public void setType(Type type)
+    {
+        this.type = type;
+    }
+
+    /**
+     * Type of dependency.
+     */
+    public static enum Type
+    {
+        /**
+         * TODO:
+         */
+        DELETE_CASCADE,
+
+        /**
+         * TODO:
+         */
+        DELETE_DETACH
+    }
 }

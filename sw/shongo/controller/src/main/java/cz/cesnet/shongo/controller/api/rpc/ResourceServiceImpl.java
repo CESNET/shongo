@@ -125,8 +125,6 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.addResource(resource, entityManager);
             }
-
-            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;
@@ -225,8 +223,6 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.removeResource(resource);
             }
-
-            authorizationManager.executeAclRecordRequests();
         }
         catch (FaultException exception) {
             throw exception;

@@ -116,23 +116,27 @@ public class DummyAuthorization extends Authorization
     @Override
     protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
     {
-        AclRecord aclRecord = new AclRecord(userId, entityId, role);
+        throw new TodoImplementException();
+        /*AclRecord aclRecord = new AclRecord(userId, entityId, role);
 
         logger.info("Created ACL (id: {}, user: {}, entity: {}, role: {})",
                 new Object[]{aclRecord.getId(), userId, entityId, role});
 
-        return aclRecord;
+
+        return aclRecord;*/
     }
 
     @Override
     protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
     {
-        logger.info("Deleted ACL (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
+        throw new TodoImplementException();
+
+        /*logger.info("Deleted ACL (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});*/
     }
 
     @Override
-    protected AclRecord onGetAclRecord(String aclRecordId) throws FaultException
+    protected AclRecord onGetAclRecord(Long aclRecordId) throws FaultException
     {
         throw new TodoImplementException();
     }
@@ -141,7 +145,8 @@ public class DummyAuthorization extends Authorization
     protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
             throws FaultException
     {
-        logger.info("List ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+        throw new TodoImplementException();
+        /*logger.info("List ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
 
         List<AclRecord> aclRecords = new LinkedList<AclRecord>();
         for (AclRecord aclRecord : cache.getAclRecords()) {
@@ -156,7 +161,7 @@ public class DummyAuthorization extends Authorization
             }
             aclRecords.add(aclRecord);
         }
-        return aclRecords;
+        return aclRecords;*/
     }
 
     /**

@@ -13,6 +13,7 @@ import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
@@ -77,7 +78,7 @@ public abstract class Authorization
     /**
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    public final void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -199,7 +200,7 @@ public abstract class Authorization
      * @return true if the use is Shongo admin (should have all permissions),
      *         false otherwise
      */
-    public boolean isAdmin(String userId)
+    public final boolean isAdmin(String userId)
     {
         return userId.equals(Authorization.ROOT_USER_ID);
     }
@@ -209,7 +210,7 @@ public abstract class Authorization
      * @return {@link AclRecord} with given {@code aclRecordId}
      * @throws FaultException
      */
-    public AclRecord getAclRecord(String aclRecordId) throws FaultException
+    public final AclRecord getAclRecord(Long aclRecordId) throws FaultException
     {
         AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
         if (aclRecord == null) {
@@ -217,6 +218,23 @@ public abstract class Authorization
             cache.putAclRecordById(aclRecord);
         }
         return aclRecord;
+    }
+
+    /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return {@link AclRecord} for given parameters or null if doesn't exist
+     * @throws FaultException
+     */
+    public final AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    {
+        for (AclRecord aclRecord : getAclRecords(userId, entityId)) {
+            if (role.equals(aclRecord.getRole())) {
+                return aclRecord;
+            }
+        }
+        return null;
     }
 
     /**
@@ -292,7 +310,7 @@ public abstract class Authorization
             if (userId != null) {
                 if (role != null) {
                     Collection<AclRecord> aclRecords = new LinkedList<AclRecord>();
-                    for (AclRecord aclRecord : authorization.getAclRecords(userId, entityId)) {
+                    for (AclRecord aclRecord : getAclRecords(userId, entityId)) {
                         if (role.equals(aclRecord.getRole())) {
                             aclRecords.add(aclRecord);
                         }
@@ -300,15 +318,30 @@ public abstract class Authorization
                     return aclRecords;
                 }
                 else {
-                    return authorization.getAclRecords(userId, entityId);
+                    return getAclRecords(userId, entityId);
 
                 }
             }
             else {
-                return authorization.getAclRecords(entityId);
+                return getAclRecords(entityId);
             }
         }
-        return onListAclRecords(userId, entityId, role);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            return entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                    + " WHERE (:userId IS NULL OR acl.userId = :userId)"
+                    + " AND (:entityType IS NULL OR acl.entityId.entityType = :entityType)"
+                    + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
+                    + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
+                    .setParameter("userId", userId)
+                    .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
+                    .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
+                    .setParameter("role", role)
+                    .getResultList();
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -501,7 +534,7 @@ public abstract class Authorization
      * @return {@link AclRecord}
      * @throws FaultException when the {@link AclRecord} doesn't exist
      */
-    protected abstract AclRecord onGetAclRecord(String aclRecordId) throws FaultException;
+    protected abstract AclRecord onGetAclRecord(Long aclRecordId) throws FaultException;
 
     /**
      * List of all {@link AclRecord}s which matches given criteria.
@@ -608,9 +641,20 @@ public abstract class Authorization
     private AclUserState fetchAclUserState(String userId) throws FaultException
     {
         AclUserState aclUserState = new AclUserState();
-        for (AclRecord aclRecord : onListAclRecords(userId, null, null)) {
-            aclUserState.addAclRecord(aclRecord);
-            cache.putAclRecordById(aclRecord);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                    + " WHERE (:userId IS NULL OR acl.userId = :userId)", AclRecord.class)
+                    .setParameter("userId", userId)
+                    .getResultList();
+            for (AclRecord aclRecord : aclRecords) {
+                aclUserState.addAclRecord(aclRecord);
+                cache.putAclRecordById(aclRecord);
+            }
+        }
+        finally {
+            entityManager.close();
         }
         return aclUserState;
     }
@@ -624,10 +668,24 @@ public abstract class Authorization
     private AclEntityState fetchAclEntityState(EntityIdentifier entityId) throws FaultException
     {
         AclEntityState aclEntityState = new AclEntityState();
-        for (AclRecord aclRecord : onListAclRecords(null, entityId, null)) {
-            aclEntityState.addAclRecord(aclRecord);
-            cache.putAclRecordById(aclRecord);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                    + " WHERE acl.entityId.entityType = :entityType"
+                    + " AND acl.entityId.persistenceId = :entityId", AclRecord.class)
+                    .setParameter("entityType", entityId.getEntityType())
+                    .setParameter("entityId", entityId.getPersistenceId())
+                    .getResultList();
+            for (AclRecord aclRecord : aclRecords) {
+                aclEntityState.addAclRecord(aclRecord);
+                cache.putAclRecordById(aclRecord);
+            }
         }
+        finally {
+            entityManager.close();
+        }
+
         return aclEntityState;
     }
 

@@ -24,7 +24,7 @@ public class AuthorizationCache
     /**
      * Cache of {@link AclRecord} by {@link AclRecord#id}.
      */
-    private ExpirationMap<String, AclRecord> aclRecordCache = new ExpirationMap<String, AclRecord>();
+    private ExpirationMap<Long, AclRecord> aclRecordCache = new ExpirationMap<Long, AclRecord>();
 
     /**
      * Cache of {@link AclUserState} by user-id.
@@ -106,7 +106,7 @@ public class AuthorizationCache
      * @param aclRecordId
      * @return {@link AclRecord} by given {@code aclRecordId}
      */
-    public synchronized AclRecord getAclRecordById(String aclRecordId)
+    public synchronized AclRecord getAclRecordById(Long aclRecordId)
     {
         return aclRecordCache.get(aclRecordId);
     }

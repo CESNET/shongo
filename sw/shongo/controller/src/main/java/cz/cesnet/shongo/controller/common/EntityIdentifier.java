@@ -11,6 +11,10 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
+import javax.persistence.Transient;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -26,17 +30,18 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Embeddable
 public class EntityIdentifier
 {
     /**
      * {@link EntityType} of the identifier.
      */
-    private final EntityType entityType;
+    private EntityType entityType;
 
     /**
      * Identifier value.
      */
-    private final Long persistenceId;
+    private Long persistenceId;
 
     /**
      * Constructor.
@@ -70,6 +75,11 @@ public class EntityIdentifier
         this.persistenceId = persistenceId;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param persistentObject sets the {@link #entityType} and the {@link #persistenceId}
+     */
     public EntityIdentifier(PersistentObject persistentObject)
     {
         this.entityType = getEntityType(persistentObject.getClass());
@@ -85,9 +95,18 @@ public class EntityIdentifier
     }
 
     /**
+     * @param entityType sets the {@link #entityType}
+     */
+    public void setEntityType(EntityType entityType)
+    {
+        this.entityType = entityType;
+    }
+
+    /**
      * @return true whether {@link #entityType} is empty or {@link #persistenceId} is empty,
      *         false otherwise
      */
+    @Transient
     public boolean isGroup()
     {
         return entityType == null || persistenceId == null;
@@ -96,14 +115,24 @@ public class EntityIdentifier
     /**
      * @return {@link #persistenceId}
      */
+    @Column
     public Long getPersistenceId()
     {
         return persistenceId;
     }
 
     /**
+     * @param persistenceId sets the {@link #persistenceId}
+     */
+    public void setPersistenceId(Long persistenceId)
+    {
+        this.persistenceId = persistenceId;
+    }
+
+    /**
      * @return class for the {@link #entityType}
      */
+    @Transient
     public Class<? extends PersistentObject> getEntityClass()
     {
         return getEntityTypeClass(entityType);
