@@ -67,6 +67,8 @@ public class AclRecordDependency extends PersistentObject
     /**
      * @return {@link #type}
      */
+    @Column
+    @Enumerated(EnumType.STRING)
     public Type getType()
     {
         return type;
