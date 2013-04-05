@@ -217,7 +217,7 @@ public abstract class Authorization
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
             try {
-                aclRecord = authorization.getAclRecord(aclRecordId);
+                aclRecord = authorizationManager.getAclRecord(aclRecordId);
             }
             finally {
                 entityManager.close();
@@ -282,20 +282,6 @@ public abstract class Authorization
             return Collections.emptyList();
         }
         return aclRecords;
-    }
-
-    /**
-     * Retrieve all {@link AclRecord}s for given {@code entity}.
-     *
-     * @param entity to restrict the entity of the {@link AclRecord}
-     * @return collection of matching {@link AclRecord}s
-     * @throws FaultException
-     */
-    public Collection<AclRecord> getAclRecords(PersistentObject entity)
-            throws FaultException
-    {
-        EntityIdentifier entityId = new EntityIdentifier(entity);
-        return getAclRecords(entityId);
     }
 
     /**

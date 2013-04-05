@@ -352,9 +352,7 @@ sub fault_action
         my $action = $params->{'action'};
         $title = "Not authorized";
         $message = "You are not authorized to <strong>$action</strong>.";
-        $message .= '<p>If you think that you should be authorized to specified action try to <a href="">refresh</a> page. ';
-        $message .= 'Sometimes it takes a few seconds before the scheduler creates the user roles in authorization server. ';
-        $message .= 'If it doesn\'t help contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
+        $message .= '<p>If you think that you should be authorized to specified action contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
 
     }
     elsif ( $code == 21 ) {

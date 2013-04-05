@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * TODO:
@@ -91,10 +93,15 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @param aclRecordId
      * @return {@link AclRecord} with given {@code aclRecordId}
+     * @throws FaultException when {@link AclRecord} doesn't exist
      */
-    public AclRecord getAclRecord(Long aclRecordId)
+    public AclRecord getAclRecord(Long aclRecordId) throws FaultException
     {
-        return entityManager.find(AclRecord.class, aclRecordId);
+        AclRecord aclRecord = entityManager.find(AclRecord.class, aclRecordId);
+        if (aclRecord == null) {
+            return ControllerFaultSet.throwEntityNotFoundFault(AclRecord.class, aclRecordId);
+        }
+        return aclRecord;
     }
 
     /**
@@ -296,7 +303,7 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param aclRecord
      */
-    public void deleteAclRecord(AclRecord aclRecord)
+    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
     {
         deleteAclRecord(aclRecord, false);
     }
@@ -306,7 +313,7 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param entity
      */
-    public void deleteAclRecordsForEntity(PersistentObject entity)
+    public void deleteAclRecordsForEntity(PersistentObject entity) throws FaultException
     {
         EntityIdentifier entityId = new EntityIdentifier(entity);
         for (AclRecord aclRecord : activeTransaction.getAclRecords(entityId)) {
@@ -320,7 +327,7 @@ public class AuthorizationManager extends AbstractManager
      * @param aclRecord
      * @param detachChildren
      */
-    private void deleteAclRecord(AclRecord aclRecord, boolean detachChildren)
+    private void deleteAclRecord(AclRecord aclRecord, boolean detachChildren) throws FaultException
     {
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
@@ -339,9 +346,7 @@ public class AuthorizationManager extends AbstractManager
                 .setParameter("aclRecord", aclRecord)
                 .getSingleResult();
         if (parentAclRecordsCount > 0) {
-            logger.debug("ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted (it is referenced)",
-                    new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
-            return;
+            ControllerFaultSet.throwEntityNotDeletableReferencedFault(AclRecord.class, aclRecord.getId());
         }
 
         // Refresh record
@@ -356,7 +361,21 @@ public class AuthorizationManager extends AbstractManager
         for (AclRecordDependency aclRecordDependency : aclRecordDependencies) {
             entityManager.remove(aclRecordDependency);
             if (!aclRecordDependency.getType().equals(AclRecordDependency.Type.DELETE_DETACH) || !detachChildren) {
-                deleteAclRecord(aclRecordDependency.getChildAclRecord());
+                AclRecord childAclRecord = aclRecordDependency.getChildAclRecord();
+                try {
+                    deleteAclRecord(childAclRecord);
+                }
+                catch (FaultException exception) {
+                    if (exception.getFault() instanceof ControllerFaultSet.EntityNotDeletableReferencedFault) {
+                        logger.debug("ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
+                                + " because it is referenced.", new Object[]{childAclRecord.getId(),
+                                childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getRole()
+                        });
+                    }
+                    else {
+                        throw exception;
+                    }
+                }
             }
         }
 
@@ -581,7 +600,7 @@ public class AuthorizationManager extends AbstractManager
             }
             else {
                 // If the ACL record is removed in the transaction, return null
-                if (removedAclRecords.contains(aclRecord) ) {
+                if (removedAclRecords.contains(aclRecord)) {
                     return null;
                 }
             }
