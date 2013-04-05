@@ -235,12 +235,16 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    protected void onPropagateAclRecordCreation(AclRecord aclRecord)
     {
-        Controller.loggerAcl.info("Create ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
+        String userId = aclRecord.getUserId();
+        EntityIdentifier entityId = aclRecord.getEntityId();
+        Role role = aclRecord.getRole();
 
-        throw new TodoImplementException();
-        /*StringEntity httpEntity;
+        logger.info("Propagate ACL creation (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), userId, entityId, role});
+
+        StringEntity httpEntity;
         try {
             Map<String, String> data = new HashMap<String, String>();
             data.put("user_id", userId);
@@ -250,7 +254,7 @@ public class ServerAuthorization extends Authorization
             httpEntity = new StringEntity(jsonData);
         }
         catch (IOException exception) {
-            throw new FaultException(exception);
+            throw new RuntimeException("Propagation failed", exception);
         }
         HttpPost httpPost = new HttpPost(getAuthorizationUrl() + "/acl");
         httpPost.setHeader("Content-type", "application/json");
@@ -261,28 +265,26 @@ public class ServerAuthorization extends Authorization
             HttpResponse response = httpClient.execute(httpPost);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
                 JsonNode acl = readJson(response.getEntity());
-                return createAclRecordFromData(acl);
+
+                // TODO: check acl
             }
             else {
-                return handleAuthorizationRequestError(response);
+                handleAuthorizationRequestError(response);
             }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
         catch (Exception exception) {
-            return handleAuthorizationRequestError(exception);
-        }*/
+            handleAuthorizationRequestError(exception);
+        }
     }
 
     @Override
-    protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
+    protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
     {
-        Controller.loggerAcl.info("Delete ACL (user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
+        logger.info("Propagate ACL deletion (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
 
-        throw new TodoImplementException();
-        /*HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
+
+        HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
         httpDelete.setHeader("Authorization", authorizationServerHeader);
         try {
             HttpResponse response = httpClient.execute(httpDelete);
@@ -293,93 +295,9 @@ public class ServerAuthorization extends Authorization
                 handleAuthorizationRequestError(response);
             }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
         catch (Exception exception) {
             handleAuthorizationRequestError(exception);
-        }*/
-    }
-
-    @Override
-    protected AclRecord onGetAclRecord(Long aclRecordId) throws FaultException
-    {
-        throw new TodoImplementException();
-        /*HttpGet httpGet = new HttpGet(getAuthorizationUrl() + "/acl/" + aclRecordId);
-        httpGet.setHeader("Authorization", authorizationServerHeader);
-        httpGet.setHeader("Accept", "application/hal+json");
-        try {
-            HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                JsonNode acl = readJson(response.getEntity());
-                return createAclRecordFromData(acl);
-            }
-            else {
-                JsonNode jsonNode = readJson(response.getEntity());
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-                    ControllerFaultSet.throwEntityNotFoundFault(AclRecord.class.getSimpleName(), aclRecordId);
-                }
-                return handleAuthorizationRequestError(jsonNode);
-            }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
-        catch (Exception exception) {
-            return handleAuthorizationRequestError(exception);
-        }*/
-    }
-
-    @Override
-    protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException
-    {
-        throw new TodoImplementException();
-
-        /*URI uri;
-        try {
-            URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
-            if (userId != null) {
-                uriBuilder.setParameter("user_id", userId);
-            }
-            if (entityId != null) {
-                uriBuilder.setParameter("resource_id", entityId.toId());
-            }
-            else {
-                uriBuilder.setParameter("resource_id", "shongo:" + Domain.getLocalDomainName() + ":*:*");
-            }
-            if (role != null) {
-                uriBuilder.setParameter("role_id", role.getId());
-            }
-            uri = uriBuilder.build();
-        }
-        catch (Exception exception) {
-            throw new FaultException(exception);
-        }
-        HttpGet httpGet = new HttpGet(uri);
-        httpGet.setHeader("Authorization", authorizationServerHeader);
-        httpGet.setHeader("Accept", "application/hal+json");
-        try {
-            HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                JsonNode result = readJson(response.getEntity());
-                List<AclRecord> aclRecords = new LinkedList<AclRecord>();
-                for (JsonNode acl : result.get("_embedded").get("acls")) {
-                    AclRecord aclRecord = createAclRecordFromData(acl);
-                    aclRecords.add(aclRecord);
-                }
-                return aclRecords;
-            }
-            else {
-                return handleAuthorizationRequestError(response);
-            }
-        }
-        catch (FaultException exception) {
-            throw exception;
-        }
-        catch (Exception exception) {
-            return handleAuthorizationRequestError(exception);
-        }*/
     }
 
     /**
@@ -419,23 +337,8 @@ public class ServerAuthorization extends Authorization
     }
 
     /**
-     * @param data {@link JsonNode}
-     * @return {@link AclRecord} from given {@code data}
-     * @throws FaultException
-     */
-    /*private AclRecord createAclRecordFromData(JsonNode data) throws FaultException
-    {
-        String id = data.get("id").getTextValue();
-        String userId = data.get("user_id").getTextValue();
-        EntityIdentifier entityId = EntityIdentifier.parse(data.get("resource_id").getTextValue());
-        Role role = Role.forId(data.get("role_id").getTextValue());
-        return new AclRecord(id, userId, entityId, role);
-    }*/
-
-    /**
-     * @param httpEntity
+     * @param httpEntity to be read
      * @return {@link JsonNode} from given {@code httpEntity}
-     * @throws FaultException
      */
     private JsonNode readJson(HttpEntity httpEntity)
     {
@@ -459,7 +362,7 @@ public class ServerAuthorization extends Authorization
     /**
      * Read all content from given {@code httpEntity}.
      *
-     * @param httpEntity
+     * @param httpEntity to be read
      */
     private String readContent(HttpEntity httpEntity) throws FaultException
     {
@@ -476,7 +379,7 @@ public class ServerAuthorization extends Authorization
 
     /**
      * @param httpResponse to be handled as {@link FaultException}
-     * @throws FaultException is always thrown
+     * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(HttpResponse httpResponse)
     {
@@ -486,7 +389,7 @@ public class ServerAuthorization extends Authorization
 
     /**
      * @param jsonNode to be handled as {@link FaultException}
-     * @throws FaultException is always thrown
+     * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(JsonNode jsonNode)
     {
@@ -497,7 +400,7 @@ public class ServerAuthorization extends Authorization
 
     /**
      * @param exception to be handled as {@link FaultException}
-     * @throws FaultException is always thrown
+     * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(Exception exception)
     {

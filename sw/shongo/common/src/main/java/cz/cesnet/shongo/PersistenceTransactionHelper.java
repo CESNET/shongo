@@ -4,17 +4,17 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
 /**
- * TOdO:
+ * Represents a transaction in {@link EntityManager}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TransactionHelper
+public class PersistenceTransactionHelper
 {
     /**
      * Represents a transaction that can be committed.
      * If null is passed in constructor, commit do nothing.
      */
-    public static class Transaction
+    public static class PersistenceTransaction
     {
         /**
          * Entity transaction
@@ -26,7 +26,7 @@ public class TransactionHelper
          *
          * @param entityTransaction
          */
-        private Transaction(EntityTransaction entityTransaction)
+        private PersistenceTransaction(EntityTransaction entityTransaction)
         {
             this.entityTransaction = entityTransaction;
             if (this.entityTransaction != null) {
@@ -62,7 +62,7 @@ public class TransactionHelper
         }
     }
 
-    private static Transaction transactionNone = new Transaction(null);
+    private static final PersistenceTransaction TRANSACTION_NONE = new PersistenceTransaction(null);
 
     /**
      * Begin transaction if no transaction in entity manager is active,
@@ -71,12 +71,12 @@ public class TransactionHelper
      *
      * @return transaction object
      */
-    public static Transaction beginTransaction(EntityManager entityManager)
+    public static PersistenceTransaction beginTransaction(EntityManager entityManager)
     {
         EntityTransaction entityTransaction = entityManager.getTransaction();
         if (entityTransaction.isActive()) {
-            return transactionNone;
+            return TRANSACTION_NONE;
         }
-        return new Transaction(entityTransaction);
+        return new PersistenceTransaction(entityTransaction);
     }
 }

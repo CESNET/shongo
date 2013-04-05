@@ -106,8 +106,9 @@ public class ResourceServiceImpl extends Component
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             // Create resource from API
@@ -120,6 +121,7 @@ public class ResourceServiceImpl extends Component
             authorizationManager.createAclRecord(userId, resource, Role.OWNER);
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
 
             // Add resource to the cache
             if (cache != null) {
@@ -133,6 +135,9 @@ public class ResourceServiceImpl extends Component
             throw new FaultException(exception);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -200,8 +205,9 @@ public class ResourceServiceImpl extends Component
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             // Get the resource
@@ -218,6 +224,7 @@ public class ResourceServiceImpl extends Component
             resourceManager.delete(resource);
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
 
             // Remove resource from the cache
             if (cache != null) {
@@ -244,6 +251,9 @@ public class ResourceServiceImpl extends Component
             throw new FaultException(exception);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }

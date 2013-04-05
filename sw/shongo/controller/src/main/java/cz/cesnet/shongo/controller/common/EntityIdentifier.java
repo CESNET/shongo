@@ -10,11 +10,9 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.hibernate.annotations.Index;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -89,6 +87,8 @@ public class EntityIdentifier
     /**
      * @return {@link #entityType}
      */
+    @Column
+    @Enumerated(EnumType.STRING)
     public EntityType getEntityType()
     {
         return entityType;

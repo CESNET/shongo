@@ -114,54 +114,17 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    protected void onPropagateAclRecordCreation(AclRecord aclRecord)
     {
-        throw new TodoImplementException();
-        /*AclRecord aclRecord = new AclRecord(userId, entityId, role);
-
-        logger.info("Created ACL (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), userId, entityId, role});
-
-
-        return aclRecord;*/
+        logger.info("Propagate ACL creation (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
     }
 
     @Override
-    protected void onDeleteAclRecord(AclRecord aclRecord) throws FaultException
+    protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
     {
-        throw new TodoImplementException();
-
-        /*logger.info("Deleted ACL (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});*/
-    }
-
-    @Override
-    protected AclRecord onGetAclRecord(Long aclRecordId) throws FaultException
-    {
-        throw new TodoImplementException();
-    }
-
-    @Override
-    protected Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException
-    {
-        throw new TodoImplementException();
-        /*logger.info("List ACL (user: {}, entity: {}, role: {})", new Object[]{userId, entityId, role});
-
-        List<AclRecord> aclRecords = new LinkedList<AclRecord>();
-        for (AclRecord aclRecord : cache.getAclRecords()) {
-            if (userId != null && !userId.equals(aclRecord.getUserId())) {
-                continue;
-            }
-            if (entityId != null && !entityId.equals(aclRecord.getEntityId())) {
-                continue;
-            }
-            if (role != null && !role.equals(aclRecord.getRole())) {
-                continue;
-            }
-            aclRecords.add(aclRecord);
-        }
-        return aclRecords;*/
+        logger.info("Propagate ACL deletion (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
     }
 
     /**

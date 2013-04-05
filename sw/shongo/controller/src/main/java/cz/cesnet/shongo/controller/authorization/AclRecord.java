@@ -13,6 +13,11 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "entity_type", "role"}))
+@org.hibernate.annotations.Table(appliesTo = "acl_record", indexes = {
+        @Index(name = "acl_record_entity_type", columnNames = {"entity_type"}),
+        @Index(name = "acl_record_entity_id", columnNames = {"entity_id"}),
+})
 public class AclRecord extends PersistentObject
 {
     /**
@@ -39,7 +44,7 @@ public class AclRecord extends PersistentObject
      * @return {@link #userId}
      */
     @Column
-    @Index(name = "index_user")
+    @Index(name = "acl_record_user")
     public String getUserId()
     {
         return userId;
@@ -57,7 +62,10 @@ public class AclRecord extends PersistentObject
      * @return {@link #entityId}
      */
     @Embedded
-    //@Index(name = "index_entity")
+    @AttributeOverrides({
+            @AttributeOverride(name = "entityType", column = @Column(name = "entity_type")),
+            @AttributeOverride(name = "persistenceId", column = @Column(name = "entity_Id"))
+    })
     public EntityIdentifier getEntityId()
     {
         return entityId;
@@ -66,6 +74,7 @@ public class AclRecord extends PersistentObject
     /**
      * @param entityId sets the {@link #entityId}
      */
+    @Index(name = "acl_record_entity_id", columnNames = {"entity_type"})
     public void setEntityId(EntityIdentifier entityId)
     {
         this.entityId = entityId;
@@ -76,7 +85,7 @@ public class AclRecord extends PersistentObject
      */
     @Column
     @Enumerated(EnumType.STRING)
-    @Index(name = "index_role")
+    @Index(name = "acl_record_role")
     public Role getRole()
     {
         return role;

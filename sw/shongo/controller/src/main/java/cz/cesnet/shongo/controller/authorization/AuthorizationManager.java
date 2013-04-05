@@ -28,23 +28,120 @@ public class AuthorizationManager extends AbstractManager
     private static Logger logger = LoggerFactory.getLogger(AuthorizationManager.class);
 
     /**
-     * @see Authorization
+     * @see Transaction
      */
-    private Authorization authorization;
+    private Transaction activeTransaction = null;
 
     /**
      * Constructor.
      *
      * @param entityManager sets the {@link #entityManager}
      */
-    public AuthorizationManager(Authorization authorization, EntityManager entityManager)
+    public AuthorizationManager(EntityManager entityManager)
     {
         super(entityManager);
+    }
 
-        if (authorization == null) {
-            throw new IllegalArgumentException("Authorization must not be null.");
+    /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return collection of {@link AclRecord} for given parameters
+     */
+    public Collection<AclRecord> listAclRecords(String userId, EntityIdentifier entityId, Role role)
+    {
+        return entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                + " WHERE (:userId IS NULL OR acl.userId = :userId)"
+                + " AND (:entityType IS NULL OR acl.entityId.entityType = :entityType)"
+                + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
+                + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
+                .setParameter("userId", userId)
+                .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
+                .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
+                .setParameter("role", role)
+                .getResultList();
+    }
+
+    /**
+     * @param userId
+     * @return collection of {@link AclRecord} for given {@code userId}
+     */
+    public Collection<AclRecord> listAclRecords(String userId)
+    {
+        return entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                + " WHERE (:userId IS NULL OR acl.userId = :userId)", AclRecord.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    /**
+     * @param entityId
+     * @return collection of {@link AclRecord} for given {@code entityId}
+     */
+    public Collection<AclRecord> listAclRecords(EntityIdentifier entityId)
+    {
+        return entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                + " WHERE acl.entityId.entityType = :entityType"
+                + " AND acl.entityId.persistenceId = :entityId", AclRecord.class)
+                .setParameter("entityType", entityId.getEntityType())
+                .setParameter("entityId", entityId.getPersistenceId())
+                .getResultList();
+    }
+
+    /**
+     * @param aclRecordId
+     * @return {@link AclRecord} with given {@code aclRecordId}
+     */
+    public AclRecord getAclRecord(Long aclRecordId)
+    {
+        return entityManager.find(AclRecord.class, aclRecordId);
+    }
+
+    /**
+     * Start new transaction for given {@code authorization}.
+     *
+     * @param authorization for which the transaction should be started
+     */
+    public void beginTransaction(Authorization authorization)
+    {
+        if (activeTransaction != null) {
+            throw new IllegalStateException("Another transaction is already active.");
         }
-        this.authorization = authorization;
+        activeTransaction = new Transaction(authorization);
+    }
+
+    /**
+     * @return true whether any transaction is active,
+     *         false otherwise
+     */
+    public boolean isTransactionActive()
+    {
+        return activeTransaction != null;
+    }
+
+    /**
+     * Apply changes made during the active transaction.
+     */
+    public void commitTransaction()
+    {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+        activeTransaction.commit();
+        activeTransaction.destroy();
+        activeTransaction = null;
+    }
+
+    /**
+     * Revert changes made during the active transaction.
+     */
+    public void rollbackTransaction()
+    {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+        activeTransaction.destroy();
+        activeTransaction = null;
     }
 
     /**
@@ -98,9 +195,13 @@ public class AuthorizationManager extends AbstractManager
     public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
             throws FaultException
     {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
         EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
         EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-        for (AclRecord parentAclRecord : authorization.getAclRecords(parentEntityId)) {
+        for (AclRecord parentAclRecord : activeTransaction.getAclRecords(parentEntityId)) {
             String userId = parentAclRecord.getUserId();
             Role role = parentAclRecord.getRole();
             EntityType childEntityType = childEntityId.getEntityType();
@@ -127,11 +228,17 @@ public class AuthorizationManager extends AbstractManager
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
         }
+
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
             ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
         }
-        AclRecord aclRecord = authorization.getAclRecord(userId, entityId, role);
+
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
+        AclRecord aclRecord = activeTransaction.getAclRecord(userId, entityId, role);
         if (aclRecord != null) {
             return aclRecord;
         }
@@ -143,7 +250,7 @@ public class AuthorizationManager extends AbstractManager
             aclRecord.setRole(role);
             entityManager.persist(aclRecord);
 
-            // TODO: Update cache (take transaction into account)
+            activeTransaction.addAclRecord(aclRecord);
 
             afterAclRecordCreated(aclRecord, entity);
         }
@@ -186,6 +293,10 @@ public class AuthorizationManager extends AbstractManager
      */
     public void deleteAclRecord(AclRecord aclRecord) throws FaultException
     {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
         EntityIdentifier entityId = aclRecord.getEntityId();
         PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
         if (entity == null) {
@@ -194,9 +305,10 @@ public class AuthorizationManager extends AbstractManager
 
         beforeAclRecordDeleted(aclRecord, entity);
 
+        aclRecord = entityManager.merge(aclRecord);
         entityManager.remove(aclRecord);
 
-        // TODO: Update cache (take transaction into account)
+        activeTransaction.removeAclRecord(aclRecord);
 
         // TODO: Delete dependencies
     }
@@ -262,7 +374,7 @@ public class AuthorizationManager extends AbstractManager
             // Child reservations
             for (Reservation childReservation : reservation.getChildReservations()) {
                 if (EntityType.RESERVATION.allowsRole(role)) {
-                    createChildAclRecord(aclRecord, userId, childReservation,  role,
+                    createChildAclRecord(aclRecord, userId, childReservation, role,
                             AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
@@ -315,5 +427,136 @@ public class AuthorizationManager extends AbstractManager
                 executable.setState(Executable.State.MODIFIED);
             }
         }
+    }
+
+    /**
+     * Represents a transaction for the {@link AuthorizationManager}.
+     */
+    private static class Transaction
+    {
+        /**
+         * @see Authorization
+         */
+        private Authorization authorization;
+
+        /**
+         * Set of {@link AclRecord} which should be added to the {@link Authorization} cache.
+         */
+        private Set<AclRecord> addedAclRecords = new HashSet<AclRecord>();
+
+        /**
+         * Set of {@link AclRecord} which should be removed from the {@link Authorization} cache.
+         */
+        private Set<AclRecord> removedAclRecords = new HashSet<AclRecord>();
+
+        /**
+         * Constructor.
+         *
+         * @param authorization
+         */
+        public Transaction(Authorization authorization)
+        {
+            if (authorization == null) {
+                throw new IllegalArgumentException("Authorization must not be null.");
+            }
+            this.authorization = authorization;
+        }
+
+        /**
+         * Remove all recorded changes.
+         */
+        public void destroy()
+        {
+            addedAclRecords.clear();
+            removedAclRecords.clear();
+        }
+
+        /**
+         * Apply recorded changes.
+         */
+        public void commit()
+        {
+            for (AclRecord aclRecord : addedAclRecords) {
+                authorization.addAclRecordToCache(aclRecord);
+            }
+            for (AclRecord aclRecord : removedAclRecords) {
+                authorization.removeAclRecordFromCache(aclRecord);
+            }
+        }
+
+        /**
+         * @param aclRecord to be added to the {@link Transaction}
+         */
+        public void addAclRecord(AclRecord aclRecord)
+        {
+            if (!removedAclRecords.remove(aclRecord)) {
+                addedAclRecords.add(aclRecord);
+            }
+        }
+
+        /**
+         * @param aclRecord to be removed from the {@link Transaction}
+         */
+        public void removeAclRecord(AclRecord aclRecord)
+        {
+            if (!addedAclRecords.remove(aclRecord)) {
+                removedAclRecords.add(aclRecord);
+            }
+        }
+
+        /**
+         * @param entityId
+         * @return collection of {@link AclRecord}s for given {@code entityId}
+         */
+        public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
+        {
+            Set<AclRecord> aclRecords = new HashSet<AclRecord>();
+            aclRecords.addAll(authorization.getAclRecords(entityId));
+            for (AclRecord aclRecord : addedAclRecords) {
+                if (entityId.equals(aclRecord.getEntityId())) {
+                    aclRecords.add(aclRecord);
+                }
+            }
+            for (AclRecord aclRecord : removedAclRecords) {
+                if (entityId.equals(aclRecord.getEntityId())) {
+                    aclRecords.remove(aclRecord);
+                }
+            }
+            return aclRecords;
+        }
+
+        /**
+         * @param userId
+         * @param entityId
+         * @param role
+         * @return {@link AclRecord} for given parameters or null if doesn't exist
+         */
+        public AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
+        {
+            AclRecord aclRecord = authorization.getAclRecord(userId, entityId, role);
+            if (aclRecord == null) {
+                // If the ACL record is added in the transaction, return it
+                for (AclRecord addedAclRecord : addedAclRecords) {
+                    if (!userId.equals(addedAclRecord.getUserId())) {
+                        continue;
+                    }
+                    if (!entityId.equals(addedAclRecord.getEntityId())) {
+                        continue;
+                    }
+                    if (!role.equals(addedAclRecord.getRole())) {
+                        continue;
+                    }
+                    return addedAclRecord;
+                }
+            }
+            else {
+                // If the ACL record is removed in the transaction, return null
+                if (removedAclRecords.contains(aclRecord) ) {
+                    return null;
+                }
+            }
+            return aclRecord;
+        }
+
     }
 }

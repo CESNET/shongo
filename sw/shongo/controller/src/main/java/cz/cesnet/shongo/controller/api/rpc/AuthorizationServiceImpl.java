@@ -94,15 +94,20 @@ public class AuthorizationServiceImpl extends Component
             ControllerFaultSet.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.createAclRecord(userId, entityIdentifier, role);
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
             return (aclRecord != null ? aclRecord.getId().toString() : null);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -121,13 +126,18 @@ public class AuthorizationServiceImpl extends Component
             ControllerFaultSet.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
             authorizationManager.deleteAclRecord(aclRecord);
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -230,7 +240,7 @@ public class AuthorizationServiceImpl extends Component
         String userId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
             PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
                     entityIdentifier.getPersistenceId());
@@ -240,6 +250,7 @@ public class AuthorizationServiceImpl extends Component
             if (!authorization.isAdmin(userId)) {
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
             if (entity instanceof Resource) {
                 Resource resource = (Resource) entity;
@@ -284,8 +295,12 @@ public class AuthorizationServiceImpl extends Component
                         + entity.getClass().getSimpleName() + ".");
             }
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }

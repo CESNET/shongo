@@ -135,8 +135,9 @@ public class ReservationServiceImpl extends Component
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             reservationRequest = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
@@ -149,6 +150,7 @@ public class ReservationServiceImpl extends Component
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         catch (FaultException exception) {
             throw exception;
@@ -157,6 +159,9 @@ public class ReservationServiceImpl extends Component
             throw new FaultException(exception);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -271,8 +276,9 @@ public class ReservationServiceImpl extends Component
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
@@ -288,6 +294,7 @@ public class ReservationServiceImpl extends Component
                     reservationRequestManager.delete(reservationRequest, authorization));
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         catch (FaultException exception) {
             throw exception;
@@ -296,6 +303,9 @@ public class ReservationServiceImpl extends Component
             throw new FaultException(exception);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }

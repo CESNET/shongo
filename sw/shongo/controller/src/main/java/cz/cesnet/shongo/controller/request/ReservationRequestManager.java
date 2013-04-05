@@ -74,7 +74,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         validate(reservationRequest);
 
-        Transaction transaction = beginTransaction();
+        PersistenceTransaction transaction = beginPersistenceTransaction();
 
         super.update(reservationRequest);
 
@@ -111,7 +111,7 @@ public class ReservationRequestManager extends AbstractManager
             aclRecordsToDelete.addAll(authorization.getAclRecords(abstractReservationRequest));
         }
 
-        Transaction transaction = beginTransaction();
+        PersistenceTransaction transaction = beginPersistenceTransaction();
 
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;

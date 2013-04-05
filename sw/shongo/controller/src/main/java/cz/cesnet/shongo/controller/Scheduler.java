@@ -101,8 +101,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             // Get all reservations which should be deleted, and store theirs reservation request
@@ -181,8 +182,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             authorizationManager.deleteAclRecords(aclRecords);
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         catch (Exception exception) {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }

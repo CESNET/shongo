@@ -14,7 +14,7 @@ import javax.persistence.EntityManager;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractManager extends TransactionHelper
+public abstract class AbstractManager extends PersistenceTransactionHelper
 {
     /**
      * Entity manager that is used for managing persistent objects.
@@ -37,7 +37,7 @@ public abstract class AbstractManager extends TransactionHelper
     protected void create(PersistentObject persistentObject)
     {
         persistentObject.checkNotPersisted();
-        Transaction transaction = beginTransaction();
+        PersistenceTransaction transaction = beginPersistenceTransaction();
         entityManager.persist(persistentObject);
         transaction.commit();
     }
@@ -48,7 +48,7 @@ public abstract class AbstractManager extends TransactionHelper
     protected void update(PersistentObject persistentObject)
     {
         persistentObject.checkPersisted();
-        Transaction transaction = beginTransaction();
+        PersistenceTransaction transaction = beginPersistenceTransaction();
         if (!entityManager.contains(persistentObject)) {
             entityManager.merge(persistentObject);
         }
@@ -65,7 +65,7 @@ public abstract class AbstractManager extends TransactionHelper
     protected void delete(PersistentObject persistentObject)
     {
         persistentObject.checkPersisted();
-        Transaction transaction = beginTransaction();
+        PersistenceTransaction transaction = beginPersistenceTransaction();
         entityManager.remove(persistentObject);
         transaction.commit();
     }
@@ -77,7 +77,7 @@ public abstract class AbstractManager extends TransactionHelper
      *
      * @return transaction object
      */
-    protected Transaction beginTransaction()
+    protected PersistenceTransaction beginPersistenceTransaction()
     {
         return beginTransaction(entityManager);
     }

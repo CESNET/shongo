@@ -53,7 +53,7 @@ public abstract class Authorization
     /**
      * @see AuthorizationCache
      */
-    protected AuthorizationCache cache = new AuthorizationCache();
+    private AuthorizationCache cache = new AuthorizationCache();
 
     /**
      * Constructor.
@@ -214,7 +214,14 @@ public abstract class Authorization
     {
         AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
         if (aclRecord == null) {
-            aclRecord = onGetAclRecord(aclRecordId);
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+            try {
+                aclRecord = authorization.getAclRecord(aclRecordId);
+            }
+            finally {
+                entityManager.close();
+            }
             cache.putAclRecordById(aclRecord);
         }
         return aclRecord;
@@ -225,9 +232,8 @@ public abstract class Authorization
      * @param entityId
      * @param role
      * @return {@link AclRecord} for given parameters or null if doesn't exist
-     * @throws FaultException
      */
-    public final AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    public final AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
     {
         for (AclRecord aclRecord : getAclRecords(userId, entityId)) {
             if (role.equals(aclRecord.getRole())) {
@@ -243,9 +249,8 @@ public abstract class Authorization
      * @param userId   of the user
      * @param entityId to restrict the entity of the {@link AclRecord}
      * @return collection of matching {@link AclRecord}s
-     * @throws FaultException
      */
-    public Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId) throws FaultException
+    public Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId)
     {
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
@@ -264,9 +269,8 @@ public abstract class Authorization
      *
      * @param entityId to restrict the entity of the {@link AclRecord}
      * @return collection of matching {@link AclRecord}s
-     * @throws FaultException
      */
-    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId) throws FaultException
+    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
     {
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
@@ -327,17 +331,9 @@ public abstract class Authorization
             }
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
-            return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                    + " WHERE (:userId IS NULL OR acl.userId = :userId)"
-                    + " AND (:entityType IS NULL OR acl.entityId.entityType = :entityType)"
-                    + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
-                    + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
-                    .setParameter("userId", userId)
-                    .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
-                    .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
-                    .setParameter("role", role)
-                    .getResultList();
+            return authorizationManager.listAclRecords(userId, entityId, role);
         }
         finally {
             entityManager.close();
@@ -427,12 +423,7 @@ public abstract class Authorization
         EntityIdentifier entityId = new EntityIdentifier(persistentObject);
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            try {
-                aclEntityState = fetchAclEntityState(entityId);
-            }
-            catch (FaultException exception) {
-                throw new FaultRuntimeException(exception.getFault());
-            }
+            aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         Set<String> userIds = aclEntityState.getUserIdsByRole(role);
@@ -507,72 +498,78 @@ public abstract class Authorization
     protected abstract Collection<UserInformation> onListUserInformation() throws FaultException;
 
     /**
-     * Create a new {@link AclRecord}.
-     *
-     * @param userId   of user for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
+     * @param aclRecord to be created on the server
      * @return new {@link AclRecord}
-     * @throws FaultException when the creation failed.
      */
-    protected abstract AclRecord onCreateAclRecord(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException;
+    protected abstract void onPropagateAclRecordCreation(AclRecord aclRecord);
 
     /**
-     * Delete given {@code aclRecord}.
-     *
-     * @param aclRecord to be deleted
-     * @throws FaultException when the deletion failed
+     * @param aclRecord to be deleted on the server
      */
-    protected abstract void onDeleteAclRecord(AclRecord aclRecord)
-            throws FaultException;
+    protected abstract void onPropagateAclRecordDeletion(AclRecord aclRecord);
 
     /**
-     * Get existing {@link AclRecord} by it's identifier.
+     * Fetch {@link AclUserState} for given {@code userId}.
      *
-     * @param aclRecordId of the {@link AclRecord}
-     * @return {@link AclRecord}
-     * @throws FaultException when the {@link AclRecord} doesn't exist
+     * @param userId of user for which the ACL should be fetched
+     * @return fetched {@link AclUserState} for given {@code userId}
      */
-    protected abstract AclRecord onGetAclRecord(Long aclRecordId) throws FaultException;
-
-    /**
-     * List of all {@link AclRecord}s which matches given criteria.
-     *
-     * @param userId   to restrict the user of the {@link AclRecord}
-     * @param entityId to restrict the entity of the {@link AclRecord}
-     * @param role     to restrict the role of the {@link AclRecord}
-     * @return collection of matching {@link AclRecord}s
-     * @throws FaultException
-     */
-    protected abstract Collection<AclRecord> onListAclRecords(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException;
-
-    /**
-     * Create a new single {@link AclRecord}.
-     *
-     * @param userId   of user for which the ACL is created.
-     * @param entityId of entity for which the ACL is created.
-     * @param role     which is created for given user and given entity
-     * @return new {@link AclRecord}
-     * @throws FaultException when the creation failed.
-     */
-    AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role) throws FaultException
+    private AclUserState fetchAclUserState(String userId)
     {
-        EntityType entityType = entityId.getEntityType();
-        if (!entityType.allowsRole(role)) {
-            ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
+        AclUserState aclUserState = new AclUserState();
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        try {
+            for (AclRecord aclRecord : authorizationManager.listAclRecords(userId)) {
+                aclUserState.addAclRecord(aclRecord);
+                cache.putAclRecordById(aclRecord);
+            }
         }
-        Collection<AclRecord> aclRecords = getAclRecords(userId, entityId, role);
-        int size = aclRecords.size();
-        if (size == 1) {
-            return aclRecords.iterator().next();
+        finally {
+            entityManager.close();
         }
-        else if (size > 1) {
-            throw new RuntimeException("Multiple existing ACL records were found.");
+        return aclUserState;
+    }
+
+    /**
+     * Fetch {@link AclEntityState} for given {@code entityId}.
+     *
+     * @param entityId of entity for which the ACL should be fetched
+     * @return fetched {@link AclEntityState} for given {@code entityId}
+     */
+    private AclEntityState fetchAclEntityState(EntityIdentifier entityId)
+    {
+        AclEntityState aclEntityState = new AclEntityState();
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        try {
+            for (AclRecord aclRecord : authorizationManager.listAclRecords(entityId)) {
+                aclEntityState.addAclRecord(aclRecord);
+                cache.putAclRecordById(aclRecord);
+            }
+        }
+        finally {
+            entityManager.close();
         }
 
-        AclRecord newAclRecord = onCreateAclRecord(userId, entityId, role);
+        return aclEntityState;
+    }
+
+    /**
+     * Add given {@code aclRecord} to the {@link AuthorizationCache}.
+     *
+     * @param aclRecord to be added
+     */
+    public void addAclRecordToCache(AclRecord aclRecord)
+    {
+        String userId = aclRecord.getUserId();
+        EntityIdentifier entityId = aclRecord.getEntityId();
+        Role role = aclRecord.getRole();
+
+        // Update AclRecord cache
+        cache.putAclRecordById(aclRecord);
 
         // Update AclUserState cache
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
@@ -580,14 +577,7 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        AclRecord addedAclRecord = aclUserState.addAclRecord(newAclRecord);
-        // ACL already exists so return it
-        if (addedAclRecord != newAclRecord) {
-            return addedAclRecord;
-        }
-
-        // Update AclRecord cache
-        cache.putAclRecordById(newAclRecord);
+        aclUserState.addAclRecord(aclRecord);
 
         // Update AclEntityState cache
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
@@ -595,21 +585,16 @@ public abstract class Authorization
             aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
-        aclEntityState.addAclRecord(newAclRecord);
-
-        return newAclRecord;
+        aclEntityState.addAclRecord(aclRecord);
     }
 
     /**
-     * Delete given single {@code aclRecord}.
+     * Remove given {@code aclRecord} to the {@link AuthorizationCache}.
      *
      * @param aclRecord to be deleted
-     * @throws FaultException when the deletion failed
      */
-    void deleteAclRecord(AclRecord aclRecord) throws FaultException
+    void removeAclRecordFromCache(AclRecord aclRecord)
     {
-        onDeleteAclRecord(aclRecord);
-
         // Update AclRecord cache
         cache.removeAclRecordById(aclRecord);
 
@@ -630,63 +615,6 @@ public abstract class Authorization
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         aclEntityState.removeAclRecord(aclRecord);
-    }
-
-    /**
-     * Fetch {@link AclUserState} for given {@code userId}.
-     *
-     * @param userId of user for which the ACL should be fetched
-     * @return fetched {@link AclUserState} for given {@code userId}
-     */
-    private AclUserState fetchAclUserState(String userId) throws FaultException
-    {
-        AclUserState aclUserState = new AclUserState();
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                    + " WHERE (:userId IS NULL OR acl.userId = :userId)", AclRecord.class)
-                    .setParameter("userId", userId)
-                    .getResultList();
-            for (AclRecord aclRecord : aclRecords) {
-                aclUserState.addAclRecord(aclRecord);
-                cache.putAclRecordById(aclRecord);
-            }
-        }
-        finally {
-            entityManager.close();
-        }
-        return aclUserState;
-    }
-
-    /**
-     * Fetch {@link AclEntityState} for given {@code entityId}.
-     *
-     * @param entityId of entity for which the ACL should be fetched
-     * @return fetched {@link AclEntityState} for given {@code entityId}
-     */
-    private AclEntityState fetchAclEntityState(EntityIdentifier entityId) throws FaultException
-    {
-        AclEntityState aclEntityState = new AclEntityState();
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                    + " WHERE acl.entityId.entityType = :entityType"
-                    + " AND acl.entityId.persistenceId = :entityId", AclRecord.class)
-                    .setParameter("entityType", entityId.getEntityType())
-                    .setParameter("entityId", entityId.getPersistenceId())
-                    .getResultList();
-            for (AclRecord aclRecord : aclRecords) {
-                aclEntityState.addAclRecord(aclRecord);
-                cache.putAclRecordById(aclRecord);
-            }
-        }
-        finally {
-            entityManager.close();
-        }
-
-        return aclEntityState;
     }
 
     /**

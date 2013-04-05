@@ -88,8 +88,9 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
         reservationRequestSet.checkPersisted();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(authorization, entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
@@ -210,8 +211,12 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
 
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
         }
         catch (Exception exception) {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
