@@ -491,6 +491,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         @Override
         protected Throwable convertThrowable(Throwable pError)
         {
+            if (pError instanceof FaultThrowable) {
+                return RpcServer.convertException((FaultThrowable) pError, pError);
+            }
             if (pError instanceof RuntimeException || pError instanceof SAXException) {
                 Throwable cause = pError.getCause();
                 if (cause instanceof FaultThrowable) {

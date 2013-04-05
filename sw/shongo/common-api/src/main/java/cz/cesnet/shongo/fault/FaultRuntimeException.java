@@ -41,4 +41,10 @@ public class FaultRuntimeException extends RuntimeException implements FaultThro
     {
         return fault.getClass();
     }
+
+    @Override
+    public String getMessage()
+    {
+        return fault.getMessage();
+    }
 }
