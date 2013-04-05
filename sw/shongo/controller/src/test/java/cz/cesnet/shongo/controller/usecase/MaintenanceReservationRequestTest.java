@@ -40,13 +40,13 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         Map<String, Object> reservationFilter = new HashMap<String, Object>();
         reservationFilter.put("reservationRequestId", id);
 
-        runPreprocessorAndScheduler(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
+        runWorker(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
         Assert.assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
-        runPreprocessorAndScheduler(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
+        runWorker(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
         Assert.assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
-        runPreprocessorAndScheduler(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
+        runWorker(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
         Assert.assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessorAndScheduler();

@@ -2,12 +2,16 @@ package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.report.InternalErrorHandler;
+import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -18,17 +22,16 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
- * TODO:
+ * {@link AbstractManager} for managing {@link AclRecord}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AuthorizationManager extends AbstractManager
 {
-    private static Logger logger = LoggerFactory.getLogger(AuthorizationManager.class);
-
     /**
      * @see Transaction
      */
@@ -53,7 +56,8 @@ public class AuthorizationManager extends AbstractManager
     public Collection<AclRecord> listAclRecords(String userId, EntityIdentifier entityId, Role role)
     {
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE (:userId IS NULL OR acl.userId = :userId)"
+                + " WHERE acl.deleted = FALSE"
+                + " AND (:userId IS NULL OR acl.userId = :userId)"
                 + " AND (:entityType IS NULL OR acl.entityId.entityType = :entityType)"
                 + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
                 + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
@@ -71,7 +75,8 @@ public class AuthorizationManager extends AbstractManager
     public Collection<AclRecord> listAclRecords(String userId)
     {
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE (:userId IS NULL OR acl.userId = :userId)", AclRecord.class)
+                + " WHERE acl.deleted = FALSE"
+                + " AND acl.userId = :userId", AclRecord.class)
                 .setParameter("userId", userId)
                 .getResultList();
     }
@@ -83,7 +88,8 @@ public class AuthorizationManager extends AbstractManager
     public Collection<AclRecord> listAclRecords(EntityIdentifier entityId)
     {
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
-                + " WHERE acl.entityId.entityType = :entityType"
+                + " WHERE acl.deleted = FALSE"
+                + " AND acl.entityId.entityType = :entityType"
                 + " AND acl.entityId.persistenceId = :entityId", AclRecord.class)
                 .setParameter("entityType", entityId.getEntityType())
                 .setParameter("entityId", entityId.getPersistenceId())
@@ -268,7 +274,7 @@ public class AuthorizationManager extends AbstractManager
                     userId, entityId, role);
         }
 
-        logger.debug("ACL Record created (id: {}, user: {}, entity: {}, role: {})",
+        Controller.loggerAcl.info("ACL Record created (id: {}, user: {}, entity: {}, role: {})",
                 new Object[]{aclRecord.getId(), userId, entityId, role});
 
         return aclRecord;
@@ -288,14 +294,14 @@ public class AuthorizationManager extends AbstractManager
     {
         AclRecord childAclRecord = createAclRecord(userId, childEntity, role);
 
-        logger.debug("Creating ACL Dependency (parent: {}, child: {}, type: {})",
-                new Object[]{parentAclRecord.getId(), childAclRecord.getId(), dependencyType});
-
         AclRecordDependency aclRecordDependency = new AclRecordDependency();
         aclRecordDependency.setParentAclRecord(parentAclRecord);
         aclRecordDependency.setChildAclRecord(childAclRecord);
         aclRecordDependency.setType(dependencyType);
         entityManager.persist(aclRecordDependency);
+
+        Controller.loggerAcl.info("Created ACL Dependency (parent: {}, child: {}, type: {})",
+                new Object[]{parentAclRecord.getId(), childAclRecord.getId(), dependencyType});
     }
 
     /**
@@ -340,25 +346,32 @@ public class AuthorizationManager extends AbstractManager
         }
 
         // Delete ACL record dependencies
-        long parentAclRecordsCount = entityManager.createQuery(
-                "SELECT COUNT(dependency.parentAclRecord) FROM AclRecordDependency dependency"
-                        + " WHERE dependency.childAclRecord = :aclRecord", Long.class)
+        Collection<AclRecordDependency> parentAclRecordDependencies = entityManager.createQuery(
+                "SELECT dependency FROM AclRecordDependency dependency"
+                        + " WHERE dependency.childAclRecord = :aclRecord", AclRecordDependency.class)
                 .setParameter("aclRecord", aclRecord)
-                .getSingleResult();
-        if (parentAclRecordsCount > 0) {
-            ControllerFaultSet.throwEntityNotDeletableReferencedFault(AclRecord.class, aclRecord.getId());
+                .getResultList();
+        if (parentAclRecordDependencies.size() > 0) {
+            if (detachChildren) {
+                for (AclRecordDependency aclRecordDependency : parentAclRecordDependencies) {
+                    entityManager.remove(aclRecordDependency);
+                }
+            }
+            else {
+                ControllerFaultSet.throwEntityNotDeletableReferencedFault(AclRecord.class, aclRecord.getId());
+            }
         }
 
         // Refresh record
         aclRecord = entityManager.merge(aclRecord);
 
         // Delete ACL record dependencies
-        Collection<AclRecordDependency> aclRecordDependencies = entityManager.createQuery(
+        Collection<AclRecordDependency> childAclRecordDependencies = entityManager.createQuery(
                 "SELECT dependency FROM AclRecordDependency dependency"
                         + " WHERE dependency.parentAclRecord = :aclRecord", AclRecordDependency.class)
                 .setParameter("aclRecord", aclRecord)
                 .getResultList();
-        for (AclRecordDependency aclRecordDependency : aclRecordDependencies) {
+        for (AclRecordDependency aclRecordDependency : childAclRecordDependencies) {
             entityManager.remove(aclRecordDependency);
             if (!aclRecordDependency.getType().equals(AclRecordDependency.Type.DELETE_DETACH) || !detachChildren) {
                 AclRecord childAclRecord = aclRecordDependency.getChildAclRecord();
@@ -367,8 +380,9 @@ public class AuthorizationManager extends AbstractManager
                 }
                 catch (FaultException exception) {
                     if (exception.getFault() instanceof ControllerFaultSet.EntityNotDeletableReferencedFault) {
-                        logger.debug("ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
-                                + " because it is referenced.", new Object[]{childAclRecord.getId(),
+                        Controller.loggerAcl.info(
+                                "ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
+                                        + " because it is referenced.", new Object[]{childAclRecord.getId(),
                                 childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getRole()
                         });
                     }
@@ -380,11 +394,20 @@ public class AuthorizationManager extends AbstractManager
         }
 
         // Delete ACL record
-        logger.debug("Deleting ACL Record (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
         beforeAclRecordDeleted(aclRecord, entity);
-        entityManager.remove(aclRecord);
+        if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.PROPAGATION_SKIPPED)) {
+            entityManager.remove(aclRecord);
+        }
+        else {
+            if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.PROPAGATED)) {
+                aclRecord.setPropagationState(AclRecord.PropagationState.NOT_PROPAGATED);
+            }
+            aclRecord.setDeleted(true);
+        }
         activeTransaction.removeAclRecord(aclRecord);
+
+        Controller.loggerAcl.info("Deleted ACL Record (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
     }
 
     /**
@@ -474,6 +497,44 @@ public class AuthorizationManager extends AbstractManager
             Executable.State state = executable.getState();
             if (state.equals(Executable.State.STARTED)) {
                 executable.setState(Executable.State.MODIFIED);
+            }
+        }
+    }
+
+    /**
+     * Propagate ACL records to authorization server.
+     * @param authorization
+     */
+    public void propagate(Authorization authorization)
+    {
+        try {
+            Collection<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                    + " WHERE acl.deleted = TRUE OR acl.propagationState = :state", AclRecord.class)
+                    .setParameter("state", AclRecord.PropagationState.NOT_PROPAGATED)
+                    .getResultList();
+            for (AclRecord aclRecord : aclRecords) {
+                entityManager.getTransaction().begin();
+                if (aclRecord.getPropagationState().equals(AclRecord.PropagationState.NOT_PROPAGATED)) {
+                    if (aclRecord.isDeleted()) {
+                        authorization.onPropagateAclRecordDeletion(aclRecord);
+                    }
+                    else {
+                        authorization.onPropagateAclRecordCreation(aclRecord);
+                        aclRecord.setPropagationState(AclRecord.PropagationState.PROPAGATED);
+                    }
+                }
+                if (aclRecord.isDeleted()) {
+                    entityManager.remove(aclRecord);
+                }
+                entityManager.getTransaction().commit();
+            }
+        }
+        catch (Exception exception) {
+            InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, "Propagation failed", exception);
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().commit();
             }
         }
     }

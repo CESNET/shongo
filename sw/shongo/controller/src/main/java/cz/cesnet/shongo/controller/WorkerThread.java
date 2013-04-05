@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.joda.time.*;
@@ -40,6 +42,11 @@ public class WorkerThread extends Thread
     private Scheduler scheduler;
 
     /**
+     * @see Authorization
+     */
+    private Authorization authorization;
+
+    /**
      * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
      */
     private EntityManagerFactory entityManagerFactory;
@@ -49,9 +56,11 @@ public class WorkerThread extends Thread
      *
      * @param preprocessor         sets the {@link #preprocessor}
      * @param scheduler            sets the {@link #scheduler}
+     * @param authorization
      * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, EntityManagerFactory entityManagerFactory)
+    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, Authorization authorization,
+            EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
         if (preprocessor == null || scheduler == null) {
@@ -59,6 +68,7 @@ public class WorkerThread extends Thread
         }
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
+        this.authorization = authorization;
         this.entityManagerFactory = entityManagerFactory;
     }
 
@@ -124,9 +134,14 @@ public class WorkerThread extends Thread
             Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
             try {
+                // Run preprocessor and scheduler
                 preprocessor.run(interval, entityManager);
                 scheduler.run(interval, entityManager);
+
+                // Propagate ACL records to authorization server
+                authorizationManager.propagate(authorization);
             }
             catch (Exception exception) {
                 InternalErrorHandler.handle(InternalErrorType.WORKER, exception);

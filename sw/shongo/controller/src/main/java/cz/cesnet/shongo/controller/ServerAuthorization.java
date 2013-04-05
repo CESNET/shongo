@@ -241,9 +241,6 @@ public class ServerAuthorization extends Authorization
         EntityIdentifier entityId = aclRecord.getEntityId();
         Role role = aclRecord.getRole();
 
-        logger.info("Propagate ACL creation (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), userId, entityId, role});
-
         StringEntity httpEntity;
         try {
             Map<String, String> data = new HashMap<String, String>();
@@ -266,7 +263,10 @@ public class ServerAuthorization extends Authorization
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
                 JsonNode acl = readJson(response.getEntity());
 
-                // TODO: check acl
+                // TODO: check returned ACL
+
+                Controller.loggerAcl.info("Propagated ACL creation (id: {}, user: {}, entity: {}, role: {})",
+                        new Object[]{aclRecord.getId(), userId, entityId, role});
             }
             else {
                 handleAuthorizationRequestError(response);
@@ -280,16 +280,16 @@ public class ServerAuthorization extends Authorization
     @Override
     protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
     {
-        logger.info("Propagate ACL deletion (id: {}, user: {}, entity: {}, role: {})",
-                new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole()});
-
-
         HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
         httpDelete.setHeader("Authorization", authorizationServerHeader);
         try {
             HttpResponse response = httpClient.execute(httpDelete);
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 readContent(response.getEntity());
+
+                Controller.loggerAcl.info("Propagated ACL deletion (id: {}, user: {}, entity: {}, role: {})",
+                        new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(),
+                                aclRecord.getRole()});
             }
             else {
                 handleAuthorizationRequestError(response);

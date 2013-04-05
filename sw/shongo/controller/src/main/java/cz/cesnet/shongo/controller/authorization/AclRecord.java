@@ -16,7 +16,7 @@ import javax.persistence.*;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "entity_id", "entity_type", "role"}))
 @org.hibernate.annotations.Table(appliesTo = "acl_record", indexes = {
         @Index(name = "acl_record_entity_type", columnNames = {"entity_type"}),
-        @Index(name = "acl_record_entity_id", columnNames = {"entity_id"}),
+        @Index(name = "acl_record_entity_id", columnNames = {"entity_id"})
 })
 public class AclRecord extends PersistentObject
 {
@@ -36,14 +36,19 @@ public class AclRecord extends PersistentObject
     private Role role;
 
     /**
-     * @see State
+     * Specifies whether the {@link AclRecord} has been deleted.
      */
-    private State state;
+    private boolean deleted;
+
+    /**
+     * @see PropagationState
+     */
+    private PropagationState propagationState;
 
     /**
      * @return {@link #userId}
      */
-    @Column
+    @Column(nullable = false)
     @Index(name = "acl_record_user")
     public String getUserId()
     {
@@ -63,8 +68,8 @@ public class AclRecord extends PersistentObject
      */
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "entityType", column = @Column(name = "entity_type")),
-            @AttributeOverride(name = "persistenceId", column = @Column(name = "entity_Id"))
+            @AttributeOverride(name = "entityType", column = @Column(name = "entity_type", nullable = false)),
+            @AttributeOverride(name = "persistenceId", column = @Column(name = "entity_Id", nullable = false))
     })
     public EntityIdentifier getEntityId()
     {
@@ -83,7 +88,7 @@ public class AclRecord extends PersistentObject
     /**
      * @return {@link #role}
      */
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Index(name = "acl_record_role")
     public Role getRole()
@@ -100,19 +105,38 @@ public class AclRecord extends PersistentObject
     }
 
     /**
-     * @return {@link #state}
+     * @return {@link #deleted}
      */
-    public State getState()
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isDeleted()
     {
-        return state;
+        return deleted;
     }
 
     /**
-     * @param state sets the {@link #state}
+     * @param deleted sets the {@link #deleted}
      */
-    public void setState(State state)
+    public void setDeleted(boolean deleted)
     {
-        this.state = state;
+        this.deleted = deleted;
+    }
+
+    /**
+     * @return {@link #propagationState}
+     */
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    public PropagationState getPropagationState()
+    {
+        return propagationState;
+    }
+
+    /**
+     * @param propagationState sets the {@link #propagationState}
+     */
+    public void setPropagationState(PropagationState propagationState)
+    {
+        this.propagationState = propagationState;
     }
 
     /**
@@ -131,34 +155,34 @@ public class AclRecord extends PersistentObject
     @PrePersist
     protected void onCreate()
     {
-        if (state == null) {
-            state = State.NOT_PROPAGATED;
+        if (propagationState == null) {
+            if (entityId.getEntityType().isRolePropagatable(role) ) {
+                propagationState = PropagationState.NOT_PROPAGATED;
+            }
+            else {
+                propagationState = PropagationState.PROPAGATION_SKIPPED;
+            }
         }
     }
 
     /**
      * State of the propagation to authorization server.
      */
-    public static enum State
+    public static enum PropagationState
     {
         /**
-         * TODO:
+         * {@link AclRecord} should not be propagated to authorization server.
+         */
+        PROPAGATION_SKIPPED,
+
+        /**
+         * {@link AclRecord} is prepared for propagation to authorization server.
          */
         NOT_PROPAGATED,
 
         /**
-         * TODO:
+         * {@link AclRecord} has already been propagated to authorization server.
          */
-        PROPAGATED,
-
-        /**
-         * TODO:
-         */
-        DELETED_NOT_PROPAGATED,
-
-        /**
-         * TODO:
-         */
-        DELETED_PROPAGATED
+        PROPAGATED
     }
 }

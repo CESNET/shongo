@@ -12,68 +12,84 @@ public enum EntityType
     /**
      * Represents a {@link cz.cesnet.shongo.controller.api.Resource}.
      */
-    RESOURCE("res", new HashMap<Role, Permission[]>()
-    {{
-            put(Role.OWNER, new Permission[]{
-                    Permission.READ,
-                    Permission.WRITE,
-                    Permission.CONTROL_RESOURCE,
-            });
-            put(Role.READER, new Permission[]{
-                    Permission.READ
-            });
-        }}),
+    RESOURCE("res",
+            new HashMap<Role, Permission[]>()
+            {{
+                    put(Role.OWNER, new Permission[]{
+                            Permission.READ,
+                            Permission.WRITE,
+                            Permission.CONTROL_RESOURCE,
+                    });
+                    put(Role.READER, new Permission[]{
+                            Permission.READ
+                    });
+                }},
+            new HashSet<Role>()
+            {{
+                    add(Role.OWNER);
+                }}
+    ),
 
     /**
      * Represents a {@link cz.cesnet.shongo.controller.api.ReservationRequest}.
      */
-    RESERVATION_REQUEST("req", new HashMap<Role, Permission[]>()
-    {{
-            put(Role.OWNER, new Permission[]{
-                    Permission.READ,
-                    Permission.WRITE,
-                    Permission.PROVIDE_RESERVATION
-            });
-            put(Role.READER, new Permission[]{
-                    Permission.READ
-            });
-            put(Role.RESERVATION_USER, new Permission[]{
-                    Permission.READ,
-                    Permission.PROVIDE_RESERVATION
-            });
-        }}),
+    RESERVATION_REQUEST("req",
+            new HashMap<Role, Permission[]>()
+            {{
+                    put(Role.OWNER, new Permission[]{
+                            Permission.READ,
+                            Permission.WRITE,
+                            Permission.PROVIDE_RESERVATION
+                    });
+                    put(Role.READER, new Permission[]{
+                            Permission.READ
+                    });
+                    put(Role.RESERVATION_USER, new Permission[]{
+                            Permission.READ,
+                            Permission.PROVIDE_RESERVATION
+                    });
+                }},
+            new HashSet<Role>()
+            {{
+                    add(Role.OWNER);
+                }}
+    ),
 
     /**
      * Represents a {@link cz.cesnet.shongo.controller.api.Reservation}.
      */
-    RESERVATION("rsv", new HashMap<Role, Permission[]>()
-    {{
-            put(Role.OWNER, new Permission[]{
-                    Permission.READ,
-                    Permission.WRITE,
-                    Permission.PROVIDE_RESERVATION
-            });
-            put(Role.READER, new Permission[]{
-                    Permission.READ
-            });
-            put(Role.RESERVATION_USER, new Permission[]{
-                    Permission.READ,
-                    Permission.PROVIDE_RESERVATION
-            });
-        }}),
+    RESERVATION("rsv",
+            new HashMap<Role, Permission[]>()
+            {{
+                    put(Role.OWNER, new Permission[]{
+                            Permission.READ,
+                            Permission.WRITE,
+                            Permission.PROVIDE_RESERVATION
+                    });
+                    put(Role.READER, new Permission[]{
+                            Permission.READ
+                    });
+                    put(Role.RESERVATION_USER, new Permission[]{
+                            Permission.READ,
+                            Permission.PROVIDE_RESERVATION
+                    });
+                }},
+            null),
 
     /**
      * Represents a {@link cz.cesnet.shongo.controller.api.Executable}.
      */
-    EXECUTABLE("exe", new HashMap<Role, Permission[]>()
-    {{
-            put(Role.OWNER, new Permission[]{
-                    Permission.READ, Permission.WRITE
-            });
-            put(Role.READER, new Permission[]{
-                    Permission.READ
-            });
-        }});
+    EXECUTABLE("exe",
+            new HashMap<Role, Permission[]>()
+            {{
+                    put(Role.OWNER, new Permission[]{
+                            Permission.READ, Permission.WRITE
+                    });
+                    put(Role.READER, new Permission[]{
+                            Permission.READ
+                    });
+                }}
+            , null);
 
     /**
      * Unique code for the {@link EntityType}.
@@ -86,6 +102,11 @@ public enum EntityType
     private final Map<Role, Set<Permission>> roles;
 
     /**
+     * Set of all {@link Role}s which should be propagated to authorization server.
+     */
+    private final Set<Role> propagatableRoles;
+
+    /**
      * Set of all possible {@link Permission}s for the {@link EntityType}.
      */
     private final Set<Permission> permissions;
@@ -93,10 +114,11 @@ public enum EntityType
     /**
      * Constructor.
      *
-     * @param code  sets the {@link #code}
-     * @param roles sets the {@link #roles}
+     * @param code              sets the {@link #code}
+     * @param roles             sets the {@link #roles}
+     * @param propagatableRoles sets the {@link #propagatableRoles}
      */
-    private EntityType(String code, Map<Role, Permission[]> roles)
+    private EntityType(String code, Map<Role, Permission[]> roles, Set<Role> propagatableRoles)
     {
         this.code = code;
         Set<Permission> permissions = new HashSet<Permission>();
@@ -109,7 +131,14 @@ public enum EntityType
         }
         this.roles = Collections.unmodifiableMap(newRoles);
         this.permissions = Collections.unmodifiableSet(permissions);
+        if (propagatableRoles != null) {
+            this.propagatableRoles = Collections.unmodifiableSet(propagatableRoles);
+        }
+        else {
+            this.propagatableRoles = Collections.emptySet();
+        }
     }
+
 
     /**
      * @return {@link #code}
@@ -152,5 +181,15 @@ public enum EntityType
     public boolean allowsRole(Role role)
     {
         return roles.keySet().contains(role);
+    }
+
+    /**
+     * @param role to be checked
+     * @return true whether given {@code role} for this {@link EntityType} should be propagated to authorization server,
+     *         false otherwise
+     */
+    public boolean isRolePropagatable(Role role)
+    {
+        return propagatableRoles.contains(role);
     }
 }

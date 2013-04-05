@@ -87,7 +87,6 @@ public class ReservationManager extends AbstractManager
         getChildReservations(reservation, reservations);
 
         // Get ACL records for deletion
-        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
         for (Reservation reservationToDelete : reservations) {
             authorizationManager.deleteAclRecordsForEntity(reservationToDelete);
         }

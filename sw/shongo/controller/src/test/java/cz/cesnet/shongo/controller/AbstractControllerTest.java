@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
@@ -213,9 +214,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runPreprocessor(Interval interval) throws FaultException
     {
-        EntityManager entityManagerForPreprocessor = getEntityManager();
-        preprocessor.run(interval, entityManagerForPreprocessor);
-        entityManagerForPreprocessor.close();
+        EntityManager entityManager = getEntityManager();
+        preprocessor.run(interval, entityManager);
+        entityManager.close();
     }
 
     /**
@@ -226,9 +227,20 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler(Interval interval) throws FaultException
     {
-        EntityManager entityManagerForScheduler = getEntityManager();
-        scheduler.run(interval, entityManagerForScheduler);
-        entityManagerForScheduler.close();
+        EntityManager entityManager = getEntityManager();
+        scheduler.run(interval, entityManager);
+        entityManager.close();
+    }
+
+    /**
+     * Run propagations to authorization server.
+     */
+    protected void runAuthorizationPropagation()
+    {
+        EntityManager entityManager = getEntityManager();
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        authorizationManager.propagate(authorization);
+        entityManager.close();
     }
 
     /**
@@ -237,10 +249,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * @param interval
      * @throws FaultException
      */
-    protected void runPreprocessorAndScheduler(Interval interval) throws FaultException
+    protected void runWorker(Interval interval) throws FaultException
     {
         runPreprocessor(interval);
         runScheduler(interval);
+        runAuthorizationPropagation();
     }
 
     /**
@@ -364,6 +377,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             runPreprocessor();
         }
         runScheduler();
+        runAuthorizationPropagation();
         return reservationRequestId;
     }
 

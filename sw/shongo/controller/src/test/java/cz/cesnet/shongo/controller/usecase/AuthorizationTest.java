@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -57,7 +58,7 @@ public class AuthorizationTest extends AbstractControllerTest
         aclRecords.add(new AclRecord(userId, resourceId, Role.OWNER));
         Assert.assertEquals(aclRecords, getAclRecords());
 
-        /*ReservationRequest reservationRequest = new ReservationRequest();
+        ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
@@ -72,17 +73,17 @@ public class AuthorizationTest extends AbstractControllerTest
 
         aclRecords.clear();
         aclRecords.add(new AclRecord(userId, resourceId, Role.OWNER));
-        Assert.assertEquals(aclRecords, getAclRecords());*/
+        Assert.assertEquals(aclRecords, getAclRecords());
 
-        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2013-01-02T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test1"));
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("test2"));
         reservationRequest.setSpecification(aliasSetSpecification);
-        String reservationRequestId = allocate(reservationRequest);
-        Reservation reservation = checkAllocated(reservationRequestId);
+        reservationRequestId = allocate(reservationRequest);
+        reservation = checkAllocated(reservationRequestId);
         Reservation aliasReservation1 =
                 getReservationService().getReservation(SECURITY_TOKEN, reservation.getChildReservationIds().get(0));
         Reservation aliasReservation2 =
@@ -159,6 +160,13 @@ public class AuthorizationTest extends AbstractControllerTest
 
         Assert.assertNull("Reader role should be deleted",
                 getAclRecord(user2Id, aliasReservation.getId(), Role.READER));
+
+        runAuthorizationPropagation();
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest1Id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN_USER1, reservationRequest2Id);
+
+        runAuthorizationPropagation();
     }
 
     /**
