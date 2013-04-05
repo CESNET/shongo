@@ -155,8 +155,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     reservationRequestManager.update(reservationRequest);
                 }
 
-                Collection<AclRecord> aclRecords = reservationManager.delete(reservation, authorization, cache);
-                authorizationManager.deleteAclRecords(aclRecords);
+                reservationManager.delete(reservation, authorizationManager, cache);
 
                 // Remember the old reservation for the reservation request
                 oldReservationIds.put(reservationRequest, reservationId);
@@ -178,8 +177,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             // Delete all executables which should be deleted
-            Collection<AclRecord> aclRecords = executableManager.deleteAllNotReferenced(authorization);
-            authorizationManager.deleteAclRecords(aclRecords);
+            executableManager.deleteAllNotReferenced(authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

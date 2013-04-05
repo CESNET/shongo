@@ -257,9 +257,9 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        Set<AclRecord> aclRecords = aclUserState.getAclRecords(entityId);
+        Collection<AclRecord> aclRecords = aclUserState.getAclRecords(entityId);
         if (aclRecords == null) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
         return aclRecords;
     }
@@ -277,9 +277,9 @@ public abstract class Authorization
             aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
-        Set<AclRecord> aclRecords = aclEntityState.getAclRecords();
+        Collection<AclRecord> aclRecords = aclEntityState.getAclRecords();
         if (aclRecords == null) {
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
         return aclRecords;
     }
@@ -577,7 +577,9 @@ public abstract class Authorization
             aclUserState = fetchAclUserState(userId);
             cache.putAclUserStateByUserId(userId, aclUserState);
         }
-        aclUserState.addAclRecord(aclRecord);
+        else {
+            aclUserState.addAclRecord(aclRecord);
+        }
 
         // Update AclEntityState cache
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
@@ -585,7 +587,9 @@ public abstract class Authorization
             aclEntityState = fetchAclEntityState(entityId);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
-        aclEntityState.addAclRecord(aclRecord);
+        else {
+            aclEntityState.addAclRecord(aclRecord);
+        }
     }
 
     /**
@@ -601,20 +605,16 @@ public abstract class Authorization
         // Update AclUserState cache
         String userId = aclRecord.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
-        if (aclUserState == null) {
-            aclUserState = fetchAclUserState(userId);
-            cache.putAclUserStateByUserId(userId, aclUserState);
+        if (aclUserState != null) {
+            aclUserState.removeAclRecord(aclRecord);
         }
-        aclUserState.removeAclRecord(aclRecord);
 
         // Update AclEntityState cache
         EntityIdentifier entityId = aclRecord.getEntityId();
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
-        if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
-            cache.putAclEntityStateByEntityId(entityId, aclEntityState);
+        if (aclEntityState != null) {
+            aclEntityState.removeAclRecord(aclRecord);
         }
-        aclEntityState.removeAclRecord(aclRecord);
     }
 
     /**

@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -14,8 +14,6 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -103,13 +101,10 @@ public class ReservationRequestManager extends AbstractManager
      * @return {@link AclRecord}s which should be deleted
      * @throws FaultException when the deletion failed
      */
-    public Collection<AclRecord> delete(AbstractReservationRequest abstractReservationRequest,
-            Authorization authorization) throws FaultException
+    public void delete(AbstractReservationRequest abstractReservationRequest, AuthorizationManager authorizationManager)
+            throws FaultException
     {
-        Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
-        if (authorization != null) {
-            aclRecordsToDelete.addAll(authorization.getAclRecords(abstractReservationRequest));
-        }
+        authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
 
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
@@ -134,7 +129,7 @@ public class ReservationRequestManager extends AbstractManager
 
             // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                aclRecordsToDelete.addAll(delete(reservationRequest, authorization));
+                delete(reservationRequest, authorizationManager);
             }
 
             // Clear state
@@ -144,8 +139,6 @@ public class ReservationRequestManager extends AbstractManager
         super.delete(abstractReservationRequest);
 
         transaction.commit();
-
-        return aclRecordsToDelete;
     }
 
     /**

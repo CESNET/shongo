@@ -201,12 +201,14 @@ public class AuthorizationManager extends AbstractManager
 
         EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
         EntityIdentifier childEntityId = new EntityIdentifier(childEntity);
-        for (AclRecord parentAclRecord : activeTransaction.getAclRecords(parentEntityId)) {
+        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
+        for (AclRecord parentAclRecord : parentAclRecords) {
             String userId = parentAclRecord.getUserId();
             Role role = parentAclRecord.getRole();
             EntityType childEntityType = childEntityId.getEntityType();
             if (childEntityType.allowsRole(role)) {
-                createAclRecord(userId, childEntity, role);
+                createChildAclRecord(parentAclRecord, userId, childEntity, role,
+                        AclRecordDependency.Type.DELETE_DETACH);
             }
         }
     }
@@ -279,6 +281,9 @@ public class AuthorizationManager extends AbstractManager
     {
         AclRecord childAclRecord = createAclRecord(userId, childEntity, role);
 
+        logger.debug("Creating ACL Dependency (parent: {}, child: {}, type: {})",
+                new Object[]{parentAclRecord.getId(), childAclRecord.getId(), dependencyType});
+
         AclRecordDependency aclRecordDependency = new AclRecordDependency();
         aclRecordDependency.setParentAclRecord(parentAclRecord);
         aclRecordDependency.setChildAclRecord(childAclRecord);
@@ -289,9 +294,33 @@ public class AuthorizationManager extends AbstractManager
     /**
      * Delete given {@code aclRecord} and all corresponding {@link AclRecord}s from child entities.
      *
-     * @throws FaultException when the deletion failed
+     * @param aclRecord
      */
-    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
+    public void deleteAclRecord(AclRecord aclRecord)
+    {
+        deleteAclRecord(aclRecord, false);
+    }
+
+    /**
+     * Delete all {@link AclRecord} for given {@code entity}.
+     *
+     * @param entity
+     */
+    public void deleteAclRecordsForEntity(PersistentObject entity)
+    {
+        EntityIdentifier entityId = new EntityIdentifier(entity);
+        for (AclRecord aclRecord : activeTransaction.getAclRecords(entityId)) {
+            deleteAclRecord(aclRecord, true);
+        }
+    }
+
+    /**
+     * Delete given {@code aclRecord},
+     *
+     * @param aclRecord
+     * @param detachChildren
+     */
+    private void deleteAclRecord(AclRecord aclRecord, boolean detachChildren)
     {
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
@@ -303,39 +332,40 @@ public class AuthorizationManager extends AbstractManager
             throw new IllegalStateException("Entity " + entityId.toString() + " referenced from ACL doesn't exist.");
         }
 
-        beforeAclRecordDeleted(aclRecord, entity);
-
-        aclRecord = entityManager.merge(aclRecord);
-        entityManager.remove(aclRecord);
-
-        activeTransaction.removeAclRecord(aclRecord);
-
-        // TODO: Delete dependencies
-    }
-
-    /**
-     * Delete all given {@link AclRecord}s.
-     *
-     * @param aclRecords to be deleted
-     * @throws FaultException
-     */
-    public void deleteAclRecords(Collection<AclRecord> aclRecords) throws FaultException
-    {
-        // TODO: remove method and create method deleteAclRecordsForEntity()
-        for (AclRecord aclRecord : aclRecords) {
-            deleteAclRecord(aclRecord);
+        // Delete ACL record dependencies
+        long parentAclRecordsCount = entityManager.createQuery(
+                "SELECT COUNT(dependency.parentAclRecord) FROM AclRecordDependency dependency"
+                        + " WHERE dependency.childAclRecord = :aclRecord", Long.class)
+                .setParameter("aclRecord", aclRecord)
+                .getSingleResult();
+        if (parentAclRecordsCount > 0) {
+            logger.debug("ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted (it is referenced)",
+                    new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
+            return;
         }
 
-    }
+        // Refresh record
+        aclRecord = entityManager.merge(aclRecord);
 
-    private Collection<String> getChildAclRecords(String aclRecordId)
-    {
-        Collection<String> childAclRecordRecordIds = entityManager.createQuery(
-                "SELECT dependency.id.childAclRecordId FROM AclRecordDependency dependency"
-                        + " WHERE dependency.id.parentAclRecordId = :id", String.class)
-                .setParameter("id", aclRecordId)
+        // Delete ACL record dependencies
+        Collection<AclRecordDependency> aclRecordDependencies = entityManager.createQuery(
+                "SELECT dependency FROM AclRecordDependency dependency"
+                        + " WHERE dependency.parentAclRecord = :aclRecord", AclRecordDependency.class)
+                .setParameter("aclRecord", aclRecord)
                 .getResultList();
-        return childAclRecordRecordIds;
+        for (AclRecordDependency aclRecordDependency : aclRecordDependencies) {
+            entityManager.remove(aclRecordDependency);
+            if (!aclRecordDependency.getType().equals(AclRecordDependency.Type.DELETE_DETACH) || !detachChildren) {
+                deleteAclRecord(aclRecordDependency.getChildAclRecord());
+            }
+        }
+
+        // Delete ACL record
+        logger.debug("Deleting ACL Record (id: {}, user: {}, entity: {}, role: {})",
+                new Object[]{aclRecord.getId(), aclRecord.getUserId(), entityId, aclRecord.getRole()});
+        beforeAclRecordDeleted(aclRecord, entity);
+        entityManager.remove(aclRecord);
+        activeTransaction.removeAclRecord(aclRecord);
     }
 
     /**
@@ -416,7 +446,7 @@ public class AuthorizationManager extends AbstractManager
      * @param aclRecord
      * @param entity
      */
-    private void beforeAclRecordDeleted(AclRecord aclRecord, PersistentObject entity) throws FaultException
+    private void beforeAclRecordDeleted(AclRecord aclRecord, PersistentObject entity)
     {
         Role role = aclRecord.getRole();
 

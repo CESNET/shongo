@@ -9,6 +9,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
@@ -77,14 +78,26 @@ public class DummyAuthorization extends Authorization
         }
     }
 
-    public DummyAuthorization()
+    /**
+     * Constructor.
+     *
+     * @param entityManagerFactory sets the {@link #entityManagerFactory}
+     */
+    public DummyAuthorization(EntityManagerFactory entityManagerFactory)
     {
         super(new Configuration());
+
+        this.entityManagerFactory = entityManagerFactory;
     }
 
-    public DummyAuthorization(Configuration config)
+    /**
+     * Constructor.
+     *
+     * @param configuration to be used
+     */
+    public DummyAuthorization(Configuration configuration)
     {
-        super(config);
+        super(configuration);
     }
 
     @Override

@@ -218,7 +218,7 @@ public class ResourceServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
-            authorizationManager.deleteAclRecords(authorization.getAclRecords(resource));
+            authorizationManager.deleteAclRecordsForEntity(resource);
 
             // Delete the resource
             resourceManager.delete(resource);

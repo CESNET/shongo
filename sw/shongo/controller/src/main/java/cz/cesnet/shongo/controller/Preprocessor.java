@@ -179,8 +179,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestSet.removeReservationRequest(reservationRequest);
 
                 // Delete ACL records
-                Collection<AclRecord> aclRecords = reservationRequestManager.delete(reservationRequest, authorization);
-                authorizationManager.deleteAclRecords(aclRecords);
+                reservationRequestManager.delete(reservationRequest, authorizationManager);
             }
 
             // All reservation requests that remains in list of all must be deleted
@@ -188,8 +187,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 reservationRequestSet.removeReservationRequest(reservationRequest);
 
                 // Delete ACL records
-                Collection<AclRecord> aclRecords = reservationRequestManager.delete(reservationRequest, authorization);
-                authorizationManager.deleteAclRecords(aclRecords);
+                reservationRequestManager.delete(reservationRequest, authorizationManager);
             }
 
             // Update reservation request

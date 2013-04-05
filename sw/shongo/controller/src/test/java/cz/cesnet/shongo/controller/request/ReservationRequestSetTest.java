@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -47,6 +48,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
+        // Authorization
+        Authorization authorization;
         // Preprocessor
         Preprocessor preprocessor = null;
         // Scheduler
@@ -72,14 +75,16 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             cache.setEntityManagerFactory(getEntityManagerFactory());
             cache.init();
 
+            authorization = new DummyAuthorization(getEntityManagerFactory());
+
             preprocessor = new Preprocessor();
             preprocessor.setCache(cache);
-            preprocessor.setAuthorization(new DummyAuthorization());
+            preprocessor.setAuthorization(authorization);
             preprocessor.init();
 
             scheduler = new Scheduler();
             scheduler.setCache(cache);
-            scheduler.setAuthorization(new DummyAuthorization());
+            scheduler.setAuthorization(authorization);
             scheduler.init();
 
             EntityManager entityManager = getEntityManager();
@@ -272,13 +277,16 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
 
             // Delete reservation request
+            authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
             ReservationRequestSet reservationRequestSet =
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
-            reservationRequestManager.delete(reservationRequestSet, null);
+            reservationRequestManager.delete(reservationRequestSet, authorizationManager);
             entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
 
             // Pre-process and schedule
             preprocessor.run(interval, entityManager);

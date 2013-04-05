@@ -290,8 +290,7 @@ public class ReservationServiceImpl extends Component
 
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
-            authorizationManager.deleteAclRecords(
-                    reservationRequestManager.delete(reservationRequest, authorization));
+            reservationRequestManager.delete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

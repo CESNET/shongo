@@ -17,7 +17,7 @@ public class AclUserState
     /**
      * Set of {@link AclRecord}s for the user.
      */
-    private Set<AclRecord> aclRecords = new HashSet<AclRecord>();
+    private Map<Long, AclRecord> aclRecords = new HashMap<Long, AclRecord>();
 
     /**
      * {@link EntityState} for the user.
@@ -31,13 +31,12 @@ public class AclUserState
 
     /**
      * @param aclRecord to be added to the {@link AclUserState}
-     * @return given {@code aclRecord} if it does not exist,
-     *         already existing {@link AclRecord} otherwise
      */
-    public synchronized AclRecord addAclRecord(AclRecord aclRecord)
+    public synchronized void addAclRecord(AclRecord aclRecord)
     {
+        Long aclRecordId = aclRecord.getId();
         EntityIdentifier entityId = aclRecord.getEntityId();
-        if (aclRecords.add(aclRecord)) {
+        if (aclRecords.put(aclRecordId, aclRecord) == null) {
             EntityState entityState = entityStateByEntityId.get(entityId);
             if (entityState == null) {
                 entityState = new EntityState();
@@ -45,7 +44,7 @@ public class AclUserState
             }
 
             // Update records
-            entityState.aclRecords.add(aclRecord);
+            entityState.aclRecords.put(aclRecordId, aclRecord);
 
             // Update permissions
             EntityType entityType = entityId.getEntityType();
@@ -62,17 +61,7 @@ public class AclUserState
                 }
                 entities.add(entityId.getPersistenceId());
             }
-            return aclRecord;
         }
-        else {
-            EntityState entityState = entityStateByEntityId.get(entityId);
-            for (AclRecord existingAclRecord : entityState.aclRecords) {
-                if (existingAclRecord.equals(aclRecord)) {
-                    return existingAclRecord;
-                }
-            }
-        }
-        throw new RuntimeException("Acl record was not found.");
     }
 
     /**
@@ -80,7 +69,8 @@ public class AclUserState
      */
     public synchronized void removeAclRecord(AclRecord aclRecord)
     {
-        if (aclRecords.remove(aclRecord)) {
+        Long aclRecordId = aclRecord.getId();
+        if (aclRecords.remove(aclRecordId) != null) {
             EntityIdentifier entityId = aclRecord.getEntityId();
             EntityState entityState = entityStateByEntityId.get(entityId);
             if (entityState == null) {
@@ -88,12 +78,12 @@ public class AclUserState
             }
 
             // Update records
-            entityState.aclRecords.remove(aclRecord);
+            entityState.aclRecords.remove(aclRecordId);
 
             // Update permissions
             entityState.permissions.clear();
             EntityType entityType = entityId.getEntityType();
-            for (AclRecord existingAclRecord : entityState.aclRecords) {
+            for (AclRecord existingAclRecord : entityState.aclRecords.values()) {
                 for (Permission permission : entityType.getRolePermissions(existingAclRecord.getRole())) {
                     entityState.permissions.add(permission);
                 }
@@ -121,11 +111,11 @@ public class AclUserState
      * @param entityId for which the {@link AclRecord}s should be returned
      * @return set of {@link AclRecord}s for given {@code entityId}
      */
-    public synchronized Set<AclRecord> getAclRecords(EntityIdentifier entityId)
+    public synchronized Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
     {
         EntityState entityState = entityStateByEntityId.get(entityId);
         if (entityState != null) {
-            return Collections.unmodifiableSet(entityState.aclRecords);
+            return entityState.aclRecords.values();
         }
         return null;
     }
@@ -180,7 +170,7 @@ public class AclUserState
         /**
          * Set of {@link AclRecord}s for the entity.
          */
-        Set<AclRecord> aclRecords = new HashSet<AclRecord>();
+        private Map<Long, AclRecord> aclRecords = new HashMap<Long, AclRecord>();
 
         /**
          * Set of {@link Permission}s for the entity.

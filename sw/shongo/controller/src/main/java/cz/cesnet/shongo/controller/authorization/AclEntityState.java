@@ -14,7 +14,7 @@ public class AclEntityState
     /**
      * Set of {@link AclRecord}s for the entity.
      */
-    private Set<AclRecord> aclRecords = new HashSet<AclRecord>();
+    private Map<Long, AclRecord> aclRecords = new HashMap<Long, AclRecord>();
 
     /**
      * Map of user-ids which by role which has the role for the entity.
@@ -26,7 +26,8 @@ public class AclEntityState
      */
     public synchronized void addAclRecord(AclRecord aclRecord)
     {
-        if (aclRecords.add(aclRecord)) {
+        Long aclRecordId = aclRecord.getId();
+        if (aclRecords.put(aclRecordId, aclRecord) == null) {
             Role role = aclRecord.getRole();
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds == null) {
@@ -42,7 +43,8 @@ public class AclEntityState
      */
     public synchronized void removeAclRecord(AclRecord aclRecord)
     {
-        if (aclRecords.remove(aclRecord)) {
+        Long aclRecordId = aclRecord.getId();
+        if (aclRecords.remove(aclRecordId) != null) {
             Role role = aclRecord.getRole();
             Set<String> userIds = userIdsByRole.get(role);
             if (userIds != null) {
@@ -57,9 +59,9 @@ public class AclEntityState
     /**
      * @return {@link #aclRecords}
      */
-    public synchronized Set<AclRecord> getAclRecords()
+    public synchronized Collection<AclRecord> getAclRecords()
     {
-        return Collections.unmodifiableSet(aclRecords);
+        return aclRecords.values();
     }
 
     /**

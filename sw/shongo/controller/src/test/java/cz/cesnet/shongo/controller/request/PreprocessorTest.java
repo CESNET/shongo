@@ -50,7 +50,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
-        preprocessor.setAuthorization(new DummyAuthorization());
+        preprocessor.setAuthorization(new DummyAuthorization(getEntityManagerFactory()));
         preprocessor.init();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -131,7 +131,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
-        preprocessor.setAuthorization(new DummyAuthorization());
+        preprocessor.setAuthorization(new DummyAuthorization(getEntityManagerFactory()));
         preprocessor.init();
 
         EntityManager entityManager = getEntityManager();
@@ -180,7 +180,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
-        preprocessor.setAuthorization(new DummyAuthorization());
+        preprocessor.setAuthorization(new DummyAuthorization(getEntityManagerFactory()));
         preprocessor.init();
 
         Interval preprocessorInterval = new Interval(DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03"));

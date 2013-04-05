@@ -82,7 +82,7 @@ public class ExecutorServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
-            authorizationManager.deleteAclRecords(executableManager.delete(executable, authorization));
+            executableManager.delete(executable, authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

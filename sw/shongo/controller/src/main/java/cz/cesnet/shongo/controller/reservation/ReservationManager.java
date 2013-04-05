@@ -5,7 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -78,9 +78,8 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param reservation to be deleted in the database
-     * @return {@link AclRecord}s which should be deleted
      */
-    public Collection<AclRecord> delete(Reservation reservation, Authorization authorization, Cache cache)
+    public void delete(Reservation reservation, AuthorizationManager authorizationManager, Cache cache)
             throws FaultException
     {
         // Get all reservations and disconnect them from parents
@@ -89,10 +88,8 @@ public class ReservationManager extends AbstractManager
 
         // Get ACL records for deletion
         Collection<AclRecord> aclRecordsToDelete = new LinkedList<AclRecord>();
-        if (authorization != null) {
-            for (Reservation reservationToDelete : reservations) {
-                aclRecordsToDelete.addAll(authorization.getAclRecords(reservationToDelete));
-            }
+        for (Reservation reservationToDelete : reservations) {
+            authorizationManager.deleteAclRecordsForEntity(reservationToDelete);
         }
 
         // Date/time now for stopping executables
@@ -108,7 +105,6 @@ public class ReservationManager extends AbstractManager
             // Delete additional reservation
             super.delete(reservationToDelete);
         }
-        return aclRecordsToDelete;
     }
 
     /**
