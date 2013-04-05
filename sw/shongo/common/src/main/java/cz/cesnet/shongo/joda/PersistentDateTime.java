@@ -3,7 +3,7 @@ package cz.cesnet.shongo.joda;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.TimestampType;
-import org.hibernate.usertype.EnhancedUserType;
+import org.hibernate.usertype.UserType;
 import org.joda.time.DateTime;
 
 import java.io.Serializable;
@@ -17,7 +17,7 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTime implements EnhancedUserType, Serializable
+public class PersistentDateTime implements UserType, Serializable
 {
     public static final PersistentDateTime INSTANCE = new PersistentDateTime();
 
@@ -109,24 +109,5 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
     {
         return original;
     }
-
-    @Override
-    public String objectToSQLString(Object object)
-    {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String toXMLString(Object object)
-    {
-        return object.toString();
-    }
-
-    @Override
-    public Object fromXMLString(String string)
-    {
-        return new DateTime(string);
-    }
-
 }
 

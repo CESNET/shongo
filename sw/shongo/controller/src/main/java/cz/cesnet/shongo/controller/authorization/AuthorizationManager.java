@@ -58,10 +58,11 @@ public class AuthorizationManager extends AbstractManager
         return entityManager.createQuery("SELECT acl FROM AclRecord acl"
                 + " WHERE acl.deleted = FALSE"
                 + " AND (:userId IS NULL OR acl.userId = :userId)"
-                + " AND (:entityType IS NULL OR acl.entityId.entityType = :entityType)"
+                + " AND (:entityTypeNull = TRUE OR acl.entityId.entityType = :entityType)"
                 + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
                 + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
                 .setParameter("userId", userId)
+                .setParameter("entityTypeNull", entityId == null || entityId.getEntityType() == null)
                 .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
                 .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
                 .setParameter("role", role)
