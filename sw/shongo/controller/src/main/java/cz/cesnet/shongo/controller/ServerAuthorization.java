@@ -280,23 +280,75 @@ public class ServerAuthorization extends Authorization
     @Override
     protected void onPropagateAclRecordDeletion(AclRecord aclRecord)
     {
-        HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecord.getId());
-        httpDelete.setHeader("Authorization", authorizationServerHeader);
-        try {
-            HttpResponse response = httpClient.execute(httpDelete);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                readContent(response.getEntity());
+        for (String aclRecordId : listAclRecords(aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole())) {
+            HttpDelete httpDelete = new HttpDelete(getAuthorizationUrl() + "/acl/" + aclRecordId);
+            httpDelete.setHeader("Authorization", authorizationServerHeader);
+            try {
+                HttpResponse response = httpClient.execute(httpDelete);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    readContent(response.getEntity());
 
-                Controller.loggerAcl.info("Propagated ACL deletion (id: {}, user: {}, entity: {}, role: {})",
-                        new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(),
-                                aclRecord.getRole()});
+                    Controller.loggerAcl.info("Propagated ACL deletion (id: {}, user: {}, entity: {}, role: {})",
+                            new Object[]{aclRecord.getId(), aclRecord.getUserId(), aclRecord.getEntityId(),
+                                    aclRecord.getRole()});
+                }
+                else {
+                    handleAuthorizationRequestError(response);
+                }
+            }
+            catch (Exception exception) {
+                handleAuthorizationRequestError(exception);
+            }
+        }
+    }
+
+    /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return identifiers of ACL records for given parameters
+     */
+    protected Collection<String> listAclRecords(String userId, EntityIdentifier entityId, Role role)
+    {
+        URI uri;
+        try {
+            URIBuilder uriBuilder = new URIBuilder(getAuthorizationUrl() + "/acl");
+            if (userId != null) {
+                uriBuilder.setParameter("user_id", userId);
+            }
+            if (entityId != null) {
+                uriBuilder.setParameter("resource_id", entityId.toId());
             }
             else {
-                handleAuthorizationRequestError(response);
+                uriBuilder.setParameter("resource_id", "shongo:" + Domain.getLocalDomainName() + ":*:*");
+            }
+            if (role != null) {
+                uriBuilder.setParameter("role_id", role.getId());
+            }
+            uri = uriBuilder.build();
+        }
+        catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+        HttpGet httpGet = new HttpGet(uri);
+        httpGet.setHeader("Authorization", authorizationServerHeader);
+        httpGet.setHeader("Accept", "application/hal+json");
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                JsonNode result = readJson(response.getEntity());
+                List<String> aclRecordIds = new LinkedList<String>();
+                for (JsonNode acl : result.get("_embedded").get("acls")) {
+                    aclRecordIds.add(acl.get("id").getTextValue());
+                }
+                return aclRecordIds;
+            }
+            else {
+                return handleAuthorizationRequestError(response);
             }
         }
         catch (Exception exception) {
-            handleAuthorizationRequestError(exception);
+            return handleAuthorizationRequestError(exception);
         }
     }
 

@@ -2,7 +2,7 @@
 
     * First public BETA version
 
-0.5.1 (2013-04-03) [dbd6388a3f49494e9cc1502b8a3ad63ad11f8322]
+0.5.1 (2013-04-05) [6702aff9d0b811f9f1bbae3285700fb2de17acae]
 
     * Fixed assigning user roles for the case when user creates an alias reservation,
       then a room capacity reservation for the alias and then assigns a new owner
@@ -14,3 +14,5 @@
     * Sending internal error reports to configured Shongo administrators
 
     * Scheduler and Executor are now mutually exclusive
+
+    * ACL records are stored inside the Controller and only few of them are propagated to authorization server
