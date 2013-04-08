@@ -1,8 +1,4 @@
-0.5.0 (2013-03-27) [e651c8264976d9513f0be7c34eea5489e263d234]
-
-    * First public BETA version
-
-0.5.1 (2013-04-05) [6702aff9d0b811f9f1bbae3285700fb2de17acae]
+0.5.1 (2013-04-05)
 
     * Fixed assigning user roles for the case when user creates an alias reservation,
       then a room capacity reservation for the alias and then assigns a new owner
@@ -16,3 +12,7 @@
     * Scheduler and Executor are now mutually exclusive
 
     * ACL records are stored inside the Controller and only few of them are propagated to authorization server
+
+0.5.0 (2013-03-27)
+
+    * First public BETA version

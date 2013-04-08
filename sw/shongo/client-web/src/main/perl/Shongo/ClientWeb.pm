@@ -402,4 +402,9 @@ sub sign_out_action
     $self->redirect('/');
 }
 
+sub changelog_action
+{
+
+}
+
 1;

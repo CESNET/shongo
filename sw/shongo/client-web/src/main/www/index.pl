@@ -82,6 +82,30 @@ if ( !defined($configuration) ) {
 # Initialize application
 my $application = Shongo::ClientWeb->new($cgi, $template, $session);
 $application->load_configuration($configuration);
+$application->add_action('changelog', sub {
+    open my $file, $current_directory . '/CHANGELOG' or die "Could not open changelog: $!";
+    my $changelog = '';
+    $changelog .= "<ul>";
+    while( my $line = <$file>)  {
+        if ( $line =~ /(\d+\.\d+\.\d+) \((.+)\)/ ) {
+            $changelog .= "</ul>";
+            $changelog .= "<strong>$1</strong> ($2)";
+            $changelog .= "<ul>";
+        }
+        elsif ( $line =~ /\*(.+)/ ) {
+            $changelog .= "<li>$1<br>";
+        }
+        else {
+            $changelog .= $line;
+        }
+    }
+    $changelog .= "</ul>";
+
+
+    $application->render_page('Changelog', 'changelog.html', {
+        'changelog' => $changelog,
+    });
+});
 
 # Run application and catch response
 my $response = '';
