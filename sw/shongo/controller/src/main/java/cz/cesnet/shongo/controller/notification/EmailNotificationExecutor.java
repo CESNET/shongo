@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -48,27 +49,30 @@ public class EmailNotificationExecutor extends NotificationExecutor
         if (!emailSender.isInitialized()) {
             return;
         }
-        Set<String> recipients = new HashSet<String>();
-        for (PersonInformation recipient : notification.getRecipients()) {
-            String email = recipient.getPrimaryEmail();
-            if (email != null) {
-                recipients.add(email);
+        StringBuilder text = new StringBuilder();
+        text.append(EMAIL_HEADER);
+        text.append(notification.getContent());
+
+        Map<Notification.RecipientGroup, Set<PersonInformation>> recipients =  notification.getRecipientsByGroup();
+        for (Notification.RecipientGroup recipientGroup : recipients.keySet()) {
+            Set<String> recipientEmails = new HashSet<String>();
+            for (PersonInformation recipient : recipients.get(recipientGroup)) {
+                String email = recipient.getPrimaryEmail();
+                if (email != null) {
+                    recipientEmails.add(email);
+                }
             }
-        }
-        if (recipients.size() == 0) {
-            logger.warn("Notification '{}' doesn't have any recipients with email address.", notification.getName());
-            return;
-        }
+            if (recipients.size() == 0) {
+                logger.warn("Notification '{}' doesn't have any recipients with email address.", notification.getName());
+                return;
+            }
 
-        try {
-            StringBuilder text = new StringBuilder();
-            text.append(EMAIL_HEADER);
-            text.append(notification.getContent());
-
-            emailSender.sendEmail(recipients, notification.getName(), text.toString());
-        }
-        catch (Exception exception) {
-            InternalErrorHandler.handle(InternalErrorType.NOTIFICATION, "Failed to send email", exception);
+            try {
+                emailSender.sendEmail(recipientEmails, notification.getName(), text.toString());
+            }
+            catch (Exception exception) {
+                InternalErrorHandler.handle(InternalErrorType.NOTIFICATION, "Failed to send email", exception);
+            }
         }
     }
 }

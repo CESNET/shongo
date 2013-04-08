@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a notification.
@@ -32,51 +29,69 @@ public abstract class Notification
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
 
     /**
-     * Notification recipients.
+     * Notification recipients. Each group should be notified separately.
      */
-    private Set<PersonInformation> recipients = new HashSet<PersonInformation>();
+    private Map<RecipientGroup, Set<PersonInformation>> recipientsByGroup =
+            new HashMap<RecipientGroup, Set<PersonInformation>>();
 
     /**
-     * @return {@link #recipients}
+     * @return {@link #recipientsByGroup}
+     */
+    public Map<RecipientGroup, Set<PersonInformation>> getRecipientsByGroup()
+    {
+        return Collections.unmodifiableMap(recipientsByGroup);
+    }
+
+    /**
+     * @return all recipients from {@link #recipientsByGroup}
      */
     public Collection<PersonInformation> getRecipients()
     {
+        List<PersonInformation> recipients = new LinkedList<PersonInformation>();
+        for (Set<PersonInformation> recipientsInGroup : recipientsByGroup.values()) {
+            recipients.addAll(recipientsInGroup);
+        }
         return recipients;
     }
 
     /**
-     * Remove all added {@link #recipients}.
+     * Remove all added {@link #recipientsByGroup}.
      */
     public void clearRecipients()
     {
-        recipients.clear();
+        recipientsByGroup.clear();
     }
 
     /**
-     * @param recipient to be added to the {@link #recipients}
+     * @param recipient to be added to the {@link #recipientsByGroup}
      */
-    public void addRecipient(PersonInformation recipient)
+    public void addRecipient(RecipientGroup recipientGroup, PersonInformation recipient)
     {
+        Set<PersonInformation> recipients = recipientsByGroup.get(recipientGroup);
+        if (recipients == null) {
+            recipients = new HashSet<PersonInformation>();
+            recipientsByGroup.put(recipientGroup, recipients);
+        }
         recipients.add(recipient);
     }
 
     /**
-     * @param recipients to be added to the {@link #recipients}
+     * @param recipients to be added to the {@link #recipientsByGroup}
      */
-    public void addRecipients(Collection<PersonInformation> recipients)
+    public void addRecipients(RecipientGroup recipientGroup, Collection<PersonInformation> recipients)
     {
         for (PersonInformation recipient : recipients) {
-            this.recipients.add(recipient);
+            addRecipient(recipientGroup, recipient);
         }
     }
 
     /**
-     * @param userId for user to be added to the {@link #recipients}
+     * @param userId for user to be added to the {@link #recipientsByGroup}
      */
     public void addUserRecipient(String userId)
     {
         UserInformation userRecipient = Authorization.getInstance().getUserInformation(userId);
-        addRecipient(userRecipient);
+        addRecipient(RecipientGroup.USER, userRecipient);
     }
 
     /**
@@ -266,5 +281,21 @@ public abstract class Notification
             UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
             return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
         }
+    }
+
+    /**
+     * Enumeration of recipient groups. Each group is notified separately.
+     */
+    public enum RecipientGroup
+    {
+        /**
+         * Group of Shongo users.
+         */
+        USER,
+
+        /**
+         * Group of Shongo administrators.
+         */
+        ADMINISTRATOR
     }
 }

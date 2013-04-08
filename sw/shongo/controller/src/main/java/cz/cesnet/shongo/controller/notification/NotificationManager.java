@@ -114,9 +114,9 @@ public class NotificationManager extends Component implements Component.Authoriz
                     redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
             });
             notification.clearRecipients();
-            notification.addRecipient(redirectTo);
+            notification.addRecipient(Notification.RecipientGroup.ADMINISTRATOR, redirectTo);
         }
-        if (notification.getRecipients().size() == 0) {
+        if (notification.getRecipientsByGroup().size() == 0) {
             logger.warn("Notification '{}' doesn't have any recipients.", notification.getName());
             return;
         }

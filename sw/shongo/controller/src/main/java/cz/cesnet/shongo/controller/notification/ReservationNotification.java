@@ -91,19 +91,19 @@ public class ReservationNotification extends Notification
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             for (Person person : resourceReservation.getResource().getAdministrators()) {
-                addRecipient(person.getInformation());
+                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
             }
         }
         if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
             for (Person person : roomReservation.getDeviceResource().getAdministrators()) {
-                addRecipient(person.getInformation());
+                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
             }
         }
         if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             for (Person person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
-                addRecipient(person.getInformation());
+                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {

@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.notification.MessageNotification;
+import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
@@ -109,7 +110,7 @@ public class ServiceImpl implements Service
         }
 
         MessageNotification messageNotification = new MessageNotification(title, message);
-        messageNotification.addRecipients(recipients);
+        messageNotification.addRecipients(Notification.RecipientGroup.USER, recipients);
         notificationManager.executeNotification(messageNotification);
     }
 
