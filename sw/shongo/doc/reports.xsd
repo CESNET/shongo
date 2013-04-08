@@ -4,41 +4,48 @@
     <xs:element name="reports">
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="jade" minOccurs="1" maxOccurs="1">
+                <xs:element name="scopes" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="report" type="jade-report" maxOccurs="unbounded"/>
+                            <xs:element name="scope" type="scope-declaration" maxOccurs="unbounded"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
-                <xs:element name="api" minOccurs="1" maxOccurs="1">
+                <xs:element name="scope" minOccurs="1" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="report" type="api-report" maxOccurs="unbounded"/>
+                            <xs:element name="report" type="report" minOccurs="1" maxOccurs="unbounded"/>
                         </xs:sequence>
+                        <xs:attribute name="name" type="xs:string" use="required"/>
                     </xs:complexType>
-                </xs:element>
-                <xs:element name="scheduler" minOccurs="1" maxOccurs="1">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="report" type="scheduler-report" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                    </xs:complexType>
-                </xs:element>
-                <xs:element name="executor" minOccurs="1" maxOccurs="1">
-                    <xs:complexType>
-                        <xs:sequence>
-                            <xs:element name="report" type="executor-report" maxOccurs="unbounded"/>
-                        </xs:sequence>
-                    </xs:complexType>
+                    <xs:unique name="UniqueScopeReport">
+                        <xs:selector xpath="./report"/>
+                        <xs:field xpath="id"/>
+                    </xs:unique>
                 </xs:element>
             </xs:sequence>
         </xs:complexType>
+        <xs:unique name="ScopeUnique">
+            <xs:selector xpath="./scopes/scope"/>
+            <xs:field xpath="name"/>
+        </xs:unique>
+        <xs:keyref name="ScopeUsageReferrer" refer="ScopeUnique">
+            <xs:selector xpath="./scope"/>
+            <xs:field xpath="@name"/>
+        </xs:keyref>
+        <xs:unique name="ScopeUsageUnique">
+            <xs:selector xpath="./scope"/>
+            <xs:field xpath="@name"/>
+        </xs:unique>
     </xs:element>
 
-    <!--
-    -  Common Types
-    -->
+    <xs:complexType name="scope-declaration">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="module" type="xs:string"/>
+            <xs:element name="class-name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
 
     <xs:simpleType name="report-module">
         <xs:restriction base="xs:string">
@@ -47,7 +54,7 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="severity">
+    <xs:simpleType name="report-classification-severity">
         <xs:restriction base="xs:string">
             <xs:enumeration value="error"/>
             <xs:enumeration value="warn"/>
@@ -113,114 +120,84 @@
         </xs:restriction>
     </xs:simpleType>
 
-
-    <!--
-    -  Jade Report
-    -->
-
-    <xs:complexType name="jade-report">
-        <xs:sequence>
-            <xs:element name="id" type="xs:string"/>
-            <xs:element name="classification">
-                <xs:complexType>
-                    <xs:attribute name="severity" type="severity"/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="params">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="param" type="report-param" maxOccurs="unbounded"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="description" type="xs:string"/>
-            <xs:element name="example" type="xs:string"/>
-        </xs:sequence>
-    </xs:complexType>
-
-
-    <!--
-      -  API Report
-      -->
-
-    <xs:complexType name="api-report">
-        <xs:sequence>
-            <xs:element name="id" type="xs:string"/>
-            <xs:element name="classification">
-                <xs:complexType>
-                    <xs:attribute name="severity" type="severity"/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="params" minOccurs="0">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="param" type="report-param" maxOccurs="unbounded"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="description" type="xs:string"/>
-            <xs:element name="example" type="xs:string"/>
-            <xs:element name="user" type="report-user"/>
-            <xs:element name="domain-admin" type="report-domain-admin"/>
-            <xs:element name="device-admin" type="report-device-admin"/>
-        </xs:sequence>
-        <xs:attribute name="module" type="report-module"/>
-    </xs:complexType>
-
-
-    <!--
-      -  Scheduler Report
-      -->
-
-    <xs:complexType name="scheduler-report">
-        <xs:sequence>
-            <xs:element name="id" type="xs:string"/>
-            <xs:element name="classification">
-                <xs:complexType>
-                    <xs:attribute name="severity" type="severity"/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="description" type="xs:string"/>
-            <xs:element name="example" type="xs:string"/>
-            <xs:element name="user" type="report-user"/>
-            <xs:element name="domain-admin" type="report-domain-admin"/>
-            <xs:element name="device-admin" type="report-device-admin"/>
-        </xs:sequence>
-    </xs:complexType>
-
-
-    <!--
-    -  Executor Report
-    -->
-
-    <xs:complexType name="executor-report">
-        <xs:sequence>
-            <xs:element name="id" type="xs:string"/>
-            <xs:element name="classification">
-                <xs:complexType>
-                    <xs:attribute name="severity" type="severity"/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="params">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element name="param" type="report-param" maxOccurs="unbounded"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="description" type="xs:string"/>
-            <xs:element name="example" type="xs:string"/>
-            <xs:element name="resolution" type="executor-report-resolution"/>
-            <xs:element name="user" type="report-user"/>
-            <xs:element name="domain-admin" type="report-domain-admin"/>
-            <xs:element name="device-admin" type="report-device-admin"/>
-        </xs:sequence>
-    </xs:complexType>
-    <xs:simpleType name="executor-report-resolution">
+    <xs:simpleType name="report-resolution">
         <xs:restriction base="xs:string">
             <xs:enumeration value="fail"/>
             <xs:enumeration value="try-again"/>
         </xs:restriction>
     </xs:simpleType>
+
+    <xs:complexType name="report">
+        <xs:annotation>
+            <xs:documentation>
+                Structured message which can be reported in Shongo (e.g., failure or debug information).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="id" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>
+                        Unique string name of the report (use dashes for separating words).
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="classification" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Specifies whether the report represents error, warning, information or debug message.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:attribute name="severity" type="report-classification-severity"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="params" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Parameters which can be used to store the report message parts (or another reports).
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="param" type="report-param" maxOccurs="unbounded"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        String description of the report which can contain "${parameter}" variables.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="example" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Example(s) of the reports.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="user" type="report-user" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="domain-admin" type="report-domain-admin" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="device-admin" type="report-device-admin" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="resolution" type="report-resolution" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="abstract" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>
+                    Specifies whether the report is only abstract super class for other reports and cannot be
+                    instanced inside the Shongo.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extends" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Specifies super report class which this report extends.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
 
 </xs:schema>

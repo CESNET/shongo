@@ -8,10 +8,14 @@ import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -27,6 +31,7 @@ public abstract class AbstractGenerator
     private static Logger logger = LoggerFactory.getLogger(AbstractGenerator.class);
 
     private static final String FILE_NAME = "doc/reports.xml";
+    private static final String SCHEMA = "doc/reports.xsd";
 
     protected Reports reports;
 
@@ -35,9 +40,15 @@ public abstract class AbstractGenerator
         try {
             JAXBContext ctx = JAXBContext.newInstance(Reports.class);
             Unmarshaller um = ctx.createUnmarshaller();
+            SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = schemaFactory.newSchema(new File(SCHEMA));
+            um.setSchema(schema);
             reports = (Reports) um.unmarshal(new File(FILE_NAME));
         }
         catch (JAXBException exception) {
+            throw new RuntimeException(exception);
+        }
+        catch (SAXException exception) {
             throw new RuntimeException(exception);
         }
     }
@@ -78,13 +89,13 @@ public abstract class AbstractGenerator
         out.close();
     }
 
-    public String formatConstant(String text)
+    public static String formatConstant(String text)
     {
         text = text.replaceAll("[ -]", "_");
         return text.toUpperCase();
     }
 
-    public String formatIdentifier(String text)
+    public static String formatCamelCaseFirstLower(String text)
     {
         if (text.equals("class")) {
             text = "className";
@@ -102,11 +113,8 @@ public abstract class AbstractGenerator
         return camelCase.toString();
     }
 
-    public String formatCamelCase(String text)
+    public static String formatCamelCaseFirstUpper(String text)
     {
-        if (text.equals("class")) {
-            text = "className";
-        }
         String[] parts = text.split("[ -]");
         StringBuilder camelCase = new StringBuilder();
         for (String part : parts) {
@@ -115,7 +123,7 @@ public abstract class AbstractGenerator
         return camelCase.toString();
     }
 
-    public String formatFirstUpperCase(String text)
+    public static String formatFirstUpperCase(String text)
     {
         StringBuilder camelCase = new StringBuilder();
         camelCase.append(text.substring(0, 1).toUpperCase());
@@ -123,7 +131,7 @@ public abstract class AbstractGenerator
         return camelCase.toString();
     }
 
-    public String formatFirstLowerCase(String text)
+    public static String formatFirstLowerCase(String text)
     {
         StringBuilder camelCase = new StringBuilder();
         camelCase.append(text.substring(0, 1).toLowerCase());
@@ -131,21 +139,9 @@ public abstract class AbstractGenerator
         return camelCase.toString();
     }
 
-    public String formatParamType(ReportParamType type)
+    public static String formatParamToString(ReportParam param)
     {
-        switch (type) {
-            case STRING:
-                return "String";
-            case JADE_REPORT:
-                return "CommandFailure";
-            default:
-                throw new TodoException(type.toString());
-        }
-    }
-
-    public String formatParamToString(ReportParam param)
-    {
-        String paramIdentifier = formatIdentifier(param.getName());
+        String paramIdentifier = formatCamelCaseFirstLower(param.getName());
         switch (param.getType()) {
             case STRING:
                 return paramIdentifier;
@@ -156,18 +152,18 @@ public abstract class AbstractGenerator
         }
     }
 
-    public String formatString(String description)
+    public static String formatString(String description)
     {
         description = description.trim();
         description = description.replaceAll("\\s+", " ");
         return description;
     }
 
-    public String formatDescriptionAsJavaDoc(String description)
+    public static String formatJavaDoc(String description)
     {
         description = description.trim();
         description = description.replaceAll("\\s+", " ");
-        description = description.replaceAll("\\{(.+)\\}", "{@link #$1}");
+        description = description.replaceAll("\\$\\{(.+)\\}", "{@link #$1}");
         description = description.replace("{@link #class}", "{@link #className}");
         return description;
     }

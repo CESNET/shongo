@@ -3,7 +3,48 @@
 <reports xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="reports.xsd">
 
-    <jade>
+    <scopes>
+        <scope>
+            <name>jade</name>
+            <module>common-api</module>
+            <class-name>cz.cesnet.shongo.JadeReportSet</class-name>
+        </scope>
+
+        <scope>
+            <name>common</name>
+            <module>common-api</module>
+            <class-name>cz.cesnet.shongo.CommonReportSet</class-name>
+        </scope>
+
+        <scope>
+            <name>controller</name>
+            <module>controller-api</module>
+            <class-name>cz.cesnet.shongo.controller.ControllerReportSet</class-name>
+        </scope>
+
+        <!--<scope>
+            <name>scheduler</name>
+            <module>controller</module>
+            <class-name>cz.cesnet.shongo.controller.SchedulerReportSet</class-name>
+        </scope>
+
+        <scope>
+            <name>executor</name>
+            <module>controller</module>
+            <class-name>cz.cesnet.shongo.controller.ExecutorReportSet</class-name>
+        </scope>-->
+    </scopes>
+
+    <!--
+        <report abstract="true|false" extends="true|false">
+            <persistent></persistent>
+            <rpc-api></rpc-api>
+            <jade-api></jade-api>
+            <id>string</id>
+        </report>
+    -->
+
+    <scope name="jade">
 
         <report>
             <id>unknown-error</id>
@@ -12,7 +53,7 @@
                 <param name="description" type="string"/>
             </params>
             <description>
-                Unknown error: {description}
+                Unknown error: ${description}
             </description>
             <example>
                 TODO:
@@ -26,7 +67,7 @@
                 <param name="receiver-agent" type="string"/>
             </params>
             <description>
-                Receiver agent {receiver-agent} is not available now.
+                Receiver agent ${receiver-agent} is not available now.
             </description>
             <example>
                 TODO:
@@ -40,7 +81,7 @@
                 <param name="sender-agent" type="string"/>
             </params>
             <description>
-                Server agent {sender-agent} is not started yet.
+                Server agent ${sender-agent} is not started yet.
             </description>
             <example>
                 TODO:
@@ -55,7 +96,7 @@
                 <param name="command" type="string"/>
             </params>
             <description>
-                Command {command} has timeout.
+                Command ${command} has timeout.
             </description>
             <example>
                 TODO:
@@ -70,7 +111,7 @@
                 <param name="command" type="string"/>
             </params>
             <description>
-                Receiver agent {receiver-agent} doesn't implement command {command}.
+                Receiver agent ${receiver-agent} doesn't implement command ${command}.
             </description>
             <example>
                 TODO:
@@ -85,7 +126,7 @@
                 <param name="command" type="string"/>
             </params>
             <description>
-                Receiver agent {receiver-agent} has refused command {command}.
+                Receiver agent ${receiver-agent} has refused command ${command}.
             </description>
             <example>
                 TODO:
@@ -100,7 +141,7 @@
                 <param name="command" type="string"/>
             </params>
             <description>
-                Receiver agent {receiver-agent} didn't understand command {command}.
+                Receiver agent ${receiver-agent} didn't understand command ${command}.
             </description>
             <example>
                 TODO:
@@ -116,7 +157,7 @@
                 <param name="reason" type="string"/>
             </params>
             <description>
-                Receiver agent {receiver-agent} throws CommandException while processing command {command}: {reason}
+                Receiver agent ${receiver-agent} throws CommandException while processing command ${command}: ${reason}
             </description>
             <example>
                 TODO:
@@ -131,16 +172,16 @@
                 <param name="command" type="string"/>
             </params>
             <description>
-                Sender agent {sender-agent} cannot decode response from command {command}.
+                Sender agent ${sender-agent} cannot decode response from command ${command}.
             </description>
             <example>
                 TODO:
             </example>
         </report>
 
-    </jade>
+    </scope>
 
-    <api>
+    <scope name="common">
 
         <report>
             <id>unknown-error</id>
@@ -149,7 +190,7 @@
                 <param name="description" type="string"/>
             </params>
             <description>
-                Unknown error: {description}
+                Unknown error: ${description}
             </description>
             <example>
                 TODO:
@@ -169,7 +210,7 @@
                 <param name="value" type="string"/>
             </params>
             <description>
-                Value {value} is illegal for type {type}.
+                Value ${value} is illegal for type ${type}.
             </description>
             <example>
                 TODO:
@@ -180,7 +221,7 @@
                 -Partial Date/Time
                 -DeviceResource.Mode
             </example>
-            <user visible="true" via="ui">
+            <user visible="false" via="ui">
                 <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
@@ -194,7 +235,7 @@
                 <param name="class" type="string"/>
             </params>
             <description>
-                Class {class} is not defined.
+                Class ${class} is not defined.
             </description>
             <example>
                 TODO:
@@ -213,7 +254,7 @@
                 <param name="class" type="string"/>
             </params>
             <description>
-                Class {class} cannot be instanced.
+                Class ${class} cannot be instanced.
             </description>
             <example>
                 TODO:
@@ -233,7 +274,7 @@
                 <param name="attribute" type="string"/>
             </params>
             <description>
-                Attribute {attribute} is not defined in class {class}.
+                Attribute ${attribute} is not defined in class ${class}.
             </description>
             <example>
                 TODO:
@@ -255,8 +296,8 @@
                 <param name="present-type" type="string"/>
             </params>
             <description>
-                Type mismatch of value in attribute {attribute} in class {class}. Present type {given-type} doesn't match
-                required type {required-type}.
+                Type mismatch of value in attribute ${attribute} in class ${class}.
+                Present type ${given-type} doesn't match required type ${required-type}.
             </description>
             <example>
                 TODO:
@@ -276,7 +317,7 @@
                 <param name="attribute" type="string"/>
             </params>
             <description>
-                Attribute {attribute} in class {class} wasn't present but it is required.
+                Attribute ${attribute} in class ${class} wasn't present but it is required.
             </description>
             <example>
                 TODO:
@@ -296,7 +337,7 @@
                 <param name="attribute" type="string"/>
             </params>
             <description>
-                Value for attribute {attribute} in class {class} was present but the attribute is read-only.
+                Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.
             </description>
             <example>
                 TODO:
@@ -316,7 +357,7 @@
                 <param name="collection" type="string"/>
             </params>
             <description>
-                Collection {collection} in class {class} wasn't present or was empty but it is required.
+                Collection ${collection} in class ${class} wasn't present or was empty but it is required.
             </description>
             <example>
                 TODO:
@@ -335,7 +376,7 @@
                 <param name="collection" type="string"/>
             </params>
             <description>
-                Null item cannot be present in collection {collection}.
+                Null item cannot be present in collection ${collection}.
             </description>
             <example>
                 TODO:
@@ -356,8 +397,8 @@
                 <param name="present-type" type="string"/>
             </params>
             <description>
-                Collection {collection} contains item of type {present-type} which dosn't match the
-                required type {required-type}.
+                Collection ${collection} contains item of type ${present-type} which dosn't match the
+                required type ${required-type}.
             </description>
             <example>
                 TODO:
@@ -377,7 +418,7 @@
                 <param name="id" type="string"/>
             </params>
             <description>
-                Entity {entity} with identifier {id} was not found.
+                Entity ${entity} with identifier ${id} was not found.
             </description>
             <example>
                 TODO:
@@ -397,7 +438,7 @@
                 <param name="reason" type="string"/>
             </params>
             <description>
-                Entity {entity} validation failed: {reason}
+                Entity ${entity} validation failed: ${reason}
             </description>
             <example>
                 TODO:
@@ -417,7 +458,7 @@
                 <param name="id" type="string"/>
             </params>
             <description>
-                Entity {entity} with identifier {id} cannot be deleted because it is still referenced.
+                Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.
             </description>
             <example>
                 TODO:
@@ -429,6 +470,10 @@
             <device-admin visible="false"/>
         </report>
 
+    </scope>
+
+    <scope name="controller">
+
         <report>
             <id>acl-invalid-role</id>
             <classification severity="error"/>
@@ -437,7 +482,7 @@
                 <param name="role" type="string"/>
             </params>
             <description>
-                ACL Role {role} is invalid for entity {entity}.
+                ACL Role ${role} is invalid for entity ${entity}.
             </description>
             <example>
                 TODO:
@@ -456,7 +501,7 @@
                 <param name="token" type="string"/>
             </params>
             <description>
-                Invalid security token {token}.
+                Invalid security token ${token}.
             </description>
             <example>
                 TODO:
@@ -475,7 +520,7 @@
                 <param name="action" type="string"/>
             </params>
             <description>
-                You are not authorized to {action}.
+                You are not authorized to ${action}.
             </description>
             <example>
                 TODO:
@@ -487,7 +532,7 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>device-command-failed</id>
             <classification severity="error"/>
             <params>
@@ -496,7 +541,7 @@
                 <param name="error" type="jade-report"/>
             </params>
             <description>
-                Command {command} for device {device} failed: {error}
+                Command ${command} for device ${device} failed: ${error}
             </description>
             <example>
                 TODO:
@@ -508,14 +553,14 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>identifier-invalid</id>
             <classification severity="error"/>
             <params>
                 <param name="id" type="string"/>
             </params>
             <description>
-                Identifier {id} is invalid.
+                Identifier ${id} is invalid.
             </description>
             <example>
                 TODO:
@@ -527,7 +572,7 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>identifier-invalid-domain</id>
             <classification severity="error"/>
             <params>
@@ -535,7 +580,7 @@
                 <param name="required-domain" type="string"/>
             </params>
             <description>
-                Identifier {id} doesn't belong to domain {required-domain}.
+                Identifier ${id} doesn't belong to domain ${required-domain}.
             </description>
             <example>
                 TODO:
@@ -547,7 +592,7 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>identifier-invalid-type</id>
             <classification severity="error"/>
             <params>
@@ -555,7 +600,7 @@
                 <param name="required-type" type="string"/>
             </params>
             <description>
-                Identifier {id} isn't of required type {required-type}.
+                Identifier ${id} isn't of required type ${required-type}.
             </description>
             <example>
                 TODO:
@@ -567,14 +612,14 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>reservation-request-not-modifiable</id>
             <classification severity="error"/>
             <params>
                 <param name="id" type="string"/>
             </params>
             <description>
-                Reservation request with identifier {id} cannot be modified or deleted.
+                Reservation request with identifier ${id} cannot be modified or deleted.
             </description>
             <example>
                 TODO:
@@ -586,7 +631,7 @@
             <device-admin visible="false"/>
         </report>
 
-        <report module="controller">
+        <report>
             <id>reservation-request-empty-duration</id>
             <classification severity="error"/>
             <description>
@@ -602,11 +647,16 @@
             <device-admin visible="false"/>
         </report>
 
-    </api>
+    </scope>
 
-    <scheduler>
+    <!--<scope name="scheduler">
 
-        <report>
+        <report abstract="true">
+            <id>scheduler</id>
+            <classification severity="error"/>
+        </report>
+
+        <report extends="scheduler">
             <id>unknown-error</id>
             <classification severity="error"/>
             <description>
@@ -621,9 +671,9 @@
             <device-admin visible="false"/>
         </report>
 
-    </scheduler>
+    </scope>
 
-    <executor>
+    <scope name="executor">
 
         <report>
             <id>command-failed</id>
@@ -633,18 +683,18 @@
                 <param name="error" type="jade-report"/>
             </params>
             <description>
-                Command {command} failed: {error}
+                Command ${command} failed: ${error}
             </description>
             <example>
             </example>
-            <resolution>fail</resolution>
             <user visible="true" via="ui">
                 <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
             <device-admin visible="false"/>
+            <resolution>fail</resolution>
         </report>
 
-    </executor>
+    </scope>-->
 
 </reports>
