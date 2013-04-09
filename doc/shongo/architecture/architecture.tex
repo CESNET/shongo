@@ -1,0 +1,121 @@
+\input{../preamble}
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{30pt}
+\addtolength{\textheight}{2cm}
+\setlength{\hoffset}{-20pt}
+\addtolength{\textwidth}{40pt}
+
+\begin{document}
+
+\title{Shongo Architecture}
+\maketitle
+\tableofcontents
+
+\input{../glossaries}
+
+
+
+\chapter{Architecture}
+
+Shongo is a reservation system designed for booking videoconferencing. It is composed of several components (see fig. \ref{fig:architecture}):
+
+\begin{enumerate}
+
+\item \textbf{Controller} is the main backend application for a single domain written in Java which holds a relational database of resources, reservation requests and all other entities. Controller provides an XML-RPC API which is used by clients to manage the relational database and to control managed devices for the domain.
+
+\item \textbf{Web/Cmd-line Client} is an application written in Perl which allows the users/administrators to access the controller (e.g., to create/modify/delete the resources and reservation requests and to control managed devices).
+
+\item \textbf{Connector} is an application written in Java which runs one or more \textbf{Device Agents} and which mediates the communication to controller via JADE (middle-ware written in Java for creating multi-agent systems)
+
+\item \textbf{Device Agent} is a sub-component of \textbf{Connector} which manages a single videoconferencing device (e.g., Cisco Codian MCU, Adobe Connect server, LifeSize endpoint or Tandberg Codec endpoint). It is able, for instance, to create/modify/delete a room or to dial/hangup a participant in multipoint devices or to dial/hangup on endpoints (and more).
+
+\item \textbf{Auth Server} is a component for user authentication/authorization and for lookuping existing users from identity providers. It is used by \textbf{Web Client} for user sign up and by \textbf{Controller} to verify the user identity and to lookup user information.
+
+\end{enumerate}
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/dd_architecture}
+\caption{Architecture of Shongo reservation system}
+\label{fig:architecture}
+\end{figure}
+
+Shongo isn't currently fully implemented. In the current state each Shongo instance is able to manage resources in a single domain without the inter-domain collaboration. The Shongo instance means deployed controller, web client and one or more connectors with one or more device agents. The fig. \ref{fig:architecture-implemented} shows which components and communication channels are already implemented.
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/dd_architecture_implemented}
+\caption{Already implemented components in Shongo reservation system (grayed parts aren't implemented yet)}
+\label{fig:architecture-implemented}
+\end{figure}
+
+
+
+\chapter{Deployment}
+
+Shongo reservatin system for a single domain can be deployed to target machines in several ways (see fig. \ref{fig:deployment}).
+
+\begin{figure}[ht!]
+\begin{center}  
+  \subfigure[All components are deployed to the same machine]{
+    \label{fig:deployment:one}
+    \includegraphics[width=7.5cm]{diagrams/dd_deployment_one}
+  } 
+  \hfill
+  \subfigure[Controller and web client are deployed to the same machine and connector is deployed to another one]{
+    \label{fig:deployment:two}
+    \includegraphics[width=7.5cm]{diagrams/dd_deployment_two}
+  } 
+  \subfigure[Each component is deployed to it's own machine]{
+    \label{fig:deployment:multi}
+    \includegraphics[width=14cm]{diagrams/dd_deployment_multi}
+  } 
+\end{center}
+\caption{Possible deployments of Shongo reservation system components}
+\label{fig:deployment}
+\end{figure}
+
+
+
+\chapter{Controller Relational Database} 
+
+\section{Resources}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.8\textwidth]{diagrams/cd_resources}
+\caption{Schema of resource database}
+\label{fig:resources}
+\end{figure}
+
+\begin{itemize}
+\item Terminal
+\item Multipoint Devices
+\item Other
+\end{itemize}
+
+\section{Reservation Requests}
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/cd_reservation_requests}
+\caption{Schema of reservation requests database}
+\label{fig:resources}
+\end{figure}
+
+\section{Reservations}
+
+\section{Executables}
+
+
+
+\chapter{Communication Examples} 
+
+\section{User Perspective}
+
+\section{Administrator Perspective}
+
+\nocite{*}
+\bibliography{../bibliography}
+
+\end{document}
+
