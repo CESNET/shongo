@@ -20,7 +20,7 @@
 
 \chapter{Architecture}
 
-Shongo is a reservation system designed for booking videoconferencing. It is composed of several components (see fig. \ref{fig:architecture}):
+Shongo is a reservation system designed for booking videoconferencing resources. It is composed of several components (see fig. \ref{fig:architecture}):
 
 \begin{enumerate}
 
@@ -78,13 +78,29 @@ Shongo reservatin system for a single domain can be deployed to target machines 
 
 
 
-\chapter{Controller Relational Database} 
+\chapter{Controller}
 
-\section{Resources}
+Controller is composed of several sub-components:
+\begin{itemize}
+\item \textbf{API}
+\item \textbf{Scheduler}
+\item \textbf{Executor}
+\item \textbf{Authorization}
+\end{itemize}
 
 \begin{figure}[ht!]
-\centering\includegraphics[width=0.8\textwidth]{diagrams/cd_resources}
-\caption{Schema of resource database}
+\centering\includegraphics[width=\textwidth]{diagrams/sd_reservation_request_processing}
+\caption{Process of creating reservation request by an user, booking the reservation by scheduler and executing the meeting by executor}
+\label{fig:resources}
+\end{figure}
+
+\section{Relational Database}
+
+\subsection{Resources}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.9\textwidth]{diagrams/cd_resources}
+\caption{Database schema of resources}
 \label{fig:resources}
 \end{figure}
 
@@ -94,25 +110,103 @@ Shongo reservatin system for a single domain can be deployed to target machines 
 \item Other
 \end{itemize}
 
-\section{Reservation Requests}
+\subsection{Reservation Requests}
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/cd_reservation_requests}
-\caption{Schema of reservation requests database}
-\label{fig:resources}
+\caption{Database schema of reservation requests}
+\label{fig:reservation-requests}
 \end{figure}
 
-\section{Reservations}
+\subsection{Reservations}
 
-\section{Executables}
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.7\textwidth]{diagrams/cd_reservations}
+\caption{Database schema of reservations}
+\label{fig:reservations}
+\end{figure}
+
+\subsection{Executables}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.8\textwidth]{diagrams/cd_executables}
+\caption{Database schema of executables}
+\label{fig:executables}
+\end{figure}
 
 
 
 \chapter{Communication Examples} 
 
-\section{User Perspective}
+\section{User}
 
-\section{Administrator Perspective}
+List reservation requests with \code{RoomSpecification} for H.323 or SIP.
+
+\noindent\textbf{Request:}
+{\scriptsize\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8"?>
+<methodCall>
+  <methodName>Reservation.listReservationRequests</methodName>
+  <params>
+    <param>
+      <value><string>0801b1c2bf40d9df766be6b29960268b8aa94533</string></value>
+    </param>
+    <param>
+      <value><struct>
+        <member>
+          <name>specificationClass</name>
+          <value><string>RoomSpecification</string></value>
+        </member>
+        <member>
+          <name>technology</name>
+          <value><array><data>
+            <value><string>H323</string></value>
+            <value><string>SIP</string></value>
+          </data></array></value>
+        </member>
+      </struct></value>
+    </param>
+  </params>
+</methodCall>
+\end{verbatim}}
+
+\noindent\textbf{Response:}
+
+{\scriptsize\begin{verbatim}
+<methodResponse>
+  <params>
+    <param>
+      <value><array><data>
+        <value>
+          <struct>
+            <member>
+              <name>id</name>
+              <value>shongo:cz.cesnet.srom-dev:req:2</value>
+            </member>
+            <member>
+              <name>purpose</name>
+              <value>SCIENCE</value>
+            </member>
+            <member>
+              <name>earliestSlot</name>
+              <value>2013-04-05T14:07:00.000Z/2013-04-05T14:09:00.000Z</value>
+            </member>
+            <member>
+              <name>description</name>
+              <value>Test</value>
+            </member>
+
+            ...
+            
+          </struct>
+        </value>            
+      </data></array></value>
+    </param>
+  </params>
+</methodResponse>
+\end{verbatim}}
+
+\section{Administrator}
 
 \nocite{*}
 \bibliography{../bibliography}

@@ -2,11 +2,14 @@ TARGET=architecture
 TEXFILES=architecture.tex
 DIAGRAMS=diagrams/cd_resources.pdf \
          diagrams/cd_reservation_requests.pdf \
+         diagrams/cd_reservations.pdf \
+         diagrams/cd_executables.pdf \
          diagrams/dd_architecture.pdf \
          diagrams/dd_architecture_implemented.pdf \
          diagrams/dd_deployment_one.pdf \
          diagrams/dd_deployment_two.pdf \
-         diagrams/dd_deployment_multi.pdf
+         diagrams/dd_deployment_multi.pdf \
+         diagrams/sd_reservation_request_processing.pdf
          
 build: $(TARGET).pdf
 	

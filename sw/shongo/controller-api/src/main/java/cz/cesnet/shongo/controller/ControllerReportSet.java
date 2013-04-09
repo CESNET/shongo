@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -850,7 +851,7 @@ public class ControllerReportSet extends AbstractReportSet
             report = new ReservationRequestEmptyDurationReport();
         }
 
-        public ReservationRequestEmptyDurationException(Throwable throwable, )
+        public ReservationRequestEmptyDurationException(Throwable throwable)
         {
             super(throwable);
             report = new ReservationRequestEmptyDurationReport();
