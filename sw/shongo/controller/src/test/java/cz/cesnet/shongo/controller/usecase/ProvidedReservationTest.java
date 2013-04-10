@@ -408,7 +408,8 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
         aliasReservationRequest.setSpecification(aliasSetSpecification);
-        Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -422,5 +423,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
 
         runScheduler();
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
     }
 }
