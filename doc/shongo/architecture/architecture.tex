@@ -55,7 +55,7 @@ Shongo is a reservation system designed for booking videoconferencing resources.
 
 \begin{enumerate}
 
-\item \textbf{Controller} is the main backend application for a single domain written in Java which holds a relational database of resources, reservation requests and all other entities. Controller provides an XML-RPC API which is used by clients to manage the relational database and to control managed devices for the domain.
+\item \textbf{Controller} is the main backend application for a single domain written in Java which holds a relational database of resources, reservation requests and all other entities. Controller provides an XML-RPC API which is used by clients to manage the relational database and to control managed devices for the domain. Controller schedules reservations, informs users about theirs reservations by email and executes meetings in devices via connectors.
 
 \item \textbf{Web/Cmd-line Client} is an application written in Perl which allows the users/administrators to access the controller (e.g., to create/modify/delete the resources and reservation requests and to control managed devices).
 
@@ -163,7 +163,7 @@ Examples of resources which can be stored insided the relational database:
 
 \begin{itemize}
 
-\item Hardware endpoint Tandberg Codec C90 which is accessible by H.323 number 950087200 and sip:950087200@cesnet.cz.
+\item Hardware endpoint Tandberg Codec C90 which is accessible by H.323 number 950087300 and sip:950087300@cesnet.cz.
 \begin{Entity}
 DeviceResource {
   name: "Tandberg Codec C90",
@@ -334,12 +334,12 @@ ReservationRequestSet {
 
 \chapter{Web Client}
 
-Web client currently allows the users to create 3 types of reservation requests:
+This chapter describes currently implemented web client. It allows the users to create 3 types of reservation requests:
 
 \begin{enumerate}
 \item Reservation request for (\textit{adhoc}) room in H.323/SIP MCU or meeting in Adobe Connect server for specific time slot and number of participants. 
 \paragraph{Example}
-\textit{An user wants to arrange a meeting for 5 participants from 12:00 to 14:00 on 2013-04-10 and thus he creates a new request for H.323/SIP room, he gets allocated a room reservation and the room will be started exactly at 12:00 and stopped at 14:00.}
+\textit{An user wants to arrange a meeting for $N$ participants from 13:00 to 15:00 on 2013-04-10 and thus he creates a new request for H.323/SIP room, he gets allocated a room reservation and the room will be started exactly at 13:00 and stopped at 15:00.}
 
 \begin{figure}[ht!]
 \centering\includegraphics[width=0.7\textwidth]{images/client_web_detail_room.png}
@@ -356,7 +356,7 @@ When alias for Adobe Connect is allocated a meeting is going to be created in th
 By the alias reservation request the user gets a room/meeting which is created on target device for the whole requested time slot, but participants cannot join/access the room/meeting, because it is setup to consume 0 licenses in the device. To be able to join the room the user must first allocate a room capacity for the alias.
 
 \paragraph{Example}
-\textit{An user wants to have a H.323/SIP virtual room for his meetings with same name and H.323 number each time he arranges a meeting. He creates a new request for H.323/SIP alias with validity from 2013-01-01 to 2014-01-01 (in future he will be able to extend the validity). He gets allocated an alias reservation for which a room will created, but no participant will be able to join the room unless the user creates a reservation request for room capacity.}
+\textit{An user wants to have a H.323/SIP virtual room for his meetings with same name and H.323 number each time he arranges a meeting. He creates a new request for H.323/SIP alias with validity from 2013-01-01 to 2013-12-31 (in future he will be able to extend the validity). He gets allocated an alias reservation for which a room will created, but no participant will be able to join the room unless the user creates a reservation request for room capacity.}
 
 \begin{figure}[ht!]
 \centering\includegraphics[width=0.6\textwidth]{images/client_web_detail_alias.png}
@@ -367,10 +367,10 @@ By the alias reservation request the user gets a room/meeting which is created o
 \item Reservation request for room capacity for already allocated alias reservation request.
 
 \paragraph{Example}
-\textit{tests}
+\textit{An user wants to arrange a meeting for $N$ participants from 13:00 to 15:00 on 2013-04-10 and he already has an allocated alias reservation. He creates a new request for room capacity for the alias and the room allocated by the alias will be updated according to the room capacity request from 13:00 to 15:00 ($N$ participants will be able to join the room for the time slot).}
 
 \begin{figure}[ht!]
-\centering\includegraphics[width=0.7\textwidth]{images/client_web_detail_alias_room.png}
+\centering\includegraphics[width=0.6\textwidth]{images/client_web_detail_alias_room.png}
 \caption{Detail of reservation request for H.323/SIP room capacity for \textit{srom-test} alias}
 \label{fig:client-web-detail-alias-room}
 \end{figure}
@@ -378,13 +378,20 @@ By the alias reservation request the user gets a room/meeting which is created o
 \end{enumerate}
 
 \begin{figure}[ht!]
-\centering\includegraphics[width=0.7\textwidth]{images/client_web_create_alias.png}
+\centering\includegraphics[width=0.6\textwidth]{images/client_web_create_alias.png}
 \caption{Creating H.323/SIP alias reservation request}
-\label{fig:client-web-create_alias}
+\label{fig:client-web-create-alias}
 \end{figure}
 
 \begin{figure}[ht!]
-\centering\includegraphics[width=0.7\textwidth]{images/client_web_list.png}
+\centering\includegraphics[width=0.6\textwidth]{images/client_web_create_room.png}
+\caption{Creating H.323/SIP room reservation request}
+\label{fig:client-web-create-room}
+\end{figure}
+
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.6\textwidth]{images/client_web_list.png}
 \caption{Main page of H.323/SIP reservation requests}
 \label{fig:client-web-list}
 \end{figure}
