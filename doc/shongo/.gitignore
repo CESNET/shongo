@@ -1,4 +1,6 @@
 api/api.pdf
+architecture/architecture.gls
+architecture/architecture.pdf
 shongo_api.pdf
 *.log
 *.out
