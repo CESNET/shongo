@@ -2,11 +2,41 @@
 \usepackage{titlesec}
 
 \titleformat{\chapter}[display]
-    {\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
-\titlespacing*{\chapter}{0pt}{0pt}{30pt}
-\addtolength{\textheight}{2cm}
-\setlength{\hoffset}{-20pt}
-\addtolength{\textwidth}{40pt}
+    {\normalfont\LARGE\bfseries}{\chaptertitlename\ \thechapter}{10pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{20pt}
+\titlespacing{\paragraph}{0pt}{0.1\baselineskip}{1em}
+
+\addtolength{\textheight}{100pt}
+\setlength{\hoffset}{-25pt}
+\setlength{\voffset}{-40pt}
+\addtolength{\textwidth}{50pt}
+
+
+\lstnewenvironment{Entity}{%
+    \removelastskip
+    \vskip 2mm
+    \lstset{
+      aboveskip=0pt,
+      belowskip=0pt,    
+      basicstyle=\fontfamily{txtt}\selectfont,
+      keywordstyle=\fontseries{b}\selectfont,
+      comment=[l]{//},  
+	  morekeywords={
+		StandaloneTerminalCapability, RoomProviderCapability, AliasProviderCapability, ValueProvider, PatternValueProvider,
+		Alias, Resource, DeviceResource, ManagedMode,
+		PeriodicDateTimeSlot, PeriodicDateTime,
+		ReservationRequest, ReservationRequestSet, 
+		ResourceSpecification, AliasSpecification, RoomSpecification, H323RoomSetting, 		
+		H323, SIP, ADOBE_CONNECT, SCIENCE, H323_E164, SIP_URI, ADOBE_CONNECT_URI
+	  }          
+    }
+    \minipage{\textwidth}    
+}{%    
+    \vspace*{-4pt}
+    \endminipage
+    \vskip 3mm
+}
+
 
 \begin{document}
 
@@ -15,6 +45,7 @@
 \tableofcontents
 
 \input{../glossaries}
+
 
 
 
@@ -52,9 +83,10 @@ Shongo isn't currently fully implemented. In the current state each Shongo insta
 
 
 
+
 \chapter{Deployment}
 
-Shongo reservatin system for a single domain can be deployed to target machines in several ways (see fig. \ref{fig:deployment}).
+Shongo reservatin system for a single domain can be deployed to target machines in several ways (see fig. \ref{fig:deployment} for examples).
 
 \begin{figure}[ht!]
 \begin{center}  
@@ -72,29 +104,52 @@ Shongo reservatin system for a single domain can be deployed to target machines 
     \includegraphics[width=14cm]{diagrams/dd_deployment_multi}
   } 
 \end{center}
-\caption{Possible deployments of Shongo reservation system components}
+\caption{Examples of deployment of Shongo reservation system components}
 \label{fig:deployment}
 \end{figure}
 
 
 
+
 \chapter{Controller}
 
+As it was written in the first chapter, the controller is the main backend application for a single domain. It is a command-line application written in Java which must be started as long as the reservation system for a domain should be in operation.
 Controller is composed of several sub-components:
+
 \begin{itemize}
-\item \textbf{API}
-\item \textbf{Scheduler}
-\item \textbf{Executor}
-\item \textbf{Authorization}
+
+\item \textbf{API} receives and processes user and administrator requests. Basically the API stores some data to database (e.g., resource or reservation request) or immediately performs some action based on the request (e.g., retrieves actual room list from MCU device or determines status of Tandberg endpoint).
+
+\item \textbf{Scheduler} processes complete reservation requests from database and tries to allocate them as reservations. The resulting reservations from scheduler are stored to database. As part of some reservations can be allocated special entities reffered to as executables. Executable is an entity which can be started/stopped, e.g., room on MCU, meetting in Adobe Connect, call between two endpoints or compartment which represents a set of multiple interconnected rooms (e.g., two rooms on different MCUs).
+
+\item \textbf{Executor} processes executables from database and tries to start/update/stop them at the right moment (e.g., tries to create a room on MCU device, add new participant to Adobe Connect meeting, stop meeting in Adobe Connect or dial a call between two Tandberg endpoints).
+
+\item \textbf{Authorization} is a sub-component which is used for:
+\begin{compactitem} 
+\item verifying user identity against the \textbf{Auth Server}. The most of API requests must contain the user identity (OpenID \cite{openid} access token) which is verified.
+\item lookuping existing users from identity providers via the \textbf{Auth Server}. 
+\item managing ACL rules, i.e., triples \codeValue{(user, entity, role)}, where \codeValue{user} is unique user identifier from \textbf{Auth Server}, \codeValue{entity} is unique identifier of entity in controller database (e.g., resource, reservation request, reservation or executable) and \codeValue{role} is a possible user role for the entity (e.g., \codeValue{owner}).
+\end{compactitem}
+
 \end{itemize}
 
-\begin{figure}[ht!]
+Figure \ref{fig:reservation-request-processing} shows how a reservation request created by an user is processed by the controller.
+
+\begin{figure}[b!]
 \centering\includegraphics[width=\textwidth]{diagrams/sd_reservation_request_processing}
-\caption{Process of creating reservation request by an user, booking the reservation by scheduler and executing the meeting by executor}
-\label{fig:resources}
+\caption{Process of creating reservation request by an user, allocating reservation by the scheduler and executing the meeting by the executor}
+\label{fig:reservation-request-processing}
 \end{figure}
+\cleardoublepage
+
+
+
 
 \section{Relational Database}
+
+This section shows the controller relational database schema and few examples of entities which can be stored insided the database.
+
+
 
 \subsection{Resources}
 
@@ -104,12 +159,88 @@ Controller is composed of several sub-components:
 \label{fig:resources}
 \end{figure}
 
+Examples of resources which can be stored insided the relational database:
+
 \begin{itemize}
-\item Terminal
-\item Multipoint Devices
-\item Other
+
+\item Hardware endpoint Tandberg Codec C90 which is accessible by H.323 number 950087200 and sip:950087200@cesnet.cz.
+\begin{Entity}
+DeviceResource {
+  name: "Tandberg Codec C90",
+  technologies: [H323, SIP],
+  capabilities: [
+    StandaloneTerminalCapability {
+      aliases: [
+        Alias { type: H323_E164, value: "950087300"},
+        Alias { type: SIP_URI,   value: "sip:950087300@cesnet.cz"},  	  	
+      ]
+    }
+  ] 
+}
+\end{Entity}
+
+\newpage
+\item Cisco Codian MCU which can host multiple H.323 virtual rooms (the limit is 30 participants for all rooms) and which can assign H.323 numbers in range 950087200 - 950087299 to hosted rooms.
+\begin{Entity}
+DeviceResource {
+  id: 1,
+  name: "Cisco Codian MCU",
+  technologies: [H323, SIP],
+  capabilities: [
+    RoomProviderCapability {
+      licenseCount: 30,
+      requiredAliasTypes: [H323_E164]
+    },
+    AliasProviderCapability {
+      valueProvider: PatternValueProvider {
+        patterns: "950087{range:200:299}"
+      },
+      aliases: [Alias { type: H323_E164, value: "{value}"}],
+      restrictedToResource: true 
+    }
+  ]
+}
+\end{Entity}
+
+\item Adobe Connect server which can host multiple meetings (the limit is 100 participants for all meetings).
+\begin{Entity}
+DeviceResource {
+  id: 2,
+  name: "Adobe Connect server",
+  address: "connect.cesnet.cz",
+  technologies: [ADOBE_CONNECT],
+  capabilities: [
+    RoomProviderCapability {
+      licenseCount: 100,
+      requiredAliasTypes: [ADOBE_CONNECT_URI]
+    },
+    AliasProviderCapability {
+      valueProvider: PatternValueProvider {
+        patterns: "{hash:6}"
+      },
+      aliases: [Alias { type: ADOBE_CONNECT_URI, value: "{device.address}/{value}"}],
+      restrictedToResource: true 
+    }
+  ]
+}
+\end{Entity}
+
+\item Physical conference room.
+
+\begin{Entity}
+DeviceResource {
+  id: 3,
+  name: "Conference Room C300",
+}
+\end{Entity}
+
+\item And more...
+
 \end{itemize}
 
+
+
+\cleardoublepage
 \subsection{Reservation Requests}
 
 \begin{figure}[ht!]
@@ -118,6 +249,67 @@ Controller is composed of several sub-components:
 \label{fig:reservation-requests}
 \end{figure}
 
+Examples of reservation requests:
+
+\begin{itemize}
+
+\item Request for booking physical conference room from 12:00 to 14:00 on 2013-04-10 UTC.
+\begin{Entity}
+ReservationRequest {
+  slotStart: "2013-04-10T12:00Z",
+  slotEnd:   "2013-04-10T14:00Z",
+  specification: ResourceSpecification {
+    resource: Resource { id: 3 }
+  }
+}
+\end{Entity}
+
+\item Request for booking H.323/SIP room for 5 participants from 12:00 to 14:00 UTC on 2013-04-10. The room will be restricted by PIN code 1234.
+\begin{Entity}
+ReservationRequest {
+  slotStart: "2013-04-10T12:00Z",
+  slotEnd:   "2013-04-10T14:00Z",
+  specification: RoomSpecification {
+    participantCount: 5,
+    technologies: [H323, SIP],
+    roomSettings: [
+      H323RoomSetting { pin: "1234" }
+    ]
+  }
+}
+\end{Entity}
+
+\newpage
+\item Request for booking H.323/SIP room for 5 participants every Monday from 12:00 to 14:00 UTC in April 2013 with H.323 number 950087250.
+\begin{Entity}
+ReservationRequestSet {
+  slots: [
+    PeriodicDateTimeSlot {
+      periodicDateTime: PeriodicDateTime {
+        start:  "2013-04-10T12:00Z",
+        period: "P1W",
+        end:    "2013-04-30"
+      },
+      duration: "PT2H"
+    }
+  ]
+  specification: RoomSpecification {
+    participantCount: 5,
+    technologies: [H323, SIP]
+    aliasSpecifications: [
+      AliasSpecification { aliasTypes: [H323_E164], value: "950087250" }
+    ]
+  }
+}
+\end{Entity}
+
+\item And more...
+
+\end{itemize}
+
+
+
+\cleardoublepage
 \subsection{Reservations}
 
 \begin{figure}[ht!]
@@ -126,6 +318,9 @@ Controller is composed of several sub-components:
 \label{fig:reservations}
 \end{figure}
 
+
+
+\cleardoublepage
 \subsection{Executables}
 
 \begin{figure}[ht!]
@@ -136,79 +331,67 @@ Controller is composed of several sub-components:
 
 
 
-\chapter{Communication Examples} 
 
-\section{User}
+\chapter{Web Client}
 
-List reservation requests with \code{RoomSpecification} for H.323 or SIP.
+Web client currently allows the users to create 3 types of reservation requests:
 
-\noindent\textbf{Request:}
-{\scriptsize\begin{verbatim}
-<?xml version="1.0" encoding="UTF-8"?>
-<methodCall>
-  <methodName>Reservation.listReservationRequests</methodName>
-  <params>
-    <param>
-      <value><string>0801b1c2bf40d9df766be6b29960268b8aa94533</string></value>
-    </param>
-    <param>
-      <value><struct>
-        <member>
-          <name>specificationClass</name>
-          <value><string>RoomSpecification</string></value>
-        </member>
-        <member>
-          <name>technology</name>
-          <value><array><data>
-            <value><string>H323</string></value>
-            <value><string>SIP</string></value>
-          </data></array></value>
-        </member>
-      </struct></value>
-    </param>
-  </params>
-</methodCall>
-\end{verbatim}}
+\begin{enumerate}
+\item Reservation request for (\textit{adhoc}) room in H.323/SIP MCU or meeting in Adobe Connect server for specific time slot and number of participants. 
+\paragraph{Example}
+\textit{An user wants to arrange a meeting for 5 participants from 12:00 to 14:00 on 2013-04-10 and thus he creates a new request for H.323/SIP room, he gets allocated a room reservation and the room will be started exactly at 12:00 and stopped at 14:00.}
 
-\noindent\textbf{Response:}
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.7\textwidth]{images/client_web_detail_room.png}
+\caption{Detail of reservation request for H.323/SIP adhoc room}
+\label{fig:client-web-detail-alias}
+\end{figure}
 
-{\scriptsize\begin{verbatim}
-<methodResponse>
-  <params>
-    <param>
-      <value><array><data>
-        <value>
-          <struct>
-            <member>
-              <name>id</name>
-              <value>shongo:cz.cesnet.srom-dev:req:2</value>
-            </member>
-            <member>
-              <name>purpose</name>
-              <value>SCIENCE</value>
-            </member>
-            <member>
-              <name>earliestSlot</name>
-              <value>2013-04-05T14:07:00.000Z/2013-04-05T14:09:00.000Z</value>
-            </member>
-            <member>
-              <name>description</name>
-              <value>Test</value>
-            </member>
+\item Reservation request for alias which then can be reused in multiple room reservation requests. Term \textit{alias} in the web client refers to the unique name of a room/meeting.
 
-            ...
-            
-          </struct>
-        </value>            
-      </data></array></value>
-    </param>
-  </params>
-</methodResponse>
-\end{verbatim}}
+When alias for H.323/SIP MCU is allocated a room is going to be created in the target MCU with requested room name and with new allocated H.323 number.
 
-\section{Administrator}
+When alias for Adobe Connect is allocated a meeting is going to be created in the target Adobe Connect server with requested room name and with URL path which is also generated from the requested room name.
 
-\nocite{*}
+By the alias reservation request the user gets a room/meeting which is created on target device for the whole requested time slot, but participants cannot join/access the room/meeting, because it is setup to consume 0 licenses in the device. To be able to join the room the user must first allocate a room capacity for the alias.
+
+\paragraph{Example}
+\textit{An user wants to have a H.323/SIP virtual room for his meetings with same name and H.323 number each time he arranges a meeting. He creates a new request for H.323/SIP alias with validity from 2013-01-01 to 2014-01-01 (in future he will be able to extend the validity). He gets allocated an alias reservation for which a room will created, but no participant will be able to join the room unless the user creates a reservation request for room capacity.}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.6\textwidth]{images/client_web_detail_alias.png}
+\parbox{10cm}{\caption{Detail of reservation request for H.323/SIP alias (unique room name \textit{srom-test} and new generated H.323 number)}}
+\label{fig:client-web-detail-alias}
+\end{figure}
+
+\item Reservation request for room capacity for already allocated alias reservation request.
+
+\paragraph{Example}
+\textit{tests}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.7\textwidth]{images/client_web_detail_alias_room.png}
+\caption{Detail of reservation request for H.323/SIP room capacity for \textit{srom-test} alias}
+\label{fig:client-web-detail-alias-room}
+\end{figure}
+
+\end{enumerate}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.7\textwidth]{images/client_web_create_alias.png}
+\caption{Creating H.323/SIP alias reservation request}
+\label{fig:client-web-create_alias}
+\end{figure}
+
+\begin{figure}[ht!]
+\centering\includegraphics[width=0.7\textwidth]{images/client_web_list.png}
+\caption{Main page of H.323/SIP reservation requests}
+\label{fig:client-web-list}
+\end{figure}
+
+
+
+
 \bibliography{../bibliography}
 
 \end{document}
