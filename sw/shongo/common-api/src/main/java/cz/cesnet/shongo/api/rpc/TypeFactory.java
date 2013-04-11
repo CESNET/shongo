@@ -3,7 +3,6 @@ package cz.cesnet.shongo.api.rpc;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.util.TypeFlags;
-import cz.cesnet.shongo.fault.FaultException;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;
@@ -71,12 +70,7 @@ public class TypeFactory extends TypeFactoryImpl
                     // If the class key is present convert the map to object
                     else {
                         // Convert map to object of the class
-                        try {
-                            setResult(Converter.convertFromBasic(map, options));
-                        }
-                        catch (FaultException exception) {
-                            throw new SAXException(exception);
-                        }
+                        setResult(Converter.convertFromBasic(map, options));
                     }
                 }
             };
@@ -125,12 +119,7 @@ public class TypeFactory extends TypeFactoryImpl
         @Override
         public void write(ContentHandler handler, Object object) throws SAXException
         {
-            try {
-                object = Converter.convertToBasic(object, options);
-            }
-            catch (FaultException exception) {
-                throw new SAXException(exception);
-            }
+            object = Converter.convertToBasic(object, options);
             TypeSerializer serializer = null;
             if (object == null) {
                 serializer = getNullSerializer(config);

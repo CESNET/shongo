@@ -3,8 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -110,7 +109,7 @@ public abstract class Specification extends PersistentObject
      */
     public Specification clone(Map<Specification, Specification> originalSpecifications)
     {
-        Specification newSpecification = ClassHelper.createInstanceFromClassRuntime(getClass());
+        Specification newSpecification = ClassHelper.createInstanceFromClass(getClass());
         newSpecification.synchronizeFrom(this);
         if (this instanceof CompositeSpecification) {
             CompositeSpecification compositeSpecification = (CompositeSpecification) this;
@@ -140,7 +139,7 @@ public abstract class Specification extends PersistentObject
      * @return new instance of {@link Specification} for given {@code api}
      */
     public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
-            EntityManager entityManager) throws FaultException
+            EntityManager entityManager)
     {
         Specification specification = null;
         if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
@@ -205,7 +204,6 @@ public abstract class Specification extends PersistentObject
      * @param entityManager
      */
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
     {
         // Update current technologies
         updateTechnologies();

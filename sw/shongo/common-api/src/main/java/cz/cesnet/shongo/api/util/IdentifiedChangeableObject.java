@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Set;
 
@@ -58,9 +58,10 @@ public abstract class IdentifiedChangeableObject extends IdentifiedObject
      * Checks whether all properties with {@link Required} annotation are marked as filled and
      * sets the {@link ChangesTracking#collectionItemIsByDefaultNew} to true (recursive).
      *
-     * @throws FaultException when some required field isn't filled
+     * @throws CommonReportSet.ClassCollectionRequiredException,CommonReportSet.ClassAttributeRequiredException
+     *          when some required field isn't filled
      */
-    public void setupNewEntity() throws FaultException
+    public void setupNewEntity()
     {
         ChangesTracking.setupNewEntity(this);
     }

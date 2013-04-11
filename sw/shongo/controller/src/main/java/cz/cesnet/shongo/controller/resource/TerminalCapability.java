@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -34,9 +34,9 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws FaultException when the alias doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the alias doesn't exist
      */
-    private Alias getAliasById(Long aliasId) throws FaultException
+    private Alias getAliasById(Long aliasId) throws CommonReportSet.EntityNotFoundException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(aliasId)) {
@@ -81,7 +81,6 @@ public class TerminalCapability extends DeviceCapability
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.TerminalCapability apiTerminalCapability =
                 (cz.cesnet.shongo.controller.api.TerminalCapability) api;

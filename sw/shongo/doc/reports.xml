@@ -47,7 +47,7 @@
     <scope name="jade">
 
         <template extends="cz.cesnet.shongo.JadeReport">
-            <exception-base-class>cz.cesnet.shongo.JadeException</exception-base-class>
+            <exception base-class="cz.cesnet.shongo.JadeException"/>
         </template>
 
         <report>
@@ -200,6 +200,10 @@
     </scope>
 
     <scope name="common">
+
+        <template extends="cz.cesnet.shongo.JadeReport">
+            <exception runtime="true"/>
+        </template>
 
         <report>
             <id>unknown-error</id>
@@ -492,6 +496,10 @@
 
     <scope name="controller">
 
+        <template extends="cz.cesnet.shongo.JadeReport">
+            <exception runtime="true"/>
+        </template>
+
         <report>
             <id>acl-invalid-role</id>
             <classification severity="error"/>
@@ -671,7 +679,7 @@
 
         <template extends="cz.cesnet.shongo.controller.scheduler.SchedulerReport">
             <persistent>true</persistent>
-            <exception-base-class>cz.cesnet.shongo.controller.scheduler.SchedulerException</exception-base-class>
+            <exception base-class="cz.cesnet.shongo.controller.scheduler.SchedulerException"/>
         </template>
 
         <report>

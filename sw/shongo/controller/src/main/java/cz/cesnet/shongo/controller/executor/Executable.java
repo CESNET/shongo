@@ -4,7 +4,7 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

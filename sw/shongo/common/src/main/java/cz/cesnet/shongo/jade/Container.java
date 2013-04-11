@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.ThreadHelper;
 import jade.content.ContentElement;
@@ -501,12 +502,12 @@ public class Container
     {
         SendLocalCommand sendLocalCommand = new SendLocalCommand(receiverAgentName, command);
         if (!isStarted()) {
-            sendLocalCommand.setFailed(new CommandAgentNotStarted(senderAgentName));
+            sendLocalCommand.setFailed(new JadeReportSet.AgentNotStartedReport(senderAgentName));
             return sendLocalCommand;
         }
         AgentController senderAgentController = agentControllers.get(senderAgentName);
         if (senderAgentController == null) {
-            sendLocalCommand.setFailed(new CommandAgentNotStarted(senderAgentName));
+            sendLocalCommand.setFailed(new JadeReportSet.AgentNotStartedReport(senderAgentName));
             return sendLocalCommand;
         }
         performAgentLocalCommand(senderAgentName, sendLocalCommand);

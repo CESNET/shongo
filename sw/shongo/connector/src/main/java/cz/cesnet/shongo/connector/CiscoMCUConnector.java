@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
@@ -688,12 +687,7 @@ ParamsLoop:
     @Override
     public String createRoom(Room room) throws CommandException
     {
-        try {
-            room.setupNewEntity();
-        }
-        catch (FaultException exception) {
-            throw new RuntimeException(exception);
-        }
+        room.setupNewEntity();
 
         Command cmd = new Command("conference.create");
 

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import java.util.*;
 

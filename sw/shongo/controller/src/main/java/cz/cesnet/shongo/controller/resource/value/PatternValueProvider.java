@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.resource.value;
 
 import cz.cesnet.shongo.controller.resource.Capability;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -141,7 +140,6 @@ public class PatternValueProvider extends ValueProvider
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi, EntityManager entityManager)
-            throws FaultException
     {
         super.fromApi(valueProviderApi, entityManager);
 

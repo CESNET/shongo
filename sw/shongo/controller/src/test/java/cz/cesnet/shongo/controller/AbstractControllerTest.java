@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -123,9 +122,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * @param securityToken for which the user-id should be returned
      * @return user-id for given {@code securityToken}
-     * @throws FaultException
      */
-    public String getUserId(SecurityToken securityToken) throws FaultException
+    public String getUserId(SecurityToken securityToken)
     {
         return authorization.getUserInformation(securityToken).getUserId();
     }
@@ -210,9 +208,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * Run {@link Preprocessor}.
      *
      * @param interval
-     * @throws FaultException
      */
-    protected void runPreprocessor(Interval interval) throws FaultException
+    protected void runPreprocessor(Interval interval)
     {
         EntityManager entityManager = getEntityManager();
         preprocessor.run(interval, entityManager);
@@ -223,9 +220,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * Run {@link Scheduler}.
      *
      * @param interval
-     * @throws FaultException
      */
-    protected void runScheduler(Interval interval) throws FaultException
+    protected void runScheduler(Interval interval)
     {
         EntityManager entityManager = getEntityManager();
         scheduler.run(interval, entityManager);
@@ -247,9 +243,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * Run {@link Preprocessor} and {@link Scheduler}.
      *
      * @param interval
-     * @throws FaultException
      */
-    protected void runWorker(Interval interval) throws FaultException
+    protected void runWorker(Interval interval)
     {
         runPreprocessor(interval);
         runScheduler(interval);
@@ -258,30 +253,24 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
     /**
      * Run {@link Preprocessor}.
-     *
-     * @throws FaultException
      */
-    protected void runPreprocessor() throws FaultException
+    protected void runPreprocessor()
     {
         runPreprocessor(Temporal.INTERVAL_INFINITE);
     }
 
     /**
      * Run {@link Scheduler}.
-     *
-     * @throws FaultException
      */
-    protected void runScheduler() throws FaultException
+    protected void runScheduler()
     {
         runScheduler(Temporal.INTERVAL_INFINITE);
     }
 
     /**
      * Run {@link Preprocessor} and {@link Scheduler}.
-     *
-     * @throws FaultException
      */
-    protected void runPreprocessorAndScheduler() throws FaultException
+    protected void runPreprocessorAndScheduler()
     {
         runPreprocessor();
         runScheduler();

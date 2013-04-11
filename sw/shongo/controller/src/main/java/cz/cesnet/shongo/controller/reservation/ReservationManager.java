@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
@@ -13,8 +13,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
@@ -80,7 +79,6 @@ public class ReservationManager extends AbstractManager
      * @param reservation to be deleted in the database
      */
     public void delete(Reservation reservation, AuthorizationManager authorizationManager, Cache cache)
-            throws FaultException
     {
         // Get all reservations and disconnect them from parents
         Collection<Reservation> reservations = new LinkedList<Reservation>();
@@ -138,9 +136,9 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws FaultException when the {@link Reservation} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link Reservation} doesn't exist
      */
-    public Reservation get(Long reservationId) throws FaultException
+    public Reservation get(Long reservationId) throws CommonReportSet.EntityNotFoundException
     {
         try {
             Reservation reservation = entityManager.createQuery(

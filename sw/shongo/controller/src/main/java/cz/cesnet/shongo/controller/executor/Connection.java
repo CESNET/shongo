@@ -152,7 +152,7 @@ public class Connection extends Executable
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
         }
@@ -185,7 +185,7 @@ public class Connection extends Executable
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
         }

@@ -1,51 +1,52 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.FaultException;
 
 /**
- * Extension of {@link cz.cesnet.shongo.controller.api.FaultSet}.
+ * Extensions for {@link CommonReportSet} and {@link ControllerReportSet}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ControllerFaultSet extends cz.cesnet.shongo.controller.api.FaultSet
+public class ControllerFaultSet
 {
     /**
-     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotFoundFault}
+     * @throws {@link CommonReportSet.EntityNotFoundException}
      */
-    public static <T> T throwEntityNotFoundFault(EntityIdentifier entityId) throws FaultException
+    public static <T> T throwEntityNotFoundFault(EntityIdentifier entityId)
+            throws CommonReportSet.EntityNotFoundException
     {
-        return throwEntityNotFoundFault(entityId.getEntityClass().getSimpleName(), entityId.toId());
+        throw new CommonReportSet.EntityNotFoundException(entityId.getEntityClass().getSimpleName(), entityId.toId());
     }
 
     /**
-     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotFoundFault}
+     * @throws {@link CommonReportSet.EntityNotFoundException}
      */
-    public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId) throws FaultException
+    public static <T> T throwEntityNotFoundFault(Class entityType, Long entityId)
+            throws CommonReportSet.EntityNotFoundException
     {
-        return throwEntityNotFoundFault(entityType.getSimpleName(),
+        throw new CommonReportSet.EntityNotFoundException(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
 
     /**
-     * @return new instance of {@link cz.cesnet.shongo.api.FaultSet.EntityNotDeletableReferencedFault}
+     * @throws {@link CommonReportSet.EntityNotDeletableReferencedException}
      */
-    public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId) throws FaultException
+    public static <T> T throwEntityNotDeletableReferencedFault(Class entityType, Long entityId)
+            throws CommonReportSet.EntityNotDeletableReferencedException
     {
-        return throwEntityNotDeletableReferencedFault(entityType.getSimpleName(),
+        throw new CommonReportSet.EntityNotDeletableReferencedException(entityType.getSimpleName(),
                 (EntityIdentifier.hasEntityType(entityType)
                          ? EntityIdentifier.formatId(entityType, entityId) : entityId.toString()));
     }
 
     /**
-     * @return new instance of {@link SecurityNotAuthorizedFault}
+     * @throws {@link ControllerReportSet.SecurityNotAuthorizedException}
      */
     public static <T> T throwSecurityNotAuthorizedFault(String action, Object... objects)
-            throws FaultException
+            throws ControllerReportSet.SecurityNotAuthorizedException
     {
-        SecurityNotAuthorizedFault securityNotAuthorizedFault =
-                createSecurityNotAuthorizedFault(String.format(action, objects));
-        throw securityNotAuthorizedFault.createException();
+        throw new ControllerReportSet.SecurityNotAuthorizedException(String.format(action, objects));
     }
 }

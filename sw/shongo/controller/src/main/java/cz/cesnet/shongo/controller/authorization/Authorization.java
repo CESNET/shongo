@@ -8,8 +8,6 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,14 +86,12 @@ public abstract class Authorization
      *
      * @param securityToken to be validated
      * @return user-id
-     * @throws FaultException when the validation fails
      */
-    public final String validate(SecurityToken securityToken) throws FaultException
+    public final String validate(SecurityToken securityToken)
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
-            throw new SecurityException(
-                    SecurityToken.class.getSimpleName() + " should not be empty.");
+            throw new RuntimeException(SecurityToken.class.getSimpleName() + " should not be empty.");
         }
         return onValidate(securityToken);
     }
@@ -105,7 +101,6 @@ public abstract class Authorization
      *
      * @param securityToken of an user
      * @return {@link UserInformation} for the user with given {@code securityToken}
-     * @throws FaultException when the {@link UserInformation} cannot be retrieved
      */
     public final UserInformation getUserInformation(SecurityToken securityToken)
     {
@@ -146,7 +141,6 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
-     * @throws FaultRuntimeException when the {@link UserInformation} cannot be retrieved
      */
     public final UserInformation getUserInformation(String userId)
     {
@@ -175,7 +169,6 @@ public abstract class Authorization
      *
      * @param userId of an user
      * @return {@link UserInformation} for the user with given {@code userId}
-     * @throws FaultRuntimeException when the {@link UserInformation} cannot be retrieved
      */
     public final UserPerson getUserPerson(String userId)
     {
@@ -186,9 +179,8 @@ public abstract class Authorization
      * Retrieve all {@link UserInformation}s.
      *
      * @return collection of {@link UserInformation}s
-     * @throws FaultException when the {@link UserInformation}s cannot be retrieved
      */
-    public final Collection<UserInformation> listUserInformation() throws FaultException
+    public final Collection<UserInformation> listUserInformation()
     {
         logger.debug("Retrieving list of user information...");
 
@@ -208,9 +200,8 @@ public abstract class Authorization
     /**
      * @param aclRecordId of the {@link AclRecord}
      * @return {@link AclRecord} with given {@code aclRecordId}
-     * @throws FaultException
      */
-    public final AclRecord getAclRecord(Long aclRecordId) throws FaultException
+    public final AclRecord getAclRecord(Long aclRecordId)
     {
         AclRecord aclRecord = cache.getAclRecordById(aclRecordId);
         if (aclRecord == null) {
@@ -291,10 +282,8 @@ public abstract class Authorization
      * @param entityId to restrict the entity of the {@link AclRecord}
      * @param role     to restrict the role of the {@link AclRecord}
      * @return collection of matching {@link AclRecord}s
-     * @throws FaultException
      */
     public final Collection<AclRecord> getAclRecords(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException
     {
         if (entityId != null && !entityId.isGroup()) {
             if (userId != null) {
@@ -333,7 +322,7 @@ public abstract class Authorization
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasPermission(String userId, EntityIdentifier entityId, Permission permission) throws FaultException
+    public boolean hasPermission(String userId, EntityIdentifier entityId, Permission permission)
     {
         if (isAdmin(userId)) {
             // Administrator has all possible permissions
@@ -351,9 +340,8 @@ public abstract class Authorization
      * @param userId   of the user
      * @param entityId of the entity
      * @return set of {@link Permission}s which the user have for the entity
-     * @throws FaultException
      */
-    public Set<Permission> getPermissions(String userId, EntityIdentifier entityId) throws FaultException
+    public Set<Permission> getPermissions(String userId, EntityIdentifier entityId)
     {
         if (isAdmin(userId)) {
             // Administrator has all possible permissions
@@ -378,10 +366,8 @@ public abstract class Authorization
      * @param permission which the user must have for the entities
      * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
      *         or null if the user can view all entities
-     * @throws FaultException
      */
     public Set<Long> getEntitiesWithPermission(String userId, EntityType entityType, Permission permission)
-            throws FaultException
     {
         if (isAdmin(userId)) {
             return null;
@@ -439,9 +425,9 @@ public abstract class Authorization
      *
      * @param securityToken to be validated
      * @return user-id
-     * @throws FaultException when the validation fails
+     * @throws ControllerReportSet.SecurityInvalidTokenException when the validation fails
      */
-    protected String onValidate(SecurityToken securityToken) throws FaultException
+    protected String onValidate(SecurityToken securityToken) throws ControllerReportSet.SecurityInvalidTokenException
     {
         // Validate access token by getting user info
         try {
@@ -455,7 +441,7 @@ public abstract class Authorization
         catch (Exception exception) {
             String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
             InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, message, exception);
-            return ControllerFaultSet.throwSecurityInvalidTokenFault(securityToken.getAccessToken());
+            throw new ControllerReportSet.SecurityInvalidTokenException(securityToken.getAccessToken());
         }
     }
 
@@ -479,9 +465,8 @@ public abstract class Authorization
      * Retrieve all {@link UserInformation}s.
      *
      * @return collection of {@link UserInformation}s
-     * @throws FaultException when the {@link UserInformation}s cannot be retrieved
      */
-    protected abstract Collection<UserInformation> onListUserInformation() throws FaultException;
+    protected abstract Collection<UserInformation> onListUserInformation();
 
     /**
      * @param aclRecord to be created on the server

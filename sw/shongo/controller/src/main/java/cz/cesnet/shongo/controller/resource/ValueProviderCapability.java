@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 
@@ -60,7 +59,6 @@ public class ValueProviderCapability extends Capability
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ValueProviderCapability valueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProviderCapability) api;

@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.controller.api.jade.ControllerCommand;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,9 +91,9 @@ abstract public class AbstractConnector implements CommonService
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
             return sendLocalCommand.getResult();
         }
-        CommandFailure commandFailure = sendLocalCommand.getFailure();
-        throw new CommandException(String.format("Controller action failed: %s", commandFailure.getMessage()),
-                commandFailure.getCause());
+        JadeReport commandFailure = sendLocalCommand.getJadeReport();
+        throw new CommandException(String.format("Controller action failed: %s", commandFailure.getMessage())/*,
+                commandFailure.getCause()*/ /* TODO: pass cause */);
     }
 
     /**

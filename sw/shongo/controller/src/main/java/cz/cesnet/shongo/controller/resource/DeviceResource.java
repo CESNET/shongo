@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -246,7 +246,7 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public void validate() throws FaultException
+    public void validate() throws CommonReportSet.EntityInvalidException
     {
         super.validate();
     }
@@ -297,7 +297,6 @@ public class DeviceResource extends Resource
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
         if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
@@ -331,7 +330,7 @@ public class DeviceResource extends Resource
                     setMode(null);
                 }
                 else {
-                    ControllerFaultSet.throwTypeIllegalValueFault("Mode", (String) mode);
+                    throw new CommonReportSet.TypeIllegalValueException("Mode", (String) mode);
                 }
             }
             else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
@@ -347,7 +346,7 @@ public class DeviceResource extends Resource
                         ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
             }
             else {
-                ControllerFaultSet.throwClassAttributeTypeMismatchFault(DeviceResource.class.getSimpleName(),
+                throw new CommonReportSet.ClassAttributeTypeMismatchException(DeviceResource.class.getSimpleName(),
                         cz.cesnet.shongo.controller.api.DeviceResource.MODE,
                         cz.cesnet.shongo.controller.api.ManagedMode.class.getSimpleName() + "|String",
                         mode.getClass().getSimpleName());

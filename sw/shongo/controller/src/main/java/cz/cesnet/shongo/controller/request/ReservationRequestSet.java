@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -53,10 +53,10 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the requested {@link cz.cesnet.shongo.controller.common.DateTimeSlot}
      * @return {@link cz.cesnet.shongo.controller.common.DateTimeSlot} with given {@code id}
-     * @throws FaultException when the {@link cz.cesnet.shongo.controller.common.DateTimeSlot} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link DateTimeSlot} doesn't exist
      */
     @Transient
-    private DateTimeSlot getSlotById(Long id) throws FaultException
+    private DateTimeSlot getSlotById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (DateTimeSlot dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
@@ -170,10 +170,10 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws FaultException when the {@link ReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
     @Transient
-    private ReservationRequest getReservationRequestById(Long id) throws FaultException
+    private ReservationRequest getReservationRequestById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (ReservationRequest reservationRequest : reservationRequests) {
             if (reservationRequest.getId().equals(id)) {
@@ -233,7 +233,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    public void validate() throws FaultException
+    public void validate() throws CommonReportSet.EntityInvalidException
     {
         for (DateTimeSlot slot : slots) {
             validateSlotDuration(slot.getDuration());
@@ -249,7 +249,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
@@ -264,7 +263,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;

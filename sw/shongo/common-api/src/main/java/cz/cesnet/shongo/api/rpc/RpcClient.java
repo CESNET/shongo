@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.api.FaultSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.fault.AbstractFaultSet;
-import cz.cesnet.shongo.fault.Fault;
-import cz.cesnet.shongo.fault.FaultMessage;
+import cz.cesnet.shongo.report.AbstractReportSet;
+import cz.cesnet.shongo.report.ApiFault;
+import cz.cesnet.shongo.report.ApiFaultMessage;
+import cz.cesnet.shongo.report.Report;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -17,6 +18,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,9 +45,9 @@ public class RpcClient
     private Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
-     * @see {@link cz.cesnet.shongo.fault.AbstractFaultSet}
+     * Collection of {@link AbstractReportSet}s.
      */
-    private AbstractFaultSet faultSet = new FaultSet();
+    private List<AbstractReportSet> reportSets = new LinkedList<AbstractReportSet>();
 
     /**
      * Constructor.
@@ -67,11 +69,20 @@ public class RpcClient
     }
 
     /**
-     * @param faultSet sets the {@link #faultSet}
+     * @param reportSet sets the {@link #reportSets}
      */
-    public void setFaultSet(AbstractFaultSet faultSet)
+    public void addReportSet(AbstractReportSet reportSet)
     {
-        this.faultSet = faultSet;
+        this.reportSets.add(reportSet);
+    }
+
+    /**
+     * @param code
+     * @return {@link Report} for given {@code code}
+     */
+    public Class<? extends ApiFault> getApiFaultClass(int code)
+    {
+        throw new TodoImplementException();
     }
 
     /**
@@ -140,18 +151,18 @@ public class RpcClient
      */
     public Exception convertException(XmlRpcException xmlRpcException)
     {
-        Class<? extends Fault> type = faultSet.getFaultClass(xmlRpcException.code);
+        Class<? extends ApiFault> type = getApiFaultClass(xmlRpcException.code);
         if (type == null) {
             throw new RuntimeException(String.valueOf(xmlRpcException.code));
         }
-        Fault fault = ClassHelper.createInstanceFromClassRuntime(type);
+        ApiFault fault = ClassHelper.createInstanceFromClass(type);
 
         // Fill message
-        FaultMessage faultMessage = new FaultMessage(xmlRpcException.getMessage());
+        ApiFaultMessage faultMessage = new ApiFaultMessage(xmlRpcException.getMessage());
         faultMessage.toFault(fault);
 
         // Create exception for fault
-        Exception exception = fault.createException();
+        Exception exception = fault.getException();
         exception.setStackTrace(xmlRpcException.getStackTrace());
         return exception;
     }

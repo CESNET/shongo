@@ -145,7 +145,7 @@ public class ConnectorAgent extends Agent
                 }
                 break;
             case FAILED:
-                commandState = String.format("FAILED: %s", sendLocalCommand.getFailure().getMessage());
+                commandState = String.format("FAILED: %s", sendLocalCommand.getJadeReport().getMessage());
                 break;
             default:
                 commandState = "UNKNOWN";

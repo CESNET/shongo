@@ -182,12 +182,28 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="exception-base-class" type="xs:string" minOccurs="0" maxOccurs="1">
+            <xs:element name="exception" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>
                         Specifies base exception class which this report exception extends.
                     </xs:documentation>
                 </xs:annotation>
+                <xs:complexType>
+                <xs:attribute name="base-class" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Specifies base exception class which this report exception extends.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="runtime" type="xs:boolean">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Specifies whether generated exception for this report should be runtime.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                </xs:complexType>
             </xs:element>
         </xs:sequence>
         <xs:attribute name="abstract" type="xs:boolean">

@@ -3,9 +3,9 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.fault.FaultException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -155,8 +155,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (FaultException exception) {
-            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
+        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }
     }
 
@@ -371,16 +370,14 @@ public class ProvidedReservationTest extends AbstractControllerTest
                     getReservationService().getReservationRequest(SECURITY_TOKEN, aliasReservationRequestId));
             fail("Exception that reservation request cannot be modified should be thrown");
         }
-        catch (FaultException exception) {
-            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
+        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }
 
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (FaultException exception) {
-            Assert.assertEquals(FaultSet.ReservationRequestNotModifiableFault.class, exception.getFaultClass());
+        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }
     }
 

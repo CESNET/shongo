@@ -5,12 +5,12 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractReportException extends Exception
+public abstract class ReportRuntimeException extends RuntimeException
 {
     /**
      * Constructor.
      */
-    public AbstractReportException()
+    public ReportRuntimeException()
     {
     }
 
@@ -19,13 +19,13 @@ public abstract class AbstractReportException extends Exception
      *
      * @param throwable
      */
-    public AbstractReportException(Throwable throwable)
+    public ReportRuntimeException(Throwable throwable)
     {
         super(throwable);
     }
 
     /**
-     * @return {@link Report}
+     * @return {@link cz.cesnet.shongo.report.Report}
      */
     public abstract Report getReport();
 

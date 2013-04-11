@@ -22,12 +22,22 @@ public class CommonReportSet extends AbstractReportSet
     public static final int ENTITY_NOT_FOUND_REPORT = 0;
     public static final int ENTITY_INVALID_REPORT = 0;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 0;
+
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport implements Report, ApiFault
+    public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String description;
+        protected String description;
+
+        public UnknownErrorReport()
+        {
+        }
+
+        public UnknownErrorReport(String description)
+        {
+            setDescription(description);
+        }
 
         public String getDescription()
         {
@@ -38,6 +48,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.description = description;
         }
+
 
         @Override
         public Type getType()
@@ -52,6 +63,12 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new UnknownErrorException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Unknown error: ${description}";
@@ -63,9 +80,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link UnknownErrorReport}.
      */
-    public static class UnknownErrorException extends AbstractReportException implements ApiFault
+    public static class UnknownErrorException extends ReportRuntimeException implements ApiFault
     {
-        private UnknownErrorReport report;
+        protected UnknownErrorReport report;
 
         public UnknownErrorException(UnknownErrorReport report)
         {
@@ -80,20 +97,22 @@ public class CommonReportSet extends AbstractReportSet
 
         public UnknownErrorException(String description)
         {
-            report = new UnknownErrorReport();
+            UnknownErrorReport report = new UnknownErrorReport();
             report.setDescription(description);
+            this.report = report;
         }
 
         public UnknownErrorException(Throwable throwable, String description)
         {
             super(throwable);
-            report = new UnknownErrorReport();
+            UnknownErrorReport report = new UnknownErrorReport();
             report.setDescription(description);
+            this.report = report;
         }
 
         public String getDescription()
         {
-            return report.getDescription();
+            return getReport().getDescription();
         }
 
         @Override
@@ -101,20 +120,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Value {@link #value} is illegal for type ${type}.
+     * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport implements Report
+    public static class TypeIllegalValueReport extends cz.cesnet.shongo.JadeReport
     {
-        private String typeName;
-        private String value;
+        protected String typeName;
+
+        protected String value;
+
+        public TypeIllegalValueReport()
+        {
+        }
+
+        public TypeIllegalValueReport(String typeName, String value)
+        {
+            setTypeName(typeName);
+            setValue(value);
+        }
 
         public String getTypeName()
         {
@@ -136,6 +172,7 @@ public class CommonReportSet extends AbstractReportSet
             this.value = value;
         }
 
+
         @Override
         public Type getType()
         {
@@ -146,7 +183,7 @@ public class CommonReportSet extends AbstractReportSet
         public String getMessage()
         {
             String message = "Value ${value} is illegal for type ${type}.";
-            message = message.replace("${typeName}", (typeName == null ? "" : typeName));
+            message = message.replace("${type-name}", (typeName == null ? "" : typeName));
             message = message.replace("${value}", (value == null ? "" : value));
             return message;
         }
@@ -155,9 +192,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link TypeIllegalValueReport}.
      */
-    public static class TypeIllegalValueException extends AbstractReportException
+    public static class TypeIllegalValueException extends ReportRuntimeException
     {
-        private TypeIllegalValueReport report;
+        protected TypeIllegalValueReport report;
 
         public TypeIllegalValueException(TypeIllegalValueReport report)
         {
@@ -172,27 +209,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public TypeIllegalValueException(String typeName, String value)
         {
-            report = new TypeIllegalValueReport();
+            TypeIllegalValueReport report = new TypeIllegalValueReport();
             report.setTypeName(typeName);
             report.setValue(value);
+            this.report = report;
         }
 
         public TypeIllegalValueException(Throwable throwable, String typeName, String value)
         {
             super(throwable);
-            report = new TypeIllegalValueReport();
+            TypeIllegalValueReport report = new TypeIllegalValueReport();
             report.setTypeName(typeName);
             report.setValue(value);
+            this.report = report;
         }
 
         public String getTypeName()
         {
-            return report.getTypeName();
+            return getReport().getTypeName();
         }
 
         public String getValue()
         {
-            return report.getValue();
+            return getReport().getValue();
         }
 
         @Override
@@ -201,12 +240,22 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
     }
+
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport implements Report, ApiFault
+    public static class ClassUndefinedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
+        protected String className;
+
+        public ClassUndefinedReport()
+        {
+        }
+
+        public ClassUndefinedReport(String className)
+        {
+            setClassName(className);
+        }
 
         public String getClassName()
         {
@@ -217,6 +266,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.className = className;
         }
+
 
         @Override
         public Type getType()
@@ -231,10 +281,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassUndefinedException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Class ${class} is not defined.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             return message;
         }
     }
@@ -242,9 +298,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassUndefinedReport}.
      */
-    public static class ClassUndefinedException extends AbstractReportException implements ApiFault
+    public static class ClassUndefinedException extends ReportRuntimeException implements ApiFault
     {
-        private ClassUndefinedReport report;
+        protected ClassUndefinedReport report;
 
         public ClassUndefinedException(ClassUndefinedReport report)
         {
@@ -259,20 +315,22 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassUndefinedException(String className)
         {
-            report = new ClassUndefinedReport();
+            ClassUndefinedReport report = new ClassUndefinedReport();
             report.setClassName(className);
+            this.report = report;
         }
 
         public ClassUndefinedException(Throwable throwable, String className)
         {
             super(throwable);
-            report = new ClassUndefinedReport();
+            ClassUndefinedReport report = new ClassUndefinedReport();
             report.setClassName(className);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         @Override
@@ -280,19 +338,34 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport implements Report, ApiFault
+    public static class ClassInstantiationErrorReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
+        protected String className;
+
+        public ClassInstantiationErrorReport()
+        {
+        }
+
+        public ClassInstantiationErrorReport(String className)
+        {
+            setClassName(className);
+        }
 
         public String getClassName()
         {
@@ -303,6 +376,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.className = className;
         }
+
 
         @Override
         public Type getType()
@@ -317,10 +391,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassInstantiationErrorException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Class ${class} cannot be instanced.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             return message;
         }
     }
@@ -328,9 +408,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassInstantiationErrorReport}.
      */
-    public static class ClassInstantiationErrorException extends AbstractReportException implements ApiFault
+    public static class ClassInstantiationErrorException extends ReportRuntimeException implements ApiFault
     {
-        private ClassInstantiationErrorReport report;
+        protected ClassInstantiationErrorReport report;
 
         public ClassInstantiationErrorException(ClassInstantiationErrorReport report)
         {
@@ -345,20 +425,22 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassInstantiationErrorException(String className)
         {
-            report = new ClassInstantiationErrorReport();
+            ClassInstantiationErrorReport report = new ClassInstantiationErrorReport();
             report.setClassName(className);
+            this.report = report;
         }
 
         public ClassInstantiationErrorException(Throwable throwable, String className)
         {
             super(throwable);
-            report = new ClassInstantiationErrorReport();
+            ClassInstantiationErrorReport report = new ClassInstantiationErrorReport();
             report.setClassName(className);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         @Override
@@ -366,20 +448,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Attribute {@link #attribute} is not defined in class ${class}.
+     * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport implements Report, ApiFault
+    public static class ClassAttributeUndefinedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
-        private String attribute;
+        protected String className;
+
+        protected String attribute;
+
+        public ClassAttributeUndefinedReport()
+        {
+        }
+
+        public ClassAttributeUndefinedReport(String className, String attribute)
+        {
+            setClassName(className);
+            setAttribute(attribute);
+        }
 
         public String getClassName()
         {
@@ -400,6 +499,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.attribute = attribute;
         }
+
 
         @Override
         public Type getType()
@@ -414,10 +514,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassAttributeUndefinedException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Attribute ${attribute} is not defined in class ${class}.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
         }
@@ -426,9 +532,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeUndefinedReport}.
      */
-    public static class ClassAttributeUndefinedException extends AbstractReportException implements ApiFault
+    public static class ClassAttributeUndefinedException extends ReportRuntimeException implements ApiFault
     {
-        private ClassAttributeUndefinedReport report;
+        protected ClassAttributeUndefinedReport report;
 
         public ClassAttributeUndefinedException(ClassAttributeUndefinedReport report)
         {
@@ -443,27 +549,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeUndefinedException(String className, String attribute)
         {
-            report = new ClassAttributeUndefinedReport();
+            ClassAttributeUndefinedReport report = new ClassAttributeUndefinedReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public ClassAttributeUndefinedException(Throwable throwable, String className, String attribute)
         {
             super(throwable);
-            report = new ClassAttributeUndefinedReport();
+            ClassAttributeUndefinedReport report = new ClassAttributeUndefinedReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         public String getAttribute()
         {
-            return report.getAttribute();
+            return getReport().getAttribute();
         }
 
         @Override
@@ -471,22 +579,43 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Type mismatch of value in attribute {@link #attribute} in class ${class}. Present type ${given-type} doesn't match required type ${required-type}.
+     * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport implements Report, ApiFault
+    public static class ClassAttributeTypeMismatchReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
-        private String attribute;
-        private String requiredType;
-        private String presentType;
+        protected String className;
+
+        protected String attribute;
+
+        protected String requiredType;
+
+        protected String presentType;
+
+        public ClassAttributeTypeMismatchReport()
+        {
+        }
+
+        public ClassAttributeTypeMismatchReport(String className, String attribute, String requiredType, String presentType)
+        {
+            setClassName(className);
+            setAttribute(attribute);
+            setRequiredType(requiredType);
+            setPresentType(presentType);
+        }
 
         public String getClassName()
         {
@@ -527,6 +656,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.presentType = presentType;
         }
+
 
         @Override
         public Type getType()
@@ -541,10 +671,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassAttributeTypeMismatchException(this);
+        }
+
+        @Override
         public String getMessage()
         {
-            String message = "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${given-type} doesn't match required type ${required-type}.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            String message = "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${present-type} doesn't match required type ${required-type}.";
+            message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             message = message.replace("${required-type}", (requiredType == null ? "" : requiredType));
             message = message.replace("${present-type}", (presentType == null ? "" : presentType));
@@ -555,9 +691,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeTypeMismatchReport}.
      */
-    public static class ClassAttributeTypeMismatchException extends AbstractReportException implements ApiFault
+    public static class ClassAttributeTypeMismatchException extends ReportRuntimeException implements ApiFault
     {
-        private ClassAttributeTypeMismatchReport report;
+        protected ClassAttributeTypeMismatchReport report;
 
         public ClassAttributeTypeMismatchException(ClassAttributeTypeMismatchReport report)
         {
@@ -572,41 +708,43 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeTypeMismatchException(String className, String attribute, String requiredType, String presentType)
         {
-            report = new ClassAttributeTypeMismatchReport();
+            ClassAttributeTypeMismatchReport report = new ClassAttributeTypeMismatchReport();
             report.setClassName(className);
             report.setAttribute(attribute);
             report.setRequiredType(requiredType);
             report.setPresentType(presentType);
+            this.report = report;
         }
 
         public ClassAttributeTypeMismatchException(Throwable throwable, String className, String attribute, String requiredType, String presentType)
         {
             super(throwable);
-            report = new ClassAttributeTypeMismatchReport();
+            ClassAttributeTypeMismatchReport report = new ClassAttributeTypeMismatchReport();
             report.setClassName(className);
             report.setAttribute(attribute);
             report.setRequiredType(requiredType);
             report.setPresentType(presentType);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         public String getAttribute()
         {
-            return report.getAttribute();
+            return getReport().getAttribute();
         }
 
         public String getRequiredType()
         {
-            return report.getRequiredType();
+            return getReport().getRequiredType();
         }
 
         public String getPresentType()
         {
-            return report.getPresentType();
+            return getReport().getPresentType();
         }
 
         @Override
@@ -614,20 +752,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Attribute {@link #attribute} in class ${class} wasn't present but it is required.
+     * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport implements Report, ApiFault
+    public static class ClassAttributeRequiredReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
-        private String attribute;
+        protected String className;
+
+        protected String attribute;
+
+        public ClassAttributeRequiredReport()
+        {
+        }
+
+        public ClassAttributeRequiredReport(String className, String attribute)
+        {
+            setClassName(className);
+            setAttribute(attribute);
+        }
 
         public String getClassName()
         {
@@ -648,6 +803,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.attribute = attribute;
         }
+
 
         @Override
         public Type getType()
@@ -662,10 +818,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassAttributeRequiredException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Attribute ${attribute} in class ${class} wasn't present but it is required.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
         }
@@ -674,9 +836,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeRequiredReport}.
      */
-    public static class ClassAttributeRequiredException extends AbstractReportException implements ApiFault
+    public static class ClassAttributeRequiredException extends ReportRuntimeException implements ApiFault
     {
-        private ClassAttributeRequiredReport report;
+        protected ClassAttributeRequiredReport report;
 
         public ClassAttributeRequiredException(ClassAttributeRequiredReport report)
         {
@@ -691,27 +853,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeRequiredException(String className, String attribute)
         {
-            report = new ClassAttributeRequiredReport();
+            ClassAttributeRequiredReport report = new ClassAttributeRequiredReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public ClassAttributeRequiredException(Throwable throwable, String className, String attribute)
         {
             super(throwable);
-            report = new ClassAttributeRequiredReport();
+            ClassAttributeRequiredReport report = new ClassAttributeRequiredReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         public String getAttribute()
         {
-            return report.getAttribute();
+            return getReport().getAttribute();
         }
 
         @Override
@@ -719,20 +883,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Value for attribute {@link #attribute} in class ${class} was present but the attribute is read-only.
+     * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport implements Report, ApiFault
+    public static class ClassAttributeReadonlyReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
-        private String attribute;
+        protected String className;
+
+        protected String attribute;
+
+        public ClassAttributeReadonlyReport()
+        {
+        }
+
+        public ClassAttributeReadonlyReport(String className, String attribute)
+        {
+            setClassName(className);
+            setAttribute(attribute);
+        }
 
         public String getClassName()
         {
@@ -754,6 +935,7 @@ public class CommonReportSet extends AbstractReportSet
             this.attribute = attribute;
         }
 
+
         @Override
         public Type getType()
         {
@@ -767,10 +949,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassAttributeReadonlyException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
         }
@@ -779,9 +967,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeReadonlyReport}.
      */
-    public static class ClassAttributeReadonlyException extends AbstractReportException implements ApiFault
+    public static class ClassAttributeReadonlyException extends ReportRuntimeException implements ApiFault
     {
-        private ClassAttributeReadonlyReport report;
+        protected ClassAttributeReadonlyReport report;
 
         public ClassAttributeReadonlyException(ClassAttributeReadonlyReport report)
         {
@@ -796,27 +984,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassAttributeReadonlyException(String className, String attribute)
         {
-            report = new ClassAttributeReadonlyReport();
+            ClassAttributeReadonlyReport report = new ClassAttributeReadonlyReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public ClassAttributeReadonlyException(Throwable throwable, String className, String attribute)
         {
             super(throwable);
-            report = new ClassAttributeReadonlyReport();
+            ClassAttributeReadonlyReport report = new ClassAttributeReadonlyReport();
             report.setClassName(className);
             report.setAttribute(attribute);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         public String getAttribute()
         {
-            return report.getAttribute();
+            return getReport().getAttribute();
         }
 
         @Override
@@ -824,20 +1014,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Collection {@link #collection} in class ${class} wasn't present or was empty but it is required.
+     * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport implements Report, ApiFault
+    public static class ClassCollectionRequiredReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String className;
-        private String collection;
+        protected String className;
+
+        protected String collection;
+
+        public ClassCollectionRequiredReport()
+        {
+        }
+
+        public ClassCollectionRequiredReport(String className, String collection)
+        {
+            setClassName(className);
+            setCollection(collection);
+        }
 
         public String getClassName()
         {
@@ -859,6 +1066,7 @@ public class CommonReportSet extends AbstractReportSet
             this.collection = collection;
         }
 
+
         @Override
         public Type getType()
         {
@@ -872,10 +1080,16 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ClassCollectionRequiredException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Collection ${collection} in class ${class} wasn't present or was empty but it is required.";
-            message = message.replace("${className}", (className == null ? "" : className));
+            message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${collection}", (collection == null ? "" : collection));
             return message;
         }
@@ -884,9 +1098,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassCollectionRequiredReport}.
      */
-    public static class ClassCollectionRequiredException extends AbstractReportException implements ApiFault
+    public static class ClassCollectionRequiredException extends ReportRuntimeException implements ApiFault
     {
-        private ClassCollectionRequiredReport report;
+        protected ClassCollectionRequiredReport report;
 
         public ClassCollectionRequiredException(ClassCollectionRequiredReport report)
         {
@@ -901,27 +1115,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public ClassCollectionRequiredException(String className, String collection)
         {
-            report = new ClassCollectionRequiredReport();
+            ClassCollectionRequiredReport report = new ClassCollectionRequiredReport();
             report.setClassName(className);
             report.setCollection(collection);
+            this.report = report;
         }
 
         public ClassCollectionRequiredException(Throwable throwable, String className, String collection)
         {
             super(throwable);
-            report = new ClassCollectionRequiredReport();
+            ClassCollectionRequiredReport report = new ClassCollectionRequiredReport();
             report.setClassName(className);
             report.setCollection(collection);
+            this.report = report;
         }
 
         public String getClassName()
         {
-            return report.getClassName();
+            return getReport().getClassName();
         }
 
         public String getCollection()
         {
-            return report.getCollection();
+            return getReport().getCollection();
         }
 
         @Override
@@ -929,19 +1145,34 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport implements Report, ApiFault
+    public static class CollectionItemNullReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String collection;
+        protected String collection;
+
+        public CollectionItemNullReport()
+        {
+        }
+
+        public CollectionItemNullReport(String collection)
+        {
+            setCollection(collection);
+        }
 
         public String getCollection()
         {
@@ -952,6 +1183,7 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.collection = collection;
         }
+
 
         @Override
         public Type getType()
@@ -966,6 +1198,12 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new CollectionItemNullException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Null item cannot be present in collection ${collection}.";
@@ -977,9 +1215,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link CollectionItemNullReport}.
      */
-    public static class CollectionItemNullException extends AbstractReportException implements ApiFault
+    public static class CollectionItemNullException extends ReportRuntimeException implements ApiFault
     {
-        private CollectionItemNullReport report;
+        protected CollectionItemNullReport report;
 
         public CollectionItemNullException(CollectionItemNullReport report)
         {
@@ -994,20 +1232,22 @@ public class CommonReportSet extends AbstractReportSet
 
         public CollectionItemNullException(String collection)
         {
-            report = new CollectionItemNullReport();
+            CollectionItemNullReport report = new CollectionItemNullReport();
             report.setCollection(collection);
+            this.report = report;
         }
 
         public CollectionItemNullException(Throwable throwable, String collection)
         {
             super(throwable);
-            report = new CollectionItemNullReport();
+            CollectionItemNullReport report = new CollectionItemNullReport();
             report.setCollection(collection);
+            this.report = report;
         }
 
         public String getCollection()
         {
-            return report.getCollection();
+            return getReport().getCollection();
         }
 
         @Override
@@ -1015,21 +1255,40 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Collection {@link #collection} contains item of type ${present-type} which dosn't match the required type ${required-type}.
+     * Collection {@link #collection} contains item of type {@link #presentType} which dosn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport implements Report, ApiFault
+    public static class CollectionItemTypeMismatchReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String collection;
-        private String requiredType;
-        private String presentType;
+        protected String collection;
+
+        protected String requiredType;
+
+        protected String presentType;
+
+        public CollectionItemTypeMismatchReport()
+        {
+        }
+
+        public CollectionItemTypeMismatchReport(String collection, String requiredType, String presentType)
+        {
+            setCollection(collection);
+            setRequiredType(requiredType);
+            setPresentType(presentType);
+        }
 
         public String getCollection()
         {
@@ -1061,6 +1320,7 @@ public class CommonReportSet extends AbstractReportSet
             this.presentType = presentType;
         }
 
+
         @Override
         public Type getType()
         {
@@ -1071,6 +1331,12 @@ public class CommonReportSet extends AbstractReportSet
         public int getCode()
         {
             return COLLECTION_ITEM_TYPE_MISMATCH_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new CollectionItemTypeMismatchException(this);
         }
 
         @Override
@@ -1087,9 +1353,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link CollectionItemTypeMismatchReport}.
      */
-    public static class CollectionItemTypeMismatchException extends AbstractReportException implements ApiFault
+    public static class CollectionItemTypeMismatchException extends ReportRuntimeException implements ApiFault
     {
-        private CollectionItemTypeMismatchReport report;
+        protected CollectionItemTypeMismatchReport report;
 
         public CollectionItemTypeMismatchException(CollectionItemTypeMismatchReport report)
         {
@@ -1104,34 +1370,36 @@ public class CommonReportSet extends AbstractReportSet
 
         public CollectionItemTypeMismatchException(String collection, String requiredType, String presentType)
         {
-            report = new CollectionItemTypeMismatchReport();
+            CollectionItemTypeMismatchReport report = new CollectionItemTypeMismatchReport();
             report.setCollection(collection);
             report.setRequiredType(requiredType);
             report.setPresentType(presentType);
+            this.report = report;
         }
 
         public CollectionItemTypeMismatchException(Throwable throwable, String collection, String requiredType, String presentType)
         {
             super(throwable);
-            report = new CollectionItemTypeMismatchReport();
+            CollectionItemTypeMismatchReport report = new CollectionItemTypeMismatchReport();
             report.setCollection(collection);
             report.setRequiredType(requiredType);
             report.setPresentType(presentType);
+            this.report = report;
         }
 
         public String getCollection()
         {
-            return report.getCollection();
+            return getReport().getCollection();
         }
 
         public String getRequiredType()
         {
-            return report.getRequiredType();
+            return getReport().getRequiredType();
         }
 
         public String getPresentType()
         {
-            return report.getPresentType();
+            return getReport().getPresentType();
         }
 
         @Override
@@ -1139,20 +1407,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Entity {@link #entity} with identifier ${id} was not found.
+     * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport implements Report, ApiFault
+    public static class EntityNotFoundReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String entity;
-        private String id;
+        protected String entity;
+
+        protected String id;
+
+        public EntityNotFoundReport()
+        {
+        }
+
+        public EntityNotFoundReport(String entity, String id)
+        {
+            setEntity(entity);
+            setId(id);
+        }
 
         public String getEntity()
         {
@@ -1174,6 +1459,7 @@ public class CommonReportSet extends AbstractReportSet
             this.id = id;
         }
 
+
         @Override
         public Type getType()
         {
@@ -1184,6 +1470,12 @@ public class CommonReportSet extends AbstractReportSet
         public int getCode()
         {
             return ENTITY_NOT_FOUND_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new EntityNotFoundException(this);
         }
 
         @Override
@@ -1199,9 +1491,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityNotFoundReport}.
      */
-    public static class EntityNotFoundException extends AbstractReportException implements ApiFault
+    public static class EntityNotFoundException extends ReportRuntimeException implements ApiFault
     {
-        private EntityNotFoundReport report;
+        protected EntityNotFoundReport report;
 
         public EntityNotFoundException(EntityNotFoundReport report)
         {
@@ -1216,27 +1508,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotFoundException(String entity, String id)
         {
-            report = new EntityNotFoundReport();
+            EntityNotFoundReport report = new EntityNotFoundReport();
             report.setEntity(entity);
             report.setId(id);
+            this.report = report;
         }
 
         public EntityNotFoundException(Throwable throwable, String entity, String id)
         {
             super(throwable);
-            report = new EntityNotFoundReport();
+            EntityNotFoundReport report = new EntityNotFoundReport();
             report.setEntity(entity);
             report.setId(id);
+            this.report = report;
         }
 
         public String getEntity()
         {
-            return report.getEntity();
+            return getReport().getEntity();
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         @Override
@@ -1244,20 +1538,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Entity {@link #entity} validation failed: ${reason}
+     * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport implements Report, ApiFault
+    public static class EntityInvalidReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String entity;
-        private String reason;
+        protected String entity;
+
+        protected String reason;
+
+        public EntityInvalidReport()
+        {
+        }
+
+        public EntityInvalidReport(String entity, String reason)
+        {
+            setEntity(entity);
+            setReason(reason);
+        }
 
         public String getEntity()
         {
@@ -1279,6 +1590,7 @@ public class CommonReportSet extends AbstractReportSet
             this.reason = reason;
         }
 
+
         @Override
         public Type getType()
         {
@@ -1289,6 +1601,12 @@ public class CommonReportSet extends AbstractReportSet
         public int getCode()
         {
             return ENTITY_INVALID_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new EntityInvalidException(this);
         }
 
         @Override
@@ -1304,9 +1622,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityInvalidReport}.
      */
-    public static class EntityInvalidException extends AbstractReportException implements ApiFault
+    public static class EntityInvalidException extends ReportRuntimeException implements ApiFault
     {
-        private EntityInvalidReport report;
+        protected EntityInvalidReport report;
 
         public EntityInvalidException(EntityInvalidReport report)
         {
@@ -1321,27 +1639,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityInvalidException(String entity, String reason)
         {
-            report = new EntityInvalidReport();
+            EntityInvalidReport report = new EntityInvalidReport();
             report.setEntity(entity);
             report.setReason(reason);
+            this.report = report;
         }
 
         public EntityInvalidException(Throwable throwable, String entity, String reason)
         {
             super(throwable);
-            report = new EntityInvalidReport();
+            EntityInvalidReport report = new EntityInvalidReport();
             report.setEntity(entity);
             report.setReason(reason);
+            this.report = report;
         }
 
         public String getEntity()
         {
-            return report.getEntity();
+            return getReport().getEntity();
         }
 
         public String getReason()
         {
-            return report.getReason();
+            return getReport().getReason();
         }
 
         @Override
@@ -1349,20 +1669,37 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Entity {@link #entity} with identifier ${id} cannot be deleted because it is still referenced.
+     * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport implements Report, ApiFault
+    public static class EntityNotDeletableReferencedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String entity;
-        private String id;
+        protected String entity;
+
+        protected String id;
+
+        public EntityNotDeletableReferencedReport()
+        {
+        }
+
+        public EntityNotDeletableReferencedReport(String entity, String id)
+        {
+            setEntity(entity);
+            setId(id);
+        }
 
         public String getEntity()
         {
@@ -1384,6 +1721,7 @@ public class CommonReportSet extends AbstractReportSet
             this.id = id;
         }
 
+
         @Override
         public Type getType()
         {
@@ -1394,6 +1732,12 @@ public class CommonReportSet extends AbstractReportSet
         public int getCode()
         {
             return ENTITY_NOT_DELETABLE_REFERENCED_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new EntityNotDeletableReferencedException(this);
         }
 
         @Override
@@ -1409,9 +1753,9 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityNotDeletableReferencedReport}.
      */
-    public static class EntityNotDeletableReferencedException extends AbstractReportException implements ApiFault
+    public static class EntityNotDeletableReferencedException extends ReportRuntimeException implements ApiFault
     {
-        private EntityNotDeletableReferencedReport report;
+        protected EntityNotDeletableReferencedReport report;
 
         public EntityNotDeletableReferencedException(EntityNotDeletableReferencedReport report)
         {
@@ -1426,27 +1770,29 @@ public class CommonReportSet extends AbstractReportSet
 
         public EntityNotDeletableReferencedException(String entity, String id)
         {
-            report = new EntityNotDeletableReferencedReport();
+            EntityNotDeletableReferencedReport report = new EntityNotDeletableReferencedReport();
             report.setEntity(entity);
             report.setId(id);
+            this.report = report;
         }
 
         public EntityNotDeletableReferencedException(Throwable throwable, String entity, String id)
         {
             super(throwable);
-            report = new EntityNotDeletableReferencedReport();
+            EntityNotDeletableReferencedReport report = new EntityNotDeletableReferencedReport();
             report.setEntity(entity);
             report.setId(id);
+            this.report = report;
         }
 
         public String getEntity()
         {
-            return report.getEntity();
+            return getReport().getEntity();
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         @Override
@@ -1454,11 +1800,16 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
         }
     }
 }

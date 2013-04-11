@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -11,8 +12,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -67,9 +67,9 @@ public class AuthorizationServiceImpl extends Component
 
     /**
      * @param entityId of entity which should be checked for existence
-     * @throws FaultException
+     * @throws CommonReportSet.EntityNotFoundException
      */
-    private void checkEntityExistence(EntityIdentifier entityId) throws FaultException
+    private void checkEntityExistence(EntityIdentifier entityId) throws CommonReportSet.EntityNotFoundException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -85,7 +85,6 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
-            throws FaultException
     {
         String requesterUserId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
@@ -117,7 +116,6 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public void deleteAclRecord(SecurityToken token, String aclRecordId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
@@ -147,7 +145,6 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
         cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
@@ -160,7 +157,6 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role)
-            throws FaultException
     {
         String requesterUserId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
@@ -191,7 +187,7 @@ public class AuthorizationServiceImpl extends Component
     }
 
     @Override
-    public Collection<Permission> listPermissions(SecurityToken token, String entityId) throws FaultException
+    public Collection<Permission> listPermissions(SecurityToken token, String entityId)
     {
         String userId = authorization.validate(token);
 
@@ -203,19 +199,17 @@ public class AuthorizationServiceImpl extends Component
 
     @Override
     public UserInformation getUser(SecurityToken token, String userId)
-            throws FaultException
     {
         authorization.validate(token);
-        return Authorization.getInstance().getUserInformation(userId);
+        return authorization.getUserInformation(userId);
     }
 
     @Override
     public Collection<UserInformation> listUsers(SecurityToken token, String filter)
-            throws FaultException
     {
         authorization.validate(token);
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (UserInformation userInformation : Authorization.getInstance().listUserInformation()) {
+        for (UserInformation userInformation : authorization.listUserInformation()) {
             StringBuilder filterData = null;
             if (filter != null) {
                 filterData = new StringBuilder();
@@ -235,7 +229,7 @@ public class AuthorizationServiceImpl extends Component
     }
 
     @Override
-    public void setEntityUser(SecurityToken token, String entityId, String newUserId) throws FaultException
+    public void setEntityUser(SecurityToken token, String entityId, String newUserId)
     {
         String userId = authorization.validate(token);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
@@ -291,7 +285,7 @@ public class AuthorizationServiceImpl extends Component
                 authorizationManager.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
             }
             else {
-                throw new FaultException("The user cannot be set for entity of type "
+                throw new RuntimeException("The user cannot be set for entity of type "
                         + entity.getClass().getSimpleName() + ".");
             }
             entityManager.getTransaction().commit();

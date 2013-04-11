@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.rpc.StructType;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import jade.content.Concept;
 
 import java.util.List;

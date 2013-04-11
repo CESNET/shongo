@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -12,7 +13,6 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
-import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -101,10 +101,10 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link RoomSetting}
      * @return {@link RoomSetting} with given {@code id}
-     * @throws FaultException when the {@link RoomSetting} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link RoomSetting} doesn't exist
      */
     @Transient
-    private RoomSetting getRoomSettingById(Long id) throws FaultException
+    private RoomSetting getRoomSettingById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (RoomSetting roomSetting : roomSettings) {
             if (roomSetting.getId().equals(id)) {
@@ -154,10 +154,10 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws FaultException when the {@link AliasSpecification} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link AliasSpecification} doesn't exist
      */
     @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws FaultException
+    private AliasSpecification getAliasSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             if (aliasSpecification.getId().equals(id)) {
@@ -259,7 +259,6 @@ public class RoomSpecification extends Specification implements ReservationTaskP
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;

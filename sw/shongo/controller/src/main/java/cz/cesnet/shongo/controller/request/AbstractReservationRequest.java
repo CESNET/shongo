@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.FaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -264,9 +264,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * Validate {@link AbstractReservationRequest}.
      *
-     * @throws FaultException
+     * @throws CommonReportSet.EntityInvalidException
      */
-    public void validate() throws FaultException
+    public void validate() throws CommonReportSet.EntityInvalidException
     {
     }
 
@@ -274,21 +274,21 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * Validate given slot {@code duration} if it is longer than 0 seconds.
      *
      * @param duration to be validated
-     * @throws FaultException
+     * @throws ControllerReportSet.ReservationRequestEmptyDurationException
      */
-    protected static void validateSlotDuration(Period duration) throws FaultException
+    protected static void validateSlotDuration(Period duration)
+            throws ControllerReportSet.ReservationRequestEmptyDurationException
     {
         if (duration.equals(new Period())) {
-            FaultSet.throwReservationRequestEmptyDurationFault();
+            throw new ControllerReportSet.ReservationRequestEmptyDurationException();
         }
     }
 
     /**
      * @return converted {@link AbstractReservationRequest}
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
-     * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi()
     {
         cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
         toApi(api);
@@ -300,11 +300,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @param entityManager
      * @return new instance of {@link AbstractReservationRequest} from
      *         {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
-     * @throws FaultException
      */
     public static AbstractReservationRequest createFromApi(
             cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
-            throws FaultException
     {
         AbstractReservationRequest reservationRequest;
         if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
@@ -329,7 +327,6 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
-            throws FaultException
     {
         api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
@@ -350,10 +347,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      *
      * @param api
      * @param entityManager
-     * @throws FaultException
      */
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
-            throws FaultException
     {
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PURPOSE)) {
             setPurpose(api.getPurpose());

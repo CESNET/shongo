@@ -1,13 +1,13 @@
 package cz.cesnet.shongo;
 
-import cz.cesnet.shongo.report.AbstractReportException;
+import cz.cesnet.shongo.report.ReportException;
 
 /**
  * TODO:
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class JadeException extends AbstractReportException
+public abstract class JadeException extends ReportException
 {
     /**
      * Constructor.

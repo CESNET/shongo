@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.api.FaultSet;
 import cz.cesnet.shongo.api.rpc.AtomicType;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.joda.time.*;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
@@ -43,7 +41,7 @@ public class Converter
      * @param property specifies target type for conversion
      * @return given {@code value} converted to type specified by given {@code property}
      */
-    public static Object convert(Object value, Property property) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Property property)
     {
         return convert(value, property.getType(), property.getValueAllowedTypes(), property, DEFAULT_OPTIONS);
     }
@@ -51,7 +49,7 @@ public class Converter
     /**
      * @see #convert(Object, Property)
      */
-    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Class targetType)
     {
         return convert(value, targetType, null, null, DEFAULT_OPTIONS);
     }
@@ -60,7 +58,6 @@ public class Converter
      * @see #convert(Object, Property)
      */
     public static Object convert(Object value, Class targetType, Class[] targetAllowedTypes)
-            throws IllegalArgumentException, FaultException
     {
         return convert(value, targetType, targetAllowedTypes, null, DEFAULT_OPTIONS);
 
@@ -74,9 +71,8 @@ public class Converter
      * @param value   to be converted
      * @param options {@link Options}
      * @return converted given {@code value}
-     * @throws FaultException if the conversion failed
      */
-    public static Object convertFromBasic(Object value, Options options) throws FaultException
+    public static Object convertFromBasic(Object value, Options options)
     {
         return convertFromBasic(value, Object.class, options);
     }
@@ -91,15 +87,13 @@ public class Converter
      * @param targetType to which the given {@code value} should be converted
      * @param options    {@link Options}
      * @return converted given {@code value} to given {@code targetType}
-     * @throws FaultException if the conversion failed
      */
-    public static Object convertFromBasic(Object value, Class targetType, Options options) throws FaultException
+    public static Object convertFromBasic(Object value, Class targetType, Options options)
     {
         Class valueType = value.getClass();
         int valueTypeFlags = TypeFlags.get(valueType);
         if (!TypeFlags.isBasic(valueTypeFlags)) {
-            throw new IllegalArgumentException(
-                    String.format("Type '%s' isn't basic." + value.getClass().getCanonicalName()));
+            throw new ConverterException("Type '%s' isn't basic." + value.getClass().getCanonicalName());
         }
         if (value instanceof Map) {
             Map map = (Map) value;
@@ -120,7 +114,7 @@ public class Converter
      * @param options {@link Options}
      * @return converted given {@code value} to {@link TypeFlags#BASIC} type
      */
-    public static Object convertToBasic(Object value, Options options) throws FaultException
+    public static Object convertToBasic(Object value, Options options)
     {
         if (value == null) {
             return value;
@@ -188,9 +182,8 @@ public class Converter
      * @param object  to be converted
      * @param options see {@link Options}
      * @return map which contains object's properties
-     * @throws FaultException when the conversion fails
      */
-    private static Map convertObjectToMap(Object object, Options options) throws FaultException
+    private static Map convertObjectToMap(Object object, Options options)
     {
         ChangesTracking changesTrackingObject =
                 ((object instanceof ChangesTracking.Changeable) ?
@@ -201,7 +194,8 @@ public class Converter
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(object.getClass(), propertyName);
             if (property == null) {
-                throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
+                throw new ConverterException("Cannot get property '%s' from class '%s'.",
+                        propertyName, object.getClass());
             }
 
             // Skip read-only properties
@@ -264,9 +258,8 @@ public class Converter
      * @param targetType target type for conversion
      * @param options    see {@link Options}
      * @return new instance of given {@code targetType} that is filled by attributes from given {@code map}
-     * @throws FaultException when the conversion fails
      */
-    private static Object convertMapToObject(Map map, Class targetType, Options options) throws FaultException
+    private static Object convertMapToObject(Map map, Class targetType, Options options)
     {
         // Null or empty map means "null" object
         if (map == null || map.size() == 0) {
@@ -281,10 +274,10 @@ public class Converter
                     targetType = getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    FaultSet.throwClassUndefinedFault(className);
+                    throw new CommonReportSet.ClassUndefinedException(className);
                 }
                 if (!declaredType.isAssignableFrom(targetType)) {
-                    throw new FaultException("Cannot convert map to object of class '%s'"
+                    throw new ConverterException("Cannot convert map to object of class '%s'"
                             + " because map specifies not assignable class '%s'.",
                             getClassShortName(declaredType), className);
                 }
@@ -296,7 +289,7 @@ public class Converter
                 object = targetType.newInstance();
             }
             catch (Exception exception) {
-                FaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
+                throw new CommonReportSet.ClassInstantiationErrorException(targetType.getSimpleName());
             }
 
             ChangesTracking changesTrackingObject =
@@ -311,7 +304,7 @@ public class Converter
             // Fill each property that is present in map
             for (Object key : map.keySet()) {
                 if (!(key instanceof String)) {
-                    throw new FaultException("Map must contain only string keys.");
+                    throw new ConverterException("Map must contain only string keys.");
                 }
                 String propertyName = (String) key;
                 Object value = map.get(key);
@@ -323,7 +316,8 @@ public class Converter
 
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
                 if (property.isReadOnly() && !options.isLoadReadOnly()) {
-                    FaultSet.throwClassAttributeReadonlyFault(object.getClass().getSimpleName(), propertyName);
+                    throw new CommonReportSet.ClassAttributeReadonlyException(
+                            object.getClass().getSimpleName(), propertyName);
                 }
 
                 // Set changes for items
@@ -364,7 +358,7 @@ public class Converter
                         else {
                             givenType = givenType.getClass().getSimpleName();
                         }
-                        FaultSet.throwClassAttributeTypeMismatchFault(
+                        throw new CommonReportSet.ClassAttributeTypeMismatchException(
                                 object.getClass().getSimpleName(), propertyName,
                                 requiredType.getClass().getSimpleName(), givenType.toString());
                     }
@@ -391,10 +385,9 @@ public class Converter
      * @param options           see {@link Options}
      * @return {@link Map} containing changes for given {@code value} or null when no changes are present
      *         (the changes are also converted to {@link TypeFlags#BASIC} types)
-     * @throws FaultException when the method fails
      */
     private static Map<String, Object> getValueItemChanges(Object value,
-            ChangesTracking.CollectionChanges collectionChanges, Options options) throws FaultException
+            ChangesTracking.CollectionChanges collectionChanges, Options options)
     {
         // Map of changes
         Map<String, Object> mapValueItemChanges = new HashMap<String, Object>();
@@ -425,8 +418,7 @@ public class Converter
                     newItems.add(item);
                 }
                 else if (collectionChanges.isItemDeleted(item)) {
-                    throw new RuntimeException(
-                            "Item has been marked as delete but not removed from the collection.");
+                    throw new ConverterException("Item has been marked as delete but not removed from the collection.");
                 }
                 else {
                     modifiedItems.add(item);
@@ -471,10 +463,9 @@ public class Converter
      * @param changesTracking {@link ChangesTracking} to which the changes should be filled
      * @param options         see {@link Options}
      * @return value which should be set to the given {@code property} (converted from{@link TypeFlags#BASIC} types)
-     * @throws FaultException when the method fails
      */
     private static Object setValueItemChanges(Object value, Property property, ChangesTracking changesTracking,
-            Options options) throws FaultException
+            Options options)
     {
         Map changes = (Map) value;
 
@@ -569,11 +560,9 @@ public class Converter
      * @param options            see {@link Options}
      * @return converted value
      * @throws IllegalArgumentException when the value cannot be converted to specified type
-     * @throws FaultException           when the conversion fails from some reason
      */
     private static Object convert(Object value, Class targetType, Class[] targetAllowedTypes, Property property,
             Options options)
-            throws IllegalArgumentException, FaultException
     {
         // Null values aren't converted
         if (value == null) {
@@ -645,7 +634,7 @@ public class Converter
                 for (Object item : collectionValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        FaultSet.throwCollectionItemNullFault(property.getName());
+                        throw new CommonReportSet.CollectionItemNullException(property.getName());
                     }
                     collection.add(item);
                 }
@@ -681,7 +670,7 @@ public class Converter
                     return ClassHelper.getClassFromShortName(className);
                 }
                 catch (ClassNotFoundException exception) {
-                    FaultSet.throwClassUndefinedFault(className);
+                    throw new CommonReportSet.ClassUndefinedException(className);
                 }
             }
             // If boolean is required
@@ -703,7 +692,7 @@ public class Converter
                     atomicType = (AtomicType) targetType.newInstance();
                 }
                 catch (Exception exception) {
-                    FaultSet.throwClassInstantiationErrorFault(targetType.getSimpleName());
+                    throw new CommonReportSet.ClassInstantiationErrorException(targetType.getSimpleName());
                 }
                 atomicType.fromString((String) value);
                 return atomicType;
@@ -745,7 +734,7 @@ public class Converter
                 for (int index = 0; index < arrayValue.length; index++) {
                     Object item = convert(arrayValue[index], componentType, targetAllowedTypes, null, options);
                     if (item == null) {
-                        FaultSet.throwCollectionItemNullFault(property.getName());
+                        throw new CommonReportSet.CollectionItemNullException(property.getName());
                     }
                     newArray[index] = item;
                 }
@@ -759,7 +748,7 @@ public class Converter
                 for (Object item : arrayValue) {
                     item = convert(item, Object.class, targetAllowedTypes, null, options);
                     if (item == null) {
-                        FaultSet.throwCollectionItemNullFault(property.getName());
+                        throw new CommonReportSet.CollectionItemNullException(property.getName());
                     }
                     collection.add(item);
                 }
@@ -770,8 +759,8 @@ public class Converter
         else if (value instanceof Map) {
             return convertMapToObject((Map) value, targetType, options);
         }
-        throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
-                value.getClass().getCanonicalName(), targetType.getCanonicalName()));
+        throw new ConverterException("Cannot convert value of type '%s' to '%s'.",
+                value.getClass().getCanonicalName(), targetType.getCanonicalName());
     }
 
     /**
@@ -780,7 +769,6 @@ public class Converter
      * @see #convert(Object, Class, Class[], Property, Options)
      */
     private static Object convert(Object value, Property property, Options options)
-            throws IllegalArgumentException, FaultException
     {
         return convert(value, property.getType(), property.getValueAllowedTypes(), property, options);
     }
@@ -817,39 +805,35 @@ public class Converter
          * @param value
          * @param enumClass
          * @return enum value for given string from specified enum class
-         * @throws FaultRuntimeException when converting fails
+         * @throws CommonReportSet.TypeIllegalValueException
          */
         public static <T extends Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
-                throws FaultRuntimeException
         {
             try {
                 return Enum.valueOf(enumClass, value);
             }
             catch (IllegalArgumentException exception) {
-                throw new FaultRuntimeException(exception,
-                        FaultSet.createTypeIllegalValueFault(getClassShortName(enumClass), value));
+                throw new CommonReportSet.TypeIllegalValueException(getClassShortName(enumClass), value);
             }
         }
 
         /**
          * @param value
          * @return parsed date/time from string
-         * @throws FaultRuntimeException when parsing fails
+         * @throws CommonReportSet.TypeIllegalValueException,
          */
-        public static DateTime convertStringToDateTime(String value) throws FaultRuntimeException
+        public static DateTime convertStringToDateTime(String value)
         {
             DateTime dateTime;
             try {
                 dateTime = ISODateTimeFormat.dateTimeParser().parseDateTime(value);
             }
             catch (Exception exception) {
-                throw new FaultRuntimeException(exception,
-                        FaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
+                throw new CommonReportSet.TypeIllegalValueException(DateTime.class.getSimpleName(), value);
             }
             final long millis = dateTime.getMillis();
             if (millis < DATETIME_INFINITY_START_MILLIS || millis > DATETIME_INFINITY_END_MILLIS) {
-                throw new FaultRuntimeException(
-                        FaultSet.createTypeIllegalValueFault(DateTime.class.getSimpleName(), value));
+                throw new CommonReportSet.TypeIllegalValueException(DateTime.class.getSimpleName(), value);
             }
             return dateTime;
         }
@@ -857,9 +841,9 @@ public class Converter
         /**
          * @param value
          * @return parsed partial date/time from string
-         * @throws FaultRuntimeException when parsing fails
+         * @throws CommonReportSet.TypeIllegalValueException
          */
-        public static ReadablePartial convertStringToReadablePartial(String value) throws FaultRuntimeException
+        public static ReadablePartial convertStringToReadablePartial(String value)
         {
             Pattern pattern = Pattern.compile("(\\d{1,4})(-\\d{1,2})?(-\\d{1,2})?(T\\d{1,2})?(:\\d{1,2})?");
             Matcher matcher = pattern.matcher(value);
@@ -878,24 +862,22 @@ public class Converter
                 }
                 return partial;
             }
-            throw new FaultRuntimeException(
-                    FaultSet.createTypeIllegalValueFault("PartialDateTime", value));
+            throw new CommonReportSet.TypeIllegalValueException("PartialDateTime", value);
         }
 
         /**
          * @param value
          * @return parsed period from string
-         * @throws FaultRuntimeException when parsing fails
+         * @throws CommonReportSet.TypeIllegalValueException
          */
-        public static Period convertStringToPeriod(String value) throws FaultRuntimeException
+        public static Period convertStringToPeriod(String value)
         {
             try {
                 Period period = Period.parse(value);
                 return period;
             }
             catch (Exception exception) {
-                throw new FaultRuntimeException(exception,
-                        FaultSet.createTypeIllegalValueFault(Period.class.getSimpleName(), value));
+                throw new CommonReportSet.TypeIllegalValueException(Period.class.getSimpleName(), value);
             }
         }
 
@@ -911,9 +893,9 @@ public class Converter
          *
          * @param value string value to be converted to the {@link Interval}
          * @return parsed {@link Interval} from given {@code value}
-         * @throws FaultRuntimeException when parsing fails
+         * @throws CommonReportSet.TypeIllegalValueException
          */
-        public static Interval convertStringToInterval(String value) throws FaultRuntimeException
+        public static Interval convertStringToInterval(String value)
         {
             String[] parts = value.split("/");
             if (parts.length == 2) {
@@ -937,12 +919,10 @@ public class Converter
                     return new Interval(start, end);
                 }
                 catch (IllegalArgumentException exception) {
-                    throw new FaultRuntimeException(exception,
-                            FaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
+                    throw new CommonReportSet.TypeIllegalValueException(Interval.class.getSimpleName(), value);
                 }
             }
-            throw new FaultRuntimeException(
-                    FaultSet.createTypeIllegalValueFault(Interval.class.getSimpleName(), value));
+            throw new CommonReportSet.TypeIllegalValueException(Interval.class.getSimpleName(), value);
         }
 
         /**

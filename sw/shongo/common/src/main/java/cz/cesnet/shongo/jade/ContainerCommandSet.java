@@ -79,7 +79,7 @@ public class ContainerCommandSet extends CommandSet
                             formatter.print(start), formatter.print(middle), formatter.print(end));
                 }
                 else {
-                    Shell.printError("Ping failed: %s", sendLocalCommand.getFailure().getMessage());
+                    Shell.printError("Ping failed: %s", sendLocalCommand.getJadeReport().getMessage());
                 }
             }
         });

@@ -32,9 +32,22 @@ public class ${scope.getClassName()} extends AbstractReportSet
     {
     <#list report.getDeclaredParams() as param>
         protected ${param.getVariableType()} ${param.getVariableName()};
-    </#list>
-    <#list report.getDeclaredParams() as param>
 
+    </#list>
+        public ${report.getClassName()}()
+        {
+        }
+
+    <#if (report.getParams()?size > 0)>
+        public ${report.getClassName()}(<@formatMethodParameters parameters=report.getParams()/>)
+        {
+            <#list report.getParams() as param>
+            set${param.getMethodName()}(${param.getVariableName()});
+            </#list>
+        }
+
+    </#if>
+    <#list report.getDeclaredParams() as param>
         <#if report.isPersistent()>
         ${param.getPersistenceAnnotation()}
         </#if>
@@ -47,6 +60,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         {
             this.${param.getVariableName()} = ${param.getVariableName()};
         }
+
     </#list>
     <#if (report.getDeclaredParams()?size > 0)>
 
@@ -69,6 +83,12 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public int getCode()
         {
             return ${report.getConstantName()};
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ${report.getExceptionClassName()}(this);
         }
         </#if>
 
@@ -159,6 +179,12 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public int getCode()
         {
             return report.getCode();
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
         }
         </#if>
     }

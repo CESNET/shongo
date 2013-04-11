@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.fault.FaultException;
 import junitx.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -74,10 +75,8 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
             fail("Reservation request should not exist.");
         }
-        catch (FaultException exception) {
-            FaultSet.EntityNotFoundFault entityNotFoundFault =
-                    exception.getFault(FaultSet.EntityNotFoundFault.class);
-            assertEquals(id, entityNotFoundFault.getId());
+        catch (CommonReportSet.EntityNotFoundException exception) {
+            assertEquals(id, exception.getId());
         }
     }
 
@@ -130,10 +129,8 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
             fail("Reservation request should not exist.");
         }
-        catch (FaultException exception) {
-            FaultSet.EntityNotFoundFault entityNotFoundFault =
-                    exception.getFault(FaultSet.EntityNotFoundFault.class);
-            assertEquals(id, entityNotFoundFault.getId());
+        catch (CommonReportSet.EntityNotFoundException exception) {
+            assertEquals(id, exception.getId());
         }
     }
 
@@ -239,8 +236,7 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
             Assert.fail("Exception of empty duration should has been thrown.");
         }
-        catch (FaultException exception) {
-            Assert.assertEquals(FaultSet.ReservationRequestEmptyDurationFault.class, exception.getFaultClass());
+        catch (ControllerReportSet.ReservationRequestEmptyDurationException exception) {
         }
     }
 
@@ -323,7 +319,7 @@ public class ReservationManagementTest extends AbstractControllerTest
             getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, new RoomSpecification(), interval);
             fail("Room specification should not be able to be checked for availability for now.");
         }
-        catch (FaultException exception) {
+        catch (RuntimeException exception) {
         }
     }
 }

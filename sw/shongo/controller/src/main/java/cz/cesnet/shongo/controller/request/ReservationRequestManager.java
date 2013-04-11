@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
@@ -8,7 +9,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -99,10 +99,8 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param abstractReservationRequest to be deleted from the database
      * @return {@link AclRecord}s which should be deleted
-     * @throws FaultException when the deletion failed
      */
     public void delete(AbstractReservationRequest abstractReservationRequest, AuthorizationManager authorizationManager)
-            throws FaultException
     {
         authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
 
@@ -144,9 +142,9 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws FaultException when the {@link AbstractReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
      */
-    public AbstractReservationRequest get(Long reservationRequestId) throws FaultException
+    public AbstractReservationRequest get(Long reservationRequestId) throws CommonReportSet.EntityNotFoundException
     {
         try {
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
@@ -164,9 +162,10 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws FaultException when the {@link ReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequest(Long reservationRequestId) throws FaultException
+    public ReservationRequest getReservationRequest(Long reservationRequestId)
+            throws CommonReportSet.EntityNotFoundException
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
@@ -184,9 +183,10 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws FaultException when the {@link ReservationRequestSet} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
      */
-    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws FaultException
+    public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId)
+            throws CommonReportSet.EntityNotFoundException
     {
         try {
             ReservationRequestSet reservationRequestSet = entityManager.createQuery(
@@ -276,16 +276,12 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws FaultException when the {@link ReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId) throws FaultException
+    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId)
+            throws CommonReportSet.EntityNotFoundException
     {
-        try {
-            return getReservationRequest(reservationRequestId);
-        }
-        catch (FaultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
-        }
+        return getReservationRequest(reservationRequestId);
     }
 
     /**
@@ -404,15 +400,14 @@ public class ReservationRequestManager extends AbstractManager
      * @param personId           id for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
      * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link cz.cesnet.shongo.controller.common.Person}
      *         with given id
-     * @throws FaultException when {@link PersonSpecification} isn't found
+     * @throws RuntimeException when {@link PersonSpecification} isn't found
      */
     private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
-            throws FaultException
     {
         Specification specification = reservationRequest.getSpecification();
         PersonSpecification personSpecification = getPersonSpecification(specification, personId);
         if (personSpecification == null) {
-            throw new FaultException(
+            throw new RuntimeException(
                     String.format("Requested person '%d' doesn't exist in specification '%d'!",
                             personId, specification.getId()));
         }
@@ -424,15 +419,15 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
-     * @throws FaultException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
+     * @throws RuntimeException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
      *                        the video conference yet
      */
-    public void acceptPersonRequest(Long reservationRequestId, Long personId) throws FaultException
+    public void acceptPersonRequest(Long reservationRequestId, Long personId)
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
         if (personSpecification.getEndpointSpecification() == null) {
-            throw new FaultException(
+            throw new RuntimeException(
                     String.format("Cannot accept person '%d' to compartment request '%d' because person hasn't "
                             + "selected the device be which he will connect to the compartment yet!",
                             personId, reservationRequestId));
@@ -448,7 +443,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
      */
-    public void rejectPersonRequest(Long reservationRequestId, Long personId) throws FaultException
+    public void rejectPersonRequest(Long reservationRequestId, Long personId)
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
@@ -463,7 +458,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param endpointSpecification
      */
     public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
-            EndpointSpecification endpointSpecification) throws FaultException
+            EndpointSpecification endpointSpecification)
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);

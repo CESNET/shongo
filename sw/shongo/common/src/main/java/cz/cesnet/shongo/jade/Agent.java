@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.CommonOntology;
 import cz.cesnet.shongo.api.jade.PingCommand;
-import cz.cesnet.shongo.fault.jade.CommandAgentNotStarted;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.core.AID;
@@ -99,7 +99,7 @@ public class Agent extends jade.core.Agent
     {
         SendLocalCommand sendLocalCommand = new SendLocalCommand(receiverAgentName, command);
         if (!isStarted()) {
-            sendLocalCommand.setFailed(new CommandAgentNotStarted(getAID().getLocalName()));
+            sendLocalCommand.setFailed(new JadeReportSet.AgentNotStartedReport(getAID().getLocalName()));
             return sendLocalCommand;
         }
         performLocalCommand(sendLocalCommand);

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.report.*;
 
 /**
@@ -19,13 +18,25 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int IDENTIFIER_INVALID_TYPE_REPORT = 0;
     public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 0;
     public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 0;
+
     /**
-     * ACL Role {@link #role} is invalid for entity ${entity}.
+     * ACL Role {@link #role} is invalid for entity {@link #entity}.
      */
-    public static class AclInvalidRoleReport implements Report, ApiFault
+    public static class AclInvalidRoleReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String entity;
-        private String role;
+        protected String entity;
+
+        protected String role;
+
+        public AclInvalidRoleReport()
+        {
+        }
+
+        public AclInvalidRoleReport(String entity, String role)
+        {
+            setEntity(entity);
+            setRole(role);
+        }
 
         public String getEntity()
         {
@@ -47,6 +58,7 @@ public class ControllerReportSet extends AbstractReportSet
             this.role = role;
         }
 
+
         @Override
         public Type getType()
         {
@@ -57,6 +69,12 @@ public class ControllerReportSet extends AbstractReportSet
         public int getCode()
         {
             return ACL_INVALID_ROLE_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new AclInvalidRoleException(this);
         }
 
         @Override
@@ -72,9 +90,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link AclInvalidRoleReport}.
      */
-    public static class AclInvalidRoleException extends AbstractReportException implements ApiFault
+    public static class AclInvalidRoleException extends ReportRuntimeException implements ApiFault
     {
-        private AclInvalidRoleReport report;
+        protected AclInvalidRoleReport report;
 
         public AclInvalidRoleException(AclInvalidRoleReport report)
         {
@@ -89,27 +107,29 @@ public class ControllerReportSet extends AbstractReportSet
 
         public AclInvalidRoleException(String entity, String role)
         {
-            report = new AclInvalidRoleReport();
+            AclInvalidRoleReport report = new AclInvalidRoleReport();
             report.setEntity(entity);
             report.setRole(role);
+            this.report = report;
         }
 
         public AclInvalidRoleException(Throwable throwable, String entity, String role)
         {
             super(throwable);
-            report = new AclInvalidRoleReport();
+            AclInvalidRoleReport report = new AclInvalidRoleReport();
             report.setEntity(entity);
             report.setRole(role);
+            this.report = report;
         }
 
         public String getEntity()
         {
-            return report.getEntity();
+            return getReport().getEntity();
         }
 
         public String getRole()
         {
-            return report.getRole();
+            return getReport().getRole();
         }
 
         @Override
@@ -117,19 +137,34 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Invalid security token {@link #token}.
      */
-    public static class SecurityInvalidTokenReport implements Report, ApiFault
+    public static class SecurityInvalidTokenReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String token;
+        protected String token;
+
+        public SecurityInvalidTokenReport()
+        {
+        }
+
+        public SecurityInvalidTokenReport(String token)
+        {
+            setToken(token);
+        }
 
         public String getToken()
         {
@@ -140,6 +175,7 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.token = token;
         }
+
 
         @Override
         public Type getType()
@@ -154,6 +190,12 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new SecurityInvalidTokenException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Invalid security token ${token}.";
@@ -165,9 +207,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link SecurityInvalidTokenReport}.
      */
-    public static class SecurityInvalidTokenException extends AbstractReportException implements ApiFault
+    public static class SecurityInvalidTokenException extends ReportRuntimeException implements ApiFault
     {
-        private SecurityInvalidTokenReport report;
+        protected SecurityInvalidTokenReport report;
 
         public SecurityInvalidTokenException(SecurityInvalidTokenReport report)
         {
@@ -182,20 +224,22 @@ public class ControllerReportSet extends AbstractReportSet
 
         public SecurityInvalidTokenException(String token)
         {
-            report = new SecurityInvalidTokenReport();
+            SecurityInvalidTokenReport report = new SecurityInvalidTokenReport();
             report.setToken(token);
+            this.report = report;
         }
 
         public SecurityInvalidTokenException(Throwable throwable, String token)
         {
             super(throwable);
-            report = new SecurityInvalidTokenReport();
+            SecurityInvalidTokenReport report = new SecurityInvalidTokenReport();
             report.setToken(token);
+            this.report = report;
         }
 
         public String getToken()
         {
-            return report.getToken();
+            return getReport().getToken();
         }
 
         @Override
@@ -203,19 +247,34 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * You are not authorized to {@link #action}.
      */
-    public static class SecurityNotAuthorizedReport implements Report, ApiFault
+    public static class SecurityNotAuthorizedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String action;
+        protected String action;
+
+        public SecurityNotAuthorizedReport()
+        {
+        }
+
+        public SecurityNotAuthorizedReport(String action)
+        {
+            setAction(action);
+        }
 
         public String getAction()
         {
@@ -226,6 +285,7 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.action = action;
         }
+
 
         @Override
         public Type getType()
@@ -240,6 +300,12 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new SecurityNotAuthorizedException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "You are not authorized to ${action}.";
@@ -251,9 +317,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link SecurityNotAuthorizedReport}.
      */
-    public static class SecurityNotAuthorizedException extends AbstractReportException implements ApiFault
+    public static class SecurityNotAuthorizedException extends ReportRuntimeException implements ApiFault
     {
-        private SecurityNotAuthorizedReport report;
+        protected SecurityNotAuthorizedReport report;
 
         public SecurityNotAuthorizedException(SecurityNotAuthorizedReport report)
         {
@@ -268,20 +334,22 @@ public class ControllerReportSet extends AbstractReportSet
 
         public SecurityNotAuthorizedException(String action)
         {
-            report = new SecurityNotAuthorizedReport();
+            SecurityNotAuthorizedReport report = new SecurityNotAuthorizedReport();
             report.setAction(action);
+            this.report = report;
         }
 
         public SecurityNotAuthorizedException(Throwable throwable, String action)
         {
             super(throwable);
-            report = new SecurityNotAuthorizedReport();
+            SecurityNotAuthorizedReport report = new SecurityNotAuthorizedReport();
             report.setAction(action);
+            this.report = report;
         }
 
         public String getAction()
         {
-            return report.getAction();
+            return getReport().getAction();
         }
 
         @Override
@@ -289,21 +357,40 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Command {@link #command} for device ${device} failed: ${error}
+     * Command {@link #command} for device {@link #device} failed: {@link #jadeReport}
      */
-    public static class DeviceCommandFailedReport implements Report, ApiFault
+    public static class DeviceCommandFailedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String device;
-        private String command;
-        private CommandFailure error;
+        protected String device;
+
+        protected String command;
+
+        protected cz.cesnet.shongo.JadeReport jadeReport;
+
+        public DeviceCommandFailedReport()
+        {
+        }
+
+        public DeviceCommandFailedReport(String device, String command, cz.cesnet.shongo.JadeReport jadeReport)
+        {
+            setDevice(device);
+            setCommand(command);
+            setJadeReport(jadeReport);
+        }
 
         public String getDevice()
         {
@@ -325,15 +412,16 @@ public class ControllerReportSet extends AbstractReportSet
             this.command = command;
         }
 
-        public CommandFailure getError()
+        public cz.cesnet.shongo.JadeReport getJadeReport()
         {
-            return error;
+            return jadeReport;
         }
 
-        public void setError(CommandFailure error)
+        public void setJadeReport(cz.cesnet.shongo.JadeReport jadeReport)
         {
-            this.error = error;
+            this.jadeReport = jadeReport;
         }
+
 
         @Override
         public Type getType()
@@ -348,12 +436,18 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new DeviceCommandFailedException(this);
+        }
+
+        @Override
         public String getMessage()
         {
-            String message = "Command ${command} for device ${device} failed: ${error}";
+            String message = "Command ${command} for device ${device} failed: ${jade-report}";
             message = message.replace("${device}", (device == null ? "" : device));
             message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${error}", (error == null ? "" : error.toString()));
+            message = message.replace("${jade-report}", (jadeReport == null ? "" : jadeReport.toString()));
             return message;
         }
     }
@@ -361,9 +455,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link DeviceCommandFailedReport}.
      */
-    public static class DeviceCommandFailedException extends AbstractReportException implements ApiFault
+    public static class DeviceCommandFailedException extends ReportRuntimeException implements ApiFault
     {
-        private DeviceCommandFailedReport report;
+        protected DeviceCommandFailedReport report;
 
         public DeviceCommandFailedException(DeviceCommandFailedReport report)
         {
@@ -376,36 +470,38 @@ public class ControllerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public DeviceCommandFailedException(String device, String command, CommandFailure error)
+        public DeviceCommandFailedException(String device, String command, cz.cesnet.shongo.JadeReport jadeReport)
         {
-            report = new DeviceCommandFailedReport();
+            DeviceCommandFailedReport report = new DeviceCommandFailedReport();
             report.setDevice(device);
             report.setCommand(command);
-            report.setError(error);
+            report.setJadeReport(jadeReport);
+            this.report = report;
         }
 
-        public DeviceCommandFailedException(Throwable throwable, String device, String command, CommandFailure error)
+        public DeviceCommandFailedException(Throwable throwable, String device, String command, cz.cesnet.shongo.JadeReport jadeReport)
         {
             super(throwable);
-            report = new DeviceCommandFailedReport();
+            DeviceCommandFailedReport report = new DeviceCommandFailedReport();
             report.setDevice(device);
             report.setCommand(command);
-            report.setError(error);
+            report.setJadeReport(jadeReport);
+            this.report = report;
         }
 
         public String getDevice()
         {
-            return report.getDevice();
+            return getReport().getDevice();
         }
 
         public String getCommand()
         {
-            return report.getCommand();
+            return getReport().getCommand();
         }
 
-        public CommandFailure getError()
+        public cz.cesnet.shongo.JadeReport getJadeReport()
         {
-            return report.getError();
+            return getReport().getJadeReport();
         }
 
         @Override
@@ -413,19 +509,34 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Identifier {@link #id} is invalid.
      */
-    public static class IdentifierInvalidReport implements Report, ApiFault
+    public static class IdentifierInvalidReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String id;
+        protected String id;
+
+        public IdentifierInvalidReport()
+        {
+        }
+
+        public IdentifierInvalidReport(String id)
+        {
+            setId(id);
+        }
 
         public String getId()
         {
@@ -436,6 +547,7 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.id = id;
         }
+
 
         @Override
         public Type getType()
@@ -450,6 +562,12 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new IdentifierInvalidException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Identifier ${id} is invalid.";
@@ -461,9 +579,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidReport}.
      */
-    public static class IdentifierInvalidException extends AbstractReportException implements ApiFault
+    public static class IdentifierInvalidException extends ReportRuntimeException implements ApiFault
     {
-        private IdentifierInvalidReport report;
+        protected IdentifierInvalidReport report;
 
         public IdentifierInvalidException(IdentifierInvalidReport report)
         {
@@ -478,20 +596,22 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidException(String id)
         {
-            report = new IdentifierInvalidReport();
+            IdentifierInvalidReport report = new IdentifierInvalidReport();
             report.setId(id);
+            this.report = report;
         }
 
         public IdentifierInvalidException(Throwable throwable, String id)
         {
             super(throwable);
-            report = new IdentifierInvalidReport();
+            IdentifierInvalidReport report = new IdentifierInvalidReport();
             report.setId(id);
+            this.report = report;
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         @Override
@@ -499,20 +619,37 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Identifier {@link #id} doesn't belong to domain ${required-domain}.
+     * Identifier {@link #id} doesn't belong to domain {@link #requiredDomain}.
      */
-    public static class IdentifierInvalidDomainReport implements Report, ApiFault
+    public static class IdentifierInvalidDomainReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String id;
-        private String requiredDomain;
+        protected String id;
+
+        protected String requiredDomain;
+
+        public IdentifierInvalidDomainReport()
+        {
+        }
+
+        public IdentifierInvalidDomainReport(String id, String requiredDomain)
+        {
+            setId(id);
+            setRequiredDomain(requiredDomain);
+        }
 
         public String getId()
         {
@@ -534,6 +671,7 @@ public class ControllerReportSet extends AbstractReportSet
             this.requiredDomain = requiredDomain;
         }
 
+
         @Override
         public Type getType()
         {
@@ -544,6 +682,12 @@ public class ControllerReportSet extends AbstractReportSet
         public int getCode()
         {
             return IDENTIFIER_INVALID_DOMAIN_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new IdentifierInvalidDomainException(this);
         }
 
         @Override
@@ -559,9 +703,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidDomainReport}.
      */
-    public static class IdentifierInvalidDomainException extends AbstractReportException implements ApiFault
+    public static class IdentifierInvalidDomainException extends ReportRuntimeException implements ApiFault
     {
-        private IdentifierInvalidDomainReport report;
+        protected IdentifierInvalidDomainReport report;
 
         public IdentifierInvalidDomainException(IdentifierInvalidDomainReport report)
         {
@@ -576,27 +720,29 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidDomainException(String id, String requiredDomain)
         {
-            report = new IdentifierInvalidDomainReport();
+            IdentifierInvalidDomainReport report = new IdentifierInvalidDomainReport();
             report.setId(id);
             report.setRequiredDomain(requiredDomain);
+            this.report = report;
         }
 
         public IdentifierInvalidDomainException(Throwable throwable, String id, String requiredDomain)
         {
             super(throwable);
-            report = new IdentifierInvalidDomainReport();
+            IdentifierInvalidDomainReport report = new IdentifierInvalidDomainReport();
             report.setId(id);
             report.setRequiredDomain(requiredDomain);
+            this.report = report;
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         public String getRequiredDomain()
         {
-            return report.getRequiredDomain();
+            return getReport().getRequiredDomain();
         }
 
         @Override
@@ -604,20 +750,37 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
-     * Identifier {@link #id} isn't of required type ${required-type}.
+     * Identifier {@link #id} isn't of required type {@link #requiredType}.
      */
-    public static class IdentifierInvalidTypeReport implements Report, ApiFault
+    public static class IdentifierInvalidTypeReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String id;
-        private String requiredType;
+        protected String id;
+
+        protected String requiredType;
+
+        public IdentifierInvalidTypeReport()
+        {
+        }
+
+        public IdentifierInvalidTypeReport(String id, String requiredType)
+        {
+            setId(id);
+            setRequiredType(requiredType);
+        }
 
         public String getId()
         {
@@ -639,6 +802,7 @@ public class ControllerReportSet extends AbstractReportSet
             this.requiredType = requiredType;
         }
 
+
         @Override
         public Type getType()
         {
@@ -649,6 +813,12 @@ public class ControllerReportSet extends AbstractReportSet
         public int getCode()
         {
             return IDENTIFIER_INVALID_TYPE_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new IdentifierInvalidTypeException(this);
         }
 
         @Override
@@ -664,9 +834,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidTypeReport}.
      */
-    public static class IdentifierInvalidTypeException extends AbstractReportException implements ApiFault
+    public static class IdentifierInvalidTypeException extends ReportRuntimeException implements ApiFault
     {
-        private IdentifierInvalidTypeReport report;
+        protected IdentifierInvalidTypeReport report;
 
         public IdentifierInvalidTypeException(IdentifierInvalidTypeReport report)
         {
@@ -681,27 +851,29 @@ public class ControllerReportSet extends AbstractReportSet
 
         public IdentifierInvalidTypeException(String id, String requiredType)
         {
-            report = new IdentifierInvalidTypeReport();
+            IdentifierInvalidTypeReport report = new IdentifierInvalidTypeReport();
             report.setId(id);
             report.setRequiredType(requiredType);
+            this.report = report;
         }
 
         public IdentifierInvalidTypeException(Throwable throwable, String id, String requiredType)
         {
             super(throwable);
-            report = new IdentifierInvalidTypeReport();
+            IdentifierInvalidTypeReport report = new IdentifierInvalidTypeReport();
             report.setId(id);
             report.setRequiredType(requiredType);
+            this.report = report;
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         public String getRequiredType()
         {
-            return report.getRequiredType();
+            return getReport().getRequiredType();
         }
 
         @Override
@@ -709,19 +881,34 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Reservation request with identifier {@link #id} cannot be modified or deleted.
      */
-    public static class ReservationRequestNotModifiableReport implements Report, ApiFault
+    public static class ReservationRequestNotModifiableReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
-        private String id;
+        protected String id;
+
+        public ReservationRequestNotModifiableReport()
+        {
+        }
+
+        public ReservationRequestNotModifiableReport(String id)
+        {
+            setId(id);
+        }
 
         public String getId()
         {
@@ -732,6 +919,7 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.id = id;
         }
+
 
         @Override
         public Type getType()
@@ -746,6 +934,12 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ReservationRequestNotModifiableException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Reservation request with identifier ${id} cannot be modified or deleted.";
@@ -757,9 +951,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link ReservationRequestNotModifiableReport}.
      */
-    public static class ReservationRequestNotModifiableException extends AbstractReportException implements ApiFault
+    public static class ReservationRequestNotModifiableException extends ReportRuntimeException implements ApiFault
     {
-        private ReservationRequestNotModifiableReport report;
+        protected ReservationRequestNotModifiableReport report;
 
         public ReservationRequestNotModifiableException(ReservationRequestNotModifiableReport report)
         {
@@ -774,20 +968,22 @@ public class ControllerReportSet extends AbstractReportSet
 
         public ReservationRequestNotModifiableException(String id)
         {
-            report = new ReservationRequestNotModifiableReport();
+            ReservationRequestNotModifiableReport report = new ReservationRequestNotModifiableReport();
             report.setId(id);
+            this.report = report;
         }
 
         public ReservationRequestNotModifiableException(Throwable throwable, String id)
         {
             super(throwable);
-            report = new ReservationRequestNotModifiableReport();
+            ReservationRequestNotModifiableReport report = new ReservationRequestNotModifiableReport();
             report.setId(id);
+            this.report = report;
         }
 
         public String getId()
         {
-            return report.getId();
+            return getReport().getId();
         }
 
         @Override
@@ -795,18 +991,27 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
         }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
+
     /**
      * Reservation request time slot must not be empty.
      */
-    public static class ReservationRequestEmptyDurationReport implements Report, ApiFault
+    public static class ReservationRequestEmptyDurationReport extends cz.cesnet.shongo.JadeReport implements ApiFault
     {
+        public ReservationRequestEmptyDurationReport()
+        {
+        }
 
         @Override
         public Type getType()
@@ -821,6 +1026,12 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public Exception getException()
+        {
+            return new ReservationRequestEmptyDurationException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Reservation request time slot must not be empty.";
@@ -831,9 +1042,9 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link ReservationRequestEmptyDurationReport}.
      */
-    public static class ReservationRequestEmptyDurationException extends AbstractReportException implements ApiFault
+    public static class ReservationRequestEmptyDurationException extends ReportRuntimeException implements ApiFault
     {
-        private ReservationRequestEmptyDurationReport report;
+        protected ReservationRequestEmptyDurationReport report;
 
         public ReservationRequestEmptyDurationException(ReservationRequestEmptyDurationReport report)
         {
@@ -848,13 +1059,15 @@ public class ControllerReportSet extends AbstractReportSet
 
         public ReservationRequestEmptyDurationException()
         {
-            report = new ReservationRequestEmptyDurationReport();
+            ReservationRequestEmptyDurationReport report = new ReservationRequestEmptyDurationReport();
+            this.report = report;
         }
 
         public ReservationRequestEmptyDurationException(Throwable throwable)
         {
             super(throwable);
-            report = new ReservationRequestEmptyDurationReport();
+            ReservationRequestEmptyDurationReport report = new ReservationRequestEmptyDurationReport();
+            this.report = report;
         }
 
         @Override
@@ -862,11 +1075,16 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return report;
         }
-
         @Override
         public int getCode()
         {
             return report.getCode();
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
         }
     }
 }

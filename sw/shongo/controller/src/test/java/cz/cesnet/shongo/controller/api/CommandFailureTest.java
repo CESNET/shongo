@@ -9,18 +9,17 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ListRooms;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for {@link CommandFailure}s,
+ * Tests for {@link cz.cesnet.shongo.JadeReport}s,
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -42,7 +41,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(EntityIdentifier entityId) throws FaultException
+            protected String getAgentName(EntityIdentifier entityId)
             {
                 return "mcu";
             }
@@ -68,9 +67,7 @@ public class CommandFailureTest extends AbstractControllerTest
             getResourceControlService().listRooms(SECURITY_TOKEN_ROOT, mcuId);
             Assert.fail("Exception should be thrown.");
         }
-        catch (FaultException exception) {
-            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
+        catch (ControllerReportSet.DeviceCommandFailedException exception) {
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandNotSupported.class, deviceCommandFailedFault.getError().getClass());
         }
@@ -79,9 +76,7 @@ public class CommandFailureTest extends AbstractControllerTest
             getResourceControlService().createRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
-        catch (FaultException exception) {
-            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
+        catch (ControllerReportSet.DeviceCommandFailedException exception) {
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandError.class, deviceCommandFailedFault.getError().getClass());
         }
@@ -90,9 +85,7 @@ public class CommandFailureTest extends AbstractControllerTest
             getResourceControlService().modifyRoom(SECURITY_TOKEN_ROOT, mcuId, new Room());
             Assert.fail("Exception should be thrown.");
         }
-        catch (FaultException exception) {
-            FaultSet.DeviceCommandFailedFault deviceCommandFailedFault =
-                    exception.getFault(FaultSet.DeviceCommandFailedFault.class);
+        catch (ControllerReportSet.DeviceCommandFailedException exception) {
             // TODO: Implement command failure serialization
             //Assert.assertEquals(CommandUnknownFailure.class, deviceCommandFailedFault.getError().getClass());
         }

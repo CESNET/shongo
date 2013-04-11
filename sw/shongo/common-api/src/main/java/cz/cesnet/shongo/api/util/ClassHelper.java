@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.FaultSet;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
+import cz.cesnet.shongo.CommonReportSet;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -111,16 +109,17 @@ public class ClassHelper
     /**
      * @param type for the new instance
      * @return new instance of given {@code type}.
-     * @throws FaultException when class cannot be instanced
+     * @throws CommonReportSet.ClassInstantiationErrorException
+     *          when class cannot be instanced
      */
-    public static <T> T createInstanceFromClass(Class<T> type) throws FaultException
+    public static <T> T createInstanceFromClass(Class<T> type) throws CommonReportSet.ClassInstantiationErrorException
     {
         T instance = null;
         try {
             instance = type.newInstance();
         }
         catch (Exception exception) {
-            FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
+            throw new CommonReportSet.ClassInstantiationErrorException(exception, type.getSimpleName());
         }
         return instance;
     }
@@ -128,33 +127,18 @@ public class ClassHelper
     /**
      * @param type for the new instance
      * @return new instance of given {@code type}.
-     * @throws FaultRuntimeException when class cannot be instanced
+     * @throws CommonReportSet.ClassInstantiationErrorException
+     *          when class cannot be instanced
      */
-    public static <T> T createInstanceFromClassRuntime(Class<T> type)
-    {
-        T instance = null;
-        try {
-            instance = type.newInstance();
-        }
-        catch (Exception exception) {
-            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
-        }
-        return instance;
-    }
-
-    /**
-     * @param type for the new instance
-     * @return new instance of given {@code type}.
-     * @throws FaultRuntimeException when class cannot be instanced
-     */
-    public static <T, A> T createInstanceFromClassRuntime(Class<T> type, Class<A> argumentType, A argumentValue)
+    public static <T, A> T createInstanceFromClass(Class<T> type, Class<A> argumentType, A argumentValue)
+            throws CommonReportSet.ClassInstantiationErrorException
     {
         T instance = null;
         try {
             instance = type.getDeclaredConstructor(argumentType).newInstance(argumentValue);
         }
         catch (Exception exception) {
-            throw new FaultRuntimeException(FaultSet.createClassInstantiationErrorFault(type.getSimpleName()));
+            throw new CommonReportSet.ClassInstantiationErrorException(exception, type.getSimpleName());
         }
         return instance;
     }
@@ -173,9 +157,11 @@ public class ClassHelper
      * @param type type of {@link Collection}
      * @param size size of {@link Collection}
      * @return new instance of {@link Collection} of given size
-     * @throws FaultException
+     * @throws CommonReportSet.ClassInstantiationErrorException
+     *
      */
-    public static Collection<Object> createCollection(Class type, int size) throws FaultException
+    public static Collection<Object> createCollection(Class type, int size)
+            throws CommonReportSet.ClassInstantiationErrorException
     {
         if (List.class.isAssignableFrom(type)) {
             return new ArrayList<Object>(size);
@@ -186,6 +172,6 @@ public class ClassHelper
         else if (Collection.class.equals(type)) {
             return new ArrayList<Object>(size);
         }
-        return FaultSet.throwClassInstantiationErrorFault(type.getSimpleName());
+        throw new CommonReportSet.ClassInstantiationErrorException(type.getSimpleName());
     }
 }

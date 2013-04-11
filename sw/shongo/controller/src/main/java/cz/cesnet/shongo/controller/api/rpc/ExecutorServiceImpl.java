@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -62,7 +61,6 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public void deleteExecutable(SecurityToken token, String executableId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -104,7 +102,6 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -137,7 +134,6 @@ public class ExecutorServiceImpl extends Component
 
     @Override
     public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 

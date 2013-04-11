@@ -6,9 +6,8 @@ import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.fault.Fault;
-import cz.cesnet.shongo.fault.FaultMessage;
-import cz.cesnet.shongo.fault.FaultThrowable;
+import cz.cesnet.shongo.report.ApiFault;
+import cz.cesnet.shongo.report.ApiFaultMessage;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
@@ -166,14 +165,13 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     }
 
     /**
-     * @param faultThrowable
+     * @param apiFault
      * @return fault converted to {@link XmlRpcException}
      */
-    public static XmlRpcException convertException(FaultThrowable faultThrowable, Throwable throwable)
+    public static XmlRpcException convertException(ApiFault apiFault, Throwable throwable)
     {
-        Fault fault = faultThrowable.getFault();
-        FaultMessage faultMessage = FaultMessage.fromFault(fault);
-        XmlRpcException xmlRpcException = new XmlRpcException(fault.getCode(), faultMessage.toString(),
+        ApiFaultMessage apiFaultMessage = ApiFaultMessage.fromFault(apiFault);
+        XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getCode(), apiFaultMessage.toString(),
                 throwable.getCause());
         xmlRpcException.setStackTrace(throwable.getStackTrace());
         return xmlRpcException;
@@ -194,7 +192,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
 
 
     /**
-     * {@link ReflectiveXmlRpcHandler} with conversion of {@link cz.cesnet.shongo.fault.Fault} to {@link XmlRpcException}.
+     * {@link ReflectiveXmlRpcHandler} with conversion of {@link ApiFault} to {@link XmlRpcException}.
      */
     public static class Handler implements XmlRpcHandler
     {
@@ -334,10 +332,10 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     requestState = String.format("FAILED: %s", throwable.getMessage());
                     throw (XmlRpcException) throwable;
                 }
-                else if (throwable instanceof FaultThrowable) {
-                    FaultThrowable faultThrowable = (FaultThrowable) throwable;
-                    XmlRpcException xmlRpcException = RpcServer.convertException(faultThrowable, throwable);
-                    requestState = String.format("FAILED: %s", faultThrowable.getFault().getMessage());
+                else if (throwable instanceof ApiFault) {
+                    ApiFault apiFault = (ApiFault) throwable;
+                    XmlRpcException xmlRpcException = RpcServer.convertException(apiFault, throwable);
+                    requestState = String.format("FAILED: %s", apiFault.getMessage());
                     throw xmlRpcException;
                 }
                 requestState = String.format("FAILED: %s", throwable.getMessage());
@@ -491,13 +489,13 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         @Override
         protected Throwable convertThrowable(Throwable pError)
         {
-            if (pError instanceof FaultThrowable) {
-                return RpcServer.convertException((FaultThrowable) pError, pError);
+            if (pError instanceof ApiFault) {
+                return RpcServer.convertException((ApiFault) pError, pError);
             }
             if (pError instanceof RuntimeException || pError instanceof SAXException) {
                 Throwable cause = pError.getCause();
-                if (cause instanceof FaultThrowable) {
-                    return RpcServer.convertException((FaultThrowable) cause, cause);
+                if (cause instanceof ApiFault) {
+                    return RpcServer.convertException((ApiFault) cause, cause);
                 }
             }
             if (pError instanceof XmlRpcException) {

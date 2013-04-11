@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.fault.jade.CommandError;
-import cz.cesnet.shongo.fault.jade.CommandNotSupported;
-import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
@@ -163,13 +161,15 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                 catch (CommandUnsupportedException exception) {
                     logger.error(String.format("Unsupported command requested by '%s'.",
                             request.getSender().getName()), exception);
-                    ContentElement response = new Result(action, new CommandNotSupported());
+                    ContentElement response = new Result(action, new JadeReportSet.CommandNotSupportedReport(
+                            command.toString(), agent.getAID().getName()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (CommandException exception) {
                     logger.error(String.format("Command requested by '%s' has failed.",
                             request.getSender().getName()), exception);
-                    ContentElement response = new Result(action, new CommandError(exception.getMessage()));
+                    ContentElement response = new Result(action, new JadeReportSet.CommandFailedReport(
+                            command.toString(), agent.getAID().getName(), exception.getMessage()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (Throwable exception) {
@@ -179,7 +179,8 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                     if (exception.getCause() != null) {
                         message += " (" + exception.getCause().getMessage() + ")";
                     }
-                    ContentElement response = new Result(action, new CommandUnknownFailure(message));
+                    ContentElement response = new Result(action, new JadeReportSet.CommandUnknownErrorReport(
+                            command.toString(), message));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
             }

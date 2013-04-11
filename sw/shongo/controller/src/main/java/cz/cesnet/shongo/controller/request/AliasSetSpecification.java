@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -54,10 +54,10 @@ public class AliasSetSpecification extends Specification
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws FaultException when the {@link AliasSpecification} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link AliasSpecification} doesn't exist
      */
     @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws FaultException
+    private AliasSpecification getAliasSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             if (aliasSpecification.getId().equals(id)) {
@@ -174,7 +174,6 @@ public class AliasSetSpecification extends Specification
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;

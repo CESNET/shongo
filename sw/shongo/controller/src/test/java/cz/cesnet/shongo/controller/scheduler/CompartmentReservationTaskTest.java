@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import junitx.framework.Assert;
 import org.joda.time.Interval;
 import org.junit.After;

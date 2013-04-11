@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -73,7 +72,6 @@ public abstract class Capability extends PersistentObject
 
     /**
      * @return converted capability to API
-     * @throws FaultException
      */
     public final cz.cesnet.shongo.controller.api.Capability toApi()
     {
@@ -86,10 +84,8 @@ public abstract class Capability extends PersistentObject
      * @param api
      * @param entityManager
      * @return new instance of {@link Capability} from API
-     * @throws FaultException
      */
     public static Capability createFromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
-            throws FaultException
     {
         Capability capability;
         if (api instanceof cz.cesnet.shongo.controller.api.RoomProviderCapability) {
@@ -132,10 +128,8 @@ public abstract class Capability extends PersistentObject
      *
      * @param api
      * @param entityManager
-     * @throws FaultException
      */
     protected void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
-            throws FaultException
     {
     }
 }

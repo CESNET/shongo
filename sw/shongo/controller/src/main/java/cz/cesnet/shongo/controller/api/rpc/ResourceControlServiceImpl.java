@@ -16,7 +16,6 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.EntityManager;
@@ -83,63 +82,62 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceId)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         return (List<String>) performDeviceAction(deviceResourceId, agentName, new GetSupportedMethods());
     }
 
     @Override
-    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceId) throws FaultException
+    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         return (DeviceLoadInfo) performDeviceAction(deviceResourceId, agentName, new GetDeviceLoadInfo());
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceId, Alias alias) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceId, Alias alias)
     {
         String agentName = validate(token, deviceResourceId);
         return (String) performDeviceAction(deviceResourceId, agentName, new Dial(alias));
     }
 
     @Override
-    public void standBy(SecurityToken token, String deviceResourceId) throws FaultException
+    public void standBy(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new StandBy());
     }
 
     @Override
-    public void hangUp(SecurityToken token, String deviceResourceId, String callId) throws FaultException
+    public void hangUp(SecurityToken token, String deviceResourceId, String callId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new HangUp(callId));
     }
 
     @Override
-    public void hangUpAll(SecurityToken token, String deviceResourceId) throws FaultException
+    public void hangUpAll(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new HangUpAll());
     }
 
     @Override
-    public void rebootDevice(SecurityToken token, String deviceResourceId) throws FaultException
+    public void rebootDevice(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new RebootDevice());
     }
 
     @Override
-    public void mute(SecurityToken token, String deviceResourceId) throws FaultException
+    public void mute(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new Mute());
     }
 
     @Override
-    public void unmute(SecurityToken token, String deviceResourceId) throws FaultException
+    public void unmute(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new Unmute());
@@ -147,42 +145,41 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void setMicrophoneLevel(SecurityToken token, String deviceResourceId, int level)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new SetMicrophoneLevel(level));
     }
 
     @Override
-    public void setPlaybackLevel(SecurityToken token, String deviceResourceId, int level) throws FaultException
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceId, int level)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new SetPlaybackLevel(level));
     }
 
     @Override
-    public void enableVideo(SecurityToken token, String deviceResourceId) throws FaultException
+    public void enableVideo(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new EnableVideo());
     }
 
     @Override
-    public void disableVideo(SecurityToken token, String deviceResourceId) throws FaultException
+    public void disableVideo(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new DisableVideo());
     }
 
     @Override
-    public void startPresentation(SecurityToken token, String deviceResourceId) throws FaultException
+    public void startPresentation(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new StartPresentation());
     }
 
     @Override
-    public void stopPresentation(SecurityToken token, String deviceResourceId) throws FaultException
+    public void stopPresentation(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new StopPresentation());
@@ -190,7 +187,6 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         return (String) performDeviceAction(deviceResourceId, agentName, new DialParticipant(roomId, alias));
@@ -198,42 +194,42 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void disconnectParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId) throws FaultException
+            String roomUserId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new DisconnectParticipant(roomId, roomUserId));
     }
 
     @Override
-    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId) throws FaultException
+    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId)
     {
         String agentName = validate(token, deviceResourceId);
         return (Collection<RoomSummary>) performDeviceAction(deviceResourceId, agentName, new ListRooms());
     }
 
     @Override
-    public Room getRoom(SecurityToken token, String deviceResourceId, String roomId) throws FaultException
+    public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
         String agentName = validate(token, deviceResourceId);
         return (Room) performDeviceAction(deviceResourceId, agentName, new GetRoom(roomId));
     }
 
     @Override
-    public String createRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException
+    public String createRoom(SecurityToken token, String deviceResourceId, Room room)
     {
         String agentName = validate(token, deviceResourceId);
         return (String) performDeviceAction(deviceResourceId, agentName, new CreateRoom(room));
     }
 
     @Override
-    public String modifyRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException
+    public String modifyRoom(SecurityToken token, String deviceResourceId, Room room)
     {
         String agentName = validate(token, deviceResourceId);
         return (String) performDeviceAction(deviceResourceId, agentName, new ModifyRoom(room));
     }
 
     @Override
-    public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId) throws FaultException
+    public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new DeleteRoom(roomId));
@@ -241,7 +237,6 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         return (List<RoomUser>) performDeviceAction(deviceResourceId, agentName, new ListParticipants(roomId));
@@ -249,7 +244,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public RoomUser getParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId) throws FaultException
+            String roomUserId)
     {
         String agentName = validate(token, deviceResourceId);
         return (RoomUser) performDeviceAction(deviceResourceId, agentName, new GetParticipant(roomId, roomUserId));
@@ -257,7 +252,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void modifyParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, Map<String, Object> attributes) throws FaultException
+            String roomUserId, Map<String, Object> attributes)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new ModifyParticipant(roomId, roomUserId, attributes));
@@ -265,7 +260,6 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void muteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new MuteParticipant(roomId, roomUserId));
@@ -273,7 +267,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void unmuteParticipant(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId) throws FaultException
+            String roomUserId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new UnmuteParticipant(roomId, roomUserId));
@@ -281,7 +275,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void enableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId) throws FaultException
+            String roomUserId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new EnableParticipantVideo(roomId, roomUserId));
@@ -289,7 +283,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void disableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId) throws FaultException
+            String roomUserId)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new DisableParticipantVideo(roomId, roomUserId));
@@ -297,7 +291,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level) throws FaultException
+            String roomUserId, int level)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new SetParticipantMicrophoneLevel(roomId, roomUserId, level));
@@ -305,7 +299,7 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
-            String roomUserId, int level) throws FaultException
+            String roomUserId, int level)
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new SetParticipantPlaybackLevel(roomId, roomUserId, level));
@@ -313,7 +307,6 @@ public class ResourceControlServiceImpl extends Component
 
     @Override
     public void showMessage(SecurityToken token, String deviceResourceId, int duration, String text)
-            throws FaultException
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new ShowMessage(duration, text));
@@ -324,26 +317,23 @@ public class ResourceControlServiceImpl extends Component
      *
      * @param agentName on which the command should be performed
      * @param action    command to be performed by the device
-     * @throws FaultException
      */
     private Object performDeviceAction(String deviceResourceId, String agentName, ConnectorCommand action)
-            throws FaultException
     {
         SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, action);
         if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
             return sendLocalCommand.getResult();
         }
-        return ControllerFaultSet.throwDeviceCommandFailedFault(
-                deviceResourceId, action.toString(), sendLocalCommand.getFailure());
+        throw new ControllerReportSet.DeviceCommandFailedException(
+                deviceResourceId, action.toString(), sendLocalCommand.getJadeReport());
     }
 
     /**
      * @param token            to be validated against given {@code deviceResourceId}
      * @param deviceResourceId
      * @return agent name
-     * @throws FaultException
      */
-    private String validate(SecurityToken token, String deviceResourceId) throws FaultException
+    private String validate(SecurityToken token, String deviceResourceId)
     {
         String userId = authorization.validate(token);
         EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
@@ -361,9 +351,8 @@ public class ResourceControlServiceImpl extends Component
      *
      * @param entityId shongo-id of device agent of which to get
      * @return agent name of managed resource with given {@code deviceResourceId}
-     * @throws FaultException when resource doesn't exist or when is not managed
      */
-    protected String getAgentName(EntityIdentifier entityId) throws FaultException
+    protected String getAgentName(EntityIdentifier entityId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -374,6 +363,6 @@ public class ResourceControlServiceImpl extends Component
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
         }
-        throw new FaultException("Resource '%s' is not managed!", entityId.toId());
+        throw new RuntimeException(String.format("Resource '%s' is not managed!", entityId.toId()));
     }
 }

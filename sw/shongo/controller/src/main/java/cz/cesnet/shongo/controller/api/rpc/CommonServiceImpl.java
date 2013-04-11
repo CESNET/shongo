@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.fault.FaultException;
 import jade.core.AID;
 
 import javax.persistence.EntityManager;
@@ -81,7 +80,7 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public Collection<Domain> listDomains(SecurityToken token) throws FaultException
+    public Collection<Domain> listDomains(SecurityToken token)
     {
         authorization.validate(token);
 
@@ -91,7 +90,7 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public Collection<Connector> listConnectors(SecurityToken token) throws FaultException
+    public Collection<Connector> listConnectors(SecurityToken token)
     {
         authorization.validate(token);
 

@@ -7,8 +7,7 @@ import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -77,10 +76,9 @@ public abstract class ValueProvider extends PersistentObject
      * @param api
      * @param entityManager
      * @return new instance of {@link ValueProvider} from API
-     * @throws FaultException
      */
     public static ValueProvider createFromApi(cz.cesnet.shongo.controller.api.ValueProvider api,
-            Capability capability, EntityManager entityManager) throws FaultException
+            Capability capability, EntityManager entityManager)
     {
         ValueProvider valueProvider;
         if (api instanceof cz.cesnet.shongo.controller.api.ValueProvider.Pattern) {
@@ -114,10 +112,8 @@ public abstract class ValueProvider extends PersistentObject
      *
      * @param valueProviderApi
      * @param entityManager
-     * @throws FaultException
      */
     public void fromApi(cz.cesnet.shongo.controller.api.ValueProvider valueProviderApi, EntityManager entityManager)
-            throws FaultException
     {
     }
 
@@ -165,10 +161,9 @@ public abstract class ValueProvider extends PersistentObject
      * @param capability
      * @param entityManager
      * @return {@link ValueProvider}
-     * @throws FaultException
      */
     public static ValueProvider modifyFromApi(Object object, ValueProvider valueProvider, Capability capability,
-            EntityManager entityManager) throws FaultException
+            EntityManager entityManager)
     {
         if (object instanceof String) {
             Long resourceId = EntityIdentifier.parseId(
@@ -177,7 +172,8 @@ public abstract class ValueProvider extends PersistentObject
             Resource resource = resourceManager.get(resourceId);
             ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
             if (valueProviderCapability == null) {
-                throw new FaultException("Resource '%s' doesn't have value provider capability.", valueProvider);
+                throw new RuntimeException(String.format("Resource '%s' doesn't have value provider capability.",
+                        resourceId));
             }
             if (valueProvider != null) {
                 entityManager.remove(valueProvider);

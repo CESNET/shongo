@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.EntityManager;
 

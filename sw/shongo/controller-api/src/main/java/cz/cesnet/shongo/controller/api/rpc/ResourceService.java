@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceAllocation;
 import cz.cesnet.shongo.controller.api.ResourceSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import java.util.Collection;
@@ -30,8 +29,7 @@ public interface ResourceService extends Service
      * @return the created resource shongo-id
      */
     @API
-    public String createResource(SecurityToken token, Resource resource)
-            throws FaultException;
+    public String createResource(SecurityToken token, Resource resource);
 
     /**
      * Modifies a given resource.
@@ -43,8 +41,7 @@ public interface ResourceService extends Service
      * @param resource resource with attributes to be modified
      */
     @API
-    public void modifyResource(SecurityToken token, Resource resource)
-            throws FaultException;
+    public void modifyResource(SecurityToken token, Resource resource);
 
     /**
      * Deletes a given resource from Shongo management.
@@ -56,8 +53,7 @@ public interface ResourceService extends Service
      * @param resourceId shongo-id of the resource to delete
      */
     @API
-    public void deleteResource(SecurityToken token, String resourceId)
-            throws FaultException;
+    public void deleteResource(SecurityToken token, String resourceId);
 
     /**
      * Lists all Shongo-managed resources matching the filter.
@@ -68,8 +64,7 @@ public interface ResourceService extends Service
      * @return array of resource summaries
      */
     @API
-    Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
-            throws FaultException;
+    Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter);
 
     /**
      * Gets the complete resource object.
@@ -79,8 +74,7 @@ public interface ResourceService extends Service
      * @return the complete resource object
      */
     @API
-    public Resource getResource(SecurityToken token, String resourceId)
-            throws FaultException;
+    public Resource getResource(SecurityToken token, String resourceId);
 
     /**
      * Gets the information about resource allocations.
@@ -91,6 +85,5 @@ public interface ResourceService extends Service
      * @return allocation information of resource with given {@code resourceId} for given {@code interval}
      */
     @API
-    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
-            throws FaultException;
+    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval);
 }

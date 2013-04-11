@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -103,10 +103,10 @@ public class CompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link Specification}
      * @return {@link Specification} with given {@code id}
-     * @throws FaultException when the {@link Specification} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link Specification} doesn't exist
      */
     @Transient
-    private ParticipantSpecification getSpecificationById(Long id) throws FaultException
+    private ParticipantSpecification getSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (ParticipantSpecification specification : specifications) {
             if (specification.getId().equals(id)) {
@@ -249,7 +249,6 @@ public class CompartmentSpecification extends Specification
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;

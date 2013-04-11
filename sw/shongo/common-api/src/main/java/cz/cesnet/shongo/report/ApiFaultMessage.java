@@ -1,10 +1,9 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo.report;
 
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Property;
 import cz.cesnet.shongo.api.util.TypeFlags;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,7 +16,7 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class FaultMessage
+public class ApiFaultMessage
 {
     /**
      * String message.
@@ -32,7 +31,7 @@ public class FaultMessage
     /**
      * Constructor.
      */
-    public FaultMessage()
+    public ApiFaultMessage()
     {
     }
 
@@ -41,7 +40,7 @@ public class FaultMessage
      *
      * @param message to be constructed from
      */
-    public FaultMessage(String message)
+    public ApiFaultMessage(String message)
     {
         fromString(message);
     }
@@ -92,7 +91,7 @@ public class FaultMessage
         else if (value instanceof Class) {
             string = ClassHelper.getClassShortName((Class) value);
         }
-        else if (value instanceof CommandFailure) {
+        else if (value instanceof Report) {
             // TODO: Implement command failure serialization
             return;
         }
@@ -152,36 +151,30 @@ public class FaultMessage
     }
 
     /**
-     * Load {@link FaultMessage} from given {@code fault}.
+     * Load {@link cz.cesnet.shongo.report.ApiFaultMessage} from given {@code fault}.
      *
      * @param fault to load from
      */
-    public static FaultMessage fromFault(Fault fault)
+    public static ApiFaultMessage fromFault(ApiFault fault)
     {
-        FaultMessage content = new FaultMessage();
+        ApiFaultMessage content = new ApiFaultMessage();
         content.setMessage(fault.getMessage());
-        try {
-            Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass());
-            for (String propertyName : propertyNames) {
-                if (propertyName.equals("message") || propertyName.equals("code")) {
-                    continue;
-                }
-                content.setParameter(propertyName, Property.getPropertyValue(fault, propertyName));
+        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass());
+        for (String propertyName : propertyNames) {
+            if (propertyName.equals("message") || propertyName.equals("code")) {
+                continue;
             }
-        }
-        catch (FaultException exception) {
-            throw new RuntimeException(
-                    "Cannot get property value from fault '" + fault.getClass().getCanonicalName() + "'!", exception);
+            content.setParameter(propertyName, Property.getPropertyValue(fault, propertyName));
         }
         return content;
     }
 
     /**
-     * Store {@link FaultMessage} to given {@code fault}.
+     * Store {@link cz.cesnet.shongo.report.ApiFaultMessage} to given {@code fault}.
      *
      * @param fault to store to
      */
-    public void toFault(Fault fault)
+    public void toFault(ApiFault fault)
     {
         Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass());
         try {

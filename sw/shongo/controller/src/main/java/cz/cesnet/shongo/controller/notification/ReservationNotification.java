@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.*;
 
@@ -75,7 +74,7 @@ public class ReservationNotification extends Notification
                 aliasReservations.add(aliasReservation.toApi());
             }
         }
-        catch (FaultException exception) {
+        catch (Exception exception) {
             InternalErrorHandler.handle(InternalErrorType.NOTIFICATION,
                     "Failed to create reservation notification", exception);
         }

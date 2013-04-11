@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.FaultSet;
-import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.CommonReportSet;
 import jade.content.Concept;
 
 import java.io.IOException;
@@ -271,9 +270,10 @@ public class ChangesTracking implements Concept
      * arrays and collections (recursive).
      *
      * @param object
-     * @throws FaultException
+     * @throws CommonReportSet.ClassCollectionRequiredException
+     *          CommonReportSet.ClassAttributeRequiredException
      */
-    public static void setupNewEntity(Object object) throws FaultException
+    public static void setupNewEntity(Object object)
     {
         if (object instanceof Changeable) {
             ChangesTracking changesTrackingObject = ((Changeable) object).getChangesTracking();
@@ -291,7 +291,7 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
-                        FaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
+                        throw new CommonReportSet.ClassCollectionRequiredException(type.getSimpleName(), propertyName);
                     }
                     for (Object item : array) {
                         setupNewEntity(item);
@@ -300,14 +300,14 @@ public class ChangesTracking implements Concept
                 else if (TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
-                        FaultSet.throwClassCollectionRequiredFault(type.getSimpleName(), propertyName);
+                        throw new CommonReportSet.ClassCollectionRequiredException(type.getSimpleName(), propertyName);
                     }
                     for (Object item : collection) {
                         setupNewEntity(item);
                     }
                 }
                 else if (required && value == null) {
-                    FaultSet.throwClassAttributeRequiredFault(type.getSimpleName(), propertyName);
+                    throw new CommonReportSet.ClassAttributeRequiredException(type.getSimpleName(), propertyName);
                 }
             }
         }

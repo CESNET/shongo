@@ -1,0 +1,85 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<entity-mappings
+        xmlns="http://java.sun.com/xml/ns/persistence/orm"
+        version="2.0">
+
+    <description>Entities which are not defined in the controller module</description>
+
+    <entity class="cz.cesnet.shongo.JadeReport" access="FIELD">
+        <inheritance strategy="SINGLE_TABLE"/>
+        <attributes>
+            <id name="id">
+                <column column-definition="BIGINT"/>
+                <generated-value strategy="AUTO"/>
+            </id>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$UnknownErrorReport" access="FIELD">
+        <attributes>
+            <basic name="description"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$AgentNotFoundReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$AgentNotStartedReport" access="FIELD">
+        <attributes>
+            <basic name="senderAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandAbstractErrorReport" access="FIELD">
+        <attributes>
+            <basic name="command"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandUnknownErrorReport" access="FIELD">
+        <attributes>
+            <basic name="description"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandTimeoutReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandNotSupportedReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandRefusedReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandNotUnderstoodReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandFailedReport" access="FIELD">
+        <attributes>
+            <basic name="receiverAgent"/>
+            <basic name="reason"/>
+        </attributes>
+    </entity>
+
+    <entity class="cz.cesnet.shongo.JadeReportSet$CommandResultDecodingFailedReport" access="FIELD">
+        <attributes>
+            <basic name="senderAgent"/>
+        </attributes>
+    </entity>
+
+</entity-mappings>

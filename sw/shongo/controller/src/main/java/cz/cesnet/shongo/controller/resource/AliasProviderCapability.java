@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
@@ -8,7 +9,6 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.resource.value.PatternValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
@@ -132,9 +132,9 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws FaultException when alias doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when alias doesn't exist
      */
-    public Alias getAliasById(Long id) throws FaultException
+    public Alias getAliasById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(id)) {
@@ -349,7 +349,6 @@ public class AliasProviderCapability extends Capability
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability capabilityApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderApi =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) capabilityApi;

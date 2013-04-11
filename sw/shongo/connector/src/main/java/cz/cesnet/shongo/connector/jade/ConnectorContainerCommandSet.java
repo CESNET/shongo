@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.connector.jade;
 
+import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
@@ -38,11 +38,12 @@ public class ConnectorContainerCommandSet extends ContainerCommandSet
                     Shell.printInfo("User: %s", userInformation.toString());
                 }
                 else {
-                    CommandFailure commandFailure = sendLocalCommand.getFailure();
+                    JadeReport commandFailure = sendLocalCommand.getJadeReport();
                     Shell.printError("Get user failed: %s", commandFailure.getMessage());
-                    if (commandFailure.getCause() != null) {
+                    // TODO: print cause
+                    /*if (commandFailure.getCause() != null) {
                         commandFailure.getCause().printStackTrace();
-                    }
+                    }*/
                 }
             }
         });

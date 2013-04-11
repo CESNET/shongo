@@ -1,14 +1,8 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Duration;
-
-import java.util.Collection;
 
 /**
  * Represents a cache of {@link AclRecord}s

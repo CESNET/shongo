@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -49,7 +49,7 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executable to be deleted in the database
      */
-    public void delete(Executable executable, AuthorizationManager authorizationManager) throws FaultException
+    public void delete(Executable executable, AuthorizationManager authorizationManager)
     {
         authorizationManager.deleteAclRecordsForEntity(executable);
         super.delete(executable);
@@ -58,10 +58,9 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executableId of the {@link Executable}
      * @return {@link Executable} with given id
-     * @throws FaultException when the {@link Executable} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when the {@link Executable} doesn't exist
      */
-    public Executable get(Long executableId)
-            throws FaultException
+    public Executable get(Long executableId) throws CommonReportSet.EntityNotFoundException
     {
         try {
             Executable executable = entityManager.createQuery(
@@ -163,7 +162,7 @@ public class ExecutableManager extends AbstractManager
      *
      * @param authorizationManager
      */
-    public void deleteAllNotReferenced(AuthorizationManager authorizationManager) throws FaultException
+    public void deleteAllNotReferenced(AuthorizationManager authorizationManager)
     {
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"

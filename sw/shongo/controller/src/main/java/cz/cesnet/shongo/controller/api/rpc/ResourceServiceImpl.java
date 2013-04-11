@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.FaultException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -91,7 +90,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public String createResource(SecurityToken token, Resource resourceApi)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -128,12 +126,6 @@ public class ResourceServiceImpl extends Component
                 cache.addResource(resource, entityManager);
             }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
-        catch (Exception exception) {
-            throw new FaultException(exception);
-        }
         finally {
             if (authorizationManager.isTransactionActive()) {
                 authorizationManager.rollbackTransaction();
@@ -150,7 +142,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public void modifyResource(SecurityToken token, Resource resourceApi)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -182,12 +173,6 @@ public class ResourceServiceImpl extends Component
                 cache.updateResource(resource, entityManager);
             }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
-        catch (Exception exception) {
-            throw new FaultException(exception);
-        }
         finally {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
@@ -198,7 +183,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public void deleteResource(SecurityToken token, String resourceId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
@@ -231,9 +215,6 @@ public class ResourceServiceImpl extends Component
                 cache.removeResource(resource);
             }
         }
-        catch (FaultException exception) {
-            throw exception;
-        }
         catch (RollbackException exception) {
             if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
                 PersistenceException cause = (PersistenceException) exception.getCause();
@@ -245,10 +226,7 @@ public class ResourceServiceImpl extends Component
                     return;
                 }
             }
-            throw new FaultException(exception);
-        }
-        catch (Exception exception) {
-            throw new FaultException(exception);
+            throw exception;
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -263,7 +241,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -307,7 +284,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public Resource getResource(SecurityToken token, String resourceId)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 
@@ -331,7 +307,6 @@ public class ResourceServiceImpl extends Component
 
     @Override
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
-            throws FaultException
     {
         String userId = authorization.validate(token);
 

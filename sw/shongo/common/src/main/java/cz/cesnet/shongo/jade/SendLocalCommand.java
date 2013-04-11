@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
-import cz.cesnet.shongo.fault.jade.CommandTimeout;
-import cz.cesnet.shongo.fault.jade.CommandUnknownFailure;
 import jade.core.AID;
 
 /**
@@ -37,9 +36,9 @@ public class SendLocalCommand extends LocalCommand
     private State state;
 
     /**
-     * {@link cz.cesnet.shongo.fault.jade.CommandFailure}.
+     * @see JadeReport
      */
-    private CommandFailure failure;
+    private JadeReport jadeReport;
 
     /**
      * Result of the command.
@@ -114,27 +113,24 @@ public class SendLocalCommand extends LocalCommand
     /**
      * Sets the {@link #state} as {@link State#FAILED}.
      *
-     * @param failure sets the {@link #failure}
+     * @param failure sets the {@link #jadeReport}
      */
-    public void setFailed(CommandFailure failure)
+    public void setFailed(JadeReport failure)
     {
         this.state = State.FAILED;
-        this.failure = failure;
-        if (this.failure != null) {
-            this.failure.setCommand(getName());
-        }
+        this.jadeReport = failure;
     }
 
     /**
-     * @return {@link #failure} or {@link cz.cesnet.shongo.fault.jade.CommandUnknownFailure}
-     *         when the {@link #failure} is null and the {@link #state} is {@link State#FAILED}
+     * @return {@link #jadeReport} or {@link JadeReportSet.CommandUnknownErrorReport}
+     *         when the {@link #jadeReport} is null and the {@link #state} is {@link State#FAILED}
      */
-    public CommandFailure getFailure()
+    public JadeReport getJadeReport()
     {
-        if (failure == null && this.state == State.FAILED) {
-            return new CommandUnknownFailure();
+        if (jadeReport == null && this.state == State.FAILED) {
+            return new JadeReportSet.CommandUnknownErrorReport(command.toString(), null);
         }
-        return failure;
+        return jadeReport;
     }
 
     /**
@@ -172,7 +168,7 @@ public class SendLocalCommand extends LocalCommand
             }
         }
         if (getState() == State.UNKNOWN) {
-            setFailed(new CommandTimeout());
+            setFailed(new JadeReportSet.CommandTimeoutReport(command.toString(), receiverAgentId.getName()));
         }
     }
 

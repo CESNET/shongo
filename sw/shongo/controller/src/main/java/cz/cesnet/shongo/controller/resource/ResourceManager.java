@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
@@ -9,7 +10,6 @@ import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -40,9 +40,8 @@ public class ResourceManager extends AbstractManager
      * Create a new resource in the database.
      *
      * @param resource
-     * @throws FaultException when the creating fail
      */
-    public void create(Resource resource) throws FaultException
+    public void create(Resource resource)
     {
         resource.validate();
         super.create(resource);
@@ -52,9 +51,8 @@ public class ResourceManager extends AbstractManager
      * Update existing resource in the database.
      *
      * @param resource
-     * @throws FaultException when the updating fail
      */
-    public void update(Resource resource) throws FaultException
+    public void update(Resource resource)
     {
         resource.validate();
         super.update(resource);
@@ -120,9 +118,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws FaultException when resource doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when resource doesn't exist
      */
-    public Resource get(Long resourceId) throws FaultException
+    public Resource get(Long resourceId) throws CommonReportSet.EntityNotFoundException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -139,9 +137,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws FaultException when device resource doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when device resource doesn't exist
      */
-    public DeviceResource getDevice(Long deviceResourceId) throws FaultException
+    public DeviceResource getDevice(Long deviceResourceId) throws CommonReportSet.EntityNotFoundException
     {
         try {
             DeviceResource deviceResource = entityManager.createQuery(

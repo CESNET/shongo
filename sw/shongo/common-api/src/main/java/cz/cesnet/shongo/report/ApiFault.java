@@ -16,4 +16,9 @@ public interface ApiFault
      * @return fault message
      */
     public String getMessage();
+
+    /**
+     * @return {@link Exception} for this fault
+     */
+    public Exception getException();
 }

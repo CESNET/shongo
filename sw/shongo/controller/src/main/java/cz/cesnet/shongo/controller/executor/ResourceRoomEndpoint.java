@@ -19,7 +19,7 @@ import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
@@ -264,7 +264,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return true;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
                 return false;
             }
         }
@@ -296,7 +296,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
         }
@@ -341,7 +341,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getFailure()));
+                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
         }

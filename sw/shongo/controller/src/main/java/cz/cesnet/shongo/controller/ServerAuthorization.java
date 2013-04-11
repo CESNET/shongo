@@ -5,8 +5,6 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -138,7 +136,7 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected String onValidate(SecurityToken securityToken) throws FaultException
+    protected String onValidate(SecurityToken securityToken)
     {
         // Always allow testing access token
         if (rootAccessToken != null && securityToken.getAccessToken().equals(rootAccessToken)) {
@@ -208,7 +206,7 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserInformation> onListUserInformation() throws FaultException
+    protected Collection<UserInformation> onListUserInformation()
     {
         Exception errorException = null;
         try {
@@ -231,7 +229,7 @@ public class ServerAuthorization extends Authorization
             errorException = exception;
         }
         // Handle error
-        throw new FaultException(errorException, "Retrieving user information failed.");
+        throw new RuntimeException("Retrieving user information failed.", errorException);
     }
 
     @Override
@@ -416,21 +414,21 @@ public class ServerAuthorization extends Authorization
      *
      * @param httpEntity to be read
      */
-    private String readContent(HttpEntity httpEntity) throws FaultException
+    private String readContent(HttpEntity httpEntity)
     {
         if (httpEntity != null) {
             try {
                 return EntityUtils.toString(httpEntity);
             }
             catch (IOException exception) {
-                throw new FaultException("Reading content failed.", exception);
+                throw new RuntimeException("Reading content failed.", exception);
             }
         }
         return null;
     }
 
     /**
-     * @param httpResponse to be handled as {@link FaultException}
+     * @param httpResponse to be handled
      * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(HttpResponse httpResponse)
@@ -440,7 +438,7 @@ public class ServerAuthorization extends Authorization
     }
 
     /**
-     * @param jsonNode to be handled as {@link FaultException}
+     * @param jsonNode to be handled
      * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(JsonNode jsonNode)
@@ -451,7 +449,7 @@ public class ServerAuthorization extends Authorization
     }
 
     /**
-     * @param exception to be handled as {@link FaultException}
+     * @param exception to be handled
      * @throws RuntimeException is always thrown
      */
     private <T> T handleAuthorizationRequestError(Exception exception)

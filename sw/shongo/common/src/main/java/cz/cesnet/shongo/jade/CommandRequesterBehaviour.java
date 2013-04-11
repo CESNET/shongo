@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.fault.jade.*;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -112,14 +113,20 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
                 sendLocalCommand.setState(SendLocalCommand.State.SUCCESSFUL);
             }
         }
-        catch (Codec.CodecException e) {
-            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
+        catch (Codec.CodecException exception) {
+            logger.error("Decoding failed", exception);
+            sendLocalCommand.setFailed(new JadeReportSet.CommandResultDecodingFailedReport(
+                    sendLocalCommand.getCommand().toString(), myAgent.getAID().getName()));
         }
-        catch (OntologyException e) {
-            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
+        catch (OntologyException exception) {
+            logger.error("Decoding failed", exception);
+            sendLocalCommand.setFailed(new JadeReportSet.CommandResultDecodingFailedReport(
+                    sendLocalCommand.getCommand().toString(), myAgent.getAID().getName()));
         }
-        catch (ClassCastException e) {
-            sendLocalCommand.setFailed(new CommandResultDecodingFailed(e));
+        catch (ClassCastException exception) {
+            logger.error("Decoding failed", exception);
+            sendLocalCommand.setFailed(new JadeReportSet.CommandResultDecodingFailedReport(
+                    sendLocalCommand.getCommand().toString(), myAgent.getAID().getName()));
         }
     }
 
@@ -129,7 +136,8 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of '{}' failed, because it was not understood.", sendLocalCommand.getCommand());
-        sendLocalCommand.setFailed(new CommandNotUnderstood());
+        sendLocalCommand.setFailed(new JadeReportSet.CommandNotUnderstoodReport(
+                sendLocalCommand.getCommand().toString(), sendLocalCommand.getReceiverAgentId().getName()));
     }
 
     @Override
@@ -137,7 +145,7 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.debug("Received message: {}", msg);
 
-        CommandFailure commandFailure = getFailure(msg);
+        JadeReport commandFailure = getFailure(msg);
         logger.error("Execution of '{}' failed: {}", sendLocalCommand.getCommand(), commandFailure.getMessage());
         sendLocalCommand.setFailed(commandFailure);
     }
@@ -148,7 +156,8 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of '{}' failed, because it was refused.", sendLocalCommand.getCommand());
-        sendLocalCommand.setFailed(new CommandRefused());
+        sendLocalCommand.setFailed(new JadeReportSet.CommandRefusedReport(
+                sendLocalCommand.getCommand().toString(), sendLocalCommand.getReceiverAgentId().getName()));
     }
 
     /**
@@ -168,7 +177,7 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
      * @param msg an error, should contain a Result with value of type CommandError or CommandNotSupported
      * @return error message found in the message, or null if it was not there
      */
-    private CommandFailure getFailure(ACLMessage msg)
+    private JadeReport getFailure(ACLMessage msg)
     {
         if (msg.getSender().equals(myAgent.getAMS())) {
             String content = msg.getContent();
@@ -179,9 +188,9 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
             Matcher agentNotFoundMatcher = PATTERN_AGENT_NOT_FOUND.matcher(content);
             if (agentNotFoundMatcher.find()) {
                 String connectorAgentName = agentNotFoundMatcher.group(1);
-                return new CommandAgentNotFound(connectorAgentName);
+                return new JadeReportSet.AgentNotFoundReport(connectorAgentName);
             }
-            return new CommandUnknownFailure(content);
+            return new JadeReportSet.UnknownErrorReport(content);
         }
         else {
             ContentManager cm = myAgent.getContentManager();
@@ -189,16 +198,18 @@ public class CommandRequesterBehaviour extends SimpleAchieveREInitiator
                 ContentElement contentElement = cm.extractContent(msg);
                 Result result = (Result) contentElement;
                 Object commandFailure = result.getValue();
-                if (commandFailure instanceof CommandFailure) {
-                    return (CommandFailure) commandFailure;
+                if (commandFailure instanceof JadeReport) {
+                    return (JadeReport) commandFailure;
                 }
                 else {
-                    return new CommandResultDecodingFailed();
+                    return new JadeReportSet.CommandResultDecodingFailedReport(
+                            sendLocalCommand.getCommand().toString(), myAgent.getAID().getName());
                 }
             }
             catch (Exception exception) {
                 logger.error("Contents of the error message could not be decoded for message " + msg, exception);
-                return new CommandResultDecodingFailed(exception);
+                return new JadeReportSet.CommandResultDecodingFailedReport(
+                        sendLocalCommand.getCommand().toString(), myAgent.getAID().getName());
             }
         }
     }

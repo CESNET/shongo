@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import java.util.Collection;
@@ -24,8 +23,7 @@ public interface ReservationService extends Service
      *         otherwise {@link String} report describing the reason why the specification is not available
      */
     @API
-    public Object checkSpecificationAvailability(SecurityToken token, Specification specification, Interval slot)
-            throws FaultException;
+    public Object checkSpecificationAvailability(SecurityToken token, Specification specification, Interval slot);
 
     /**
      * Creates a new reservation request.
@@ -37,8 +35,7 @@ public interface ReservationService extends Service
      * @return the created reservation request shongo-id
      */
     @API
-    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
-            throws FaultException;
+    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
 
     /**
      * Modifies a given reservation.
@@ -47,8 +44,7 @@ public interface ReservationService extends Service
      * @param reservationRequest reservation request with attributes to be modified
      */
     @API
-    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
-            throws FaultException;
+    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
 
     /**
      * Deletes a given reservation.
@@ -57,8 +53,7 @@ public interface ReservationService extends Service
      * @param reservationRequestId shongo-id of the reservation to modify
      */
     @API
-    public void deleteReservationRequest(SecurityToken token, String reservationRequestId)
-            throws FaultException;
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestId);
 
     /**
      * Lists all the reservation requests.
@@ -73,7 +68,7 @@ public interface ReservationService extends Service
      */
     @API
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
-            Map<String, Object> filter) throws FaultException;
+            Map<String, Object> filter);
 
     /**
      * Gets the complete Reservation object.
@@ -82,28 +77,23 @@ public interface ReservationService extends Service
      * @param reservationRequestId shongo-id of the reservation request to get
      */
     @API
-    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId)
-            throws FaultException;
+    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId);
 
     /**
      * @param token
      * @param reservationId
      * @return reservation with given shongo-id
-     * @throws FaultException
      */
     @API
-    public Reservation getReservation(SecurityToken token, String reservationId)
-            throws FaultException;
+    public Reservation getReservation(SecurityToken token, String reservationId);
 
     /**
      * @param token
      * @param reservationIds
      * @return collection of {@link Reservation}s with given identifiers
-     * @throws FaultException
      */
     @API
-    public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds)
-            throws FaultException;
+    public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds);
 
     /**
      * @param token
@@ -112,9 +102,7 @@ public interface ReservationService extends Service
      *               -{@code reservationClass}      set of allowed reservation classes
      *               -{@code technology}            set of technologies of virtual room or compartment
      * @return collection of already allocated {@link Reservation}s
-     * @throws FaultException
      */
     @API
-    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter)
-            throws FaultException;
+    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter);
 }

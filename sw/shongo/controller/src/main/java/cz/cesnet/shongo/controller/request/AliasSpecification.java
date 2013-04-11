@@ -19,7 +19,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.scheduler.report.*;
-import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.Interval;
 
@@ -381,7 +380,6 @@ public class AliasSpecification extends Specification
 
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
-            throws FaultException
     {
         cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
@@ -399,8 +397,8 @@ public class AliasSpecification extends Specification
                 Resource resource = resourceManager.get(resourceId);
                 AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
                 if (aliasProviderCapability == null) {
-                    throw new FaultException("Resource '%s' doesn't have %s.",
-                            AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId());
+                    throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
+                            AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId()));
                 }
                 setAliasProviderCapability(aliasProviderCapability);
             }

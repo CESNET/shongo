@@ -1,27 +1,5 @@
 package cz.cesnet.shongo.controller.authorization;
 
-import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import java.util.*;
-
 /**
  * TODO: Delete this class, it was only testing implementation of in-memory propagation of ACL records.
  * <p/>

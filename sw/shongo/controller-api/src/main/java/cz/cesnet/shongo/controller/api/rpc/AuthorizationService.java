@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
 
@@ -27,8 +26,7 @@ public interface AuthorizationService extends Service
      * @return identifier of newly created ACL record
      */
     @API
-    public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
-            throws FaultException;
+    public String createAclRecord(SecurityToken token, String userId, String entityId, Role role);
 
     /**
      * Delete {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}.
@@ -37,8 +35,7 @@ public interface AuthorizationService extends Service
      * @param aclRecordId identifier of newly created ACL record
      */
     @API
-    public void deleteAclRecord(SecurityToken token, String aclRecordId)
-            throws FaultException;
+    public void deleteAclRecord(SecurityToken token, String aclRecordId);
 
     /**
      * Retrieve {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}.
@@ -48,8 +45,7 @@ public interface AuthorizationService extends Service
      * @return {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}
      */
     @API
-    public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
-            throws FaultException;
+    public AclRecord getAclRecord(SecurityToken token, String aclRecordId);
 
     /**
      * Retrieve collection of {@link cz.cesnet.shongo.controller.api.AclRecord} for given parameters.
@@ -61,8 +57,7 @@ public interface AuthorizationService extends Service
      * @return collection of {@link cz.cesnet.shongo.controller.api.AclRecord} that matches given parameters
      */
     @API
-    public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role)
-            throws FaultException;
+    public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role);
 
 
     /**
@@ -73,8 +68,7 @@ public interface AuthorizationService extends Service
      * @return collection of permissions
      */
     @API
-    public Collection<Permission> listPermissions(SecurityToken token, String entityId)
-            throws FaultException;
+    public Collection<Permission> listPermissions(SecurityToken token, String entityId);
 
     /**
      * @param token  token of the user requesting the operation
@@ -82,8 +76,7 @@ public interface AuthorizationService extends Service
      * @return {@link UserInformation} for given {@code userId}
      */
     @API
-    public UserInformation getUser(SecurityToken token, String userId)
-            throws FaultException;
+    public UserInformation getUser(SecurityToken token, String userId);
 
     /**
      * @param token  token of the user requesting the operation
@@ -91,8 +84,7 @@ public interface AuthorizationService extends Service
      * @return collection of {@link UserInformation}s that matches given {@code filter}
      */
     @API
-    public Collection<UserInformation> listUsers(SecurityToken token, String filter)
-            throws FaultException;
+    public Collection<UserInformation> listUsers(SecurityToken token, String filter);
 
     /**
      * @param token     token of the user requesting the operation
@@ -100,6 +92,5 @@ public interface AuthorizationService extends Service
      * @param newUserId new user-id for the given {@code entityId}
      */
     @API
-    public void setEntityUser(SecurityToken token, String entityId, String newUserId)
-            throws FaultException;
+    public void setEntityUser(SecurityToken token, String entityId, String newUserId);
 }

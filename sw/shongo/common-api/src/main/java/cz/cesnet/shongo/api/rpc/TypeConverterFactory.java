@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.api.FaultSet;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.FaultRuntimeException;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import org.joda.time.DateTime;
@@ -199,8 +197,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     atomicType = (AtomicType) clazz.newInstance();
                 }
                 catch (java.lang.Exception exception) {
-                    throw new FaultRuntimeException(
-                            FaultSet.createClassInstantiationErrorFault(clazz.getSimpleName()));
+                    throw new CommonReportSet.ClassInstantiationErrorException(clazz.getSimpleName());
                 }
                 atomicType.fromString(value);
                 return atomicType;
@@ -368,12 +365,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object pObject)
         {
             if (pObject instanceof Map) {
-                try {
-                    return Converter.convertFromBasic(pObject, type, options);
-                }
-                catch (FaultException exception) {
-                    throw new FaultRuntimeException(exception.getFault());
-                }
+                return Converter.convertFromBasic(pObject, type, options);
             }
             return pObject;
         }
@@ -381,12 +373,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object pObject)
         {
-            try {
-                return Converter.convertToBasic(pObject, options);
-            }
-            catch (FaultException exception) {
-                throw new FaultRuntimeException(exception.getFault());
-            }
+            return Converter.convertToBasic(pObject, options);
         }
 
         /**
@@ -449,12 +436,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object pObject)
         {
             if (pObject instanceof StructType) {
-                try {
-                    return Converter.convertToBasic(pObject, options);
-                }
-                catch (FaultException exception) {
-                    throw new FaultRuntimeException(exception.getFault());
-                }
+                return Converter.convertToBasic(pObject, options);
             }
             return pObject;
         }
@@ -493,12 +475,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object convert(Object object)
         {
             if (object != null) {
-                try {
-                    return Converter.convert(object, collectionType, new Class[]{componentType});
-                }
-                catch (FaultException exception) {
-                    throw new FaultRuntimeException(exception.getFault());
-                }
+                return Converter.convert(object, collectionType, new Class[]{componentType});
             }
             return object;
         }

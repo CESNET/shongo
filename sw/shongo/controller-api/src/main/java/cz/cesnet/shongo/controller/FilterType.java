@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 
 import java.text.Normalizer;
 

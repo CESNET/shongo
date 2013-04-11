@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.util;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Query;
 import java.util.*;
@@ -130,7 +130,7 @@ public class DatabaseFilter
         return userId;
     }
 
-    public static Set<Technology> getTechnologiesFromFilter(Map<String, Object> filter) throws FaultException
+    public static Set<Technology> getTechnologiesFromFilter(Map<String, Object> filter)
     {
         if (filter != null && filter.containsKey("technology")) {
             Object value = filter.get("technology");
@@ -146,7 +146,7 @@ public class DatabaseFilter
     }
 
     public static <T> Set<Class<? extends T>> getClassesFromFilter(Map<String, Object> filter, String key,
-            Class<T> type) throws FaultException
+            Class<T> type)
     {
         if (filter != null && filter.containsKey(key)) {
             Object value = filter.get(key);
@@ -165,7 +165,7 @@ public class DatabaseFilter
                         classes.add(specificationType);
                     }
                     catch (ClassNotFoundException exception) {
-                        ControllerFaultSet.throwClassUndefinedFault(className);
+                        throw new CommonReportSet.ClassUndefinedException(className);
                     }
                 }
                 return classes;

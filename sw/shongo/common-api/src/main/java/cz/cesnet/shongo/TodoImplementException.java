@@ -1,11 +1,11 @@
-package cz.cesnet.shongo.fault;
+package cz.cesnet.shongo;
 
 /**
  * Exception thrown when some feature isn't implemented yet.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoImplementException extends RuntimeException implements FaultThrowable
+public class TodoImplementException extends RuntimeException
 {
     /**
      * Message.
@@ -57,11 +57,5 @@ public class TodoImplementException extends RuntimeException implements FaultThr
         else {
             return "TODO: Implement";
         }
-    }
-
-    @Override
-    public Fault getFault()
-    {
-        return cz.cesnet.shongo.api.FaultSet.createUnknownErrorFault(description);
     }
 }

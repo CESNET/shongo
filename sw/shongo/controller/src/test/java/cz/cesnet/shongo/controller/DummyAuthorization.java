@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +119,7 @@ public class DummyAuthorization extends Authorization
     }
 
     @Override
-    protected Collection<UserInformation> onListUserInformation() throws FaultException
+    protected Collection<UserInformation> onListUserInformation()
     {
         throw new TodoImplementException();
     }

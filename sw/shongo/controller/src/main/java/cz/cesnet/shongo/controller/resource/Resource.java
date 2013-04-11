@@ -5,8 +5,8 @@ import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
+import cz.cesnet.shongo.CommonReportSet;
 
 import javax.persistence.*;
 import java.util.*;
@@ -139,9 +139,9 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws FaultException when capability doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when capability doesn't exist
      */
-    public Capability getCapabilityById(Long id) throws FaultException
+    public Capability getCapabilityById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (Capability capability : capabilities) {
             if (capability.getId().equals(id)) {
@@ -296,9 +296,9 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws FaultException when administrator doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException when administrator doesn't exist
      */
-    public Person getAdministratorById(Long id) throws FaultException
+    public Person getAdministratorById(Long id) throws CommonReportSet.EntityNotFoundException
     {
         for (Person person : administrators) {
             if (person.getId().equals(id)) {
@@ -395,7 +395,6 @@ public class Resource extends PersistentObject
 
     /**
      * @return converted capability to API
-     * @throws FaultException
      */
     public final cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager)
     {
@@ -411,7 +410,6 @@ public class Resource extends PersistentObject
 
     /**
      * @return converted resource to API
-     * @throws FaultException
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
@@ -449,7 +447,7 @@ public class Resource extends PersistentObject
      * @return resource converted from API
      */
     public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource resourceApi,
-            EntityManager entityManager) throws FaultException
+            EntityManager entityManager)
     {
         Resource resource;
         if (resourceApi instanceof cz.cesnet.shongo.controller.api.DeviceResource) {
@@ -467,10 +465,8 @@ public class Resource extends PersistentObject
      *
      * @param resourceApi
      * @param entityManager
-     * @throws FaultException
      */
     public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
-            throws FaultException
     {
         // Modify attributes
         if (resourceApi.isPropertyFilled(resourceApi.NAME)) {
@@ -543,9 +539,11 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * Validate resource
+     * Validate resource.
+     *
+     * @throws CommonReportSet.EntityInvalidException
      */
-    public void validate() throws FaultException
+    public void validate() throws CommonReportSet.EntityInvalidException
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
@@ -554,7 +552,7 @@ public class Resource extends PersistentObject
             }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
-                    ControllerFaultSet.throwEntityInvalidFault(getClass().getSimpleName(),
+                    throw new CommonReportSet.EntityInvalidException(getClass().getSimpleName(),
                             "Resource cannot contain multiple '" + capabilityType.getSimpleName() + "'.");
 
                 }

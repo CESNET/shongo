@@ -1,11 +1,10 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.FaultSet;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -87,9 +86,8 @@ public class Property
      *
      * @param object Object to which the value should be set
      * @param value  Value to set
-     * @throws FaultException when the value cannot be set
      */
-    public void setValue(Object object, Object value, boolean forceAccessible) throws FaultException
+    public void setValue(Object object, Object value, boolean forceAccessible)
     {
         try {
             if (writeMethod != null && (Modifier.isPublic(writeMethod.getModifiers()) || forceAccessible)) {
@@ -115,18 +113,18 @@ public class Property
                 return;
             }
             else if (readMethod != null) {
-                FaultSet.throwClassAttributeReadonlyFault(classType.getSimpleName(), name);
+                throw new CommonReportSet.ClassAttributeReadonlyException(classType.getSimpleName(), name);
             }
         }
-        catch (FaultException exception) {
+        catch (CommonReportSet.ClassAttributeReadonlyException exception) {
             throw exception;
         }
         catch (IllegalArgumentException exception) {
-            FaultSet.throwClassAttributeTypeMismatchFault(classType.getSimpleName(), name,
+            throw new CommonReportSet.ClassAttributeTypeMismatchException(classType.getSimpleName(), name,
                     getType().getSimpleName(), value.getClass().getSimpleName());
         }
         catch (Exception exception) {
-            throw new FaultException(exception, "Cannot set value of attribute '%s' in class '%s'!", name, classType);
+            throw new PropertyException(exception, "Cannot set value of attribute '%s' in class '%s'!", name, classType);
         }
     }
 
@@ -135,9 +133,9 @@ public class Property
      *
      * @param object Object from which the value is retrieved.
      * @return value that was retrieved
-     * @throws FaultException when the value cannot be retrieved
+     * @throws PropertyException when the value cannot be retrieved
      */
-    public Object getValue(Object object) throws FaultException
+    public Object getValue(Object object) throws PropertyException
     {
         Exception thrownException = null;
         try {
@@ -151,7 +149,7 @@ public class Property
         catch (Exception exception) {
             thrownException = exception;
         }
-        throw new FaultException(thrownException,
+        throw new PropertyException(thrownException,
                 "Cannot get attribute '%s' from object of type '%s'.", name, classType);
     }
 
@@ -265,9 +263,9 @@ public class Property
         // Check if type is same as already set
         if (this.type != null) {
             if (!this.type.equals(type)) {
-                throw new RuntimeException(String.format(
+                throw new PropertyException(
                         "Property '%s' in object of class '%s' should have same type in getter and setter.",
-                        name, getClassShortName(classType)));
+                        name, getClassShortName(classType));
             }
         }
         else {
@@ -287,34 +285,34 @@ public class Property
         }
         else if (TypeFlags.isCollection(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
-                throw new RuntimeException("Array or collection class should be ParameterizedType.");
+                throw new PropertyException("Array or collection class should be ParameterizedType.");
             }
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] arguments = parameterizedType.getActualTypeArguments();
             // We support only one argument
             if (arguments.length != 1) {
-                throw new RuntimeException("Array or collection class should have one generic argument.");
+                throw new PropertyException("Array or collection class should have one generic argument.");
             }
             // Argument should be Class
             if (!(arguments[0] instanceof Class)) {
-                throw new RuntimeException("Generic argument should be class");
+                throw new PropertyException("Generic argument should be class");
             }
             valueAllowedType = (Class) arguments[0];
         }
         // If type is map
         else if (TypeFlags.isMap(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
-                throw new RuntimeException("Map class should be ParameterizedType.");
+                throw new PropertyException("Map class should be ParameterizedType.");
             }
             ParameterizedType parameterizedType = (ParameterizedType) genericType;
             Type[] arguments = parameterizedType.getActualTypeArguments();
             // We support only one argument
             if (arguments.length != 2) {
-                throw new RuntimeException("Map class should have two generic arguments.");
+                throw new PropertyException("Map class should have two generic arguments.");
             }
             // Argument should be Class
             if (!(arguments[0] instanceof Class)) {
-                throw new RuntimeException("Generic argument should be class");
+                throw new PropertyException("Generic argument should be class");
             }
             keyAllowedType = (Class) arguments[0];
             valueAllowedType = (Class) arguments[1];
@@ -326,9 +324,8 @@ public class Property
             if (this.valueAllowedTypes != null) {
                 // Check it it same as new value allowed type
                 if (this.valueAllowedTypes.length != 1 || !this.valueAllowedTypes[0].equals(valueAllowedType)) {
-                    throw new RuntimeException(
-                            String.format("Property '%s' in object of class '%s' should have same generic type.",
-                                    name, getClassShortName(classType)));
+                    throw new PropertyException("Property '%s' in object of class '%s' should have same generic type.",
+                            name, getClassShortName(classType));
                 }
             }
             else {
@@ -341,9 +338,8 @@ public class Property
             if (this.keyAllowedType != null) {
                 // Check it it same as new key allowed type
                 if (!this.keyAllowedType.equals(keyAllowedType)) {
-                    throw new RuntimeException(String.format(
-                            "Property '%s' in object of class '%s' should have same generic type.",
-                            name, getClassShortName(classType)));
+                    throw new PropertyException("Property '%s' in object of class '%s' should have same generic type.",
+                            name, getClassShortName(classType));
                 }
             }
             else {
@@ -433,10 +429,9 @@ public class Property
                         }
                     }
                     if (property.writeMethod == null) {
-                        throw new RuntimeException(
-                                String.format("No write method '%s' has one parameter of type '%s'"
-                                        + " (which comes from the return type of the getter).",
-                                        writeMethodName, readMethodReturnType.getCanonicalName()));
+                        throw new PropertyException("No write method '%s' has one parameter of type '%s'"
+                                + " (which comes from the return type of the getter).",
+                                writeMethodName, readMethodReturnType.getCanonicalName());
                     }
                 }
             }
@@ -458,7 +453,7 @@ public class Property
             if (property.writeMethod != null) {
                 if (property.writeMethod.getParameterTypes().length != 1
                         || property.writeMethod.getGenericParameterTypes().length != 1) {
-                    throw new RuntimeException("Setter should have one parameter.");
+                    throw new PropertyException("Setter should have one parameter.");
                 }
                 property.setType(property.writeMethod.getParameterTypes()[0],
                         property.writeMethod.getGenericParameterTypes()[0]);
@@ -494,13 +489,14 @@ public class Property
      * @param type
      * @param name
      * @return {@link Property} with given name from specified type
-     * @throws FaultException when property doesn't exist
+     * @throws CommonReportSet.ClassAttributeUndefinedException when property doesn't exist
      */
-    public static Property getPropertyNotNull(Class type, String name) throws FaultException
+    public static Property getPropertyNotNull(Class type, String name)
+            throws CommonReportSet.ClassAttributeUndefinedException
     {
         Property property = getProperty(type, name);
         if (property == null) {
-            FaultSet.throwClassAttributeUndefinedFault(type.getSimpleName(), name);
+            throw new CommonReportSet.ClassAttributeUndefinedException(type.getSimpleName(), name);
         }
         return property;
     }
@@ -613,10 +609,8 @@ public class Property
      * @param name
      * @param value
      * @param forceAccessible
-     * @throws FaultException
      */
     public static void setPropertyValue(Object object, String name, Object value, boolean forceAccessible)
-            throws FaultException
     {
         Property property = getPropertyNotNull(object.getClass(), name);
         property.setValue(object, value, forceAccessible);
@@ -628,9 +622,8 @@ public class Property
      * @param object
      * @param name
      * @param value
-     * @throws FaultException
      */
-    public static void setPropertyValue(Object object, String name, Object value) throws FaultException
+    public static void setPropertyValue(Object object, String name, Object value)
     {
         setPropertyValue(object, name, value, false);
     }
@@ -641,9 +634,8 @@ public class Property
      * @param object
      * @param name
      * @return property value
-     * @throws FaultException
      */
-    public static Object getPropertyValue(Object object, String name) throws FaultException
+    public static Object getPropertyValue(Object object, String name)
     {
         Property property = getPropertyNotNull(object.getClass(), name);
         return property.getValue(object);
@@ -653,9 +645,8 @@ public class Property
      * @param type
      * @param name
      * @return result from {@link Property#getType()} ()} for property
-     * @throws FaultException
      */
-    public static Class getPropertyType(Class type, String name) throws FaultException
+    public static Class getPropertyType(Class type, String name)
     {
         Property property = getPropertyNotNull(type, name);
         return property.getType();
@@ -665,9 +656,8 @@ public class Property
      * @param type
      * @param name
      * @return result from {@link Property#getValueAllowedTypes()} for property
-     * @throws FaultException
      */
-    public static Class[] getPropertyValueAllowedTypes(Class type, String name) throws FaultException
+    public static Class[] getPropertyValueAllowedTypes(Class type, String name)
     {
         Property property = getPropertyNotNull(type, name);
         return property.getValueAllowedTypes();
@@ -678,10 +668,8 @@ public class Property
      * @param name
      * @param annotationClass
      * @return annotation for given type, it's property and annotation class
-     * @throws FaultException
      */
     public static <T extends Annotation> T getPropertyAnnotation(Class type, String name, Class<T> annotationClass)
-            throws FaultException
     {
         Property property = getPropertyNotNull(type, name);
         return property.getAnnotation(annotationClass);

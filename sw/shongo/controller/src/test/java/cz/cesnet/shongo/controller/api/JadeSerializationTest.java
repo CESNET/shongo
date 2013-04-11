@@ -13,8 +13,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.jade.Agent;
 import jade.core.AID;
 import org.junit.Assert;
@@ -48,7 +47,6 @@ public class JadeSerializationTest extends AbstractControllerTest
         {
             @Override
             public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
-                    throws FaultException
             {
                 Assert.assertEquals("1", roomId);
                 Room room = new Room();
@@ -137,12 +135,7 @@ public class JadeSerializationTest extends AbstractControllerTest
             if (command instanceof CreateRoom) {
                 CreateRoom createRoom = (CreateRoom) command;
                 Room room = createRoom.getRoom();
-                try {
-                    room.setupNewEntity();
-                }
-                catch (FaultException exception) {
-                    throw new RuntimeException(exception);
-                }
+                room.setupNewEntity();
                 Assert.assertTrue(room.isPropertyFilled(room.NAME));
                 Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));
                 Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));

@@ -1,28 +1,21 @@
 package cz.cesnet.shongo.controller.authorization;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.fault.FaultException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -100,9 +93,10 @@ public class AuthorizationManager extends AbstractManager
     /**
      * @param aclRecordId
      * @return {@link AclRecord} with given {@code aclRecordId}
-     * @throws FaultException when {@link AclRecord} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when {@link AclRecord} doesn't exist
      */
-    public AclRecord getAclRecord(Long aclRecordId) throws FaultException
+    public AclRecord getAclRecord(Long aclRecordId) throws CommonReportSet.EntityNotFoundException
     {
         AclRecord aclRecord = entityManager.find(AclRecord.class, aclRecordId);
         if (aclRecord == null) {
@@ -165,9 +159,8 @@ public class AuthorizationManager extends AbstractManager
      * @param entity for which the ACL is created.
      * @param role   which is created for given user and given entity
      * @return new {@link AclRecord}
-     * @throws FaultException when the creation failed.
      */
-    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role) throws FaultException
+    public AclRecord createAclRecord(String userId, PersistentObject entity, Role role)
     {
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
@@ -182,11 +175,12 @@ public class AuthorizationManager extends AbstractManager
      * @param entityId of entity for which the ACL is created.
      * @param role     which is created for given user and given entity
      * @return new {@link AclRecord}
-     * @throws cz.cesnet.shongo.fault.FaultException
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when entity not exists
      *          when the creation failed.
      */
     public AclRecord createAclRecord(String userId, EntityIdentifier entityId, Role role)
-            throws FaultException
+            throws CommonReportSet.EntityNotFoundException
     {
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
@@ -204,10 +198,8 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param parentEntity from which should be fetch all existing {@link AclRecord}s
      * @param childEntity  to which should be created new {@link AclRecord}s
-     * @throws FaultException
      */
     public void createAclRecordsForChildEntity(PersistentObject parentEntity, PersistentObject childEntity)
-            throws FaultException
     {
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
@@ -235,11 +227,8 @@ public class AuthorizationManager extends AbstractManager
      * @param entityId of entity for which the ACL is created.
      * @param role     which is created for given user and given entity
      * @return new {@link AclRecord}
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *          when the creation failed.
      */
     private AclRecord createAclRecord(String userId, PersistentObject entity, EntityIdentifier entityId, Role role)
-            throws FaultException
     {
         if (userId.equals(Authorization.ROOT_USER_ID)) {
             return null;
@@ -247,7 +236,7 @@ public class AuthorizationManager extends AbstractManager
 
         EntityType entityType = entityId.getEntityType();
         if (!entityType.allowsRole(role)) {
-            ControllerFaultSet.throwAclInvalidRoleFault(entityId.toId(), role.toString());
+            throw new ControllerReportSet.AclInvalidRoleException(entityId.toId(), role.toString());
         }
 
         if (activeTransaction == null) {
@@ -271,8 +260,8 @@ public class AuthorizationManager extends AbstractManager
             afterAclRecordCreated(aclRecord, entity);
         }
         catch (Throwable throwable) {
-            throw new FaultException(throwable, "ACL Record creation failed (user: %s, entity: %s, role: %s)",
-                    userId, entityId, role);
+            throw new RuntimeException(String.format("ACL Record creation failed (user: %s, entity: %s, role: %s)",
+                    userId, entityId, role), throwable);
         }
 
         Controller.loggerAcl.info("ACL Record created (id: {}, user: {}, entity: {}, role: {})",
@@ -288,10 +277,9 @@ public class AuthorizationManager extends AbstractManager
      * @param userId
      * @param childEntity
      * @param role
-     * @throws FaultException
      */
     private void createChildAclRecord(AclRecord parentAclRecord, String userId, PersistentObject childEntity,
-            Role role, AclRecordDependency.Type dependencyType) throws FaultException
+            Role role, AclRecordDependency.Type dependencyType)
     {
         AclRecord childAclRecord = createAclRecord(userId, childEntity, role);
 
@@ -310,7 +298,7 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param aclRecord
      */
-    public void deleteAclRecord(AclRecord aclRecord) throws FaultException
+    public void deleteAclRecord(AclRecord aclRecord)
     {
         deleteAclRecord(aclRecord, false);
     }
@@ -320,7 +308,7 @@ public class AuthorizationManager extends AbstractManager
      *
      * @param entity
      */
-    public void deleteAclRecordsForEntity(PersistentObject entity) throws FaultException
+    public void deleteAclRecordsForEntity(PersistentObject entity)
     {
         EntityIdentifier entityId = new EntityIdentifier(entity);
         for (AclRecord aclRecord : activeTransaction.getAclRecords(entityId)) {
@@ -334,7 +322,7 @@ public class AuthorizationManager extends AbstractManager
      * @param aclRecord
      * @param detachChildren
      */
-    private void deleteAclRecord(AclRecord aclRecord, boolean detachChildren) throws FaultException
+    private void deleteAclRecord(AclRecord aclRecord, boolean detachChildren)
     {
         if (activeTransaction == null) {
             throw new IllegalStateException("No transaction is active.");
@@ -379,17 +367,12 @@ public class AuthorizationManager extends AbstractManager
                 try {
                     deleteAclRecord(childAclRecord);
                 }
-                catch (FaultException exception) {
-                    if (exception.getFault() instanceof ControllerFaultSet.EntityNotDeletableReferencedFault) {
-                        Controller.loggerAcl.info(
-                                "ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
-                                        + " because it is referenced.", new Object[]{childAclRecord.getId(),
-                                childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getRole()
-                        });
-                    }
-                    else {
-                        throw exception;
-                    }
+                catch (CommonReportSet.EntityNotDeletableReferencedException exception) {
+                    Controller.loggerAcl.info(
+                            "ACL Record (id: {}, user: {}, entity: {}, role: {}) cannot be deleted,"
+                                    + " because it is referenced.", new Object[]{childAclRecord.getId(),
+                            childAclRecord.getUserId(), childAclRecord.getEntityId(), childAclRecord.getRole()
+                    });
                 }
             }
         }
@@ -417,7 +400,7 @@ public class AuthorizationManager extends AbstractManager
      * @param aclRecord
      * @param entity
      */
-    private void afterAclRecordCreated(AclRecord aclRecord, PersistentObject entity) throws FaultException
+    private void afterAclRecordCreated(AclRecord aclRecord, PersistentObject entity)
     {
         String userId = aclRecord.getUserId();
         Role role = aclRecord.getRole();
@@ -504,6 +487,7 @@ public class AuthorizationManager extends AbstractManager
 
     /**
      * Propagate ACL records to authorization server.
+     *
      * @param authorization
      */
     public void propagate(Authorization authorization)

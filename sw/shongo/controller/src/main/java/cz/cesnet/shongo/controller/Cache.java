@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -253,7 +252,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 try {
                     addResource(resource, entityManager);
                 }
-                catch (FaultException exception) {
+                catch (Exception exception) {
                     throw new RuntimeException("Failed to add resource to the cache.", exception);
                 }
             }
@@ -281,9 +280,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @param resource
      * @param entityManager
-     * @throws FaultException when the creating in the database fails
      */
-    public synchronized void addResource(Resource resource, EntityManager entityManager) throws FaultException
+    public synchronized void addResource(Resource resource, EntityManager entityManager)
     {
         // Create resource in the database if it wasn't created yet
         if (entityManager != null && !resource.isPersisted()) {
@@ -332,7 +330,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @see {@link #addResource(Resource, EntityManager)}
      */
-    public synchronized void addResource(Resource resource) throws FaultException
+    public synchronized void addResource(Resource resource)
     {
         addResource(resource, null);
     }
@@ -349,7 +347,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         try {
             addResource(resource, entityManager);
         }
-        catch (FaultException exception) {
+        catch (Exception exception) {
             throw new RuntimeException("Failed to update resource in the resource cache.", exception);
         }
     }

@@ -268,8 +268,17 @@ public class CodeGenerator extends AbstractGenerator
             if (this.report.isPersistent() == null) {
                 this.report.setPersistent(report.isPersistent());
             }
-            if (this.report.getExceptionBaseClass() == null) {
-                this.report.setExceptionBaseClass(report.getExceptionBaseClass());
+            if (this.report.getException() == null) {
+                this.report.setException(report.getException());
+            }
+            else if (report.getException() != null) {
+                Report.Exception exception = this.report.getException();
+                if (exception.getBaseClass() == null) {
+                    exception.setBaseClass(report.getException().getBaseClass());
+                }
+                if (exception.isRuntime() == null) {
+                    exception.setRuntime(report.getException().isRuntime());
+                }
             }
 
             if (this.report.getUser() == null) {
@@ -432,10 +441,13 @@ public class CodeGenerator extends AbstractGenerator
             if (exceptionBaseClassName != null) {
             return exceptionBaseClassName;
             }
-            if (report.getExceptionBaseClass() != null) {
-                return report.getExceptionBaseClass();
+            if (report.getException() != null && report.getException().getBaseClass() != null) {
+                return report.getException().getBaseClass();
             }
-            return "AbstractReportException";
+            if (report.getException() != null && report.getException().isRuntime()) {
+                return "ReportRuntimeException";
+            }
+            return "ReportException";
         }
     }
 

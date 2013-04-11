@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.executor.report;
 
+import cz.cesnet.shongo.JadeReport;
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.fault.jade.CommandFailure;
 import org.joda.time.DateTime;
 
 import javax.persistence.CascadeType;
@@ -17,9 +18,9 @@ import javax.persistence.Transient;
 public class CommandFailureReport extends ExecutableReport
 {
     /**
-     * {@link CommandFailure} which is reported.
+     * {@link JadeReport} which is reported.
      */
-    private CommandFailure commandFailure;
+    private JadeReport commandFailure;
 
     /**
      * Constructor.
@@ -31,7 +32,7 @@ public class CommandFailureReport extends ExecutableReport
     /**
      * Constructor.
      */
-    public CommandFailureReport(CommandFailure commandFailure)
+    public CommandFailureReport(JadeReport commandFailure)
     {
         super(DateTime.now());
         if (commandFailure == null) {
@@ -44,7 +45,7 @@ public class CommandFailureReport extends ExecutableReport
      * @return {@link #commandFailure}
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    public CommandFailure getCommandFailure()
+    public JadeReport getCommandFailure()
     {
         return commandFailure;
     }
@@ -52,7 +53,7 @@ public class CommandFailureReport extends ExecutableReport
     /**
      * @param commandFailure sets the {@link #commandFailure}
      */
-    public void setCommandFailure(CommandFailure commandFailure)
+    public void setCommandFailure(JadeReport commandFailure)
     {
         this.commandFailure = commandFailure;
     }
@@ -70,8 +71,14 @@ public class CommandFailureReport extends ExecutableReport
     {
         String dateTime = Temporal.formatDateTime(getDateTime());
         if (commandFailure != null) {
-            return String.format("Command '%s' failed at %s:\n%s",
-                    commandFailure.getCommand(), dateTime, commandFailure.getMessage());
+            if (commandFailure instanceof JadeReportSet.CommandAbstractErrorReport) {
+                JadeReportSet.CommandAbstractErrorReport commandError =
+                        (JadeReportSet.CommandAbstractErrorReport) commandFailure;
+                return String.format("Command '%s' failed at %s:\n%s",
+                        commandError.getCommand(), dateTime, commandError.getMessage());
+            }
+            return String.format("Command failed at %s:\n%s", dateTime, commandFailure.getMessage());
+
         }
         else {
             return String.format("Command failed at %s", dateTime);

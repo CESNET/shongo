@@ -4,7 +4,6 @@ import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
 import java.util.Map;
@@ -23,8 +22,7 @@ public interface ExecutorService extends Service
      * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to delete
      */
     @API
-    public void deleteExecutable(SecurityToken token, String executableId)
-            throws FaultException;
+    public void deleteExecutable(SecurityToken token, String executableId);
 
     /**
      * Lists all the {@link cz.cesnet.shongo.controller.api.Executable}s.
@@ -35,8 +33,7 @@ public interface ExecutorService extends Service
      * @return collection of {@link cz.cesnet.shongo.controller.api.ExecutableSummary}s
      */
     @API
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
-            throws FaultException;
+    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter);
 
     /**
      * Gets the complete compartment object.
@@ -45,6 +42,5 @@ public interface ExecutorService extends Service
      * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to get
      */
     @API
-    public Executable getExecutable(SecurityToken token, String executableId)
-            throws FaultException;
+    public Executable getExecutable(SecurityToken token, String executableId);
 }
