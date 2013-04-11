@@ -50,7 +50,7 @@
 
 \chapter{Architecture}
 
-Shongo is a reservation system designed for booking videoconferencing resources. It is composed of several components (see Fig. \ref{fig:architecture}):
+Shongo is a reservation system designed for booking videoconferencing resources. It is composed of several components (see Figure~\ref{fig:architecture}):
 
 \begin{enumerate}
 
@@ -60,7 +60,7 @@ Shongo is a reservation system designed for booking videoconferencing resources.
 
 \item \textbf{Connector} is an application that runs one or more \textbf{Device Agents}. Our implementation of relies on JADE (Java Agent Development Framework) for communication between a connector and its controller and thus the connectors are also written in Java.
 
-\item \textbf{Device Agent} is a sub-component of \textbf{Connector} which manages a single device (e.g., Cisco Codian MCU, Adobe Connect server, LifeSize endpoint or Tandberg Codec endpoint, Cisco Content Servers). It is able, for instance, to create/modify/delete a room or to dial/hangup a participant in multipoint devices, or to perform dial/hangup operations on endpoints, set up the recording, etc.
+\item \textbf{Device Agent} is a sub-component of \textbf{Connector} which manages a single device (e.g., Cisco Codian MCU, Adobe Connect server, LifeSize endpoint or Tandberg Codec endpoint, Cisco Content Servers). It is able, for instance, to create/modify/delete a room or to dial/disconnect a participant in multipoint devices, or to perform dial/hangup operations on endpoints, set up the recording, etc.
 
 \item \textbf{Auth Server} is a component for user authentication/authorization and for looking up existing users from identity providers. It is used by \textbf{Web Client} for user sign up and by \textbf{Controller} to verify the user identity and to lookup user information.
 
@@ -68,11 +68,13 @@ Shongo is a reservation system designed for booking videoconferencing resources.
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/dd_architecture}
-\caption{Architecture of Shongo reservation system}
+\caption{Architecture of the Shongo reservation system}
 \label{fig:architecture}
 \end{figure}
 
-Shongo isn't currently fully implemented. In the current state each Shongo instance is able to manage resources in a single domain without the inter-domain collaboration. The Shongo instance means deployed controller, web client and one or more connectors with one or more device agents. The fig. \ref{fig:architecture-implemented} shows which components and communication channels are already implemented.
+\chapter{Status of Implementation}
+
+Shongo is not currently fully implemented yet, but it already has enough functionality for reservations of H.323/SIP/Adobe Connect aliases/URLs and virtual videoconferencing rooms. In the current state each Shongo instance is able to manage resources in a single domain without the inter-domain collaboration. The Shongo instance means deployed controller, web client and one or more connectors with one or more device agents. The Figure~\ref{fig:architecture-implemented} shows which components and communication channels are already implemented.
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/dd_architecture_implemented}
@@ -367,8 +369,8 @@ This chapter describes currently implemented web client. It allows the users to 
 
 \begin{figure}[ht!]
 \centering\includegraphics[width=0.7\textwidth]{images/client_web_detail_room.png}
-\caption{Detail of reservation request for H.323/SIP adhoc room}
-\label{fig:client-web-detail-alias}
+\caption{Detail of reservation request for H.323/SIP ad-hoc room}
+\label{fig:client-web-detail-room}
 \end{figure}
 
 \item Reservation request for alias which then can be reused in multiple room reservation requests. Term \textit{alias} in the web client refers to the unique name of a room/meeting.
