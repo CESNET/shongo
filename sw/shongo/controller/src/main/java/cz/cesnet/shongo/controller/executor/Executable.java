@@ -459,6 +459,5 @@ public abstract class Executable extends ReportablePersistentObject
             add(State.STARTED);
             add(State.MODIFIED);
             add(State.PARTIALLY_STARTED);
-            add(State.STOPPING_FAILED);
         }};
 }
