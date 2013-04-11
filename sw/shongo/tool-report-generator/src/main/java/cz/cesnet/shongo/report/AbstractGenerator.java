@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.report;
 
 import cz.cesnet.report.xml.ReportParam;
-import cz.cesnet.report.xml.ReportParamType;
 import cz.cesnet.report.xml.Reports;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
@@ -139,32 +138,13 @@ public abstract class AbstractGenerator
         return camelCase.toString();
     }
 
-    public static String formatParamToString(ReportParam param)
-    {
-        String paramIdentifier = formatCamelCaseFirstLower(param.getName());
-        switch (param.getType()) {
-            case STRING:
-                return paramIdentifier;
-            case JADE_REPORT:
-                return paramIdentifier + ".toString()";
-            default:
-                throw new TodoException(param.getType().toString());
-        }
-    }
-
     public static String formatString(String description)
     {
+        if (description == null) {
+            return null;
+        }
         description = description.trim();
         description = description.replaceAll("\\s+", " ");
-        return description;
-    }
-
-    public static String formatJavaDoc(String description)
-    {
-        description = description.trim();
-        description = description.replaceAll("\\s+", " ");
-        description = description.replaceAll("\\$\\{(.+)\\}", "{@link #$1}");
-        description = description.replace("{@link #class}", "{@link #className}");
         return description;
     }
 

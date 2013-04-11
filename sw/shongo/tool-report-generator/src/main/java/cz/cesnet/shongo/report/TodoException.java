@@ -5,15 +5,15 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoException extends RuntimeException
+public class TodoException extends GeneratorException
 {
     public TodoException()
     {
     }
 
-    public TodoException(String message)
+    public TodoException(String message, Object... objects)
     {
-        super(message);
+        super(message, objects);
     }
 
     @Override

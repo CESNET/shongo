@@ -9,22 +9,35 @@ import cz.cesnet.shongo.report.*;
  */
 public class ${scope.getClassName()} extends AbstractReportSet
 {
+<#assign apiReportCount = 0>
 <#list scope.getReports() as report>
     <#if report.isApiFault()>
     public static final int ${report.getConstantName()} = ${report.getCode()};
+        <#assign apiReportCount = apiReportCount + 1>
     </#if>
 </#list>
+<#if (apiReportCount > 0)>
+
+</#if>
 <#list scope.getReports() as report>
+    <#if report.getJavaDoc()??>
     /**
      * ${report.getJavaDoc()}
      */
-    public static class ${report.getClassName()} implements Report<#if report.isApiFault()>, ApiFault</#if>
+    </#if>
+    <#if report.isPersistent()>
+    @javax.persistence.Entity
+    </#if>
+    public static<#if report.isAbstract()> abstract</#if> class ${report.getClassName()} extends ${report.getBaseClassName()}<#if report.isApiFault()> implements ApiFault</#if>
     {
-    <#list report.getParams() as param>
-        private ${param.getVariableType()} ${param.getVariableName()};
+    <#list report.getDeclaredParams() as param>
+        protected ${param.getVariableType()} ${param.getVariableName()};
     </#list>
-    <#list report.getParams() as param>
+    <#list report.getDeclaredParams() as param>
 
+        <#if report.isPersistent()>
+        ${param.getPersistenceAnnotation()}
+        </#if>
         public ${param.getVariableType()} get${param.getMethodName()}()
         {
             return ${param.getVariableName()};
@@ -35,21 +48,33 @@ public class ${scope.getClassName()} extends AbstractReportSet
             this.${param.getVariableName()} = ${param.getVariableName()};
         }
     </#list>
+    <#if (report.getDeclaredParams()?size > 0)>
 
+    </#if>
+    <#if !report.isAbstract()>
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
+        </#if>
         @Override
         public Type getType()
         {
             return ${report.getType()};
         }
-    <#if report.isApiFault()>
+        <#if report.isApiFault()>
 
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
+        </#if>
         @Override
         public int getCode()
         {
             return ${report.getConstantName()};
         }
-    </#if>
+        </#if>
 
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
+        </#if>
         @Override
         public String getMessage()
         {
@@ -59,16 +84,29 @@ public class ${scope.getClassName()} extends AbstractReportSet
             </#list>
             return message;
         }
+    </#if>
     }
 
     <#if report.hasException()>
     /**
      * Exception for {@link ${report.getClassName()}}.
      */
-    public static class ${report.getExceptionClassName()} extends AbstractReportException<#if report.isApiFault()> implements ApiFault</#if>
+    public static<#if report.isAbstract()> abstract</#if> class ${report.getExceptionClassName()} extends ${report.getExceptionBaseClassName()}<#if report.isApiFault()> implements ApiFault</#if>
     {
-        private ${report.getClassName()} report;
+        <#if !report.getBaseReport()?? || !report.getBaseReport().hasException()>
+        protected ${report.getClassName()} report;
 
+        </#if>
+        <#if report.isAbstract()>
+        public ${report.getExceptionClassName()}()
+        {
+        }
+
+        public ${report.getExceptionClassName()}(Throwable throwable)
+        {
+            super(throwable);
+        }
+        <#else>
         public ${report.getExceptionClassName()}(${report.getClassName()} report)
         {
             this.report = report;
@@ -82,35 +120,41 @@ public class ${scope.getClassName()} extends AbstractReportSet
 
         public ${report.getExceptionClassName()}(<@formatMethodParameters parameters=report.getParams()/>)
         {
-            report = new ${report.getClassName()}();
+            ${report.getClassName()} report = new ${report.getClassName()}();
             <#list report.getParams() as param>
             report.set${param.getMethodName()}(${param.getVariableName()});
             </#list>
+            this.report = report;
         }
 
-        public ${report.getExceptionClassName()}(Throwable throwable, <@formatMethodParameters parameters=report.getParams()/>)
+        public ${report.getExceptionClassName()}(Throwable throwable<#if (report.getParams()?size > 0) >, </#if><@formatMethodParameters parameters=report.getParams()/>)
         {
             super(throwable);
-            report = new ${report.getClassName()}();
-            <#list report.getParams() as param>
+            ${report.getClassName()} report = new ${report.getClassName()}();
+                <#list report.getParams() as param>
             report.set${param.getMethodName()}(${param.getVariableName()});
-            </#list>
+                </#list>
+            this.report = report;
         }
-        <#list report.getParams() as param>
+        </#if>
+        <#list report.getDeclaredParams() as param>
 
         public ${param.getVariableType()} get${param.getMethodName()}()
         {
-            return report.get${param.getMethodName()}();
+            return getReport().get${param.getMethodName()}();
         }
         </#list>
 
         @Override
         public ${report.getClassName()} getReport()
         {
+        <#if report.getBaseReport()?? && report.getBaseReport().hasException()>
+            return (${report.getClassName()}) report;
+        <#else>
             return report;
+        </#if>
         }
-        <#if report.isApiFault()>
-
+        <#if !report.isAbstract() && report.isApiFault()>
         @Override
         public int getCode()
         {
@@ -118,6 +162,9 @@ public class ${scope.getClassName()} extends AbstractReportSet
         }
         </#if>
     }
+    </#if>
+    <#if report_has_next>
+
     </#if>
 </#list>
 }

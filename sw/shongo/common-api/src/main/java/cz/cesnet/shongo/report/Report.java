@@ -5,17 +5,17 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface Report
+public abstract class Report
 {
     /**
      * @return report message
      */
-    public Type getType();
+    public abstract Type getType();
 
     /**
      * @return report message
      */
-    public String getMessage();
+    public abstract String getMessage();
 
     /**
      * Enumeration of all possible {@link Report} types.

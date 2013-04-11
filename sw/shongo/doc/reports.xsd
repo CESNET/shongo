@@ -14,6 +14,7 @@
                 <xs:element name="scope" minOccurs="1" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:sequence>
+                            <xs:element name="template" type="report" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="report" type="report" minOccurs="1" maxOccurs="unbounded"/>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string" use="required"/>
@@ -65,19 +66,12 @@
 
     <xs:complexType name="report-param">
         <xs:attribute name="name" type="xs:string"/>
-        <xs:attribute name="type" type="report-param-type"/>
+        <xs:attribute name="type" type="xs:string"/>
     </xs:complexType>
-
-    <xs:simpleType name="report-param-type">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="string"/>
-            <xs:enumeration value="jade-report"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:complexType name="report-user">
         <xs:sequence>
-            <xs:element name="description" type="xs:string"/>
+            <xs:element name="description" type="xs:string" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="visible" type="xs:boolean"/>
         <xs:attribute name="via" type="report-user-via"/>
@@ -106,15 +100,15 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:complexType name="report-device-admin">
+    <xs:complexType name="report-resource-admin">
         <xs:sequence>
             <xs:element name="description" type="xs:string" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="visible" type="xs:boolean"/>
-        <xs:attribute name="via" type="report-device-admin-via"/>
+        <xs:attribute name="via" type="report-resource-admin-via"/>
     </xs:complexType>
 
-    <xs:simpleType name="report-device-admin-via">
+    <xs:simpleType name="report-resource-admin-via">
         <xs:restriction base="xs:string">
             <xs:enumeration value="email"/>
         </xs:restriction>
@@ -134,7 +128,7 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="id" type="xs:string">
+            <xs:element name="id" type="xs:string" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>
                         Unique string name of the report (use dashes for separating words).
@@ -179,8 +173,22 @@
             </xs:element>
             <xs:element name="user" type="report-user" minOccurs="0" maxOccurs="1"/>
             <xs:element name="domain-admin" type="report-domain-admin" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="device-admin" type="report-device-admin" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="resource-admin" type="report-resource-admin" minOccurs="0" maxOccurs="1"/>
             <xs:element name="resolution" type="report-resolution" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="persistent" type="xs:boolean" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Specifies whether report can be persisted via JPA.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="exception-base-class" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Specifies base exception class which this report exception extends.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="abstract" type="xs:boolean">
             <xs:annotation>
@@ -193,7 +201,7 @@
         <xs:attribute name="extends" type="xs:string">
             <xs:annotation>
                 <xs:documentation>
-                    Specifies super report class which this report extends.
+                    Specifies base report id or class which this report extends.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>
