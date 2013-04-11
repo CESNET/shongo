@@ -54,15 +54,15 @@ Shongo is a reservation system designed for booking videoconferencing resources.
 
 \begin{enumerate}
 
-\item \textbf{Controller} is the main backend application for a single domain written in Java which holds a relational database of resources, reservation requests and all other entities. Controller provides an XML-RPC API which is used by clients to manage the relational database and to control managed devices for the domain. Controller schedules reservations, informs users about theirs reservations by email and executes meetings in devices via connectors.
+\item \textbf{Controller} is the main back-end application for a single domain written, which holds a relational database of resources, reservation requests, reservations, and all other entities.  Controller schedules reservations, informs users about theirs reservations by email and executes meetings in devices via connectors. Controller is implemented in Java and provides an XML-RPC API which is used by clients to manage the relational database and to control managed devices for the domain.
 
-\item \textbf{Web/Cmd-line Client} is an application written in Perl which allows the users/administrators to access the controller (e.g., to create/modify/delete the resources and reservation requests and to control managed devices).
+\item \textbf{Web and Command-Line Clients} are user interfaces implemented as Controller clients, which allows the users/administrators to access the controller (e.g., to create/modify/delete the resources and reservation requests and to control managed devices). Both clients are implemented using Perl and the XML-RPC API of the Controller.
 
-\item \textbf{Connector} is an application written in Java which runs one or more \textbf{Device Agents} and which mediates the communication to controller via JADE (middle-ware written in Java for creating multi-agent systems)
+\item \textbf{Connector} is an application that runs one or more \textbf{Device Agents}. Our implementation of relies on JADE (Java Agent Development Framework) for communication between a connector and its controller and thus the connectors are also written in Java.
 
-\item \textbf{Device Agent} is a sub-component of \textbf{Connector} which manages a single videoconferencing device (e.g., Cisco Codian MCU, Adobe Connect server, LifeSize endpoint or Tandberg Codec endpoint). It is able, for instance, to create/modify/delete a room or to dial/hangup a participant in multipoint devices or to dial/hangup on endpoints (and more).
+\item \textbf{Device Agent} is a sub-component of \textbf{Connector} which manages a single device (e.g., Cisco Codian MCU, Adobe Connect server, LifeSize endpoint or Tandberg Codec endpoint, Cisco Content Servers). It is able, for instance, to create/modify/delete a room or to dial/hangup a participant in multipoint devices, or to perform dial/hangup operations on endpoints, set up the recording, etc.
 
-\item \textbf{Auth Server} is a component for user authentication/authorization and for lookuping existing users from identity providers. It is used by \textbf{Web Client} for user sign up and by \textbf{Controller} to verify the user identity and to lookup user information.
+\item \textbf{Auth Server} is a component for user authentication/authorization and for looking up existing users from identity providers. It is used by \textbf{Web Client} for user sign up and by \textbf{Controller} to verify the user identity and to lookup user information.
 
 \end{enumerate}
 
