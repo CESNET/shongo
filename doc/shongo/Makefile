@@ -2,9 +2,9 @@
 # Makefile for Shongo documentation
 #
 
-build: build.shongo_api build.shongo_connectors
+build: build.shongo_api build.shongo_architecture build.shongo_connectors
 
-clean: clean.shongo_api clean.shongo_connectors
+clean: clean.shongo_api clean.shongo_architecture clean.shongo_connectors
 
 build.shongo_api:
 	cd api && make
@@ -13,6 +13,14 @@ build.shongo_api:
 clean.shongo_api:
 	cd api && make clean
 	rm -f shongo_api.pdf
+
+build.shongo_architecture:
+	cd architecture && make
+	cp architecture/architecture.pdf shongo_architecture.pdf
+
+clean.shongo_architecture:
+	cd api && make clean
+	rm -f shongo_architecture.pdf
 
 build.shongo_connectors:
 	cd connectors && make

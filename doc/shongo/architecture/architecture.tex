@@ -26,7 +26,8 @@
 		Alias, Resource, DeviceResource, ManagedMode,
 		PeriodicDateTimeSlot, PeriodicDateTime,
 		ReservationRequest, ReservationRequestSet, 
-		ResourceSpecification, AliasSpecification, RoomSpecification, H323RoomSetting, 		
+		ResourceSpecification, AliasSpecification, RoomSpecification, H323RoomSetting, UserPerson,
+		CompartmentSpecification, PersonSpecification, ExistingEndpointSpecification, ExternalEndpointSetSpecification,
 		H323, SIP, ADOBE_CONNECT, SCIENCE, H323_E164, SIP_URI, ADOBE_CONNECT_URI
 	  }          
     }
@@ -118,9 +119,9 @@ Controller is composed of several sub-components:
 
 \item \textbf{API} receives and processes user and administrator requests. Basically the API stores some data to database (e.g., resource or reservation request) or immediately performs some action based on the request (e.g., retrieves actual room list from MCU device or determines status of Tandberg endpoint).
 
-\item \textbf{Scheduler} processes complete reservation requests from database and tries to allocate them as reservations. The resulting reservations from scheduler are stored to database. As part of some reservations can be allocated special entities reffered to as executables. Executable is an entity which can be started/stopped, e.g., room on MCU, meetting in Adobe Connect, call between two endpoints or compartment which represents a set of multiple interconnected rooms (e.g., two rooms on different MCUs).
+\item \textbf{Scheduler} processes complete reservation requests from database and tries to allocate them as reservations. The resulting reservations from scheduler are stored to database. As part of some reservations can be allocated special entities referred to as executables. Executable is an entity which can be started/stopped, e.g., room on MCU, meetting in Adobe Connect, call between two endpoints or compartment which represents a set of multiple interconnected rooms (e.g., two rooms on different MCUs).
 
-\item \textbf{Executor} processes executables from database and tries to start/update/stop them at the right moment (e.g., tries to create a room on MCU device, add new participant to Adobe Connect meeting, stop meeting in Adobe Connect or dial a call between two Tandberg endpoints).
+\item \textbf{Executor} processes executables from database and tries to start/update/stop them at the right moment (e.g., tries to create a room in MCU device, add new participant to Adobe Connect meeting, stop meeting in Adobe Connect or dial a call between two Tandberg endpoints).
 
 \item \textbf{Authorization} is a sub-component which is used for:
 \begin{compactitem} 
@@ -297,6 +298,31 @@ ReservationRequestSet {
     aliasSpecifications: [
       AliasSpecification { aliasTypes: [H323_E164], value: "950087250" }
     ]
+  }
+}
+\end{Entity}
+
+\item Request for booking meeting from 12:00 to 14:00 UTC on 2013-04-10. Controller will invite Martin Šrom and Peter Holub by email to attend the meeting and to select which endpoint they will use for connecting. After they accept/reject the invitation, the request become complete and controller can allocate a meeting room (or series of interconnected rooms) for number of accepted participants plus 3 (one existing endpoint plus two H.323/SIP ports for guests). When the meeting starts the controller automatically dials out the Tandberg Codec C90. The invitation of participants and allocation of multiple interconnected rooms is not fully implemented yet.
+\begin{Entity}
+ReservationRequest {
+  slotStart: "2013-04-10T12:00Z",
+  slotEnd:   "2013-04-10T14:00Z",
+  specification: CompartmentSpecification {
+    participantSpecifications: [
+      PersonSpecification {
+        person: UserPerson { id: "srom@cesnet.cz"}
+      },
+      PersonSpecification {
+        person: UserPerson { id: "holub@cesnet.cz"}
+      },      
+      ExistingEndpointSpecification { 
+        resource: Resource { id: 1 } 
+      },
+      ExternalEndpointSetSpecification {
+        count: 2,
+        technologies: [H323, SIP]
+      }
+    ],    
   }
 }
 \end{Entity}
