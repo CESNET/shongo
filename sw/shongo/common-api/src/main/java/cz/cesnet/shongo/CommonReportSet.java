@@ -195,7 +195,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value ${value} is illegal for type ${type}.";
+            String message = "Value ${value} is illegal for type ${type-name}.";
             message = message.replace("${type-name}", (typeName == null ? "" : typeName));
             message = message.replace("${value}", (value == null ? "" : value));
             return message;
@@ -313,7 +313,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Class ${class} is not defined.";
+            String message = "Class ${class-name} is not defined.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             return message;
         }
@@ -423,7 +423,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Class ${class} cannot be instanced.";
+            String message = "Class ${class-name} cannot be instanced.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             return message;
         }
@@ -546,7 +546,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Attribute ${attribute} is not defined in class ${class}.";
+            String message = "Attribute ${attribute} is not defined in class ${class-name}.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
@@ -703,7 +703,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Type mismatch of value in attribute ${attribute} in class ${class}. Present type ${present-type} doesn't match required type ${required-type}.";
+            String message = "Type mismatch of value in attribute ${attribute} in class ${class-name}. Present type ${present-type} doesn't match required type ${required-type}.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             message = message.replace("${required-type}", (requiredType == null ? "" : requiredType));
@@ -850,7 +850,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Attribute ${attribute} in class ${class} wasn't present but it is required.";
+            String message = "Attribute ${attribute} in class ${class-name} wasn't present but it is required.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
@@ -981,7 +981,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.";
+            String message = "Value for attribute ${attribute} in class ${class-name} was present but the attribute is read-only.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${attribute}", (attribute == null ? "" : attribute));
             return message;
@@ -1112,7 +1112,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Collection ${collection} in class ${class} wasn't present or was empty but it is required.";
+            String message = "Collection ${collection} in class ${class-name} wasn't present or was empty but it is required.";
             message = message.replace("${class-name}", (className == null ? "" : className));
             message = message.replace("${collection}", (collection == null ? "" : collection));
             return message;

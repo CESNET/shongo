@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.TodoImplementException;
 
 import javax.persistence.EntityManager;
@@ -80,7 +79,7 @@ public class ExecutorThread extends Thread
                         }
                     }
                     catch (Exception exception) {
-                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Starting failed", exception);
+                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Starting failed", exception);
                     }
                     break;
                 case UPDATE:
@@ -89,7 +88,7 @@ public class ExecutorThread extends Thread
                         executable.update(executor, executableManager);
                     }
                     catch (Exception exception) {
-                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Updating failed", exception);
+                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Updating failed", exception);
                     }
                     break;
                 case STOP:
@@ -98,7 +97,7 @@ public class ExecutorThread extends Thread
                         executable.stop(executor);
                     }
                     catch (Exception exception) {
-                        InternalErrorHandler.handle(InternalErrorType.EXECUTOR, "Stopping failed", exception);
+                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Stopping failed", exception);
                     }
                     break;
                 default:
@@ -111,7 +110,7 @@ public class ExecutorThread extends Thread
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
-            InternalErrorHandler.handle(InternalErrorType.EXECUTOR, exception);
+            Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, exception);
         }
         finally {
             entityManager.close();

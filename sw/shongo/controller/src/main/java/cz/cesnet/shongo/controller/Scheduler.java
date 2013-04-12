@@ -6,8 +6,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
@@ -192,9 +190,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 cache.reset();
             }
             catch (Exception resettingException) {
-                InternalErrorHandler.handle(InternalErrorType.SCHEDULER, "Cache resetting failed", resettingException);
+                Reporter.reportInternalError(Reporter.InternalErrorType.SCHEDULER, "Cache resetting failed", resettingException);
             }
-            InternalErrorHandler.handle(InternalErrorType.SCHEDULER, exception);
+            Reporter.reportInternalError(Reporter.InternalErrorType.SCHEDULER, exception);
             return;
         }
 

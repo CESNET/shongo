@@ -6,8 +6,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -515,7 +514,7 @@ public class AuthorizationManager extends AbstractManager
             }
         }
         catch (Exception exception) {
-            InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, "Propagation failed", exception);
+            Reporter.reportInternalError(Reporter.InternalErrorType.AUTHORIZATION, "Propagation failed", exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

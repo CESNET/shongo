@@ -48,11 +48,13 @@ public class PatternReplace
     public String replace(String string, Callback callback)
     {
         final Matcher matcher = this.pattern.matcher(string);
-        while (matcher.find()) {
+        int pos = 0;
+        while (matcher.find(pos)) {
             final MatchResult matchResult = matcher.toMatchResult();
             final String replacement = callback.callback(matchResult);
             string = string.substring(0, matchResult.start())
                     + replacement + string.substring(matchResult.end());
+            pos = matchResult.end();
             matcher.reset(string);
         }
         return string;

@@ -6,8 +6,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
+import cz.cesnet.shongo.controller.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -440,7 +439,7 @@ public abstract class Authorization
         }
         catch (Exception exception) {
             String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
-            InternalErrorHandler.handle(InternalErrorType.AUTHORIZATION, message, exception);
+            Reporter.reportInternalError(Reporter.InternalErrorType.AUTHORIZATION, message, exception);
             throw new ControllerReportSet.SecurityInvalidTokenException(securityToken.getAccessToken());
         }
     }

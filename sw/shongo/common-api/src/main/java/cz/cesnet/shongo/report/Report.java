@@ -8,6 +8,14 @@ package cz.cesnet.shongo.report;
 public abstract class Report
 {
     /**
+     * @return name of the report
+     */
+    public String getName()
+    {
+        return getClass().getSimpleName();
+    }
+
+    /**
      * @return report message
      */
     public abstract Type getType();

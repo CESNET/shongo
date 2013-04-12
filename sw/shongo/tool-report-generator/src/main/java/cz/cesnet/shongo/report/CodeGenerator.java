@@ -415,15 +415,36 @@ public class CodeGenerator extends AbstractGenerator
 
         public String getDescription()
         {
-            return formatString(report.getDescription());
+            String description = report.getDescription();
+            if (description == null) {
+                return null;
+            }
+            description = formatString(description);
+
+            PatternReplace patternReplace = new PatternReplace("\\$\\{([^\\$]+)\\}");
+            description = patternReplace.replace(description, new PatternReplace.Callback()
+            {
+                @Override
+                public String callback(MatchResult matchResult)
+                {
+                    String paramName = matchResult.group(1);
+                    ParamGenerator paramGenerator = paramByName.get(paramName);
+                    if (paramGenerator == null) {
+                        throw new GeneratorException("Param '%s' not found in report '%s'.", paramName, getId());
+                    }
+                    return "${" + paramGenerator.getName() + "}";
+                }
+            });
+            return description;
         }
 
         public String getJavaDoc()
         {
-            String description = getDescription();
+            String description = report.getDescription();
             if (description == null) {
                 return null;
             }
+            description = formatString(description);
 
             PatternReplace patternReplace = new PatternReplace("\\$\\{([^\\$]+)\\}");
             description = patternReplace.replace(description, new PatternReplace.Callback()

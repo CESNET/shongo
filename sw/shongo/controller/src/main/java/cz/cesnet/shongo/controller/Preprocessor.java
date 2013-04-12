@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -75,7 +72,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
         }
         catch (Exception exception) {
-            InternalErrorHandler.handle(InternalErrorType.PREPROCESSOR, exception);
+            Reporter.reportInternalError(Reporter.InternalErrorType.PREPROCESSOR, exception);
         }
     }
 

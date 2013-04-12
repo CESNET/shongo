@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.report.InternalErrorHandler;
-import cz.cesnet.shongo.controller.report.InternalErrorType;
 import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +141,7 @@ public class WorkerThread extends Thread
                 authorizationManager.propagate(authorization);
             }
             catch (Exception exception) {
-                InternalErrorHandler.handle(InternalErrorType.WORKER, exception);
+                Reporter.reportInternalError(Reporter.InternalErrorType.WORKER, exception);
             }
             finally {
                 entityManager.close();

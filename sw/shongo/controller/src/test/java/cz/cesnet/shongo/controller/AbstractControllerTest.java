@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 
@@ -20,6 +22,8 @@ import static junit.framework.Assert.*;
  */
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
+    private static Logger logger = LoggerFactory.getLogger(AbstractControllerTest.class);
+
     /**
      * {@link SecurityToken} for admin.
      */
@@ -184,6 +188,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         onInit();
 
         // Start controller
+        logger.debug("Starting controller for " + getClass().getName() + "...");
         controller.start();
         controller.startRpc();
 
