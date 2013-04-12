@@ -174,7 +174,7 @@ DeviceResource {
     StandaloneTerminalCapability {
       aliases: [
         Alias { type: H323_E164, value: "950087300"},
-        Alias { type: SIP_URI,   value: "sip:950087300@cesnet.cz"},  	  	
+        Alias { type: SIP_URI,   value: "sip:950087300@cesnet.cz"}
       ]
     }
   ] 
@@ -294,7 +294,7 @@ ReservationRequestSet {
       },
       duration: "PT2H"
     }
-  ]
+  ],
   specification: RoomSpecification {
     participantCount: 5,
     technologies: [H323, SIP]
@@ -333,10 +333,10 @@ ReservationRequest {
   specification: RoomSpecification {
     participantCount: 5,
     technologies: [H323, SIP],
-    providedReservations: [
-      Reservation { id: <reservation allocated for previous request> }
-    ]
-  }
+  },
+  providedReservations: [
+    Reservation { id: <reservation allocated for previous request> }
+  ]
 }
 \end{Entity}
 
