@@ -12,7 +12,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
 <#assign apiReportCount = 0>
 <#list scope.getReports() as report>
     <#if report.isApiFault()>
-    public static final int ${report.getConstantName()} = ${report.getCode()};
+    public static final int ${report.getConstantName()} = ${report.getApiFaultCode()};
         <#assign apiReportCount = apiReportCount + 1>
     </#if>
 </#list>
@@ -193,6 +193,14 @@ public class ${scope.getClassName()} extends AbstractReportSet
 
     </#if>
 </#list>
+
+    @Override
+    protected void fillReportClasses()
+    {
+<#list scope.getReports() as report>
+        addReportClass(${report.getClassName()}.class);
+</#list>
+    }
 }
 <#---->
 <#macro formatMethodParameters parameters>

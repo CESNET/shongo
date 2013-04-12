@@ -72,4 +72,10 @@ public class SchedulerReportSet extends AbstractReportSet
             return report;
         }
     }
+
+    @Override
+    protected void fillReportClasses()
+    {
+        addReportClass(UnknownErrorReport.class);
+    }
 }

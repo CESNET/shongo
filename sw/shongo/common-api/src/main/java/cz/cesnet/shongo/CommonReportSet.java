@@ -10,23 +10,24 @@ import cz.cesnet.shongo.report.*;
 public class CommonReportSet extends AbstractReportSet
 {
     public static final int UNKNOWN_ERROR_REPORT = 0;
-    public static final int CLASS_UNDEFINED_REPORT = 0;
-    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 0;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 0;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 0;
-    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 0;
-    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 0;
-    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 0;
-    public static final int COLLECTION_ITEM_NULL_REPORT = 0;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 0;
-    public static final int ENTITY_NOT_FOUND_REPORT = 0;
-    public static final int ENTITY_INVALID_REPORT = 0;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 0;
+    public static final int TYPE_ILLEGAL_VALUE_REPORT = 1;
+    public static final int CLASS_UNDEFINED_REPORT = 2;
+    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 3;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 4;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 5;
+    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 6;
+    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 7;
+    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 8;
+    public static final int COLLECTION_ITEM_NULL_REPORT = 9;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 10;
+    public static final int ENTITY_NOT_FOUND_REPORT = 11;
+    public static final int ENTITY_INVALID_REPORT = 12;
+    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 13;
 
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class UnknownErrorReport extends Report implements ApiFault
     {
         protected String description;
 
@@ -136,7 +137,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport extends cz.cesnet.shongo.JadeReport
+    public static class TypeIllegalValueReport extends Report implements ApiFault
     {
         protected String typeName;
 
@@ -180,6 +181,18 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public int getCode()
+        {
+            return TYPE_ILLEGAL_VALUE_REPORT;
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new TypeIllegalValueException(this);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Value ${value} is illegal for type ${type}.";
@@ -192,7 +205,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link TypeIllegalValueReport}.
      */
-    public static class TypeIllegalValueException extends ReportRuntimeException
+    public static class TypeIllegalValueException extends ReportRuntimeException implements ApiFault
     {
         protected TypeIllegalValueReport report;
 
@@ -239,12 +252,23 @@ public class CommonReportSet extends AbstractReportSet
         {
             return report;
         }
+        @Override
+        public int getCode()
+        {
+            return report.getCode();
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return this;
+        }
     }
 
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassUndefinedReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -354,7 +378,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassInstantiationErrorReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -464,7 +488,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassAttributeUndefinedReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -595,7 +619,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -768,7 +792,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassAttributeRequiredReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -899,7 +923,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassAttributeReadonlyReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -1030,7 +1054,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ClassCollectionRequiredReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -1161,7 +1185,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class CollectionItemNullReport extends Report implements ApiFault
     {
         protected String collection;
 
@@ -1271,7 +1295,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} contains item of type {@link #presentType} which dosn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
     {
         protected String collection;
 
@@ -1423,7 +1447,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class EntityNotFoundReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -1554,7 +1578,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class EntityInvalidReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -1685,7 +1709,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -1811,5 +1835,24 @@ public class CommonReportSet extends AbstractReportSet
         {
             return this;
         }
+    }
+
+    @Override
+    protected void fillReportClasses()
+    {
+        addReportClass(UnknownErrorReport.class);
+        addReportClass(TypeIllegalValueReport.class);
+        addReportClass(ClassUndefinedReport.class);
+        addReportClass(ClassInstantiationErrorReport.class);
+        addReportClass(ClassAttributeUndefinedReport.class);
+        addReportClass(ClassAttributeTypeMismatchReport.class);
+        addReportClass(ClassAttributeRequiredReport.class);
+        addReportClass(ClassAttributeReadonlyReport.class);
+        addReportClass(ClassCollectionRequiredReport.class);
+        addReportClass(CollectionItemNullReport.class);
+        addReportClass(CollectionItemTypeMismatchReport.class);
+        addReportClass(EntityNotFoundReport.class);
+        addReportClass(EntityInvalidReport.class);
+        addReportClass(EntityNotDeletableReferencedReport.class);
     }
 }

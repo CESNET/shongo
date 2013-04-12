@@ -45,9 +45,9 @@ public class RpcClient
     private Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
-     * Collection of {@link AbstractReportSet}s.
+     * Collection of {@link ApiFault} classes by fault code.
      */
-    private List<AbstractReportSet> reportSets = new LinkedList<AbstractReportSet>();
+    private Map<Integer, Class<? extends ApiFault>> apiFaultByCode = new HashMap<Integer, Class<? extends ApiFault>>();
 
     /**
      * Constructor.
@@ -69,11 +69,18 @@ public class RpcClient
     }
 
     /**
-     * @param reportSet sets the {@link #reportSets}
+     * @param reportSet to be added to {@link #apiFaultByCode}
      */
     public void addReportSet(AbstractReportSet reportSet)
     {
-        this.reportSets.add(reportSet);
+        for (Class<? extends Report> reportClass : reportSet.getReportClasses()) {
+            if (ApiFault.class.isAssignableFrom(reportClass)) {
+                @SuppressWarnings("unchecked")
+                Class<? extends ApiFault> apiReportClass = (Class<? extends ApiFault>) reportClass;
+                ApiFault apiFault = ClassHelper.createInstanceFromClass(apiReportClass);
+                apiFaultByCode.put(apiFault.getCode(), apiReportClass);
+            }
+        }
     }
 
     /**
@@ -82,7 +89,7 @@ public class RpcClient
      */
     public Class<? extends ApiFault> getApiFaultClass(int code)
     {
-        throw new TodoImplementException();
+        return apiFaultByCode.get(code);
     }
 
     /**

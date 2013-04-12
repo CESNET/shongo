@@ -185,4 +185,11 @@ public class ExecutorReportSet extends AbstractReportSet
             return report;
         }
     }
+
+    @Override
+    protected void fillReportClasses()
+    {
+        addReportClass(CommandFailedReport.class);
+        addReportClass(UsedRoomNotStartedReport.class);
+    }
 }

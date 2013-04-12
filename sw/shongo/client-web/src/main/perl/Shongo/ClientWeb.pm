@@ -348,14 +348,14 @@ sub fault_action
         $title = "$entity not found";
         $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
     }
-    elsif ( $code == 16 ) {
+    elsif ( $code == 102 ) {
         my $action = $params->{'action'};
         $title = "Not authorized";
         $message = "You are not authorized to <strong>$action</strong>.";
         $message .= '<p>If you think that you should be authorized to specified action contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
 
     }
-    elsif ( $code == 21 ) {
+    elsif ( $code == 107 ) {
         my $reservationRequestId = $params->{'id'};
         $title = "Reservation request cannot be deleted";
         $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";

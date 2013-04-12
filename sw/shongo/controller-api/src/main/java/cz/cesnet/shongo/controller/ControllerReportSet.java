@@ -9,20 +9,20 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int ACL_INVALID_ROLE_REPORT = 0;
-    public static final int SECURITY_INVALID_TOKEN_REPORT = 0;
-    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 0;
-    public static final int DEVICE_COMMAND_FAILED_REPORT = 0;
-    public static final int IDENTIFIER_INVALID_REPORT = 0;
-    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 0;
-    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 0;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 0;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 0;
+    public static final int ACL_INVALID_ROLE_REPORT = 100;
+    public static final int SECURITY_INVALID_TOKEN_REPORT = 101;
+    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 102;
+    public static final int DEVICE_COMMAND_FAILED_REPORT = 103;
+    public static final int IDENTIFIER_INVALID_REPORT = 104;
+    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 105;
+    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 106;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 107;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 108;
 
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
      */
-    public static class AclInvalidRoleReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class AclInvalidRoleReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -153,7 +153,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Invalid security token {@link #token}.
      */
-    public static class SecurityInvalidTokenReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class SecurityInvalidTokenReport extends Report implements ApiFault
     {
         protected String token;
 
@@ -263,7 +263,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * You are not authorized to {@link #action}.
      */
-    public static class SecurityNotAuthorizedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class SecurityNotAuthorizedReport extends Report implements ApiFault
     {
         protected String action;
 
@@ -373,7 +373,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Command {@link #command} for device {@link #device} failed: {@link #jadeReport}
      */
-    public static class DeviceCommandFailedReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class DeviceCommandFailedReport extends Report implements ApiFault
     {
         protected String device;
 
@@ -525,7 +525,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} is invalid.
      */
-    public static class IdentifierInvalidReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class IdentifierInvalidReport extends Report implements ApiFault
     {
         protected String id;
 
@@ -635,7 +635,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} doesn't belong to domain {@link #requiredDomain}.
      */
-    public static class IdentifierInvalidDomainReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class IdentifierInvalidDomainReport extends Report implements ApiFault
     {
         protected String id;
 
@@ -766,7 +766,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Identifier {@link #id} isn't of required type {@link #requiredType}.
      */
-    public static class IdentifierInvalidTypeReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class IdentifierInvalidTypeReport extends Report implements ApiFault
     {
         protected String id;
 
@@ -897,7 +897,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request with identifier {@link #id} cannot be modified or deleted.
      */
-    public static class ReservationRequestNotModifiableReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ReservationRequestNotModifiableReport extends Report implements ApiFault
     {
         protected String id;
 
@@ -1007,7 +1007,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Reservation request time slot must not be empty.
      */
-    public static class ReservationRequestEmptyDurationReport extends cz.cesnet.shongo.JadeReport implements ApiFault
+    public static class ReservationRequestEmptyDurationReport extends Report implements ApiFault
     {
         public ReservationRequestEmptyDurationReport()
         {
@@ -1086,5 +1086,19 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return this;
         }
+    }
+
+    @Override
+    protected void fillReportClasses()
+    {
+        addReportClass(AclInvalidRoleReport.class);
+        addReportClass(SecurityInvalidTokenReport.class);
+        addReportClass(SecurityNotAuthorizedReport.class);
+        addReportClass(DeviceCommandFailedReport.class);
+        addReportClass(IdentifierInvalidReport.class);
+        addReportClass(IdentifierInvalidDomainReport.class);
+        addReportClass(IdentifierInvalidTypeReport.class);
+        addReportClass(ReservationRequestNotModifiableReport.class);
+        addReportClass(ReservationRequestEmptyDurationReport.class);
     }
 }

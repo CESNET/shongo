@@ -61,15 +61,56 @@ public class CodeGenerator extends AbstractGenerator
                 }
             }
         }
+
+        // Assign API codes
+        Map<Integer, ApiFaultCodeGenerator> assignedApiFaultCodeByGenerator =
+                new HashMap<Integer, ApiFaultCodeGenerator>();
+        for (ScopeGenerator scopeGenerator : scopeGenerators.values()) {
+            Report template = scopeGenerator.getTemplate();
+            for (ReportGenerator reportGenerator : scopeGenerator.getReports()) {
+                if (!reportGenerator.isApiFault()) {
+                    continue;
+                }
+                Integer apiFaultCode = reportGenerator.report.getApiFaultCode();
+                if (apiFaultCode == null) {
+                    apiFaultCode = 0;
+                }
+                ApiFaultCodeGenerator apiFaultCodeGenerator = assignedApiFaultCodeByGenerator.get(apiFaultCode);
+                if (apiFaultCodeGenerator == null) {
+                    apiFaultCodeGenerator = new ApiFaultCodeGenerator(apiFaultCode);
+                }
+                else {
+                    apiFaultCode = apiFaultCodeGenerator.generateNext();
+                }
+
+                if (assignedApiFaultCodeByGenerator.containsKey(apiFaultCode)) {
+                    throw new RuntimeException(String.format("Fault code '%d' already assigned.", apiFaultCode));
+                }
+                assignedApiFaultCodeByGenerator.put(apiFaultCode, apiFaultCodeGenerator);
+
+                reportGenerator.setApiFaultCode(apiFaultCode);
+            }
+        }
+    }
+
+    private static class ApiFaultCodeGenerator
+    {
+        private int value;
+
+        public ApiFaultCodeGenerator(int value)
+        {
+            this.value = value;
+        }
+
+        public int generateNext()
+        {
+            return ++this.value;
+        }
     }
 
     @Override
     public void generate() throws Exception
     {
-        // TODO: Assign super reports
-
-        // TODO: API codes
-
         for (ScopeGenerator scopeGenerator : scopeGenerators.values()) {
             Map<String, Object> parameters = new HashMap<String, Object>();
             parameters.put("scope", scopeGenerator);
@@ -210,6 +251,8 @@ public class CodeGenerator extends AbstractGenerator
 
         private String baseClassName;
 
+        private int apiFaultCode;
+
         private String exceptionBaseClassName;
 
         public ReportGenerator(Report report)
@@ -248,6 +291,11 @@ public class CodeGenerator extends AbstractGenerator
             this.baseClassName = baseClassName;
         }
 
+        public void setApiFaultCode(int apiFaultCode)
+        {
+            this.apiFaultCode = apiFaultCode;
+        }
+
         public void fillMissingFromReport(Report report, boolean mergeParams)
         {
             if (this.report.getClassification() == null) {
@@ -279,6 +327,9 @@ public class CodeGenerator extends AbstractGenerator
                 if (exception.isRuntime() == null) {
                     exception.setRuntime(report.getException().isRuntime());
                 }
+            }
+            if (this.report.getApiFaultCode() == null) {
+                this.report.setApiFaultCode(report.getApiFaultCode());
             }
 
             if (this.report.getUser() == null) {
@@ -340,11 +391,6 @@ public class CodeGenerator extends AbstractGenerator
         public String getConstantName()
         {
             return formatConstant(getName());
-        }
-
-        public int getCode()
-        {
-            return 0;
         }
 
         public String getType()
@@ -414,6 +460,11 @@ public class CodeGenerator extends AbstractGenerator
                 return reportUser.isVisible() && reportUser.getVia().equals(ReportUserVia.UI);
             }
             return false;
+        }
+
+        public int getApiFaultCode()
+        {
+            return apiFaultCode;
         }
 
         public boolean isPersistent()

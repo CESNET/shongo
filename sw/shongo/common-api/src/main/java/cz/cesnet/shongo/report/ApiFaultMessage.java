@@ -159,9 +159,9 @@ public class ApiFaultMessage
     {
         ApiFaultMessage content = new ApiFaultMessage();
         content.setMessage(fault.getMessage());
-        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass());
+        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass(), Exception.class);
         for (String propertyName : propertyNames) {
-            if (propertyName.equals("message") || propertyName.equals("code")) {
+            if (propertyName.equals("message") || propertyName.equals("code") || propertyName.equals("exception")) {
                 continue;
             }
             content.setParameter(propertyName, Property.getPropertyValue(fault, propertyName));

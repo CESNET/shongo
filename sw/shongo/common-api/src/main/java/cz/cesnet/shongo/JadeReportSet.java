@@ -970,4 +970,20 @@ public class JadeReportSet extends AbstractReportSet
             return (CommandResultDecodingFailedReport) report;
         }
     }
+
+    @Override
+    protected void fillReportClasses()
+    {
+        addReportClass(UnknownErrorReport.class);
+        addReportClass(AgentNotFoundReport.class);
+        addReportClass(AgentNotStartedReport.class);
+        addReportClass(CommandAbstractErrorReport.class);
+        addReportClass(CommandUnknownErrorReport.class);
+        addReportClass(CommandTimeoutReport.class);
+        addReportClass(CommandNotSupportedReport.class);
+        addReportClass(CommandRefusedReport.class);
+        addReportClass(CommandNotUnderstoodReport.class);
+        addReportClass(CommandFailedReport.class);
+        addReportClass(CommandResultDecodingFailedReport.class);
+    }
 }

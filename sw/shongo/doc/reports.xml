@@ -201,7 +201,8 @@
 
     <scope name="common">
 
-        <template extends="cz.cesnet.shongo.JadeReport">
+        <template>
+            <api-fault-code>0</api-fault-code>
             <exception runtime="true"/>
         </template>
 
@@ -243,7 +244,7 @@
                 -Partial Date/Time
                 -DeviceResource.Mode
             </example>
-            <user visible="false" via="ui">
+            <user visible="true" via="ui">
                 <description>TODO:</description>
             </user>
             <domain-admin visible="false"/>
@@ -496,7 +497,8 @@
 
     <scope name="controller">
 
-        <template extends="cz.cesnet.shongo.JadeReport">
+        <template>
+            <api-fault-code>100</api-fault-code>
             <exception runtime="true"/>
         </template>
 
