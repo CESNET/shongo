@@ -127,7 +127,7 @@ Controller is composed of several sub-components:
 
 \item \textbf{Authorization} is a sub-component which is used for:
 \begin{compactitem} 
-\item verifying user identity against the \textbf{Auth Server}. The most of API requests must contain the user identity (OpenID \cite{openid} access token) which is verified.
+\item verifying user identity against the \textbf{Auth Server}. The most of API requests must contain the user identity (OpenID Connect \cite{openid} access token) which is verified.
 \item lookuping existing users from identity providers via the \textbf{Auth Server}. 
 \item managing ACL rules, i.e., triples \codeValue{(user, entity, role)}, where \codeValue{user} is unique user identifier from \textbf{Auth Server}, \codeValue{entity} is unique identifier of entity in controller database (e.g., resource, reservation request, reservation or executable) and \codeValue{role} is a possible user role for the entity (e.g., \codeValue{owner}).
 \end{compactitem}
