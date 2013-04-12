@@ -7,6 +7,7 @@
 
     <entity class="cz.cesnet.shongo.JadeReport" access="FIELD">
         <inheritance strategy="SINGLE_TABLE"/>
+        <discriminator-column length="50"/>
         <attributes>
             <id name="id">
                 <column column-definition="BIGINT"/>
@@ -22,54 +23,63 @@
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$AgentNotFoundReport" access="FIELD">
+        <discriminator-value>AgentNotFoundReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$AgentNotStartedReport" access="FIELD">
+        <discriminator-value>AgentNotStartedReport</discriminator-value>
         <attributes>
             <basic name="senderAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandAbstractErrorReport" access="FIELD">
+        <discriminator-value>CommandAbstractErrorReport</discriminator-value>
         <attributes>
             <basic name="command"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandUnknownErrorReport" access="FIELD">
+        <discriminator-value>CommandUnknownErrorReport</discriminator-value>
         <attributes>
             <basic name="description"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandTimeoutReport" access="FIELD">
+        <discriminator-value>CommandTimeoutReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandNotSupportedReport" access="FIELD">
+        <discriminator-value>CommandNotSupportedReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandRefusedReport" access="FIELD">
+        <discriminator-value>CommandRefusedReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandNotUnderstoodReport" access="FIELD">
+        <discriminator-value>CommandNotUnderstoodReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
         </attributes>
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandFailedReport" access="FIELD">
+        <discriminator-value>CommandFailedReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
             <basic name="reason"/>
@@ -77,6 +87,7 @@
     </entity>
 
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandResultDecodingFailedReport" access="FIELD">
+        <discriminator-value>CommandResultDecodingFailedReport</discriminator-value>
         <attributes>
             <basic name="senderAgent"/>
         </attributes>
