@@ -33,11 +33,24 @@ public class Reporter
      */
     public static void report(Report report, Throwable throwable)
     {
+        String name = report.getName();
+        String message = report.getMessage();
+
         if (report.getType().equals(Report.Type.ERROR)) {
-            reportError(report.getName(), report.getMessage(), throwable);
+            logger.error(name + ": " + message, throwable);
+        }
+        else if (report.getType().equals(Report.Type.WARNING)) {
+            logger.warn(name + ": " + message, throwable);
+        }
+        else if (report.getType().equals(Report.Type.INFORMATION)) {
+            logger.info(name + ": " + message, throwable);
         }
         else {
-            reportError("TODO", "Implement reporting of " + report.getName(), throwable);
+            logger.debug(name + ": " + message, throwable);
+        }
+
+        if (report.isVisibleToDomainAdminViaEmail()) {
+            sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(message, throwable));
         }
     }
 
@@ -63,7 +76,7 @@ public class Reporter
             apiFaultReport = reportRuntimeException.getReport();
         }
         else {
-            apiFaultReport = new CommonReportSet.UnknownErrorReport(apiFault.getMessage());
+            apiFaultReport = new CommonReportSet.UnknownErrorReport(apiFault.getFaultString());
         }
         // Report it
         report(apiFaultReport, throwable);
@@ -78,15 +91,17 @@ public class Reporter
      */
     public static void reportInternalError(InternalErrorType type, String message, Throwable throwable)
     {
-        StringBuilder name = new StringBuilder();
+        StringBuilder nameBuilder = new StringBuilder();
         if (type != null) {
-            name.append(type.getName());
-            name.append(" Internal Error");
+            nameBuilder.append(type.getName());
+            nameBuilder.append(" Internal Error");
         }
-        if (name.length() == 0) {
-            name.append("Unknown Internal Error");
+        if (nameBuilder.length() == 0) {
+            nameBuilder.append("Unknown Internal Error");
         }
-        reportError(name.toString(), message, throwable);
+        String name = nameBuilder.toString();
+        logger.error(name + ": " + message, throwable);
+        sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(message, throwable));
     }
 
     /**
@@ -105,49 +120,27 @@ public class Reporter
      *
      * @param title
      * @param content
-     * @param throwable
      */
-    private static void reportError(String title, String content, Throwable throwable)
+    private static void sendReportEmail(List<String> recipients, String title, String content)
     {
-        Controller controller = Controller.getInstance();
-        EmailSender emailSender = controller.getEmailSender();
-
-        // Log error
-        logger.error(title + ": " + content, throwable);
+        EmailSender emailSender = Controller.getInstance().getEmailSender();
 
         // If error email can't be sent, propagate runtime exception
-        List<String> administratorEmails = getAdministratorEmails();
         if (!emailSender.isInitialized()) {
-            logger.warn("Error report can't be sent because email sender is not initialized.");
+            logger.warn("Email report can't be sent because email sender is not initialized.");
             return;
         }
-        if (administratorEmails.size() == 0) {
-            logger.warn("Error report can't be sent because email sender is not initialized.");
+        if (recipients.size() == 0) {
+            logger.warn("Email report can't be sent because no recipients are specified.");
             return;
         }
-
-        // Prepare error email content
-        StringBuilder emailContent = new StringBuilder();
-        if (content != null) {
-            emailContent.append(content);
-        }
-        if (throwable != null) {
-            emailContent.append("\n\nEXCEPTION\n\n");
-            final Writer result = new StringWriter();
-            final PrintWriter printWriter = new PrintWriter(result);
-            throwable.printStackTrace(printWriter);
-            String stackTrace = result.toString();
-            emailContent.append(stackTrace);
-        }
-        emailContent.append("\n\n");
-        emailContent.append(getConfiguration());
 
         // Send error email to administrators
         try {
-            emailSender.sendEmail(administratorEmails, title, emailContent.toString());
+            emailSender.sendEmail(recipients, title, content);
         }
         catch (MessagingException messagingException) {
-            logger.error("Failed sending error email.", messagingException);
+            logger.error("Failed sending report email.", messagingException);
         }
     }
 
@@ -162,6 +155,26 @@ public class Reporter
             administratorEmails.add((String) item);
         }
         return administratorEmails;
+    }
+
+    private static String getAdministratorEmailContent(String message, Throwable throwable)
+    {
+        // Prepare error email content
+        StringBuilder emailContent = new StringBuilder();
+        if (message != null) {
+            emailContent.append(message);
+        }
+        if (throwable != null) {
+            emailContent.append("\n\nEXCEPTION\n\n");
+            final Writer result = new StringWriter();
+            final PrintWriter printWriter = new PrintWriter(result);
+            throwable.printStackTrace(printWriter);
+            String stackTrace = result.toString();
+            emailContent.append(stackTrace);
+        }
+        emailContent.append("\n\n");
+        emailContent.append(getConfiguration());
+        return emailContent.toString();
     }
 
     /**

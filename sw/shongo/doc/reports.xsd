@@ -79,8 +79,7 @@
 
     <xs:simpleType name="report-user-via">
         <xs:restriction base="xs:string">
-            <xs:enumeration value="email"/>
-            <xs:enumeration value="ui"/>
+            <xs:enumeration value="api"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -96,7 +95,6 @@
     <xs:simpleType name="report-domain-admin-via">
         <xs:restriction base="xs:string">
             <xs:enumeration value="email"/>
-            <xs:enumeration value="log"/>
         </xs:restriction>
     </xs:simpleType>
 

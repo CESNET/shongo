@@ -528,12 +528,19 @@ public class Property
             for (Method method : methods) {
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
-                if ((methodName.startsWith("get") || methodName.startsWith("is")) && parameterCount == 0
-                        && Modifier.isPublic(method.getModifiers())) {
+                if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
                     if (method.getAnnotation(Transient.class) != null) {
                         continue;
                     }
                     String name = methodName.substring(3);
+                    name = name.substring(0, 1).toLowerCase() + name.substring(1);
+                    propertyNames.add(name);
+                }
+                if (methodName.startsWith("is") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
+                    if (method.getAnnotation(Transient.class) != null) {
+                        continue;
+                    }
+                    String name = methodName.substring(2);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);
                 }

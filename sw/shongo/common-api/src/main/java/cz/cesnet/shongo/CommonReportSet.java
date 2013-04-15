@@ -58,15 +58,26 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return UNKNOWN_ERROR_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
         public Exception getException()
         {
             return new UnknownErrorException(this);
+        }
+
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
 
         @Override
@@ -122,9 +133,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -181,9 +198,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return TYPE_ILLEGAL_VALUE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -253,9 +276,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -299,9 +328,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_UNDEFINED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -363,9 +398,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -409,9 +450,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_INSTANTIATION_ERROR_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -473,9 +520,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -532,9 +585,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_ATTRIBUTE_UNDEFINED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -604,9 +663,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -689,9 +754,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -777,9 +848,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -836,9 +913,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_ATTRIBUTE_REQUIRED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -908,9 +991,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -967,9 +1056,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_ATTRIBUTE_READONLY_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1039,9 +1134,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1098,9 +1199,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return CLASS_COLLECTION_REQUIRED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1170,9 +1277,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1216,9 +1329,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return COLLECTION_ITEM_NULL_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1280,9 +1399,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1352,9 +1477,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return COLLECTION_ITEM_TYPE_MISMATCH_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1432,9 +1563,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1491,9 +1628,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return ENTITY_NOT_FOUND_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1563,9 +1706,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1622,9 +1771,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return ENTITY_INVALID_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1694,9 +1849,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1753,9 +1914,15 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return ENTITY_NOT_DELETABLE_REFERENCED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1825,9 +1992,15 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override

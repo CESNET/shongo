@@ -218,11 +218,10 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
+            <user visible="true" via="api">
+                <description>Unknown error</description>
             </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <domain-admin visible="true" via="email"/>
         </report>
 
         <report>
@@ -244,11 +243,7 @@
                 -Partial Date/Time
                 -DeviceResource.Mode
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -263,11 +258,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -282,11 +273,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -302,11 +289,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -325,11 +308,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -345,11 +324,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -365,11 +340,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -385,11 +356,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -404,11 +371,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -426,11 +389,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -446,11 +405,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -466,11 +421,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -486,11 +437,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
     </scope>
@@ -515,11 +462,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -534,11 +477,8 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
+            <domain-admin visible="true" via="email"/>
         </report>
 
         <report>
@@ -553,11 +493,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -574,11 +510,9 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
+            <domain-admin visible="true" via="email"/>
+            <resource-admin visible="true" via="email"/>
         </report>
 
         <report>
@@ -593,11 +527,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -613,11 +543,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -633,11 +559,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -652,11 +574,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
         <report>
@@ -668,11 +586,7 @@
             <example>
                 TODO:
             </example>
-            <user visible="true" via="ui">
-                <description>TODO:</description>
-            </user>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <user visible="true" via="api"/>
         </report>
 
     </scope>

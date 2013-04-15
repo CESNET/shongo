@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.report;
 
 /**
- * TODO:
+ * Represents a error/warning/information/debug message in Shongo which should be reported to user,
+ * resource administrator and/or domain administrator.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -24,6 +25,15 @@ public abstract class Report
      * @return report message
      */
     public abstract String getMessage();
+
+    /**
+     * @return true whether this {@link Report} should be sent to domain administrator by email,
+     *         false otherwise
+     */
+    public boolean isVisibleToDomainAdminViaEmail()
+    {
+        return false;
+    }
 
     /**
      * Enumeration of all possible {@link Report} types.

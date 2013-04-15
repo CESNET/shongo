@@ -8,8 +8,7 @@ import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.report.ApiFault;
-import cz.cesnet.shongo.report.ApiFaultMessage;
+import cz.cesnet.shongo.report.*;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
@@ -324,8 +323,16 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     ApiFault apiFault = (ApiFault) throwable;
                     throw new ApiFaultXmlRpcException(apiFault, throwable);
                 }
-                String message = "Failed to invoke method " + pMethod.getName()
-                        + " in class " + clazz.getName() + ": " + throwable.getMessage() + ".";
+                else if (throwable instanceof ReportException) {
+                    ReportException reportException = (ReportException) throwable;
+                    throw new ReportXmlRpcException(reportException.getReport(), throwable);
+                }
+                else if (throwable instanceof ReportRuntimeException) {
+                    ReportRuntimeException reportRuntimeException = (ReportRuntimeException) throwable;
+                    throw new ReportXmlRpcException(reportRuntimeException.getReport(), throwable);
+                }
+                String message = "Failed to invoke " + ((Service) pInstance).getServiceName() + "." + pMethod.getName()
+                        + ": " + throwable.getMessage();
                 requestState = "FAILED: " + message;
                 throw new XmlRpcException(message, exception);
             }
@@ -337,6 +344,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         }
     }
 
+    /**
+     * Method invocation throws exception which is {@link ApiFault}.
+     */
     private static class ApiFaultXmlRpcException extends XmlRpcException
     {
         private ApiFault apiFault;
@@ -350,6 +360,25 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         public ApiFault getApiFault()
         {
             return apiFault;
+        }
+    }
+
+    /**
+     * Method invocation throws exception with {@link Report} which isn't {@link ApiFault}.
+     */
+    private static class ReportXmlRpcException extends XmlRpcException
+    {
+        private Report report;
+
+        public ReportXmlRpcException(Report report, Throwable throwable)
+        {
+            super(null, throwable);
+            this.report = report;
+        }
+
+        public Report getReport()
+        {
+            return report;
         }
     }
 
@@ -491,29 +520,45 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         protected Throwable convertThrowable(Throwable throwable)
         {
             ApiFault apiFault = null;
-            if (throwable instanceof ApiFaultXmlRpcException) {
-                ApiFaultXmlRpcException apiFaultXmlRpcException = (ApiFaultXmlRpcException) throwable;
-                apiFault = apiFaultXmlRpcException.getApiFault();
-                throwable = apiFaultXmlRpcException.getCause();
-            }
-            else if (throwable instanceof ApiFault) {
-                apiFault = (ApiFault) throwable;
 
+            // Report not API fault
+            if (throwable instanceof ReportXmlRpcException) {
+                ReportXmlRpcException reportXmlRpcException = (ReportXmlRpcException) throwable;
+                Report report = reportXmlRpcException.getReport();
+
+                Reporter.report(report, throwable);
+
+                apiFault = new CommonReportSet.UnknownErrorReport(report.getMessage());
             }
-            else if (throwable instanceof RuntimeException || throwable instanceof SAXException) {
-                Throwable cause = throwable.getCause();
-                if (cause instanceof ApiFaultXmlRpcException) {
-                    ApiFaultXmlRpcException apiFaultXmlRpcException = (ApiFaultXmlRpcException) cause;
+            // Report API fault
+            else {
+                if (throwable instanceof ApiFaultXmlRpcException) {
+                    ApiFaultXmlRpcException apiFaultXmlRpcException = (ApiFaultXmlRpcException) throwable;
                     apiFault = apiFaultXmlRpcException.getApiFault();
                     throwable = apiFaultXmlRpcException.getCause();
                 }
-                else if (cause instanceof ApiFault) {
-                    apiFault = (ApiFault) cause;
-                    throwable = cause;
-                }
-            }
+                else if (throwable instanceof ApiFault) {
+                    apiFault = (ApiFault) throwable;
 
-            Reporter.reportApiFault(apiFault, throwable);
+                }
+                else if (throwable instanceof RuntimeException || throwable instanceof SAXException) {
+                    Throwable cause = throwable.getCause();
+                    if (cause instanceof ApiFaultXmlRpcException) {
+                        ApiFaultXmlRpcException apiFaultXmlRpcException = (ApiFaultXmlRpcException) cause;
+                        apiFault = apiFaultXmlRpcException.getApiFault();
+                        throwable = apiFaultXmlRpcException.getCause();
+                    }
+                    else if (cause instanceof ApiFault) {
+                        apiFault = (ApiFault) cause;
+                        throwable = cause;
+                    }
+                }
+                if (apiFault == null) {
+                    apiFault = new CommonReportSet.UnknownErrorReport(throwable.getMessage());
+                }
+
+                Reporter.reportApiFault(apiFault, throwable);
+            }
 
             /*if (throwable instanceof XmlRpcException) {
                 XmlRpcException xmlRpcException = (XmlRpcException) throwable;
@@ -526,8 +571,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 }
             }*/
 
-            ApiFaultMessage apiFaultMessage = ApiFaultMessage.fromFault(apiFault);
-            XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getCode(), apiFaultMessage.toString(),
+            ApiFaultString apiFaultMessage = ApiFaultString.fromFault(apiFault);
+            XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getFaultCode(), apiFaultMessage.toString(),
                     throwable.getCause());
             xmlRpcException.setStackTrace(throwable.getStackTrace());
             return xmlRpcException;
@@ -571,6 +616,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         protected void writeError(XmlRpcStreamRequestConfig pConfig, OutputStream pStream,
                 Throwable pError) throws XmlRpcException
         {
+            if (RpcServerRequestLogger.isEnabled()) {
+                pStream = RpcServerRequestLogger.logResponse(pStream);
+            }
             RequestData data = (RequestData) pConfig;
             try {
                 if (data.isByteArrayRequired()) {

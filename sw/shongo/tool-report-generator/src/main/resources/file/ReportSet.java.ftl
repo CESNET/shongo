@@ -76,19 +76,32 @@ public class ${scope.getClassName()} extends AbstractReportSet
         }
         <#if report.isApiFault()>
 
-        <#if report.isPersistent()>
+            <#if report.isPersistent()>
         @javax.persistence.Transient
-        </#if>
+            </#if>
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return ${report.getConstantName()};
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
         public Exception getException()
         {
             return new ${report.getExceptionClassName()}(this);
+        }
+        </#if>
+        <#if report.isVisibleToDomainAdminViaEmail()>
+
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
         </#if>
 
@@ -176,9 +189,15 @@ public class ${scope.getClassName()} extends AbstractReportSet
         }
         <#if !report.isAbstract() && report.isApiFault()>
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override

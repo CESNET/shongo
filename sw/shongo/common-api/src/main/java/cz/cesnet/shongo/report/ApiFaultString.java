@@ -12,11 +12,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Represents a message and it's parameters which can be converted to/from string.
+ * Represents a XML-RPC fault string with it's parameters which can be converted to/from string.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ApiFaultMessage
+public class ApiFaultString
 {
     /**
      * String message.
@@ -31,7 +31,7 @@ public class ApiFaultMessage
     /**
      * Constructor.
      */
-    public ApiFaultMessage()
+    public ApiFaultString()
     {
     }
 
@@ -40,7 +40,7 @@ public class ApiFaultMessage
      *
      * @param message to be constructed from
      */
-    public ApiFaultMessage(String message)
+    public ApiFaultString(String message)
     {
         fromString(message);
     }
@@ -151,17 +151,19 @@ public class ApiFaultMessage
     }
 
     /**
-     * Load {@link cz.cesnet.shongo.report.ApiFaultMessage} from given {@code fault}.
+     * Load {@link ApiFaultString} from given {@code fault}.
      *
      * @param fault to load from
      */
-    public static ApiFaultMessage fromFault(ApiFault fault)
+    public static ApiFaultString fromFault(ApiFault fault)
     {
-        ApiFaultMessage content = new ApiFaultMessage();
-        content.setMessage(fault.getMessage());
+        ApiFaultString content = new ApiFaultString();
+        content.setMessage(fault.getFaultString());
         Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass(), Exception.class);
         for (String propertyName : propertyNames) {
-            if (propertyName.equals("message") || propertyName.equals("code") || propertyName.equals("exception")) {
+            if (propertyName.equals("message") || propertyName.equals("exception")
+                    || propertyName.equals("faultCode") || propertyName.equals("visibleToDomainAdminViaEmail")
+                    || propertyName.equals("faultString")) {
                 continue;
             }
             content.setParameter(propertyName, Property.getPropertyValue(fault, propertyName));
@@ -170,7 +172,7 @@ public class ApiFaultMessage
     }
 
     /**
-     * Store {@link cz.cesnet.shongo.report.ApiFaultMessage} to given {@code fault}.
+     * Store {@link ApiFaultString} to given {@code fault}.
      *
      * @param fault to store to
      */

@@ -66,9 +66,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return ACL_INVALID_ROLE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -138,9 +144,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -184,15 +196,26 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return SECURITY_INVALID_TOKEN_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
         public Exception getException()
         {
             return new SecurityInvalidTokenException(this);
+        }
+
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
 
         @Override
@@ -248,9 +271,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -294,9 +323,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return SECURITY_NOT_AUTHORIZED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -358,9 +393,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -430,15 +471,26 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return DEVICE_COMMAND_FAILED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
         public Exception getException()
         {
             return new DeviceCommandFailedException(this);
+        }
+
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
 
         @Override
@@ -510,9 +562,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -556,9 +614,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return IDENTIFIER_INVALID_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -620,9 +684,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -679,9 +749,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return IDENTIFIER_INVALID_DOMAIN_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -751,9 +827,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -810,9 +892,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return IDENTIFIER_INVALID_TYPE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -882,9 +970,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -928,9 +1022,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -992,9 +1092,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1020,9 +1126,15 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
             return RESERVATION_REQUEST_EMPTY_DURATION_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override
@@ -1076,9 +1188,15 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getCode()
+        public int getFaultCode()
         {
-            return report.getCode();
+            return report.getFaultCode();
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage();
         }
 
         @Override

@@ -1,11 +1,10 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.report.AbstractReportSet;
 import cz.cesnet.shongo.report.ApiFault;
-import cz.cesnet.shongo.report.ApiFaultMessage;
+import cz.cesnet.shongo.report.ApiFaultString;
 import cz.cesnet.shongo.report.Report;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -18,7 +17,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -78,7 +76,7 @@ public class RpcClient
                 @SuppressWarnings("unchecked")
                 Class<? extends ApiFault> apiReportClass = (Class<? extends ApiFault>) reportClass;
                 ApiFault apiFault = ClassHelper.createInstanceFromClass(apiReportClass);
-                apiFaultByCode.put(apiFault.getCode(), apiReportClass);
+                apiFaultByCode.put(apiFault.getFaultCode(), apiReportClass);
             }
         }
     }
@@ -165,7 +163,7 @@ public class RpcClient
         ApiFault fault = ClassHelper.createInstanceFromClass(type);
 
         // Fill message
-        ApiFaultMessage faultMessage = new ApiFaultMessage(xmlRpcException.getMessage());
+        ApiFaultString faultMessage = new ApiFaultString(xmlRpcException.getMessage());
         faultMessage.toFault(fault);
 
         // Create exception for fault

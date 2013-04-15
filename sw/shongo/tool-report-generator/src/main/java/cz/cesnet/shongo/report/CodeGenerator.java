@@ -478,7 +478,7 @@ public class CodeGenerator extends AbstractGenerator
         {
             ReportUser reportUser = report.getUser();
             if (reportUser != null) {
-                return reportUser.isVisible() && reportUser.getVia().equals(ReportUserVia.UI);
+                return reportUser.isVisible() && reportUser.getVia().equals(ReportUserVia.API);
             }
             return false;
         }
@@ -520,6 +520,15 @@ public class CodeGenerator extends AbstractGenerator
                 return "ReportRuntimeException";
             }
             return "ReportException";
+        }
+
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            ReportDomainAdmin reportDomainAdmin = report.getDomainAdmin();
+            if (reportDomainAdmin != null) {
+                return reportDomainAdmin.isVisible() && reportDomainAdmin.getVia().equals(ReportDomainAdminVia.EMAIL);
+            }
+            return false;
         }
     }
 

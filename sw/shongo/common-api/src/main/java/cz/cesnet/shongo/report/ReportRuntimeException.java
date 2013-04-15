@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.report;
 
 /**
- * TODO:
+ * Represents a {@link RuntimeException} for {@link Report}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
