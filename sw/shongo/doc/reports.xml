@@ -47,6 +47,7 @@
     <scope name="jade">
 
         <template extends="cz.cesnet.shongo.JadeReport">
+            <serializable>true</serializable>
             <exception base-class="cz.cesnet.shongo.JadeException"/>
         </template>
 
@@ -202,6 +203,7 @@
     <scope name="common">
 
         <template>
+            <serializable>true</serializable>
             <api-fault-code>0</api-fault-code>
             <exception runtime="true"/>
         </template>

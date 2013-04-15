@@ -43,7 +43,7 @@ sub instance
         $singleInstance->{'client'}->{'on-fault'} = sub {
             my ($fault) = @_;
             my $message = $fault->string();
-            if ( $message =~ /<message>(.*)<\/message>/ ) {
+            if ( $message =~ /^{"message":"([^"]*)"/ ) {
                 $message = $1;
             }
             console_print_error("Server failed to perform request!\nFault %d: %s", $fault->code, $message);

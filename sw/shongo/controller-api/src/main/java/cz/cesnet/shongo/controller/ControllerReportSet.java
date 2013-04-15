@@ -84,6 +84,20 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            entity = (String) reportSerializer.getParameter("entity", String.class);
+            role = (String) reportSerializer.getParameter("role", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("role", role);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "ACL Role ${role} is invalid for entity ${entity}.";
@@ -96,7 +110,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link AclInvalidRoleReport}.
      */
-    public static class AclInvalidRoleException extends ReportRuntimeException implements ApiFault
+    public static class AclInvalidRoleException extends ReportRuntimeException implements ApiFaultException
     {
         protected AclInvalidRoleReport report;
 
@@ -144,21 +158,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -213,6 +215,18 @@ public class ControllerReportSet extends AbstractReportSet
             return new SecurityInvalidTokenException(this);
         }
 
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            token = (String) reportSerializer.getParameter("token", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("token", token);
+        }
+
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -230,7 +244,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link SecurityInvalidTokenReport}.
      */
-    public static class SecurityInvalidTokenException extends ReportRuntimeException implements ApiFault
+    public static class SecurityInvalidTokenException extends ReportRuntimeException implements ApiFaultException
     {
         protected SecurityInvalidTokenReport report;
 
@@ -271,21 +285,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -341,6 +343,18 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            action = (String) reportSerializer.getParameter("action", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("action", action);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "You are not authorized to ${action}.";
@@ -352,7 +366,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link SecurityNotAuthorizedReport}.
      */
-    public static class SecurityNotAuthorizedException extends ReportRuntimeException implements ApiFault
+    public static class SecurityNotAuthorizedException extends ReportRuntimeException implements ApiFaultException
     {
         protected SecurityNotAuthorizedReport report;
 
@@ -393,21 +407,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -488,6 +490,22 @@ public class ControllerReportSet extends AbstractReportSet
             return new DeviceCommandFailedException(this);
         }
 
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            device = (String) reportSerializer.getParameter("device", String.class);
+            command = (String) reportSerializer.getParameter("command", String.class);
+            jadeReport = (cz.cesnet.shongo.JadeReport) reportSerializer.getParameter("jadeReport", cz.cesnet.shongo.JadeReport.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("device", device);
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("jadeReport", jadeReport);
+        }
+
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -507,7 +525,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link DeviceCommandFailedReport}.
      */
-    public static class DeviceCommandFailedException extends ReportRuntimeException implements ApiFault
+    public static class DeviceCommandFailedException extends ReportRuntimeException implements ApiFaultException
     {
         protected DeviceCommandFailedReport report;
 
@@ -562,21 +580,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -632,6 +638,18 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Identifier ${id} is invalid.";
@@ -643,7 +661,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidReport}.
      */
-    public static class IdentifierInvalidException extends ReportRuntimeException implements ApiFault
+    public static class IdentifierInvalidException extends ReportRuntimeException implements ApiFaultException
     {
         protected IdentifierInvalidReport report;
 
@@ -684,21 +702,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -767,6 +773,20 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+            requiredDomain = (String) reportSerializer.getParameter("requiredDomain", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+            reportSerializer.setParameter("requiredDomain", requiredDomain);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Identifier ${id} doesn't belong to domain ${required-domain}.";
@@ -779,7 +799,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidDomainReport}.
      */
-    public static class IdentifierInvalidDomainException extends ReportRuntimeException implements ApiFault
+    public static class IdentifierInvalidDomainException extends ReportRuntimeException implements ApiFaultException
     {
         protected IdentifierInvalidDomainReport report;
 
@@ -827,21 +847,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -910,6 +918,20 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+            requiredType = (String) reportSerializer.getParameter("requiredType", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+            reportSerializer.setParameter("requiredType", requiredType);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Identifier ${id} isn't of required type ${required-type}.";
@@ -922,7 +944,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link IdentifierInvalidTypeReport}.
      */
-    public static class IdentifierInvalidTypeException extends ReportRuntimeException implements ApiFault
+    public static class IdentifierInvalidTypeException extends ReportRuntimeException implements ApiFaultException
     {
         protected IdentifierInvalidTypeReport report;
 
@@ -970,21 +992,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -1040,6 +1050,18 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Reservation request with identifier ${id} cannot be modified or deleted.";
@@ -1051,7 +1073,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link ReservationRequestNotModifiableReport}.
      */
-    public static class ReservationRequestNotModifiableException extends ReportRuntimeException implements ApiFault
+    public static class ReservationRequestNotModifiableException extends ReportRuntimeException implements ApiFaultException
     {
         protected ReservationRequestNotModifiableReport report;
 
@@ -1092,21 +1114,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
@@ -1144,6 +1154,16 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Reservation request time slot must not be empty.";
@@ -1154,7 +1174,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Exception for {@link ReservationRequestEmptyDurationReport}.
      */
-    public static class ReservationRequestEmptyDurationException extends ReportRuntimeException implements ApiFault
+    public static class ReservationRequestEmptyDurationException extends ReportRuntimeException implements ApiFaultException
     {
         protected ReservationRequestEmptyDurationReport report;
 
@@ -1188,21 +1208,9 @@ public class ControllerReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 

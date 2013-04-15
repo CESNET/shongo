@@ -12,7 +12,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport
+    public static class UnknownErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String description;
 
@@ -40,6 +40,18 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            description = (String) reportSerializer.getParameter("description", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("description", description);
         }
 
         @Override
@@ -99,7 +111,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Receiver agent {@link #receiverAgent} is not available now.
      */
-    public static class AgentNotFoundReport extends cz.cesnet.shongo.JadeReport
+    public static class AgentNotFoundReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -127,6 +139,18 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
         }
 
         @Override
@@ -186,7 +210,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Sender agent {@link #senderAgent} is not started yet.
      */
-    public static class AgentNotStartedReport extends cz.cesnet.shongo.JadeReport
+    public static class AgentNotStartedReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String senderAgent;
 
@@ -214,6 +238,18 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            senderAgent = (String) reportSerializer.getParameter("senderAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("senderAgent", senderAgent);
         }
 
         @Override
@@ -273,7 +309,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Abstract command error.
      */
-    public static abstract class CommandAbstractErrorReport extends cz.cesnet.shongo.JadeReport
+    public static abstract class CommandAbstractErrorReport extends cz.cesnet.shongo.JadeReport implements SerializableReport
     {
         protected String command;
 
@@ -330,7 +366,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Unknown error: {@link #description}
      */
-    public static class CommandUnknownErrorReport extends CommandAbstractErrorReport
+    public static class CommandUnknownErrorReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String description;
 
@@ -359,6 +395,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            description = (String) reportSerializer.getParameter("description", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("description", description);
         }
 
         @Override
@@ -419,7 +469,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Command {@link #command} has timeout.
      */
-    public static class CommandTimeoutReport extends CommandAbstractErrorReport
+    public static class CommandTimeoutReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -448,6 +498,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
         }
 
         @Override
@@ -508,7 +572,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Receiver agent {@link #receiverAgent} doesn't implement command {@link #command}.
      */
-    public static class CommandNotSupportedReport extends CommandAbstractErrorReport
+    public static class CommandNotSupportedReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -537,6 +601,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
         }
 
         @Override
@@ -597,7 +675,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Receiver agent {@link #receiverAgent} has refused command {@link #command}.
      */
-    public static class CommandRefusedReport extends CommandAbstractErrorReport
+    public static class CommandRefusedReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -626,6 +704,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
         }
 
         @Override
@@ -686,7 +778,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Receiver agent {@link #receiverAgent} didn't understand command {@link #command}.
      */
-    public static class CommandNotUnderstoodReport extends CommandAbstractErrorReport
+    public static class CommandNotUnderstoodReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -715,6 +807,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
         }
 
         @Override
@@ -775,7 +881,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Receiver agent {@link #receiverAgent} throws CommandException while processing command {@link #command}: {@link #reason}
      */
-    public static class CommandFailedReport extends CommandAbstractErrorReport
+    public static class CommandFailedReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String receiverAgent;
 
@@ -817,6 +923,22 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
+            reason = (String) reportSerializer.getParameter("reason", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("receiverAgent", receiverAgent);
+            reportSerializer.setParameter("reason", reason);
         }
 
         @Override
@@ -885,7 +1007,7 @@ public class JadeReportSet extends AbstractReportSet
     /**
      * Sender agent {@link #senderAgent} cannot decode response from command {@link #command}.
      */
-    public static class CommandResultDecodingFailedReport extends CommandAbstractErrorReport
+    public static class CommandResultDecodingFailedReport extends CommandAbstractErrorReport implements SerializableReport
     {
         protected String senderAgent;
 
@@ -914,6 +1036,20 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            command = (String) reportSerializer.getParameter("command", String.class);
+            senderAgent = (String) reportSerializer.getParameter("senderAgent", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("command", command);
+            reportSerializer.setParameter("senderAgent", senderAgent);
         }
 
         @Override

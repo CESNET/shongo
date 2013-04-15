@@ -27,7 +27,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends Report implements ApiFault
+    public static class UnknownErrorReport extends Report implements ApiFault, SerializableReport
     {
         protected String description;
 
@@ -75,6 +75,18 @@ public class CommonReportSet extends AbstractReportSet
             return new UnknownErrorException(this);
         }
 
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            description = (String) reportSerializer.getParameter("description", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("description", description);
+        }
+
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -92,7 +104,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link UnknownErrorReport}.
      */
-    public static class UnknownErrorException extends ReportRuntimeException implements ApiFault
+    public static class UnknownErrorException extends ReportRuntimeException implements ApiFaultException
     {
         protected UnknownErrorReport report;
 
@@ -133,28 +145,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport extends Report implements ApiFault
+    public static class TypeIllegalValueReport extends Report implements ApiFault, SerializableReport
     {
         protected String typeName;
 
@@ -216,6 +216,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            typeName = (String) reportSerializer.getParameter("typeName", String.class);
+            value = (String) reportSerializer.getParameter("value", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("typeName", typeName);
+            reportSerializer.setParameter("value", value);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Value ${value} is illegal for type ${type-name}.";
@@ -228,7 +242,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link TypeIllegalValueReport}.
      */
-    public static class TypeIllegalValueException extends ReportRuntimeException implements ApiFault
+    public static class TypeIllegalValueException extends ReportRuntimeException implements ApiFaultException
     {
         protected TypeIllegalValueReport report;
 
@@ -276,28 +290,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport extends Report implements ApiFault
+    public static class ClassUndefinedReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -346,6 +348,18 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Class ${class-name} is not defined.";
@@ -357,7 +371,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassUndefinedReport}.
      */
-    public static class ClassUndefinedException extends ReportRuntimeException implements ApiFault
+    public static class ClassUndefinedException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassUndefinedReport report;
 
@@ -398,28 +412,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport extends Report implements ApiFault
+    public static class ClassInstantiationErrorReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -468,6 +470,18 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Class ${class-name} cannot be instanced.";
@@ -479,7 +493,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassInstantiationErrorReport}.
      */
-    public static class ClassInstantiationErrorException extends ReportRuntimeException implements ApiFault
+    public static class ClassInstantiationErrorException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassInstantiationErrorReport report;
 
@@ -520,28 +534,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport extends Report implements ApiFault
+    public static class ClassAttributeUndefinedReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -603,6 +605,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            attribute = (String) reportSerializer.getParameter("attribute", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("attribute", attribute);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Attribute ${attribute} is not defined in class ${class-name}.";
@@ -615,7 +631,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeUndefinedReport}.
      */
-    public static class ClassAttributeUndefinedException extends ReportRuntimeException implements ApiFault
+    public static class ClassAttributeUndefinedException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassAttributeUndefinedReport report;
 
@@ -663,28 +679,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault
+    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -772,6 +776,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            attribute = (String) reportSerializer.getParameter("attribute", String.class);
+            requiredType = (String) reportSerializer.getParameter("requiredType", String.class);
+            presentType = (String) reportSerializer.getParameter("presentType", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("attribute", attribute);
+            reportSerializer.setParameter("requiredType", requiredType);
+            reportSerializer.setParameter("presentType", presentType);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Type mismatch of value in attribute ${attribute} in class ${class-name}. Present type ${present-type} doesn't match required type ${required-type}.";
@@ -786,7 +808,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeTypeMismatchReport}.
      */
-    public static class ClassAttributeTypeMismatchException extends ReportRuntimeException implements ApiFault
+    public static class ClassAttributeTypeMismatchException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassAttributeTypeMismatchReport report;
 
@@ -848,28 +870,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport extends Report implements ApiFault
+    public static class ClassAttributeRequiredReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -931,6 +941,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            attribute = (String) reportSerializer.getParameter("attribute", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("attribute", attribute);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Attribute ${attribute} in class ${class-name} wasn't present but it is required.";
@@ -943,7 +967,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeRequiredReport}.
      */
-    public static class ClassAttributeRequiredException extends ReportRuntimeException implements ApiFault
+    public static class ClassAttributeRequiredException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassAttributeRequiredReport report;
 
@@ -991,28 +1015,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport extends Report implements ApiFault
+    public static class ClassAttributeReadonlyReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -1074,6 +1086,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            attribute = (String) reportSerializer.getParameter("attribute", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("attribute", attribute);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Value for attribute ${attribute} in class ${class-name} was present but the attribute is read-only.";
@@ -1086,7 +1112,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassAttributeReadonlyReport}.
      */
-    public static class ClassAttributeReadonlyException extends ReportRuntimeException implements ApiFault
+    public static class ClassAttributeReadonlyException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassAttributeReadonlyReport report;
 
@@ -1134,28 +1160,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport extends Report implements ApiFault
+    public static class ClassCollectionRequiredReport extends Report implements ApiFault, SerializableReport
     {
         protected String className;
 
@@ -1217,6 +1231,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            className = (String) reportSerializer.getParameter("className", String.class);
+            collection = (String) reportSerializer.getParameter("collection", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("className", className);
+            reportSerializer.setParameter("collection", collection);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Collection ${collection} in class ${class-name} wasn't present or was empty but it is required.";
@@ -1229,7 +1257,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link ClassCollectionRequiredReport}.
      */
-    public static class ClassCollectionRequiredException extends ReportRuntimeException implements ApiFault
+    public static class ClassCollectionRequiredException extends ReportRuntimeException implements ApiFaultException
     {
         protected ClassCollectionRequiredReport report;
 
@@ -1277,28 +1305,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport extends Report implements ApiFault
+    public static class CollectionItemNullReport extends Report implements ApiFault, SerializableReport
     {
         protected String collection;
 
@@ -1347,6 +1363,18 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            collection = (String) reportSerializer.getParameter("collection", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("collection", collection);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Null item cannot be present in collection ${collection}.";
@@ -1358,7 +1386,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link CollectionItemNullReport}.
      */
-    public static class CollectionItemNullException extends ReportRuntimeException implements ApiFault
+    public static class CollectionItemNullException extends ReportRuntimeException implements ApiFaultException
     {
         protected CollectionItemNullReport report;
 
@@ -1399,28 +1427,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Collection {@link #collection} contains item of type {@link #presentType} which dosn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
+    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault, SerializableReport
     {
         protected String collection;
 
@@ -1495,6 +1511,22 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            collection = (String) reportSerializer.getParameter("collection", String.class);
+            requiredType = (String) reportSerializer.getParameter("requiredType", String.class);
+            presentType = (String) reportSerializer.getParameter("presentType", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("collection", collection);
+            reportSerializer.setParameter("requiredType", requiredType);
+            reportSerializer.setParameter("presentType", presentType);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Collection ${collection} contains item of type ${present-type} which dosn't match the required type ${required-type}.";
@@ -1508,7 +1540,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link CollectionItemTypeMismatchReport}.
      */
-    public static class CollectionItemTypeMismatchException extends ReportRuntimeException implements ApiFault
+    public static class CollectionItemTypeMismatchException extends ReportRuntimeException implements ApiFaultException
     {
         protected CollectionItemTypeMismatchReport report;
 
@@ -1563,28 +1595,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport extends Report implements ApiFault
+    public static class EntityNotFoundReport extends Report implements ApiFault, SerializableReport
     {
         protected String entity;
 
@@ -1646,6 +1666,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            entity = (String) reportSerializer.getParameter("entity", String.class);
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Entity ${entity} with identifier ${id} was not found.";
@@ -1658,7 +1692,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityNotFoundReport}.
      */
-    public static class EntityNotFoundException extends ReportRuntimeException implements ApiFault
+    public static class EntityNotFoundException extends ReportRuntimeException implements ApiFaultException
     {
         protected EntityNotFoundReport report;
 
@@ -1706,28 +1740,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends Report implements ApiFault
+    public static class EntityInvalidReport extends Report implements ApiFault, SerializableReport
     {
         protected String entity;
 
@@ -1789,6 +1811,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            entity = (String) reportSerializer.getParameter("entity", String.class);
+            reason = (String) reportSerializer.getParameter("reason", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("reason", reason);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Entity ${entity} validation failed: ${reason}";
@@ -1801,7 +1837,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityInvalidReport}.
      */
-    public static class EntityInvalidException extends ReportRuntimeException implements ApiFault
+    public static class EntityInvalidException extends ReportRuntimeException implements ApiFaultException
     {
         protected EntityInvalidReport report;
 
@@ -1849,28 +1885,16 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 
     /**
      * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault
+    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault, SerializableReport
     {
         protected String entity;
 
@@ -1932,6 +1956,20 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            entity = (String) reportSerializer.getParameter("entity", String.class);
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("entity", entity);
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
         public String getMessage()
         {
             String message = "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.";
@@ -1944,7 +1982,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Exception for {@link EntityNotDeletableReferencedReport}.
      */
-    public static class EntityNotDeletableReferencedException extends ReportRuntimeException implements ApiFault
+    public static class EntityNotDeletableReferencedException extends ReportRuntimeException implements ApiFaultException
     {
         protected EntityNotDeletableReferencedReport report;
 
@@ -1992,21 +2030,9 @@ public class CommonReportSet extends AbstractReportSet
             return report;
         }
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
     }
 

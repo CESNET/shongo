@@ -6,7 +6,7 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface ApiFault
+public interface ApiFault extends SerializableReport
 {
     /**
      * @return fault code

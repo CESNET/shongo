@@ -1,197 +1,137 @@
 package cz.cesnet.shongo.report;
 
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.api.util.Property;
-import cz.cesnet.shongo.api.util.TypeFlags;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.IOException;
 
 /**
  * Represents a XML-RPC fault string with it's parameters which can be converted to/from string.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ApiFaultString
+public class ApiFaultString implements ReportSerializer
 {
     /**
-     * String message.
+     * @see org.codehaus.jackson.map.ObjectMapper
      */
-    private String message;
+    private static ObjectMapper jsonMapper = new ObjectMapper();
 
     /**
-     * Parameters for the message.
+     * Data.
      */
-    private Map<String, String> parameters = new HashMap<String, String>();
+    private ObjectNode jsonNode;
 
     /**
      * Constructor.
      */
     public ApiFaultString()
     {
+        jsonNode = jsonMapper.createObjectNode();
     }
 
     /**
-     * Constructor.
-     *
-     * @param message to be constructed from
-     */
-    public ApiFaultString(String message)
-    {
-        fromString(message);
-    }
-
-    /**
-     * @return {@link #message}
+     * @return message from {@link ApiFaultString}
      */
     public String getMessage()
     {
-        return message;
+        return jsonNode.get("message").getTextValue();
     }
 
     /**
-     * @param message sets the {@link #message}
+     * @param message sets the message to {@link ApiFaultString}
      */
     public void setMessage(String message)
     {
-        this.message = message;
+        jsonNode.put("message", message);
     }
 
     /**
      * @param name
      * @return value of parameter with given {@code name}
      */
-    public String getParameter(String name)
+    @Override
+    public Object getParameter(String name, Class type)
     {
-        return parameters.get(name);
-    }
+        if (String.class.equals(type)) {
+            return jsonNode.get(name).getTextValue();
+        }
+        else if (Report.class.isAssignableFrom(type)) {
+            ObjectNode value = (ObjectNode) jsonNode.get(name);
+            String reportClassName = value.get("class").getTextValue();
+            try {
+                Class reportClass = ClassHelper.getClassFromShortName(reportClassName);
+                @SuppressWarnings("unchecked")
+                SerializableReport report = (SerializableReport) ClassHelper.createInstanceFromClass(reportClass);
 
-    /**
-     * Set {@code value} of parameter with given {@code name}.
-     *
-     * @param name
-     * @param value
-     */
-    public void setParameter(String name, Object value)
-    {
-        String string;
-        if (value == null) {
-            string = null;
-        }
-        else if (value instanceof String) {
-            string = (String) value;
-        }
-        else if (TypeFlags.isAtomic(TypeFlags.get(value))) {
-            string = value.toString();
-        }
-        else if (value instanceof Class) {
-            string = ClassHelper.getClassShortName((Class) value);
-        }
-        else if (value instanceof Report) {
-            // TODO: Implement command failure serialization
-            return;
+                ObjectNode mainJsonNode = jsonNode;
+                jsonNode = value;
+                report.readParameters(this);
+                jsonNode = mainJsonNode;
+
+                return report;
+            }
+            catch (ClassNotFoundException exception) {
+                throw new CommonReportSet.ClassUndefinedException(reportClassName);
+            }
         }
         else {
-            throw new IllegalArgumentException(value.getClass().getCanonicalName());
+            throw new TodoImplementException(type.getName());
         }
-        parameters.put(name, string);
     }
 
     /**
-     * Pattern for parsing string message.
+     * @param name  of parameter to be set
+     * @param value of parameter to be set
      */
-    private static final Pattern PATTERN_MESSAGE = Pattern.compile("<message>(.*?)</message>");
+    @Override
+    public void setParameter(String name, Object value)
+    {
+        if (value instanceof String) {
+            jsonNode.put(name, (String) value);
+        }
+        else if (value instanceof SerializableReport) {
+            SerializableReport serializableReport = (SerializableReport) value;
 
-    /**
-     * Pattern for parsing single parameter from message.
-     */
-    private static final Pattern PATTERN_PARAMETER = Pattern.compile("<param name='([^']*)'>(.*?)</param>");
+            ObjectNode mainJsonNode = jsonNode;
+            jsonNode = jsonMapper.createObjectNode();
+            jsonNode.put("class", ClassHelper.getClassShortName(value.getClass()));
+            serializableReport.writeParameters(this);
+            mainJsonNode.put(name, jsonNode);
+            jsonNode = mainJsonNode;
+        }
+        else {
+            throw new TodoImplementException(value.getClass().getName());
+        }
+    }
 
     /**
      * Parse message and parameters from given {@code message} string.
      *
      * @param message
      */
-    public void fromString(String message)
+    public void parse(String message)
     {
-        Matcher messageMatcher = PATTERN_MESSAGE.matcher(message);
-        if (messageMatcher.find()) {
-            setMessage(messageMatcher.group(1));
-
-            Matcher parameterMatcher = PATTERN_PARAMETER.matcher(message);
-            while (parameterMatcher.find()) {
-                setParameter(parameterMatcher.group(1), parameterMatcher.group(2));
-            }
+        try {
+            jsonNode = (ObjectNode) jsonMapper.readTree(message);
         }
-        else {
-            setMessage(message);
+        catch (IOException exception) {
+            throw new RuntimeException("Failed to parse JSON.", exception);
         }
     }
 
     @Override
     public String toString()
     {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<message>");
-        stringBuilder.append(message);
-        stringBuilder.append("</message>");
-        for (String name : parameters.keySet()) {
-            String value = parameters.get(name);
-            stringBuilder.append("<param name='");
-            stringBuilder.append(name);
-            stringBuilder.append("'>");
-            stringBuilder.append(value);
-            stringBuilder.append("</param>");
-        }
-        return stringBuilder.toString();
-    }
-
-    /**
-     * Load {@link ApiFaultString} from given {@code fault}.
-     *
-     * @param fault to load from
-     */
-    public static ApiFaultString fromFault(ApiFault fault)
-    {
-        ApiFaultString content = new ApiFaultString();
-        content.setMessage(fault.getFaultString());
-        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass(), Exception.class);
-        for (String propertyName : propertyNames) {
-            if (propertyName.equals("message") || propertyName.equals("exception")
-                    || propertyName.equals("faultCode") || propertyName.equals("visibleToDomainAdminViaEmail")
-                    || propertyName.equals("faultString")) {
-                continue;
-            }
-            content.setParameter(propertyName, Property.getPropertyValue(fault, propertyName));
-        }
-        return content;
-    }
-
-    /**
-     * Store {@link ApiFaultString} to given {@code fault}.
-     *
-     * @param fault to store to
-     */
-    public void toFault(ApiFault fault)
-    {
-        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fault.getClass());
         try {
-            for (String propertyName : propertyNames) {
-                String propertyValue = getParameter(propertyName);
-                if (propertyValue != null) {
-                    Property property = Property.getProperty(fault.getClass(), propertyName);
-                    Object propertyConvertedValue = Converter.convert(propertyValue, property);
-                    Property.setPropertyValue(fault, propertyName, propertyConvertedValue, true);
-                }
-            }
+            return jsonMapper.writeValueAsString(jsonNode);
         }
-        catch (Exception exception) {
-            throw new RuntimeException(
-                    "Cannot set property value to fault '" + fault.getClass().getCanonicalName() + "'!", exception);
+        catch (IOException exception) {
+            throw new RuntimeException("Failed to format JSON.", exception);
         }
     }
 }

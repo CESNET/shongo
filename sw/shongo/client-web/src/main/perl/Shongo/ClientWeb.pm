@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use RPC::XML;
 use RPC::XML::Client;
-use XML::Twig;
+use JSON;
 use Shongo::Common;
 use Shongo::ClientCommon;
 use Shongo::ClientWeb::WebAuthorization;
@@ -308,34 +308,19 @@ sub not_available_action
 #
 sub fault_action
 {
-    my ($self, $faultResponse) = @_;
+    my ($self, $fault_response) = @_;
 
     select STDOUT;
     $self->render_headers();
 
+    my $params = undef;
     my $title = undef;
-    my $message = $faultResponse->string();
-    my $params = {};
-    if ( $message =~ /<message>/) {
-        my $xml = XML::Twig->new(twig_handlers => {
-            'response/message' => sub {
-                my ($twig, $node) = @_;
-                $message = $node->text;
-            },
-            'response/param' => sub {
-                my ($twig, $node) = @_;
-                my $name = $node->{'att'}->{'name'};
-                $params->{$name} = $node->text;
-            },
-        });
-        $xml->parse('<response>' . $faultResponse->string() . '</response>');
-    }
-    else {
-        $message =~ s/</&lt;/g;
-        $message =~ s/>/&gt;/g;
+    my $message = $fault_response->string();
+    if ($message =~ /^{.+}$/ ) {
+        $params = decode_json($message);
     }
 
-    my $code = $faultResponse->code();
+    my $code = $fault_response->code();
     if ( $code == 11 ) {
         my $Type = {
             'AbstractReservationRequest' => 'Reservation request'

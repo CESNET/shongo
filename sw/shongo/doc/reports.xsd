@@ -173,6 +173,13 @@
             <xs:element name="domain-admin" type="report-domain-admin" minOccurs="0" maxOccurs="1"/>
             <xs:element name="resource-admin" type="report-resource-admin" minOccurs="0" maxOccurs="1"/>
             <xs:element name="resolution" type="report-resolution" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="serializable" type="xs:boolean" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Specifies whether report can serialize it's parameters.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="persistent" type="xs:boolean" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>

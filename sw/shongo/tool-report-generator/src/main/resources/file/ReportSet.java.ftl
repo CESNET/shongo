@@ -28,7 +28,11 @@ public class ${scope.getClassName()} extends AbstractReportSet
     <#if report.isPersistent()>
     @javax.persistence.Entity
     </#if>
-    public static<#if report.isAbstract()> abstract</#if> class ${report.getClassName()} extends ${report.getBaseClassName()}<#if report.isApiFault()> implements ApiFault</#if>
+    <#assign interfaces=[]/>
+    <#if report.isApiFault()><#assign interfaces=interfaces + ["ApiFault"]/></#if>
+    <#if report.isSerializable()><#assign interfaces=interfaces + ["SerializableReport"]/></#if>
+    public static<#if report.isAbstract()> abstract</#if> class ${report.getClassName()} extends ${report.getBaseClassName()}<#rt>
+    <#list interfaces as interface><#if interface_index == 0> implements <#else>, </#if>${interface}</#list><#lt>
     {
     <#list report.getDeclaredParams() as param>
         protected ${param.getVariableType()} ${param.getVariableName()};
@@ -97,6 +101,24 @@ public class ${scope.getClassName()} extends AbstractReportSet
             return new ${report.getExceptionClassName()}(this);
         }
         </#if>
+        <#if report.isApiFault() || report.isSerializable()>
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            <#list report.getParams() as param>
+            ${param.getVariableName()} = (${param.getVariableType()}) reportSerializer.getParameter("${param.getVariableName()}", ${param.getVariableType()}.class);
+            </#list>
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            <#list report.getParams() as param>
+            reportSerializer.setParameter("${param.getVariableName()}", ${param.getVariableName()});
+            </#list>
+        }
+        </#if>
         <#if report.isVisibleToDomainAdminViaEmail()>
 
         public boolean isVisibleToDomainAdminViaEmail()
@@ -124,7 +146,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
     /**
      * Exception for {@link ${report.getClassName()}}.
      */
-    public static<#if report.isAbstract()> abstract</#if> class ${report.getExceptionClassName()} extends ${report.getExceptionBaseClassName()}<#if report.isApiFault()> implements ApiFault</#if>
+    public static<#if report.isAbstract()> abstract</#if> class ${report.getExceptionClassName()} extends ${report.getExceptionBaseClassName()}<#if report.isApiFault()> implements ApiFaultException</#if>
     {
         <#if !report.getBaseReport()?? || !report.getBaseReport().hasException()>
         protected ${report.getClassName()} report;
@@ -189,21 +211,9 @@ public class ${scope.getClassName()} extends AbstractReportSet
         }
         <#if !report.isAbstract() && report.isApiFault()>
         @Override
-        public int getFaultCode()
+        public ApiFault getApiFault()
         {
-            return report.getFaultCode();
-        }
-
-        @Override
-        public String getFaultString()
-        {
-            return getMessage();
-        }
-
-        @Override
-        public Exception getException()
-        {
-            return this;
+            return report;
         }
         </#if>
     }

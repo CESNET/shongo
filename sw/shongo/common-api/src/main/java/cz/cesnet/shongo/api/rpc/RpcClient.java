@@ -163,8 +163,9 @@ public class RpcClient
         ApiFault fault = ClassHelper.createInstanceFromClass(type);
 
         // Fill message
-        ApiFaultString faultMessage = new ApiFaultString(xmlRpcException.getMessage());
-        faultMessage.toFault(fault);
+        ApiFaultString apiFaultString = new ApiFaultString();
+        apiFaultString.parse(xmlRpcException.getMessage());
+        fault.readParameters(apiFaultString);
 
         // Create exception for fault
         Exception exception = fault.getException();

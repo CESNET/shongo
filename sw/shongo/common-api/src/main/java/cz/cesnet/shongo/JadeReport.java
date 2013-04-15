@@ -1,6 +1,7 @@
 package cz.cesnet.shongo;
 
 import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.SerializableReport;
 import jade.content.Concept;
 
 /**

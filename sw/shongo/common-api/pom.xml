@@ -41,6 +41,12 @@
             <artifactId>xmlrpc-client</artifactId>
             <version>3.1.3</version>
         </dependency>
+        <!-- Jackson (High-performance JSON processor) is used for serializing API fault strings from/to JSON -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.9.9</version>
+        </dependency>
     </dependencies>
 
 </project>

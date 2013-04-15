@@ -316,6 +316,9 @@ public class CodeGenerator extends AbstractGenerator
             if (this.report.isPersistent() == null) {
                 this.report.setPersistent(report.isPersistent());
             }
+            if (this.report.isSerializable() == null) {
+                this.report.setSerializable(report.isSerializable());
+            }
             if (this.report.getException() == null) {
                 this.report.setException(report.getException());
             }
@@ -486,6 +489,12 @@ public class CodeGenerator extends AbstractGenerator
         public int getApiFaultCode()
         {
             return apiFaultCode;
+        }
+
+        public boolean isSerializable()
+        {
+            Boolean isSerializable = report.isSerializable();
+            return (isSerializable != null ? isSerializable : false);
         }
 
         public boolean isPersistent()

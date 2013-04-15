@@ -319,9 +319,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             }
             catch (InvocationTargetException exception) {
                 Throwable throwable = exception.getTargetException();
-                if (throwable instanceof ApiFault) {
-                    ApiFault apiFault = (ApiFault) throwable;
-                    throw new ApiFaultXmlRpcException(apiFault, throwable);
+                if (throwable instanceof ApiFaultException) {
+                    ApiFaultException apiFaultException = (ApiFaultException) throwable;
+                    throw new ApiFaultXmlRpcException(apiFaultException.getApiFault(), throwable);
                 }
                 else if (throwable instanceof ReportException) {
                     ReportException reportException = (ReportException) throwable;
@@ -537,8 +537,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     apiFault = apiFaultXmlRpcException.getApiFault();
                     throwable = apiFaultXmlRpcException.getCause();
                 }
-                else if (throwable instanceof ApiFault) {
-                    apiFault = (ApiFault) throwable;
+                else if (throwable instanceof ApiFaultException) {
+                    ApiFaultException apiFaultException = (ApiFaultException) throwable;
+                    apiFault = apiFaultException.getApiFault();
 
                 }
                 else if (throwable instanceof RuntimeException || throwable instanceof SAXException) {
@@ -548,8 +549,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                         apiFault = apiFaultXmlRpcException.getApiFault();
                         throwable = apiFaultXmlRpcException.getCause();
                     }
-                    else if (cause instanceof ApiFault) {
-                        apiFault = (ApiFault) cause;
+                    else if (cause instanceof ApiFaultException) {
+                        ApiFaultException apiFaultException = (ApiFaultException) cause;
+                        apiFault = apiFaultException.getApiFault();
                         throwable = cause;
                     }
                 }
@@ -571,8 +573,10 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 }
             }*/
 
-            ApiFaultString apiFaultMessage = ApiFaultString.fromFault(apiFault);
-            XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getFaultCode(), apiFaultMessage.toString(),
+            ApiFaultString apiFaultString = new ApiFaultString();
+            apiFaultString.setMessage(apiFault.getFaultString());
+            apiFault.writeParameters(apiFaultString);
+            XmlRpcException xmlRpcException = new XmlRpcException(apiFault.getFaultCode(), apiFaultString.toString(),
                     throwable.getCause());
             xmlRpcException.setStackTrace(throwable.getStackTrace());
             return xmlRpcException;

@@ -78,13 +78,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Jackson (High-performance JSON processor) is used for parsing responses from authorization server -->
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-lgpl</artifactId>
-            <version>1.9.9</version>
-        </dependency>
-
         <!-- Graph-theory objects and algorithms -->
         <dependency>
             <groupId>org.jgrapht</groupId>

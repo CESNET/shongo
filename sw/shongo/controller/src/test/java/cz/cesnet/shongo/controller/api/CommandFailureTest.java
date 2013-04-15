@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
@@ -68,8 +69,7 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (ControllerReportSet.DeviceCommandFailedException exception) {
-            // TODO: Implement command failure serialization
-            //Assert.assertEquals(CommandNotSupported.class, deviceCommandFailedFault.getError().getClass());
+            Assert.assertEquals(JadeReportSet.CommandNotSupportedReport.class, exception.getJadeReport().getClass());
         }
 
         try {
@@ -77,8 +77,7 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (ControllerReportSet.DeviceCommandFailedException exception) {
-            // TODO: Implement command failure serialization
-            //Assert.assertEquals(CommandError.class, deviceCommandFailedFault.getError().getClass());
+            Assert.assertEquals(JadeReportSet.CommandFailedReport.class, exception.getJadeReport().getClass());
         }
 
         try {
@@ -86,8 +85,7 @@ public class CommandFailureTest extends AbstractControllerTest
             Assert.fail("Exception should be thrown.");
         }
         catch (ControllerReportSet.DeviceCommandFailedException exception) {
-            // TODO: Implement command failure serialization
-            //Assert.assertEquals(CommandUnknownFailure.class, deviceCommandFailedFault.getError().getClass());
+            Assert.assertEquals(JadeReportSet.CommandUnknownErrorReport.class, exception.getJadeReport().getClass());
         }
     }
 
