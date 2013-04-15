@@ -1,10 +1,9 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -19,7 +18,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends ReportablePersistentObject
+public abstract class Executable extends PersistentObject
 {
     /**
      * Interval start date/time.
@@ -39,7 +38,12 @@ public abstract class Executable extends ReportablePersistentObject
     /**
      * List of child {@link Executable}s.
      */
-    private List<Executable> childExecutables = new ArrayList<Executable>();
+    private List<Executable> childExecutables = new LinkedList<Executable>();
+
+    /**
+     * List of report for this object.
+     */
+    private List<ExecutableReport> reports = new LinkedList<ExecutableReport>();
 
     /**
      * @return {@link #slotStart}
@@ -165,6 +169,72 @@ public abstract class Executable extends ReportablePersistentObject
         return childExecutables;
     }
 
+    /**
+     * @return {@link #reports}
+     */
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    public List<ExecutableReport> getReports()
+    {
+        return Collections.unmodifiableList(reports);
+    }
+
+    /**
+     * @param reports sets the {@link #reports}
+     */
+    public void setReports(List<ExecutableReport> reports)
+    {
+        this.reports.clear();
+        for (ExecutableReport report : reports) {
+            this.reports.add(report);
+        }
+    }
+
+    /**
+     * @param report to be added to the {@link #reports}
+     */
+    public void addReport(ExecutableReport report)
+    {
+        reports.add(report);
+    }
+
+    /**
+     * @param report to be removed from the {@link #reports}
+     */
+    public void removeReport(ExecutableReport report)
+    {
+        reports.remove(report);
+    }
+
+    /**
+     * Remove all {@link Report}s from the {@link #reports}.
+     */
+    public void clearReports()
+    {
+        reports.clear();
+    }
+
+    /**
+     * @return formatted {@link #reports} as string
+     */
+    @Transient
+    protected String getReportText()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (ExecutableReport report : reports) {
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append("\n");
+                stringBuilder.append("\n");
+            }
+            String dateTime = cz.cesnet.shongo.Temporal.formatDateTime(report.getDateTime());
+            stringBuilder.append("[");
+            stringBuilder.append(dateTime);
+            stringBuilder.append("] ");
+            stringBuilder.append(report.getMessage());
+        }
+        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
+    }
+
     @PrePersist
     protected void onCreate()
     {
@@ -209,19 +279,20 @@ public abstract class Executable extends ReportablePersistentObject
      * Start given {@code executable}.
      *
      * @param executor which is executing
+     * @param executableManager
      */
-    public final void start(Executor executor)
+    public final void start(Executor executor, ExecutableManager executableManager)
     {
         if (!STATES_NOT_STARTED.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be started only if it is not started yet.", getId()));
         }
-        State state = onStart(executor);
+        State state = onStart(executor, executableManager);
         setState(state);
     }
 
     /**
-     * Start given {@code executable}.
+     * Update given {@code executable}.
      *
      * @param executor which is executing
      * @param executableManager
@@ -242,24 +313,27 @@ public abstract class Executable extends ReportablePersistentObject
      * Start given {@code executable}.
      *
      * @param executor which is executing
+     * @param executableManager
      */
-    public final void stop(Executor executor)
+    public final void stop(Executor executor, ExecutableManager executableManager)
     {
         if (!STATES_STARTED.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be stopped only if it is started.", getId()));
         }
-        State state = onStop(executor);
+        State state = onStop(executor, executableManager);
         setState(state);
     }
 
     /**
      * Start this {@link Executable}.
      *
+     *
      * @param executor which is executing
+     * @param executableManager
      * @return new {@link State}
      */
-    protected State onStart(Executor executor)
+    protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         return getDefaultState();
     }
@@ -281,10 +355,12 @@ public abstract class Executable extends ReportablePersistentObject
     /**
      * Stop this {@link Executable}.
      *
+     *
      * @param executor which is executing
+     * @param executableManager
      * @return new {@link State}
      */
-    protected State onStop(Executor executor)
+    protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         return State.SKIPPED;
     }

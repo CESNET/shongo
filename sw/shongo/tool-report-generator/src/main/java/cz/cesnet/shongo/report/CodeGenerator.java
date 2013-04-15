@@ -589,7 +589,7 @@ public class CodeGenerator extends AbstractGenerator
 
         private static final Map<String, String> persistenceAnnotationByType = new HashMap<String, String>(){{
             put("String", "@javax.persistence.Column");
-            put("cz.cesnet.shongo.JadeReport", "@javax.persistence.OneToOne(orphanRemoval = true)");
+            put("cz.cesnet.shongo.JadeReport", "@javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)");
         }};
 
         public String getPersistenceAnnotation()

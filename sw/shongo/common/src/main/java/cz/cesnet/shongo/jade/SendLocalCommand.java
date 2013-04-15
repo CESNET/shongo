@@ -82,7 +82,7 @@ public class SendLocalCommand extends LocalCommand
     @Override
     public String getName()
     {
-        return command.getClass().getSimpleName();
+        return command.getName();
     }
 
     /**
@@ -128,7 +128,7 @@ public class SendLocalCommand extends LocalCommand
     public JadeReport getJadeReport()
     {
         if (jadeReport == null && this.state == State.FAILED) {
-            return new JadeReportSet.CommandUnknownErrorReport(command.toString(), null);
+            return new JadeReportSet.CommandUnknownErrorReport(command.getName(), null);
         }
         return jadeReport;
     }
@@ -168,7 +168,7 @@ public class SendLocalCommand extends LocalCommand
             }
         }
         if (getState() == State.UNKNOWN) {
-            setFailed(new JadeReportSet.CommandTimeoutReport(command.toString(), receiverAgentId.getName()));
+            setFailed(new JadeReportSet.CommandTimeoutReport(command.getName(), receiverAgentId.getName()));
         }
     }
 

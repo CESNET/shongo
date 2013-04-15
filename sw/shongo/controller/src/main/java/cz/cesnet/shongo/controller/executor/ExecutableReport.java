@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 50)
-public abstract class ExecutorReport extends Report
+public abstract class ExecutableReport extends Report
 {
     /**
      * Persistent object must have an unique id.
@@ -27,7 +27,7 @@ public abstract class ExecutorReport extends Report
     /**
      * Constructor.
      */
-    public ExecutorReport()
+    public ExecutableReport()
     {
     }
 

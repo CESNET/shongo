@@ -6,7 +6,6 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.users.DialParticipant;
 import cz.cesnet.shongo.connector.api.jade.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
@@ -126,7 +125,7 @@ public class Connection extends Executable
     }
 
     @Override
-    protected State onStart(Executor executor)
+    protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
@@ -152,15 +151,16 @@ public class Connection extends Executable
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
+                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
         }
-        return super.onStart(executor);
+        return super.onStart(executor, executableManager);
     }
 
     @Override
-    protected State onStop(Executor executor)
+    protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getDescription()));
@@ -185,10 +185,11 @@ public class Connection extends Executable
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
+                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
         }
-        return super.onStop(executor);
+        return super.onStop(executor, executableManager);
     }
 }

@@ -13,7 +13,7 @@ public class ExecutorReportSet extends AbstractReportSet
      * Command {@link #command} failed: {@link #jadeReport}
      */
     @javax.persistence.Entity
-    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutorReport
+    public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         protected String command;
 
@@ -40,7 +40,7 @@ public class ExecutorReportSet extends AbstractReportSet
             this.command = command;
         }
 
-        @javax.persistence.OneToOne(orphanRemoval = true)
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
             return jadeReport;
@@ -57,6 +57,13 @@ public class ExecutorReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
 
         @javax.persistence.Transient
@@ -126,7 +133,7 @@ public class ExecutorReportSet extends AbstractReportSet
      * Cannot modify room, because it has not been created.
      */
     @javax.persistence.Entity
-    public static class UsedRoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutorReport
+    public static class UsedRoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         public UsedRoomNotStartedReport()
         {
@@ -137,6 +144,13 @@ public class ExecutorReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
         }
 
         @javax.persistence.Transient

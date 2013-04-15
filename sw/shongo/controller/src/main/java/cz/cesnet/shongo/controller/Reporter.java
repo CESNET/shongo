@@ -29,6 +29,16 @@ public class Reporter
      * Report given {@code report}.
      *
      * @param report to be reported
+     */
+    public static void report(Report report)
+    {
+        report(report, null);
+    }
+
+    /**
+     * Report given {@code report}.
+     *
+     * @param report to be reported
      * @param throwable
      */
     public static void report(Report report, Throwable throwable)

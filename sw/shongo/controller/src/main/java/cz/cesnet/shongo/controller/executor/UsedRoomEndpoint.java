@@ -220,15 +220,15 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    public boolean modifyRoom(Room roomApi, Executor executor)
+    public boolean modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
     {
-        return roomEndpoint.modifyRoom(roomApi, executor);
+        return roomEndpoint.modifyRoom(roomApi, executor, executableManager);
     }
 
     @Override
-    protected State onStart(Executor executor)
+    protected State onStart(Executor executor, ExecutableManager executableManager)
     {
-        if (roomEndpoint.modifyRoom(getRoomApi(), executor)) {
+        if (roomEndpoint.modifyRoom(getRoomApi(), executor, executableManager)) {
             return State.STARTED;
         }
         else {
@@ -240,16 +240,16 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        if (modifyRoom(getRoomApi(), executor)) {
+        if (modifyRoom(getRoomApi(), executor, executableManager)) {
             return State.STARTED;
         }
         return null;
     }
 
     @Override
-    protected State onStop(Executor executor)
+    protected State onStop(Executor executor, ExecutableManager executableManager)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor)) {
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor, executableManager)) {
             return State.STOPPED;
         }
         else {

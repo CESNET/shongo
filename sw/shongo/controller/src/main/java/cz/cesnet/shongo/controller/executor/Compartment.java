@@ -140,18 +140,18 @@ public class Compartment extends Executable
     }
 
     @Override
-    public State onStart(Executor executor)
+    public State onStart(Executor executor, ExecutableManager executableManager)
     {
         executor.getLogger().debug("Starting compartment '{}'...", getId());
 
-        return super.onStart(executor);
+        return super.onStart(executor, executableManager);
     }
 
     @Override
-    public State onStop(Executor executor)
+    public State onStop(Executor executor, ExecutableManager executableManager)
     {
         executor.getLogger().debug("Stopping compartment '{}'...", getId());
 
-        return super.onStop(executor);
+        return super.onStop(executor, executableManager);
     }
 }

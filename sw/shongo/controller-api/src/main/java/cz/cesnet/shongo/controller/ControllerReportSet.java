@@ -227,6 +227,7 @@ public class ControllerReportSet extends AbstractReportSet
             reportSerializer.setParameter("token", token);
         }
 
+        @Override
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -506,6 +507,7 @@ public class ControllerReportSet extends AbstractReportSet
             reportSerializer.setParameter("jadeReport", jadeReport);
         }
 
+        @Override
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;

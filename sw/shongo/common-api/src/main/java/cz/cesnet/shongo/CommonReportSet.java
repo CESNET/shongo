@@ -27,7 +27,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Unknown error: {@link #description}
      */
-    public static class UnknownErrorReport extends Report implements ApiFault, SerializableReport
+    public static class UnknownErrorReport extends Report implements ApiFault
     {
         protected String description;
 
@@ -87,6 +87,7 @@ public class CommonReportSet extends AbstractReportSet
             reportSerializer.setParameter("description", description);
         }
 
+        @Override
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -154,7 +155,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value {@link #value} is illegal for type {@link #typeName}.
      */
-    public static class TypeIllegalValueReport extends Report implements ApiFault, SerializableReport
+    public static class TypeIllegalValueReport extends Report implements ApiFault
     {
         protected String typeName;
 
@@ -299,7 +300,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} is not defined.
      */
-    public static class ClassUndefinedReport extends Report implements ApiFault, SerializableReport
+    public static class ClassUndefinedReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -421,7 +422,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Class {@link #className} cannot be instanced.
      */
-    public static class ClassInstantiationErrorReport extends Report implements ApiFault, SerializableReport
+    public static class ClassInstantiationErrorReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -543,7 +544,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} is not defined in class {@link #className}.
      */
-    public static class ClassAttributeUndefinedReport extends Report implements ApiFault, SerializableReport
+    public static class ClassAttributeUndefinedReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -688,7 +689,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Type mismatch of value in attribute {@link #attribute} in class {@link #className}. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
      */
-    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault, SerializableReport
+    public static class ClassAttributeTypeMismatchReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -879,7 +880,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Attribute {@link #attribute} in class {@link #className} wasn't present but it is required.
      */
-    public static class ClassAttributeRequiredReport extends Report implements ApiFault, SerializableReport
+    public static class ClassAttributeRequiredReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -1024,7 +1025,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Value for attribute {@link #attribute} in class {@link #className} was present but the attribute is read-only.
      */
-    public static class ClassAttributeReadonlyReport extends Report implements ApiFault, SerializableReport
+    public static class ClassAttributeReadonlyReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -1169,7 +1170,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} in class {@link #className} wasn't present or was empty but it is required.
      */
-    public static class ClassCollectionRequiredReport extends Report implements ApiFault, SerializableReport
+    public static class ClassCollectionRequiredReport extends Report implements ApiFault
     {
         protected String className;
 
@@ -1314,7 +1315,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Null item cannot be present in collection {@link #collection}.
      */
-    public static class CollectionItemNullReport extends Report implements ApiFault, SerializableReport
+    public static class CollectionItemNullReport extends Report implements ApiFault
     {
         protected String collection;
 
@@ -1436,7 +1437,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Collection {@link #collection} contains item of type {@link #presentType} which dosn't match the required type {@link #requiredType}.
      */
-    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault, SerializableReport
+    public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
     {
         protected String collection;
 
@@ -1604,7 +1605,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} was not found.
      */
-    public static class EntityNotFoundReport extends Report implements ApiFault, SerializableReport
+    public static class EntityNotFoundReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -1749,7 +1750,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} validation failed: {@link #reason}
      */
-    public static class EntityInvalidReport extends Report implements ApiFault, SerializableReport
+    public static class EntityInvalidReport extends Report implements ApiFault
     {
         protected String entity;
 
@@ -1894,7 +1895,7 @@ public class CommonReportSet extends AbstractReportSet
     /**
      * Entity {@link #entity} with identifier {@link #id} cannot be deleted because it is still referenced.
      */
-    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault, SerializableReport
+    public static class EntityNotDeletableReferencedReport extends Report implements ApiFault
     {
         protected String entity;
 

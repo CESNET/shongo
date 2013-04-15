@@ -121,6 +121,10 @@ public class ${scope.getClassName()} extends AbstractReportSet
         </#if>
         <#if report.isVisibleToDomainAdminViaEmail()>
 
+        <#if report.isPersistent()>
+        @javax.persistence.Transient
+        </#if>
+        @Override
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;

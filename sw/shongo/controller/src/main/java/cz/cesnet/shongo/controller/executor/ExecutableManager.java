@@ -3,8 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -22,6 +20,11 @@ import java.util.*;
  */
 public class ExecutableManager extends AbstractManager
 {
+    /**
+     * List of {@link ExecutableReport}s which have been created.
+     */
+    private List<ExecutableReport> executableReports = new LinkedList<ExecutableReport>();
+
     /**
      * @param entityManager sets the {@link #entityManager}
      */
@@ -58,7 +61,8 @@ public class ExecutableManager extends AbstractManager
     /**
      * @param executableId of the {@link Executable}
      * @return {@link Executable} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link Executable} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link Executable} doesn't exist
      */
     public Executable get(Long executableId) throws CommonReportSet.EntityNotFoundException
     {
@@ -286,5 +290,24 @@ public class ExecutableManager extends AbstractManager
             return topReservations.iterator().next();
         }
         return null;
+    }
+
+    /**
+     * @param executable to which the {@code executableReport} will be added
+     * @param executableReport to be added to the {@code executable}
+     */
+    public void addReportToExecutable(Executable executable, ExecutableReport executableReport)
+    {
+        executable.addReport(executableReport);
+
+        executableReports.add(executableReport);
+    }
+
+    /**
+     * @return {@link #executableReports}
+     */
+    public List<ExecutableReport> getExecutableReports()
+    {
+        return executableReports;
     }
 }

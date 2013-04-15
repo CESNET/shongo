@@ -162,14 +162,14 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                     logger.error(String.format("Unsupported command requested by '%s'.",
                             request.getSender().getName()), exception);
                     ContentElement response = new Result(action, new JadeReportSet.CommandNotSupportedReport(
-                            command.toString(), agent.getAID().getName()));
+                            command.getName(), agent.getAID().getName()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (CommandException exception) {
                     logger.error(String.format("Command requested by '%s' has failed.",
                             request.getSender().getName()), exception);
                     ContentElement response = new Result(action, new JadeReportSet.CommandFailedReport(
-                            command.toString(), agent.getAID().getName(), exception.getMessage()));
+                            command.getName(), agent.getAID().getName(), exception.getMessage()));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
                 catch (Throwable exception) {
@@ -180,7 +180,7 @@ public class CommandResponderBehaviour extends ParallelResponderBehaviour
                         message += " (" + exception.getCause().getMessage() + ")";
                     }
                     ContentElement response = new Result(action, new JadeReportSet.CommandUnknownErrorReport(
-                            command.toString(), message));
+                            command.getName(), message));
                     fillMessage(reply, ACLMessage.FAILURE, response);
                 }
             }

@@ -364,7 +364,7 @@ public class JadeReportSet extends AbstractReportSet
     }
 
     /**
-     * Unknown error: {@link #description}
+     * Unknown error in command {@link #command}: {@link #description}
      */
     public static class CommandUnknownErrorReport extends CommandAbstractErrorReport implements SerializableReport
     {
@@ -414,7 +414,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Unknown error: ${description}";
+            String message = "Unknown error in command ${command}: ${description}";
             message = message.replace("${command}", (command == null ? "" : command));
             message = message.replace("${description}", (description == null ? "" : description));
             return message;
@@ -879,7 +879,7 @@ public class JadeReportSet extends AbstractReportSet
     }
 
     /**
-     * Receiver agent {@link #receiverAgent} throws CommandException while processing command {@link #command}: {@link #reason}
+     * Receiver agent {@link #receiverAgent} threw CommandException while processing command {@link #command}: {@link #reason}
      */
     public static class CommandFailedReport extends CommandAbstractErrorReport implements SerializableReport
     {
@@ -944,7 +944,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} throws CommandException while processing command ${command}: ${reason}";
+            String message = "Receiver agent ${receiver-agent} threw CommandException while processing command ${command}: ${reason}";
             message = message.replace("${command}", (command == null ? "" : command));
             message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
             message = message.replace("${reason}", (reason == null ? "" : reason));

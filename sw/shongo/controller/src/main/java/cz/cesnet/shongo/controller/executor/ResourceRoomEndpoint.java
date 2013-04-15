@@ -14,8 +14,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.executor.report.CommandFailureReport;
-import cz.cesnet.shongo.controller.executor.report.UsedRoomNotExistReport;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
@@ -242,10 +240,10 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public boolean modifyRoom(Room roomApi, Executor executor)
+    public boolean modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
     {
         if (roomApi.getId() == null) {
-            addReport(new UsedRoomNotExistReport());
+            executableManager.addReportToExecutable(this, new ExecutorReportSet.UsedRoomNotStartedReport());
             return false;
         }
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
@@ -264,7 +262,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return true;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
+                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return false;
             }
         }
@@ -274,7 +273,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    protected State onStart(Executor executor)
+    protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         executor.getLogger().debug("Starting room '{}' for {} licenses.", new Object[]{getId(), getLicenseCount()});
         List<Alias> aliases = getAliases();
@@ -296,7 +295,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
+                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
         }
@@ -316,14 +316,14 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         else {
             roomApi = getRoomApi();
         }
-        if (modifyRoom(roomApi, executor)) {
+        if (modifyRoom(roomApi, executor, executableManager)) {
             return State.STARTED;
         }
         return null;
     }
 
     @Override
-    protected State onStop(Executor executor)
+    protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         executor.getLogger().debug("Stopping room '{}' for {} licenses.", getId(), getLicenseCount());
 
@@ -341,7 +341,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPED;
             }
             else {
-                addReport(new CommandFailureReport(sendLocalCommand.getJadeReport()));
+                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
         }

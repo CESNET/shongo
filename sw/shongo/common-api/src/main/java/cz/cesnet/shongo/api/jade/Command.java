@@ -46,6 +46,14 @@ public abstract class Command implements jade.content.AgentAction
     }
 
     /**
+     * @return name of the command
+     */
+    public String getName()
+    {
+        return getClass().getSimpleName();
+    }
+
+    /**
      * @return {@link Ontology} for this {@link Command}
      */
     public abstract Ontology getOntology();

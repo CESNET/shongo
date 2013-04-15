@@ -110,7 +110,7 @@
                 <param name="description" type="String"/>
             </params>
             <description>
-                Unknown error: ${description}
+                Unknown error in command ${command}: ${description}
             </description>
             <example>
                 TODO:
@@ -177,7 +177,7 @@
                 <param name="reason" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} throws CommandException while processing command ${command}: ${reason}
+                Receiver agent ${receiver-agent} threw CommandException while processing command ${command}: ${reason}
             </description>
             <example>
                 TODO:
@@ -203,7 +203,6 @@
     <scope name="common">
 
         <template>
-            <serializable>true</serializable>
             <api-fault-code>0</api-fault-code>
             <exception runtime="true"/>
         </template>
@@ -609,15 +608,15 @@
             <example>
             </example>
             <user visible="false"/>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <domain-admin visible="false" via="email"/>
+            <resource-admin visible="false" via="email"/>
         </report>
 
     </scope>
 
     <scope name="executor">
 
-        <template extends="cz.cesnet.shongo.controller.executor.ExecutorReport">
+        <template extends="cz.cesnet.shongo.controller.executor.ExecutableReport">
             <persistent>true</persistent>
         </template>
 
@@ -633,9 +632,8 @@
             </description>
             <example>
             </example>
-            <user visible="false"/>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <domain-admin visible="true" via="email"/>
+            <resource-admin visible="true" via="email"/>
             <resolution>fail</resolution>
         </report>
 
@@ -647,9 +645,8 @@
             </description>
             <example>
             </example>
-            <user visible="false"/>
-            <domain-admin visible="false"/>
-            <resource-admin visible="false"/>
+            <domain-admin visible="true" via="email"/>
+            <resource-admin visible="true" via="email"/>
             <resolution>fail</resolution>
         </report>
 

@@ -95,7 +95,8 @@ public class ExecutableReportTest extends AbstractControllerTest
         ExecutionResult result = executor.execute(dateTime);
 
         reservation = getReservationService().getReservation(SECURITY_TOKEN, reservation.getId());
-        Assert.assertTrue(reservation.getExecutable().getStateReport().contains("test test"));
+        cz.cesnet.shongo.controller.api.Executable executable = reservation.getExecutable();
+        Assert.assertTrue(executable.getStateReport().contains("test test"));
     }
 
     /**

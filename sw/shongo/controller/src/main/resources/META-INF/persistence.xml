@@ -8,7 +8,7 @@
 
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
-        <mapping-file>jade-report-mappings.xml</mapping-file>
+        <mapping-file>report-mappings.xml</mapping-file>
 
         <!-- Include hibernate typedefs from joda package -->
         <class>cz.cesnet.shongo.joda</class>

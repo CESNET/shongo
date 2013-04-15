@@ -35,6 +35,12 @@ public abstract class Report
         return false;
     }
 
+    @Override
+    public String toString()
+    {
+        return getMessage();
+    }
+
     /**
      * Enumeration of all possible {@link Report} types.
      */

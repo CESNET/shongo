@@ -122,7 +122,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onStart(Executor executor)
+    protected State onStart(Executor executor, ExecutableManager executableManager)
     {
         List<Alias> aliases = getAssignedAliases();
         if (aliases.size() > 0) {
@@ -133,11 +133,11 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
             }
             return State.STARTED;
         }
-        return super.onStart(executor);
+        return super.onStart(executor, executableManager);
     }
 
     @Override
-    protected State onStop(Executor executor)
+    protected State onStop(Executor executor, ExecutableManager executableManager)
     {
         List<Alias> aliases = getAssignedAliases();
         if (aliases.size() > 0) {
@@ -149,6 +149,6 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
             }
             return State.STOPPED;
         }
-        return super.onStop(executor);
+        return super.onStop(executor, executableManager);
     }
 }

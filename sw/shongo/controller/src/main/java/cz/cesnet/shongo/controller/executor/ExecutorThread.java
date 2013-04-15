@@ -63,7 +63,7 @@ public class ExecutorThread extends Thread
                 case START:
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
-                        executable.start(executor);
+                        executable.start(executor, executableManager);
                         if (executable.getState().equals(Executable.State.STARTED)) {
                             if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
                                 executor.getStartingDurationRoom();
@@ -94,7 +94,7 @@ public class ExecutorThread extends Thread
                 case STOP:
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
-                        executable.stop(executor);
+                        executable.stop(executor, executableManager);
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Stopping failed", exception);
@@ -108,6 +108,11 @@ public class ExecutorThread extends Thread
             executionPlan.removeExecutable(executable);
 
             entityManager.getTransaction().commit();
+
+            // Reporting
+            for (ExecutableReport executableReport : executableManager.getExecutableReports()) {
+                Reporter.report(executableReport);
+            }
         }
         catch (Exception exception) {
             Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, exception);
