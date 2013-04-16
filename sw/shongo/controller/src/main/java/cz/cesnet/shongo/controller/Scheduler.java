@@ -145,7 +145,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 // Add notification
                 if (notificationManager != null) {
                     notificationByReservationId.put(reservationId, new ReservationNotification(
-                            ReservationNotification.Type.DELETED, reservation));
+                            ReservationNotification.Type.DELETED, reservation, authorizationManager));
                 }
 
                 // Delete the reservation and add ACL records to be deleted in the end
@@ -207,14 +207,14 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 if (oldReservationId == null) {
                     // Add notification about new reservation
                     notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                            ReservationNotification.Type.NEW, newReservation));
+                            ReservationNotification.Type.NEW, newReservation, authorizationManager));
                 }
                 else {
                     // Remove notification about deleted reservation
                     notificationByReservationId.remove(oldReservationId);
                     // Add notification about modified reservation
                     notificationByReservationId.put(newReservation.getId(), new ReservationNotification(
-                            ReservationNotification.Type.MODIFIED, newReservation));
+                            ReservationNotification.Type.MODIFIED, newReservation, authorizationManager));
                 }
             }
         }
@@ -257,7 +257,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         Interval slot = reservationRequest.getSlot();
 
         // Create new scheduler task
-        ReservationTask.Context context = new ReservationTask.Context(reservationRequest, cache, slot);
+        ReservationTask.Context context = new ReservationTask.Context(reservationRequest, cache, slot, entityManager);
         ReservationTask reservationTask = null;
 
         try {

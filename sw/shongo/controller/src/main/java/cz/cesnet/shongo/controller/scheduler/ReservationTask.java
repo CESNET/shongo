@@ -5,16 +5,20 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -457,6 +461,11 @@ public abstract class ReservationTask
         private CacheTransaction cacheTransaction;
 
         /**
+         * @see AuthorizationManager
+         */
+        private AuthorizationManager authorizationManager;
+
+        /**
          * Constructor.
          *
          * @param userId   sets the {@link #userId}
@@ -476,11 +485,16 @@ public abstract class ReservationTask
          * @param reservationRequest sets the {@link #reservationRequest}
          * @param cache              sets the {@link #cache}
          * @param interval           sets the {@link CacheTransaction#interval}
+         * @param entityManager      which can be used
          */
-        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval)
+        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval,
+                EntityManager entityManager)
         {
             this(reservationRequest.getUserId(), cache, interval);
             this.reservationRequest = reservationRequest;
+            if (entityManager != null) {
+                this.authorizationManager = new AuthorizationManager(entityManager);
+            }
         }
 
         /**
@@ -565,22 +579,40 @@ public abstract class ReservationTask
         }
 
         /**
-         * @param userIds       to be checked
-         * @param authorization which is used for retrieving owners for the {@link #reservationRequest}
+         * @return {@link #authorizationManager}
+         */
+        public AuthorizationManager getAuthorizationManager()
+        {
+            return authorizationManager;
+        }
+
+        /**
+         * @param resource whose owner should be checked
          * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
          *         false otherwise
          */
-        public boolean containsOwnerId(Set<String> userIds, Authorization authorization)
+        public boolean containsOwnerId(Resource resource)
         {
             if (reservationRequest == null) {
                 throw new IllegalStateException("Reservation request must not be null.");
             }
-            Set<String> ownerIds = authorization.getUserIdsWithRole(reservationRequest, Role.OWNER);
+            if (authorizationManager == null) {
+                throw new IllegalStateException("Authorization manager must not be null.");
+            }
+            Set<String> resourceOwnerIds = new HashSet<String>();
+            EntityIdentifier resourceId = new EntityIdentifier(resource);
+            resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resourceId, Role.OWNER));
+            if (resourceOwnerIds.size() == 0) {
+                resourceOwnerIds.add(resource.getUserId());
+            }
+
+            Set<String> ownerIds = new HashSet<String>();
+            EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
+            ownerIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
             if (ownerIds.size() == 0) {
-                ownerIds = new HashSet<String>();
                 ownerIds.add(reservationRequest.getUserId());
             }
-            return !Collections.disjoint(userIds, ownerIds);
+            return !Collections.disjoint(resourceOwnerIds, ownerIds);
         }
     }
 }

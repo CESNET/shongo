@@ -69,6 +69,18 @@ public class AuthorizationCache
     }
 
     /**
+     * Clear the cache.
+     */
+    public void clear()
+    {
+        userIdCache.clear();
+        userInformationCache.clear();
+        aclRecordCache.clear();
+        aclUserStateCache.clear();
+        aclEntityStateCache.clear();
+    }
+
+    /**
      * @param accessToken
      * @return user-id by given {@code accessToken}
      */

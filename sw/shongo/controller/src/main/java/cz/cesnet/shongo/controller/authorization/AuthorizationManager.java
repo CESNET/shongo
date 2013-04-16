@@ -11,13 +11,10 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.InternalErrorHandler;
 import cz.cesnet.shongo.controller.report.InternalErrorType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -60,11 +57,12 @@ public class AuthorizationManager extends AbstractManager
                 + " AND (:userId IS NULL OR acl.userId = :userId)"
                 + " AND (:entityTypeNull = TRUE OR acl.entityId.entityType = :entityType)"
                 + " AND (:entityId IS NULL OR acl.entityId.persistenceId = :entityId)"
-                + " AND (:role IS NULL OR acl.role = :role)", AclRecord.class)
+                + " AND (:roleNull = TRUE OR acl.role = :role)", AclRecord.class)
                 .setParameter("userId", userId)
                 .setParameter("entityTypeNull", entityId == null || entityId.getEntityType() == null)
                 .setParameter("entityType", (entityId != null ? entityId.getEntityType() : null))
                 .setParameter("entityId", (entityId != null ? entityId.getPersistenceId() : null))
+                .setParameter("roleNull", role == null)
                 .setParameter("role", role)
                 .getResultList();
     }
@@ -112,6 +110,55 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
+     * @param userId
+     * @param entityId
+     * @param role
+     * @return collection of {@link AclRecord} for given parameters
+     */
+    public AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
+    {
+        List<AclRecord> aclRecords = entityManager.createQuery("SELECT acl FROM AclRecord acl"
+                + " WHERE acl.deleted = FALSE"
+                + " AND acl.userId = :userId"
+                + " AND acl.entityId.entityType = :entityType"
+                + " AND acl.entityId.persistenceId = :entityId"
+                + " AND acl.role = :role", AclRecord.class)
+                .setParameter("userId", userId)
+                .setParameter("entityType", entityId.getEntityType())
+                .setParameter("entityId", entityId.getPersistenceId())
+                .setParameter("role", role)
+                .getResultList();
+        if (aclRecords.size() == 1) {
+            return aclRecords.get(0);
+        }
+        else if (aclRecords.size() == 0) {
+            return null;
+        }
+        else {
+            throw new RuntimeException(
+                    String.format("Multiple ACL (user: %s, entity: %s, role: %s) exist.", userId, entityId, role));
+        }
+    }
+
+    /**
+     * @param entityId
+     * @param role
+     * @return list of user-ids with given {@code role} for given {@code entityId}
+     */
+    public Collection<String> getUserIdsWithRole(EntityIdentifier entityId, Role role)
+    {
+        return entityManager.createQuery("SELECT acl.userId FROM AclRecord acl"
+                + " WHERE acl.deleted = FALSE"
+                + " AND acl.entityId.entityType = :entityType"
+                + " AND acl.entityId.persistenceId = :entityId"
+                + " AND acl.role = :role", String.class)
+                .setParameter("entityType", entityId.getEntityType())
+                .setParameter("entityId", entityId.getPersistenceId())
+                .setParameter("role", role)
+                .getResultList();
+    }
+
+    /**
      * Start new transaction for given {@code authorization}.
      *
      * @param authorization for which the transaction should be started
@@ -121,7 +168,7 @@ public class AuthorizationManager extends AbstractManager
         if (activeTransaction != null) {
             throw new IllegalStateException("Another transaction is already active.");
         }
-        activeTransaction = new Transaction(entityManager, authorization);
+        activeTransaction = new Transaction(authorization);
     }
 
     /**
@@ -504,6 +551,7 @@ public class AuthorizationManager extends AbstractManager
 
     /**
      * Propagate ACL records to authorization server.
+     *
      * @param authorization
      */
     public void propagate(Authorization authorization)
@@ -543,13 +591,8 @@ public class AuthorizationManager extends AbstractManager
     /**
      * Represents a transaction for the {@link AuthorizationManager}.
      */
-    private static class Transaction
+    private class Transaction
     {
-        /**
-         * @see EntityManager
-         */
-        private EntityManager entityManager;
-
         /**
          * @see Authorization
          */
@@ -570,12 +613,11 @@ public class AuthorizationManager extends AbstractManager
          *
          * @param authorization
          */
-        public Transaction(EntityManager entityManager, Authorization authorization)
+        public Transaction(Authorization authorization)
         {
             if (authorization == null) {
                 throw new IllegalArgumentException("Authorization must not be null.");
             }
-            this.entityManager = entityManager;
             this.authorization = authorization;
         }
 
@@ -628,7 +670,7 @@ public class AuthorizationManager extends AbstractManager
         public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
         {
             Set<AclRecord> aclRecords = new HashSet<AclRecord>();
-            aclRecords.addAll(authorization.getAclRecords(entityId, entityManager));
+            aclRecords.addAll(listAclRecords(entityId));
             for (AclRecord aclRecord : addedAclRecords) {
                 if (entityId.equals(aclRecord.getEntityId())) {
                     aclRecords.add(aclRecord);
@@ -650,7 +692,7 @@ public class AuthorizationManager extends AbstractManager
          */
         public AclRecord getAclRecord(String userId, EntityIdentifier entityId, Role role)
         {
-            AclRecord aclRecord = authorization.getAclRecord(userId, entityId, role);
+            AclRecord aclRecord = AuthorizationManager.this.getAclRecord(userId, entityId, role);
             if (aclRecord == null) {
                 // If the ACL record is added in the transaction, return it
                 for (AclRecord addedAclRecord : addedAclRecords) {
