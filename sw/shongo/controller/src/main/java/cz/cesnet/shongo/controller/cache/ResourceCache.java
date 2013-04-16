@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.scheduler.report.ResourceAlreadyAllocatedRepo
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.UserNotOwnerReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
