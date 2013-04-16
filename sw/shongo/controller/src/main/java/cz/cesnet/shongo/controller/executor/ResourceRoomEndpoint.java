@@ -243,7 +243,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public boolean modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
     {
         if (roomApi.getId() == null) {
-            executableManager.addReportToExecutable(this, new ExecutorReportSet.UsedRoomNotStartedReport());
+            executableManager.createExecutableReport(this, new ExecutorReportSet.UsedRoomNotStartedReport());
             return false;
         }
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
@@ -262,7 +262,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return true;
             }
             else {
-                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return false;
             }
@@ -295,7 +295,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
             else {
-                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
@@ -341,7 +341,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPED;
             }
             else {
-                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }

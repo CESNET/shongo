@@ -40,24 +40,29 @@ public class Executor extends Component
     private ControllerAgent controllerAgent;
 
     /**
-     * @see {@link Configuration#EXECUTOR_PERIOD}
+     * @see Configuration#EXECUTOR_PERIOD
      */
     private Duration period;
 
     /**
-     * @see {@link Configuration#EXECUTOR_EXECUTABLE_START}
+     * @see Configuration#EXECUTOR_EXECUTABLE_START
      */
     private Duration executableStart;
 
     /**
-     * @see {@link Configuration#EXECUTOR_EXECUTABLE_END}
+     * @see Configuration#EXECUTOR_EXECUTABLE_END
      */
     private Duration executableEnd;
 
     /**
-     * @see {@link Configuration#EXECUTOR_STARTINT_DURATION_ROOM}
+     * @see Configuration#EXECUTOR_STARTING_DURATION_ROOM
      */
     private Duration startingDurationRoom;
+
+    /**
+     * @see Configuration#EXECUTOR_EXECUTABLE_NEXT_ATTEMPT
+     */
+    private Duration nextAttempt;
 
     /**
      * @return {@link #logger}
@@ -73,6 +78,14 @@ public class Executor extends Component
     public Duration getStartingDurationRoom()
     {
         return startingDurationRoom;
+    }
+
+    /**
+     * @return {@link #nextAttempt}
+     */
+    public Duration getNextAttempt()
+    {
+        return nextAttempt;
     }
 
     @Override
@@ -120,8 +133,8 @@ public class Executor extends Component
         period = configuration.getDuration(Configuration.EXECUTOR_PERIOD);
         executableStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_START);
         executableEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_END);
-        startingDurationRoom = configuration.getDuration(
-                Configuration.EXECUTOR_STARTINT_DURATION_ROOM);
+        nextAttempt = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_NEXT_ATTEMPT);
+        startingDurationRoom = configuration.getDuration(Configuration.EXECUTOR_STARTING_DURATION_ROOM);
     }
 
     @Override
@@ -167,9 +180,8 @@ public class Executor extends Component
             try {
                 // List executables which should be stopped
                 DateTime stopDateTime = referenceDateTime.minus(executableEnd);
-                ExecutionPlan stoppingExecutionPlan =
-                        new ReverseExecutionPlan(
-                                executableManager.listNotTakingPlace(Executable.STATES_STARTED, stopDateTime));
+                ExecutionPlan stoppingExecutionPlan = new ReverseExecutionPlan(
+                        executableManager.listExecutablesForStop(referenceDateTime, stopDateTime));
                 Set<Executable> stoppingExecutables = new HashSet<Executable>();
                 while (!stoppingExecutionPlan.isEmpty()) {
                     Collection<Executable> executables = stoppingExecutionPlan.popExecutables();
@@ -192,7 +204,7 @@ public class Executor extends Component
                     if (executable.getState().equals(Executable.State.SKIPPED)) {
                         executable.setState(executable.getDefaultState());
                     }
-                    if (executable.getState().equals(Executable.State.STOPPED)) {
+                    if (!executable.getState().isStarted()) {
                         executionResult.addStoppedExecutable(executable);
                     }
                 }
@@ -200,9 +212,8 @@ public class Executor extends Component
 
                 // List executables which should be started
                 DateTime startDateTime = referenceDateTime.minus(executableStart);
-                ExecutionPlan startingExecutionPlan =
-                        new ExecutionPlan(
-                                executableManager.listTakingPlace(Executable.STATES_NOT_STARTED, startDateTime));
+                ExecutionPlan startingExecutionPlan = new ExecutionPlan(
+                        executableManager.listExecutablesForStart(referenceDateTime, startDateTime));
                 Collection<Executable> startingExecutables = new ArrayList<Executable>();
                 while (!startingExecutionPlan.isEmpty()) {
                     Collection<Executable> executables = startingExecutionPlan.popExecutables();
@@ -221,14 +232,14 @@ public class Executor extends Component
                 }
                 for (Executable executable : startingExecutables) {
                     entityManager.refresh(executable);
-                    if (executable.getState().equals(Executable.State.STARTED)) {
+                    if (executable.getState().isStarted()) {
                         executionResult.addStartedExecutable(executable);
                     }
                 }
 
                 // List executables which should be updated
-                ExecutionPlan updatingExecutionPlan =
-                        new ExecutionPlan(executableManager.listTakingPlace(Executable.STATES_MODIFIED, startDateTime));
+                ExecutionPlan updatingExecutionPlan = new ExecutionPlan(
+                        executableManager.listExecutablesForUpdate(referenceDateTime));
                 Collection<Executable> updatingExecutables = new ArrayList<Executable>();
                 while (!updatingExecutionPlan.isEmpty()) {
                     Collection<Executable> executables = updatingExecutionPlan.popExecutables();
@@ -247,7 +258,7 @@ public class Executor extends Component
                 }
                 for (Executable executable : updatingExecutables) {
                     entityManager.refresh(executable);
-                    if (!Executable.STATES_MODIFIED.contains(executable.getState())) {
+                    if (!executable.getState().isModified()) {
                         executionResult.addUpdatedExecutable(executable);
                     }
                 }

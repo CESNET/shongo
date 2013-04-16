@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.TodoImplementException;
+import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 
@@ -64,9 +65,8 @@ public class ExecutorThread extends Thread
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
                         executable.start(executor, executableManager);
-                        if (executable.getState().equals(Executable.State.STARTED)) {
+                        if (executable.getState().isStarted()) {
                             if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
-                                executor.getStartingDurationRoom();
                                 executor.getLogger().info("Waiting for room '{}' to be created...", executable.getId());
                                 try {
                                     Thread.sleep(executor.getStartingDurationRoom().getMillis());
@@ -77,6 +77,9 @@ public class ExecutorThread extends Thread
                                 }
                             }
                         }
+                        else {
+                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
+                        }
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Starting failed", exception);
@@ -86,6 +89,9 @@ public class ExecutorThread extends Thread
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
                         executable.update(executor, executableManager);
+                        if (executable.getState().isModified()) {
+                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
+                        }
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Updating failed", exception);
@@ -95,6 +101,9 @@ public class ExecutorThread extends Thread
                     try {
                         Executable executable = executableManager.get(this.executable.getId());
                         executable.stop(executor, executableManager);
+                        if (executable.getState().isStarted()) {
+                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
+                        }
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Stopping failed", exception);

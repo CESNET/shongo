@@ -72,11 +72,14 @@
         <period>PT15S</period>
         <!-- Configuration for each executable -->
         <executable>
-            <!-- Period modifying compartment starting date/time -->
+            <!-- Period modifying executable starting date/time -->
             <start>PT-30S</start>
-            <!-- Period modifying compartment ending date/time -->
+            <!-- Period modifying executable ending date/time -->
             <end>PT-30S</end>
+            <!-- Period in which the action is repeated if it fails -->
+            <next-attempt>PT3M</next-attempt>
         </executable>
+
         <!-- Configuration of durations which should be reserved for starting executables -->
         <starting-duration>
             <!-- Duration for which the executor waits when a room is being to started -->

@@ -93,6 +93,17 @@ public class CodeGenerator extends AbstractGenerator
         }
     }
 
+    @Override
+    public void generate() throws Exception
+    {
+        for (ScopeGenerator scopeGenerator : scopeGenerators.values()) {
+            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put("scope", scopeGenerator);
+
+            renderFile(scopeGenerator.getFileName(), "ReportSet.java.ftl", parameters);
+        }
+    }
+
     private static class ApiFaultCodeGenerator
     {
         private int value;
@@ -106,63 +117,6 @@ public class CodeGenerator extends AbstractGenerator
         {
             return ++this.value;
         }
-    }
-
-    @Override
-    public void generate() throws Exception
-    {
-        for (ScopeGenerator scopeGenerator : scopeGenerators.values()) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("scope", scopeGenerator);
-
-            renderFile(scopeGenerator.getFileName(), "ReportSet.java.ftl", parameters);
-        }
-
-        /*Map<ReportModule, ModuleFaultSet> modules = new HashMap<ReportModule, ModuleFaultSet>();
-        modules.put(ReportModule.COMMON, new ModuleFaultSet(
-                "common-api/src/main/java", "cz.cesnet.shongo.api", "FaultSet"));
-        modules.put(ReportModule.CONTROLLER, new ModuleFaultSet(
-                "controller-api/src/main/java", "cz.cesnet.shongo.controller.api", "FaultSet"));
-        ReportModule[] modulesOrder = new ReportModule[]{
-                ReportModule.COMMON,
-                ReportModule.CONTROLLER
-        };
-
-        Map<String, Integer> reportCodes = new HashMap<String, Integer>();
-        for (ApiReport apiReport : reports.getApi().getReport()) {
-            if (apiReport.getParams() == null) {
-                apiReport.setParams(new ApiReport.Params());
-            }
-            if (apiReport.getClassification().getSeverity() != Severity.ERROR) {
-                throw new TodoException();
-            }
-            ReportModule reportModule = apiReport.getModule();
-            if (reportModule == null) {
-                reportModule = ReportModule.COMMON;
-            }
-            modules.get(reportModule).reports.add(apiReport);
-            reportCodes.put(apiReport.getId(), reportCodes.size());
-        }
-
-        for (ReportModule key : modulesOrder) {
-            ModuleFaultSet module = modules.get(key);
-            String className = module.name;
-            String fileName = module.path + "/" + module.packageName.replace(".", "/") + "/" + className + ".java";
-
-            Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put("name", className);
-            parameters.put("package", module.packageName);
-            if (key.equals(ReportModule.COMMON)) {
-                parameters.put("base_name", "cz.cesnet.shongo.fault.AbstractFaultSet");
-            }
-            else {
-                parameters.put("base_name", "cz.cesnet.shongo.api.FaultSet");
-            }
-            parameters.put("reports", module.reports);
-            parameters.put("reportCodes", reportCodes);
-
-            renderFile(fileName, "ReportSet.java.ftl", parameters);
-        }*/
     }
 
     public static class ScopeGenerator

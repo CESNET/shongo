@@ -85,9 +85,14 @@ public class Configuration extends CombinedConfiguration
     public static final String EXECUTOR_EXECUTABLE_END = "executor.executable.end";
 
     /**
+     * Period in which {@link cz.cesnet.shongo.controller.Executor} try to perform failed action again.
+     */
+    public static final String EXECUTOR_EXECUTABLE_NEXT_ATTEMPT = "executor.executable.next-attempt";
+
+    /**
      * Duration which {@link cz.cesnet.shongo.controller.Executor} waits for virtual rooms to be created.
      */
-    public static final String EXECUTOR_STARTINT_DURATION_ROOM = "executor.starting-duration.room";
+    public static final String EXECUTOR_STARTING_DURATION_ROOM = "executor.starting-duration.room";
 
     /**
      * Security server.

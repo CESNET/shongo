@@ -122,39 +122,65 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param states   in which the {@link Executable}s must be
-     * @param dateTime in which the {@link Executable}s must take place
-     * @return list of {@link Executable}s which are in one of given {@code states}
-     *         and take place at given {@code dateTime}
+     * @param referenceDateTime which represents now
+     * @param startingDateTime for which should be found the {@link Executable}s
+     * @return list of {@link Executable}s which should be started for given {@code referenceDateTime}
      */
-    public List<Executable> listTakingPlace(Collection<Executable.State> states, DateTime dateTime)
+    public List<Executable> listExecutablesForStart(DateTime referenceDateTime, DateTime startingDateTime)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
-                        + " WHERE executable.state IN(:states)"
-                        + "   AND executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime",
+                        + " WHERE (executable.state IN(:notStartedStates)"
+                        + "        OR (executable.nextAttempt != NULL AND executable.state = :startingFailedState))"
+                        + " AND (executable.slotStart <= :startingDateTime AND executable.slotEnd >= :startingDateTime)"
+                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
                 Executable.class)
-                .setParameter("states", states)
-                .setParameter("dateTime", dateTime)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("startingDateTime", referenceDateTime)
+                .setParameter("notStartedStates", EnumSet.of(Executable.State.NOT_STARTED))
+                .setParameter("startingFailedState", Executable.State.STARTING_FAILED)
                 .getResultList();
         return executables;
     }
 
     /**
-     * @param states   in which the {@link Executable}s must be
-     * @param dateTime in which the {@link Executable}s must not take place
+     * @param referenceDateTime in which the {@link Executable}s must take place
      * @return list of {@link Executable}s which are in one of given {@code states}
-     *         and don't take place at given {@code dateTime}
+     *         and take place at given {@code dateTime}
      */
-    public List<Executable> listNotTakingPlace(Collection<Executable.State> states, DateTime dateTime)
+    public List<Executable> listExecutablesForUpdate(DateTime referenceDateTime)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE executable.state IN(:states)"
-                        + "   AND (executable.slotStart > :dateTime OR executable.slotEnd <= :dateTime)",
+                        + " AND (executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime)"
+                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
                 Executable.class)
-                .setParameter("states", states)
-                .setParameter("dateTime", dateTime)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("states", EnumSet.of(Executable.State.MODIFIED))
+                .getResultList();
+        return executables;
+    }
+
+    /**
+     * @param referenceDateTime which represents now
+     * @param stoppingDateTime for which should be found the {@link Executable}s
+     * @return list of {@link Executable}s which should be stopped for given {@code referenceDateTime}
+     */
+    public List<Executable> listExecutablesForStop(DateTime referenceDateTime, DateTime stoppingDateTime)
+    {
+        List<Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable"
+                        + " WHERE (executable.state IN(:startedStates)"
+                        + "        OR (executable.nextAttempt != NULL AND executable.state = :stoppingFailedState))"
+                        + " AND (executable.slotStart > :stoppingDateTime OR executable.slotEnd <= :stoppingDateTime)"
+                        + " AND (executable.nextAttempt = NULL OR executable.nextAttempt <= :dateTime)",
+                Executable.class)
+                .setParameter("dateTime", referenceDateTime)
+                .setParameter("stoppingDateTime", referenceDateTime)
+                .setParameter("startedStates", EnumSet.of(Executable.State.STARTED, Executable.State.PARTIALLY_STARTED,
+                        Executable.State.MODIFIED))
+                .setParameter("stoppingFailedState", Executable.State.STOPPING_FAILED)
                 .getResultList();
         return executables;
     }
@@ -293,11 +319,12 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param executable to which the {@code executableReport} will be added
+     * @param executable       to which the {@code executableReport} will be added
      * @param executableReport to be added to the {@code executable}
      */
-    public void addReportToExecutable(Executable executable, ExecutableReport executableReport)
+    public void createExecutableReport(Executable executable, ExecutableReport executableReport)
     {
+        executableReport.setDateTime(DateTime.now());
         executable.addReport(executableReport);
 
         executableReports.add(executableReport);

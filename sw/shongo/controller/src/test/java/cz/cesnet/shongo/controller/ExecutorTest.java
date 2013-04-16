@@ -57,7 +57,7 @@ public class ExecutorTest extends AbstractControllerTest
         // Executor configuration
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_STARTINT_DURATION_ROOM, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
     }
 
     /**

@@ -36,6 +36,12 @@ public abstract class Executable extends PersistentObject
     private State state;
 
     /**
+     * Date/time for next attempt to start/stop/update executable. If this date/time is empty, the executable
+     * should be started/updated/stopped as soon as possible.
+     */
+    private DateTime nextAttempt;
+
+    /**
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new LinkedList<Executable>();
@@ -142,6 +148,25 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
+     * @return {@link #nextAttempt}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getNextAttempt()
+    {
+        return nextAttempt;
+    }
+
+    /**
+     * @param nextAttempt sets the {@link #nextAttempt}
+     */
+    public void setNextAttempt(DateTime nextAttempt)
+    {
+        this.nextAttempt = nextAttempt;
+    }
+
+    /**
      * @return {@link #childExecutables}
      */
     @ManyToMany(cascade = CascadeType.ALL)
@@ -220,11 +245,28 @@ public abstract class Executable extends PersistentObject
     @Transient
     protected String getReportText()
     {
+        List<ExecutableReport> executableReports = new ArrayList<ExecutableReport>();
+        executableReports.addAll(reports);
+        Collections.sort(executableReports, new Comparator<ExecutableReport>()
+        {
+            @Override
+            public int compare(ExecutableReport o1, ExecutableReport o2)
+            {
+                return -o1.getDateTime().compareTo(o2.getDateTime());
+            }
+        });
+        int count = 0;
         StringBuilder stringBuilder = new StringBuilder();
-        for (ExecutableReport report : reports) {
+        for (ExecutableReport report : executableReports) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
+            }
+            if ( ++count > 5 ) {
+                stringBuilder.append("... ");
+                stringBuilder.append(reports.size() - count + 1);
+                stringBuilder.append(" more");
+                break;
             }
             String dateTime = cz.cesnet.shongo.Temporal.formatDateTime(report.getDateTime());
             stringBuilder.append("[");
@@ -283,7 +325,7 @@ public abstract class Executable extends PersistentObject
      */
     public final void start(Executor executor, ExecutableManager executableManager)
     {
-        if (!STATES_NOT_STARTED.contains(getState())) {
+        if (getState().isStarted()) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be started only if it is not started yet.", getId()));
         }
@@ -299,7 +341,7 @@ public abstract class Executable extends PersistentObject
      */
     public final void update(Executor executor, ExecutableManager executableManager)
     {
-        if (!STATES_STARTED.contains(getState())) {
+        if (!getState().isStarted()) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be updated only if it is started.", getId()));
         }
@@ -317,7 +359,7 @@ public abstract class Executable extends PersistentObject
      */
     public final void stop(Executor executor, ExecutableManager executableManager)
     {
-        if (!STATES_STARTED.contains(getState())) {
+        if (!getState().isStarted()) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be stopped only if it is started.", getId()));
         }
@@ -431,55 +473,93 @@ public abstract class Executable extends PersistentObject
         /**
          * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for {@link Report}).
          */
-        NOT_ALLOCATED,
+        NOT_ALLOCATED(false, false),
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
          * {@link Report}) and the entity for which it has been stored has been deleted so the {@link Executable}
          * should be also deleted.
          */
-        TO_DELETE,
+        TO_DELETE(false, false),
 
         /**
          * {@link Executable} has not been started yet.
          */
-        NOT_STARTED,
+        NOT_STARTED(false, false),
 
         /**
          * {@link Executable} starting/stopping was skipped (starting/stopping doesn't make sense).
          */
-        SKIPPED,
+        SKIPPED(false, false),
 
         /**
          * {@link Executable} is started.
          */
-        STARTED,
+        STARTED(true, false),
 
         /**
          * {@link Executable} is started, but the {@link Executable} has been modified and the change(s) has
          * not been propagated to the device yet.
          */
-        MODIFIED,
+        MODIFIED(true, true),
 
         /**
          * {@link Executable} is partially started (e.g., some child executables failed to start).
          */
-        PARTIALLY_STARTED,
+        PARTIALLY_STARTED(true, false),
 
         /**
          * {@link Executable} failed to start.
          */
-        STARTING_FAILED,
+        STARTING_FAILED(false, false),
 
         /**
          * {@link Executable} has been stopped.
          */
-        STOPPED,
+        STOPPED(false, false),
 
         /**
          * {@link Executable} failed to stop.
          */
-        STOPPING_FAILED;
+        STOPPING_FAILED(true, false);
+
+        /**
+         * Specifies whether state means that executable is started.
+         */
+        private final boolean started;
+
+        /**
+         * Specifies whether state means that executable is modified.
+         */
+        private final boolean modified;
+
+        /**
+         * Constructor.
+         *
+         * @param started sets the {@link #started}
+         * @param modified sets the {@link #modified}
+         */
+        private State(boolean started, boolean modified)
+        {
+            this.started = started;
+            this.modified = modified;
+        }
+
+        /**
+         * @return {@link #started}
+         */
+        public boolean isStarted()
+        {
+            return started;
+        }
+
+        /**
+         * @return {@link #modified}
+         */
+        public boolean isModified()
+        {
+            return modified;
+        }
 
         /**
          * @return converted to {@link cz.cesnet.shongo.controller.api.Executable.State}
@@ -507,33 +587,4 @@ public abstract class Executable extends PersistentObject
             }
         }
     }
-
-    /**
-     * Collection of {@link Executable.State}s which represents that the {@link Executable}s is not started and
-     * can be started.
-     */
-    public static Set<State> STATES_NOT_STARTED = new HashSet<State>()
-    {{
-            add(State.NOT_STARTED);
-        }};
-
-    /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which represents that the {@link Executable}
-     * is started and can should be updated.
-     */
-    public static Set<Executable.State> STATES_MODIFIED = new HashSet<Executable.State>()
-    {{
-            add(State.MODIFIED);
-        }};
-
-    /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which represents that the {@link Executable}
-     * is started and can be updated or stopped.
-     */
-    public static Set<Executable.State> STATES_STARTED = new HashSet<Executable.State>()
-    {{
-            add(State.STARTED);
-            add(State.MODIFIED);
-            add(State.PARTIALLY_STARTED);
-        }};
 }

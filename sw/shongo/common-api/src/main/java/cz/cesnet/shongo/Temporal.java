@@ -52,7 +52,7 @@ public class Temporal
     /**
      * {@link DateTimeFormatter} for {@link DateTime}s.
      */
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * Static initialization.
@@ -166,6 +166,9 @@ public class Temporal
      */
     public static String formatDateTime(DateTime dateTime)
     {
+        if (dateTime == null) {
+            return "null";
+        }
         return dateTimeFormatter.print(dateTime);
     }
 
@@ -175,6 +178,9 @@ public class Temporal
      */
     public static String formatPeriod(Period period)
     {
+        if (period == null) {
+            return "null";
+        }
         return periodFormatter.print(period);
     }
 
@@ -184,6 +190,9 @@ public class Temporal
      */
     public static String formatInterval(Interval interval)
     {
+        if (interval == null) {
+            return "null";
+        }
         StringBuilder builder = new StringBuilder();
         DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
         builder.append(formatter.print(interval.getStart()));

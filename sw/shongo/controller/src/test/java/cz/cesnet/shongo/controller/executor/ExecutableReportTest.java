@@ -35,7 +35,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         // Executor configuration
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_STARTINT_DURATION_ROOM, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_STARTING_DURATION_ROOM, "PT0S");
     }
 
     @Override
@@ -95,8 +95,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         ExecutionResult result = executor.execute(dateTime);
 
         reservation = getReservationService().getReservation(SECURITY_TOKEN, reservation.getId());
-        cz.cesnet.shongo.controller.api.Executable executable = reservation.getExecutable();
-        Assert.assertTrue(executable.getStateReport().contains("test test"));
+        Assert.assertTrue(reservation.getExecutable().getStateReport().contains("test test"));
     }
 
     /**

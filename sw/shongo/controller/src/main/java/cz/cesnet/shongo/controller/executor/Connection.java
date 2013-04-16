@@ -151,7 +151,7 @@ public class Connection extends Executable
                 return State.STARTED;
             }
             else {
-                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STARTING_FAILED;
             }
@@ -185,7 +185,7 @@ public class Connection extends Executable
                 return State.STOPPED;
             }
             else {
-                executableManager.addReportToExecutable(this, new ExecutorReportSet.CommandFailedReport(
+                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
                 return State.STOPPING_FAILED;
             }
