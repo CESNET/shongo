@@ -114,7 +114,7 @@ public class AuthorizationManager extends AbstractManager
         if (activeTransaction != null) {
             throw new IllegalStateException("Another transaction is already active.");
         }
-        activeTransaction = new Transaction(authorization);
+        activeTransaction = new Transaction(entityManager, authorization);
     }
 
     /**
@@ -529,6 +529,11 @@ public class AuthorizationManager extends AbstractManager
     private static class Transaction
     {
         /**
+         * @see EntityManager
+         */
+        private EntityManager entityManager;
+
+        /**
          * @see Authorization
          */
         private Authorization authorization;
@@ -548,11 +553,12 @@ public class AuthorizationManager extends AbstractManager
          *
          * @param authorization
          */
-        public Transaction(Authorization authorization)
+        public Transaction(EntityManager entityManager, Authorization authorization)
         {
             if (authorization == null) {
                 throw new IllegalArgumentException("Authorization must not be null.");
             }
+            this.entityManager = entityManager;
             this.authorization = authorization;
         }
 
@@ -605,7 +611,7 @@ public class AuthorizationManager extends AbstractManager
         public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
         {
             Set<AclRecord> aclRecords = new HashSet<AclRecord>();
-            aclRecords.addAll(authorization.getAclRecords(entityId));
+            aclRecords.addAll(authorization.getAclRecords(entityId, entityManager));
             for (AclRecord aclRecord : addedAclRecords) {
                 if (entityId.equals(aclRecord.getEntityId())) {
                     aclRecords.add(aclRecord);

@@ -257,14 +257,15 @@ public abstract class Authorization
     /**
      * Retrieve all {@link AclRecord}s for given {@code entityId}.
      *
-     * @param entityId to restrict the entity of the {@link AclRecord}
+     * @param entityId      to restrict the entity of the {@link AclRecord}
+     * @param entityManager
      * @return collection of matching {@link AclRecord}s
      */
-    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId)
+    public Collection<AclRecord> getAclRecords(EntityIdentifier entityId, EntityManager entityManager)
     {
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
+            aclEntityState = fetchAclEntityState(entityId, entityManager);
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         Collection<AclRecord> aclRecords = aclEntityState.getAclRecords();
@@ -301,7 +302,13 @@ public abstract class Authorization
                 }
             }
             else {
-                return getAclRecords(entityId);
+                EntityManager entityManager = entityManagerFactory.createEntityManager();
+                try {
+                    return getAclRecords(entityId, entityManager);
+                }
+                finally {
+                    entityManager.close();
+                }
             }
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -394,7 +401,13 @@ public abstract class Authorization
         EntityIdentifier entityId = new EntityIdentifier(persistentObject);
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                aclEntityState = fetchAclEntityState(entityId, entityManager);
+            }
+            finally {
+                entityManager.close();
+            }
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         Set<String> userIds = aclEntityState.getUserIdsByRole(role);
@@ -505,25 +518,19 @@ public abstract class Authorization
     /**
      * Fetch {@link AclEntityState} for given {@code entityId}.
      *
+     *
      * @param entityId of entity for which the ACL should be fetched
+     * @param entityManager
      * @return fetched {@link AclEntityState} for given {@code entityId}
      */
-    private AclEntityState fetchAclEntityState(EntityIdentifier entityId)
+    private AclEntityState fetchAclEntityState(EntityIdentifier entityId, EntityManager entityManager)
     {
         AclEntityState aclEntityState = new AclEntityState();
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
-        try {
-            for (AclRecord aclRecord : authorizationManager.listAclRecords(entityId)) {
-                aclEntityState.addAclRecord(aclRecord);
-                cache.putAclRecordById(aclRecord);
-            }
+        for (AclRecord aclRecord : authorizationManager.listAclRecords(entityId)) {
+            aclEntityState.addAclRecord(aclRecord);
+            cache.putAclRecordById(aclRecord);
         }
-        finally {
-            entityManager.close();
-        }
-
         return aclEntityState;
     }
 
@@ -554,7 +561,13 @@ public abstract class Authorization
         // Update AclEntityState cache
         AclEntityState aclEntityState = cache.getAclEntityStateByEntityId(entityId);
         if (aclEntityState == null) {
-            aclEntityState = fetchAclEntityState(entityId);
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                aclEntityState = fetchAclEntityState(entityId, entityManager);
+            }
+            finally {
+                entityManager.close();
+            }
             cache.putAclEntityStateByEntityId(entityId, aclEntityState);
         }
         else {
