@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import junit.framework.Assert;
 import org.junit.Test;
@@ -104,6 +106,40 @@ public class AuthorizationTest extends AbstractControllerTest
         aclRecords.clear();
         aclRecords.add(new AclRecord(userId, resourceId, Role.OWNER));
         Assert.assertEquals(aclRecords, getAclRecords());
+    }
+
+    @Test
+    public void testMultipleReservationRequest() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(
+                new RoomProviderCapability(10, new AliasType[]{AliasType.ROOM_NAME}));
+        mcu.addCapability(
+                new AliasProviderCapability("{hash}", AliasType.ROOM_NAME).withAllowedAnyRequestedValue());
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot("2013-01-01T12:00", "PT2H");
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(new RoomSpecification(5, Technology.H323));
+        String reservationRequest1Id = allocate(reservationRequest1);
+        checkAllocated(reservationRequest1Id);
+
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot("2013-01-01T12:00", "PT2H");
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new RoomSpecification(5, Technology.H323));
+        String reservationRequest2Id = allocate(reservationRequest2);
+        checkAllocated(reservationRequest2Id);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest1Id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest2Id);
+
+        Authorization.getInstance().clearCache();
+        runScheduler();
     }
 
     @Test

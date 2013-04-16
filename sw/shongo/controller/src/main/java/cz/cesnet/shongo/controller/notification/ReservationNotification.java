@@ -4,7 +4,8 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -29,7 +30,7 @@ public class ReservationNotification extends Notification
     /**
      * Parameters.
      */
-    List<UserInformation> owners = new LinkedList<UserInformation>();
+    List<String> ownerUserIds = new LinkedList<String>();
     cz.cesnet.shongo.controller.api.Reservation reservation = null;
     cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
     List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
@@ -41,14 +42,14 @@ public class ReservationNotification extends Notification
      * @param type
      * @param reservation
      */
-    public ReservationNotification(Type type, Reservation reservation)
+    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager)
     {
         this.type = type;
 
         // Add recipients
-        for (UserInformation userInformation : Authorization.getInstance().getUsersWithRole(reservation, Role.OWNER)) {
-            addUserRecipient(userInformation.getUserId());
-            owners.add(userInformation);
+        for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
+            addUserRecipient(userId);
+            ownerUserIds.add(userId);
         }
         addRecipientByReservation(reservation);
 
@@ -120,7 +121,7 @@ public class ReservationNotification extends Notification
     {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("type", type);
-        parameters.put("owners", owners);
+        parameters.put("owners", ownerUserIds);
         parameters.put("reservation", reservation);
         parameters.put("reservationRequest", reservationRequest);
         parameters.put("aliasReservations", aliasReservations);

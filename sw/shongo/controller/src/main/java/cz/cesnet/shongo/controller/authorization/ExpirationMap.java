@@ -93,6 +93,14 @@ class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
+     * Clear all {@link #entries}.
+     */
+    public synchronized void clear()
+    {
+        entries.clear();
+    }
+
+    /**
      * Entry for {@link ExpirationMap}.
      */
     private static class Entry<V>
