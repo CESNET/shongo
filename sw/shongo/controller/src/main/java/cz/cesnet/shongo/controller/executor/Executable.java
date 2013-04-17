@@ -4,6 +4,7 @@ import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.report.ReportContext;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -18,7 +19,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject
+public abstract class Executable extends PersistentObject implements ReportContext
 {
     /**
      * Interval start date/time.
@@ -224,7 +225,7 @@ public abstract class Executable extends PersistentObject
     /**
      * @return {@link #reports}
      */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "executable", orphanRemoval = true)
     @Access(AccessType.FIELD)
     public List<ExecutableReport> getReports()
     {
@@ -248,7 +249,11 @@ public abstract class Executable extends PersistentObject
      */
     public void addReport(ExecutableReport report)
     {
-        reports.add(report);
+        // Manage bidirectional association
+        if (reports.contains(report) == false) {
+            reports.add(report);
+            report.setExecutable(this);
+        }
         cachedSortedReports = null;
     }
 
@@ -257,7 +262,11 @@ public abstract class Executable extends PersistentObject
      */
     public void removeReport(ExecutableReport report)
     {
-        reports.remove(report);
+        // Manage bidirectional association
+        if (reports.contains(report)) {
+            reports.remove(report);
+            report.setExecutable(null);
+        }
         cachedSortedReports = null;
     }
 
@@ -276,7 +285,7 @@ public abstract class Executable extends PersistentObject
     @Transient
     public ExecutableReport getLastReport()
     {
-        return getCachedSortedReports().get(0);
+        return (reports.size() > 0 ? getCachedSortedReports().get(0) : null);
     }
 
     /**
@@ -343,6 +352,20 @@ public abstract class Executable extends PersistentObject
         if (state == null) {
             state = State.NOT_ALLOCATED;
         }
+    }
+
+    @Transient
+    @Override
+    public String getReportName()
+    {
+        return "Executable " + EntityIdentifier.formatId(this);
+    }
+
+    @Transient
+    @Override
+    public String getReportDetail()
+    {
+        return null;
     }
 
     /**

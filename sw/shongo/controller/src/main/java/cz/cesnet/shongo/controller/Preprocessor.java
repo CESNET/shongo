@@ -72,7 +72,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.InternalErrorType.PREPROCESSOR, exception);
+            Reporter.reportInternalError(Reporter.PREPROCESSOR, exception);
         }
     }
 

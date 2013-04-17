@@ -220,28 +220,40 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    public boolean modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+    public void modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
     {
-        return roomEndpoint.modifyRoom(roomApi, executor, executableManager);
+        roomEndpoint.modifyRoom(roomApi, executor, executableManager);
     }
 
     @Override
     protected State onStart(Executor executor, ExecutableManager executableManager)
     {
-        if (roomEndpoint.modifyRoom(getRoomApi(), executor, executableManager)) {
+        try {
+            roomEndpoint.modifyRoom(getRoomApi(), executor, executableManager);
             return State.STARTED;
         }
-        else {
-            executor.getLogger().error("Starting used room '{}' failed.", getId());
-            return State.STARTING_FAILED;
+        catch (ExecutorReportSet.RoomNotStartedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
         }
+        catch (ExecutorReportSet.CommandFailedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
+        }
+        return State.STARTING_FAILED;
     }
 
     @Override
     protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        if (modifyRoom(getRoomApi(), executor, executableManager)) {
+        try {
+            modifyRoom(getRoomApi(), executor, executableManager);
             return State.STARTED;
+        }
+        catch (ExecutorReportSet.RoomNotStartedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
+        }
+        catch (ExecutorReportSet.CommandFailedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
         }
         return null;
     }
@@ -249,12 +261,16 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor, executableManager)) {
+        try {
+            roomEndpoint.modifyRoom(roomEndpoint.getRoomApi(), executor, executableManager);
             return State.STOPPED;
         }
-        else {
-            executor.getLogger().error("Stopping used room '{}' failed (should always succeed).", getId());
-            return State.STOPPING_FAILED;
+        catch (ExecutorReportSet.RoomNotStartedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
         }
+        catch (ExecutorReportSet.CommandFailedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
+        }
+        return State.STOPPING_FAILED;
     }
 }

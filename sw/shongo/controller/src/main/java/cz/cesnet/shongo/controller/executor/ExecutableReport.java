@@ -20,6 +20,11 @@ public abstract class ExecutableReport extends Report
     private Long id;
 
     /**
+     * {@link Executable} to which the {@link Report} belongs.
+     */
+    private Executable executable;
+
+    /**
      * Date/time when the report was created.
      */
     private DateTime dateTime;
@@ -47,6 +52,35 @@ public abstract class ExecutableReport extends Report
     public void setId(Long id)
     {
         this.id = id;
+    }
+
+    /**
+     * @return {@link #executable}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public Executable getExecutable()
+    {
+        return executable;
+    }
+
+    /**
+     * @param executable sets the {@link #executable}
+     */
+    public void setExecutable(Executable executable)
+    {
+        // Manage bidirectional association
+        if (executable != this.executable) {
+            if (this.executable != null) {
+                Executable oldExecutable = this.executable;
+                this.executable = null;
+                oldExecutable.removeReport(this);
+            }
+            if (executable != null) {
+                this.executable = executable;
+                this.executable.addReport(this);
+            }
+        }
     }
 
     /**

@@ -648,16 +648,19 @@
         </report>
 
         <report>
-            <id>used-room-not-started</id>
+            <id>room-not-started</id>
             <classification severity="error"/>
+            <params>
+                <param name="room-name" type="String"/>
+            </params>
             <description>
-                Cannot modify room, because it has not been created.
+                Cannot modify room ${room-name}, because it has not been started yet.
             </description>
             <example>
             </example>
             <domain-admin visible="true" via="email"/>
             <resource-admin visible="true" via="email"/>
-            <resolution>stop</resolution>
+            <resolution>try-again</resolution>
         </report>
 
     </scope>

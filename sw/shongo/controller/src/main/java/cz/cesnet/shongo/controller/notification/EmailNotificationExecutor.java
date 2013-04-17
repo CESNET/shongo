@@ -70,7 +70,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 emailSender.sendEmail(recipientEmails, notification.getName(), text.toString());
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.InternalErrorType.NOTIFICATION, "Failed to send email", exception);
+                Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);
             }
         }
     }

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -13,7 +14,6 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
@@ -115,16 +115,14 @@ public class ReservationManager extends AbstractManager
         // Process current reservation
         Executable executable = reservation.getExecutable();
         if (executable != null) {
-            if (executable.getState().equals(Executable.State.STARTED)) {
-                if (executable.getSlotEnd().isAfter(dateTimeNow)) {
-                    DateTime newSlotEnd = dateTimeNow;
-                    if (newSlotEnd.isBefore(executable.getSlotStart())) {
-                        newSlotEnd = executable.getSlotStart();
-                    }
-                    executable.setSlotEnd(newSlotEnd);
-                    ExecutableManager executableManager = new ExecutableManager(entityManager);
-                    executableManager.update(executable);
+            if (executable.getSlotEnd().isAfter(dateTimeNow)) {
+                DateTime newSlotEnd = dateTimeNow;
+                if (newSlotEnd.isBefore(executable.getSlotStart())) {
+                    newSlotEnd = executable.getSlotStart();
                 }
+                executable.setSlotEnd(newSlotEnd);
+                ExecutableManager executableManager = new ExecutableManager(entityManager);
+                executableManager.update(executable);
             }
         }
         // Process all child reservations
@@ -136,7 +134,8 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservationId of the {@link Reservation}
      * @return {@link Reservation} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link Reservation} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link Reservation} doesn't exist
      */
     public Reservation get(Long reservationId) throws CommonReportSet.EntityNotFoundException
     {

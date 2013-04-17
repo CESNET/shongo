@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
@@ -240,11 +241,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public boolean modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+    public void modifyRoom(Room roomApi, Executor executor, ExecutableManager executableManager)
+            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
     {
         if (roomApi.getId() == null) {
-            executableManager.createExecutableReport(this, new ExecutorReportSet.UsedRoomNotStartedReport());
-            return false;
+            cz.cesnet.shongo.api.Alias alias = roomApi.getAlias(AliasType.ROOM_NAME);
+            throw new ExecutorReportSet.RoomNotStartedException(alias != null ? alias.getValue() : null);
         }
         executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
                 new Object[]{getId(), roomApi.getDescription(), roomApi.getLicenseCount()});
@@ -258,13 +260,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             // TODO: Retrieve current room state and only apply changes
 
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
-            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
-                return true;
-            }
-            else {
-                executableManager.createExecutableReport(this, new ExecutorReportSet.CommandFailedReport(
-                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport()));
-                return false;
+            if (sendLocalCommand.getState() != SendLocalCommand.State.SUCCESSFUL) {
+                throw new ExecutorReportSet.CommandFailedException(
+                        sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
             }
         }
         else {
@@ -316,8 +314,15 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         else {
             roomApi = getRoomApi();
         }
-        if (modifyRoom(roomApi, executor, executableManager)) {
+        try {
+            modifyRoom(roomApi, executor, executableManager);
             return State.STARTED;
+        }
+        catch (ExecutorReportSet.RoomNotStartedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
+        }
+        catch (ExecutorReportSet.CommandFailedException exception) {
+            executableManager.createExecutableReport(this, exception.getReport());
         }
         return null;
     }

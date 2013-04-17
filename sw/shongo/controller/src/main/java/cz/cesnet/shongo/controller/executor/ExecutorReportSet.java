@@ -137,14 +137,33 @@ public class ExecutorReportSet extends AbstractReportSet
     }
 
     /**
-     * Cannot modify room, because it has not been created.
+     * Cannot modify room {@link #roomName}, because it has not been started yet.
      */
     @javax.persistence.Entity
-    public static class UsedRoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
+    public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
-        public UsedRoomNotStartedReport()
+        protected String roomName;
+
+        public RoomNotStartedReport()
         {
         }
+
+        public RoomNotStartedReport(String roomName)
+        {
+            setRoomName(roomName);
+        }
+
+        @javax.persistence.Column
+        public String getRoomName()
+        {
+            return roomName;
+        }
+
+        public void setRoomName(String roomName)
+        {
+            this.roomName = roomName;
+        }
+
 
         @javax.persistence.Transient
         @Override
@@ -157,7 +176,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public Resolution getResolution()
         {
-            return Resolution.STOP;
+            return Resolution.TRY_AGAIN;
         }
 
         @javax.persistence.Transient
@@ -171,44 +190,52 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Cannot modify room, because it has not been created.";
+            String message = "Cannot modify room ${room-name}, because it has not been started yet.";
+            message = message.replace("${room-name}", (roomName == null ? "" : roomName));
             return message;
         }
     }
 
     /**
-     * Exception for {@link UsedRoomNotStartedReport}.
+     * Exception for {@link RoomNotStartedReport}.
      */
-    public static class UsedRoomNotStartedException extends ReportException
+    public static class RoomNotStartedException extends ReportException
     {
-        protected UsedRoomNotStartedReport report;
+        protected RoomNotStartedReport report;
 
-        public UsedRoomNotStartedException(UsedRoomNotStartedReport report)
+        public RoomNotStartedException(RoomNotStartedReport report)
         {
             this.report = report;
         }
 
-        public UsedRoomNotStartedException(Throwable throwable, UsedRoomNotStartedReport report)
+        public RoomNotStartedException(Throwable throwable, RoomNotStartedReport report)
         {
             super(throwable);
             this.report = report;
         }
 
-        public UsedRoomNotStartedException()
+        public RoomNotStartedException(String roomName)
         {
-            UsedRoomNotStartedReport report = new UsedRoomNotStartedReport();
+            RoomNotStartedReport report = new RoomNotStartedReport();
+            report.setRoomName(roomName);
             this.report = report;
         }
 
-        public UsedRoomNotStartedException(Throwable throwable)
+        public RoomNotStartedException(Throwable throwable, String roomName)
         {
             super(throwable);
-            UsedRoomNotStartedReport report = new UsedRoomNotStartedReport();
+            RoomNotStartedReport report = new RoomNotStartedReport();
+            report.setRoomName(roomName);
             this.report = report;
+        }
+
+        public String getRoomName()
+        {
+            return getReport().getRoomName();
         }
 
         @Override
-        public UsedRoomNotStartedReport getReport()
+        public RoomNotStartedReport getReport()
         {
             return report;
         }
@@ -218,6 +245,6 @@ public class ExecutorReportSet extends AbstractReportSet
     protected void fillReportClasses()
     {
         addReportClass(CommandFailedReport.class);
-        addReportClass(UsedRoomNotStartedReport.class);
+        addReportClass(RoomNotStartedReport.class);
     }
 }

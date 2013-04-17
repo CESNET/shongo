@@ -83,7 +83,7 @@ public class ExecutorThread extends Thread
                         }
                     }
                     catch (Exception exception) {
-                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Starting failed", exception);
+                        Reporter.reportInternalError(Reporter.EXECUTOR, "Starting failed", exception);
                     }
                     break;
                 case UPDATE:
@@ -93,7 +93,7 @@ public class ExecutorThread extends Thread
                         success = !executable.getState().isModified();
                     }
                     catch (Exception exception) {
-                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Updating failed", exception);
+                        Reporter.reportInternalError(Reporter.EXECUTOR, "Updating failed", exception);
                     }
                     break;
                 case STOP:
@@ -103,7 +103,7 @@ public class ExecutorThread extends Thread
                         success = !executable.getState().isStarted();
                     }
                     catch (Exception exception) {
-                        Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Stopping failed", exception);
+                        Reporter.reportInternalError(Reporter.EXECUTOR, "Stopping failed", exception);
                     }
                     break;
                 default:
@@ -116,7 +116,7 @@ public class ExecutorThread extends Thread
             }
             else {
                 ExecutableReport lastReport = executable.getLastReport();
-                if ((executable.getAttemptCount() + 1) < executor.getMaxAttemptCount() &&
+                if (lastReport != null && (executable.getAttemptCount() + 1) < executor.getMaxAttemptCount() &&
                         lastReport.getResolution().equals(Report.Resolution.TRY_AGAIN)) {
                     executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
                     executable.setAttemptCount(executable.getAttemptCount() + 1);
@@ -133,11 +133,11 @@ public class ExecutorThread extends Thread
 
             // Reporting
             for (ExecutableReport executableReport : executableManager.getExecutableReports()) {
-                Reporter.report(executableReport);
+                Reporter.report(executableReport.getExecutable(), executableReport);
             }
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, exception);
+            Reporter.reportInternalError(Reporter.EXECUTOR, exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

@@ -276,29 +276,36 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             Timer requestTimer = new Timer();
             requestTimer.start();
 
-            Long requestId = getNewRequestId();
-            String className = pInstance.getClass().getSimpleName();
-            String methodName = pMethod.getName();
-            UserInformation userInformation = null;
+            // Prepare request context
+            RequestContext requestContext = new RequestContext();
+            requestContext.requestId = getNewRequestId();
+            requestContext.methodName = ((Service)pInstance).getServiceName() + "." + pMethod.getName();
+            requestContext.arguments = pArgs;
+            requestContext.userInformation = null;
+
+            // Get user information from the first SecurityToken argument
             if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
                 SecurityToken securityToken = (SecurityToken) pArgs[0];
                 try {
-                    userInformation = Authorization.getInstance().getUserInformation(securityToken);
+                    requestContext.userInformation = Authorization.getInstance().getUserInformation(securityToken);
                 }
                 catch (Exception exception) {
                     logger.warn("Get user information by access token '{}' failed.", securityToken.getAccessToken());
                 }
             }
-            if (userInformation != null) {
-                Controller.loggerApi.info("Request:{} {}.{} by {} (userId: {})",
-                        new Object[]{requestId, className, methodName,
-                                userInformation.getFullName(), userInformation.getUserId()
-                        });
+
+            // Log request start
+            if (requestContext.userInformation != null) {
+                Controller.loggerApi.info("Request:{} {} by {} (userId: {})",new Object[]{
+                        requestContext.requestId, requestContext.methodName,
+                        requestContext.userInformation.getFullName(), requestContext.userInformation.getUserId()});
             }
             else {
-                Controller.loggerApi.info("Request:{} {}.{}", new Object[]{requestId, className, methodName});
+                Controller.loggerApi.info("Request:{} {}", new Object[]{
+                        requestContext.requestId, requestContext.methodName});
             }
 
+            // Execute request
             String requestState = "OK";
             try {
                 pMethod.setAccessible(true);
@@ -321,15 +328,15 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 Throwable throwable = exception.getTargetException();
                 if (throwable instanceof ApiFaultException) {
                     ApiFaultException apiFaultException = (ApiFaultException) throwable;
-                    throw new ApiFaultXmlRpcException(apiFaultException.getApiFault(), throwable);
+                    throw new ApiFaultXmlRpcException(requestContext, apiFaultException.getApiFault(), throwable);
                 }
                 else if (throwable instanceof ReportException) {
                     ReportException reportException = (ReportException) throwable;
-                    throw new ReportXmlRpcException(reportException.getReport(), throwable);
+                    throw new ReportXmlRpcException(requestContext, reportException.getReport(), throwable);
                 }
                 else if (throwable instanceof ReportRuntimeException) {
                     ReportRuntimeException reportRuntimeException = (ReportRuntimeException) throwable;
-                    throw new ReportXmlRpcException(reportRuntimeException.getReport(), throwable);
+                    throw new ReportXmlRpcException(requestContext, reportRuntimeException.getReport(), throwable);
                 }
                 String message = "Failed to invoke " + ((Service) pInstance).getServiceName() + "." + pMethod.getName()
                         + ": " + throwable.getMessage();
@@ -337,10 +344,77 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 throw new XmlRpcException(message, exception);
             }
             finally {
+                // Log request end
                 long duration = requestTimer.stop();
                 Controller.loggerApi.info("Request:{} Done in {} ms ({}).",
-                        new Object[]{requestId, duration, requestState});
+                        new Object[]{requestContext.requestId, duration, requestState});
             }
+        }
+    }
+
+    /**
+     * Represents attributes of XML-RPC request.
+     */
+    private static class RequestContext implements ReportContext
+    {
+        /**
+         * Unique identifier of the request.
+         */
+        private Long requestId;
+
+        /**
+         * Name of the method which is invoked by the request (e.g., "service.method")
+         */
+        private String methodName;
+
+        /**
+         * Method arguments.
+         */
+        private Object[] arguments;
+
+        /**
+         * {@link UserInformation} of user which requested the method.
+         */
+        private UserInformation userInformation;
+
+        @Override
+        public String getReportName()
+        {
+            if (userInformation != null) {
+                return String.format("%s by %s",
+                        methodName, userInformation.getFullName());
+            }
+            else {
+                return String.format("%s", methodName);
+            }
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            StringBuilder reportDetail = new StringBuilder();
+            reportDetail.append("REQUEST\n\n");
+
+            reportDetail.append("      ID: ");
+            reportDetail.append(requestId);
+            reportDetail.append("\n");
+
+            reportDetail.append("    User: ");
+            reportDetail.append(userInformation.getFullName());
+            reportDetail.append("(id: ");
+            reportDetail.append(userInformation.getUserId());
+            reportDetail.append(")");
+            reportDetail.append("\n");
+
+            reportDetail.append("  Method: ");
+            reportDetail.append(methodName);
+            reportDetail.append("\n");
+
+            reportDetail.append("  Arguments:\n");
+            for (Object argument : arguments) {
+                reportDetail.append("   * "); reportDetail.append(argument.toString()); reportDetail.append("\n");
+            }
+            return reportDetail.toString();
         }
     }
 
@@ -349,12 +423,20 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
      */
     private static class ApiFaultXmlRpcException extends XmlRpcException
     {
+        private RequestContext requestContext;
+
         private ApiFault apiFault;
 
-        public ApiFaultXmlRpcException(ApiFault apiFault, Throwable throwable)
+        public ApiFaultXmlRpcException(RequestContext requestContext, ApiFault apiFault, Throwable throwable)
         {
             super(null, throwable);
+            this.requestContext = requestContext;
             this.apiFault = apiFault;
+        }
+
+        public RequestContext getRequestContext()
+        {
+            return requestContext;
         }
 
         public ApiFault getApiFault()
@@ -368,12 +450,20 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
      */
     private static class ReportXmlRpcException extends XmlRpcException
     {
+        private RequestContext requestContext;
+
         private Report report;
 
-        public ReportXmlRpcException(Report report, Throwable throwable)
+        public ReportXmlRpcException(RequestContext requestContext, Report report, Throwable throwable)
         {
             super(null, throwable);
+            this.requestContext = requestContext;
             this.report = report;
+        }
+
+        public RequestContext getRequestContext()
+        {
+            return requestContext;
         }
 
         public Report getReport()
@@ -525,17 +615,19 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             if (throwable instanceof ReportXmlRpcException) {
                 ReportXmlRpcException reportXmlRpcException = (ReportXmlRpcException) throwable;
                 Report report = reportXmlRpcException.getReport();
-
-                Reporter.report(report, throwable);
-
                 apiFault = new CommonReportSet.UnknownErrorReport(report.getMessage());
+                throwable = reportXmlRpcException.getCause();
+
+                Reporter.report(reportXmlRpcException.getRequestContext(), report, throwable);
             }
             // Report API fault
             else {
+                RequestContext requestContext = null;
                 if (throwable instanceof ApiFaultXmlRpcException) {
                     ApiFaultXmlRpcException apiFaultXmlRpcException = (ApiFaultXmlRpcException) throwable;
                     apiFault = apiFaultXmlRpcException.getApiFault();
                     throwable = apiFaultXmlRpcException.getCause();
+                    requestContext = apiFaultXmlRpcException.getRequestContext();
                 }
                 else if (throwable instanceof ApiFaultException) {
                     ApiFaultException apiFaultException = (ApiFaultException) throwable;
@@ -559,19 +651,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     apiFault = new CommonReportSet.UnknownErrorReport(throwable.getMessage());
                 }
 
-                Reporter.reportApiFault(apiFault, throwable);
+                Reporter.reportApiFault(requestContext, apiFault, throwable);
             }
-
-            /*if (throwable instanceof XmlRpcException) {
-                XmlRpcException xmlRpcException = (XmlRpcException) throwable;
-                Throwable cause = xmlRpcException.getCause();
-                if (cause != null) {
-                    Throwable newCause = convertThrowable(cause);
-                    if (newCause != cause) {
-                        return newCause;
-                    }
-                }
-            }*/
 
             ApiFaultString apiFaultString = new ApiFaultString();
             apiFaultString.setMessage(apiFault.getFaultString());

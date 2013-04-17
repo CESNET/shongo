@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.notification;
 
 
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -75,7 +74,7 @@ public class ReservationNotification extends Notification
             }
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.InternalErrorType.NOTIFICATION,
+            Reporter.reportInternalError(Reporter.NOTIFICATION,
                     "Failed to create reservation notification", exception);
         }
     }

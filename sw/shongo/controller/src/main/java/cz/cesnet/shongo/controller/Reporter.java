@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.report.ApiFault;
-import cz.cesnet.shongo.report.Report;
-import cz.cesnet.shongo.report.ReportException;
-import cz.cesnet.shongo.report.ReportRuntimeException;
+import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,20 +27,23 @@ public class Reporter
      *
      * @param report to be reported
      */
-    public static void report(Report report)
+    public static void report(ReportContext reportContext, Report report)
     {
-        report(report, null);
+        report(reportContext, report, null);
     }
 
     /**
      * Report given {@code report}.
      *
-     * @param report to be reported
+     * @param report    to be reported
      * @param throwable
      */
-    public static void report(Report report, Throwable throwable)
+    public static void report(ReportContext reportContext, Report report, Throwable throwable)
     {
         String name = report.getName();
+        if (reportContext != null) {
+            name = reportContext.getReportName() + ": " + name;
+        }
         String message = report.getMessage();
 
         if (report.getType().equals(Report.Type.ERROR)) {
@@ -60,17 +60,19 @@ public class Reporter
         }
 
         if (report.isVisibleToDomainAdminViaEmail()) {
-            sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(message, throwable));
+            sendReportEmail(getAdministratorEmails(), name,
+                    getAdministratorEmailContent(reportContext, message, throwable));
         }
     }
 
     /**
      * Report given {@code apiFault},
      *
-     * @param apiFault to be reported
+     * @param reportContext
+     * @param apiFault      to be reported
      * @param throwable
      */
-    public static void reportApiFault(ApiFault apiFault, Throwable throwable)
+    public static void reportApiFault(ReportContext reportContext, ApiFault apiFault, Throwable throwable)
     {
         // Get report for the API fault
         Report apiFaultReport;
@@ -89,21 +91,21 @@ public class Reporter
             apiFaultReport = new CommonReportSet.UnknownErrorReport(apiFault.getFaultString());
         }
         // Report it
-        report(apiFaultReport, throwable);
+        report(reportContext, apiFaultReport, throwable);
     }
 
     /**
      * Report internal error.
      *
-     * @param type
+     * @param reportContext
      * @param message
      * @param throwable
      */
-    public static void reportInternalError(InternalErrorType type, String message, Throwable throwable)
+    public static void reportInternalError(ReportContext reportContext, String message, Throwable throwable)
     {
         StringBuilder nameBuilder = new StringBuilder();
-        if (type != null) {
-            nameBuilder.append(type.getName());
+        if (reportContext != null) {
+            nameBuilder.append(reportContext.getReportName());
             nameBuilder.append(" Internal Error");
         }
         if (nameBuilder.length() == 0) {
@@ -111,18 +113,18 @@ public class Reporter
         }
         String name = nameBuilder.toString();
         logger.error(name + ": " + message, throwable);
-        sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(message, throwable));
+        sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(reportContext, message, throwable));
     }
 
     /**
      * Report internal error.
      *
-     * @param type
+     * @param reportContext
      * @param exception
      */
-    public static void reportInternalError(InternalErrorType type, Exception exception)
+    public static void reportInternalError(ReportContext reportContext, Exception exception)
     {
-        reportInternalError(type, null, exception);
+        reportInternalError(reportContext, null, exception);
     }
 
     /**
@@ -167,7 +169,13 @@ public class Reporter
         return administratorEmails;
     }
 
-    private static String getAdministratorEmailContent(String message, Throwable throwable)
+    /**
+     * @param reportContext
+     * @param message
+     * @param throwable
+     * @return email content
+     */
+    private static String getAdministratorEmailContent(ReportContext reportContext, String message, Throwable throwable)
     {
         // Prepare error email content
         StringBuilder emailContent = new StringBuilder();
@@ -181,6 +189,11 @@ public class Reporter
             throwable.printStackTrace(printWriter);
             String stackTrace = result.toString();
             emailContent.append(stackTrace);
+        }
+        String reportDetail = (reportContext != null ? reportContext.getReportDetail() : null);
+        if (reportDetail != null) {
+            emailContent.append("\n\n");
+            emailContent.append(reportDetail);
         }
         emailContent.append("\n\n");
         emailContent.append(getConfiguration());
@@ -211,53 +224,95 @@ public class Reporter
                 logger.error("Cannot get local hostname.", unknownHostException);
             }
         }
-        configuration.append("  Host:   ")
+        configuration.append("    Host: ")
                 .append(hostName)
                 .append("\n");
 
         return configuration.toString();
     }
 
-    /**
-     * Type of internal errors where they can happen.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    public static enum InternalErrorType
+    public static final ReportContext AUTHORIZATION = new ReportContext()
     {
-        AUTHORIZATION("Authorization"),
-
-        WORKER("Worker"),
-
-        PREPROCESSOR("Preprocessor"),
-
-        SCHEDULER("Scheduler"),
-
-        EXECUTOR("Executor"),
-
-        NOTIFICATION("Notification");
-
-        /**
-         * Name of the {@link cz.cesnet.shongo.controller.Reporter.InternalErrorType}.
-         */
-        private String name;
-
-        /**
-         * Constructor.
-         *
-         * @param name sets the {@link #name}
-         */
-        private InternalErrorType(String name)
+        @Override
+        public String getReportName()
         {
-            this.name = name;
+            return "Authorization";
         }
 
-        /**
-         * @return {@link #name}
-         */
-        public String getName()
+        @Override
+        public String getReportDetail()
         {
-            return name;
+            return null;
         }
-    }
+    };
+    public static final ReportContext WORKER = new ReportContext()
+    {
+        @Override
+        public String getReportName()
+        {
+            return "Worker";
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            return null;
+        }
+    };
+    public static final ReportContext PREPROCESSOR = new ReportContext()
+    {
+        @Override
+        public String getReportName()
+        {
+            return "Preprocessor";
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            return null;
+        }
+    };
+    public static final ReportContext SCHEDULER = new ReportContext()
+    {
+        @Override
+        public String getReportName()
+        {
+            return "Scheduler";
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            return null;
+        }
+    };
+    public static final ReportContext EXECUTOR = new ReportContext()
+    {
+        @Override
+        public String getReportName()
+        {
+            return "Executor";
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            return null;
+        }
+    };
+    public static final ReportContext NOTIFICATION = new ReportContext()
+    {
+        @Override
+        public String getReportName()
+        {
+            return "Notification";
+        }
+
+        @Override
+        public String getReportDetail()
+        {
+            return null;
+        }
+    };
 }

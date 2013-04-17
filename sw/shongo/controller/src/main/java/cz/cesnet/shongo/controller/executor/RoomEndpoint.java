@@ -84,9 +84,9 @@ public abstract class RoomEndpoint extends Endpoint
      * @param roomApi to be modified
      * @param executor to be used
      * @param executableManager
-     * @return true if modification succeeded,
-     *         false otherwise
+     * @throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException
      */
-    public abstract boolean modifyRoom(Room roomApi, Executor executor,
-            ExecutableManager executableManager);
+    public abstract void modifyRoom(Room roomApi, Executor executor,
+            ExecutableManager executableManager)
+            throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException;
 }

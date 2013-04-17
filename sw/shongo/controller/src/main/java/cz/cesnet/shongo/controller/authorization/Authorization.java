@@ -318,7 +318,7 @@ public abstract class Authorization
         }
         catch (Exception exception) {
             String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
-            Reporter.reportInternalError(Reporter.InternalErrorType.AUTHORIZATION, message, exception);
+            Reporter.reportInternalError(Reporter.AUTHORIZATION, message, exception);
             throw new ControllerReportSet.SecurityInvalidTokenException(securityToken.getAccessToken());
         }
     }

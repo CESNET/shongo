@@ -565,7 +565,7 @@ public class AuthorizationManager extends AbstractManager
             }
         }
         catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.InternalErrorType.AUTHORIZATION, "Propagation failed", exception);
+            Reporter.reportInternalError(Reporter.AUTHORIZATION, "Propagation failed", exception);
         }
         finally {
             if (entityManager.getTransaction().isActive()) {

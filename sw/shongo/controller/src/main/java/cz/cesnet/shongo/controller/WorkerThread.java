@@ -141,7 +141,7 @@ public class WorkerThread extends Thread
                 authorizationManager.propagate(authorization);
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.InternalErrorType.WORKER, exception);
+                Reporter.reportInternalError(Reporter.WORKER, exception);
             }
             finally {
                 entityManager.close();

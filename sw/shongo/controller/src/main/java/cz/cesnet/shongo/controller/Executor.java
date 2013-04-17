@@ -278,7 +278,7 @@ public class Executor extends Component
                 }
             }
             catch (Exception exception) {
-                Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, exception);
+                Reporter.reportInternalError(Reporter.EXECUTOR, exception);
             }
             finally {
                 entityManager.close();

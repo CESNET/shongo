@@ -190,9 +190,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 cache.reset();
             }
             catch (Exception resettingException) {
-                Reporter.reportInternalError(Reporter.InternalErrorType.SCHEDULER, "Cache resetting failed", resettingException);
+                Reporter.reportInternalError(Reporter.SCHEDULER, "Cache resetting failed", resettingException);
             }
-            Reporter.reportInternalError(Reporter.InternalErrorType.SCHEDULER, exception);
+            Reporter.reportInternalError(Reporter.SCHEDULER, exception);
             return;
         }
 
