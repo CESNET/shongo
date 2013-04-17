@@ -78,6 +78,17 @@ public class ${scope.getClassName()} extends AbstractReportSet
         {
             return ${report.getType()};
         }
+        <#if report.getResolution()??>
+
+            <#if report.isPersistent()>
+        @javax.persistence.Transient
+            </#if>
+        @Override
+        public Resolution getResolution()
+        {
+            return ${report.getResolution()};
+        }
+        </#if>
         <#if report.isApiFault()>
 
             <#if report.isPersistent()>

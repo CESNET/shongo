@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -158,6 +159,36 @@ public class ExecutorServiceImpl extends Component
             return executableApi;
         }
         finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void updateExecutable(SecurityToken token, String executableId)
+    {
+        String userId = authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        EntityIdentifier entityId = EntityIdentifier.parse(executableId, EntityType.EXECUTABLE);
+
+        try {
+            entityManager.getTransaction().begin();
+            cz.cesnet.shongo.controller.executor.Executable executable =
+                    executableManager.get(entityId.getPersistenceId());
+
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("start executable %s", entityId);
+            }
+
+            executable.setNextAttempt(DateTime.now());
+
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }

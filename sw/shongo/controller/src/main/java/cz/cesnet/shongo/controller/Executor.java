@@ -65,6 +65,11 @@ public class Executor extends Component
     private Duration nextAttempt;
 
     /**
+     * @see Configuration#EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT
+     */
+    private int maxAttemptCount;
+
+    /**
      * @return {@link #logger}
      */
     public Logger getLogger()
@@ -86,6 +91,14 @@ public class Executor extends Component
     public Duration getNextAttempt()
     {
         return nextAttempt;
+    }
+
+    /**
+     * @return {@link #maxAttemptCount}
+     */
+    public int getMaxAttemptCount()
+    {
+        return maxAttemptCount;
     }
 
     @Override
@@ -135,6 +148,7 @@ public class Executor extends Component
         executableEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_END);
         nextAttempt = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_NEXT_ATTEMPT);
         startingDurationRoom = configuration.getDuration(Configuration.EXECUTOR_STARTING_DURATION_ROOM);
+        maxAttemptCount = configuration.getInt(Configuration.EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT);
     }
 
     @Override

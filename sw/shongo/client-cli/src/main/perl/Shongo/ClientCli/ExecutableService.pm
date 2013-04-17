@@ -55,6 +55,20 @@ sub populate()
                 }
             }
         },
+        'update-executable' => {
+            desc => 'Start/stop existing executable (if it is in failed state)',
+            args => '[id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $id (split(/,/, $args[0])) {
+                        update_executable($id);
+                    }
+                } else {
+                    update_executable();
+                }
+            }
+        },
     });
 }
 
@@ -128,6 +142,22 @@ sub get_executable()
         if ( defined($executable) ) {
             console_print_text($executable->to_string());
         }
+    }
+}
+
+sub update_executable()
+{
+    my ($id) = @_;
+    $id = select_executable($id);
+    if ( !defined($id) ) {
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Executable.updateExecutable',
+        RPC::XML::string->new($id)
+    );
+    if ( defined($response) ) {
+        console_print_info("Executable '$id' has been updated.");
     }
 }
 

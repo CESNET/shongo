@@ -61,6 +61,13 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
+        public Resolution getResolution()
+        {
+            return jadeReport.getResolution();
+        }
+
+        @javax.persistence.Transient
+        @Override
         public boolean isVisibleToDomainAdminViaEmail()
         {
             return true;
@@ -144,6 +151,13 @@ public class ExecutorReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
         }
 
         @javax.persistence.Transient

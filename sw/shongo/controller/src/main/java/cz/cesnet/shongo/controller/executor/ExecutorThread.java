@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -60,12 +61,15 @@ public class ExecutorThread extends Thread
             entityManager.getTransaction().begin();
 
             // Perform proper action for executable
+            Executable executable = null;
+            boolean success = true;
             switch (type) {
                 case START:
                     try {
-                        Executable executable = executableManager.get(this.executable.getId());
+                        executable = executableManager.get(this.executable.getId());
                         executable.start(executor, executableManager);
-                        if (executable.getState().isStarted()) {
+                        success = executable.getState().isStarted();
+                        if (success) {
                             if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
                                 executor.getLogger().info("Waiting for room '{}' to be created...", executable.getId());
                                 try {
@@ -77,9 +81,6 @@ public class ExecutorThread extends Thread
                                 }
                             }
                         }
-                        else {
-                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
-                        }
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Starting failed", exception);
@@ -87,11 +88,9 @@ public class ExecutorThread extends Thread
                     break;
                 case UPDATE:
                     try {
-                        Executable executable = executableManager.get(this.executable.getId());
+                        executable = executableManager.get(this.executable.getId());
                         executable.update(executor, executableManager);
-                        if (executable.getState().isModified()) {
-                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
-                        }
+                        success = !executable.getState().isModified();
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Updating failed", exception);
@@ -99,11 +98,9 @@ public class ExecutorThread extends Thread
                     break;
                 case STOP:
                     try {
-                        Executable executable = executableManager.get(this.executable.getId());
+                        executable = executableManager.get(this.executable.getId());
                         executable.stop(executor, executableManager);
-                        if (executable.getState().isStarted()) {
-                            executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
-                        }
+                        success = !executable.getState().isStarted();
                     }
                     catch (Exception exception) {
                         Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, "Stopping failed", exception);
@@ -113,8 +110,24 @@ public class ExecutorThread extends Thread
                     throw new TodoImplementException(type.toString());
             }
 
+            if (success) {
+                executable.setNextAttempt(null);
+                executable.setAttemptCount(0);
+            }
+            else {
+                ExecutableReport lastReport = executable.getLastReport();
+                if ((executable.getAttemptCount() + 1) < executor.getMaxAttemptCount() &&
+                        lastReport.getResolution().equals(Report.Resolution.TRY_AGAIN)) {
+                    executable.setNextAttempt(DateTime.now().plus(executor.getNextAttempt()));
+                    executable.setAttemptCount(executable.getAttemptCount() + 1);
+                }
+                else {
+                    executable.setNextAttempt(null);
+                }
+            }
+
             // Remove executable from plan
-            executionPlan.removeExecutable(executable);
+            executionPlan.removeExecutable(this.executable);
 
             entityManager.getTransaction().commit();
 
@@ -127,6 +140,9 @@ public class ExecutorThread extends Thread
             Reporter.reportInternalError(Reporter.InternalErrorType.EXECUTOR, exception);
         }
         finally {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
             entityManager.close();
         }
     }

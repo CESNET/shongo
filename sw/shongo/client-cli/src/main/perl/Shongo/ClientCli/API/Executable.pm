@@ -82,7 +82,7 @@ sub on_init()
             my $state = format_state($attribute_value, $State);
             if ( defined($state) ) {
                 my $color = 'blue';
-                if ( defined($self->get('state')) && $self->get('state') eq 'STARTING_FAILED' ) {
+                if ( defined($self->get('state')) && $self->get('state') eq 'STARTING_FAILED'  || $self->get('state') eq 'STOPPING_FAILED') {
                     $color = 'red';
                 }
                 my $state_report = $self->{'stateReport'};

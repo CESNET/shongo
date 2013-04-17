@@ -267,6 +267,15 @@ public class CodeGenerator extends AbstractGenerator
             if (this.report.getResolution() == null) {
                 this.report.setResolution(report.getResolution());
             }
+            else if (report.getResolution() != null) {
+                ReportResolution resolution = this.report.getResolution();
+                if (resolution.getParam() == null) {
+                    resolution.setParam(report.getResolution().getParam());
+                }
+                if (resolution.getValue() == null || resolution.getValue().isEmpty()) {
+                    resolution.setValue(report.getResolution().getValue());
+                }
+            }
             if (this.report.isPersistent() == null) {
                 this.report.setPersistent(report.isPersistent());
             }
@@ -492,6 +501,38 @@ public class CodeGenerator extends AbstractGenerator
                 return reportDomainAdmin.isVisible() && reportDomainAdmin.getVia().equals(ReportDomainAdminVia.EMAIL);
             }
             return false;
+        }
+
+        public String getResolution()
+        {
+            ReportResolution reportResolution = report.getResolution();
+            if (reportResolution == null) {
+                return null;
+            }
+            String param = reportResolution.getParam();
+            if (param != null) {
+                ParamGenerator paramGenerator = paramByName.get(param);
+                String paramType = paramGenerator.getVariableType();
+                if (paramType.equals("cz.cesnet.shongo.JadeReport")) {
+                    return paramGenerator.getVariableName() + ".getResolution()";
+                }
+                else {
+                    throw new GeneratorException("Unknown resolution for param '%s' of type '%s'.", param, paramType);
+                }
+            }
+            String resolution = reportResolution.getValue();
+            if (resolution == null || resolution.isEmpty()) {
+                return null;
+            }
+            else if (resolution.equals("try-again")) {
+                return "Resolution.TRY_AGAIN";
+            }
+            else if (resolution.equals("stop")) {
+                return "Resolution.STOP";
+            }
+            else {
+                throw new GeneratorException("Unknown resolution '%s'.", resolution);
+            }
         }
     }
 

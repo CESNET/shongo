@@ -35,6 +35,14 @@ public abstract class Report
         return false;
     }
 
+    /**
+     * @return {@link Resolution}
+     */
+    public Resolution getResolution()
+    {
+        return Resolution.DEFAULT;
+    }
+
     @Override
     public String toString()
     {
@@ -65,5 +73,26 @@ public abstract class Report
          * Represents a debug information.
          */
         DEBUG
+    }
+
+    /**
+     * Represents what does the {@link Report} mean to action which cause it.
+     */
+    public static enum Resolution
+    {
+        /**
+         * Not specified.
+         */
+        DEFAULT,
+
+        /**
+         * Means that the action which cause the {@link Report} should be tried again.
+         */
+        TRY_AGAIN,
+
+        /**
+         * Means that the action which cause the {@link Report} should not be tried again
+         */
+        STOP
     }
 }

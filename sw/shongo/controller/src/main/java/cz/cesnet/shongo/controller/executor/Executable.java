@@ -36,6 +36,11 @@ public abstract class Executable extends PersistentObject
     private State state;
 
     /**
+     * Attempt count.
+     */
+    private int attemptCount;
+
+    /**
      * Date/time for next attempt to start/stop/update executable. If this date/time is empty, the executable
      * should be started/updated/stopped as soon as possible.
      */
@@ -50,6 +55,11 @@ public abstract class Executable extends PersistentObject
      * List of report for this object.
      */
     private List<ExecutableReport> reports = new LinkedList<ExecutableReport>();
+
+    /**
+     * Cached sorted {@link #reports}.
+     */
+    private List<ExecutableReport> cachedSortedReports;
 
     /**
      * @return {@link #slotStart}
@@ -148,6 +158,23 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
+     * @return {@link #attemptCount}
+     */
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    public int getAttemptCount()
+    {
+        return attemptCount;
+    }
+
+    /**
+     * @param attemptCount sets the {@link #attemptCount}
+     */
+    public void setAttemptCount(int attemptCount)
+    {
+        this.attemptCount = attemptCount;
+    }
+
+    /**
      * @return {@link #nextAttempt}
      */
     @Column
@@ -213,6 +240,7 @@ public abstract class Executable extends PersistentObject
         for (ExecutableReport report : reports) {
             this.reports.add(report);
         }
+        cachedSortedReports = null;
     }
 
     /**
@@ -221,6 +249,7 @@ public abstract class Executable extends PersistentObject
     public void addReport(ExecutableReport report)
     {
         reports.add(report);
+        cachedSortedReports = null;
     }
 
     /**
@@ -229,6 +258,7 @@ public abstract class Executable extends PersistentObject
     public void removeReport(ExecutableReport report)
     {
         reports.remove(report);
+        cachedSortedReports = null;
     }
 
     /**
@@ -237,6 +267,46 @@ public abstract class Executable extends PersistentObject
     public void clearReports()
     {
         reports.clear();
+        cachedSortedReports.clear();
+    }
+
+    /**
+     * @return last added {@link ExecutableReport}
+     */
+    @Transient
+    public ExecutableReport getLastReport()
+    {
+        return getCachedSortedReports().get(0);
+    }
+
+    /**
+     * @return number of {@link ExecutableReport}s
+     */
+    @Transient
+    public int getReportCount()
+    {
+        return reports.size();
+    }
+
+    /**
+     * @return {@link #cachedSortedReports}
+     */
+    @Transient
+    private List<ExecutableReport> getCachedSortedReports()
+    {
+        if (cachedSortedReports == null) {
+            cachedSortedReports = new LinkedList<ExecutableReport>();
+            cachedSortedReports.addAll(reports);
+            Collections.sort(cachedSortedReports, new Comparator<ExecutableReport>()
+            {
+                @Override
+                public int compare(ExecutableReport o1, ExecutableReport o2)
+                {
+                    return -o1.getDateTime().compareTo(o2.getDateTime());
+                }
+            });
+        }
+        return cachedSortedReports;
     }
 
     /**
@@ -245,19 +315,9 @@ public abstract class Executable extends PersistentObject
     @Transient
     protected String getReportText()
     {
-        List<ExecutableReport> executableReports = new ArrayList<ExecutableReport>();
-        executableReports.addAll(reports);
-        Collections.sort(executableReports, new Comparator<ExecutableReport>()
-        {
-            @Override
-            public int compare(ExecutableReport o1, ExecutableReport o2)
-            {
-                return -o1.getDateTime().compareTo(o2.getDateTime());
-            }
-        });
         int count = 0;
         StringBuilder stringBuilder = new StringBuilder();
-        for (ExecutableReport report : executableReports) {
+        for (ExecutableReport report : getCachedSortedReports()) {
             if (stringBuilder.length() > 0) {
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");

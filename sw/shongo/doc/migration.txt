@@ -1,7 +1,7 @@
 Database migrations (should be placed into data/controller.log file)
 --------------------------------------------------------------------
 
-2012-01-02 - Move alias_id values to connection table and delete tables connection by address/alias
+[2012-01-02] Move alias_id values to connection table and delete tables connection by address/alias
 
 SET SCHEMA PUBLIC
 UPDATE CONNECTION SET ALIAS_ID = (SELECT ALIAS_ID FROM CONNECTION_BY_ALIAS WHERE ID = CONNECTION.ID)
@@ -9,12 +9,10 @@ DROP TABLE CONNECTION_BY_ADDRESS
 DROP TABLE CONNECTION_BY_ALIAS
 COMMIT
 
-2012-04-05 - Delete old ACL management
+[2012-04-05] Delete old ACL management
 
 SET SCHEMA PUBLIC
 DROP TABLE PUBLIC.ACL_RECORD_CREATE_REQUEST
 DROP TABLE PUBLIC.ACL_RECORD_DELETE_REQUEST
 DROP TABLE PUBLIC.ACL_RECORD_DEPENDENCY
 COMMIT
-
-

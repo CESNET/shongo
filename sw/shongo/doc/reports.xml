@@ -63,6 +63,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report>
@@ -77,6 +78,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>try-again</resolution>
         </report>
 
         <report>
@@ -91,6 +93,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>try-again</resolution>
         </report>
 
         <report abstract="true">
@@ -115,6 +118,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -128,6 +132,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>try-again</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -141,6 +146,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -154,6 +160,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -167,6 +174,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -182,6 +190,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
         <report extends="command-abstract-error">
@@ -196,6 +205,7 @@
             <example>
                 TODO:
             </example>
+            <resolution>stop</resolution>
         </report>
 
     </scope>
@@ -634,7 +644,7 @@
             </example>
             <domain-admin visible="true" via="email"/>
             <resource-admin visible="true" via="email"/>
-            <resolution>fail</resolution>
+            <resolution param="jade-report"/>
         </report>
 
         <report>
@@ -647,7 +657,7 @@
             </example>
             <domain-admin visible="true" via="email"/>
             <resource-admin visible="true" via="email"/>
-            <resolution>fail</resolution>
+            <resolution>stop</resolution>
         </report>
 
     </scope>

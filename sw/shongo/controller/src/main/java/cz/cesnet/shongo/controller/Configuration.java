@@ -90,6 +90,11 @@ public class Configuration extends CombinedConfiguration
     public static final String EXECUTOR_EXECUTABLE_NEXT_ATTEMPT = "executor.executable.next-attempt";
 
     /**
+     * Maximum count of attempts for {@link cz.cesnet.shongo.controller.Executor} to try to perform action.
+     */
+    public static final String EXECUTOR_EXECUTABLE_MAX_ATTEMPT_COUNT = "executor.executable.max-attempt-count";
+
+    /**
      * Duration which {@link cz.cesnet.shongo.controller.Executor} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_STARTING_DURATION_ROOM = "executor.starting-duration.room";

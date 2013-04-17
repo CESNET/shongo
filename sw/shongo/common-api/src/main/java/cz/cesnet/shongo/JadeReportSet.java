@@ -43,6 +43,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             description = (String) reportSerializer.getParameter("description", String.class);
@@ -142,6 +148,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.TRY_AGAIN;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             receiverAgent = (String) reportSerializer.getParameter("receiverAgent", String.class);
@@ -238,6 +250,12 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.TRY_AGAIN;
         }
 
         @Override
@@ -398,6 +416,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             command = (String) reportSerializer.getParameter("command", String.class);
@@ -498,6 +522,12 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.TRY_AGAIN;
         }
 
         @Override
@@ -604,6 +634,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             command = (String) reportSerializer.getParameter("command", String.class);
@@ -707,6 +743,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             command = (String) reportSerializer.getParameter("command", String.class);
@@ -807,6 +849,12 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
         }
 
         @Override
@@ -926,6 +974,12 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
+        }
+
+        @Override
         public void readParameters(ReportSerializer reportSerializer)
         {
             command = (String) reportSerializer.getParameter("command", String.class);
@@ -1036,6 +1090,12 @@ public class JadeReportSet extends AbstractReportSet
         public Type getType()
         {
             return Report.Type.ERROR;
+        }
+
+        @Override
+        public Resolution getResolution()
+        {
+            return Resolution.STOP;
         }
 
         @Override

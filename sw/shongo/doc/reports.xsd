@@ -15,7 +15,16 @@
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="template" type="report" minOccurs="0" maxOccurs="1"/>
-                            <xs:element name="report" type="report" minOccurs="1" maxOccurs="unbounded"/>
+                            <xs:element name="report" type="report" minOccurs="1" maxOccurs="unbounded">
+                                <xs:unique name="ParamUnique">
+                                    <xs:selector xpath="./params/param"/>
+                                    <xs:field xpath="@name"/>
+                                </xs:unique>
+                                <xs:keyref name="ResolutionParamReferrer" refer="ParamUnique">
+                                    <xs:selector xpath="./resolution"/>
+                                    <xs:field xpath="@param"/>
+                                </xs:keyref>
+                            </xs:element>
                         </xs:sequence>
                         <xs:attribute name="name" type="xs:string" use="required"/>
                     </xs:complexType>
@@ -112,12 +121,32 @@
         </xs:restriction>
     </xs:simpleType>
 
-    <xs:simpleType name="report-resolution">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="fail"/>
-            <xs:enumeration value="try-again"/>
-        </xs:restriction>
+    <xs:simpleType name="report-resolution-enum">
+        <xs:union>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value=""/>
+                    <xs:enumeration value="try-again"/>
+                    <xs:enumeration value="stop"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
     </xs:simpleType>
+
+    <xs:complexType name="report-resolution">
+        <xs:simpleContent>
+            <xs:extension base="report-resolution-enum">
+                <xs:attribute name="param" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Name of param from which the resolution is retrieved.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+
+    </xs:complexType>
 
     <xs:complexType name="report">
         <xs:annotation>

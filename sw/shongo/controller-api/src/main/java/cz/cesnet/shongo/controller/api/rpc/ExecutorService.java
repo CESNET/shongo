@@ -43,4 +43,13 @@ public interface ExecutorService extends Service
      */
     @API
     public Executable getExecutable(SecurityToken token, String executableId);
+
+    /**
+     * Try to start/stop/update given {@link Executable} (e.g., if it is in failed state).
+     *
+     * @param token        token of the user requesting the operation
+     * @param executableId shongo-id of the {@link cz.cesnet.shongo.controller.api.Executable} to start
+     */
+    @API
+    public void updateExecutable(SecurityToken token, String executableId);
 }

@@ -77,7 +77,9 @@
             <!-- Period modifying executable ending date/time -->
             <end>PT-30S</end>
             <!-- Period in which the action is repeated if it fails -->
-            <next-attempt>PT3M</next-attempt>
+            <next-attempt>PT2M</next-attempt>
+            <!-- Maximum count of attempts -->
+            <max-attempt-count>15</max-attempt-count>
         </executable>
 
         <!-- Configuration of durations which should be reserved for starting executables -->
