@@ -58,7 +58,6 @@ public class ControllerReportSet extends AbstractReportSet
             this.role = role;
         }
 
-
         @Override
         public Type getType()
         {
@@ -190,7 +189,6 @@ public class ControllerReportSet extends AbstractReportSet
             this.token = token;
         }
 
-
         @Override
         public Type getType()
         {
@@ -318,7 +316,6 @@ public class ControllerReportSet extends AbstractReportSet
             this.action = action;
         }
 
-
         @Override
         public Type getType()
         {
@@ -417,7 +414,7 @@ public class ControllerReportSet extends AbstractReportSet
     /**
      * Command {@link #command} for device {@link #device} failed: {@link #jadeReport}
      */
-    public static class DeviceCommandFailedReport extends Report implements ApiFault
+    public static class DeviceCommandFailedReport extends Report implements ApiFault, ResourceReport
     {
         protected String device;
 
@@ -466,7 +463,11 @@ public class ControllerReportSet extends AbstractReportSet
             this.jadeReport = jadeReport;
         }
 
-
+        @Override
+        public String getResourceId()
+        {
+            return device;
+        }
         @Override
         public Type getType()
         {
@@ -509,6 +510,12 @@ public class ControllerReportSet extends AbstractReportSet
 
         @Override
         public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
+        }
+
+        @Override
+        public boolean isVisibleToResourceAdminViaEmail()
         {
             return true;
         }
@@ -613,7 +620,6 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.id = id;
         }
-
 
         @Override
         public Type getType()
@@ -748,7 +754,6 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.requiredDomain = requiredDomain;
         }
-
 
         @Override
         public Type getType()
@@ -894,7 +899,6 @@ public class ControllerReportSet extends AbstractReportSet
             this.requiredType = requiredType;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1025,7 +1029,6 @@ public class ControllerReportSet extends AbstractReportSet
         {
             this.id = id;
         }
-
 
         @Override
         public Type getType()

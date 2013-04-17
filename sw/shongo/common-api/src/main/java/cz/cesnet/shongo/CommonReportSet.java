@@ -50,7 +50,6 @@ public class CommonReportSet extends AbstractReportSet
             this.description = description;
         }
 
-
         @Override
         public Type getType()
         {
@@ -191,7 +190,6 @@ public class CommonReportSet extends AbstractReportSet
             this.value = value;
         }
 
-
         @Override
         public Type getType()
         {
@@ -323,7 +321,6 @@ public class CommonReportSet extends AbstractReportSet
             this.className = className;
         }
 
-
         @Override
         public Type getType()
         {
@@ -444,7 +441,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.className = className;
         }
-
 
         @Override
         public Type getType()
@@ -579,7 +575,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.attribute = attribute;
         }
-
 
         @Override
         public Type getType()
@@ -751,7 +746,6 @@ public class CommonReportSet extends AbstractReportSet
             this.presentType = presentType;
         }
 
-
         @Override
         public Type getType()
         {
@@ -916,7 +910,6 @@ public class CommonReportSet extends AbstractReportSet
             this.attribute = attribute;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1060,7 +1053,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.attribute = attribute;
         }
-
 
         @Override
         public Type getType()
@@ -1206,7 +1198,6 @@ public class CommonReportSet extends AbstractReportSet
             this.collection = collection;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1337,7 +1328,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.collection = collection;
         }
-
 
         @Override
         public Type getType()
@@ -1485,7 +1475,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.presentType = presentType;
         }
-
 
         @Override
         public Type getType()
@@ -1641,7 +1630,6 @@ public class CommonReportSet extends AbstractReportSet
             this.id = id;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1786,7 +1774,6 @@ public class CommonReportSet extends AbstractReportSet
             this.reason = reason;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1930,7 +1917,6 @@ public class CommonReportSet extends AbstractReportSet
         {
             this.id = id;
         }
-
 
         @Override
         public Type getType()

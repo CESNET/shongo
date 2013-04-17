@@ -9,6 +9,7 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -33,7 +34,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
+public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, Reporter.ResourceContext
 {
     /**
      * {@link DeviceResource}.
@@ -216,6 +217,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         else {
             throw new IllegalStateException("Resource " + getDescription() + " is not managed!");
         }
+    }
+
+    @Override
+    @Transient
+    public Resource getResource()
+    {
+        return getDeviceResource();
     }
 
     @Override

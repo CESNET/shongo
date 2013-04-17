@@ -511,7 +511,7 @@
             <id>device-command-failed</id>
             <classification severity="error"/>
             <params>
-                <param name="device" type="String"/>
+                <param name="device" type="String" resource-id="true"/>
                 <param name="command" type="String"/>
                 <param name="jade-report" type="cz.cesnet.shongo.JadeReport"/>
             </params>
@@ -617,9 +617,6 @@
             </description>
             <example>
             </example>
-            <user visible="false"/>
-            <domain-admin visible="false" via="email"/>
-            <resource-admin visible="false" via="email"/>
         </report>
 
     </scope>

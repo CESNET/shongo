@@ -201,6 +201,8 @@ public class CodeGenerator extends AbstractGenerator
 
         private Map<String, ParamGenerator> paramByName = new HashMap<String, ParamGenerator>();
 
+        private ParamGenerator resourceIdParam;
+
         private ReportGenerator baseReportGenerator;
 
         private String baseClassName;
@@ -219,6 +221,14 @@ public class CodeGenerator extends AbstractGenerator
                     declaredParams.add(paramGenerator);
                     params.add(paramGenerator);
                     paramByName.put(paramGenerator.reportParam.getName(), paramGenerator);
+                    if (reportParam.isResourceId() != null && reportParam.isResourceId()) {
+                        if (resourceIdParam != null) {
+                            throw new GeneratorException(
+                                    "Cannot set resource-id parameter '%s', because '%s' has already been set.",
+                                    paramGenerator.getName(), resourceIdParam.getName());
+                        }
+                        resourceIdParam = paramGenerator;
+                    }
                 }
             }
         }
@@ -503,6 +513,15 @@ public class CodeGenerator extends AbstractGenerator
             return false;
         }
 
+        public boolean isVisibleToResourceAdminViaEmail()
+        {
+            ReportResourceAdmin reportResourceAdmin = report.getResourceAdmin();
+            if (reportResourceAdmin != null) {
+                return reportResourceAdmin.isVisible() && reportResourceAdmin.getVia().equals(ReportResourceAdminVia.EMAIL);
+            }
+            return false;
+        }
+
         public String getResolution()
         {
             ReportResolution reportResolution = report.getResolution();
@@ -533,6 +552,11 @@ public class CodeGenerator extends AbstractGenerator
             else {
                 throw new GeneratorException("Unknown resolution '%s'.", resolution);
             }
+        }
+
+        public ParamGenerator getResourceIdParam()
+        {
+            return resourceIdParam;
         }
     }
 

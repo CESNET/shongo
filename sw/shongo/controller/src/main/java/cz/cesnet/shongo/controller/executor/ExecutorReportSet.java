@@ -51,7 +51,6 @@ public class ExecutorReportSet extends AbstractReportSet
             this.jadeReport = jadeReport;
         }
 
-
         @javax.persistence.Transient
         @Override
         public Type getType()
@@ -69,6 +68,13 @@ public class ExecutorReportSet extends AbstractReportSet
         @javax.persistence.Transient
         @Override
         public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public boolean isVisibleToResourceAdminViaEmail()
         {
             return true;
         }
@@ -164,7 +170,6 @@ public class ExecutorReportSet extends AbstractReportSet
             this.roomName = roomName;
         }
 
-
         @javax.persistence.Transient
         @Override
         public Type getType()
@@ -182,6 +187,13 @@ public class ExecutorReportSet extends AbstractReportSet
         @javax.persistence.Transient
         @Override
         public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public boolean isVisibleToResourceAdminViaEmail()
         {
             return true;
         }

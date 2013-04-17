@@ -36,6 +36,15 @@ public abstract class Report
     }
 
     /**
+     * @return true whether this {@link Report} should be sent to resource administrator by email,
+     *         false otherwise
+     */
+    public boolean isVisibleToResourceAdminViaEmail()
+    {
+        return false;
+    }
+
+    /**
      * @return {@link Resolution}
      */
     public Resolution getResolution()

@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.report.ReportContext;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -19,7 +19,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject implements ReportContext
+public abstract class Executable extends PersistentObject implements Reporter.ReportContext
 {
     /**
      * Interval start date/time.

@@ -384,6 +384,13 @@ public class Resource extends PersistentObject
     }
 
     @Override
+    public void loadLazyCollections()
+    {
+        getAdministrators().size();
+        super.loadLazyCollections();
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);

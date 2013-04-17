@@ -35,7 +35,6 @@ public class JadeReportSet extends AbstractReportSet
             this.description = description;
         }
 
-
         @Override
         public Type getType()
         {
@@ -139,7 +138,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.receiverAgent = receiverAgent;
         }
-
 
         @Override
         public Type getType()
@@ -245,7 +243,6 @@ public class JadeReportSet extends AbstractReportSet
             this.senderAgent = senderAgent;
         }
 
-
         @Override
         public Type getType()
         {
@@ -350,7 +347,6 @@ public class JadeReportSet extends AbstractReportSet
             this.command = command;
         }
 
-
     }
 
     /**
@@ -407,7 +403,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.description = description;
         }
-
 
         @Override
         public Type getType()
@@ -517,7 +512,6 @@ public class JadeReportSet extends AbstractReportSet
             this.receiverAgent = receiverAgent;
         }
 
-
         @Override
         public Type getType()
         {
@@ -625,7 +619,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.receiverAgent = receiverAgent;
         }
-
 
         @Override
         public Type getType()
@@ -735,7 +728,6 @@ public class JadeReportSet extends AbstractReportSet
             this.receiverAgent = receiverAgent;
         }
 
-
         @Override
         public Type getType()
         {
@@ -843,7 +835,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.receiverAgent = receiverAgent;
         }
-
 
         @Override
         public Type getType()
@@ -966,7 +957,6 @@ public class JadeReportSet extends AbstractReportSet
             this.reason = reason;
         }
 
-
         @Override
         public Type getType()
         {
@@ -1084,7 +1074,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.senderAgent = senderAgent;
         }
-
 
         @Override
         public Type getType()

@@ -1,17 +1,20 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.mail.MessagingException;
+import javax.persistence.EntityManager;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Handler for internal errors.
@@ -25,6 +28,7 @@ public class Reporter
     /**
      * Report given {@code report}.
      *
+     * @param reportContext in which the {@code report} has been created
      * @param report to be reported
      */
     public static void report(ReportContext reportContext, Report report)
@@ -35,8 +39,9 @@ public class Reporter
     /**
      * Report given {@code report}.
      *
+     * @param reportContext in which the {@code report} has been created
      * @param report    to be reported
-     * @param throwable
+     * @param throwable to be reported with the {@code report}
      */
     public static void report(ReportContext reportContext, Report report, Throwable throwable)
     {
@@ -59,18 +64,60 @@ public class Reporter
             logger.debug(name + ": " + message, throwable);
         }
 
-        if (report.isVisibleToDomainAdminViaEmail()) {
-            sendReportEmail(getAdministratorEmails(), name,
-                    getAdministratorEmailContent(reportContext, message, throwable));
+        if (report.isVisibleToDomainAdminViaEmail() || report.isVisibleToResourceAdminViaEmail()) {
+            // Get resource which is referenced by report
+            Resource resource = null;
+            EntityManager entityManager = null;
+            if (report instanceof ResourceReport) {
+                ResourceReport resourceReport = (ResourceReport) report;
+                Controller controller = Controller.getInstance();
+                entityManager = controller.getEntityManagerFactory().createEntityManager();
+                try {
+                    EntityIdentifier resourceId = EntityIdentifier.parse(
+                            resourceReport.getResourceId(), EntityType.RESOURCE);
+                    resource = entityManager.find(Resource.class, resourceId.getPersistenceId());
+                }
+                catch (Exception exception) {
+                    logger.error("Failed to get resource " + resourceReport.getResourceId() + ".", exception);
+                }
+            }
+            else if (reportContext instanceof ResourceContext) {
+                ResourceContext resourceContext = (ResourceContext) reportContext;
+                resource = resourceContext.getResource();
+            }
+
+            String administratorEmailContent = getAdministratorEmailContent(message, reportContext, resource, throwable);
+
+            Set<String> domainAdministratorEmails = new HashSet<String>();
+            if (report.isVisibleToDomainAdminViaEmail()) {
+                domainAdministratorEmails.addAll(getAdministratorEmails());
+                sendReportEmail(domainAdministratorEmails, name, administratorEmailContent);
+            }
+
+            Set<String> resourceAdministratorEmails = new HashSet<String>();
+            if (report.isVisibleToResourceAdminViaEmail() && resource != null) {
+                for (Person resourceAdministrator : resource.getAdministrators()) {
+                    String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
+                    if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {
+                        resourceAdministratorEmails.add(resourceAdministratorEmail);
+                    }
+                }
+                if (resourceAdministratorEmails.size() > 0) {
+                    sendReportEmail(resourceAdministratorEmails, name, administratorEmailContent);
+                }
+            }
+            if (entityManager != null) {
+                entityManager.close();
+            }
         }
     }
 
     /**
      * Report given {@code apiFault},
      *
-     * @param reportContext
+     * @param reportContext in which the {@code apiFault} has been created
      * @param apiFault      to be reported
-     * @param throwable
+     * @param throwable     to be reported with the {@code apiFault}
      */
     public static void reportApiFault(ReportContext reportContext, ApiFault apiFault, Throwable throwable)
     {
@@ -113,7 +160,8 @@ public class Reporter
         }
         String name = nameBuilder.toString();
         logger.error(name + ": " + message, throwable);
-        sendReportEmail(getAdministratorEmails(), name, getAdministratorEmailContent(reportContext, message, throwable));
+        sendReportEmail(getAdministratorEmails(), name,
+                getAdministratorEmailContent(message, reportContext, null, throwable));
     }
 
     /**
@@ -133,7 +181,7 @@ public class Reporter
      * @param title
      * @param content
      */
-    private static void sendReportEmail(List<String> recipients, String title, String content)
+    private static void sendReportEmail(Collection<String> recipients, String title, String content)
     {
         EmailSender emailSender = Controller.getInstance().getEmailSender();
 
@@ -159,9 +207,9 @@ public class Reporter
     /**
      * @return list of administrator email addresses
      */
-    private static List<String> getAdministratorEmails()
+    private static Set<String> getAdministratorEmails()
     {
-        List<String> administratorEmails = new LinkedList<String>();
+        Set<String> administratorEmails = new HashSet<String>();
         Configuration configuration = Controller.getInstance().getConfiguration();
         for (Object item : configuration.getList(Configuration.ADMINISTRATOR_EMAIL)) {
             administratorEmails.add((String) item);
@@ -175,7 +223,8 @@ public class Reporter
      * @param throwable
      * @return email content
      */
-    private static String getAdministratorEmailContent(ReportContext reportContext, String message, Throwable throwable)
+    private static String getAdministratorEmailContent(String message, ReportContext reportContext,
+            Resource resource, Throwable throwable)
     {
         // Prepare error email content
         StringBuilder emailContent = new StringBuilder();
@@ -194,6 +243,15 @@ public class Reporter
         if (reportDetail != null) {
             emailContent.append("\n\n");
             emailContent.append(reportDetail);
+        }
+        if (resource != null) {
+            emailContent.append("\n\nRESOURCE\n\n");
+            emailContent.append(" Identifier: ");
+            emailContent.append(new EntityIdentifier(resource).toId());
+            emailContent.append("\n");
+            emailContent.append("       Name: ");
+            emailContent.append(resource.getName());
+            emailContent.append("\n");
         }
         emailContent.append("\n\n");
         emailContent.append(getConfiguration());
@@ -315,4 +373,31 @@ public class Reporter
             return null;
         }
     };
+
+    /**
+     * Represents an context in which a {@link cz.cesnet.shongo.report.Report} was created.
+     */
+    public static interface ReportContext
+    {
+        /**
+         * @return name of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
+         */
+        public String getReportName();
+
+        /**
+         * @return detailed description of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
+         */
+        public String getReportDetail();
+    }
+
+    /**
+     * Represents a {@link ReportContext} with {@link Resource}.
+     */
+    public static interface ResourceContext
+    {
+        /**
+         * @return {@link Resource}
+         */
+        public Resource getResource();
+    }
 }

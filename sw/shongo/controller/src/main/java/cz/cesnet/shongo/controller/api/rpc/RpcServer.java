@@ -355,7 +355,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     /**
      * Represents attributes of XML-RPC request.
      */
-    private static class RequestContext implements ReportContext
+    private static class RequestContext implements Reporter.ReportContext
     {
         /**
          * Unique identifier of the request.

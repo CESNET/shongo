@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -13,6 +14,7 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
+public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, Reporter.ResourceContext
 {
     /**
      * {@link RoomEndpoint} which is re-used.
@@ -85,6 +87,19 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         List<Executable> dependencies = new ArrayList<Executable>();
         dependencies.add(roomEndpoint);
         return dependencies;
+    }
+
+    @Override
+    @Transient
+    public Resource getResource()
+    {
+        if (roomEndpoint instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+            return resourceRoomEndpoint.getResource();
+        }
+        else {
+            throw new TodoImplementException(roomEndpoint.getClass().getName());
+        }
     }
 
     @Override

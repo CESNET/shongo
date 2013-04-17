@@ -31,6 +31,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
     <#assign interfaces=[]/>
     <#if report.isApiFault()><#assign interfaces=interfaces + ["ApiFault"]/></#if>
     <#if report.isSerializable()><#assign interfaces=interfaces + ["SerializableReport"]/></#if>
+    <#if report.getResourceIdParam()??><#assign interfaces=interfaces + ["ResourceReport"]/></#if>
     public static<#if report.isAbstract()> abstract</#if> class ${report.getClassName()} extends ${report.getBaseClassName()}<#rt>
     <#list interfaces as interface><#if interface_index == 0> implements <#else>, </#if>${interface}</#list><#lt>
     {
@@ -66,7 +67,12 @@ public class ${scope.getClassName()} extends AbstractReportSet
         }
 
     </#list>
-    <#if (report.getDeclaredParams()?size > 0)>
+    <#if report.getResourceIdParam()??>
+        @Override
+        public String getResourceId()
+        {
+            return ${report.getResourceIdParam().getVariableName()};
+        }
 
     </#if>
     <#if !report.isAbstract()>
@@ -132,11 +138,22 @@ public class ${scope.getClassName()} extends AbstractReportSet
         </#if>
         <#if report.isVisibleToDomainAdminViaEmail()>
 
-        <#if report.isPersistent()>
+            <#if report.isPersistent()>
         @javax.persistence.Transient
-        </#if>
+            </#if>
         @Override
         public boolean isVisibleToDomainAdminViaEmail()
+        {
+            return true;
+        }
+        </#if>
+        <#if report.isVisibleToResourceAdminViaEmail()>
+
+            <#if report.isPersistent()>
+        @javax.persistence.Transient
+            </#if>
+        @Override
+        public boolean isVisibleToResourceAdminViaEmail()
         {
             return true;
         }
