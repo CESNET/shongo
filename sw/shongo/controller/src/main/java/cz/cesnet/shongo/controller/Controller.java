@@ -591,6 +591,9 @@ public class Controller
         // Destroy authorization
         authorization.destroy();
 
+        // Reset single instance of domain controller.
+        instance = null;
+
         logger.info("Controller exiting...");
     }
 
