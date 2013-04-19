@@ -13,6 +13,7 @@ public class ExecutorReportSet extends AbstractReportSet
      * Command {@link #command} failed: {@link #jadeReport}
      */
     @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("CommandFailedReport")
     public static class CommandFailedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         protected String command;
@@ -40,7 +41,7 @@ public class ExecutorReportSet extends AbstractReportSet
             this.command = command;
         }
 
-        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true) @javax.persistence.JoinColumn(name = "jade_report_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
             return jadeReport;
@@ -95,8 +96,6 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     public static class CommandFailedException extends ReportException
     {
-        protected CommandFailedReport report;
-
         public CommandFailedException(CommandFailedReport report)
         {
             this.report = report;
@@ -138,7 +137,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public CommandFailedReport getReport()
         {
-            return report;
+            return (CommandFailedReport) report;
         }
     }
 
@@ -146,6 +145,7 @@ public class ExecutorReportSet extends AbstractReportSet
      * Cannot modify room {@link #roomName}, because it has not been started yet.
      */
     @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("RoomNotStartedReport")
     public static class RoomNotStartedReport extends cz.cesnet.shongo.controller.executor.ExecutableReport
     {
         protected String roomName;
@@ -213,8 +213,6 @@ public class ExecutorReportSet extends AbstractReportSet
      */
     public static class RoomNotStartedException extends ReportException
     {
-        protected RoomNotStartedReport report;
-
         public RoomNotStartedException(RoomNotStartedReport report)
         {
             this.report = report;
@@ -249,7 +247,7 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public RoomNotStartedReport getReport()
         {
-            return report;
+            return (RoomNotStartedReport) report;
         }
     }
 

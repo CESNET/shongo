@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
@@ -14,10 +13,9 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
-import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotUsableReport;
-import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -261,10 +259,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Fill provided reservations to transaction
             for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
                 if (!context.getCache().isProvidedReservationAvailable(providedReservation, slot)) {
-                    throw new ProvidedReservationNotAvailableReport(providedReservation).exception();
+                    throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
                 }
                 if (!providedReservation.getSlot().contains(slot)) {
-                    throw new ProvidedReservationNotUsableReport(providedReservation).exception();
+                    throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
                 }
                 context.getCacheTransaction().addProvidedReservation(providedReservation);
             }
@@ -276,7 +274,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 reservationTask = reservationTaskProvider.createReservationTask(context);
             }
             else {
-                throw new SpecificationNotAllocatableReport(specification).exception();
+                throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
             }
 
             reservation = reservationTask.perform();
@@ -291,7 +289,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             reservationRequest.setReports(reservationTask.getReports());
             reservationRequestManager.update(reservationRequest);
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
             reservationRequest.addReport(exception.getTopReport());
         }

@@ -8,6 +8,11 @@ package cz.cesnet.shongo.report;
 public abstract class ReportException extends Exception
 {
     /**
+     * {@link Report}.
+     */
+    protected Report report;
+
+    /**
      * Constructor.
      */
     public ReportException()
@@ -27,7 +32,18 @@ public abstract class ReportException extends Exception
     /**
      * @return {@link Report}
      */
-    public abstract Report getReport();
+    public Report getReport()
+    {
+        return report;
+    }
+
+    /**
+     * @param report sets the {@link #report}
+     */
+    public void setReport(Report report)
+    {
+        this.report = report;
+    }
 
     @Override
     public String getMessage()

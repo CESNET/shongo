@@ -16,10 +16,10 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceReport;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReportSetHelper;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;
@@ -184,7 +184,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    public void addAssignedAlias(Alias assignedAlias) throws SchedulerException
     {
         getDeviceResource().evaluateAlias(assignedAlias);
         super.addAssignedAlias(assignedAlias);
@@ -201,8 +201,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public String getDescription()
     {
-        return String.format("room in %s",
-                ResourceReport.formatResource(getDeviceResource()));
+        return String.format("room in %s", SchedulerReportSetHelper.formatResource(getDeviceResource()));
     }
 
     @Override

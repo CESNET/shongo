@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.Specification;
 import org.joda.time.Interval;
 
@@ -20,5 +19,5 @@ public interface SpecificationCheckAvailability
      * @param slot          to be checked
      * @param entityManager which can be used for checking
      */
-    public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException;
+    public void checkAvailability(Interval slot, EntityManager entityManager) throws SchedulerException;
 }

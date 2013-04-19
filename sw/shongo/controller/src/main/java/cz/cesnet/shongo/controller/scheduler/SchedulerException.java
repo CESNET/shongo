@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.ReportException;
 
 /**
@@ -7,13 +8,23 @@ import cz.cesnet.shongo.report.ReportException;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class SchedulerException extends ReportException
+public class SchedulerException extends ReportException
 {
     /**
      * Constructor.
      */
     public SchedulerException()
     {
+    }
+
+    /**
+     * Contructor.
+     *
+     * @param report sets the {@link #report}
+     */
+    public SchedulerException(SchedulerReport report)
+    {
+        setReport(report);
     }
 
     /**
@@ -26,8 +37,21 @@ public abstract class SchedulerException extends ReportException
         super(throwable);
     }
 
+    @Override
+    public SchedulerReport getReport()
+    {
+        return (SchedulerReport) report;
+    }
+
     /**
-     * @return {@link cz.cesnet.shongo.report.Report}
+     * @return {@link #report}
      */
-    public abstract SchedulerReport getReport();
+    public SchedulerReport getTopReport()
+    {
+        SchedulerReport report = getReport();
+        while (report.hasParentReport()) {
+            report = report.getParentReport();
+        }
+        return report;
+    }
 }

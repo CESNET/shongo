@@ -5,8 +5,6 @@ import cz.cesnet.shongo.controller.cache.AvailableValue;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.cache.ValueCache;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -14,7 +12,6 @@ import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.scheduler.report.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -50,13 +47,14 @@ public class ValueReservationTask extends ReservationTask
     }
 
     @Override
-    protected Report createdMainReport()
+    protected SchedulerReport createMainReport()
     {
-        return new AllocatingValueReport(valueProvider.getTargetValueProvider().getCapability());
+        return new SchedulerReportSet.AllocatingValueReport(
+                valueProvider.getTargetValueProvider().getCapabilityResource());
     }
 
     @Override
-    protected Reservation createReservation() throws ReportException
+    protected Reservation createReservation() throws SchedulerException
     {
         validateReservationSlot(ValueReservation.class);
 
@@ -87,19 +85,19 @@ public class ValueReservationTask extends ReservationTask
             availableValue = valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
         }
         catch (ValueProvider.InvalidValueException exception) {
-            throw new ValueInvalidReport(requestedValue).exception();
+            throw new SchedulerReportSet.ValueInvalidException(requestedValue);
         }
         catch (ValueProvider.ValueAlreadyAllocatedException exception) {
-            throw new ValueAlreadyAllocatedReport(requestedValue).exception();
+            throw new SchedulerReportSet.ValueAlreadyAllocatedException(requestedValue);
         }
         catch (ValueProvider.NoAvailableValueException exception) {
-            throw new ValueNoAvailableReport().exception();
+            throw new SchedulerReportSet.ValueNotAvailableException();
         }
 
         // Reuse existing value reservation
         ValueReservation providedValueReservation = availableValue.getValueReservation();
         if (providedValueReservation != null) {
-            addReport(new ReusingReservationReport(providedValueReservation));
+            addReport(new SchedulerReportSet.ReservationReusingReport(providedValueReservation));
 
             ExistingReservation existingValueReservation = new ExistingReservation();
             existingValueReservation.setSlot(interval);

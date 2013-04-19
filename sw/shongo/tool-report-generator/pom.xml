@@ -42,7 +42,7 @@
                 <configuration>
                     <schemaDirectory>${project.basedir}/../doc/</schemaDirectory>
                     <schemaFiles>reports.xsd</schemaFiles>
-                    <packageName>cz.cesnet.report.xml</packageName>
+                    <packageName>cz.cesnet.shongo.generator.xml</packageName>
                 </configuration>
             </plugin>
         </plugins>

@@ -4,8 +4,6 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.cache.RoomCache;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -13,10 +11,6 @@ import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.report.AllocatingResourceReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceAlreadyAllocatedReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
-import cz.cesnet.shongo.controller.scheduler.report.ReusingReservationReport;
 import org.joda.time.Interval;
 
 import java.util.Set;
@@ -46,13 +40,13 @@ public class ResourceReservationTask extends ReservationTask
     }
 
     @Override
-    protected Report createdMainReport()
+    protected SchedulerReport createMainReport()
     {
-        return new AllocatingResourceReport(resource);
+        return new SchedulerReportSet.AllocatingResourceReport(resource);
     }
 
     @Override
-    protected Reservation createReservation() throws ReportException
+    protected Reservation createReservation() throws SchedulerException
     {
         validateReservationSlot(ResourceReservation.class);
 
@@ -65,7 +59,7 @@ public class ResourceReservationTask extends ReservationTask
 
         if (cacheTransaction.containsReferencedResource(resource)) {
             // Same resource is requested multiple times
-            throw new ResourceRequestedMultipleTimesReport(resource).exception();
+            throw new SchedulerReportSet.ResourceMultipleRequestedException(resource);
         }
 
         // Check resource and parent resources availability
@@ -75,7 +69,7 @@ public class ResourceReservationTask extends ReservationTask
         Set<ResourceReservation> resourceReservations = cacheTransaction.getProvidedResourceReservations(resource);
         if (resourceReservations.size() > 0) {
             ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
-            addReport(new ReusingReservationReport(providedResourceReservation));
+            addReport(new SchedulerReportSet.ReservationReusingReport(providedResourceReservation));
 
             // Reuse provided reservation
             ExistingReservation existingReservation = new ExistingReservation();
@@ -99,7 +93,7 @@ public class ResourceReservationTask extends ReservationTask
                 RoomCache roomCache = cache.getRoomCache();
                 if (roomCache.getRoomReservations(roomProvider, interval, cacheTransaction).size() > 0) {
                     // Requested resource is not available in the requested slot
-                    throw new ResourceAlreadyAllocatedReport(resource).exception();
+                    throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
                 }
             }
         }

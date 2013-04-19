@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.report;
+package cz.cesnet.shongo.generator;
 
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -54,7 +54,7 @@ public class PatternReplace
             final String replacement = callback.callback(matchResult);
             string = string.substring(0, matchResult.start())
                     + replacement + string.substring(matchResult.end());
-            pos = matchResult.end();
+            pos = matchResult.start() + replacement.length();
             matcher.reset(string);
         }
         return string;

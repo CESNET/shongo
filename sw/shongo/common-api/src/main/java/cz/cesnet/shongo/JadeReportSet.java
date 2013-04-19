@@ -73,8 +73,6 @@ public class JadeReportSet extends AbstractReportSet
      */
     public static class UnknownErrorException extends cz.cesnet.shongo.JadeException
     {
-        protected UnknownErrorReport report;
-
         public UnknownErrorException(UnknownErrorReport report)
         {
             this.report = report;
@@ -109,7 +107,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public UnknownErrorReport getReport()
         {
-            return report;
+            return (UnknownErrorReport) report;
         }
     }
 
@@ -177,8 +175,6 @@ public class JadeReportSet extends AbstractReportSet
      */
     public static class AgentNotFoundException extends cz.cesnet.shongo.JadeException
     {
-        protected AgentNotFoundReport report;
-
         public AgentNotFoundException(AgentNotFoundReport report)
         {
             this.report = report;
@@ -213,7 +209,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public AgentNotFoundReport getReport()
         {
-            return report;
+            return (AgentNotFoundReport) report;
         }
     }
 
@@ -281,8 +277,6 @@ public class JadeReportSet extends AbstractReportSet
      */
     public static class AgentNotStartedException extends cz.cesnet.shongo.JadeException
     {
-        protected AgentNotStartedReport report;
-
         public AgentNotStartedException(AgentNotStartedReport report)
         {
             this.report = report;
@@ -317,7 +311,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public AgentNotStartedReport getReport()
         {
-            return report;
+            return (AgentNotStartedReport) report;
         }
     }
 
@@ -354,8 +348,6 @@ public class JadeReportSet extends AbstractReportSet
      */
     public static abstract class CommandAbstractErrorException extends cz.cesnet.shongo.JadeException
     {
-        protected CommandAbstractErrorReport report;
-
         public CommandAbstractErrorException()
         {
         }
@@ -373,7 +365,7 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public CommandAbstractErrorReport getReport()
         {
-            return report;
+            return (CommandAbstractErrorReport) report;
         }
     }
 

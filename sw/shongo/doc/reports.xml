@@ -35,15 +35,6 @@
         </scope>
     </scopes>
 
-    <!--
-        <report abstract="true|false" extends="true|false">
-            <persistent></persistent>
-            <rpc-api></rpc-api>
-            <jade-api></jade-api>
-            <id>string</id>
-        </report>
-    -->
-
     <scope name="jade">
 
         <template extends="cz.cesnet.shongo.JadeReport">
@@ -513,7 +504,7 @@
             <params>
                 <param name="device" type="String" resource-id="true"/>
                 <param name="command" type="String"/>
-                <param name="jade-report" type="cz.cesnet.shongo.JadeReport"/>
+                <param name="jade-report" type="JadeReport"/>
             </params>
             <description>
                 Command ${command} for device ${device} failed: ${jade-report}
@@ -609,14 +600,374 @@
             <exception base-class="cz.cesnet.shongo.controller.scheduler.SchedulerException"/>
         </template>
 
+        <!--
+          - RESOURCE
+          -->
+
         <report>
-            <id>unknown-error</id>
+            <id>resource</id>
+            <classification severity="info"/>
+            <params>
+                <param name="resource" type="Resource"/>
+            </params>
+            <description>
+                Resource ${resource}.
+            </description>
+        </report>
+
+        <report extends="resource">
+            <id>resource-not-allocatable</id>
             <classification severity="error"/>
             <description>
-                TODO:
+                Resource ${resource} is not allocatable.
             </description>
-            <example>
-            </example>
+        </report>
+
+        <report extends="resource">
+            <id>resource-already-allocated</id>
+            <classification severity="error"/>
+            <description>
+                Resource ${resource} is already allocated.
+            </description>
+        </report>
+
+        <report extends="resource">
+            <id>resource-not-available</id>
+            <classification severity="error"/>
+            <params>
+                <param name="max-date-time" type="DateTime"/>
+            </params>
+            <description>
+                Resource ${resource} is not available for the requested time slot.
+                The maximum date/time for which the resource can be allocated is ${max-date-time}.
+            </description>
+        </report>
+
+        <report extends="resource">
+            <id>resource-not-endpoint</id>
+            <classification severity="error"/>
+            <description>
+                Resource ${resource} is not endpoint.
+            </description>
+        </report>
+
+        <report extends="resource">
+            <id>resource-multiple-requested</id>
+            <classification severity="error"/>
+            <description>
+                Resource ${resource} is requested multiple times.
+            </description>
+        </report>
+
+        <report>
+            <id>resource-not-found</id>
+            <classification severity="error"/>
+            <params>
+                <param name="technologies" type="Set" type-element="Technology"/>
+            </params>
+            <description>
+                No available resource was found for the following specification:
+                  Technologies: ${technologies}
+            </description>
+        </report>
+
+
+        <!--
+          - EXECUTABLE
+          -->
+
+        <report>
+            <id>executable-reusing</id>
+            <classification severity="info"/>
+            <params>
+                <param name="executable" type="Executable"/>
+            </params>
+            <description>
+                Reusing existing ${executable}.
+            </description>
+        </report>
+
+
+        <!--
+          - COMPARTMENT
+          -->
+
+        <report>
+            <id>compartment-not-enough-endpoint</id>
+            <classification severity="error"/>
+            <description>
+                Not enough endpoints are requested for the compartment.
+            </description>
+        </report>
+
+        <report>
+            <id>compartment-assign-alias-to-external-endpoint</id>
+            <classification severity="error"/>
+            <description>
+                Cannot assign alias to allocated external endpoint.
+            </description>
+        </report>
+
+
+        <!--
+          - CONNECTION between two endpoints
+          -->
+
+        <report abstract="true">
+            <id>connection</id>
+            <params>
+                <param name="endpoint-from" type="Endpoint"/>
+                <param name="endpoint-to" type="Endpoint"/>
+            </params>
+        </report>
+
+        <report extends="connection">
+            <id>connection-between</id>
+            <classification severity="info"/>
+            <params>
+                <param name="technology" type="Technology"/>
+            </params>
+            <description>
+                Creating connection between ${endpoint-from} and ${endpoint-to} in technology ${technology}.
+            </description>
+        </report>
+
+        <report extends="connection">
+            <id>connection-from-to</id>
+            <classification severity="info"/>
+            <description>
+                Creating connection from ${endpoint-from} to ${endpoint-to}.
+            </description>
+        </report>
+
+        <report extends="connection">
+            <id>connection-to-multiple</id>
+            <classification severity="error"/>
+            <description>
+                Cannot create connection from ${endpoint-from} to ${endpoint-to},
+                because the target represents multiple endpoints (not supported yet).
+            </description>
+        </report>
+
+
+        <!--
+          - RESERVATION
+          -->
+
+        <report abstract="true">
+            <id>reservation</id>
+            <params>
+                <param name="reservation" type="Reservation"/>
+            </params>
+        </report>
+
+        <report extends="reservation">
+            <id>reservation-not-available</id>
+            <classification severity="error"/>
+            <description>
+                Provided reservation ${reservation} is not available.
+            </description>
+        </report>
+
+        <report extends="reservation">
+            <id>reservation-not-usable</id>
+            <classification severity="error"/>
+            <description>
+                Provided reservation ${reservation} is not usable,
+                because provided date/time slot doesn't contain the requested.
+            </description>
+        </report>
+
+        <report extends="reservation">
+            <id>reservation-reusing</id>
+            <classification severity="info"/>
+            <description>
+                Reusing reservation ${reservation}.
+            </description>
+        </report>
+
+
+        <!--
+          - VALUE
+          -->
+
+        <report>
+            <id>value-already-allocated</id>
+            <classification severity="error"/>
+            <params>
+                <param name="value" type="String"/>
+            </params>
+            <description>
+                Value ${value} is already allocated.
+            </description>
+        </report>
+
+        <report>
+            <id>value-invalid</id>
+            <classification severity="error"/>
+            <params>
+                <param name="value" type="String"/>
+            </params>
+            <description>
+                Value ${value} is invalid.
+            </description>
+        </report>
+
+        <report>
+            <id>value-not-available</id>
+            <classification severity="error"/>
+            <description>
+                No value is available.
+            </description>
+        </report>
+
+
+        <!--
+          - ALLOCATING reports
+          -->
+
+        <report extends="resource">
+            <id>allocating-resource</id>
+            <classification severity="info"/>
+            <description>
+                Allocating resource ${resource}.
+            </description>
+        </report>
+
+        <report>
+            <id>allocating-alias</id>
+            <classification severity="info"/>
+            <params>
+                <param name="technologies" type="Set" type-element="Technology"/>
+                <param name="alias-types" type="Set" type-element="AliasType"/>
+                <param name="value" type="String"/>
+            </params>
+            <description>
+                Allocating alias for the following specification:
+                  Technology: ${technologies}
+                  Alias Type: ${alias-types}
+                       Value: ${value}
+            </description>
+        </report>
+
+        <report extends="resource">
+            <id>allocating-value</id>
+            <classification severity="info"/>
+            <description>
+                Allocating value in resource ${resource}.
+            </description>
+        </report>
+
+        <report>
+            <id>allocating-room</id>
+            <classification severity="info"/>
+            <params>
+                <param name="technologies" type="List" type-element="TechnologySet"/>
+                <param name="participant-count" type="Integer"/>
+            </params>
+            <description>
+                Allocating room for the following specification:
+                    Technology: ${technologies}
+                  Participants: ${participant-count}
+            </description>
+        </report>
+
+        <report>
+            <id>allocating-compartment</id>
+            <classification severity="info"/>
+            <description>
+                Allocating compartment.
+            </description>
+        </report>
+
+        <report>
+            <id>allocating-executable</id>
+            <classification severity="info"/>
+            <params>
+                <param name="executable" type="String"/>
+            </params>
+            <description>
+                Allocating executable ${executable}.
+            </description>
+        </report>
+
+
+        <!--
+          - INFORMATION reports
+          -->
+
+        <report>
+            <id>specification-checking-availability</id>
+            <classification severity="info"/>
+            <description>
+                Checking specification availability report.
+            </description>
+        </report>
+
+        <report>
+            <id>finding-available-resource</id>
+            <classification severity="info"/>
+            <description>
+                Finding available resource.
+            </description>
+        </report>
+
+        <report>
+            <id>sorting-resources</id>
+            <classification severity="info"/>
+            <description>
+                Sorting resources.
+            </description>
+        </report>
+
+
+        <!--
+          - ERROR reports
+          -->
+
+        <report>
+            <id>specification-not-ready</id>
+            <classification severity="error"/>
+            <params>
+                <param name="specification" type="Specification"/>
+            </params>
+            <description>
+                Specification ${specification} is not ready.
+            </description>
+        </report>
+
+        <report>
+            <id>duration-longer-than-maximum</id>
+            <classification severity="error"/>
+            <params>
+                <param name="duration" type="Period"/>
+                <param name="maximum-duration" type="Period"/>
+            </params>
+            <description>
+                Duration ${duration} is longer than maximum ${maximum-duration}.
+            </description>
+        </report>
+
+        <report>
+            <id>specification-not-allocatable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="specification" type="Specification"/>
+            </params>
+            <description>
+                The specification ${class(specification)} is not supposed to be allocated.
+            </description>
+        </report>
+
+        <report>
+            <id>user-not-owner</id>
+            <classification severity="error"/>
+            <params>
+                <param name="user-id" type="String"/>
+            </params>
+            <description>
+                User ${user(user-id)} is not resource owner.
+            </description>
         </report>
 
     </scope>
@@ -632,7 +983,7 @@
             <classification severity="error"/>
             <params>
                 <param name="command" type="String"/>
-                <param name="jade-report" type="cz.cesnet.shongo.JadeReport"/>
+                <param name="jade-report" type="JadeReport"/>
             </params>
             <description>
                 Command ${command} failed: ${jade-report}

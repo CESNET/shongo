@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -57,7 +56,7 @@ public class AliasSetReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws ReportException
+    protected Reservation createReservation() throws SchedulerException
     {
         validateReservationSlot(AliasReservation.class);
 

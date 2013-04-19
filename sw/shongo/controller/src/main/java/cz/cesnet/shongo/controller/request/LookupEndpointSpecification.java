@@ -3,14 +3,10 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
+import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.Interval;
@@ -55,7 +51,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         return new ReservationTask(context)
         {
             @Override
-            protected Reservation createReservation() throws ReportException
+            protected Reservation createReservation() throws SchedulerException
             {
                 Interval interval = getInterval();
                 CacheTransaction cacheTransaction = getCacheTransaction();
@@ -93,7 +89,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                     return reservation;
                 }
                 else {
-                    throw new ResourceNotFoundReport(technologies).exception();
+                    throw new SchedulerReportSet.ResourceNotFoundException(technologies);
                 }
             }
         };

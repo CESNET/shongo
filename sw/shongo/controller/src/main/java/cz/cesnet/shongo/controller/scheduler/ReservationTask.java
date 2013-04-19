@@ -8,13 +8,10 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -41,17 +38,17 @@ public abstract class ReservationTask
     /**
      * List of reports.
      */
-    private List<Report> reports = new ArrayList<Report>();
+    private List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
 
     /**
-     * Stack of active {@link Report}s.
+     * Stack of active {@link SchedulerReport}s.
      */
-    private Stack<Report> activeReports = new Stack<Report>();
+    private Stack<SchedulerReport> activeReports = new Stack<SchedulerReport>();
 
     /**
-     * Set of {@link Report}s which should not propagate errors to parent reports.
+     * Set of {@link SchedulerReport}s which should not propagate errors to parent reports.
      */
-    private Set<Report> disabledErrorPropagation = new HashSet<Report>();
+    private Set<SchedulerReport> disabledErrorPropagation = new HashSet<SchedulerReport>();
 
     /**
      * Constructor.
@@ -126,18 +123,18 @@ public abstract class ReservationTask
     /**
      * @param reservationTask to be performed
      * @return resulting {@link Reservation}
-     * @throws ReportException
+     * @throws SchedulerException
      */
-    private Reservation performChildReservationTask(ReservationTask reservationTask) throws ReportException
+    private Reservation performChildReservationTask(ReservationTask reservationTask) throws SchedulerException
     {
         try {
             Reservation reservation = reservationTask.perform();
             addReports(reservationTask);
             return reservation;
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
             addReport(exception.getTopReport());
-            exception.setReport(createReportFailureForThrowing());
+            exception.setReport(getCurrentTopReport());
             throw exception;
         }
     }
@@ -148,7 +145,7 @@ public abstract class ReservationTask
      * @param reservationTask used for allocation of {@link Reservation}
      */
     public final Reservation addChildReservation(ReservationTask reservationTask)
-            throws ReportException
+            throws SchedulerException
     {
         return addChildReservation(performChildReservationTask(reservationTask));
     }
@@ -159,7 +156,7 @@ public abstract class ReservationTask
      * @param reservationTask used for allocation of {@link Reservation}
      */
     public final <R extends Reservation> R addChildReservation(ReservationTask reservationTask,
-            Class<R> reservationClass) throws ReportException
+            Class<R> reservationClass) throws SchedulerException
     {
         return reservationClass.cast(addChildReservation(reservationTask));
     }
@@ -170,7 +167,7 @@ public abstract class ReservationTask
      * @param reservationTask used for allocation of {@link Reservation}
      */
     public final <R extends Reservation> Collection<R> addMultiChildReservation(ReservationTask reservationTask,
-            Class<R> reservationClass) throws ReportException
+            Class<R> reservationClass) throws SchedulerException
     {
         Reservation reservation = performChildReservationTask(reservationTask);
         List<R> reservations = new ArrayList<R>();
@@ -195,7 +192,7 @@ public abstract class ReservationTask
      * @param reservationTaskProvider used for creating {@link ReservationTask}
      */
     public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
-            throws ReportException
+            throws SchedulerException
     {
         ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
         return addChildReservation(reservationTask);
@@ -208,7 +205,7 @@ public abstract class ReservationTask
      * @param reservationTaskProvider used for creating {@link ReservationTask}
      */
     public final <R extends Reservation> R addChildReservation(ReservationTaskProvider reservationTaskProvider,
-            Class<R> reservationClass) throws ReportException
+            Class<R> reservationClass) throws SchedulerException
     {
         Reservation reservation = addChildReservation(reservationTaskProvider);
         return reservationClass.cast(reservation);
@@ -217,7 +214,7 @@ public abstract class ReservationTask
     /**
      * @return {@link #reports}
      */
-    public List<Report> getReports()
+    public List<SchedulerReport> getReports()
     {
         return reports;
     }
@@ -225,7 +222,7 @@ public abstract class ReservationTask
     /**
      * @param report to be added to the {@link #reports}
      */
-    protected <T extends Report> T addReport(T report)
+    protected <T extends SchedulerReport> T addReport(T report)
     {
         if (activeReports.empty()) {
             reports.add(report);
@@ -243,7 +240,7 @@ public abstract class ReservationTask
      */
     protected void addReports(ReservationTask reservationTask)
     {
-        for (Report report : reservationTask.getReports()) {
+        for (SchedulerReport report : reservationTask.getReports()) {
             addReport(report);
         }
     }
@@ -252,7 +249,7 @@ public abstract class ReservationTask
      * @param report         to be added and to be used as parent for next reports until {@link #endReport()} is called
      * @param propagateError specifies whether error should be propagated to parent report
      */
-    protected void beginReport(Report report, boolean propagateError)
+    protected void beginReport(SchedulerReport report, boolean propagateError)
     {
         addReport(report);
         activeReports.push(report);
@@ -275,22 +272,20 @@ public abstract class ReservationTask
      *
      * @param errorReport to be added to the active report as error
      */
-    protected void endReportError(Report errorReport)
+    protected void endReportError(SchedulerReport errorReport)
     {
-        Report report = activeReports.pop();
+        SchedulerReport report = activeReports.pop();
         disabledErrorPropagation.remove(reports);
 
-        errorReport.setState(Report.State.ERROR);
-        report.setState(Report.State.ERROR);
         report.addChildReport(errorReport);
     }
 
     /**
-     * @return {@link Report} in {@link Report.State#ERROR} for throwing
+     * @return current top {@link SchedulerReport}
      */
-    protected Report createReportFailureForThrowing()
+    protected SchedulerReport getCurrentTopReport()
     {
-        Report report;
+        SchedulerReport report;
         if (activeReports.empty()) {
             if (reports.size() == 0) {
                 throw new IllegalStateException("No report is active");
@@ -302,33 +297,17 @@ public abstract class ReservationTask
             report = activeReports.peek();
         }
 
-        report.setState(Report.State.ERROR);
         while (report.hasParentReport() && !disabledErrorPropagation.contains(report)) {
             report = report.getParentReport();
-            report.setState(Report.State.ERROR);
         }
         return report;
     }
 
     /**
-     * @return {@link Report} in {@link Report.State#ERROR} for throwing
+     * @return {@link SchedulerException} which should be added to the {@link #reports}
+     *         when the {@link Reservation} is started allocating, or null when no report should be added
      */
-    protected void throwNewReportFailure(Report report) throws ReportException
-    {
-        addReport(report);
-        report.setState(Report.State.ERROR);
-        while (report.hasParentReport()) {
-            report = report.getParentReport();
-            report.setState(Report.State.ERROR);
-        }
-        throw report.exception();
-    }
-
-    /**
-     * @return {@link Report} which should be added to the {@link #reports} when the {@link Reservation} is started
-     *         allocating, or null when no report should be added
-     */
-    protected Report createdMainReport()
+    protected SchedulerReport createMainReport()
     {
         return null;
     }
@@ -337,26 +316,27 @@ public abstract class ReservationTask
      * Perform the {@link ReservationTask}.
      *
      * @return created {@link Reservation}
-     * @throws ReportException when the {@link ReservationTask} failed
+     * @throws SchedulerException when the {@link ReservationTask} failed
      */
-    public final Reservation perform() throws ReportException
+    public final Reservation perform() throws SchedulerException
     {
         Reservation reservation = null;
-        Report report = createdMainReport();
-        if (report != null) {
-            beginReport(report, false);
+        SchedulerReport mainReport = createMainReport();
+        if (mainReport != null) {
+            beginReport(mainReport, false);
             try {
                 reservation = createReservation();
                 validateReservation(reservation);
             }
-            catch (ReportException exception) {
-                Report exceptionReport = exception.getTopReport();
-                if (exceptionReport != report) {
+            catch (SchedulerException exception) {
+                SchedulerReport report = exception.getTopReport();
+                if (report != mainReport) {
                     // Report from exception isn't added to root report so we add it and throw the root report
-                    addReport(exceptionReport);
-                    exception.setReport(report);
+                    addReport(report);
+                    exception.setReport(mainReport);
+                    report = mainReport;
                 }
-                throw exception;
+                throw new SchedulerException(report);
             }
             finally {
                 endReport();
@@ -381,24 +361,26 @@ public abstract class ReservationTask
      * Perform the {@link ReservationTask}.
      *
      * @return created {@link Reservation}
-     * @throws ReportException when the {@link ReservationTask} failed
+     * @throws SchedulerException when the {@link ReservationTask} failed
      */
-    public final <R> R perform(Class<R> reservationClass) throws ReportException
+    public final <R> R perform(Class<R> reservationClass) throws SchedulerException
     {
         return reservationClass.cast(perform());
     }
 
     /**
      * @return created {@link Reservation}
-     * @throws ReportException when the {@link Reservation} cannot be created
+     * @throws SchedulerException when the {@link Reservation} cannot be created
      */
-    protected abstract Reservation createReservation() throws ReportException;
+    protected abstract Reservation createReservation() throws SchedulerException;
 
     /**
      * @param type to be validated
-     * @throws ReportException when the validation failed
+     * @throws SchedulerReportSet.DurationLongerThanMaximumException
+     *          when the validation failed
      */
-    protected void validateReservationSlot(Class<? extends Reservation> type) throws ReportException
+    protected void validateReservationSlot(Class<? extends Reservation> type)
+            throws SchedulerReportSet.DurationLongerThanMaximumException
     {
         // Check maximum duration
         if (context.isMaximumFutureAndDurationRestricted()) {
@@ -413,9 +395,9 @@ public abstract class ReservationTask
 
     /**
      * @param reservation to be validated
-     * @throws ReportException when the validation failed
+     * @throws SchedulerException when the validation failed
      */
-    protected void validateReservation(Reservation reservation) throws ReportException
+    protected void validateReservation(Reservation reservation) throws SchedulerException
     {
         validateReservationSlot(reservation.getClass());
     }
@@ -425,13 +407,15 @@ public abstract class ReservationTask
      *
      * @param slot            to be checked
      * @param maximumDuration maximum allowed duration
-     * @throws ReportException
+     * @throws SchedulerReportSet.DurationLongerThanMaximumException
+     *
      */
-    private static void checkMaximumDuration(Interval slot, Period maximumDuration) throws ReportException
+    private static void checkMaximumDuration(Interval slot, Period maximumDuration)
+            throws SchedulerReportSet.DurationLongerThanMaximumException
     {
         Period duration = Temporal.getIntervalDuration(slot);
         if (Temporal.isPeriodLongerThan(duration, maximumDuration)) {
-            throw new DurationLongerThanMaximumReport(duration, maximumDuration).exception();
+            throw new SchedulerReportSet.DurationLongerThanMaximumException(duration, maximumDuration);
         }
     }
 

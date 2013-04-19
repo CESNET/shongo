@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler.report;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
@@ -54,5 +54,11 @@ public class TechnologySet extends PersistentObject
     public void setTechnologies(Set<Technology> technologies)
     {
         this.technologies = technologies;
+    }
+
+    @Override
+    public String toString()
+    {
+        return Technology.formatTechnologies(technologies);
     }
 }

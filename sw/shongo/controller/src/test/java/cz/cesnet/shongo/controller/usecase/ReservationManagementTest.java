@@ -316,7 +316,8 @@ public class ReservationManagementTest extends AbstractControllerTest
         Assert.assertEquals(String.class, result.getClass());
 
         try {
-            getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, new RoomSpecification(), interval);
+            getReservationService().checkSpecificationAvailability(SECURITY_TOKEN,
+                    new RoomSpecification(1, Technology.H323), interval);
             fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {

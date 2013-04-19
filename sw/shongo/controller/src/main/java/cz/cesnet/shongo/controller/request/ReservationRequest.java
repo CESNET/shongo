@@ -1,15 +1,15 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -17,6 +17,7 @@ import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,11 @@ public class ReservationRequest extends AbstractReservationRequest
      * Allocated {@link Reservation}.
      */
     private Reservation reservation;
+
+    /**
+     * List of {@link SchedulerReport}s for this {@link ReservationRequest}.
+     */
+    private List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
 
     /**
      * Constructor.
@@ -223,6 +229,68 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * @return {@link #reports}
+     */
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    public List<SchedulerReport> getReports()
+    {
+        return Collections.unmodifiableList(reports);
+    }
+
+    /**
+     * @param reports sets the {@link #reports}
+     */
+    public void setReports(List<SchedulerReport> reports)
+    {
+        this.reports.clear();
+        for (SchedulerReport report : reports) {
+            this.reports.add(report);
+        }
+    }
+
+    /**
+     * @param report to be added to the {@link #reports}
+     */
+    public void addReport(SchedulerReport report)
+    {
+        reports.add(report);
+    }
+
+    /**
+     * @param report to be removed from the {@link #reports}
+     */
+    public void removeReport(SchedulerReport report)
+    {
+        reports.remove(report);
+    }
+
+    /**
+     * Remove all {@link SchedulerReport}s from the {@link #reports}.
+     */
+    public void clearReports()
+    {
+        reports.clear();
+    }
+
+    /**
+     * @return report string containing report header and all {@link #reports}
+     */
+    @Transient
+    public String getReportText()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (SchedulerReport report : reports) {
+            if (stringBuilder.length() > 0) {
+                stringBuilder.append("\n");
+                stringBuilder.append("\n");
+            }
+            stringBuilder.append(report.getMessage());
+        }
+        return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
+    }
+
+    /**
      * Update state of the {@link ReservationRequest} based on {@link #specification}.
      * <p/>
      * If {@link #specification} is instance of {@link StatefulSpecification} and it's
@@ -238,13 +306,13 @@ public class ReservationRequest extends AbstractReservationRequest
         if (newState == null || newState == State.NOT_COMPLETE) {
             newState = State.COMPLETE;
         }
-        List<Report> reports = new ArrayList<Report>();
+        List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
         Specification specification = getSpecification();
         if (specification instanceof StatefulSpecification) {
             StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
             if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
                 newState = State.NOT_COMPLETE;
-                reports.add(new SpecificationNotReadyReport(specification));
+                reports.add(new SchedulerReportSet.SpecificationNotReadyReport(specification));
             }
         }
 

@@ -1,18 +1,11 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceAlreadyAllocatedReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
-import cz.cesnet.shongo.controller.scheduler.report.UserNotOwnerReport;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -239,21 +232,21 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      *
      * @param resource to be checked
      * @param context  to be used
-     * @throws ReportException
+     * @throws SchedulerException
      */
     private void checkResourceAvailableWithoutFuture(Resource resource, ReservationTask.Context context)
-            throws ReportException
+            throws SchedulerException
     {
         // Check if resource can be allocated and if it is available in the future
         if (!resource.isAllocatable()) {
-            throw new ResourceNotAllocatableReport(resource).exception();
+            throw new SchedulerReportSet.ResourceNotAllocatableException(resource);
         }
 
         // If reservation request purpose implies allocation of only owned resources
         if (context.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
             if (!context.containsOwnerId(resource)) {
-                throw new UserNotOwnerReport(context.getUserId()).exception();
+                throw new SchedulerReportSet.UserNotOwnerException(context.getUserId());
             }
         }
 
@@ -269,7 +262,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             resourceReservations = resourceState.getReservations(context.getInterval());
         }
         if (resourceReservations.size() > 0) {
-            throw new ResourceAlreadyAllocatedReport(resource).exception();
+            throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
         }
     }
 
@@ -279,9 +272,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      *
      * @param capability to be checked
      * @param context    for checking
-     * @throws ReportException when the given {@code resource} is not available
+     * @throws SchedulerException when the given {@code resource} is not available
      */
-    public void checkCapabilityAvailable(Capability capability, ReservationTask.Context context) throws ReportException
+    public void checkCapabilityAvailable(Capability capability, ReservationTask.Context context)
+            throws SchedulerException
     {
         // Check capability resource
         Resource resource = capability.getResource();
@@ -291,7 +285,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             // Check if the capability can be allocated in the interval future
             if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
                 DateTime maxDateTime = capability.getMaximumFutureDateTime(getReferenceDateTime());
-                throw new ResourceNotAvailableReport(resource, maxDateTime).exception();
+                throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
     }
@@ -302,9 +296,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      *
      * @param resource to be checked
      * @param context  for checking
-     * @throws ReportException when the given {@code resource} is not available
+     * @throws SchedulerException when the given {@code resource} is not available
      */
-    public void checkResourceAvailable(Resource resource, ReservationTask.Context context) throws ReportException
+    public void checkResourceAvailable(Resource resource, ReservationTask.Context context)
+            throws SchedulerException
     {
         checkResourceAvailableWithoutFuture(resource, context);
 
@@ -312,7 +307,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             // Check if the resource can be allocated in the interval future
             if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
                 DateTime maxDateTime = resource.getMaximumFutureDateTime(getReferenceDateTime());
-                throw new ResourceNotAvailableReport(resource, maxDateTime).exception();
+                throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
     }
@@ -326,13 +321,13 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             checkResourceAvailable(resource, context);
             return true;
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
             return false;
         }
     }
 
     public void checkResourceAvailableByParent(Resource resource, ReservationTask.Context context)
-            throws ReportException
+            throws SchedulerException
     {
         checkResourceAvailable(resource, context);
 
@@ -354,7 +349,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             checkResourceAvailableByParent(resource, context);
             return true;
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
             return false;
         }
     }
@@ -369,7 +364,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return
      */
     private void checkResourceAndChildResourcesAvailable(Resource resource, ReservationTask.Context context,
-            Resource skippedResource) throws ReportException
+            Resource skippedResource) throws SchedulerException
     {
         // We do not check the skipped resource (it is considered as available)
         if (resource.equals(skippedResource)) {

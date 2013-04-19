@@ -4,7 +4,6 @@ import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.Report;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -271,7 +270,7 @@ public abstract class Executable extends PersistentObject implements Reporter.Re
     }
 
     /**
-     * Remove all {@link Report}s from the {@link #reports}.
+     * Remove all {@link ExecutableReport}s from the {@link #reports}.
      */
     public void clearReports()
     {
@@ -554,14 +553,15 @@ public abstract class Executable extends PersistentObject implements Reporter.Re
     public static enum State
     {
         /**
-         * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for {@link Report}).
+         * {@link Executable} has not been fully allocated (e.g., {@link Executable} is stored for
+         * {@link cz.cesnet.shongo.controller.scheduler.SchedulerReport}).
          */
         NOT_ALLOCATED(false, false),
 
         /**
          * {@link Executable} which has not been fully allocated (e.g., {@link Executable} has been stored for
-         * {@link Report}) and the entity for which it has been stored has been deleted so the {@link Executable}
-         * should be also deleted.
+         * {@link ExecutableReport}) and the entity for which it has been stored has been deleted
+         * and thus the {@link Executable} should be also deleted.
          */
         TO_DELETE(false, false),
 

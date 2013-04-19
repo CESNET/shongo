@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.report;
+package cz.cesnet.shongo.generator;
 
 /**
  * Generator exception.

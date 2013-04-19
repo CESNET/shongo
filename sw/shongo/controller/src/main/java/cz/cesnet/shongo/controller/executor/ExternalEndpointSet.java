@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.report.CannotAssignAliasToExternalEndpointReport;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -96,9 +96,9 @@ public class ExternalEndpointSet extends Endpoint
 
     @Override
     @Transient
-    public void addAssignedAlias(Alias alias) throws ReportException
+    public void addAssignedAlias(Alias alias) throws SchedulerException
     {
-        throw new CannotAssignAliasToExternalEndpointReport().exception();
+        throw new SchedulerReportSet.CompartmentAssignAliasToExternalEndpointException();
     }
 
     @Override

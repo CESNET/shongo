@@ -111,8 +111,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class AclInvalidRoleException extends ReportRuntimeException implements ApiFaultException
     {
-        protected AclInvalidRoleReport report;
-
         public AclInvalidRoleException(AclInvalidRoleReport report)
         {
             this.report = report;
@@ -154,12 +152,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public AclInvalidRoleReport getReport()
         {
-            return report;
+            return (AclInvalidRoleReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (AclInvalidRoleReport) report;
         }
     }
 
@@ -245,8 +243,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class SecurityInvalidTokenException extends ReportRuntimeException implements ApiFaultException
     {
-        protected SecurityInvalidTokenReport report;
-
         public SecurityInvalidTokenException(SecurityInvalidTokenReport report)
         {
             this.report = report;
@@ -281,12 +277,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public SecurityInvalidTokenReport getReport()
         {
-            return report;
+            return (SecurityInvalidTokenReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (SecurityInvalidTokenReport) report;
         }
     }
 
@@ -366,8 +362,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class SecurityNotAuthorizedException extends ReportRuntimeException implements ApiFaultException
     {
-        protected SecurityNotAuthorizedReport report;
-
         public SecurityNotAuthorizedException(SecurityNotAuthorizedReport report)
         {
             this.report = report;
@@ -402,12 +396,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public SecurityNotAuthorizedReport getReport()
         {
-            return report;
+            return (SecurityNotAuthorizedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (SecurityNotAuthorizedReport) report;
         }
     }
 
@@ -468,6 +462,7 @@ public class ControllerReportSet extends AbstractReportSet
         {
             return device;
         }
+
         @Override
         public Type getType()
         {
@@ -536,8 +531,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class DeviceCommandFailedException extends ReportRuntimeException implements ApiFaultException
     {
-        protected DeviceCommandFailedReport report;
-
         public DeviceCommandFailedException(DeviceCommandFailedReport report)
         {
             this.report = report;
@@ -586,12 +579,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public DeviceCommandFailedReport getReport()
         {
-            return report;
+            return (DeviceCommandFailedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (DeviceCommandFailedReport) report;
         }
     }
 
@@ -671,8 +664,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class IdentifierInvalidException extends ReportRuntimeException implements ApiFaultException
     {
-        protected IdentifierInvalidReport report;
-
         public IdentifierInvalidException(IdentifierInvalidReport report)
         {
             this.report = report;
@@ -707,12 +698,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public IdentifierInvalidReport getReport()
         {
-            return report;
+            return (IdentifierInvalidReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (IdentifierInvalidReport) report;
         }
     }
 
@@ -808,8 +799,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class IdentifierInvalidDomainException extends ReportRuntimeException implements ApiFaultException
     {
-        protected IdentifierInvalidDomainReport report;
-
         public IdentifierInvalidDomainException(IdentifierInvalidDomainReport report)
         {
             this.report = report;
@@ -851,12 +840,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public IdentifierInvalidDomainReport getReport()
         {
-            return report;
+            return (IdentifierInvalidDomainReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (IdentifierInvalidDomainReport) report;
         }
     }
 
@@ -952,8 +941,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class IdentifierInvalidTypeException extends ReportRuntimeException implements ApiFaultException
     {
-        protected IdentifierInvalidTypeReport report;
-
         public IdentifierInvalidTypeException(IdentifierInvalidTypeReport report)
         {
             this.report = report;
@@ -995,12 +982,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public IdentifierInvalidTypeReport getReport()
         {
-            return report;
+            return (IdentifierInvalidTypeReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (IdentifierInvalidTypeReport) report;
         }
     }
 
@@ -1080,8 +1067,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class ReservationRequestNotModifiableException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ReservationRequestNotModifiableReport report;
-
         public ReservationRequestNotModifiableException(ReservationRequestNotModifiableReport report)
         {
             this.report = report;
@@ -1116,12 +1101,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public ReservationRequestNotModifiableReport getReport()
         {
-            return report;
+            return (ReservationRequestNotModifiableReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ReservationRequestNotModifiableReport) report;
         }
     }
 
@@ -1181,8 +1166,6 @@ public class ControllerReportSet extends AbstractReportSet
      */
     public static class ReservationRequestEmptyDurationException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ReservationRequestEmptyDurationReport report;
-
         public ReservationRequestEmptyDurationException(ReservationRequestEmptyDurationReport report)
         {
             this.report = report;
@@ -1210,12 +1193,12 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public ReservationRequestEmptyDurationReport getReport()
         {
-            return report;
+            return (ReservationRequestEmptyDurationReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ReservationRequestEmptyDurationReport) report;
         }
     }
 

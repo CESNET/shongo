@@ -8,13 +8,11 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
 import cz.cesnet.shongo.TodoImplementException;
 import junitx.framework.Assert;
 import org.joda.time.Interval;
@@ -61,7 +59,7 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.perform();
             Assert.fail("Exception about not enough requested ports should be thrown.");
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
         }
 
         compartmentReservationTask = new CompartmentReservationTask(context);
@@ -73,7 +71,7 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.perform();
             Assert.fail("Exception about no available virtual room should be thrown.");
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
         }
 
         compartmentReservationTask = new CompartmentReservationTask(context);
@@ -85,7 +83,7 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.perform();
             Assert.fail("Exception about no alias available should be thrown.");
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
         }
 
         DeviceResource deviceResource = new DeviceResource();
@@ -102,7 +100,7 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.perform();
             Assert.fail("Exception about cannot create.");
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
         }
     }
 
@@ -250,7 +248,7 @@ public class CompartmentReservationTaskTest
             compartmentReservationTask.perform();
             Assert.fail("Only one SIP alias should be possible to allocate.");
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
         }
     }
 
@@ -320,8 +318,8 @@ public class CompartmentReservationTaskTest
             Reservation reservation = compartmentReservationTask.perform();
             Assert.fail("Exception that resource is requested multiple times should be thrown");
         }
-        catch (ReportException exception) {
-            Assert.assertEquals(ResourceRequestedMultipleTimesReport.class,
+        catch (SchedulerException exception) {
+            Assert.assertEquals(SchedulerReportSet.ResourceMultipleRequestedReport.class,
                     exception.getReport().getChildReports().get(0).getClass());
         }
     }
@@ -383,7 +381,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public void addAssignedAlias(Alias alias) throws ReportException
+                        public void addAssignedAlias(Alias alias) throws SchedulerException
                         {
                         }
 
@@ -418,8 +416,7 @@ public class CompartmentReservationTaskTest
                 }
 
                 @Override
-                protected Reservation createReservation()
-                        throws ReportException
+                protected Reservation createReservation() throws SchedulerException
                 {
                     return new SimpleEndpointReservation();
                 }

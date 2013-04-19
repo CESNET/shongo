@@ -11,8 +11,6 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -21,7 +19,6 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.report.*;
 
 import java.util.*;
 
@@ -41,17 +38,17 @@ public class RoomReservationTask extends ReservationTask
      * Collection of {@link Technology} set variants where at least one must be supported by
      * allocated {@link RoomReservation}.
      */
-    private Collection<Set<Technology>> technologyVariants = new ArrayList<Set<Technology>>();
+    private List<Set<Technology>> technologyVariants = new LinkedList<Set<Technology>>();
 
     /**
      * Collection of {@link RoomSetting} for allocated {@link RoomReservation}.
      */
-    private Collection<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
+    private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
      * Collection of {@link AliasSpecification} for {@link Alias}es which shoudl be allocated for the room.
      */
-    private Collection<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
+    private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
     /**
      * Specifies whether {@link Alias} should be acquired for each allocated room {@link Technology}.
@@ -116,13 +113,17 @@ public class RoomReservationTask extends ReservationTask
     }
 
     @Override
-    protected Report createdMainReport()
+    protected SchedulerReport createMainReport()
     {
-        return new AllocatingRoomReport(technologyVariants, participantCount);
+        List<TechnologySet> technologySets = new LinkedList<TechnologySet>();
+        for (Set<Technology> technologies : technologyVariants) {
+            technologySets.add(new TechnologySet(technologies));
+        }
+        return new SchedulerReportSet.AllocatingRoomReport(technologySets, participantCount);
     }
 
     @Override
-    protected Reservation createReservation() throws ReportException
+    protected Reservation createReservation() throws SchedulerException
     {
         validateReservationSlot(RoomReservation.class);
 
@@ -183,7 +184,7 @@ public class RoomReservationTask extends ReservationTask
             if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
                 Reservation providedReservation =
                         cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
-                addReport(new ReusingReservationReport(providedReservation));
+                addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
 
                 // Reuse provided reservation which allocates the provided room
                 ExistingReservation existingReservation = new ExistingReservation();
@@ -200,7 +201,7 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Get available rooms
-        beginReport(new FindingAvailableResourceReport(), true);
+        beginReport(new SchedulerReportSet.FindingAvailableResourceReport(), true);
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         try {
             for (Long roomProviderId : roomVariantByRoomProviderId.keySet()) {
@@ -209,11 +210,11 @@ public class RoomReservationTask extends ReservationTask
                 AvailableRoom availableRoom = roomCache.getAvailableRoom(roomProvider, context);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
-                    addReport(new ResourceReport(roomProvider.getResource(), Report.State.NONE));
+                    addReport(new SchedulerReportSet.ResourceReport(roomProvider.getResource()));
                 }
             }
             if (availableRooms.size() == 0) {
-                throw createReportFailureForThrowing().exception();
+                throw new SchedulerException(getCurrentTopReport());
             }
         }
         finally {
@@ -221,7 +222,7 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Sort available rooms, prefer the ones with provided room and most filled to the least filled
-        addReport(new SortingResourcesReport());
+        addReport(new SchedulerReportSet.SortingResourcesReport());
         Collections.sort(availableRooms, new Comparator<AvailableRoom>()
         {
             @Override
@@ -244,7 +245,7 @@ public class RoomReservationTask extends ReservationTask
         for (AvailableRoom availableRoom : availableRooms) {
             RoomProviderCapability roomProvider = availableRoom.getRoomProviderCapability();
             DeviceResource deviceResource = roomProvider.getDeviceResource();
-            beginReport(new AllocatingResourceReport(deviceResource), false);
+            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource), false);
             CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
                 // Get device and it's room variant
@@ -270,7 +271,7 @@ public class RoomReservationTask extends ReservationTask
                 if (availableProvidedRoom != null) {
                     Reservation providedReservation =
                             cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
-                    addReport(new ReusingReservationReport(providedReservation));
+                    addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
 
                     // Reuse provided reservation which allocates the provided room
                     ExistingReservation existingReservation = new ExistingReservation();
@@ -284,7 +285,7 @@ public class RoomReservationTask extends ReservationTask
                             roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
 
                     if (context.isExecutableAllowed()) {
-                        addReport(new ReusingExecutableReport(availableProvidedRoom));
+                        addReport(new SchedulerReportSet.ExecutableReusingReport(availableProvidedRoom));
 
                         // Create new used room endpoint
                         UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
@@ -297,7 +298,7 @@ public class RoomReservationTask extends ReservationTask
                     roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
 
                     if (context.isExecutableAllowed()) {
-                        addReport(new AllocatingExecutableReport());
+                        addReport(new SchedulerReportSet.AllocatingExecutableReport());
 
                         // Create new room endpoint  \
                         ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
@@ -407,7 +408,7 @@ public class RoomReservationTask extends ReservationTask
 
                 return roomReservation;
             }
-            catch (ReportException exception) {
+            catch (SchedulerException exception) {
                 cacheTransactionSavepoint.revert();
 
                 // Try to allocate next available room
@@ -418,7 +419,7 @@ public class RoomReservationTask extends ReservationTask
                 endReport();
             }
         }
-        throw createReportFailureForThrowing().exception();
+        throw new SchedulerException(getCurrentTopReport());
     }
 
     /**

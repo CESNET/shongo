@@ -6,8 +6,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.EndpointSpecification;
 import cz.cesnet.shongo.controller.request.PersonSpecification;
@@ -17,7 +15,6 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.scheduler.report.*;
 import cz.cesnet.shongo.TodoImplementException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
@@ -120,9 +117,9 @@ public class CompartmentReservationTask extends ReservationTask
      * Add child {@link Specification}.
      *
      * @param childSpecification
-     * @throws ReportException
+     * @throws SchedulerException
      */
-    public void addChildSpecification(Specification childSpecification) throws ReportException
+    public void addChildSpecification(Specification childSpecification) throws SchedulerException
     {
         if (childSpecification instanceof ReservationTaskProvider) {
             ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) childSpecification;
@@ -190,7 +187,7 @@ public class CompartmentReservationTask extends ReservationTask
      * @param endpointFrom
      * @param endpointTo
      */
-    private void addConnection(Endpoint endpointFrom, Endpoint endpointTo) throws ReportException
+    private void addConnection(Endpoint endpointFrom, Endpoint endpointTo) throws SchedulerException
     {
         // Determine call initiation from given endpoints
         CallInitiation callInitiation = determineCallInitiation(endpointFrom, endpointTo);
@@ -250,18 +247,18 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        beginReport(new AllocatingConnectionBetweenReport(endpointFrom, endpointTo, technology), true);
+        beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology), true);
         CacheTransaction.Savepoint cacheTransactionSavepoint = getContext().getCacheTransaction().createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
-        catch (ReportException firstException) {
+        catch (SchedulerException firstException) {
             cacheTransactionSavepoint.revert();
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
-            catch (ReportException secondException) {
-                throw createReportFailureForThrowing().exception();
+            catch (SchedulerException secondException) {
+                throw new SchedulerException(getCurrentTopReport());
             }
         }
         finally {
@@ -276,20 +273,20 @@ public class CompartmentReservationTask extends ReservationTask
      * @param endpointFrom
      * @param endpointTo
      * @param technology
-     * @throws ReportException
+     * @throws SchedulerException
      */
     private void addConnection(Endpoint endpointFrom, Endpoint endpointTo, Technology technology)
-            throws ReportException
+            throws SchedulerException
     {
         // Allocate alias for the target endpoint
-        beginReport(new AllocatingConnectionFromToReport(endpointFrom, endpointTo), true);
+        beginReport(new SchedulerReportSet.ConnectionFromToReport(endpointFrom, endpointTo), true);
         try {
             // Created connection
             Connection connection = null;
 
             // TODO: implement connections to multiple endpoints
             if (endpointTo.getCount() > 1) {
-                throwNewReportFailure(new CannotCreateConnectionToMultipleReport(endpointFrom, endpointTo));
+                throw new SchedulerReportSet.ConnectionToMultipleException(endpointFrom, endpointTo);
             }
 
             // Find existing alias for connection
@@ -390,7 +387,7 @@ public class CompartmentReservationTask extends ReservationTask
      *
      * @return true if succeeds, otherwise false
      */
-    private boolean createNoRoomReservation() throws ReportException
+    private boolean createNoRoomReservation() throws SchedulerException
     {
         List<Endpoint> endpoints = compartment.getEndpoints();
         // Maximal two endpoints may be connected without virtual room
@@ -455,9 +452,9 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Find plan for connecting endpoints by a single virtual room
      *
-     * @throws ReportException when the {@link cz.cesnet.shongo.controller.reservation.RoomReservation} cannot be created
+     * @throws SchedulerException when the {@link cz.cesnet.shongo.controller.reservation.RoomReservation} cannot be created
      */
-    private void createSingleRoomReservation() throws ReportException
+    private void createSingleRoomReservation() throws SchedulerException
     {
         RoomReservationTask roomReservationTask = new RoomReservationTask(getContext(),
                 compartment.getTotalEndpointCount());
@@ -505,13 +502,13 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     @Override
-    protected Report createdMainReport()
+    protected SchedulerReport createMainReport()
     {
-        return new AllocatingCompartmentReport();
+        return new SchedulerReportSet.AllocatingCompartmentReport();
     }
 
     @Override
-    protected Reservation createReservation() throws ReportException
+    protected Reservation createReservation() throws SchedulerException
     {
         if (!getContext().isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");
@@ -546,7 +543,7 @@ public class CompartmentReservationTask extends ReservationTask
                 }
             }
             if (!resourceRequested) {
-                throw new NotEnoughEndpointInCompartmentReport().exception();
+                throw new SchedulerReportSet.CompartmentNotEnoughEndpointException();
             }
         }
 
@@ -554,7 +551,7 @@ public class CompartmentReservationTask extends ReservationTask
             try {
                 createSingleRoomReservation();
             }
-            catch (ReportException exception) {
+            catch (SchedulerException exception) {
                 // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
                 throw exception;
             }

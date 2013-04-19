@@ -10,11 +10,11 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -182,7 +182,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    public void addAssignedAlias(Alias assignedAlias) throws SchedulerException
     {
         super.addAssignedAlias(assignedAlias);
     }

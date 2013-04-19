@@ -1,24 +1,22 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -27,7 +25,7 @@ import java.util.Set;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractReservationRequest extends ReportablePersistentObject
+public abstract class AbstractReservationRequest extends PersistentObject
 {
     /**
      * User-id of an user who created the {@link AbstractReservationRequest}.

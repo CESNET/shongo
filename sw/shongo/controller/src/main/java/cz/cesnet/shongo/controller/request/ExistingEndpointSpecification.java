@@ -1,15 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
-import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
+import cz.cesnet.shongo.controller.scheduler.*;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Entity;
@@ -92,11 +88,11 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
         return new ReservationTask(context)
         {
             @Override
-            protected Reservation createReservation() throws ReportException
+            protected Reservation createReservation() throws SchedulerException
             {
                 if (!(resource instanceof DeviceResource) || !((DeviceResource) resource).isTerminal()) {
                     // Requested resource is not endpoint
-                    throw new ResourceNotEndpoint(resource).exception();
+                    throw new SchedulerReportSet.ResourceNotEndpointException(resource);
                 }
 
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), resource);

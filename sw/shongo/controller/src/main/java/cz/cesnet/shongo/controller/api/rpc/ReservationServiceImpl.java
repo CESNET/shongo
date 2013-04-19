@@ -8,11 +8,11 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
@@ -100,8 +100,8 @@ public class ReservationServiceImpl extends Component
                     checkAvailability.checkAvailability(slot, entityManager);
                     return Boolean.TRUE;
                 }
-                catch (ReportException exception) {
-                    return exception.getReport().getReport();
+                catch (SchedulerException exception) {
+                    return exception.getReport().getReportText();
                 }
                 catch (UnsupportedOperationException exception) {
                     cause = exception;

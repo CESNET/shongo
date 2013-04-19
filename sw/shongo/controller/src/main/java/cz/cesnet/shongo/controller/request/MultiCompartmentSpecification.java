@@ -2,10 +2,10 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -125,7 +125,7 @@ public class MultiCompartmentSpecification extends Specification
         return new ReservationTask(context)
         {
             @Override
-            protected Reservation createReservation() throws ReportException
+            protected Reservation createReservation() throws SchedulerException
             {
                 Reservation multiCompartmentReservation = new Reservation();
                 multiCompartmentReservation.setSlot(getInterval());

@@ -4,9 +4,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -62,7 +62,7 @@ public abstract class Endpoint extends Executable
     /**
      * @param assignedAlias alias to be added to the {@link #assignedAliases}
      */
-    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    public void addAssignedAlias(Alias assignedAlias) throws SchedulerException
     {
         assignedAliases.add(assignedAlias);
     }

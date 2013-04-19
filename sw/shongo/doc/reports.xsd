@@ -76,7 +76,14 @@
     <xs:complexType name="report-param">
         <xs:attribute name="name" type="xs:string" use="required"/>
         <xs:attribute name="type" type="xs:string" use="required"/>
+        <xs:attribute name="type-element" type="xs:string"/>
         <xs:attribute name="resource-id" type="xs:boolean"/>
+    </xs:complexType>
+
+    <xs:complexType name="report-param-temporary">
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="xs:string" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
     </xs:complexType>
 
     <xs:complexType name="report-user">
@@ -182,6 +189,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element name="param" type="report-param" maxOccurs="unbounded"/>
+                        <xs:element name="temporary" type="report-param-temporary" minOccurs="0" maxOccurs="unbounded"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

@@ -4,8 +4,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
@@ -14,11 +12,7 @@ import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.scheduler.AliasReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
-import cz.cesnet.shongo.controller.scheduler.report.*;
+import cz.cesnet.shongo.controller.scheduler.*;
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.Interval;
 
@@ -280,7 +274,7 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException
+    public void checkAvailability(Interval slot, EntityManager entityManager) throws SchedulerException
     {
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -297,7 +291,7 @@ public class AliasSpecification extends Specification
         }
 
         // Find available value in the alias providers
-        Report report = new CheckingSpecificationAvailabilityReport();
+        SchedulerReport report = new SchedulerReportSet.SpecificationCheckingAvailabilityReport();
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             Resource resource = aliasProvider.getResource();
             if (!resource.isAllocatable()) {
@@ -308,7 +302,7 @@ public class AliasSpecification extends Specification
                 continue;
             }
 
-            Report resourceReport = report.addChildReport(new ResourceReport(resource));
+            SchedulerReport resourceReport = report.addChildReport(new SchedulerReportSet.ResourceReport(resource));
 
             ValueProvider valueProvider = aliasProvider.getValueProvider();
             ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
@@ -325,18 +319,15 @@ public class AliasSpecification extends Specification
                 }
             }
             catch (ValueProvider.InvalidValueException exception) {
-                resourceReport.setState(Report.State.ERROR);
-                resourceReport.addChildReport(new ValueInvalidReport(value));
+                resourceReport.addChildReport(new SchedulerReportSet.ValueInvalidReport(value));
                 continue;
             }
             catch (ValueProvider.ValueAlreadyAllocatedException exception) {
-                resourceReport.setState(Report.State.ERROR);
-                resourceReport.addChildReport(new ValueAlreadyAllocatedReport(value));
+                resourceReport.addChildReport(new SchedulerReportSet.ValueAlreadyAllocatedReport(value));
                 continue;
             }
             catch (ValueProvider.NoAvailableValueException exception) {
-                resourceReport.setState(Report.State.ERROR);
-                resourceReport.addChildReport(new ValueNoAvailableReport());
+                resourceReport.addChildReport(new SchedulerReportSet.ValueNotAvailableReport());
                 continue;
             }
 
@@ -344,7 +335,7 @@ public class AliasSpecification extends Specification
             return;
         }
 
-        throw report.exception();
+        throw new SchedulerException(report);
     }
 
     @Override

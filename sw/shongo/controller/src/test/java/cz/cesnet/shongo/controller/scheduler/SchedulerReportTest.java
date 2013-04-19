@@ -4,8 +4,6 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
@@ -21,7 +19,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReportTest
+public class SchedulerReportTest
 {
     @Before
     public void before() throws Exception
@@ -88,7 +86,7 @@ public class ReportTest
         print(cache, compartmentSpecification);
     }
 
-    private void print(Cache cache, ReservationTaskProvider... reservationTaskProviders) throws ReportException
+    private void print(Cache cache, ReservationTaskProvider... reservationTaskProviders) throws SchedulerException
     {
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
@@ -98,7 +96,7 @@ public class ReportTest
     }
 
     private void printProvided(Cache cache, ReservationTaskProvider reservationTaskProvider1,
-            ReservationTaskProvider reservationTaskProvider2) throws ReportException
+            ReservationTaskProvider reservationTaskProvider2) throws SchedulerException
     {
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
 
@@ -111,7 +109,7 @@ public class ReportTest
         print(reservationTask);
     }
 
-    private Reservation print(ReservationTask reservationTask) throws ReportException
+    private Reservation print(ReservationTask reservationTask) throws SchedulerException
     {
         try {
             Reservation reservation = reservationTask.perform();
@@ -119,7 +117,7 @@ public class ReportTest
             builder.append("\n");
             builder.append(reservationTask.getClass().getSimpleName() + " reports:\n");
             builder.append("\n");
-            for (Report report : reservationTask.getReports()) {
+            for (SchedulerReport report : reservationTask.getReports()) {
                 builder.append(report.toString());
                 builder.append("\n");
             }
@@ -128,7 +126,7 @@ public class ReportTest
             System.out.flush();
             return reservation;
         }
-        catch (ReportException exception) {
+        catch (SchedulerException exception) {
             StringBuilder builder = new StringBuilder();
             builder.append("\n");
             builder.append(reservationTask.getClass().getSimpleName() + " error report:\n");

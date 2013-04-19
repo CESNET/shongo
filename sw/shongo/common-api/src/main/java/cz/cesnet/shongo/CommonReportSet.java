@@ -106,8 +106,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class UnknownErrorException extends ReportRuntimeException implements ApiFaultException
     {
-        protected UnknownErrorReport report;
-
         public UnknownErrorException(UnknownErrorReport report)
         {
             this.report = report;
@@ -142,12 +140,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public UnknownErrorReport getReport()
         {
-            return report;
+            return (UnknownErrorReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (UnknownErrorReport) report;
         }
     }
 
@@ -243,8 +241,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class TypeIllegalValueException extends ReportRuntimeException implements ApiFaultException
     {
-        protected TypeIllegalValueReport report;
-
         public TypeIllegalValueException(TypeIllegalValueReport report)
         {
             this.report = report;
@@ -286,12 +282,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public TypeIllegalValueReport getReport()
         {
-            return report;
+            return (TypeIllegalValueReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (TypeIllegalValueReport) report;
         }
     }
 
@@ -371,8 +367,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassUndefinedException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassUndefinedReport report;
-
         public ClassUndefinedException(ClassUndefinedReport report)
         {
             this.report = report;
@@ -407,12 +401,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassUndefinedReport getReport()
         {
-            return report;
+            return (ClassUndefinedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassUndefinedReport) report;
         }
     }
 
@@ -492,8 +486,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassInstantiationErrorException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassInstantiationErrorReport report;
-
         public ClassInstantiationErrorException(ClassInstantiationErrorReport report)
         {
             this.report = report;
@@ -528,12 +520,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassInstantiationErrorReport getReport()
         {
-            return report;
+            return (ClassInstantiationErrorReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassInstantiationErrorReport) report;
         }
     }
 
@@ -629,8 +621,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassAttributeUndefinedException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassAttributeUndefinedReport report;
-
         public ClassAttributeUndefinedException(ClassAttributeUndefinedReport report)
         {
             this.report = report;
@@ -672,12 +662,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassAttributeUndefinedReport getReport()
         {
-            return report;
+            return (ClassAttributeUndefinedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassAttributeUndefinedReport) report;
         }
     }
 
@@ -805,8 +795,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassAttributeTypeMismatchException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassAttributeTypeMismatchReport report;
-
         public ClassAttributeTypeMismatchException(ClassAttributeTypeMismatchReport report)
         {
             this.report = report;
@@ -862,12 +850,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassAttributeTypeMismatchReport getReport()
         {
-            return report;
+            return (ClassAttributeTypeMismatchReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassAttributeTypeMismatchReport) report;
         }
     }
 
@@ -963,8 +951,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassAttributeRequiredException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassAttributeRequiredReport report;
-
         public ClassAttributeRequiredException(ClassAttributeRequiredReport report)
         {
             this.report = report;
@@ -1006,12 +992,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassAttributeRequiredReport getReport()
         {
-            return report;
+            return (ClassAttributeRequiredReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassAttributeRequiredReport) report;
         }
     }
 
@@ -1107,8 +1093,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassAttributeReadonlyException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassAttributeReadonlyReport report;
-
         public ClassAttributeReadonlyException(ClassAttributeReadonlyReport report)
         {
             this.report = report;
@@ -1150,12 +1134,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassAttributeReadonlyReport getReport()
         {
-            return report;
+            return (ClassAttributeReadonlyReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassAttributeReadonlyReport) report;
         }
     }
 
@@ -1251,8 +1235,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class ClassCollectionRequiredException extends ReportRuntimeException implements ApiFaultException
     {
-        protected ClassCollectionRequiredReport report;
-
         public ClassCollectionRequiredException(ClassCollectionRequiredReport report)
         {
             this.report = report;
@@ -1294,12 +1276,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public ClassCollectionRequiredReport getReport()
         {
-            return report;
+            return (ClassCollectionRequiredReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (ClassCollectionRequiredReport) report;
         }
     }
 
@@ -1379,8 +1361,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class CollectionItemNullException extends ReportRuntimeException implements ApiFaultException
     {
-        protected CollectionItemNullReport report;
-
         public CollectionItemNullException(CollectionItemNullReport report)
         {
             this.report = report;
@@ -1415,12 +1395,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public CollectionItemNullReport getReport()
         {
-            return report;
+            return (CollectionItemNullReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (CollectionItemNullReport) report;
         }
     }
 
@@ -1532,8 +1512,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class CollectionItemTypeMismatchException extends ReportRuntimeException implements ApiFaultException
     {
-        protected CollectionItemTypeMismatchReport report;
-
         public CollectionItemTypeMismatchException(CollectionItemTypeMismatchReport report)
         {
             this.report = report;
@@ -1582,12 +1560,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public CollectionItemTypeMismatchReport getReport()
         {
-            return report;
+            return (CollectionItemTypeMismatchReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (CollectionItemTypeMismatchReport) report;
         }
     }
 
@@ -1683,8 +1661,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class EntityNotFoundException extends ReportRuntimeException implements ApiFaultException
     {
-        protected EntityNotFoundReport report;
-
         public EntityNotFoundException(EntityNotFoundReport report)
         {
             this.report = report;
@@ -1726,12 +1702,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public EntityNotFoundReport getReport()
         {
-            return report;
+            return (EntityNotFoundReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (EntityNotFoundReport) report;
         }
     }
 
@@ -1827,8 +1803,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class EntityInvalidException extends ReportRuntimeException implements ApiFaultException
     {
-        protected EntityInvalidReport report;
-
         public EntityInvalidException(EntityInvalidReport report)
         {
             this.report = report;
@@ -1870,12 +1844,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public EntityInvalidReport getReport()
         {
-            return report;
+            return (EntityInvalidReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (EntityInvalidReport) report;
         }
     }
 
@@ -1971,8 +1945,6 @@ public class CommonReportSet extends AbstractReportSet
      */
     public static class EntityNotDeletableReferencedException extends ReportRuntimeException implements ApiFaultException
     {
-        protected EntityNotDeletableReferencedReport report;
-
         public EntityNotDeletableReferencedException(EntityNotDeletableReferencedReport report)
         {
             this.report = report;
@@ -2014,12 +1986,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public EntityNotDeletableReferencedReport getReport()
         {
-            return report;
+            return (EntityNotDeletableReferencedReport) report;
         }
         @Override
         public ApiFault getApiFault()
         {
-            return report;
+            return (EntityNotDeletableReferencedReport) report;
         }
     }
 

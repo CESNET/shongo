@@ -2,11 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
-import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.scheduler.AliasSetReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
+import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -147,7 +143,7 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public void checkAvailability(Interval slot, EntityManager entityManager) throws ReportException
+    public void checkAvailability(Interval slot, EntityManager entityManager) throws SchedulerException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             aliasSpecification.checkAvailability(slot, entityManager);

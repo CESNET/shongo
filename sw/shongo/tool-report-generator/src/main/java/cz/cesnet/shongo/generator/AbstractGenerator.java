@@ -1,7 +1,5 @@
-package cz.cesnet.shongo.report;
+package cz.cesnet.shongo.generator;
 
-import cz.cesnet.report.xml.ReportParam;
-import cz.cesnet.report.xml.Reports;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
@@ -32,17 +30,17 @@ public abstract class AbstractGenerator
     private static final String FILE_NAME = "doc/reports.xml";
     private static final String SCHEMA = "doc/reports.xsd";
 
-    protected Reports reports;
+    protected cz.cesnet.shongo.generator.xml.Reports reports;
 
     protected AbstractGenerator()
     {
         try {
-            JAXBContext ctx = JAXBContext.newInstance(Reports.class);
+            JAXBContext ctx = JAXBContext.newInstance(cz.cesnet.shongo.generator.xml.Reports.class);
             Unmarshaller um = ctx.createUnmarshaller();
             SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = schemaFactory.newSchema(new File(SCHEMA));
             um.setSchema(schema);
-            reports = (Reports) um.unmarshal(new File(FILE_NAME));
+            reports = (cz.cesnet.shongo.generator.xml.Reports) um.unmarshal(new File(FILE_NAME));
         }
         catch (JAXBException exception) {
             throw new RuntimeException(exception);
@@ -86,66 +84,6 @@ public abstract class AbstractGenerator
         java.io.BufferedWriter out = new java.io.BufferedWriter(fileWriter);
         out.write(content);
         out.close();
-    }
-
-    public static String formatConstant(String text)
-    {
-        text = text.replaceAll("[ -]", "_");
-        return text.toUpperCase();
-    }
-
-    public static String formatCamelCaseFirstLower(String text)
-    {
-        if (text.equals("class")) {
-            text = "className";
-        }
-        String[] parts = text.split("[ -]");
-        StringBuilder camelCase = new StringBuilder();
-        for (String part : parts) {
-            if (camelCase.length() > 0) {
-                camelCase.append(formatFirstUpperCase(part));
-            }
-            else {
-                camelCase.append(formatFirstLowerCase(part));
-            }
-        }
-        return camelCase.toString();
-    }
-
-    public static String formatCamelCaseFirstUpper(String text)
-    {
-        String[] parts = text.split("[ -]");
-        StringBuilder camelCase = new StringBuilder();
-        for (String part : parts) {
-            camelCase.append(formatFirstUpperCase(part));
-        }
-        return camelCase.toString();
-    }
-
-    public static String formatFirstUpperCase(String text)
-    {
-        StringBuilder camelCase = new StringBuilder();
-        camelCase.append(text.substring(0, 1).toUpperCase());
-        camelCase.append(text.substring(1));
-        return camelCase.toString();
-    }
-
-    public static String formatFirstLowerCase(String text)
-    {
-        StringBuilder camelCase = new StringBuilder();
-        camelCase.append(text.substring(0, 1).toLowerCase());
-        camelCase.append(text.substring(1));
-        return camelCase.toString();
-    }
-
-    public static String formatString(String description)
-    {
-        if (description == null) {
-            return null;
-        }
-        description = description.trim();
-        description = description.replaceAll("\\s+", " ");
-        return description;
     }
 
     /**
