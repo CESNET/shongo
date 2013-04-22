@@ -101,7 +101,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @throws CommandException
      */
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public synchronized void connect(Address address, String username, String password) throws CommandException
     {
         if (address.getPort() == Address.DEFAULT_PORT) {
             address.setPort(DEFAULT_PORT);
@@ -193,7 +193,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
     @Override
-    public void disconnect() throws CommandException
+    public synchronized void disconnect() throws CommandException
     {
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
@@ -219,7 +219,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param command a command to the device; note that some parameters may be added to the command
      * @return output of the command
      */
-    private Map<String, Object> exec(Command command) throws CommandException
+    private synchronized Map<String, Object> exec(Command command) throws CommandException
     {
         command.unsetParameter("authenticationPassword");
         logger.debug(String.format("%s issuing command '%s' on %s",

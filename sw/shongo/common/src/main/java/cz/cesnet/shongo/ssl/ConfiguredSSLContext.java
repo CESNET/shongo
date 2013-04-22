@@ -11,6 +11,7 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -41,12 +42,14 @@ public class ConfiguredSSLContext
     public ConfiguredSSLContext()
     {
         try {
-            // Set it to the SSL context
+            // Create SSL context
             hostnameVerifier = new HostnameVerifier();
             trustManager = new TrustManager();
-
             context = javax.net.ssl.SSLContext.getInstance("TLS");
             context.init(null, new javax.net.ssl.TrustManager[]{trustManager}, new SecureRandom());
+
+            // Set it as default context
+            SSLContext.setDefault(context);
             javax.net.ssl.HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
             javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(hostnameVerifier);
         }

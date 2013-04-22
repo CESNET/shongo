@@ -34,8 +34,7 @@ public class XmlRpcClientTest
 
         xmlRpcServer.setHandlerMapping(phm);
 
-        XmlRpcServerConfigImpl serverConfig =
-                (XmlRpcServerConfigImpl) xmlRpcServer.getConfig();
+        XmlRpcServerConfigImpl serverConfig = (XmlRpcServerConfigImpl) xmlRpcServer.getConfig();
         serverConfig.setContentLengthOptional(false);
         serverConfig.setKeepAliveEnabled(true);
 
