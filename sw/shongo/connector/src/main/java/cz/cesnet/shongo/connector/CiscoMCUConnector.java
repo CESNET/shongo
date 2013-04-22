@@ -100,7 +100,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @throws CommandException
      */
     @Override
-    public void connect(Address address, String username, String password) throws CommandException
+    public synchronized void connect(Address address, String username, String password) throws CommandException
     {
         if (address.getPort() == Address.DEFAULT_PORT) {
             address.setPort(DEFAULT_PORT);
@@ -192,7 +192,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
     @Override
-    public void disconnect() throws CommandException
+    public synchronized void disconnect() throws CommandException
     {
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
@@ -218,7 +218,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param command a command to the device; note that some parameters may be added to the command
      * @return output of the command
      */
-    private Map<String, Object> exec(Command command) throws CommandException
+    private synchronized Map<String, Object> exec(Command command) throws CommandException
     {
         command.unsetParameter("authenticationPassword");
         logger.debug(String.format("%s issuing command '%s' on %s",
@@ -1327,8 +1327,38 @@ ParamsLoop:
             password = in.readLine();
         }
 
-        CiscoMCUConnector conn = new CiscoMCUConnector();
+        final CiscoMCUConnector conn = new CiscoMCUConnector();
         conn.connect(Address.parseAddress(address), username, password);
+
+        // Room status by multiple threads
+        /*List<Thread> threads = new LinkedList<Thread>();
+        for (int i = 0; i < 2; i++ ) {
+            Thread thread = new Thread() {
+                @Override
+                public void run()
+                {
+                    try {
+                        Room shongoTestRoom = conn.getRoom("shongo-test");
+                        System.out.println("shongo-test room:");
+                        System.out.println(shongoTestRoom);
+                    }
+                    catch (CommandException exception) {
+                        exception.printStackTrace();
+                    }
+                    super.run();
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            }
+            catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }*/
 
         // gatekeeper status
 //        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
@@ -1448,7 +1478,7 @@ ParamsLoop:
 //        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
 //        conn.modifyParticipant("shongo-test", "3447", attributes);
 
-        Room room = conn.getRoom("shongo-test");
+        //Room room = conn.getRoom("shongo-test");
 
         conn.disconnect();
     }

@@ -5,6 +5,7 @@ import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.webserver.ServletWebServer;
 import org.apache.xmlrpc.webserver.WebServer;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,10 +32,9 @@ public class XmlRpcServer
 
     public static class Conference
     {
-        public int status(Map map)
+        public Map status(Map map)
         {
-            map = map;
-            return 0;
+            return new HashMap();
         }
     }
 
