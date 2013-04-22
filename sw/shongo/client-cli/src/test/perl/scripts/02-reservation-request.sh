@@ -98,8 +98,8 @@ bin/client-cli.sh --connect $CONTROLLER --root --scripting \
 --cmd "get-reservation-request 4" \
 --cmd "get-reservation-for-request 4" \
 --cmd "list-executables" \
---cmd "get-executable 5" \
---cmd "get-executable 6" \
+--cmd "get-executable 1" \
+--cmd "get-executable 2" \
+--cmd "get-executable 3" \
 --cmd "get-executable 7" \
---cmd "get-executable 11" \
---cmd "get-executable 12" \
+--cmd "get-executable 8" \

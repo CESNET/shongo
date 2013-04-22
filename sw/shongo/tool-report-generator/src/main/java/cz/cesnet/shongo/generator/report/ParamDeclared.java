@@ -68,7 +68,7 @@ public class ParamDeclared extends Param
     public String getPersistenceAnnotation()
     {
         String columnName = Formatter.formatConstant(getName()).toLowerCase();
-        return getType().getPersistenceAnnotation(columnName);
+        return getType().getPersistenceAnnotation(columnName, getTypeElementName());
     }
 
     public String getVariableName()

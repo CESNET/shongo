@@ -19,7 +19,7 @@ public abstract class Type
         this.className = className;
     }
 
-    public String getClassName(String typeElementName)
+    public String getClassName(String elementTypeName)
     {
         return className;
     }
@@ -29,7 +29,7 @@ public abstract class Type
         return value + ".toString()";
     }
 
-    public abstract String getPersistenceAnnotation(String columnName);
+    public abstract String getPersistenceAnnotation(String columnName, String elementTypeName);
 
     public boolean isReport()
     {
@@ -76,7 +76,7 @@ public abstract class Type
         types.put("Reservation", new EntityType("cz.cesnet.shongo.controller.reservation.Reservation"));
         types.put("Executable", new EntityType("cz.cesnet.shongo.controller.executor.Executable"));
         types.put("Endpoint", new EntityType("cz.cesnet.shongo.controller.executor.Endpoint"));
-        types.put("TechnologySet", new EntityType("cz.cesnet.shongo.controller.scheduler.TechnologySet"));
+        types.put("TechnologySet", new EntityType("cz.cesnet.shongo.controller.scheduler.TechnologySet", true, false));
 
         types.put("JadeReport", new EntityType("cz.cesnet.shongo.JadeReport", true, true));
     }
@@ -89,7 +89,7 @@ public abstract class Type
         }
 
         @Override
-        public String getPersistenceAnnotation(String columnName)
+        public String getPersistenceAnnotation(String columnName, String elementTypeName)
         {
             return "@javax.persistence.Column";
         }
@@ -103,9 +103,9 @@ public abstract class Type
         }
 
         @Override
-        public String getPersistenceAnnotation(String columnName)
+        public String getPersistenceAnnotation(String columnName, String elementTypeName)
         {
-            return super.getPersistenceAnnotation(columnName) + " @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)";
+            return super.getPersistenceAnnotation(columnName, null) + " @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)";
         }
     }
 
@@ -117,18 +117,24 @@ public abstract class Type
         }
 
         @Override
-        public String getClassName(String typeElementName)
+        public String getClassName(String elementTypeName)
         {
-            if (typeElementName == null) {
+            if (elementTypeName == null) {
                 throw new GeneratorException("Collection element type is empty.");
             }
-            return super.getClassName(typeElementName) + "<" + getType(typeElementName).getClassName(null) + ">";
+            return super.getClassName(elementTypeName) + "<" + getType(elementTypeName).getClassName(null) + ">";
         }
 
         @Override
-        public String getPersistenceAnnotation(String columnName)
+        public String getPersistenceAnnotation(String columnName, String elementTypeName)
         {
-            return "@javax.persistence.ElementCollection";
+            Type elementType = getType(elementTypeName);
+            if (elementType instanceof EntityType) {
+                return "@javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)";
+            }
+            else {
+                return "@javax.persistence.ElementCollection";
+            }
         }
     }
 
@@ -143,9 +149,9 @@ public abstract class Type
         }
 
         @Override
-        public String getPersistenceAnnotation(String columnName)
+        public String getPersistenceAnnotation(String columnName, String elementTypeName)
         {
-            return super.getPersistenceAnnotation(columnName) + " @org.hibernate.annotations.Type(type = \"" + persistentType + "\")";
+            return super.getPersistenceAnnotation(columnName, null) + " @org.hibernate.annotations.Type(type = \"" + persistentType + "\")";
         }
     }
 
@@ -168,7 +174,7 @@ public abstract class Type
         }
 
         @Override
-        public String getPersistenceAnnotation(String columnName)
+        public String getPersistenceAnnotation(String columnName, String elementTypeName)
         {
             String params = "";
             if (persistenceCascade) {

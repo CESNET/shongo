@@ -1512,7 +1512,7 @@ public class SchedulerReportSet extends AbstractReportSet
             setParticipantCount(participantCount);
         }
 
-        @javax.persistence.ElementCollection
+        @javax.persistence.OneToMany(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
         public java.util.List<cz.cesnet.shongo.controller.scheduler.TechnologySet> getTechnologies()
         {
             return technologies;
