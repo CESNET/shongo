@@ -19,7 +19,6 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReportSetHelper;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 
 import javax.persistence.*;

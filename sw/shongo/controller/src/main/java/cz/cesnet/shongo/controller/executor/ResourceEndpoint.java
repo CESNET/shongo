@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReportSetHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
