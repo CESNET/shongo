@@ -50,9 +50,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource}.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -83,9 +85,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource} is not allocatable.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(" is not allocatable.");
+            return message.toString();
         }
     }
 
@@ -154,9 +158,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource} is already allocated.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(" is already allocated.");
+            return message.toString();
         }
     }
 
@@ -240,10 +246,13 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ${max-date-time}.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            message = message.replace("${max-date-time}", (maxDateTime == null ? "" : maxDateTime.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
+            message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -319,9 +328,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource} is not endpoint.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(" is not endpoint.");
+            return message.toString();
         }
     }
 
@@ -390,9 +401,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Resource ${resource} is requested multiple times.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(" is requested multiple times.");
+            return message.toString();
         }
     }
 
@@ -474,9 +487,10 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "No available resource was found for the following specification: Technologies: ${technologies}";
-            message = message.replace("${technologies}", (technologies == null ? "" : technologies.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("No available resource was found for the following specification: Technologies: ");
+            message.append((technologies == null ? "null" : technologies.toString()));
+            return message.toString();
         }
     }
 
@@ -564,9 +578,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Reusing existing ${executable}.";
-            message = message.replace("${executable}", (executable == null ? "" : executable.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Reusing existing ");
+            message.append((executable == null ? "null" : executable.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -592,8 +608,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Not enough endpoints are requested for the compartment.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Not enough endpoints are requested for the compartment.");
+            return message.toString();
         }
     }
 
@@ -655,8 +672,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Cannot assign alias to allocated external endpoint.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Cannot assign alias to allocated external endpoint.");
+            return message.toString();
         }
     }
 
@@ -715,7 +733,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST)
-        @javax.persistence.JoinColumn(name = "endpoint_from_id")
+        @javax.persistence.JoinColumn(name = "endpointfrom_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointFrom()
         {
             return endpointFrom;
@@ -727,7 +745,7 @@ public class SchedulerReportSet extends AbstractReportSet
         }
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST)
-        @javax.persistence.JoinColumn(name = "endpoint_to_id")
+        @javax.persistence.JoinColumn(name = "endpointto_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointTo()
         {
             return endpointTo;
@@ -793,11 +811,15 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Creating connection between ${endpoint-from} and ${endpoint-to} in technology ${technology}.";
-            message = message.replace("${endpoint-from}", (endpointFrom == null ? "" : endpointFrom.toString()));
-            message = message.replace("${endpoint-to}", (endpointTo == null ? "" : endpointTo.toString()));
-            message = message.replace("${technology}", (technology == null ? "" : technology.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Creating connection between ");
+            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
+            message.append(" and ");
+            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
+            message.append(" in technology ");
+            message.append((technology == null ? "null" : technology.toString()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -829,10 +851,13 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Creating connection from ${endpoint-from} to ${endpoint-to}.";
-            message = message.replace("${endpoint-from}", (endpointFrom == null ? "" : endpointFrom.toString()));
-            message = message.replace("${endpoint-to}", (endpointTo == null ? "" : endpointTo.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Creating connection from ");
+            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
+            message.append(" to ");
+            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -864,10 +889,13 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Cannot create connection from ${endpoint-from} to ${endpoint-to}, because the target represents multiple endpoints (not supported yet).";
-            message = message.replace("${endpoint-from}", (endpointFrom == null ? "" : endpointFrom.toString()));
-            message = message.replace("${endpoint-to}", (endpointTo == null ? "" : endpointTo.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Cannot create connection from ");
+            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
+            message.append(" to ");
+            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
+            message.append(", because the target represents multiple endpoints (not supported yet).");
+            return message.toString();
         }
     }
 
@@ -966,9 +994,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Provided reservation ${reservation} is not available.";
-            message = message.replace("${reservation}", (reservation == null ? "" : reservation.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Provided reservation ");
+            message.append((reservation == null ? "null" : reservation.getReportDescription()));
+            message.append(" is not available.");
+            return message.toString();
         }
     }
 
@@ -1037,9 +1067,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Provided reservation ${reservation} is not usable, because provided date/time slot doesn't contain the requested.";
-            message = message.replace("${reservation}", (reservation == null ? "" : reservation.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Provided reservation ");
+            message.append((reservation == null ? "null" : reservation.getReportDescription()));
+            message.append(" is not usable, because provided date/time slot doesn't contain the requested.");
+            return message.toString();
         }
     }
 
@@ -1108,9 +1140,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Reusing reservation ${reservation}.";
-            message = message.replace("${reservation}", (reservation == null ? "" : reservation.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Reusing reservation ");
+            message.append((reservation == null ? "null" : reservation.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -1154,9 +1188,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value ${value} is already allocated.";
-            message = message.replace("${value}", (value == null ? "" : value));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Value ");
+            message.append((value == null ? "null" : value));
+            message.append(" is already allocated.");
+            return message.toString();
         }
     }
 
@@ -1243,9 +1279,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value ${value} is invalid.";
-            message = message.replace("${value}", (value == null ? "" : value));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Value ");
+            message.append((value == null ? "null" : value));
+            message.append(" is invalid.");
+            return message.toString();
         }
     }
 
@@ -1314,8 +1352,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "No value is available.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("No value is available.");
+            return message.toString();
         }
     }
 
@@ -1382,14 +1421,19 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating resource ${resource}.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
     /**
-     * Allocating alias for the following specification: Technology: {@link #technologies} Alias Type: {@link #aliasTypes} Value: {@link #value}
+     * Allocating alias for the following specification: 
+     *   Technology: {@link #technologies} 
+     *   Alias Type: {@link #aliasTypes} 
+     *        Value: {@link #value}
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingAliasReport")
@@ -1456,11 +1500,14 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating alias for the following specification: Technology: ${technologies} Alias Type: ${alias-types} Value: ${value}";
-            message = message.replace("${technologies}", (technologies == null ? "" : technologies.toString()));
-            message = message.replace("${alias-types}", (aliasTypes == null ? "" : aliasTypes.toString()));
-            message = message.replace("${value}", (value == null ? "" : value));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating alias for the following specification: \n  Technology: ");
+            message.append(((technologies == null || technologies.isEmpty()) ? "Any" : technologies.toString()));
+            message.append(" \n  Alias Type: ");
+            message.append(((aliasTypes == null || aliasTypes.isEmpty()) ? "Any" : aliasTypes.toString()));
+            message.append(" \n       Value: ");
+            message.append((value == null ? "Any" : value));
+            return message.toString();
         }
     }
 
@@ -1491,14 +1538,18 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating value in resource ${resource}.";
-            message = message.replace("${resource}", (resource == null ? "" : resource.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating value in resource ");
+            message.append((resource == null ? "null" : resource.getReportDescription()));
+            message.append(".");
+            return message.toString();
         }
     }
 
     /**
-     * Allocating room for the following specification: Technology: {@link #technologies} Participants: {@link #participantCount}
+     * Allocating room for the following specification: 
+     *     Technology: {@link #technologies} 
+     *   Participants: {@link #participantCount}
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingRoomReport")
@@ -1551,10 +1602,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating room for the following specification: Technology: ${technologies} Participants: ${participant-count}";
-            message = message.replace("${technologies}", (technologies == null ? "" : technologies.toString()));
-            message = message.replace("${participant-count}", (participantCount == null ? "" : participantCount.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating room for the following specification: \n    Technology: ");
+            message.append((technologies == null ? "null" : technologies.toString()));
+            message.append(" \n  Participants: ");
+            message.append((participantCount == null ? "null" : participantCount.toString()));
+            return message.toString();
         }
     }
 
@@ -1580,38 +1633,21 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating compartment.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating compartment.");
+            return message.toString();
         }
     }
 
     /**
-     * Allocating executable {@link #executable}.
+     * Allocating executable.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingExecutableReport")
     public static class AllocatingExecutableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected String executable;
-
         public AllocatingExecutableReport()
         {
-        }
-
-        public AllocatingExecutableReport(String executable)
-        {
-            setExecutable(executable);
-        }
-
-        @javax.persistence.Column
-        public String getExecutable()
-        {
-            return executable;
-        }
-
-        public void setExecutable(String executable)
-        {
-            this.executable = executable;
         }
 
         @javax.persistence.Transient
@@ -1625,9 +1661,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Allocating executable ${executable}.";
-            message = message.replace("${executable}", (executable == null ? "" : executable));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Allocating executable.");
+            return message.toString();
         }
     }
 
@@ -1653,8 +1689,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Checking specification availability report.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Checking specification availability report.");
+            return message.toString();
         }
     }
 
@@ -1680,8 +1717,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Finding available resource.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Finding available resource.");
+            return message.toString();
         }
     }
 
@@ -1707,8 +1745,9 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Sorting resources.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Sorting resources.");
+            return message.toString();
         }
     }
 
@@ -1753,9 +1792,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Specification ${specification} is not ready.";
-            message = message.replace("${specification}", (specification == null ? "" : specification.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Specification ");
+            message.append((specification == null ? "null" : specification.getReportDescription()));
+            message.append(" is not ready.");
+            return message.toString();
         }
     }
 
@@ -1858,10 +1899,13 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Duration ${duration} is longer than maximum ${maximum-duration}.";
-            message = message.replace("${duration}", (duration == null ? "" : duration.toString()));
-            message = message.replace("${maximum-duration}", (maximumDuration == null ? "" : maximumDuration.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Duration ");
+            message.append((duration == null ? "null" : duration.toString()));
+            message.append(" is longer than maximum ");
+            message.append((maximumDuration == null ? "null" : maximumDuration.toString()));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -1916,7 +1960,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The specification {@link #specification} is not supposed to be allocated.
+     * The specification of class {@link #specification} is not supposed to be allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("SpecificationNotAllocatableReport")
@@ -1956,9 +2000,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "The specification ${specification} is not supposed to be allocated.";
-            message = message.replace("${specification}", (specification == null ? "" : specification.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("The specification ");
+            message.append((specification == null ? "null" : specification.getClass().getSimpleName()));
+            message.append(" is not supposed to be allocated.");
+            return message.toString();
         }
     }
 
@@ -2045,9 +2091,11 @@ public class SchedulerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "User ${user-id} is not resource owner.";
-            message = message.replace("${user-id}", (userId == null ? "" : userId));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("User ");
+            message.append((userId == null ? "null" : cz.cesnet.shongo.PersonInformation.Formatter.format(cz.cesnet.shongo.controller.authorization.Authorization.getInstance().getUserInformation(userId))));
+            message.append(" is not resource owner.");
+            return message.toString();
         }
     }
 

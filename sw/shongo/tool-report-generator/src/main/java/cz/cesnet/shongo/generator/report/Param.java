@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.generator.report;
 
-import cz.cesnet.shongo.generator.Formatter;
-
 /**
  * TODO:
  *
@@ -42,8 +40,8 @@ public abstract class Param
 
     public abstract String getValue();
 
-    public String getValueString()
+    public String getValueMessage()
     {
-        return getType().getString(getValue());
+        return getType().getMessage(getValue());
     }
 }

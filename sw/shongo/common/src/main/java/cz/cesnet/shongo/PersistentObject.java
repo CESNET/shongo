@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @MappedSuperclass
-public abstract class PersistentObject extends PrintableObject
+public abstract class PersistentObject
 {
     /**
      * Persistent object must have an unique identifier.
@@ -118,15 +118,5 @@ public abstract class PersistentObject extends PrintableObject
      */
     public void loadLazyCollections()
     {
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        if (getId() != null) {
-            map.put("id", getId().toString());
-        }
     }
 }

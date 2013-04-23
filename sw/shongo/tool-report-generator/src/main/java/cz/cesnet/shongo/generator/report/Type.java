@@ -26,7 +26,7 @@ public abstract class Type
         return className;
     }
 
-    public String getString(String value)
+    public String getMessage(String value)
     {
         return value + ".toString()";
     }
@@ -42,6 +42,11 @@ public abstract class Type
     }
 
     public boolean isReport()
+    {
+        return false;
+    }
+
+    public boolean isCollection()
     {
         return false;
     }
@@ -85,7 +90,7 @@ public abstract class Type
         types.put("String", new AtomicType("String")
         {
             @Override
-            public String getString(String value)
+            public String getMessage(String value)
             {
                 return value;
             }
@@ -182,6 +187,12 @@ public abstract class Type
             }
             return persistenceAnnotations;
         }
+
+        @Override
+        public boolean isCollection()
+        {
+            return true;
+        }
     }
 
     private static class PersistentAtomicType extends AtomicType
@@ -225,6 +236,12 @@ public abstract class Type
         public boolean hasFlag(int flag)
         {
             return (flags & flag) == flag;
+        }
+
+        @Override
+        public String getMessage(String value)
+        {
+            return value + ".getReportDescription()";
         }
 
         @Override

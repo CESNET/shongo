@@ -196,7 +196,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Override
     @Transient
-    public String getDescription()
+    public String getReportDescription()
     {
         return roomEndpoint.getDescription();
     }

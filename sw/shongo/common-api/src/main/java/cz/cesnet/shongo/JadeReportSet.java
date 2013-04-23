@@ -62,9 +62,10 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Unknown error: ${description}";
-            message = message.replace("${description}", (description == null ? "" : description));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Unknown error: ");
+            message.append((description == null ? "null" : description));
+            return message.toString();
         }
     }
 
@@ -164,9 +165,11 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} is not available now.";
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Receiver agent ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" is not available now.");
+            return message.toString();
         }
     }
 
@@ -266,9 +269,11 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Sender agent ${sender-agent} is not started yet.";
-            message = message.replace("${sender-agent}", (senderAgent == null ? "" : senderAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Sender agent ");
+            message.append((senderAgent == null ? "null" : senderAgent));
+            message.append(" is not started yet.");
+            return message.toString();
         }
     }
 
@@ -424,10 +429,12 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Unknown error in command ${command}: ${description}";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${description}", (description == null ? "" : description));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Unknown error in command ");
+            message.append((command == null ? "null" : command));
+            message.append(": ");
+            message.append((description == null ? "null" : description));
+            return message.toString();
         }
     }
 
@@ -477,7 +484,7 @@ public class JadeReportSet extends AbstractReportSet
     }
 
     /**
-     * Command {@link #command} has timeout.
+     * Command {@link #command} send to {@link #receiverAgent} has timeout.
      */
     public static class CommandTimeoutReport extends CommandAbstractErrorReport implements SerializableReport
     {
@@ -532,10 +539,13 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Command ${command} has timeout.";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Command ");
+            message.append((command == null ? "null" : command));
+            message.append(" send to ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" has timeout.");
+            return message.toString();
         }
     }
 
@@ -640,10 +650,13 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} doesn't implement command ${command}.";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Receiver agent ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" doesn't implement command ");
+            message.append((command == null ? "null" : command));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -748,10 +761,13 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} has refused command ${command}.";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Receiver agent ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" has refused command ");
+            message.append((command == null ? "null" : command));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -856,10 +872,13 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} didn't understand command ${command}.";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Receiver agent ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" didn't understand command ");
+            message.append((command == null ? "null" : command));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -979,11 +998,14 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Receiver agent ${receiver-agent} threw CommandException while processing command ${command}: ${reason}";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${receiver-agent}", (receiverAgent == null ? "" : receiverAgent));
-            message = message.replace("${reason}", (reason == null ? "" : reason));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Receiver agent ");
+            message.append((receiverAgent == null ? "null" : receiverAgent));
+            message.append(" threw CommandException while processing command ");
+            message.append((command == null ? "null" : command));
+            message.append(": ");
+            message.append((reason == null ? "null" : reason));
+            return message.toString();
         }
     }
 
@@ -1095,10 +1117,13 @@ public class JadeReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Sender agent ${sender-agent} cannot decode response from command ${command}.";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${sender-agent}", (senderAgent == null ? "" : senderAgent));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Sender agent ");
+            message.append((senderAgent == null ? "null" : senderAgent));
+            message.append(" cannot decode response from command ");
+            message.append((command == null ? "null" : command));
+            message.append(".");
+            return message.toString();
         }
     }
 

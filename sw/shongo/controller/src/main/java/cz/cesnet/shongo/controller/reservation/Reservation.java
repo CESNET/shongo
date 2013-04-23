@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -25,7 +26,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Reservation extends PersistentObject
+public class Reservation extends PersistentObject implements Reportable
 {
     /**
      * @see {@link CreatedBy}.
@@ -352,6 +353,13 @@ public class Reservation extends PersistentObject
         if (createdBy == null) {
             createdBy = CreatedBy.CONTROLLER;
         }
+    }
+
+    @Override
+    @Transient
+    public String getReportDescription()
+    {
+        return String.format("reservation '%s'", EntityIdentifier.formatId(this));
     }
 
     /**

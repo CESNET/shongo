@@ -423,12 +423,4 @@ public class AliasSpecification extends Specification
 
         super.fromApi(specificationApi, entityManager);
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("aliasTypes", aliasTypes);
-    }
 }

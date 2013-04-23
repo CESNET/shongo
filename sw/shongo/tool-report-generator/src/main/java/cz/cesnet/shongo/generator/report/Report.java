@@ -6,6 +6,7 @@ import cz.cesnet.shongo.generator.TodoException;
 
 import javax.lang.model.type.DeclaredType;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Represents a report.
@@ -294,22 +295,56 @@ public class Report
         }
     }
 
-    public String getDescription()
+    public Collection<String> getMessage()
     {
         String description = report.getDescription();
         if (description == null) {
-            return null;
+            return Collections.emptyList();
         }
         description = Formatter.formatString(description);
 
-        description = new ParamReplace(this){
+        //message = message.replace("<#noparse>$</#noparse>{${param.getName()}}", (${param.getValue()} == null ? "" : ${param.getValueString()}));
+
+        return new ParamReplace(description, this){
             @Override
-            public String getReplace(Param param)
+            public String processString(String string)
             {
-                return "${" + param.getName() + "}";
+                return "\"" + string + "\"";
             }
-        }.replace(description);
-        return description;
+
+            @Override
+            public String processParam(Param param)
+            {
+                return "(" + param.getValue() + " == null ? \"null\" : " + param.getValueMessage() + ")";
+            }
+
+            @Override
+            protected Object processParamIfNull(Param param, String defaultValue)
+            {
+                if (param.getType().isCollection()) {
+                    return "((" + param.getValue() + " == null || " + param.getValue() + ".isEmpty()) ? \"" + defaultValue + "\" : " + param.getValueMessage() + ")";
+                }
+                else {
+                    return "(" + param.getValue() + " == null ? \"" + defaultValue + "\" : " + param.getValueMessage() + ")";
+                }
+            }
+
+            @Override
+            protected Object processParamClassName(Param param)
+            {
+                return "(" + param.getValue() + " == null ? \"null\" : " + param.getValue() + ".getClass().getSimpleName())";
+            }
+
+            @Override
+            protected Object processParamUser(Param param)
+            {
+                String value = param.getValue();
+                if (param.getTypeClassName().equals("String")) {
+                    value = "cz.cesnet.shongo.controller.authorization.Authorization.getInstance().getUserInformation(" + value +")";
+                }
+                return "(" + param.getValue() + " == null ? \"null\" : cz.cesnet.shongo.PersonInformation.Formatter.format(" + value + "))";
+            }
+        }.getStringParts();
     }
 
     public String getJavaDoc()
@@ -319,14 +354,21 @@ public class Report
             return null;
         }
         description = Formatter.formatString(description);
+        description = description.replace("\\n", "\n     * ");
 
-        description = new ParamReplace(this){
+        description = new ParamReplace(description, this){
             @Override
-            public String getReplace(Param param)
+            public String processParam(Param param)
             {
                 return "{@link #" + param.getValue() + "}";
             }
-        }.replace(description);
+
+            @Override
+            protected Object processParamClassName(Param param)
+            {
+                return "of class {@link #" + param.getValue() + "}";
+            }
+        }.getString();
 
         return description;
     }

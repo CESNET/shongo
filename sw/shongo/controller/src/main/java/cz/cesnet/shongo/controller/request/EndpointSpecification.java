@@ -103,13 +103,4 @@ public abstract class EndpointSpecification extends ParticipantSpecification
 
         return modified;
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("callInitiation", callInitiation);
-        map.put("requestedPersons", persons);
-    }
 }

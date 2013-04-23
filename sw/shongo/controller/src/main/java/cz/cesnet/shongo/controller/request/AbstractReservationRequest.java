@@ -392,17 +392,4 @@ public abstract class AbstractReservationRequest extends PersistentObject
             removeProvidedReservation(id);
         }
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("created", getCreated());
-        map.put("purpose", getPurpose());
-        map.put("priority", getPriority());
-        map.put("description", getDescription());
-        map.put("specification", getSpecification());
-        map.put("interDomain", isInterDomain());
-    }
 }

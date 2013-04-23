@@ -42,7 +42,7 @@ public class ExecutorReportSet extends AbstractReportSet
         }
 
         @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
-        @javax.persistence.JoinColumn(name = "jade_report_id")
+        @javax.persistence.JoinColumn(name = "jadereport_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
             return jadeReport;
@@ -85,10 +85,12 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Command ${command} failed: ${jade-report}";
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${jade-report}", (jadeReport == null ? "" : jadeReport.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Command ");
+            message.append((command == null ? "null" : command));
+            message.append(" failed: ");
+            message.append((jadeReport == null ? "null" : jadeReport.getReportDescription()));
+            return message.toString();
         }
     }
 
@@ -203,9 +205,11 @@ public class ExecutorReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Cannot modify room ${room-name}, because it has not been started yet.";
-            message = message.replace("${room-name}", (roomName == null ? "" : roomName));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Cannot modify room ");
+            message.append((roomName == null ? "null" : roomName));
+            message.append(", because it has not been started yet.");
+            return message.toString();
         }
     }
 

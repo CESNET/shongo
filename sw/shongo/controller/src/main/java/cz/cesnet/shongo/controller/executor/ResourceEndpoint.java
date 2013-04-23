@@ -102,9 +102,9 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
 
     @Override
     @Transient
-    public String getDescription()
+    public String getReportDescription()
     {
-        return SchedulerReportSetHelper.formatResource(getDeviceResource());
+        return getDeviceResource().getReportDescription();
     }
 
     @Override

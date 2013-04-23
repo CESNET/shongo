@@ -99,10 +99,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "ACL Role ${role} is invalid for entity ${entity}.";
-            message = message.replace("${entity}", (entity == null ? "" : entity));
-            message = message.replace("${role}", (role == null ? "" : role));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("ACL Role ");
+            message.append((role == null ? "null" : role));
+            message.append(" is invalid for entity ");
+            message.append((entity == null ? "null" : entity));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -232,9 +235,11 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Invalid security token ${token}.";
-            message = message.replace("${token}", (token == null ? "" : token));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Invalid security token ");
+            message.append((token == null ? "null" : token));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -351,9 +356,11 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "You are not authorized to ${action}.";
-            message = message.replace("${action}", (action == null ? "" : action));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("You are not authorized to ");
+            message.append((action == null ? "null" : action));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -518,11 +525,14 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Command ${command} for device ${device} failed: ${jade-report}";
-            message = message.replace("${device}", (device == null ? "" : device));
-            message = message.replace("${command}", (command == null ? "" : command));
-            message = message.replace("${jade-report}", (jadeReport == null ? "" : jadeReport.toString()));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Command ");
+            message.append((command == null ? "null" : command));
+            message.append(" for device ");
+            message.append((device == null ? "null" : device));
+            message.append(" failed: ");
+            message.append((jadeReport == null ? "null" : jadeReport.getReportDescription()));
+            return message.toString();
         }
     }
 
@@ -653,9 +663,11 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Identifier ${id} is invalid.";
-            message = message.replace("${id}", (id == null ? "" : id));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" is invalid.");
+            return message.toString();
         }
     }
 
@@ -787,10 +799,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Identifier ${id} doesn't belong to domain ${required-domain}.";
-            message = message.replace("${id}", (id == null ? "" : id));
-            message = message.replace("${required-domain}", (requiredDomain == null ? "" : requiredDomain));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" doesn't belong to domain ");
+            message.append((requiredDomain == null ? "null" : requiredDomain));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -929,10 +944,13 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Identifier ${id} isn't of required type ${required-type}.";
-            message = message.replace("${id}", (id == null ? "" : id));
-            message = message.replace("${required-type}", (requiredType == null ? "" : requiredType));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" isn't of required type ");
+            message.append((requiredType == null ? "null" : requiredType));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -1056,9 +1074,11 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Reservation request with identifier ${id} cannot be modified or deleted.";
-            message = message.replace("${id}", (id == null ? "" : id));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Reservation request with identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" cannot be modified or deleted.");
+            return message.toString();
         }
     }
 
@@ -1156,8 +1176,9 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Reservation request time slot must not be empty.";
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Reservation request time slot must not be empty.");
+            return message.toString();
         }
     }
 

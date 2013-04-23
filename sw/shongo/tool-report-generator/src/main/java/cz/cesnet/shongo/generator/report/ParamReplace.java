@@ -1,52 +1,159 @@
 package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.GeneratorException;
-import cz.cesnet.shongo.generator.PatternReplace;
+import cz.cesnet.shongo.generator.PatternParser;
+import org.apache.commons.jexl2.Expression;
+import org.apache.commons.jexl2.JexlContext;
+import org.apache.commons.jexl2.JexlEngine;
+import org.apache.commons.jexl2.NamespaceResolver;
 
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
-* TODO:
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
-abstract class ParamReplace extends PatternReplace implements PatternReplace.Callback
+ * TODO:
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+abstract class ParamReplace extends PatternParser implements PatternParser.Callback
 {
-    private Report report;
+    private static final Pattern MESSAGE_PARAM_PATTERN = Pattern.compile("\\$\\{([^\\$]+)\\}");
 
-    public ParamReplace(Report report)
+    private static JexlEngine jexlEngine = new JexlEngine();
+
+    private JexlContext jexlContext = new Context();
+
+    private Collection<String> stringParts = new LinkedList<String>();
+
+    private final Report report;
+
+    public ParamReplace(String text, final Report report)
     {
-        super("\\$\\{([^\\$]+)\\}");
+        super(MESSAGE_PARAM_PATTERN);
         this.report = report;
+        this.stringParts = parse(text, this);
     }
 
-    public final String replace(String string)
+    public Collection<String> getStringParts()
     {
-        return super.replace(string, this);
+        return stringParts;
     }
 
-    private static final Pattern FORMAT_PATTERN = Pattern.compile("(.+)\\((.+)\\)");
+    public String getString()
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String textPart : stringParts) {
+            stringBuilder.append(textPart);
+        }
+        return stringBuilder.toString();
+    }
 
     @Override
-    public final String callback(MatchResult matchResult)
+    public String processString(String string)
     {
-        String paramName = matchResult.group(1);
-
-        String format = null;
-        Matcher classMatcher = FORMAT_PATTERN.matcher(paramName);
-        if (classMatcher.matches()) {
-            format = classMatcher.group(1);
-            paramName = classMatcher.group(2);
-        }
-
-        Param param = report.getParam(paramName);
-        if (param == null) {
-            throw new GeneratorException("Param '%s' not found in report '%s'.", paramName, report.getId());
-        }
-        return getReplace(param);
+        return string;
     }
 
-    public abstract String getReplace(Param param);
+    @Override
+    public final String processMatch(MatchResult match)
+    {
+        Expression expression = jexlEngine.createExpression(match.group(1));
+        Object result = expression.evaluate(jexlContext);
+        if (result instanceof Param) {
+            return processParam((Param) result);
+        }
+        else if (result instanceof String) {
+            return (String) result;
+        }
+        else {
+            throw new GeneratorException("Unknown expression result type '%s'.", result.getClass().getName());
+        }
+    }
+
+    /**
+     * @param param to be replaced
+     * @return string which should be used for given param
+     */
+    protected abstract String processParam(Param param);
+
+    /**
+     * @param param
+     * @param defaultValue
+     * @return result for the expression
+     */
+    protected Object processParamIfNull(Param param, String defaultValue)
+    {
+        return param;
+    }
+
+    /**
+     * @param param
+     * @return result for the expression
+     */
+    protected Object processParamClassName(Param param)
+    {
+        return param;
+    }
+
+    /**
+     * @param param
+     * @return result for the expression
+     */
+    protected Object processParamUser(Param param)
+    {
+        return param;
+    }
+
+    public class Context implements NamespaceResolver, JexlContext
+    {
+        @Override
+        public Object resolveNamespace(String name)
+        {
+            if (name == null) {
+                return this;
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Object get(String variableName)
+        {
+            Param param = report.getParam(variableName);
+            if (param == null) {
+                throw new GeneratorException("Param '%s' not found in report '%s'.", variableName, report.getId());
+            }
+            return param;
+        }
+
+        @Override
+        public void set(String variableName, Object value)
+        {
+            throw new UnsupportedOperationException(variableName);
+        }
+
+        @Override
+        public boolean has(String variableName)
+        {
+            return report.getParam(variableName) != null;
+        }
+
+        public Object ifNull(Param param, String defaultValue)
+        {
+            return processParamIfNull(param, defaultValue);
+        }
+
+        public Object className(Param param)
+        {
+            return processParamClassName(param);
+        }
+
+        public Object user(Param param)
+        {
+            return processParamUser(param);
+        }
+    }
+
 }

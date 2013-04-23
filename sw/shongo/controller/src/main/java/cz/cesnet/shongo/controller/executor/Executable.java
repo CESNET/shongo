@@ -4,6 +4,7 @@ import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -18,7 +19,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Executable extends PersistentObject implements Reporter.ReportContext
+public abstract class Executable extends PersistentObject implements Reportable, Reporter.ReportContext
 {
     /**
      * Interval start date/time.
@@ -355,14 +356,21 @@ public abstract class Executable extends PersistentObject implements Reporter.Re
 
     @Transient
     @Override
-    public String getReportName()
+    public String getReportDescription()
+    {
+        return String.format("executable '%s'", EntityIdentifier.formatId(this));
+    }
+
+    @Transient
+    @Override
+    public String getReportContextName()
     {
         return "Executable " + EntityIdentifier.formatId(this);
     }
 
     @Transient
     @Override
-    public String getReportDetail()
+    public String getReportContextDetail()
     {
         return null;
     }

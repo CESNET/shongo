@@ -123,12 +123,4 @@ public class Alias extends PersistentObject implements Cloneable
             setValue(api.getValue());
         }
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-        map.put("type", type.toString());
-        map.put("value", value);
-    }
 }

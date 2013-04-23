@@ -61,10 +61,10 @@
             <id>agent-not-found</id>
             <classification severity="error"/>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} is not available now.
+                Receiver agent ${receiverAgent} is not available now.
             </description>
             <example>
                 TODO:
@@ -76,10 +76,10 @@
             <id>agent-not-started</id>
             <classification severity="error"/>
             <params>
-                <param name="sender-agent" type="String"/>
+                <param name="senderAgent" type="String"/>
             </params>
             <description>
-                Sender agent ${sender-agent} is not started yet.
+                Sender agent ${senderAgent} is not started yet.
             </description>
             <example>
                 TODO:
@@ -115,10 +115,10 @@
         <report extends="command-abstract-error">
             <id>command-timeout</id>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Command ${command} has timeout.
+                Command ${command} send to ${receiverAgent} has timeout.
             </description>
             <example>
                 TODO:
@@ -129,10 +129,10 @@
         <report extends="command-abstract-error">
             <id>command-not-supported</id>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} doesn't implement command ${command}.
+                Receiver agent ${receiverAgent} doesn't implement command ${command}.
             </description>
             <example>
                 TODO:
@@ -143,10 +143,10 @@
         <report extends="command-abstract-error">
             <id>command-refused</id>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} has refused command ${command}.
+                Receiver agent ${receiverAgent} has refused command ${command}.
             </description>
             <example>
                 TODO:
@@ -157,10 +157,10 @@
         <report extends="command-abstract-error">
             <id>command-not-understood</id>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} didn't understand command ${command}.
+                Receiver agent ${receiverAgent} didn't understand command ${command}.
             </description>
             <example>
                 TODO:
@@ -172,11 +172,11 @@
             <id>command-failed</id>
             <classification severity="error"/>
             <params>
-                <param name="receiver-agent" type="String"/>
+                <param name="receiverAgent" type="String"/>
                 <param name="reason" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiver-agent} threw CommandException while processing command ${command}: ${reason}
+                Receiver agent ${receiverAgent} threw CommandException while processing command ${command}: ${reason}
             </description>
             <example>
                 TODO:
@@ -188,10 +188,10 @@
             <id>command-result-decoding-failed</id>
             <classification severity="error"/>
             <params>
-                <param name="sender-agent" type="String"/>
+                <param name="senderAgent" type="String"/>
             </params>
             <description>
-                Sender agent ${sender-agent} cannot decode response from command ${command}.
+                Sender agent ${senderAgent} cannot decode response from command ${command}.
             </description>
             <example>
                 TODO:
@@ -300,12 +300,12 @@
             <params>
                 <param name="class" type="String"/>
                 <param name="attribute" type="String"/>
-                <param name="required-type" type="String"/>
-                <param name="present-type" type="String"/>
+                <param name="requiredType" type="String"/>
+                <param name="presentType" type="String"/>
             </params>
             <description>
                 Type mismatch of value in attribute ${attribute} in class ${class}.
-                Present type ${present-type} doesn't match required type ${required-type}.
+                Present type ${presentType} doesn't match required type ${requiredType}.
             </description>
             <example>
                 TODO:
@@ -381,12 +381,12 @@
             <classification severity="error"/>
             <params>
                 <param name="collection" type="String"/>
-                <param name="required-type" type="String"/>
-                <param name="present-type" type="String"/>
+                <param name="requiredType" type="String"/>
+                <param name="presentType" type="String"/>
             </params>
             <description>
-                Collection ${collection} contains item of type ${present-type} which dosn't match the
-                required type ${required-type}.
+                Collection ${collection} contains item of type ${presentType} which doesn't match the
+                required type ${requiredType}.
             </description>
             <example>
                 TODO:
@@ -504,10 +504,10 @@
             <params>
                 <param name="device" type="String" resource-id="true"/>
                 <param name="command" type="String"/>
-                <param name="jade-report" type="JadeReport"/>
+                <param name="jadeReport" type="JadeReport"/>
             </params>
             <description>
-                Command ${command} for device ${device} failed: ${jade-report}
+                Command ${command} for device ${device} failed: ${jadeReport}
             </description>
             <example>
                 TODO:
@@ -537,10 +537,10 @@
             <classification severity="error"/>
             <params>
                 <param name="id" type="String"/>
-                <param name="required-domain" type="String"/>
+                <param name="requiredDomain" type="String"/>
             </params>
             <description>
-                Identifier ${id} doesn't belong to domain ${required-domain}.
+                Identifier ${id} doesn't belong to domain ${requiredDomain}.
             </description>
             <example>
                 TODO:
@@ -553,10 +553,10 @@
             <classification severity="error"/>
             <params>
                 <param name="id" type="String"/>
-                <param name="required-type" type="String"/>
+                <param name="requiredType" type="String"/>
             </params>
             <description>
-                Identifier ${id} isn't of required type ${required-type}.
+                Identifier ${id} isn't of required type ${requiredType}.
             </description>
             <example>
                 TODO:
@@ -635,11 +635,11 @@
             <id>resource-not-available</id>
             <classification severity="error"/>
             <params>
-                <param name="max-date-time" type="DateTime"/>
+                <param name="maxDateTime" type="DateTime"/>
             </params>
             <description>
                 Resource ${resource} is not available for the requested time slot.
-                The maximum date/time for which the resource can be allocated is ${max-date-time}.
+                The maximum date/time for which the resource can be allocated is ${maxDateTime}.
             </description>
         </report>
 
@@ -716,8 +716,8 @@
         <report abstract="true">
             <id>connection</id>
             <params>
-                <param name="endpoint-from" type="Endpoint"/>
-                <param name="endpoint-to" type="Endpoint"/>
+                <param name="endpointFrom" type="Endpoint"/>
+                <param name="endpointTo" type="Endpoint"/>
             </params>
         </report>
 
@@ -728,7 +728,7 @@
                 <param name="technology" type="Technology"/>
             </params>
             <description>
-                Creating connection between ${endpoint-from} and ${endpoint-to} in technology ${technology}.
+                Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.
             </description>
         </report>
 
@@ -736,7 +736,7 @@
             <id>connection-from-to</id>
             <classification severity="info"/>
             <description>
-                Creating connection from ${endpoint-from} to ${endpoint-to}.
+                Creating connection from ${endpointFrom} to ${endpointTo}.
             </description>
         </report>
 
@@ -744,7 +744,7 @@
             <id>connection-to-multiple</id>
             <classification severity="error"/>
             <description>
-                Cannot create connection from ${endpoint-from} to ${endpoint-to},
+                Cannot create connection from ${endpointFrom} to ${endpointTo},
                 because the target represents multiple endpoints (not supported yet).
             </description>
         </report>
@@ -839,14 +839,14 @@
             <classification severity="info"/>
             <params>
                 <param name="technologies" type="Set" type-element="Technology"/>
-                <param name="alias-types" type="Set" type-element="AliasType"/>
+                <param name="aliasTypes" type="Set" type-element="AliasType"/>
                 <param name="value" type="String"/>
             </params>
             <description>
                 Allocating alias for the following specification:
-                  Technology: ${technologies}
-                  Alias Type: ${alias-types}
-                       Value: ${value}
+                \n  Technology: ${ifNull(technologies, "Any")}
+                \n  Alias Type: ${ifNull(aliasTypes, "Any")}
+                \n       Value: ${ifNull(value, "Any")}
             </description>
         </report>
 
@@ -863,12 +863,12 @@
             <classification severity="info"/>
             <params>
                 <param name="technologies" type="List" type-element="TechnologySet"/>
-                <param name="participant-count" type="Integer"/>
+                <param name="participantCount" type="Integer"/>
             </params>
             <description>
                 Allocating room for the following specification:
-                    Technology: ${technologies}
-                  Participants: ${participant-count}
+                \n    Technology: ${technologies}
+                \n  Participants: ${participantCount}
             </description>
         </report>
 
@@ -883,11 +883,8 @@
         <report>
             <id>allocating-executable</id>
             <classification severity="info"/>
-            <params>
-                <param name="executable" type="String"/>
-            </params>
             <description>
-                Allocating executable ${executable}.
+                Allocating executable.
             </description>
         </report>
 
@@ -941,10 +938,10 @@
             <classification severity="error"/>
             <params>
                 <param name="duration" type="Period"/>
-                <param name="maximum-duration" type="Period"/>
+                <param name="maximumDuration" type="Period"/>
             </params>
             <description>
-                Duration ${duration} is longer than maximum ${maximum-duration}.
+                Duration ${duration} is longer than maximum ${maximumDuration}.
             </description>
         </report>
 
@@ -955,7 +952,7 @@
                 <param name="specification" type="Specification"/>
             </params>
             <description>
-                The specification ${class(specification)} is not supposed to be allocated.
+                The specification ${className(specification)} is not supposed to be allocated.
             </description>
         </report>
 
@@ -963,10 +960,10 @@
             <id>user-not-owner</id>
             <classification severity="error"/>
             <params>
-                <param name="user-id" type="String"/>
+                <param name="userId" type="String"/>
             </params>
             <description>
-                User ${user(user-id)} is not resource owner.
+                User ${user(userId)} is not resource owner.
             </description>
         </report>
 
@@ -983,26 +980,26 @@
             <classification severity="error"/>
             <params>
                 <param name="command" type="String"/>
-                <param name="jade-report" type="JadeReport"/>
+                <param name="jadeReport" type="JadeReport"/>
             </params>
             <description>
-                Command ${command} failed: ${jade-report}
+                Command ${command} failed: ${jadeReport}
             </description>
             <example>
             </example>
             <domain-admin visible="true" via="email"/>
             <resource-admin visible="true" via="email"/>
-            <resolution param="jade-report"/>
+            <resolution param="jadeReport"/>
         </report>
 
         <report>
             <id>room-not-started</id>
             <classification severity="error"/>
             <params>
-                <param name="room-name" type="String"/>
+                <param name="roomName" type="String"/>
             </params>
             <description>
-                Cannot modify room ${room-name}, because it has not been started yet.
+                Cannot modify room ${roomName}, because it has not been started yet.
             </description>
             <example>
             </example>

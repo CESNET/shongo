@@ -175,12 +175,4 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
 
         super.fromApi(specificationApi, entityManager);
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("aliases", aliases);
-    }
 }

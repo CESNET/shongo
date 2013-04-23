@@ -63,7 +63,7 @@ public class Formatter
             return null;
         }
         description = description.trim();
-        description = description.replaceAll("\\s+", " ");
+        description = description.replaceAll("(?<!\\\\n\\s{0,5})(\\s+)", " ");
         return description;
     }
 }

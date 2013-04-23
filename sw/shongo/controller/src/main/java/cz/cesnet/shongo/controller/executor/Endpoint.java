@@ -117,7 +117,7 @@ public abstract class Endpoint extends Executable
     @Transient
     public String getDescription()
     {
-        return toString();
+        return getReportDescription();
     }
 
     /**

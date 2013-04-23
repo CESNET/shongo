@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.report.Reportable;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -18,7 +19,7 @@ import java.util.Set;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Specification extends PersistentObject
+public abstract class Specification extends PersistentObject implements Reportable
 {
     /**
      * Set of {@link Technology}s which are required/supported by this {@link Specification}.
@@ -124,6 +125,13 @@ public abstract class Specification extends PersistentObject
         return newSpecification;
     }
 
+    @Override
+    @Transient
+    public String getReportDescription()
+    {
+        return getClass().getSimpleName();
+    }
+
     /**
      * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
      */
@@ -207,15 +215,5 @@ public abstract class Specification extends PersistentObject
     {
         // Update current technologies
         updateTechnologies();
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        if (technologies.size() > 0) {
-            map.put("technologies", technologies);
-        }
     }
 }

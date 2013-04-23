@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.report.Reportable;
 import org.joda.time.DateTime;
 import cz.cesnet.shongo.CommonReportSet;
 
@@ -18,7 +19,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Resource extends PersistentObject
+public class Resource extends PersistentObject implements Reportable
 {
     /**
      * User-id of an user who created the {@link Resource}.
@@ -391,13 +392,10 @@ public class Resource extends PersistentObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
+    @Transient
+    public String getReportDescription()
     {
-        super.fillDescriptionMap(map);
-
-        map.put("name", getName());
-        map.put("description", getDescription());
-        map.put("capabilities", capabilities);
+        return String.format("resource '%s'", EntityIdentifier.formatId(this));
     }
 
     /**

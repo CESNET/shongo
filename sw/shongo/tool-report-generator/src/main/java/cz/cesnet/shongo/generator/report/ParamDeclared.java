@@ -61,12 +61,6 @@ public class ParamDeclared extends Param
         return getVariableName();
     }
 
-    @Override
-    public String getValueString()
-    {
-        return getType().getString(getVariableName());
-    }
-
     public Collection<String> getPersistenceAnnotations()
     {
         String columnName = Formatter.formatConstant(getName()).toLowerCase();

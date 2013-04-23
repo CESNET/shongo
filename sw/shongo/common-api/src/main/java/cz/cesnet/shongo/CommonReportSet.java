@@ -95,9 +95,10 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Unknown error: ${description}";
-            message = message.replace("${description}", (description == null ? "" : description));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Unknown error: ");
+            message.append((description == null ? "null" : description));
+            return message.toString();
         }
     }
 
@@ -229,10 +230,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value ${value} is illegal for type ${type-name}.";
-            message = message.replace("${type-name}", (typeName == null ? "" : typeName));
-            message = message.replace("${value}", (value == null ? "" : value));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Value ");
+            message.append((value == null ? "null" : value));
+            message.append(" is illegal for type ");
+            message.append((typeName == null ? "null" : typeName));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -356,9 +360,11 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Class ${class-name} is not defined.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Class ");
+            message.append((className == null ? "null" : className));
+            message.append(" is not defined.");
+            return message.toString();
         }
     }
 
@@ -475,9 +481,11 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Class ${class-name} cannot be instanced.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Class ");
+            message.append((className == null ? "null" : className));
+            message.append(" cannot be instanced.");
+            return message.toString();
         }
     }
 
@@ -609,10 +617,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Attribute ${attribute} is not defined in class ${class-name}.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            message = message.replace("${attribute}", (attribute == null ? "" : attribute));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Attribute ");
+            message.append((attribute == null ? "null" : attribute));
+            message.append(" is not defined in class ");
+            message.append((className == null ? "null" : className));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -781,12 +792,17 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Type mismatch of value in attribute ${attribute} in class ${class-name}. Present type ${present-type} doesn't match required type ${required-type}.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            message = message.replace("${attribute}", (attribute == null ? "" : attribute));
-            message = message.replace("${required-type}", (requiredType == null ? "" : requiredType));
-            message = message.replace("${present-type}", (presentType == null ? "" : presentType));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Type mismatch of value in attribute ");
+            message.append((attribute == null ? "null" : attribute));
+            message.append(" in class ");
+            message.append((className == null ? "null" : className));
+            message.append(". Present type ");
+            message.append((presentType == null ? "null" : presentType));
+            message.append(" doesn't match required type ");
+            message.append((requiredType == null ? "null" : requiredType));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -939,10 +955,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Attribute ${attribute} in class ${class-name} wasn't present but it is required.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            message = message.replace("${attribute}", (attribute == null ? "" : attribute));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Attribute ");
+            message.append((attribute == null ? "null" : attribute));
+            message.append(" in class ");
+            message.append((className == null ? "null" : className));
+            message.append(" wasn't present but it is required.");
+            return message.toString();
         }
     }
 
@@ -1081,10 +1100,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Value for attribute ${attribute} in class ${class-name} was present but the attribute is read-only.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            message = message.replace("${attribute}", (attribute == null ? "" : attribute));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Value for attribute ");
+            message.append((attribute == null ? "null" : attribute));
+            message.append(" in class ");
+            message.append((className == null ? "null" : className));
+            message.append(" was present but the attribute is read-only.");
+            return message.toString();
         }
     }
 
@@ -1223,10 +1245,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Collection ${collection} in class ${class-name} wasn't present or was empty but it is required.";
-            message = message.replace("${class-name}", (className == null ? "" : className));
-            message = message.replace("${collection}", (collection == null ? "" : collection));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Collection ");
+            message.append((collection == null ? "null" : collection));
+            message.append(" in class ");
+            message.append((className == null ? "null" : className));
+            message.append(" wasn't present or was empty but it is required.");
+            return message.toString();
         }
     }
 
@@ -1350,9 +1375,11 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Null item cannot be present in collection ${collection}.";
-            message = message.replace("${collection}", (collection == null ? "" : collection));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Null item cannot be present in collection ");
+            message.append((collection == null ? "null" : collection));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -1405,7 +1432,7 @@ public class CommonReportSet extends AbstractReportSet
     }
 
     /**
-     * Collection {@link #collection} contains item of type {@link #presentType} which dosn't match the required type {@link #requiredType}.
+     * Collection {@link #collection} contains item of type {@link #presentType} which doesn't match the required type {@link #requiredType}.
      */
     public static class CollectionItemTypeMismatchReport extends Report implements ApiFault
     {
@@ -1499,11 +1526,15 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Collection ${collection} contains item of type ${present-type} which dosn't match the required type ${required-type}.";
-            message = message.replace("${collection}", (collection == null ? "" : collection));
-            message = message.replace("${required-type}", (requiredType == null ? "" : requiredType));
-            message = message.replace("${present-type}", (presentType == null ? "" : presentType));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Collection ");
+            message.append((collection == null ? "null" : collection));
+            message.append(" contains item of type ");
+            message.append((presentType == null ? "null" : presentType));
+            message.append(" which doesn't match the required type ");
+            message.append((requiredType == null ? "null" : requiredType));
+            message.append(".");
+            return message.toString();
         }
     }
 
@@ -1649,10 +1680,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Entity ${entity} with identifier ${id} was not found.";
-            message = message.replace("${entity}", (entity == null ? "" : entity));
-            message = message.replace("${id}", (id == null ? "" : id));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Entity ");
+            message.append((entity == null ? "null" : entity));
+            message.append(" with identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" was not found.");
+            return message.toString();
         }
     }
 
@@ -1791,10 +1825,12 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Entity ${entity} validation failed: ${reason}";
-            message = message.replace("${entity}", (entity == null ? "" : entity));
-            message = message.replace("${reason}", (reason == null ? "" : reason));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Entity ");
+            message.append((entity == null ? "null" : entity));
+            message.append(" validation failed: ");
+            message.append((reason == null ? "null" : reason));
+            return message.toString();
         }
     }
 
@@ -1933,10 +1969,13 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.";
-            message = message.replace("${entity}", (entity == null ? "" : entity));
-            message = message.replace("${id}", (id == null ? "" : id));
-            return message;
+            StringBuilder message = new StringBuilder();
+            message.append("Entity ");
+            message.append((entity == null ? "null" : entity));
+            message.append(" with identifier ");
+            message.append((id == null ? "null" : id));
+            message.append(" cannot be deleted because it is still referenced.");
+            return message.toString();
         }
     }
 

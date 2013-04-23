@@ -178,11 +178,11 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getMessage()
         {
-            String message = "${report.getDescription()}";
-            <#list report.getParams() as param>
-            message = message.replace("<#noparse>$</#noparse>{${param.getName()}}", (${param.getValue()} == null ? "" : ${param.getValueString()}));
-            </#list>
-            return message;
+            StringBuilder message = new StringBuilder();
+        <#list report.getMessage() as messageLine>
+            message.append(${messageLine});
+        </#list>
+            return message.toString();
         }
     </#if>
     <#if report.isPersistent()>

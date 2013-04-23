@@ -293,12 +293,4 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
         super.fromApi(api, entityManager);
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("slots", slots);
-    }
 }

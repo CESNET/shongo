@@ -199,9 +199,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public String getDescription()
+    public String getReportDescription()
     {
-        return String.format("room in %s", SchedulerReportSetHelper.formatResource(getDeviceResource()));
+        return String.format("room in %s", getDeviceResource().getReportDescription());
     }
 
     @Override

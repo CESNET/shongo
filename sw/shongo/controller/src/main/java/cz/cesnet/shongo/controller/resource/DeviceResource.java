@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
@@ -259,13 +260,10 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
+    @Transient
+    public String getReportDescription()
     {
-        super.fillDescriptionMap(map);
-
-        map.put("callable", (isCallable() ? "true" : "false"));
-        map.put("mode", (isManaged() ? "managed" : "unmanaged"));
-        map.put("technologies", technologies);
+        return String.format("device resource '%s'", EntityIdentifier.formatId(this));
     }
 
     @Override

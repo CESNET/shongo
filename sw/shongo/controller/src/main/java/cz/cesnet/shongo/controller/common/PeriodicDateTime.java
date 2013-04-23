@@ -543,28 +543,4 @@ public class PeriodicDateTime extends PersistentObject
             return dateTimeTo != null;
         }
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("start", start.toString());
-        map.put("period", period.toString());
-        if (end != null) {
-            map.put("end", end.toString());
-        }
-
-        List<String> dateTimes = new ArrayList<String>();
-        int index = 0;
-        for (DateTime dateTime : enumerate(MAX_PRINT_COUNT)) {
-            dateTimes.add(dateTime.toString());
-            index++;
-            if (index >= (MAX_PRINT_COUNT - 1)) {
-                dateTimes.add("...");
-                break;
-            }
-        }
-        map.put("enumerated", dateTimes);
-    }
 }

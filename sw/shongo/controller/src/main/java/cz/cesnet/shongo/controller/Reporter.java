@@ -47,7 +47,7 @@ public class Reporter
     {
         String name = report.getName();
         if (reportContext != null) {
-            name = reportContext.getReportName() + ": " + name;
+            name = reportContext.getReportContextName() + ": " + name;
         }
         String message = report.getMessage();
 
@@ -152,7 +152,7 @@ public class Reporter
     {
         StringBuilder nameBuilder = new StringBuilder();
         if (reportContext != null) {
-            nameBuilder.append(reportContext.getReportName());
+            nameBuilder.append(reportContext.getReportContextName());
             nameBuilder.append(" Internal Error");
         }
         if (nameBuilder.length() == 0) {
@@ -239,7 +239,7 @@ public class Reporter
             String stackTrace = result.toString();
             emailContent.append(stackTrace);
         }
-        String reportDetail = (reportContext != null ? reportContext.getReportDetail() : null);
+        String reportDetail = (reportContext != null ? reportContext.getReportContextDetail() : null);
         if (reportDetail != null) {
             emailContent.append("\n\n");
             emailContent.append(reportDetail);
@@ -292,13 +292,13 @@ public class Reporter
     public static final ReportContext AUTHORIZATION = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Authorization";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -306,13 +306,13 @@ public class Reporter
     public static final ReportContext WORKER = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Worker";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -320,13 +320,13 @@ public class Reporter
     public static final ReportContext PREPROCESSOR = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Preprocessor";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -334,13 +334,13 @@ public class Reporter
     public static final ReportContext SCHEDULER = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Scheduler";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -348,13 +348,13 @@ public class Reporter
     public static final ReportContext EXECUTOR = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Executor";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -362,13 +362,13 @@ public class Reporter
     public static final ReportContext NOTIFICATION = new ReportContext()
     {
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             return "Notification";
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             return null;
         }
@@ -382,12 +382,12 @@ public class Reporter
         /**
          * @return name of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
          */
-        public String getReportName();
+        public String getReportContextName();
 
         /**
          * @return detailed description of the {@link cz.cesnet.shongo.controller.Reporter.ReportContext}
          */
-        public String getReportDetail();
+        public String getReportContextDetail();
     }
 
     /**

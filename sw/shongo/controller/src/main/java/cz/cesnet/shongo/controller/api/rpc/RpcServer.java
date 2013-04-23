@@ -378,7 +378,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         private UserInformation userInformation;
 
         @Override
-        public String getReportName()
+        public String getReportContextName()
         {
             if (userInformation != null) {
                 return String.format("%s by %s",
@@ -390,7 +390,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         }
 
         @Override
-        public String getReportDetail()
+        public String getReportContextDetail()
         {
             StringBuilder reportDetail = new StringBuilder();
             reportDetail.append("REQUEST\n\n");

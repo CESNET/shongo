@@ -382,16 +382,6 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("state", getState());
-        map.put("slot", getSlot());
-        map.put("specification", getSpecification());
-    }
-
-    @Override
     protected cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi()
     {
         return new cz.cesnet.shongo.controller.api.ReservationRequest();

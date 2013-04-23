@@ -248,28 +248,12 @@ public abstract class Notification
         }
 
         /**
-         * @param name
-         * @param organization
-         * @return {@link cz.cesnet.shongo.controller.common.Person} formatted to string
-         */
-        public String formatPerson(String name, String organization)
-        {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(name);
-            if (organization != null) {
-                stringBuilder.append(", ");
-                stringBuilder.append(organization);
-            }
-            return stringBuilder.toString();
-        }
-
-        /**
          * @param userInformation to be formatted
          * @return {@link UserInformation} formatted to string
          */
         public String formatUser(UserInformation userInformation)
         {
-            return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
+            return PersonInformation.Formatter.format(userInformation);
         }
 
         /**
@@ -279,7 +263,7 @@ public abstract class Notification
         public String formatUser(String userId)
         {
             UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
-            return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
+            return PersonInformation.Formatter.format(userInformation);
         }
     }
 

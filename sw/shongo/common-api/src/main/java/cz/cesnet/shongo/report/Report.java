@@ -6,7 +6,7 @@ package cz.cesnet.shongo.report;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Report
+public abstract class Report implements Reportable
 {
     /**
      * @return name of the report
@@ -54,6 +54,12 @@ public abstract class Report
 
     @Override
     public String toString()
+    {
+        return getMessage();
+    }
+
+    @Override
+    public String getReportDescription()
     {
         return getMessage();
     }

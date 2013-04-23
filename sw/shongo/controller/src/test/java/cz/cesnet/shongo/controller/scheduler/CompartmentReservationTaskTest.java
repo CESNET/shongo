@@ -396,7 +396,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public String getDescription()
+                        public String getReportDescription()
                         {
                             return "simple endpoint";
                         }

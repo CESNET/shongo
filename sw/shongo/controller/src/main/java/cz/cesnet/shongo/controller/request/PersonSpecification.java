@@ -198,16 +198,6 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         super.fromApi(specificationApi, entityManager);
     }
 
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("person", person);
-        map.put("endpoint", endpointSpecification);
-        map.put("invitationState", invitationState);
-    }
-
     /**
      * State of contacting the person.
      */
