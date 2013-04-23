@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.resource.Capability;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 /**
@@ -11,13 +11,10 @@ import cz.cesnet.shongo.controller.resource.Resource;
  */
 public class SchedulerReportSetHelper
 {
-    public static String getResourceDescription(Resource resource, Capability capability)
-    {
-        throw new TodoImplementException();
-    }
-
     public static String formatResource(Resource resource)
     {
-        throw new TodoImplementException();
+        return String.format("%s '%s'",
+                (resource instanceof DeviceResource ? "device" : "resource"),
+                EntityIdentifier.formatId(resource));
     }
 }

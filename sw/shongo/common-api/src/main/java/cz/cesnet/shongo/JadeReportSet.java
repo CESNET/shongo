@@ -340,7 +340,6 @@ public class JadeReportSet extends AbstractReportSet
         {
             this.command = command;
         }
-
     }
 
     /**

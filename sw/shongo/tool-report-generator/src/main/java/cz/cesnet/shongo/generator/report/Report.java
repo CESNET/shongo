@@ -4,6 +4,7 @@ import cz.cesnet.shongo.generator.Formatter;
 import cz.cesnet.shongo.generator.GeneratorException;
 import cz.cesnet.shongo.generator.TodoException;
 
+import javax.lang.model.type.DeclaredType;
 import java.util.*;
 
 /**
@@ -401,6 +402,16 @@ public class Report
     {
         Boolean isPersistent = report.isPersistent();
         return (isPersistent != null ? isPersistent : false);
+    }
+
+    public Collection<String> getPersistencePreRemove()
+    {
+        Collection<String> persistencePreRemove = new LinkedList<String>();
+        for (ParamDeclared paramDeclared : declaredParams) {
+            persistencePreRemove.addAll(
+                    paramDeclared.getType().getPersistencePreRemove(paramDeclared.getVariableName()));
+        }
+        return persistencePreRemove;
     }
 
     public boolean hasException()

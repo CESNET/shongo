@@ -32,12 +32,12 @@ public abstract class Param
 
     public Type getType()
     {
-        return Type.getType(getTypeName());
+        return Type.getType(getTypeName(), getTypeElementName());
     }
 
     public String getTypeClassName()
     {
-        return getType().getClassName(getTypeElementName());
+        return getType().getClassName();
     }
 
     public abstract String getValue();

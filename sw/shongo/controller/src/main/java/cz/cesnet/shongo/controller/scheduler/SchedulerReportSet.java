@@ -27,7 +27,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setResource(resource);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "resource_id")
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "resource_id")
         public cz.cesnet.shongo.controller.resource.Resource getResource()
         {
             return resource;
@@ -54,7 +55,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Resource {@link #resource} is not allocatable.
@@ -217,7 +217,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setMaxDateTime(maxDateTime);
         }
 
-        @javax.persistence.Column @org.hibernate.annotations.Type(type = "DateTime")
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "DateTime")
         public org.joda.time.DateTime getMaxDateTime()
         {
             return maxDateTime;
@@ -540,7 +541,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setExecutable(executable);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "executable_id")
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "executable_id")
         public cz.cesnet.shongo.controller.executor.Executable getExecutable()
         {
             return executable;
@@ -567,7 +569,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Not enough endpoints are requested for the compartment.
@@ -713,7 +714,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setEndpointTo(endpointTo);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "endpoint_from_id")
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST)
+        @javax.persistence.JoinColumn(name = "endpoint_from_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointFrom()
         {
             return endpointFrom;
@@ -724,7 +726,8 @@ public class SchedulerReportSet extends AbstractReportSet
             this.endpointFrom = endpointFrom;
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "endpoint_to_id")
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.PERSIST)
+        @javax.persistence.JoinColumn(name = "endpoint_to_id")
         public cz.cesnet.shongo.controller.executor.Endpoint getEndpointTo()
         {
             return endpointTo;
@@ -735,8 +738,17 @@ public class SchedulerReportSet extends AbstractReportSet
             this.endpointTo = endpointTo;
         }
 
+        @javax.persistence.PreRemove
+        public void preRemove()
+        {
+            if (endpointFrom.getState() == cz.cesnet.shongo.controller.executor.Executable.State.NOT_ALLOCATED) {
+                endpointFrom.setState(cz.cesnet.shongo.controller.executor.Executable.State.TO_DELETE);
+            }
+            if (endpointTo.getState() == cz.cesnet.shongo.controller.executor.Executable.State.NOT_ALLOCATED) {
+                endpointTo.setState(cz.cesnet.shongo.controller.executor.Executable.State.TO_DELETE);
+            }
+        }
     }
-
 
     /**
      * Creating connection between {@link #endpointFrom} and {@link #endpointTo} in technology {@link #technology}.
@@ -758,7 +770,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setTechnology(technology);
         }
 
-        @javax.persistence.Column @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
+        @javax.persistence.Column
+        @javax.persistence.Enumerated(javax.persistence.EnumType.STRING)
         public cz.cesnet.shongo.Technology getTechnology()
         {
             return technology;
@@ -787,7 +800,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Creating connection from {@link #endpointFrom} to {@link #endpointTo}.
@@ -823,7 +835,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Cannot create connection from {@link #endpointFrom} to {@link #endpointTo}, because the target represents multiple endpoints (not supported yet).
@@ -915,7 +926,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setReservation(reservation);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "reservation_id")
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "reservation_id")
         public cz.cesnet.shongo.controller.reservation.Reservation getReservation()
         {
             return reservation;
@@ -925,9 +937,7 @@ public class SchedulerReportSet extends AbstractReportSet
         {
             this.reservation = reservation;
         }
-
     }
-
 
     /**
      * Provided reservation {@link #reservation} is not available.
@@ -1103,7 +1113,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Value {@link #value} is already allocated.
@@ -1379,7 +1388,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Allocating alias for the following specification: Technology: {@link #technologies} Alias Type: {@link #aliasTypes} Value: {@link #value}
      */
@@ -1456,7 +1464,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Allocating value in resource {@link #resource}.
      */
@@ -1489,7 +1496,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Allocating room for the following specification: Technology: {@link #technologies} Participants: {@link #participantCount}
@@ -1552,7 +1558,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Allocating compartment.
      */
@@ -1579,7 +1584,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Allocating executable {@link #executable}.
@@ -1627,7 +1631,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Checking specification availability report.
      */
@@ -1654,7 +1657,6 @@ public class SchedulerReportSet extends AbstractReportSet
             return message;
         }
     }
-
 
     /**
      * Finding available resource.
@@ -1683,7 +1685,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Sorting resources.
      */
@@ -1711,7 +1712,6 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
-
     /**
      * Specification {@link #specification} is not ready.
      */
@@ -1730,7 +1730,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setSpecification(specification);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "specification_id")
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "specification_id")
         public cz.cesnet.shongo.controller.request.Specification getSpecification()
         {
             return specification;
@@ -1822,7 +1823,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setMaximumDuration(maximumDuration);
         }
 
-        @javax.persistence.Column @org.hibernate.annotations.Type(type = "Period")
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
         public org.joda.time.Period getDuration()
         {
             return duration;
@@ -1833,7 +1835,8 @@ public class SchedulerReportSet extends AbstractReportSet
             this.duration = duration;
         }
 
-        @javax.persistence.Column @org.hibernate.annotations.Type(type = "Period")
+        @javax.persistence.Column
+        @org.hibernate.annotations.Type(type = "Period")
         public org.joda.time.Period getMaximumDuration()
         {
             return maximumDuration;
@@ -1930,7 +1933,8 @@ public class SchedulerReportSet extends AbstractReportSet
             setSpecification(specification);
         }
 
-        @javax.persistence.OneToOne() @javax.persistence.JoinColumn(name = "specification_id")
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "specification_id")
         public cz.cesnet.shongo.controller.request.Specification getSpecification()
         {
             return specification;

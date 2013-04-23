@@ -41,7 +41,8 @@ public class ExecutorReportSet extends AbstractReportSet
             this.command = command;
         }
 
-        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true) @javax.persistence.JoinColumn(name = "jade_report_id")
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
+        @javax.persistence.JoinColumn(name = "jade_report_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
             return jadeReport;

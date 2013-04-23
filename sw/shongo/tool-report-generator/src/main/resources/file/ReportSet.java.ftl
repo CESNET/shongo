@@ -43,19 +43,21 @@ public class ${scope.getClassName()} extends AbstractReportSet
         public ${report.getClassName()}()
         {
         }
-
     <#if (report.getAllDeclaredParams()?size > 0)>
+
         public ${report.getClassName()}(<@formatMethodParameters parameters=report.getAllDeclaredParams()/>)
         {
             <#list report.getAllDeclaredParams() as param>
             ${param.getSetterName()}(${param.getVariableName()});
             </#list>
         }
-
     </#if>
     <#list report.getDeclaredParams() as param>
+
         <#if report.isPersistent()>
-        ${param.getPersistenceAnnotation()}
+            <#list param.getPersistenceAnnotations() as persistenceAnnotation>
+        ${persistenceAnnotation}
+            </#list>
         </#if>
         public ${param.getTypeClassName()} ${param.getGetterName()}()
         {
@@ -66,9 +68,9 @@ public class ${scope.getClassName()} extends AbstractReportSet
         {
             this.${param.getVariableName()} = ${param.getVariableName()};
         }
-
     </#list>
     <#list report.getTemporaryParams() as param>
+
         <#if report.isPersistent()>
         @javax.persistence.Transient
         </#if>
@@ -76,17 +78,17 @@ public class ${scope.getClassName()} extends AbstractReportSet
         {
             return ${param.getCode()};
         }
-
     </#list>
     <#if report.getResourceIdParam()??>
+
         @Override
         public String getResourceId()
         {
             return ${report.getResourceIdParam().getVariableName()};
         }
-
     </#if>
     <#if !report.isAbstract()>
+
         <#if report.isPersistent()>
         @javax.persistence.Transient
         </#if>
@@ -183,9 +185,22 @@ public class ${scope.getClassName()} extends AbstractReportSet
             return message;
         }
     </#if>
-    }
+    <#if report.isPersistent()>
+        <#assign persistencePreRemove = report.getPersistencePreRemove()/>
+        <#if (persistencePreRemove?size > 0)>
 
+        @javax.persistence.PreRemove
+        public void preRemove()
+        {
+            <#list persistencePreRemove as persistencePreRemoveLine>
+            ${persistencePreRemoveLine}
+            </#list>
+        }
+        </#if>
+    </#if>
+    }
     <#if report.hasException()>
+
     /**
      * Exception for {@link ${report.getClassName()}}.
      */

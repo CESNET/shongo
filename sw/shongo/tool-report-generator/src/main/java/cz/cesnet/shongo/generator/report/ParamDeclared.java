@@ -2,6 +2,8 @@ package cz.cesnet.shongo.generator.report;
 
 import cz.cesnet.shongo.generator.Formatter;
 
+import java.util.Collection;
+
 /**
 * TODO:
 *
@@ -65,10 +67,10 @@ public class ParamDeclared extends Param
         return getType().getString(getVariableName());
     }
 
-    public String getPersistenceAnnotation()
+    public Collection<String> getPersistenceAnnotations()
     {
         String columnName = Formatter.formatConstant(getName()).toLowerCase();
-        return getType().getPersistenceAnnotation(columnName, getTypeElementName());
+        return getType().getPersistenceAnnotations(columnName);
     }
 
     public String getVariableName()
