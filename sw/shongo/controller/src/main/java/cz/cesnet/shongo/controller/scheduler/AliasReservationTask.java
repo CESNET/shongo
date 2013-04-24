@@ -168,7 +168,7 @@ public class AliasReservationTask extends ReservationTask
             addReport(new SchedulerReportSet.ResourceReport(aliasProvider.getResource()));
         }
         if (aliasProviders.size() == 0) {
-            throw new SchedulerException(getCurrentTopReport());
+            throw new SchedulerException(getCurrentReport());
         }
         endReport();
 
@@ -288,7 +288,7 @@ public class AliasReservationTask extends ReservationTask
             break;
         }
         if (availableValueReservation == null) {
-            throw new SchedulerException(getCurrentTopReport());
+            throw new SchedulerException(getCurrentReport());
         }
 
         // Create new reservation

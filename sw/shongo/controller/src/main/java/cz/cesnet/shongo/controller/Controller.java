@@ -6,21 +6,15 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
-import cz.cesnet.shongo.jade.ContainerCommandSet;
-import cz.cesnet.shongo.shell.CommandHandler;
-import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
-import cz.cesnet.shongo.util.ConsoleAppender;
 import cz.cesnet.shongo.util.Logging;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.log4j.Level;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -612,6 +606,15 @@ public class Controller
                     + "because no controller has been created yet.");
         }
         return instance;
+    }
+
+    /**
+     * @return true whether {@link #instance} is not null,
+     *         false otherwise
+     */
+    public static boolean hasInstance()
+    {
+        return instance != null;
     }
 
     /**

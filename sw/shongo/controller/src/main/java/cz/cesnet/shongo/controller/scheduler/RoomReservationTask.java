@@ -214,7 +214,7 @@ public class RoomReservationTask extends ReservationTask
                 }
             }
             if (availableRooms.size() == 0) {
-                throw new SchedulerException(getCurrentTopReport());
+                throw new SchedulerException(getCurrentReport());
             }
         }
         finally {
@@ -419,7 +419,7 @@ public class RoomReservationTask extends ReservationTask
                 endReport();
             }
         }
-        throw new SchedulerException(getCurrentTopReport());
+        throw new SchedulerException(getCurrentReport());
     }
 
     /**

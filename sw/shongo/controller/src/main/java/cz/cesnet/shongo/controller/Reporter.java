@@ -70,15 +70,20 @@ public class Reporter
             EntityManager entityManager = null;
             if (report instanceof ResourceReport) {
                 ResourceReport resourceReport = (ResourceReport) report;
-                Controller controller = Controller.getInstance();
-                entityManager = controller.getEntityManagerFactory().createEntityManager();
-                try {
-                    EntityIdentifier resourceId = EntityIdentifier.parse(
-                            resourceReport.getResourceId(), EntityType.RESOURCE);
-                    resource = entityManager.find(Resource.class, resourceId.getPersistenceId());
+                if (Controller.hasInstance()) {
+                    entityManager = Controller.getInstance().getEntityManagerFactory().createEntityManager();
+                    try {
+                        EntityIdentifier resourceId = EntityIdentifier.parse(
+                                resourceReport.getResourceId(), EntityType.RESOURCE);
+                        resource = entityManager.find(Resource.class, resourceId.getPersistenceId());
+                    }
+                    catch (Exception exception) {
+                        logger.error("Failed to get resource " + resourceReport.getResourceId() + ".", exception);
+                    }
                 }
-                catch (Exception exception) {
-                    logger.error("Failed to get resource " + resourceReport.getResourceId() + ".", exception);
+                else {
+                    logger.warn("Cannot get resource '{}' because controller doesn't exist.",
+                            resourceReport.getResourceId());
                 }
             }
             else if (reportContext instanceof ResourceContext) {
@@ -202,6 +207,10 @@ public class Reporter
      */
     private static void sendReportEmail(Collection<String> recipients, String title, String content)
     {
+        if (!Controller.hasInstance()) {
+            logger.warn("Cannot send email because controller doesn't exist.");
+            return;
+        }
         EmailSender emailSender = Controller.getInstance().getEmailSender();
 
         // If error email can't be sent, propagate runtime exception
@@ -228,8 +237,12 @@ public class Reporter
      */
     private static Set<String> getAdministratorEmails()
     {
-        Set<String> administratorEmails = new HashSet<String>();
+        if (!Controller.hasInstance()) {
+            logger.warn("Cannot get administrator emails because controller doesn't exist.");
+            return Collections.emptySet();
+        }
         Configuration configuration = Controller.getInstance().getConfiguration();
+        Set<String> administratorEmails = new HashSet<String>();
         for (Object item : configuration.getList(Configuration.ADMINISTRATOR_EMAIL)) {
             administratorEmails.add((String) item);
         }
@@ -292,8 +305,11 @@ public class Reporter
                 .append(domain.getOrganization())
                 .append(")\n");
 
-        String hostName = Controller.getInstance().getRpcHost();
-        if (hostName.isEmpty()) {
+        String hostName = null;
+        if (Controller.hasInstance()) {
+            hostName = Controller.getInstance().getRpcHost();
+        }
+        if (hostName == null || hostName.isEmpty()) {
             try {
                 hostName = java.net.InetAddress.getLocalHost().getHostName();
             }

@@ -134,7 +134,7 @@ public abstract class ReservationTask
         }
         catch (SchedulerException exception) {
             addReport(exception.getTopReport());
-            exception.setReport(getCurrentTopReport());
+            exception.setReport(getCurrentReport());
             throw exception;
         }
     }
@@ -283,7 +283,7 @@ public abstract class ReservationTask
     /**
      * @return current top {@link SchedulerReport}
      */
-    protected SchedulerReport getCurrentTopReport()
+    protected SchedulerReport getCurrentReport()
     {
         SchedulerReport report;
         if (activeReports.empty()) {
@@ -295,10 +295,6 @@ public abstract class ReservationTask
         }
         else {
             report = activeReports.peek();
-        }
-
-        while (report.hasParentReport() && !disabledErrorPropagation.contains(report)) {
-            report = report.getParentReport();
         }
         return report;
     }
