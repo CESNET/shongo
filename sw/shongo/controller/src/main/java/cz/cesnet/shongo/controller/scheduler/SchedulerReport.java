@@ -170,59 +170,73 @@ public abstract class SchedulerReport extends Report
     @Transient
     public String getMessageRecursive(MessageType messageType)
     {
-        boolean isVisible = !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
+        // Get child reports
+        List<SchedulerReport> childReports = new LinkedList<SchedulerReport>();
+        getMessageRecursiveChildren(messageType, childReports);
 
-        // Build message and prefix for this report
-        StringBuilder messagePrefix = new StringBuilder();
+        StringBuilder messageBuilder = new StringBuilder();
         String message = null;
-        if (isVisible) {
+        if (getMessageRecursiveVisible(messageType)) {
+            // Append prefix
             message = getMessage(messageType);
-            messagePrefix.append("-");
+            messageBuilder.append("-");
             switch (getType()) {
                 case ERROR:
-                    messagePrefix.append("[ERROR] ");
+                    messageBuilder.append("[ERROR] ");
                     break;
                 default:
                     break;
             }
-        }
 
-        // Build messages for child reports
-        StringBuilder childMessages = new StringBuilder();
-        int childReportsCount = childReports.size();
-        for (int index = 0; index < childReportsCount; index++) {
-            String childReportString = childReports.get(index).getMessageRecursive(messageType);
-            if (childReportString != null) {
-                if (message != null) {
-                    childMessages.append("\n  |");
-                    childMessages.append("\n  +-");
-                    childReportString = childReportString.replace("\n",
-                            (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
-                }
-                else {
-                    if (childMessages.length() > 0) {
-                        childMessages.append("\n\n");
-                    }
-                }
-                childMessages.append(childReportString);
-            }
-        }
-
-        StringBuilder messageBuilder = new StringBuilder();
-        if (message != null) {
-            if (childMessages.length() > 0) {
-                message = message.replace("\n", String.format("\n  |%" + (messagePrefix.length() - 3) + "s", ""));
+            // Append message
+            if (childReports.size() > 0) {
+                message = message.replace("\n", String.format("\n  |%" + (messageBuilder.length() - 3) + "s", ""));
             }
             else {
-                message = message.replace("\n", String.format("\n%" + messagePrefix.length() + "s", ""));
+                message = message.replace("\n", String.format("\n%" + messageBuilder.length() + "s", ""));
             }
-            messageBuilder.append(messagePrefix);
             messageBuilder.append(message);
+
+            // Append child reports
+            int childReportsCount = childReports.size();
+            for (int index = 0; index < childReportsCount; index++) {
+                String childReportString = childReports.get(index).getMessageRecursive(messageType);
+                if (childReportString != null) {
+                    messageBuilder.append("\n  |");
+                    messageBuilder.append("\n  +-");
+                    childReportString = childReportString.replace("\n",
+                            (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
+                    messageBuilder.append(childReportString);
+                }
+            }
         }
-        if (childMessages.length() > 0) {
-            messageBuilder.append(childMessages);
+        else {
+            for (SchedulerReport childReport : childReports) {
+                if (messageBuilder.length() > 0) {
+                    messageBuilder.append("\n\n");
+                }
+                messageBuilder.append(childReport.getMessageRecursive(messageType));
+            }
+
         }
         return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
+    }
+
+    public boolean getMessageRecursiveVisible(MessageType messageType)
+    {
+        return !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
+    }
+
+    public void getMessageRecursiveChildren(MessageType messageType, Collection<SchedulerReport> childReports)
+    {
+        for (SchedulerReport childReport : this.childReports) {
+            if (childReport.getMessageRecursiveVisible(messageType)) {
+                childReports.add(childReport);
+            }
+            else {
+                childReport.getMessageRecursiveChildren(messageType, childReports);
+            }
+        }
     }
 
     @Override

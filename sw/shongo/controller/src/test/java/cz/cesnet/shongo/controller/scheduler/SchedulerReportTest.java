@@ -43,7 +43,7 @@ public class SchedulerReportTest
         RoomSpecification roomSpecification1 = new RoomSpecification();
         roomSpecification1.addTechnology(Technology.H323);
         roomSpecification1.setParticipantCount(5);
-        print(cache, roomSpecification1);
+        print(Report.MessageType.DOMAIN_ADMIN, cache, roomSpecification1);
 
         DeviceResource deviceResource1 = new DeviceResource();
         deviceResource1.setAllocatable(true);
@@ -74,45 +74,66 @@ public class SchedulerReportTest
         AliasSpecification aliasSpecification3 = new AliasSpecification();
         aliasSpecification3.addAliasType(AliasType.H323_E164);
         aliasSpecification3.setAliasProviderCapability(deviceResource3.getCapability(AliasProviderCapability.class));
-        printProvided(cache, aliasSpecification1, aliasSpecification2);
-        print(cache, aliasSpecification1, aliasSpecification2, aliasSpecification3);
+        printProvided(Report.MessageType.DOMAIN_ADMIN, cache, aliasSpecification1, aliasSpecification2);
+        print(Report.MessageType.DOMAIN_ADMIN, cache, aliasSpecification1, aliasSpecification2, aliasSpecification3);
 
         RoomSpecification roomSpecification2 = new RoomSpecification();
         roomSpecification2.addTechnology(Technology.H323);
         roomSpecification2.setParticipantCount(5);
-        print(cache, roomSpecification2);
+        print(Report.MessageType.DOMAIN_ADMIN, cache, roomSpecification2);
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.setCallInitiation(CallInitiation.VIRTUAL_ROOM);
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323));
-        print(cache, compartmentSpecification);
+        print(Report.MessageType.USER, cache, compartmentSpecification);
     }
 
-    private void print(Cache cache, ReservationTaskProvider... reservationTaskProviders) throws SchedulerException
+    @Test
+    public void testRoomWithAliases() throws Exception
+    {
+        Cache cache = Cache.createTestingCache();
+
+        DeviceResource deviceResource1 = new DeviceResource();
+        deviceResource1.setAllocatable(true);
+        deviceResource1.addTechnology(Technology.H323);
+        deviceResource1.addCapability(
+                new RoomProviderCapability(5, new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_E164}));
+        deviceResource1.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME, true));
+        deviceResource1.addCapability(new AliasProviderCapability("1", AliasType.H323_E164, true));
+        cache.addResource(deviceResource1);
+
+        RoomSpecification roomSpecification1 = new RoomSpecification();
+        roomSpecification1.addTechnology(Technology.H323);
+        roomSpecification1.setParticipantCount(5);
+        print(Report.MessageType.USER, cache, roomSpecification1);
+    }
+
+    private void print(Report.MessageType messageType, Cache cache, ReservationTaskProvider... reservationTaskProviders)
+            throws SchedulerException
     {
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
             ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
-            print(reservationTask);
+            print(messageType, reservationTask);
         }
     }
 
-    private void printProvided(Cache cache, ReservationTaskProvider reservationTaskProvider1,
+    private void printProvided(Report.MessageType messageType, Cache cache, ReservationTaskProvider reservationTaskProvider1,
             ReservationTaskProvider reservationTaskProvider2) throws SchedulerException
     {
         ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
 
         ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(context);
-        Reservation reservation = print(reservationTask);
+        Reservation reservation = print(messageType, reservationTask);
         reservation.generateTestingId();
         context.getCacheTransaction().addProvidedReservation(reservation);
 
         reservationTask = reservationTaskProvider2.createReservationTask(context);
-        print(reservationTask);
+        print(messageType, reservationTask);
     }
 
-    private Reservation print(ReservationTask reservationTask) throws SchedulerException
+    private Reservation print(Report.MessageType messageType, ReservationTask reservationTask) throws SchedulerException
     {
         try {
             Reservation reservation = reservationTask.perform();
@@ -121,7 +142,7 @@ public class SchedulerReportTest
             builder.append(reservationTask.getClass().getSimpleName() + " reports:\n");
             builder.append("\n");
             for (SchedulerReport report : reservationTask.getReports()) {
-                builder.append(report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+                builder.append(report.getMessageRecursive(messageType));
                 builder.append("\n");
             }
             builder.append("\n");
@@ -134,7 +155,7 @@ public class SchedulerReportTest
             builder.append("\n");
             builder.append(reservationTask.getClass().getSimpleName() + " error report:\n");
             builder.append("\n");
-            builder.append(exception.getTopReport().getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+            builder.append(exception.getTopReport().getMessageRecursive(messageType));
             builder.append("\n");
             System.err.print(builder.toString());
             System.err.flush();

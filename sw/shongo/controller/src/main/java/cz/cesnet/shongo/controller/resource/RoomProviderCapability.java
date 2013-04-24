@@ -58,6 +58,20 @@ public class RoomProviderCapability extends DeviceCapability
     }
 
     /**
+     * Constructor.
+     *
+     * @param licenseCount       sets the {@link #licenseCount}
+     * @param requiredAliasTypes to be added to the {@link #requiredAliasTypes}
+     */
+    public RoomProviderCapability(Integer licenseCount, AliasType[] requiredAliasTypes)
+    {
+        this.licenseCount = licenseCount;
+        for (AliasType requiredAliasType : requiredAliasTypes) {
+            this.requiredAliasTypes.add(requiredAliasType);
+        }
+    }
+
+    /**
      * @return {@link #licenseCount}
      */
     @Column
