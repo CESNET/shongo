@@ -295,17 +295,49 @@ public class Report
         }
     }
 
+    public boolean hasUserMessage()
+    {
+        return report.getUser() != null && report.getUser().getMessage() != null;
+    }
+
+    public boolean hasDomainAdminMessage()
+    {
+        return report.getDomainAdmin() != null && report.getDomainAdmin().getMessage() != null;
+    }
+
+    public boolean hasResourceAdminMessage()
+    {
+        return report.getResourceAdmin() != null && report.getResourceAdmin().getMessage() != null;
+    }
+
+    public Collection<String> getUserMessage()
+    {
+        return processMessage(report.getUser().getMessage());
+    }
+
+    public Collection<String> getDomainAdminMessage()
+    {
+        return processMessage(report.getDomainAdmin().getMessage());
+    }
+
+    public Collection<String> getResourceAdminMessage()
+    {
+        return processMessage(report.getResourceAdmin().getMessage());
+    }
+
     public Collection<String> getMessage()
     {
-        String description = report.getDescription();
-        if (description == null) {
+        return processMessage(report.getMessage());
+    }
+
+    private Collection<String> processMessage(String message)
+    {
+        if (message == null) {
             return Collections.emptyList();
         }
-        description = Formatter.formatString(description);
+        message = Formatter.formatString(message);
 
-        //message = message.replace("<#noparse>$</#noparse>{${param.getName()}}", (${param.getValue()} == null ? "" : ${param.getValueString()}));
-
-        return new ParamReplace(description, this){
+        return new ParamReplace(message, this){
             @Override
             public String processString(String string)
             {
@@ -349,7 +381,7 @@ public class Report
 
     public String getJavaDoc()
     {
-        String description = report.getDescription();
+        String description = report.getMessage();
         if (description == null) {
             return null;
         }
@@ -421,7 +453,7 @@ public class Report
     {
         cz.cesnet.shongo.generator.xml.ReportUser reportUser = report.getUser();
         if (reportUser != null && reportUser.isVisible()) {
-            return reportUser.getVia().equals(cz.cesnet.shongo.generator.xml.ReportUserVia.API);
+            return reportUser.getVia() != null && reportUser.getVia().equals(cz.cesnet.shongo.generator.xml.ReportUserVia.API);
         }
         return false;
     }
@@ -485,22 +517,25 @@ public class Report
         return "ReportException";
     }
 
-    public boolean isVisibleToDomainAdminViaEmail()
+    public String getVisibleFlags()
     {
-        cz.cesnet.shongo.generator.xml.ReportDomainAdmin reportDomainAdmin = report.getDomainAdmin();
-        if (reportDomainAdmin != null && reportDomainAdmin.isVisible()) {
-            return reportDomainAdmin.getVia().equals(cz.cesnet.shongo.generator.xml.ReportDomainAdminVia.EMAIL);
+        StringBuilder visibleFlags = new StringBuilder();
+        if (report.getUser() != null && report.getUser().isVisible()) {
+            visibleFlags.append("VISIBLE_TO_USER");
         }
-        return false;
-    }
-
-    public boolean isVisibleToResourceAdminViaEmail()
-    {
-        cz.cesnet.shongo.generator.xml.ReportResourceAdmin reportResourceAdmin = report.getResourceAdmin();
-        if (reportResourceAdmin != null && reportResourceAdmin.isVisible()) {
-            return reportResourceAdmin.getVia().equals(cz.cesnet.shongo.generator.xml.ReportResourceAdminVia.EMAIL);
+        if (report.getDomainAdmin() != null && report.getDomainAdmin().isVisible()) {
+            if (visibleFlags.length() > 0) {
+                visibleFlags.append(" | ");
+            }
+            visibleFlags.append("VISIBLE_TO_DOMAIN_ADMIN");
         }
-        return false;
+        if (report.getResourceAdmin() != null && report.getResourceAdmin().isVisible()) {
+            if (visibleFlags.length() > 0) {
+                visibleFlags.append(" | ");
+            }
+            visibleFlags.append("VISIBLE_TO_RESOURCE_ADMIN");
+        }
+        return (visibleFlags.length() > 0 ? visibleFlags.toString() : null);
     }
 
     public String getResolution()

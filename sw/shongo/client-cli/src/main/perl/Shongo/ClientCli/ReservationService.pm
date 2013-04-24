@@ -61,6 +61,20 @@ sub populate()
                 }
             }
         },
+        'update-reservation-request' => {
+            desc => 'Allocate reservation for given reservation request (if it is in allocation failed)',
+            args => '[id]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $id (split(/,/, $args[0])) {
+                        update_reservation_request($id);
+                    }
+                } else {
+                    update_reservation_request();
+                }
+            }
+        },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
             options => 'user=s technology=s',
@@ -201,6 +215,22 @@ sub delete_reservation_request()
         'Reservation.deleteReservationRequest',
         RPC::XML::string->new($id)
     );
+}
+
+sub update_reservation_request()
+{
+    my ($id) = @_;
+    $id = select_reservation_request($id);
+    if ( !defined($id) ) {
+        return;
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'Reservation.updateReservationRequest',
+        RPC::XML::string->new($id)
+    );
+    if ( defined($response) ) {
+        console_print_info("Reservation request '$id' has been updated.");
+    }
 }
 
 sub list_reservation_requests()

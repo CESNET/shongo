@@ -241,7 +241,7 @@ public abstract class Type
         @Override
         public String getMessage(String value)
         {
-            return value + ".getReportDescription()";
+            return value + ".getReportDescription(messageType)";
         }
 
         @Override

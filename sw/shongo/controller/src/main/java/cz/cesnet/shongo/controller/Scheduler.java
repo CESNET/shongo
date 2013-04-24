@@ -11,11 +11,9 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -251,9 +249,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Get requested slot and check it's maximum duration
         Interval slot = reservationRequest.getSlot();
 
-        // Create new scheduler task
+        // Create scheduler task context
         ReservationTask.Context context = new ReservationTask.Context(reservationRequest, cache, slot, entityManager);
-        ReservationTask reservationTask = null;
 
         try {
             // Fill provided reservations to transaction
@@ -269,6 +266,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
             // Get reservation task
             Specification specification = reservationRequest.getSpecification();
+            ReservationTask reservationTask;
             if (specification instanceof ReservationTaskProvider) {
                 ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
                 reservationTask = reservationTaskProvider.createReservationTask(context);
@@ -290,8 +288,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             reservationRequestManager.update(reservationRequest);
         }
         catch (SchedulerException exception) {
+            SchedulerReport report = exception.getTopReport();
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
-            reservationRequest.addReport(exception.getTopReport());
+            reservationRequest.addReport(report);
+
+            Reporter.reportAllocationFailed(reservationRequest,
+                    report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
         }
 
         return reservation;

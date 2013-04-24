@@ -9,12 +9,14 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -85,7 +87,7 @@ public class ReservationServiceImpl extends Component
     @Override
     public Object checkSpecificationAvailability(SecurityToken token, Specification specificationApi, Interval slot)
     {
-        authorization.validate(token);
+        String userId = authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -101,7 +103,7 @@ public class ReservationServiceImpl extends Component
                     return Boolean.TRUE;
                 }
                 catch (SchedulerException exception) {
-                    return exception.getReport().getReportText();
+                    return exception.getReport().getMessageRecursive(Report.MessageType.USER);
                 }
                 catch (UnsupportedOperationException exception) {
                     cause = exception;
@@ -200,7 +202,8 @@ public class ReservationServiceImpl extends Component
         }
 
         if (!modifiable) {
-            throw new ControllerReportSet.ReservationRequestNotModifiableException(EntityIdentifier.formatId(reservationRequest));
+            throw new ControllerReportSet.ReservationRequestNotModifiableException(
+                    EntityIdentifier.formatId(reservationRequest));
         }
     }
 
@@ -273,6 +276,46 @@ public class ReservationServiceImpl extends Component
             checkModifiableReservationRequest(reservationRequest, entityManager);
 
             reservationRequestManager.delete(reservationRequest, authorizationManager);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void updateReservationRequest(SecurityToken token, String reservationRequestId)
+    {
+        String userId = authorization.validate(token);
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        try {
+            authorizationManager.beginTransaction(authorization);
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                    reservationRequestManager.getReservationRequest(entityId.getPersistenceId());
+
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("update reservation request %s", entityId);
+            }
+            if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
+                // Reservation request was modified, so we must clear it's state
+                reservationRequest.clearState();
+                // Update state
+                reservationRequest.updateStateBySpecification();
+            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

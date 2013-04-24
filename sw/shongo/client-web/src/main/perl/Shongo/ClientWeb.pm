@@ -318,6 +318,7 @@ sub fault_action
     my $message = $fault_response->string();
     if ($message =~ /^{.+}$/ ) {
         $params = decode_json($message);
+        $message = $params->{'message'};
     }
 
     my $code = $fault_response->code();

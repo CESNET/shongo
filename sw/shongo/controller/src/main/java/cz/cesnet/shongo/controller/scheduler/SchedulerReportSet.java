@@ -48,12 +48,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -83,12 +87,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(" is not allocatable.");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(" is not allocatable.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -156,12 +171,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(" is already allocated.");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(" is already allocated.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -244,14 +270,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
-            message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
+                    message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -326,12 +363,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(" is not endpoint.");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(" is not endpoint.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -399,12 +447,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(" is requested multiple times.");
+            switch (messageType) {
+                default:
+                    message.append("Resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(" is requested multiple times.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -485,11 +544,22 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("No available resource was found for the following specification: Technologies: ");
-            message.append((technologies == null ? "null" : technologies.toString()));
+            switch (messageType) {
+                default:
+                    message.append("No available resource was found for the following specification: Technologies: ");
+                    message.append((technologies == null ? "null" : technologies.toString()));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -576,12 +646,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Reusing existing ");
-            message.append((executable == null ? "null" : executable.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Reusing existing ");
+                    message.append((executable == null ? "null" : executable.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -606,10 +680,21 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Not enough endpoints are requested for the compartment.");
+            switch (messageType) {
+                default:
+                    message.append("Not enough endpoints are requested for the compartment.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -670,10 +755,21 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Cannot assign alias to allocated external endpoint.");
+            switch (messageType) {
+                default:
+                    message.append("Cannot assign alias to allocated external endpoint.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -809,16 +905,20 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Creating connection between ");
-            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
-            message.append(" and ");
-            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
-            message.append(" in technology ");
-            message.append((technology == null ? "null" : technology.toString()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Creating connection between ");
+                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
+                    message.append(" and ");
+                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
+                    message.append(" in technology ");
+                    message.append((technology == null ? "null" : technology.toString()));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -849,14 +949,18 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Creating connection from ");
-            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
-            message.append(" to ");
-            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Creating connection from ");
+                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
+                    message.append(" to ");
+                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -887,14 +991,18 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Cannot create connection from ");
-            message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription()));
-            message.append(" to ");
-            message.append((endpointTo == null ? "null" : endpointTo.getReportDescription()));
-            message.append(", because the target represents multiple endpoints (not supported yet).");
+            switch (messageType) {
+                default:
+                    message.append("Cannot create connection from ");
+                    message.append((endpointFrom == null ? "null" : endpointFrom.getReportDescription(messageType)));
+                    message.append(" to ");
+                    message.append((endpointTo == null ? "null" : endpointTo.getReportDescription(messageType)));
+                    message.append(", because the target represents multiple endpoints (not supported yet).");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -992,12 +1100,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Provided reservation ");
-            message.append((reservation == null ? "null" : reservation.getReportDescription()));
-            message.append(" is not available.");
+            switch (messageType) {
+                default:
+                    message.append("Provided reservation ");
+                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
+                    message.append(" is not available.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1065,12 +1184,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Provided reservation ");
-            message.append((reservation == null ? "null" : reservation.getReportDescription()));
-            message.append(" is not usable, because provided date/time slot doesn't contain the requested.");
+            switch (messageType) {
+                default:
+                    message.append("Provided reservation ");
+                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
+                    message.append(" is not usable, because provided date/time slot doesn't contain the requested.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1138,12 +1268,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Reusing reservation ");
-            message.append((reservation == null ? "null" : reservation.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Reusing reservation ");
+                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1186,12 +1320,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Value ");
-            message.append((value == null ? "null" : value));
-            message.append(" is already allocated.");
+            switch (messageType) {
+                default:
+                    message.append("Value ");
+                    message.append((value == null ? "null" : value));
+                    message.append(" is already allocated.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1277,12 +1422,23 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Value ");
-            message.append((value == null ? "null" : value));
-            message.append(" is invalid.");
+            switch (messageType) {
+                default:
+                    message.append("Value ");
+                    message.append((value == null ? "null" : value));
+                    message.append(" is invalid.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1350,10 +1506,21 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("No value is available.");
+            switch (messageType) {
+                default:
+                    message.append("No value is available.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1419,12 +1586,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Allocating resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1498,15 +1669,26 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating alias for the following specification: \n  Technology: ");
-            message.append(((technologies == null || technologies.isEmpty()) ? "Any" : technologies.toString()));
-            message.append(" \n  Alias Type: ");
-            message.append(((aliasTypes == null || aliasTypes.isEmpty()) ? "Any" : aliasTypes.toString()));
-            message.append(" \n       Value: ");
-            message.append((value == null ? "Any" : value));
+            switch (messageType) {
+                default:
+                    message.append("Allocating alias for the following specification: \n  Technology: ");
+                    message.append(((technologies == null || technologies.isEmpty()) ? "Any" : technologies.toString()));
+                    message.append(" \n  Alias Type: ");
+                    message.append(((aliasTypes == null || aliasTypes.isEmpty()) ? "Any" : aliasTypes.toString()));
+                    message.append(" \n       Value: ");
+                    message.append((value == null ? "Any" : value));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1536,12 +1718,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating value in resource ");
-            message.append((resource == null ? "null" : resource.getReportDescription()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Allocating value in resource ");
+                    message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1600,13 +1786,24 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating room for the following specification: \n    Technology: ");
-            message.append((technologies == null ? "null" : technologies.toString()));
-            message.append(" \n  Participants: ");
-            message.append((participantCount == null ? "null" : participantCount.toString()));
+            switch (messageType) {
+                default:
+                    message.append("Allocating room for the following specification: \n    Technology: ");
+                    message.append((technologies == null ? "null" : technologies.toString()));
+                    message.append(" \n  Participants: ");
+                    message.append((participantCount == null ? "null" : participantCount.toString()));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1631,10 +1828,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating compartment.");
+            switch (messageType) {
+                default:
+                    message.append("Allocating compartment.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1659,10 +1860,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Allocating executable.");
+            switch (messageType) {
+                default:
+                    message.append("Allocating executable.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1687,10 +1892,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Checking specification availability report.");
+            switch (messageType) {
+                default:
+                    message.append("Checking specification availability report.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1715,10 +1924,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Finding available resource.");
+            switch (messageType) {
+                default:
+                    message.append("Finding available resource.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1743,10 +1956,14 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Sorting resources.");
+            switch (messageType) {
+                default:
+                    message.append("Sorting resources.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1790,12 +2007,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Specification ");
-            message.append((specification == null ? "null" : specification.getReportDescription()));
-            message.append(" is not ready.");
+            switch (messageType) {
+                default:
+                    message.append("Specification ");
+                    message.append((specification == null ? "null" : specification.getReportDescription(messageType)));
+                    message.append(" is not ready.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1897,14 +2118,25 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Duration ");
-            message.append((duration == null ? "null" : duration.toString()));
-            message.append(" is longer than maximum ");
-            message.append((maximumDuration == null ? "null" : maximumDuration.toString()));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Duration ");
+                    message.append((duration == null ? "null" : duration.toString()));
+                    message.append(" is longer than maximum ");
+                    message.append((maximumDuration == null ? "null" : maximumDuration.toString()));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1998,12 +2230,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("The specification ");
-            message.append((specification == null ? "null" : specification.getClass().getSimpleName()));
-            message.append(" is not supposed to be allocated.");
+            switch (messageType) {
+                default:
+                    message.append("The specification ");
+                    message.append((specification == null ? "null" : specification.getClass().getSimpleName()));
+                    message.append(" is not supposed to be allocated.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -2089,12 +2325,16 @@ public class SchedulerReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("User ");
-            message.append((userId == null ? "null" : cz.cesnet.shongo.PersonInformation.Formatter.format(cz.cesnet.shongo.controller.authorization.Authorization.getInstance().getUserInformation(userId))));
-            message.append(" is not resource owner.");
+            switch (messageType) {
+                default:
+                    message.append("User ");
+                    message.append((userId == null ? "null" : cz.cesnet.shongo.PersonInformation.Formatter.format(cz.cesnet.shongo.controller.authorization.Authorization.getInstance().getUserInformation(userId))));
+                    message.append(" is not resource owner.");
+                    break;
+            }
             return message.toString();
         }
     }

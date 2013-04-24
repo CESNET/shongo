@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.report.Report;
 import junitx.framework.Assert;
 import org.joda.time.Interval;
 import org.junit.After;
@@ -396,7 +397,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public String getReportDescription()
+                        public String getReportDescription(Report.MessageType messageType)
                         {
                             return "simple endpoint";
                         }

@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -117,7 +118,7 @@ public abstract class Endpoint extends Executable
     @Transient
     public String getDescription()
     {
-        return getReportDescription();
+        return getReportDescription(Report.MessageType.DOMAIN_ADMIN);
     }
 
     /**

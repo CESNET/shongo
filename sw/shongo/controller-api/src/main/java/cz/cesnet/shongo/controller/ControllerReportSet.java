@@ -73,7 +73,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -97,14 +97,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("ACL Role ");
-            message.append((role == null ? "null" : role));
-            message.append(" is invalid for entity ");
-            message.append((entity == null ? "null" : entity));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("ACL Role ");
+                    message.append((role == null ? "null" : role));
+                    message.append(" is invalid for entity ");
+                    message.append((entity == null ? "null" : entity));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -205,7 +215,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -227,18 +237,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Invalid security token ");
-            message.append((token == null ? "null" : token));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Invalid security token ");
+                    message.append((token == null ? "null" : token));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -332,7 +346,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -354,12 +368,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("You are not authorized to ");
-            message.append((action == null ? "null" : action));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("You are not authorized to ");
+                    message.append((action == null ? "null" : action));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -485,7 +509,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -511,27 +535,25 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @Override
-        public boolean isVisibleToResourceAdminViaEmail()
-        {
-            return true;
-        }
-
-        @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Command ");
-            message.append((command == null ? "null" : command));
-            message.append(" for device ");
-            message.append((device == null ? "null" : device));
-            message.append(" failed: ");
-            message.append((jadeReport == null ? "null" : jadeReport.getReportDescription()));
+            switch (messageType) {
+                default:
+                    message.append("Command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(" for device ");
+                    message.append((device == null ? "null" : device));
+                    message.append(" failed: ");
+                    message.append((jadeReport == null ? "null" : jadeReport.getReportDescription(messageType)));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -639,7 +661,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -661,12 +683,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" is invalid.");
+            switch (messageType) {
+                default:
+                    message.append("Identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" is invalid.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -773,7 +805,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -797,14 +829,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" doesn't belong to domain ");
-            message.append((requiredDomain == null ? "null" : requiredDomain));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" doesn't belong to domain ");
+                    message.append((requiredDomain == null ? "null" : requiredDomain));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -918,7 +960,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -942,14 +984,24 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" isn't of required type ");
-            message.append((requiredType == null ? "null" : requiredType));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" isn't of required type ");
+                    message.append((requiredType == null ? "null" : requiredType));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1050,7 +1102,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1072,12 +1124,22 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Reservation request with identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" cannot be modified or deleted.");
+            switch (messageType) {
+                default:
+                    message.append("Reservation request with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" cannot be modified or deleted.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1154,7 +1216,7 @@ public class ControllerReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1174,10 +1236,20 @@ public class ControllerReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Reservation request time slot must not be empty.");
+            switch (messageType) {
+                default:
+                    message.append("Reservation request time slot must not be empty.");
+                    break;
+            }
             return message.toString();
         }
     }

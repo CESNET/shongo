@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -357,7 +358,7 @@ public class Reservation extends PersistentObject implements Reportable
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getReportDescription(Report.MessageType messageType)
     {
         return String.format("reservation '%s'", EntityIdentifier.formatId(this));
     }

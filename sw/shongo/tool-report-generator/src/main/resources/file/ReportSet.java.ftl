@@ -122,7 +122,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -149,26 +149,15 @@ public class ${scope.getClassName()} extends AbstractReportSet
             </#list>
         }
         </#if>
-        <#if report.isVisibleToDomainAdminViaEmail()>
+        <#if report.getVisibleFlags()??>
 
             <#if report.isPersistent()>
         @javax.persistence.Transient
             </#if>
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
-        }
-        </#if>
-        <#if report.isVisibleToResourceAdminViaEmail()>
-
-            <#if report.isPersistent()>
-        @javax.persistence.Transient
-            </#if>
-        @Override
-        public boolean isVisibleToResourceAdminViaEmail()
-        {
-            return true;
+            return ${report.getVisibleFlags()};
         }
         </#if>
 
@@ -176,12 +165,37 @@ public class ${scope.getClassName()} extends AbstractReportSet
         @javax.persistence.Transient
         </#if>
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
+            switch (messageType) {
+        <#if report.hasUserMessage()>
+                case USER:
+            <#list report.getUserMessage() as messageLine>
+                    message.append(${messageLine});
+            </#list>
+                    break;
+        </#if>
+        <#if report.hasDomainAdminMessage()>
+                case DOMAIN_ADMIN:
+            <#list report.getDomainAdminMessage() as messageLine>
+                    message.append(${messageLine});
+            </#list>
+                    break;
+        </#if>
+        <#if report.hasResourceAdminMessage()>
+                case RESOURCE_ADMIN:
+            <#list report.getResourceAdminMessage() as messageLine>
+                    message.append(${messageLine});
+            </#list>
+                    break;
+        </#if>
+                default:
         <#list report.getMessage() as messageLine>
-            message.append(${messageLine});
+                    message.append(${messageLine});
         </#list>
+                    break;
+            }
             return message.toString();
         }
     </#if>

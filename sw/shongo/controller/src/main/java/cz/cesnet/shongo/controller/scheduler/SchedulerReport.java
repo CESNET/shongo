@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -168,47 +168,66 @@ public abstract class SchedulerReport extends Report
      * @return formatted text and help of the {@link Report}
      */
     @Transient
-    public String getReportText()
+    public String getMessageRecursive(MessageType messageType)
     {
-        StringBuilder stringBuilder = new StringBuilder();
+        boolean isVisible = !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
 
-        boolean hasChildReports = childReports.size() > 0;
-
-        String text = getMessage();
-        stringBuilder.append("-");
-        switch (getType()) {
-            case ERROR:
-                stringBuilder.append("[ERROR] ");
-                break;
-            default:
-                break;
-        }
-        if (hasChildReports) {
-            text = text.replace("\n", String.format("\n  |%" + (stringBuilder.length() - 3) + "s", ""));
-        }
-        else {
-            text = text.replace("\n", String.format("\n%" + stringBuilder.length() + "s", ""));
-        }
-
-        stringBuilder.append(text);
-
-        if (hasChildReports) {
-            int childReportsCount = childReports.size();
-            for (int index = 0; index < childReportsCount; index++) {
-                stringBuilder.append("\n  |");
-                String childReportString = childReports.get(index).getReportText();
-                childReportString = childReportString.replace("\n",
-                        (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
-                stringBuilder.append("\n  +-");
-                stringBuilder.append(childReportString);
+        // Build message and prefix for this report
+        StringBuilder messagePrefix = new StringBuilder();
+        String message = null;
+        if (isVisible) {
+            message = getMessage(messageType);
+            messagePrefix.append("-");
+            switch (getType()) {
+                case ERROR:
+                    messagePrefix.append("[ERROR] ");
+                    break;
+                default:
+                    break;
             }
         }
-        return stringBuilder.toString();
+
+        // Build messages for child reports
+        StringBuilder childMessages = new StringBuilder();
+        int childReportsCount = childReports.size();
+        for (int index = 0; index < childReportsCount; index++) {
+            String childReportString = childReports.get(index).getMessageRecursive(messageType);
+            if (childReportString != null) {
+                if (message != null) {
+                    childMessages.append("\n  |");
+                    childMessages.append("\n  +-");
+                    childReportString = childReportString.replace("\n",
+                            (index < (childReportsCount - 1) ? "\n  | " : "\n    "));
+                }
+                else {
+                    if (childMessages.length() > 0) {
+                        childMessages.append("\n\n");
+                    }
+                }
+                childMessages.append(childReportString);
+            }
+        }
+
+        StringBuilder messageBuilder = new StringBuilder();
+        if (message != null) {
+            if (childMessages.length() > 0) {
+                message = message.replace("\n", String.format("\n  |%" + (messagePrefix.length() - 3) + "s", ""));
+            }
+            else {
+                message = message.replace("\n", String.format("\n%" + messagePrefix.length() + "s", ""));
+            }
+            messageBuilder.append(messagePrefix);
+            messageBuilder.append(message);
+        }
+        if (childMessages.length() > 0) {
+            messageBuilder.append(childMessages);
+        }
+        return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
     }
 
     @Override
     public String toString()
     {
-        return getReportText();
+        return getMessageRecursive(MessageType.DOMAIN_ADMIN);
     }
 }

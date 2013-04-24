@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -198,9 +199,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getReportDescription(Report.MessageType messageType)
     {
-        return String.format("room in %s", getDeviceResource().getReportDescription());
+        return String.format("room in %s", getDeviceResource().getReportDescription(messageType));
     }
 
     @Override

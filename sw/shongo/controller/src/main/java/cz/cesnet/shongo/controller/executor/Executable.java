@@ -4,6 +4,7 @@ import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -341,7 +342,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
             stringBuilder.append("[");
             stringBuilder.append(dateTime);
             stringBuilder.append("] ");
-            stringBuilder.append(report.getMessage());
+            stringBuilder.append(report.getMessage(Report.MessageType.USER));
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
@@ -356,7 +357,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
 
     @Transient
     @Override
-    public String getReportDescription()
+    public String getReportDescription(Report.MessageType messageType)
     {
         return String.format("executable '%s'", EntityIdentifier.formatId(this));
     }
@@ -365,7 +366,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     @Override
     public String getReportContextName()
     {
-        return "Executable " + EntityIdentifier.formatId(this);
+        return "executable " + EntityIdentifier.formatId(this);
     }
 
     @Transient

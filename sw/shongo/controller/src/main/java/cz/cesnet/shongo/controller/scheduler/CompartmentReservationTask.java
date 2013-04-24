@@ -16,6 +16,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.report.ReportException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -343,6 +344,10 @@ public class CompartmentReservationTask extends ReservationTask
             connection.setEndpointFrom(endpointFrom);
             connection.setEndpointTo(endpointTo);
             compartment.addChildExecutable(connection);
+        }
+        catch (SchedulerException exception) {
+            addReport(exception.getReport());
+            throw exception;
         }
         finally {
             endReport();

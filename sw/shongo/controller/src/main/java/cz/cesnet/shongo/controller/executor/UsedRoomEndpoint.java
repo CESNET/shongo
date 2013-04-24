@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -196,9 +197,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getReportDescription(Report.MessageType messageType)
     {
-        return roomEndpoint.getDescription();
+        return roomEndpoint.getReportDescription(messageType);
     }
 
     @Override

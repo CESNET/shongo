@@ -60,11 +60,15 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Unknown error: ");
-            message.append((description == null ? "null" : description));
+            switch (messageType) {
+                default:
+                    message.append("Unknown error: ");
+                    message.append((description == null ? "null" : description));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -163,12 +167,16 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Receiver agent ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" is not available now.");
+            switch (messageType) {
+                default:
+                    message.append("Receiver agent ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" is not available now.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -267,12 +275,16 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Sender agent ");
-            message.append((senderAgent == null ? "null" : senderAgent));
-            message.append(" is not started yet.");
+            switch (messageType) {
+                default:
+                    message.append("Sender agent ");
+                    message.append((senderAgent == null ? "null" : senderAgent));
+                    message.append(" is not started yet.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -427,13 +439,17 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Unknown error in command ");
-            message.append((command == null ? "null" : command));
-            message.append(": ");
-            message.append((description == null ? "null" : description));
+            switch (messageType) {
+                default:
+                    message.append("Unknown error in command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(": ");
+                    message.append((description == null ? "null" : description));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -537,14 +553,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Command ");
-            message.append((command == null ? "null" : command));
-            message.append(" send to ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" has timeout.");
+            switch (messageType) {
+                default:
+                    message.append("Command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(" send to ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" has timeout.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -648,14 +668,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Receiver agent ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" doesn't implement command ");
-            message.append((command == null ? "null" : command));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Receiver agent ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" doesn't implement command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -759,14 +783,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Receiver agent ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" has refused command ");
-            message.append((command == null ? "null" : command));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Receiver agent ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" has refused command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -870,14 +898,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Receiver agent ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" didn't understand command ");
-            message.append((command == null ? "null" : command));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Receiver agent ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" didn't understand command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -996,15 +1028,19 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Receiver agent ");
-            message.append((receiverAgent == null ? "null" : receiverAgent));
-            message.append(" threw CommandException while processing command ");
-            message.append((command == null ? "null" : command));
-            message.append(": ");
-            message.append((reason == null ? "null" : reason));
+            switch (messageType) {
+                default:
+                    message.append("Receiver agent ");
+                    message.append((receiverAgent == null ? "null" : receiverAgent));
+                    message.append(" threw CommandException while processing command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(": ");
+                    message.append((reason == null ? "null" : reason));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1115,14 +1151,18 @@ public class JadeReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Sender agent ");
-            message.append((senderAgent == null ? "null" : senderAgent));
-            message.append(" cannot decode response from command ");
-            message.append((command == null ? "null" : command));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Sender agent ");
+                    message.append((senderAgent == null ? "null" : senderAgent));
+                    message.append(" cannot decode response from command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }

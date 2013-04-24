@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestState;
@@ -10,6 +11,7 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
+import cz.cesnet.shongo.report.Report;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -19,7 +21,6 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a request created by an user to get allocated some resources for video conference calls.
@@ -27,7 +28,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends AbstractReservationRequest
+public class ReservationRequest extends AbstractReservationRequest implements Reporter.ReportContext
 {
     /**
      * Start date/time from which the reservation is requested.
@@ -285,7 +286,7 @@ public class ReservationRequest extends AbstractReservationRequest
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
             }
-            stringBuilder.append(report.getMessage());
+            stringBuilder.append(report.getMessageRecursive(Report.MessageType.USER));
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
@@ -371,6 +372,20 @@ public class ReservationRequest extends AbstractReservationRequest
     private boolean isReservationAllocated()
     {
         return getState().equals(State.ALLOCATED) && getReservation() != null;
+    }
+
+    @Transient
+    @Override
+    public String getReportContextName()
+    {
+        return "reservation request " + EntityIdentifier.formatId(this);
+    }
+
+    @Transient
+    @Override
+    public String getReportContextDetail()
+    {
+        return null;
     }
 
     @Override

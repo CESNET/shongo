@@ -49,8 +49,11 @@
                 <param name="description" type="String"/>
             </params>
             <description>
-                Unknown error: ${description}
+                TODO:
             </description>
+            <message>
+                Unknown error: ${description}
+            </message>
             <example>
                 TODO:
             </example>
@@ -64,8 +67,11 @@
                 <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiverAgent} is not available now.
+                TODO:
             </description>
+            <message>
+                Receiver agent ${receiverAgent} is not available now.
+            </message>
             <example>
                 TODO:
             </example>
@@ -79,8 +85,11 @@
                 <param name="senderAgent" type="String"/>
             </params>
             <description>
-                Sender agent ${senderAgent} is not started yet.
+                TODO:
             </description>
+            <message>
+                Sender agent ${senderAgent} is not started yet.
+            </message>
             <example>
                 TODO:
             </example>
@@ -94,8 +103,11 @@
                 <param name="command" type="String"/>
             </params>
             <description>
-                Abstract command error.
+                TODO:
             </description>
+            <message>
+                Abstract command error.
+            </message>
         </report>
 
         <report extends="command-abstract-error">
@@ -104,8 +116,11 @@
                 <param name="description" type="String"/>
             </params>
             <description>
-                Unknown error in command ${command}: ${description}
+                TODO:
             </description>
+            <message>
+                Unknown error in command ${command}: ${description}
+            </message>
             <example>
                 TODO:
             </example>
@@ -118,8 +133,11 @@
                 <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Command ${command} send to ${receiverAgent} has timeout.
+                TODO:
             </description>
+            <message>
+                Command ${command} send to ${receiverAgent} has timeout.
+            </message>
             <example>
                 TODO:
             </example>
@@ -132,8 +150,11 @@
                 <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiverAgent} doesn't implement command ${command}.
+                TODO:
             </description>
+            <message>
+                Receiver agent ${receiverAgent} doesn't implement command ${command}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -146,8 +167,11 @@
                 <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiverAgent} has refused command ${command}.
+                TODO:
             </description>
+            <message>
+                Receiver agent ${receiverAgent} has refused command ${command}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -160,8 +184,11 @@
                 <param name="receiverAgent" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiverAgent} didn't understand command ${command}.
+                TODO:
             </description>
+            <message>
+                Receiver agent ${receiverAgent} didn't understand command ${command}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -176,8 +203,11 @@
                 <param name="reason" type="String"/>
             </params>
             <description>
-                Receiver agent ${receiverAgent} threw CommandException while processing command ${command}: ${reason}
+                TODO:
             </description>
+            <message>
+                Receiver agent ${receiverAgent} threw CommandException while processing command ${command}: ${reason}
+            </message>
             <example>
                 TODO:
             </example>
@@ -191,8 +221,11 @@
                 <param name="senderAgent" type="String"/>
             </params>
             <description>
-                Sender agent ${senderAgent} cannot decode response from command ${command}.
+                TODO:
             </description>
+            <message>
+                Sender agent ${senderAgent} cannot decode response from command ${command}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -215,15 +248,18 @@
                 <param name="description" type="String"/>
             </params>
             <description>
-                Unknown error: ${description}
+                TODO:
             </description>
+            <message>
+                Unknown error: ${description}
+            </message>
             <example>
                 TODO:
             </example>
             <user visible="true" via="api">
-                <description>Unknown error</description>
+                <message>Unknown error.</message>
             </user>
-            <domain-admin visible="true" via="email"/>
+            <domain-admin visible="true"/>
         </report>
 
         <report>
@@ -234,8 +270,11 @@
                 <param name="value" type="String"/>
             </params>
             <description>
-                Value ${value} is illegal for type ${type}.
+                TODO:
             </description>
+            <message>
+                Value ${value} is illegal for type ${type}.
+            </message>
             <example>
                 TODO:
                 -Enum
@@ -255,8 +294,11 @@
                 <param name="class" type="String"/>
             </params>
             <description>
-                Class ${class} is not defined.
+                TODO:
             </description>
+            <message>
+                Class ${class} is not defined.
+            </message>
             <example>
                 TODO:
             </example>
@@ -270,8 +312,11 @@
                 <param name="class" type="String"/>
             </params>
             <description>
-                Class ${class} cannot be instanced.
+                TODO:
             </description>
+            <message>
+                Class ${class} cannot be instanced.
+            </message>
             <example>
                 TODO:
             </example>
@@ -286,8 +331,11 @@
                 <param name="attribute" type="String"/>
             </params>
             <description>
-                Attribute ${attribute} is not defined in class ${class}.
+                TODO:
             </description>
+            <message>
+                Attribute ${attribute} is not defined in class ${class}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -304,9 +352,12 @@
                 <param name="presentType" type="String"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 Type mismatch of value in attribute ${attribute} in class ${class}.
                 Present type ${presentType} doesn't match required type ${requiredType}.
-            </description>
+            </message>
             <example>
                 TODO:
             </example>
@@ -321,8 +372,11 @@
                 <param name="attribute" type="String"/>
             </params>
             <description>
-                Attribute ${attribute} in class ${class} wasn't present but it is required.
+                TODO:
             </description>
+            <message>
+                Attribute ${attribute} in class ${class} wasn't present but it is required.
+            </message>
             <example>
                 TODO:
             </example>
@@ -337,8 +391,11 @@
                 <param name="attribute" type="String"/>
             </params>
             <description>
-                Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.
+                TODO:
             </description>
+            <message>
+                Value for attribute ${attribute} in class ${class} was present but the attribute is read-only.
+            </message>
             <example>
                 TODO:
             </example>
@@ -353,8 +410,11 @@
                 <param name="collection" type="String"/>
             </params>
             <description>
-                Collection ${collection} in class ${class} wasn't present or was empty but it is required.
+                TODO:
             </description>
+            <message>
+                Collection ${collection} in class ${class} wasn't present or was empty but it is required.
+            </message>
             <example>
                 TODO:
             </example>
@@ -368,8 +428,11 @@
                 <param name="collection" type="String"/>
             </params>
             <description>
-                Null item cannot be present in collection ${collection}.
+                TODO:
             </description>
+            <message>
+                Null item cannot be present in collection ${collection}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -385,9 +448,12 @@
                 <param name="presentType" type="String"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 Collection ${collection} contains item of type ${presentType} which doesn't match the
                 required type ${requiredType}.
-            </description>
+            </message>
             <example>
                 TODO:
             </example>
@@ -402,8 +468,11 @@
                 <param name="id" type="String"/>
             </params>
             <description>
-                Entity ${entity} with identifier ${id} was not found.
+                TODO:
             </description>
+            <message>
+                Entity ${entity} with identifier ${id} was not found.
+            </message>
             <example>
                 TODO:
             </example>
@@ -418,8 +487,11 @@
                 <param name="reason" type="String"/>
             </params>
             <description>
-                Entity ${entity} validation failed: ${reason}
+                TODO:
             </description>
+            <message>
+                Entity ${entity} validation failed: ${reason}
+            </message>
             <example>
                 TODO:
             </example>
@@ -434,8 +506,11 @@
                 <param name="id" type="String"/>
             </params>
             <description>
-                Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.
+                TODO:
             </description>
+            <message>
+                Entity ${entity} with identifier ${id} cannot be deleted because it is still referenced.
+            </message>
             <example>
                 TODO:
             </example>
@@ -459,8 +534,11 @@
                 <param name="role" type="String"/>
             </params>
             <description>
-                ACL Role ${role} is invalid for entity ${entity}.
+                TODO:
             </description>
+            <message>
+                ACL Role ${role} is invalid for entity ${entity}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -474,13 +552,16 @@
                 <param name="token" type="String"/>
             </params>
             <description>
-                Invalid security token ${token}.
+                TODO:
             </description>
+            <message>
+                Invalid security token ${token}.
+            </message>
             <example>
                 TODO:
             </example>
             <user visible="true" via="api"/>
-            <domain-admin visible="true" via="email"/>
+            <domain-admin visible="true"/>
         </report>
 
         <report>
@@ -490,8 +571,11 @@
                 <param name="action" type="String"/>
             </params>
             <description>
-                You are not authorized to ${action}.
+                TODO:
             </description>
+            <message>
+                You are not authorized to ${action}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -507,14 +591,17 @@
                 <param name="jadeReport" type="JadeReport"/>
             </params>
             <description>
-                Command ${command} for device ${device} failed: ${jadeReport}
+                TODO:
             </description>
+            <message>
+                Command ${command} for device ${device} failed: ${jadeReport}
+            </message>
             <example>
                 TODO:
             </example>
             <user visible="true" via="api"/>
-            <domain-admin visible="true" via="email"/>
-            <resource-admin visible="true" via="email"/>
+            <domain-admin visible="true"/>
+            <resource-admin visible="true"/>
         </report>
 
         <report>
@@ -524,8 +611,11 @@
                 <param name="id" type="String"/>
             </params>
             <description>
-                Identifier ${id} is invalid.
+                TODO:
             </description>
+            <message>
+                Identifier ${id} is invalid.
+            </message>
             <example>
                 TODO:
             </example>
@@ -540,8 +630,11 @@
                 <param name="requiredDomain" type="String"/>
             </params>
             <description>
-                Identifier ${id} doesn't belong to domain ${requiredDomain}.
+                TODO:
             </description>
+            <message>
+                Identifier ${id} doesn't belong to domain ${requiredDomain}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -556,8 +649,11 @@
                 <param name="requiredType" type="String"/>
             </params>
             <description>
-                Identifier ${id} isn't of required type ${requiredType}.
+                TODO:
             </description>
+            <message>
+                Identifier ${id} isn't of required type ${requiredType}.
+            </message>
             <example>
                 TODO:
             </example>
@@ -571,8 +667,11 @@
                 <param name="id" type="String"/>
             </params>
             <description>
-                Reservation request with identifier ${id} cannot be modified or deleted.
+                TODO:
             </description>
+            <message>
+                Reservation request with identifier ${id} cannot be modified or deleted.
+            </message>
             <example>
                 TODO:
             </example>
@@ -583,8 +682,11 @@
             <id>reservation-request-empty-duration</id>
             <classification severity="error"/>
             <description>
-                Reservation request time slot must not be empty.
+                TODO:
             </description>
+            <message>
+                Reservation request time slot must not be empty.
+            </message>
             <example>
                 TODO:
             </example>
@@ -611,24 +713,35 @@
                 <param name="resource" type="Resource"/>
             </params>
             <description>
-                Resource ${resource}.
+                TODO:
             </description>
+            <message>
+                Resource ${resource}.
+            </message>
         </report>
 
         <report extends="resource">
             <id>resource-not-allocatable</id>
             <classification severity="error"/>
             <description>
-                Resource ${resource} is not allocatable.
+                TODO:
             </description>
+            <message>
+                Resource ${resource} is not allocatable.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="resource">
             <id>resource-already-allocated</id>
             <classification severity="error"/>
             <description>
-                Resource ${resource} is already allocated.
+                TODO:
             </description>
+            <message>
+                Resource ${resource} is already allocated.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="resource">
@@ -638,25 +751,37 @@
                 <param name="maxDateTime" type="DateTime"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 Resource ${resource} is not available for the requested time slot.
                 The maximum date/time for which the resource can be allocated is ${maxDateTime}.
-            </description>
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="resource">
             <id>resource-not-endpoint</id>
             <classification severity="error"/>
             <description>
-                Resource ${resource} is not endpoint.
+                TODO:
             </description>
+            <message>
+                Resource ${resource} is not endpoint.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="resource">
             <id>resource-multiple-requested</id>
             <classification severity="error"/>
             <description>
-                Resource ${resource} is requested multiple times.
+                TODO:
             </description>
+            <message>
+                Resource ${resource} is requested multiple times.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
@@ -666,9 +791,13 @@
                 <param name="technologies" type="Set" type-element="Technology"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 No available resource was found for the following specification:
                   Technologies: ${technologies}
-            </description>
+            </message>
+            <user visible="true"/>
         </report>
 
 
@@ -683,8 +812,11 @@
                 <param name="executable" type="Executable"/>
             </params>
             <description>
-                Reusing existing ${executable}.
+                TODO:
             </description>
+            <message>
+                Reusing existing ${executable}.
+            </message>
         </report>
 
 
@@ -696,16 +828,24 @@
             <id>compartment-not-enough-endpoint</id>
             <classification severity="error"/>
             <description>
-                Not enough endpoints are requested for the compartment.
+                TODO:
             </description>
+            <message>
+                Not enough endpoints are requested for the compartment.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
             <id>compartment-assign-alias-to-external-endpoint</id>
             <classification severity="error"/>
             <description>
-                Cannot assign alias to allocated external endpoint.
+                TODO:
             </description>
+            <message>
+                Cannot assign alias to allocated external endpoint.
+            </message>
+            <user visible="true"/>
         </report>
 
 
@@ -728,25 +868,34 @@
                 <param name="technology" type="Technology"/>
             </params>
             <description>
-                Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.
+                TODO:
             </description>
+            <message>
+                Creating connection between ${endpointFrom} and ${endpointTo} in technology ${technology}.
+            </message>
         </report>
 
         <report extends="connection">
             <id>connection-from-to</id>
             <classification severity="info"/>
             <description>
-                Creating connection from ${endpointFrom} to ${endpointTo}.
+                TODO:
             </description>
+            <message>
+                Creating connection from ${endpointFrom} to ${endpointTo}.
+            </message>
         </report>
 
         <report extends="connection">
             <id>connection-to-multiple</id>
             <classification severity="error"/>
             <description>
+                TODO:
+            </description>
+            <message>
                 Cannot create connection from ${endpointFrom} to ${endpointTo},
                 because the target represents multiple endpoints (not supported yet).
-            </description>
+            </message>
         </report>
 
 
@@ -765,25 +914,36 @@
             <id>reservation-not-available</id>
             <classification severity="error"/>
             <description>
-                Provided reservation ${reservation} is not available.
+                TODO:
             </description>
+            <message>
+                Provided reservation ${reservation} is not available.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="reservation">
             <id>reservation-not-usable</id>
             <classification severity="error"/>
             <description>
+                TODO:
+            </description>
+            <message>
                 Provided reservation ${reservation} is not usable,
                 because provided date/time slot doesn't contain the requested.
-            </description>
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="reservation">
             <id>reservation-reusing</id>
             <classification severity="info"/>
             <description>
-                Reusing reservation ${reservation}.
+                TODO:
             </description>
+            <message>
+                Reusing reservation ${reservation}.
+            </message>
         </report>
 
 
@@ -798,8 +958,12 @@
                 <param name="value" type="String"/>
             </params>
             <description>
-                Value ${value} is already allocated.
+                TODO:
             </description>
+            <message>
+                Value ${value} is already allocated.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
@@ -809,16 +973,24 @@
                 <param name="value" type="String"/>
             </params>
             <description>
-                Value ${value} is invalid.
+                TODO:
             </description>
+            <message>
+                Value ${value} is invalid.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
             <id>value-not-available</id>
             <classification severity="error"/>
             <description>
-                No value is available.
+                TODO:
             </description>
+            <message>
+                No value is available.
+            </message>
+            <user visible="true"/>
         </report>
 
 
@@ -830,8 +1002,11 @@
             <id>allocating-resource</id>
             <classification severity="info"/>
             <description>
-                Allocating resource ${resource}.
+                TODO:
             </description>
+            <message>
+                Allocating resource ${resource}.
+            </message>
         </report>
 
         <report>
@@ -843,19 +1018,26 @@
                 <param name="value" type="String"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 Allocating alias for the following specification:
                 \n  Technology: ${ifNull(technologies, "Any")}
                 \n  Alias Type: ${ifNull(aliasTypes, "Any")}
                 \n       Value: ${ifNull(value, "Any")}
-            </description>
+            </message>
+            <user visible="true"/>
         </report>
 
         <report extends="resource">
             <id>allocating-value</id>
             <classification severity="info"/>
             <description>
-                Allocating value in resource ${resource}.
+                TODO:
             </description>
+            <message>
+                Allocating value in resource ${resource}.
+            </message>
         </report>
 
         <report>
@@ -866,26 +1048,36 @@
                 <param name="participantCount" type="Integer"/>
             </params>
             <description>
+                TODO:
+            </description>
+            <message>
                 Allocating room for the following specification:
                 \n    Technology: ${technologies}
                 \n  Participants: ${participantCount}
-            </description>
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
             <id>allocating-compartment</id>
             <classification severity="info"/>
             <description>
-                Allocating compartment.
+                TODO:
             </description>
+            <message>
+                Allocating compartment.
+            </message>
         </report>
 
         <report>
             <id>allocating-executable</id>
             <classification severity="info"/>
             <description>
-                Allocating executable.
+                TODO:
             </description>
+            <message>
+                Allocating executable.
+            </message>
         </report>
 
 
@@ -897,24 +1089,33 @@
             <id>specification-checking-availability</id>
             <classification severity="info"/>
             <description>
-                Checking specification availability report.
+                TODO:
             </description>
+            <message>
+                Checking specification availability report.
+            </message>
         </report>
 
         <report>
             <id>finding-available-resource</id>
             <classification severity="info"/>
             <description>
-                Finding available resource.
+                TODO:
             </description>
+            <message>
+                Finding available resource.
+            </message>
         </report>
 
         <report>
             <id>sorting-resources</id>
             <classification severity="info"/>
             <description>
-                Sorting resources.
+                TODO:
             </description>
+            <message>
+                Sorting resources.
+            </message>
         </report>
 
 
@@ -929,8 +1130,11 @@
                 <param name="specification" type="Specification"/>
             </params>
             <description>
-                Specification ${specification} is not ready.
+                TODO:
             </description>
+            <message>
+                Specification ${specification} is not ready.
+            </message>
         </report>
 
         <report>
@@ -941,8 +1145,12 @@
                 <param name="maximumDuration" type="Period"/>
             </params>
             <description>
-                Duration ${duration} is longer than maximum ${maximumDuration}.
+                TODO:
             </description>
+            <message>
+                Duration ${duration} is longer than maximum ${maximumDuration}.
+            </message>
+            <user visible="true"/>
         </report>
 
         <report>
@@ -952,8 +1160,11 @@
                 <param name="specification" type="Specification"/>
             </params>
             <description>
-                The specification ${className(specification)} is not supposed to be allocated.
+                TODO:
             </description>
+            <message>
+                The specification ${className(specification)} is not supposed to be allocated.
+            </message>
         </report>
 
         <report>
@@ -963,8 +1174,11 @@
                 <param name="userId" type="String"/>
             </params>
             <description>
-                User ${user(userId)} is not resource owner.
+                TODO:
             </description>
+            <message>
+                User ${user(userId)} is not resource owner.
+            </message>
         </report>
 
     </scope>
@@ -983,12 +1197,15 @@
                 <param name="jadeReport" type="JadeReport"/>
             </params>
             <description>
-                Command ${command} failed: ${jadeReport}
+                TODO:
             </description>
+            <message>
+                Command ${command} failed: ${jadeReport}
+            </message>
             <example>
             </example>
-            <domain-admin visible="true" via="email"/>
-            <resource-admin visible="true" via="email"/>
+            <domain-admin visible="true"/>
+            <resource-admin visible="true"/>
             <resolution param="jadeReport"/>
         </report>
 
@@ -999,12 +1216,15 @@
                 <param name="roomName" type="String"/>
             </params>
             <description>
-                Cannot modify room ${roomName}, because it has not been started yet.
+                TODO:
             </description>
+            <message>
+                Cannot modify room ${roomName}, because it has not been started yet.
+            </message>
             <example>
             </example>
-            <domain-admin visible="true" via="email"/>
-            <resource-admin visible="true" via="email"/>
+            <domain-admin visible="true"/>
+            <resource-admin visible="true"/>
             <resolution>try-again</resolution>
         </report>
 

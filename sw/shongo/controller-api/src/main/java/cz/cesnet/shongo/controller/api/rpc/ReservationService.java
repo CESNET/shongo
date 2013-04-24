@@ -56,6 +56,15 @@ public interface ReservationService extends Service
     public void deleteReservationRequest(SecurityToken token, String reservationRequestId);
 
     /**
+     * Try to allocate reservation for given {@link ReservationRequest} (e.g., if it is in allocation failed state).
+     *
+     * @param token        token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the {@link ReservationRequest}
+     */
+    @API
+    public void updateReservationRequest(SecurityToken token, String reservationRequestId);
+
+    /**
      * Lists all the reservation requests.
      *
      * @param token  token of the user requesting the operation

@@ -69,27 +69,24 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
+            return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public boolean isVisibleToResourceAdminViaEmail()
-        {
-            return true;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Command ");
-            message.append((command == null ? "null" : command));
-            message.append(" failed: ");
-            message.append((jadeReport == null ? "null" : jadeReport.getReportDescription()));
+            switch (messageType) {
+                default:
+                    message.append("Command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(" failed: ");
+                    message.append((jadeReport == null ? "null" : jadeReport.getReportDescription(messageType)));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -189,26 +186,23 @@ public class ExecutorReportSet extends AbstractReportSet
 
         @javax.persistence.Transient
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
+            return VISIBLE_TO_DOMAIN_ADMIN | VISIBLE_TO_RESOURCE_ADMIN;
         }
 
         @javax.persistence.Transient
         @Override
-        public boolean isVisibleToResourceAdminViaEmail()
-        {
-            return true;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Cannot modify room ");
-            message.append((roomName == null ? "null" : roomName));
-            message.append(", because it has not been started yet.");
+            switch (messageType) {
+                default:
+                    message.append("Cannot modify room ");
+                    message.append((roomName == null ? "null" : roomName));
+                    message.append(", because it has not been started yet.");
+                    break;
+            }
             return message.toString();
         }
     }

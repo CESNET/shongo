@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,22 +50,21 @@ public class Reporter
         if (reportContext != null) {
             name = reportContext.getReportContextName() + ": " + name;
         }
-        String message = report.getMessage();
-
+        String domainAdminMessage = report.getMessage(Report.MessageType.DOMAIN_ADMIN);
         if (report.getType().equals(Report.Type.ERROR)) {
-            logger.error(name + ": " + message, throwable);
+            logger.error(name + ": " + domainAdminMessage, throwable);
         }
         else if (report.getType().equals(Report.Type.WARNING)) {
-            logger.warn(name + ": " + message, throwable);
+            logger.warn(name + ": " + domainAdminMessage, throwable);
         }
         else if (report.getType().equals(Report.Type.INFORMATION)) {
-            logger.info(name + ": " + message, throwable);
+            logger.info(name + ": " + domainAdminMessage, throwable);
         }
         else {
-            logger.debug(name + ": " + message, throwable);
+            logger.debug(name + ": " + domainAdminMessage, throwable);
         }
 
-        if (report.isVisibleToDomainAdminViaEmail() || report.isVisibleToResourceAdminViaEmail()) {
+        if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN | Report.VISIBLE_TO_RESOURCE_ADMIN)) {
             // Get resource which is referenced by report
             Resource resource = null;
             EntityManager entityManager = null;
@@ -86,16 +86,15 @@ public class Reporter
                 resource = resourceContext.getResource();
             }
 
-            String administratorEmailContent = getAdministratorEmailContent(message, reportContext, resource, throwable);
-
             Set<String> domainAdministratorEmails = new HashSet<String>();
-            if (report.isVisibleToDomainAdminViaEmail()) {
+            if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN)) {
                 domainAdministratorEmails.addAll(getAdministratorEmails());
-                sendReportEmail(domainAdministratorEmails, name, administratorEmailContent);
+                sendReportEmail(domainAdministratorEmails, name,
+                        getAdministratorEmailContent(domainAdminMessage, reportContext, resource, throwable));
             }
 
             Set<String> resourceAdministratorEmails = new HashSet<String>();
-            if (report.isVisibleToResourceAdminViaEmail() && resource != null) {
+            if (report.isVisible(Report.VISIBLE_TO_RESOURCE_ADMIN) && resource != null) {
                 for (Person resourceAdministrator : resource.getAdministrators()) {
                     String resourceAdministratorEmail = resourceAdministrator.getInformation().getPrimaryEmail();
                     if (!domainAdministratorEmails.contains(resourceAdministratorEmail)) {
@@ -103,7 +102,9 @@ public class Reporter
                     }
                 }
                 if (resourceAdministratorEmails.size() > 0) {
-                    sendReportEmail(resourceAdministratorEmails, name, administratorEmailContent);
+                    String resourceAdminMessage = report.getMessage(Report.MessageType.RESOURCE_ADMIN);
+                    sendReportEmail(resourceAdministratorEmails, name,
+                            getAdministratorEmailContent(resourceAdminMessage, reportContext, resource, throwable));
                 }
             }
             if (entityManager != null) {
@@ -162,6 +163,24 @@ public class Reporter
         logger.error(name + ": " + message, throwable);
         sendReportEmail(getAdministratorEmails(), name,
                 getAdministratorEmailContent(message, reportContext, null, throwable));
+    }
+
+    /**
+     * Report internal error.
+     *
+     * @param reportContext
+     * @param message
+     */
+    public static void reportAllocationFailed(ReportContext reportContext, String message)
+    {
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append("Allocation of ");
+        nameBuilder.append(reportContext.getReportContextName());
+        nameBuilder.append(" failed");
+        String name = nameBuilder.toString();
+        logger.error(name);
+        sendReportEmail(getAdministratorEmails(), name,
+                getAdministratorEmailContent(message, reportContext, null, null));
     }
 
     /**

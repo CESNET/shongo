@@ -22,26 +22,34 @@ public abstract class Report implements Reportable
     public abstract Type getType();
 
     /**
-     * @return report message
+     * @param messageType
+     * @return report message of given {@code messageType}
      */
-    public abstract String getMessage();
+    public abstract String getMessage(MessageType messageType);
 
     /**
-     * @return true whether this {@link Report} should be sent to domain administrator by email,
-     *         false otherwise
+     * @return {@link MessageType#DOMAIN_ADMIN} report message
      */
-    public boolean isVisibleToDomainAdminViaEmail()
+    public final String getMessage()
     {
-        return false;
+        return getMessage(Report.MessageType.DOMAIN_ADMIN);
     }
 
     /**
-     * @return true whether this {@link Report} should be sent to resource administrator by email,
-     *         false otherwise
+     * @return visibility flags (e.g., {@link #VISIBLE_TO_USER}, {@link #VISIBLE_TO_DOMAIN_ADMIN})
      */
-    public boolean isVisibleToResourceAdminViaEmail()
+    protected int getVisibleFlags()
     {
-        return false;
+        return 0;
+    }
+
+    /**
+     * @param visibleFlags
+     * @return true whether this {@link Report} contains given {@code visibleFlags}
+     */
+    public final boolean isVisible(int visibleFlags)
+    {
+        return (getVisibleFlags() & visibleFlags) == visibleFlags;
     }
 
     /**
@@ -59,9 +67,34 @@ public abstract class Report implements Reportable
     }
 
     @Override
-    public String getReportDescription()
+    public String getReportDescription(MessageType messageType)
     {
-        return getMessage();
+        return getMessage(messageType);
+    }
+
+    public static final int VISIBLE_TO_USER = 1;
+    public static final int VISIBLE_TO_DOMAIN_ADMIN = 2;
+    public static final int VISIBLE_TO_RESOURCE_ADMIN = 4;
+
+    /**
+     * Enumeration of all possible message types.
+     */
+    public static enum MessageType
+    {
+        /**
+         * Message for normal user.
+         */
+        USER,
+
+        /**
+         * Message for domain administrator.
+         */
+        DOMAIN_ADMIN,
+
+        /**
+         * Message for resource administrator.
+         */
+        RESOURCE_ADMIN
     }
 
     /**

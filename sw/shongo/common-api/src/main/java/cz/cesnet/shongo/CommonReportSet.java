@@ -65,7 +65,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -87,17 +87,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public boolean isVisibleToDomainAdminViaEmail()
+        protected int getVisibleFlags()
         {
-            return true;
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
         }
 
         @Override
-        public String getMessage()
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Unknown error: ");
-            message.append((description == null ? "null" : description));
+            switch (messageType) {
+                case USER:
+                    message.append("Unknown error.");
+                    break;
+                default:
+                    message.append("Unknown error: ");
+                    message.append((description == null ? "null" : description));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -204,7 +211,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -228,14 +235,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Value ");
-            message.append((value == null ? "null" : value));
-            message.append(" is illegal for type ");
-            message.append((typeName == null ? "null" : typeName));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Value ");
+                    message.append((value == null ? "null" : value));
+                    message.append(" is illegal for type ");
+                    message.append((typeName == null ? "null" : typeName));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -336,7 +353,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -358,12 +375,22 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Class ");
-            message.append((className == null ? "null" : className));
-            message.append(" is not defined.");
+            switch (messageType) {
+                default:
+                    message.append("Class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(" is not defined.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -457,7 +484,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -479,12 +506,22 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Class ");
-            message.append((className == null ? "null" : className));
-            message.append(" cannot be instanced.");
+            switch (messageType) {
+                default:
+                    message.append("Class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(" cannot be instanced.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -591,7 +628,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -615,14 +652,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Attribute ");
-            message.append((attribute == null ? "null" : attribute));
-            message.append(" is not defined in class ");
-            message.append((className == null ? "null" : className));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Attribute ");
+                    message.append((attribute == null ? "null" : attribute));
+                    message.append(" is not defined in class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -762,7 +809,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -790,18 +837,28 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Type mismatch of value in attribute ");
-            message.append((attribute == null ? "null" : attribute));
-            message.append(" in class ");
-            message.append((className == null ? "null" : className));
-            message.append(". Present type ");
-            message.append((presentType == null ? "null" : presentType));
-            message.append(" doesn't match required type ");
-            message.append((requiredType == null ? "null" : requiredType));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Type mismatch of value in attribute ");
+                    message.append((attribute == null ? "null" : attribute));
+                    message.append(" in class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(". Present type ");
+                    message.append((presentType == null ? "null" : presentType));
+                    message.append(" doesn't match required type ");
+                    message.append((requiredType == null ? "null" : requiredType));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -929,7 +986,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -953,14 +1010,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Attribute ");
-            message.append((attribute == null ? "null" : attribute));
-            message.append(" in class ");
-            message.append((className == null ? "null" : className));
-            message.append(" wasn't present but it is required.");
+            switch (messageType) {
+                default:
+                    message.append("Attribute ");
+                    message.append((attribute == null ? "null" : attribute));
+                    message.append(" in class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(" wasn't present but it is required.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1074,7 +1141,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1098,14 +1165,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Value for attribute ");
-            message.append((attribute == null ? "null" : attribute));
-            message.append(" in class ");
-            message.append((className == null ? "null" : className));
-            message.append(" was present but the attribute is read-only.");
+            switch (messageType) {
+                default:
+                    message.append("Value for attribute ");
+                    message.append((attribute == null ? "null" : attribute));
+                    message.append(" in class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(" was present but the attribute is read-only.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1219,7 +1296,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1243,14 +1320,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Collection ");
-            message.append((collection == null ? "null" : collection));
-            message.append(" in class ");
-            message.append((className == null ? "null" : className));
-            message.append(" wasn't present or was empty but it is required.");
+            switch (messageType) {
+                default:
+                    message.append("Collection ");
+                    message.append((collection == null ? "null" : collection));
+                    message.append(" in class ");
+                    message.append((className == null ? "null" : className));
+                    message.append(" wasn't present or was empty but it is required.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1351,7 +1438,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1373,12 +1460,22 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Null item cannot be present in collection ");
-            message.append((collection == null ? "null" : collection));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Null item cannot be present in collection ");
+                    message.append((collection == null ? "null" : collection));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1498,7 +1595,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1524,16 +1621,26 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Collection ");
-            message.append((collection == null ? "null" : collection));
-            message.append(" contains item of type ");
-            message.append((presentType == null ? "null" : presentType));
-            message.append(" which doesn't match the required type ");
-            message.append((requiredType == null ? "null" : requiredType));
-            message.append(".");
+            switch (messageType) {
+                default:
+                    message.append("Collection ");
+                    message.append((collection == null ? "null" : collection));
+                    message.append(" contains item of type ");
+                    message.append((presentType == null ? "null" : presentType));
+                    message.append(" which doesn't match the required type ");
+                    message.append((requiredType == null ? "null" : requiredType));
+                    message.append(".");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1654,7 +1761,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1678,14 +1785,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Entity ");
-            message.append((entity == null ? "null" : entity));
-            message.append(" with identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" was not found.");
+            switch (messageType) {
+                default:
+                    message.append("Entity ");
+                    message.append((entity == null ? "null" : entity));
+                    message.append(" with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" was not found.");
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1799,7 +1916,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1823,13 +1940,23 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Entity ");
-            message.append((entity == null ? "null" : entity));
-            message.append(" validation failed: ");
-            message.append((reason == null ? "null" : reason));
+            switch (messageType) {
+                default:
+                    message.append("Entity ");
+                    message.append((entity == null ? "null" : entity));
+                    message.append(" validation failed: ");
+                    message.append((reason == null ? "null" : reason));
+                    break;
+            }
             return message.toString();
         }
     }
@@ -1943,7 +2070,7 @@ public class CommonReportSet extends AbstractReportSet
         @Override
         public String getFaultString()
         {
-            return getMessage();
+            return getMessage(MessageType.USER);
         }
 
         @Override
@@ -1967,14 +2094,24 @@ public class CommonReportSet extends AbstractReportSet
         }
 
         @Override
-        public String getMessage()
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
         {
             StringBuilder message = new StringBuilder();
-            message.append("Entity ");
-            message.append((entity == null ? "null" : entity));
-            message.append(" with identifier ");
-            message.append((id == null ? "null" : id));
-            message.append(" cannot be deleted because it is still referenced.");
+            switch (messageType) {
+                default:
+                    message.append("Entity ");
+                    message.append((entity == null ? "null" : entity));
+                    message.append(" with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" cannot be deleted because it is still referenced.");
+                    break;
+            }
             return message.toString();
         }
     }

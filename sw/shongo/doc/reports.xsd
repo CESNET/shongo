@@ -89,6 +89,7 @@
     <xs:complexType name="report-user">
         <xs:sequence>
             <xs:element name="description" type="xs:string" minOccurs="0"/>
+            <xs:element name="message" type="xs:string" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="visible" type="xs:boolean"/>
         <xs:attribute name="via" type="report-user-via"/>
@@ -103,31 +104,18 @@
     <xs:complexType name="report-domain-admin">
         <xs:sequence>
             <xs:element name="description" type="xs:string" minOccurs="0"/>
-            <xs:element name="log" type="xs:string" minOccurs="0"/>
+            <xs:element name="message" type="xs:string" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="visible" type="xs:boolean"/>
-        <xs:attribute name="via" type="report-domain-admin-via"/>
     </xs:complexType>
-
-    <xs:simpleType name="report-domain-admin-via">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="email"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:complexType name="report-resource-admin">
         <xs:sequence>
             <xs:element name="description" type="xs:string" minOccurs="0"/>
+            <xs:element name="message" type="xs:string" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="visible" type="xs:boolean"/>
-        <xs:attribute name="via" type="report-resource-admin-via"/>
     </xs:complexType>
-
-    <xs:simpleType name="report-resource-admin-via">
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="email"/>
-        </xs:restriction>
-    </xs:simpleType>
 
     <xs:simpleType name="report-resolution-enum">
         <xs:union>
@@ -197,6 +185,13 @@
                 <xs:annotation>
                     <xs:documentation>
                         String description of the report which can contain "${parameter}" variables.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="message" type="xs:string" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        Message which will be displayed to users which can contain "${parameter}" variables.
                     </xs:documentation>
                 </xs:annotation>
             </xs:element>

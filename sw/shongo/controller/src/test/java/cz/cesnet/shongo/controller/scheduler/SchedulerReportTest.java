@@ -3,12 +3,14 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Before;
@@ -81,6 +83,7 @@ public class SchedulerReportTest
         print(cache, roomSpecification2);
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.setCallInitiation(CallInitiation.VIRTUAL_ROOM);
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323));
         print(cache, compartmentSpecification);
@@ -118,7 +121,7 @@ public class SchedulerReportTest
             builder.append(reservationTask.getClass().getSimpleName() + " reports:\n");
             builder.append("\n");
             for (SchedulerReport report : reservationTask.getReports()) {
-                builder.append(report.toString());
+                builder.append(report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
                 builder.append("\n");
             }
             builder.append("\n");
@@ -131,7 +134,7 @@ public class SchedulerReportTest
             builder.append("\n");
             builder.append(reservationTask.getClass().getSimpleName() + " error report:\n");
             builder.append("\n");
-            builder.append(exception.getMessage());
+            builder.append(exception.getTopReport().getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
             builder.append("\n");
             System.err.print(builder.toString());
             System.err.flush();

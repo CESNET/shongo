@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.*;
@@ -261,7 +262,7 @@ public class DeviceResource extends Resource
 
     @Override
     @Transient
-    public String getReportDescription()
+    public String getReportDescription(Report.MessageType messageType)
     {
         return String.format("device resource '%s'", EntityIdentifier.formatId(this));
     }
