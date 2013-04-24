@@ -222,11 +222,22 @@ public abstract class SchedulerReport extends Report
         return (messageBuilder.length() > 0 ? messageBuilder.toString() : null);
     }
 
+    /**
+     * @param messageType
+     * @return true if the {@link SchedulerReport} is visible in message of given {@code messageType},
+     *         false otherwise
+     */
     public boolean getMessageRecursiveVisible(MessageType messageType)
     {
         return !messageType.equals(MessageType.USER) || isVisible(VISIBLE_TO_USER);
     }
 
+    /**
+     * Add all visible child {@link SchedulerReport}s to given {@code childReports}.
+     *
+     * @param messageType for the visibility check
+     * @param childReports where all child reports should be added
+     */
     public void getMessageRecursiveChildren(MessageType messageType, Collection<SchedulerReport> childReports)
     {
         for (SchedulerReport childReport : this.childReports) {

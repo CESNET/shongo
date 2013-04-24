@@ -42,12 +42,38 @@ sub console_print_text
     if ( ref($text) eq 'HASH' && exists $text->{'to_string'} ) {
         $text = $text->{'to_string'}();
     }
-    elsif( ref($text) ) {
-        $text = $text->to_string();
+    elsif ( ref($text) eq 'ARRAY' ) {
+        if ( Shongo::ClientCli::is_scripting() ) {
+            $text = JSON->new()->pretty->encode($text);
+        }
+        else {
+            my $index = 0;
+            foreach my $item (@{$text}) {
+                $index++;
+                if ( ref($item) ) {
+                    $item = $item->to_string();
+                }
+                printf(" %d) %s\n", $index, text_indent_lines($item, 4, 0));
+            }
+            return;
+        }
     }
-    $text =~ s/\n *$//g;
-    $text = text_indent_lines($text, 1, 1);
-    printf("\n%s\n\n", $text);
+    elsif( ref($text) ) {
+        if ( Shongo::ClientCli::is_scripting() ) {
+            $text = JSON->new()->pretty->encode($text->to_hash());
+        }
+        else {
+            $text = $text->to_string();
+        }
+    }
+    if ( Shongo::ClientCli::is_scripting() ) {
+        printf("%s", $text);
+    }
+    else {
+        $text =~ s/\n *$//g;
+        $text = text_indent_lines($text, 1, 1);
+        printf("\n%s\n\n", $text);
+    }
 }
 
 #
@@ -111,25 +137,68 @@ sub console_print_error
 sub console_print_table
 {
     my ($table, $indent) = @_;
-    my $string = '';
-    $string .= $table->rule( '-', '+');
-    $string .= $table->title;
-    $string .= $table->rule( '-', '+');
-    if ( !defined($table->body) || $table->body eq '' ) {
-        my $empty_text = ' -- None -- ';
-        my $width = $table->width() - 2 - length($empty_text);
-        my $left = $width / 2;
-        my $right = $width / 2 + ($width % 2);
-        $string .= sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, '');
-        $string .= $table->rule( '-', '+');
-    } else {
-        $string .= $table->body;
-        $string .= $table->rule( '-', '+');
+    if ( Shongo::ClientCli::is_scripting() ) {
+        my $data = [];
+        foreach my $data_item (@{$table->{'data'}}) {
+            my $new_data_item = {};
+            foreach my $key (keys %{$data_item}) {
+                my $value = $data_item->{$key};
+                if ( ref($value) eq 'ARRAY' && scalar(@{$value}) >= 1 ) {
+                    $value = $value->[0];
+                }
+                $new_data_item->{$key} = $value;
+            }
+            push(@{$data}, $new_data_item);
+        }
+        print JSON->new()->pretty->encode($data);
     }
-    if ( defined($indent) ) {
-        $string = text_indent_lines($string, $indent);
+    else {
+        my $string = '';
+
+        # Create text table with columns
+        my @text_table_columns = (\'| ');
+        foreach my $column (@{$table->{'columns'}}) {
+            if ( scalar(@text_table_columns) > 1 ) {
+                push(@text_table_columns, \' | ');
+            }
+            push(@text_table_columns, $column->{'title'});
+        }
+        push(@text_table_columns, \' |');
+        my $text_table = Text::Table->new(@text_table_columns);
+
+        # Fill text table with data
+        foreach my $data_item (@{$table->{'data'}}) {
+            my @text_table_row = ();
+            foreach my $column (@{$table->{'columns'}}) {
+                my $value = $data_item->{$column->{'field'}};
+                if ( ref($value) eq 'ARRAY' && scalar(@{$value}) >= 2 ) {
+                    $value = $value->[1];
+                }
+                push(@text_table_row, $value);
+            }
+            $text_table->add(@text_table_row);
+        }
+
+        # Print table
+        $string .= $text_table->rule( '-', '+');
+        $string .= $text_table->title;
+        $string .= $text_table->rule( '-', '+');
+        if ( !defined($text_table->body) || $text_table->body eq '' ) {
+            my $empty_text = ' -- None -- ';
+            my $width = $text_table->width() - 2 - length($empty_text);
+            my $left = $width / 2;
+            my $right = $width / 2 + ($width % 2);
+            $string .= sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, '');
+            $string .= $text_table->rule( '-', '+');
+        } else {
+            $string .= $text_table->body;
+            $string .= $text_table->rule( '-', '+');
+        }
+        if ( defined($indent) ) {
+            $string = text_indent_lines($string, $indent);
+        }
+        print $string;
     }
-    print $string;
 }
 
 #

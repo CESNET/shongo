@@ -808,7 +808,17 @@ sub resource_list_rooms
     if ( !defined($response) ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Alias', \' | ', 'Start date/time', \' |');
+
+    my $table = {
+        'columns' => [
+            {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'name', 'title' => 'Name'},
+            {'field' => 'description', 'title' => 'Description'},
+            {'field' => 'alias', 'title' => 'Alias'},
+            {'field' => 'startDateTime', 'title' => 'Start date/time'},
+        ],
+        'data' => []
+    };
     foreach my $room (@{$response}) {
         my $name = $room->{'name'};
         if ( defined($name) && length($name) > $MAX_ROOM_NAME_LENGTH ) {
@@ -818,13 +828,13 @@ sub resource_list_rooms
         if ( defined($description) && length($description) > $MAX_ROOM_DESCRIPTION_LENGTH ) {
             $description = substr($description, 0, $MAX_ROOM_DESCRIPTION_LENGTH - 2) . '...';
         }
-        $table->add(
-            $room->{'id'},
-            $name,
-            $description,
-            $room->{'alias'},
-            datetime_format($room->{'startDateTime'})
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $room->{'id'},
+            'name' => [$room->{'name'}, $name],
+            'description' => [$room->{'description'}, $description],
+            'alias' => $room->{'alias'},
+            'startDateTime' => [$room->{'startDateTime'}, datetime_format($room->{'startDateTime'})]
+        });
     }
     console_print_table($table);
 }
@@ -841,14 +851,21 @@ sub resource_list_participants
     if ( !defined($response) ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' |');
+    my $table = {
+        'columns' => [
+            {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'name', 'title' => 'Name'},
+            {'field' => 'joinTime', 'title' => 'Join Time'},
+        ],
+        'data' => []
+    };
     # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $roomUser (@{$response}) {
-        $table->add(
-            $roomUser->{'userId'},
-            $roomUser->{'displayName'},
-            datetime_format($roomUser->{'joinTime'})
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $roomUser->{'userId'},
+            'name' => $roomUser->{'displayName'},
+            'joinTime' => [$roomUser->{'joinTime'}, datetime_format($roomUser->{'joinTime'})]
+        });
     }
     console_print_table($table);
 }

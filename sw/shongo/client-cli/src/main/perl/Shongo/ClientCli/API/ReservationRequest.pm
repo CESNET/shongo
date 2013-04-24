@@ -67,7 +67,6 @@ sub new()
         },
         'read-only' => 1
     });
-    $self->add_attribute_preserve('stateReport');
 
     return $self;
 }

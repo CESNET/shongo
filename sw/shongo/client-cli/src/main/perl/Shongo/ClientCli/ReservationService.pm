@@ -252,32 +252,35 @@ sub list_reservation_requests()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(
-        \'| ', 'Identifier',
-        \' | ', 'User',
-        \' | ', 'Created',
-        \' | ', 'Type',
-        \' | ', 'Description',
-        \' | ', 'Earliest Slot', \' |'
-    );
     my $Type = {
         'ReservationRequestSummary.ResourceType' => 'Resource',
         'ReservationRequestSummary.RoomType' => 'Room',
         'ReservationRequestSummary.AliasType' => 'Alias'
+    };
+    my $table = {
+        'columns' => [
+            {'field' => 'id',          'title' => 'Identifier'},
+            {'field' => 'user',        'title' => 'User'},
+            {'field' => 'created',     'title' => 'Created'},
+            {'field' => 'type',        'title' => 'Type'},
+            {'field' => 'description', 'title' => 'Description'},
+            {'field' => 'slot',        'title' => 'Earliest Slot'},
+        ],
+        'data' => []
     };
     foreach my $reservation_request (@{$response}) {
         my $type = 'Other';
         if ( defined($reservation_request->{'type'}) && defined($reservation_request->{'type'}->{'class'}) ) {
             $type = $Type->{$reservation_request->{'type'}->{'class'}};
         }
-        $table->add(
-            $reservation_request->{'id'},
-            $application->format_user($reservation_request->{'userId'}),
-            datetime_format($reservation_request->{'created'}),
-            $type,
-            $reservation_request->{'description'},
-            interval_format($reservation_request->{'earliestSlot'})
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $reservation_request->{'id'},
+            'user' => [$reservation_request->{'userId'}, $application->format_user($reservation_request->{'userId'})],
+            'created' => [$reservation_request->{'created'}, datetime_format($reservation_request->{'created'})],
+            'type' => [$reservation_request->{'type'}, $type],
+            'description' => $reservation_request->{'description'},
+            'slot' => [$reservation_request->{'earliestSlot'}, interval_format($reservation_request->{'earliestSlot'})]
+        });
     }
     console_print_table($table);
 }
@@ -296,7 +299,7 @@ sub get_reservation_request()
     if ( defined($response) ) {
         my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($response);
         if ( defined($reservation_request) ) {
-            console_print_text($reservation_request->to_string());
+            console_print_text($reservation_request);
         }
     }
 }
@@ -317,14 +320,21 @@ sub get_reservation_for_request()
     if (get_collection_size($response) == 0) {
         return;
     }
-    print("\n");
-    my $index = 0;
-    foreach my $reservationXml (@{$response}) {
-        my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
-        $reservation->fetch_child_reservations(1);
-        $index++;
-        printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
+    my $array = [];
+    if ( Shongo::ClientCli::is_scripting() ) {
+        foreach my $reservationXml (@{$response}) {
+            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
+            push(@{$array}, $reservation->to_hash());
+        }
     }
+    else {
+        foreach my $reservationXml (@{$response}) {
+            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
+            $reservation->fetch_child_reservations(1);
+            push(@{$array}, $reservation);
+        }
+    }
+    console_print_text($array);
 }
 
 sub list_reservations()
@@ -343,17 +353,20 @@ sub list_reservations()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(
-        \'| ', 'Identifier',
-        \' | ', 'Type',
-        \' | ', 'Slot', \' |'
-    );
+    my $table = {
+        'columns' => [
+            {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'type', 'title' => 'Type'},
+            {'field' => 'slot', 'title' => 'Slot'},
+        ],
+        'data' => []
+    };
     foreach my $reservation (@{$response}) {
-        $table->add(
-            $reservation->{'id'},
-            $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}},
-            interval_format($reservation->{'slot'})
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $reservation->{'id'},
+            'type' => [$reservation->{'class'}, $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}}],
+            'slot' => [$reservation->{'slot'}, interval_format($reservation->{'slot'})]
+        });
     }
     console_print_table($table);
 }
@@ -381,7 +394,7 @@ sub get_reservation()
         my $reservation = Shongo::ClientCli::API::Reservation->from_hash($response);
         $reservation->fetch_child_reservations(1);
         if ( defined($reservation) ) {
-            console_print_text($reservation->to_string());
+            console_print_text($reservation);
         }
     }
 }

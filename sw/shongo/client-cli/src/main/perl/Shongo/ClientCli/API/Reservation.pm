@@ -17,8 +17,9 @@ use Shongo::Console;
 # Reservation types
 #
 our $Type = ordered_hash(
+    'Reservation' => 'Reservation',
     'ResourceReservation' => 'Resource Reservation',
-    'RoomReservation' => 'Virtual Room Reservation',
+    'RoomReservation' => 'Room Reservation',
     'ValueReservation' => 'Value Reservation',
     'AliasReservation' => 'Alias Reservation',
     'ExistingReservation' => 'Existing Reservation'
@@ -90,8 +91,6 @@ sub on_init
 
     switch ($class) {
         case 'ResourceReservation' {
-            $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
                     sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
@@ -99,8 +98,6 @@ sub on_init
             });
         }
         case 'RoomReservation' {
-            $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
                     sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
@@ -114,8 +111,6 @@ sub on_init
             $self->add_attribute('value');
         }
         case 'AliasReservation' {
-            $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
                     sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});

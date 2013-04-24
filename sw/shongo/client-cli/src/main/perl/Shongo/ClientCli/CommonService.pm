@@ -51,13 +51,20 @@ sub list_domains()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Name', \' | ', 'Organization', \' | ', 'Status', \' |');
+    my $table = {
+        'columns' => [
+            {'field' => 'name',         'title' => 'Name'},
+            {'field' => 'organization', 'title' => 'Organization'},
+            {'field' => 'status',       'title' => 'Status'},
+        ],
+        'data' => []
+    };
     foreach my $domain (@{$response}) {
-        $table->add(
-            $domain->{'name'},
-            $domain->{'organization'},
-            $Status->{$domain->{'status'}}
-        );
+        push(@{$table->{'data'}}, {
+            'name' => $domain->{'name'},
+            'organization' => $domain->{'organization'},
+            'status' => $Status->{$domain->{'status'}}
+        });
     }
     console_print_table($table);
 }
@@ -70,13 +77,20 @@ sub list_connectors()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Agent Name', \' | ', 'Managed Resource', \' | ', 'Status', \' |');
+    my $table = {
+        'columns' => [
+            {'field' => 'agent',     'title' => 'Agent Name'},
+            {'field' => 'resource',   'title' => 'Managed Resource'},
+            {'field' => 'status', 'title' => 'Status'}
+        ],
+        'data' => []
+    };
     foreach my $connector (@{$response}) {
-        $table->add(
-            $connector->{'name'},
-            $connector->{'resourceId'},
-            $Status->{$connector->{'status'}}
-        );
+        push(@{$table->{'data'}}, {
+            'agent' => $connector->{'name'},
+            'resource' => $connector->{'resourceId'},
+            'status' => $Status->{$connector->{'status'}}
+        });
     }
     console_print_table($table);
 }

@@ -192,14 +192,17 @@ sub list_resources()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(
-        \'| ', 'Identifier',
-        \' | ', 'User',
-        \' | ', 'Name',
-        \' | ', 'Technologies',
-        \' | ', 'Parent Resource',
-        \' |'
-    );
+
+    my $table = {
+        'columns' => [
+            {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'user', 'title' => 'User'},
+            {'field' => 'name', 'title' => 'Name'},
+            {'field' => 'technologies', 'title' => 'Technologies'},
+            {'field' => 'parent', 'title' => 'Parent Resource'},
+        ],
+        'data' => []
+    };
     foreach my $resource (@{$response}) {
         my $technologies = '';
         if (defined($resource->{'technologies'})) {
@@ -210,13 +213,13 @@ sub list_resources()
                 $technologies .= $Shongo::ClientCli::API::DeviceResource::Technology->{$technology};
             }
         }
-        $table->add(
-            $resource->{'id'},
-            $application->format_user($resource->{'userId'}),
-            $resource->{'name'},
-            $technologies,
-            $resource->{'parentResourceId'},
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $resource->{'id'},
+            'user' => [$resource->{'userId'}, $application->format_user($resource->{'userId'})],
+            'name' => $resource->{'name'},
+            'technologies' => [$resource->{'technologies'}, $technologies],
+            'parent' => $resource->{'parentResourceId'},
+        });
     }
     console_print_table($table);
 }
@@ -235,7 +238,7 @@ sub get_resource()
     if ( defined($response) ) {
         my $resource = Shongo::ClientCli::API::Resource->from_hash($response);
         if ( defined($resource) ) {
-            console_print_text($resource->to_string());
+            console_print_text($resource);
         }
     }
 }
@@ -273,18 +276,29 @@ sub get_resource_allocation()
     $resource_allocation->from_hash($response);
     console_print_text($resource_allocation);
 
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');
+
+    my $table = {
+        'columns' => [
+            {'field' => 'id',   'title' => 'Identifier'},
+            {'field' => 'slot', 'title' => 'Slot'},
+            {'field' => 'resource', 'title' => 'Resource'},
+            {'field' => 'type', 'title' => 'Type'},
+        ],
+        'data' => []
+    };
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
         my $reservation = Shongo::ClientCli::API::Reservation->new($reservationXml->{'class'});
         $reservation->from_hash($reservationXml);
-        $table->add(
-            $reservation->{'id'},
-            interval_format($reservation->{'slot'}),
-            sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceId'}),
-            $reservation->to_string_short()
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $reservation->{'id'},
+            'slot' => [$reservation->{'slot'}, interval_format($reservation->{'slot'})],
+            'resource' => [$reservation->{'resourceId'}, sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceId'})],
+            'type' => [$reservation->{'class'}, $reservation->to_string_short()]
+        });
     }
-    printf(" %s\n", colored(uc("Reservations:"), $Shongo::ClientCli::API::Object::COLOR_HEADER));
+    if ( !Shongo::ClientCli::is_scripting() ) {
+        printf(" %s\n", colored(uc("Reservations:"), $Shongo::ClientCli::API::Object::COLOR_HEADER));
+    }
     console_print_table($table, 1);
 }
 

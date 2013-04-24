@@ -101,13 +101,15 @@ sub list_executables()
     if ( !defined($response) ) {
         return
     }
-    my $table = Text::Table->new(
-        \'| ', 'Identifier',
-        \' | ', 'Type',
-        \' | ', 'Slot',
-        \' | ', 'State',
-        \' |'
-    );
+    my $table = {
+        'columns' => [
+            {'field' => 'id',    'title' => 'Identifier'},
+            {'field' => 'type',  'title' => 'Type'},
+            {'field' => 'slot',  'title' => 'Slot'},
+            {'field' => 'state', 'title' => 'State'},
+        ],
+        'data' => []
+    };
     foreach my $executable (@{$response}) {
         my $type = '';
         if ( $executable->{'type'} eq 'COMPARTMENT' ) {
@@ -116,12 +118,12 @@ sub list_executables()
         elsif ( $executable->{'type'} eq 'VIRTUAL_ROOM' ) {
             $type = 'Virtual Room';
         }
-        $table->add(
-            $executable->{'id'},
-            $type,
-            interval_format($executable->{'slot'}),
-            Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $executable->{'id'},
+            'type' => [$executable->{'type'}, $type],
+            'slot' => [$executable->{'slot'}, interval_format($executable->{'slot'})],
+            'state' => [$executable->{'state'}, Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)]
+        });
     }
     console_print_table($table);
 }
@@ -140,7 +142,7 @@ sub get_executable()
     if ( defined($response) ) {
         my $executable = Shongo::ClientCli::API::Executable->from_hash($response);
         if ( defined($executable) ) {
-            console_print_text($executable->to_string());
+            console_print_text($executable);
         }
     }
 }

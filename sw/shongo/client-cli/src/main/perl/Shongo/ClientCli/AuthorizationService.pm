@@ -209,14 +209,22 @@ sub list_acl()
     if ( !defined($response) ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Id', \' | ', 'User', \' | ', 'Entity', \' | ', 'Role', \' |');
+    my $table = {
+        'columns' => [
+            {'field' => 'id',     'title' => 'Id'},
+            {'field' => 'user',   'title' => 'User'},
+            {'field' => 'entity', 'title' => 'Entity'},
+            {'field' => 'role',   'title' => 'Role'},
+        ],
+        'data' => []
+    };
     foreach my $record (@{$response}) {
-        $table->add(
-            $record->{'id'},
-            $application->format_user($record->{'userId'}),
-            $record->{'entityId'},
-            $record->{'role'},
-        );
+        push(@{$table->{'data'}}, {
+            'id' => $record->{'id'},
+            'user' => [$record->{'userId'}, $application->format_user($record->{'userId'})],
+            'entity' => $record->{'entityId'},
+            'role' => $record->{'role'},
+        });
     }
     console_print_table($table);
 }
@@ -231,11 +239,16 @@ sub list_permissions()
     my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listPermissions',
         RPC::XML::string->new($args[0]),
     );
-    my $table = Text::Table->new(\'| ', 'Permission', \' |');
+    my $table = {
+        'columns' => [
+            {'field' => 'permission', 'title' => 'Permission'}
+        ],
+        'data' => []
+    };
     foreach my $permission (@{$response}) {
-        $table->add(
-            $permission
-        );
+        push(@{$table->{'data'}}, {
+            'permission' => $permission
+        });
     }
     console_print_table($table);
 }

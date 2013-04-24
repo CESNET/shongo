@@ -158,7 +158,7 @@ bin/client-cli.sh --connect $CONTROLLER --root --scripting <<EOF
 
 EOF
 
-bin/client-cli.sh --connect $CONTROLLER --root --scripting \
+bin/client-cli.sh --connect $CONTROLLER --root \
 --cmd "list-resources" \
 --cmd "get-resource 1" \
 --cmd "get-resource 2" \

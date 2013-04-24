@@ -151,7 +151,7 @@ sub set_default_value
 #  Specifies whether the attribute can be edited.
 #
 # 'read-only' => 1|0 (default 0)
-#  Specifies that attribute should not appended to xml created from the object. If attribute is set as 'read-only' it
+#  Specifies that attribute should not appended to hash/xml created from the object. If attribute is set as 'read-only' it
 #  automatically forces 'editable' => 0.
 #
 # 'required' => 1|0 (default 0)
@@ -1180,6 +1180,116 @@ sub to_string_short
 }
 
 #
+# Convert $value while converting to HASH
+#
+# @param $value
+#
+sub to_hash_value
+{
+    my ($self, $value, $options) = @_;
+    if ( ref($value) eq 'HASH' ) {
+        my $hash = {};
+        foreach my $key (keys %{$value}) {
+            if ( $key eq '__array' ) {
+                next;
+            }
+            if ( $key eq 'id' && $options->{'without-id'} ) {
+                next;
+            }
+            $hash->{$key} = $self->to_hash_value($value->{$key}, $options);
+        }
+        return $hash;
+    }
+    elsif ( ref($value) eq 'ARRAY' ) {
+        my $array = [];
+        foreach my $item ( @{$value} ) {
+            push(@{$array}, $self->to_hash_value($item, $options));
+        }
+        return $array;
+    }
+    elsif ( ref($value) ) {
+        return $value->to_hash($options);
+    }
+    elsif ( !defined($value) || $value eq NULL ) {
+        return undef;
+    }
+    else {
+        return $value;
+    }
+}
+
+#
+# Convert object to HASH
+#
+# @param $options hash of options:
+#        'without-id' => do not include 'id' attributes
+#
+sub to_hash()
+{
+    my ($self, $options) = @_;
+
+    my %options_backup = ();
+    if ( defined($options) ) {
+        %options_backup = %{$options};
+    }
+    $options = {
+        'without-id' => 0,
+        'changes' => 0
+    };
+    @{$options}{keys %options_backup} = values %options_backup;
+
+    my $hash = {};
+    if ( defined($self->{'__class'}) ) {
+        $hash->{'class'} = $self->{'__class'};
+    }
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
+        if ( $attribute_name eq 'id' && $options->{'without-id'} ) {
+            next;
+        }
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'read-only'} == 0 ) {
+            if ( defined($self->{$attribute_name}) ) {
+                my $attribute_value = $self->get($attribute_name);
+                # Collection must be always converted to changes map
+                if ( $attribute->{'type'} eq 'collection' ) {
+                    if ( $options->{'changes'} ) {
+                        Shongo::Common::convert_collection_to_hash(\$attribute_value);
+                    }
+                    else {
+                        $attribute_value = Shongo::Common::get_collection_items($attribute_value);
+                    }
+                }
+                # Map must be also always converted to changes map
+                if ( $attribute->{'type'} eq 'map' ) {
+                    if ( $options->{'changes'} ) {
+                        Shongo::Common::convert_map_to_hash(\$attribute_value);
+                    }
+                    else {
+                        $attribute_value = Shongo::Common::get_map_items($attribute_value);
+                    }
+                }
+                # Store attribute to xml
+                $hash->{$attribute_name} = $self->to_hash_value($attribute_value, $options);
+            }
+            elsif ( defined($self->{'__attributes_filled'}->{$attribute_name}) ) {
+                # Store null (represented as empty hash)
+                $hash->{$attribute_name} = undef;
+            }
+        }
+    }
+    foreach my $attribute_name (keys %{$self->{'__attributes_preserve'}}) {
+        if ( !defined($self->{$attribute_name}) ) {
+            next;
+        }
+        if ( $attribute_name eq 'id' && $options->{'without-id'} ) {
+            next;
+        }
+        $hash->{$attribute_name} = $self->to_hash_value($self->{$attribute_name}, $options);
+    }
+    return $hash;
+}
+
+#
 # Convert $value to xml
 #
 # @param $value
@@ -1189,11 +1299,8 @@ sub to_xml_value
     my ($self, $value) = @_;
     if ( ref($value) eq 'HASH' ) {
         my $hash = {};
-        foreach my $item_name (keys %{$value}) {
-            if ( !($item_name eq '__array') ) {
-                my $item_value = $value->{$item_name};
-                $hash->{$item_name} = $self->to_xml_value($item_value);
-            }
+        foreach my $key (keys %{$value}) {
+            $hash->{$key} = $self->to_xml_value($value->{$key});
         }
         return RPC::XML::struct->new($hash);
     }
@@ -1205,7 +1312,7 @@ sub to_xml_value
         return RPC::XML::array->new(from => $array);
     }
     elsif ( ref($value) ) {
-        return $value->to_xml($value);
+        return $value->to_xml();
     }
     elsif ( !defined($value) || $value eq NULL ) {
         return RPC::XML::struct->new();
@@ -1221,39 +1328,7 @@ sub to_xml_value
 sub to_xml()
 {
     my ($self) = @_;
-
-    my $xml = {};
-    if ( defined($self->{'__class'}) ) {
-        $xml->{'class'} = RPC::XML::string->new($self->{'__class'});
-    }
-    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
-        my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'read-only'} == 0 ) {
-            if ( defined($self->{$attribute_name}) ) {
-                my $attribute_value = $self->get($attribute_name);
-                # Collection must be always converted to changes map
-                if ( $attribute->{'type'} eq 'collection' ) {
-                    Shongo::Common::convert_collection_to_hash(\$attribute_value);
-                }
-                # Map must be also always converted to changes map
-                if ( $attribute->{'type'} eq 'map' ) {
-                    Shongo::Common::convert_map_to_hash(\$attribute_value);
-                }
-                # Store attribute to xml
-                $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
-            }
-            elsif ( defined($self->{'__attributes_filled'}->{$attribute_name}) ) {
-                # Store null (represented as empty hash)
-                $xml->{$attribute_name} = {};
-            }
-        }
-    }
-    foreach my $attribute_name (keys %{$self->{'__attributes_preserve'}}) {
-        if ( defined($self->{$attribute_name}) ) {
-            $xml->{$attribute_name} = $self->to_xml_value($self->{$attribute_name});
-        }
-    }
-    return RPC::XML::struct->new($xml);
+    return $self->to_xml_value($self->to_hash({'changes' => 1}));
 }
 
 #

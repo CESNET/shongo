@@ -87,7 +87,7 @@ EOF
 echo "Waiting for allocation..."
 sleep 2
 
-bin/client-cli.sh --connect $CONTROLLER --root --scripting \
+bin/client-cli.sh --connect $CONTROLLER --root \
 --cmd "list-reservation-requests" \
 --cmd "get-reservation-request 1" \
 --cmd "get-reservation-for-request 1" \
