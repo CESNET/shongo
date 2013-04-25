@@ -18,7 +18,9 @@
 
     <entity class="cz.cesnet.shongo.JadeReportSet$UnknownErrorReport" access="FIELD">
         <attributes>
-            <basic name="description"/>
+            <basic name="description">
+                <column length="2048"/>
+            </basic>
         </attributes>
     </entity>
 
@@ -46,7 +48,9 @@
     <entity class="cz.cesnet.shongo.JadeReportSet$CommandUnknownErrorReport" access="FIELD">
         <discriminator-value>CommandUnknownErrorReport</discriminator-value>
         <attributes>
-            <basic name="description"/>
+            <basic name="description">
+                <column length="2048"/>
+            </basic>
         </attributes>
     </entity>
 
@@ -82,7 +86,9 @@
         <discriminator-value>CommandFailedReport</discriminator-value>
         <attributes>
             <basic name="receiverAgent"/>
-            <basic name="reason"/>
+            <basic name="reason">
+                <column length="2048"/>
+            </basic>
         </attributes>
     </entity>
 
