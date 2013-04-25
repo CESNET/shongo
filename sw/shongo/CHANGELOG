@@ -1,3 +1,14 @@
+0.5.2 (2013-04-25)
+
+    * Added new error reporting system to controller. Domain and resource administrators are informed by email when
+      an error/failure occurs.
+
+    * Fixed Cisco MCU connector to use only single connection for XML-RPC requests.
+
+    * Fixed few issues when reservation request is deleted.
+
+    * Information emails are sent to users and admins separately.
+
 0.5.1 (2013-04-05)
 
     * Fixed assigning user roles for the case when user creates an alias reservation,
