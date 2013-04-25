@@ -1193,9 +1193,6 @@ sub to_hash_value
             if ( $key eq '__array' ) {
                 next;
             }
-            if ( $key eq 'id' && $options->{'without-id'} ) {
-                next;
-            }
             $hash->{$key} = $self->to_hash_value($value->{$key}, $options);
         }
         return $hash;
@@ -1222,7 +1219,7 @@ sub to_hash_value
 # Convert object to HASH
 #
 # @param $options hash of options:
-#        'without-id' => do not include 'id' attributes
+#        'changes' => do not whole collection but only changes
 #
 sub to_hash()
 {
@@ -1233,7 +1230,6 @@ sub to_hash()
         %options_backup = %{$options};
     }
     $options = {
-        'without-id' => 0,
         'changes' => 0
     };
     @{$options}{keys %options_backup} = values %options_backup;
@@ -1243,9 +1239,6 @@ sub to_hash()
         $hash->{'class'} = $self->{'__class'};
     }
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
-        if ( $attribute_name eq 'id' && $options->{'without-id'} ) {
-            next;
-        }
         my $attribute = $self->get_attribute($attribute_name);
         if ( $attribute->{'read-only'} == 0 ) {
             if ( defined($self->{$attribute_name}) ) {
@@ -1279,9 +1272,6 @@ sub to_hash()
     }
     foreach my $attribute_name (keys %{$self->{'__attributes_preserve'}}) {
         if ( !defined($self->{$attribute_name}) ) {
-            next;
-        }
-        if ( $attribute_name eq 'id' && $options->{'without-id'} ) {
             next;
         }
         $hash->{$attribute_name} = $self->to_hash_value($self->{$attribute_name}, $options);

@@ -7,9 +7,6 @@ package main;
 use strict;
 use warnings;
 
-# Setup lib directory
-use FindBin;
-
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
