@@ -220,7 +220,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
 
         cz.cesnet.shongo.api.Room roomApi = roomEndpoint.getRoomApi();
-        roomApi.setDescription(getRoomDescription());
+        roomApi.setDescription(getRoomDescriptionApi());
         roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
         for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
             roomApi.addRoomSetting(roomSetting.toApi());

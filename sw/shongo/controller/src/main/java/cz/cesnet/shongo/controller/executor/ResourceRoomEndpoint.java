@@ -233,7 +233,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         roomApi.setId(roomId);
         roomApi.setTechnologies(getTechnologies());
         roomApi.setLicenseCount(getLicenseCount());
-        roomApi.setDescription(getRoomDescription());
+        roomApi.setDescription(getRoomDescriptionApi());
         for (RoomSetting roomSetting : getRoomSettings()) {
             roomApi.addRoomSetting(roomSetting.toApi());
         }

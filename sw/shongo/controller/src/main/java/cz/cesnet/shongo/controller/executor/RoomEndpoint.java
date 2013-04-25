@@ -47,6 +47,7 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * @return {@link #roomDescription}
      */
+    @Column
     public String getRoomDescription()
     {
         return roomDescription;
@@ -58,6 +59,12 @@ public abstract class RoomEndpoint extends Endpoint
     public void setRoomDescription(String roomDescription)
     {
         this.roomDescription = roomDescription;
+    }
+
+    @Transient
+    public final String getRoomDescriptionApi()
+    {
+        return String.format("[exe:%d] %s", getId(), getRoomDescription());
     }
 
     @Override
