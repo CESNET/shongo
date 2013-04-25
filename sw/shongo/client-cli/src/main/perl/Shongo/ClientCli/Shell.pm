@@ -56,8 +56,20 @@ sub new
 sub command
 {
     my ($self, $command) = @_;
-    if ( $command eq 'test' ) {
-        Shongo::Test::test();
+    if ( $command =~ /\${(.+)}\s*?=\s*?([^\s].+)/ ) {
+        Shongo::ClientCli->start_scripting_variable($1);
+        $command = $2;
+    }
+    my $variables = Shongo::ClientCli->get_scripting_variables();
+    if ( %{$variables} ) {
+        foreach my $variable_name (keys %{$variables}) {
+            my $variable_value = $variables->{$variable_name};
+            $command =~ s/\${$variable_name}/$variable_value/g;
+        }
+    }
+
+    if ( $command =~ '^test (.+)' ) {
+        Shongo::Test::test($1);
     }
     else {
         $self->SUPER::command($command);

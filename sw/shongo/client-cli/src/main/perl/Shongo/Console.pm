@@ -67,7 +67,9 @@ sub console_print_text
         }
     }
     if ( Shongo::ClientCli::is_scripting() ) {
-        printf("%s", $text);
+        $text =~ s/\n$//g;
+        Shongo::ClientCli->set_scripting_result($text);
+        printf("%s\n", $text);
     }
     else {
         $text =~ s/\n *$//g;
@@ -108,6 +110,7 @@ sub console_print_info
     $message =~ s/\s*$//;
     if ( Shongo::ClientCli::is_scripting() ) {
         foreach my $parameter (@parameters) {
+            Shongo::ClientCli->set_scripting_result($parameter);
             print $parameter . "\n";
         }
     }

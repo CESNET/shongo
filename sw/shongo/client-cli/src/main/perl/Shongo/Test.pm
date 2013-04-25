@@ -17,13 +17,8 @@ use Shongo::ClientCli::API::Object;
 #
 sub test
 {
-    my $response = Shongo::ClientCli->instance()->secure_request(
-        'Authorization.createAclRecord',
-        RPC::XML::string->new('11'),
-        'shongo:cz.cesnet:res:1',
-        'owner'
-    );
-    var_dump($response);
+    my ($arg) = @_;
+    console_print_text('result: ' . $arg);
 }
 
 1;

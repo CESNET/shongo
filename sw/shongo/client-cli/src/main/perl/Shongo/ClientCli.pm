@@ -32,6 +32,7 @@ sub instance
         my $self = {};
         $singleInstance = bless $self, $class;
         $singleInstance->{'scripting'} = 0;
+        $singleInstance->{'scripting-variables'} = {};
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
 
         # Initialize client
@@ -93,6 +94,45 @@ sub is_scripting()
         $self = instance();
     }
     return $self->{'scripting'};
+}
+
+#
+# @param $result from the command
+#
+sub set_scripting_result()
+{
+    my ($self, $result) = @_;
+    if ( !ref($self) ) {
+        $self = instance();
+    }
+    if ( defined($self->{'__scripting-variable'}) ) {
+        $self->{'scripting-variables'}->{$self->{'__scripting-variable'}} = $result;
+        $self->{'__scripting-variable'} = undef;
+    }
+}
+
+#
+# @param $variable_name to which the result from command should be caught
+#
+sub start_scripting_variable()
+{
+    my ($self, $variable_name) = @_;
+    if ( !ref($self) ) {
+        $self = instance();
+    }
+    $self->{'__scripting-variable'} = $variable_name;
+}
+
+#
+# @return scripting variables
+#
+sub get_scripting_variables()
+{
+    my ($self) = @_;
+    if ( !ref($self) ) {
+        $self = instance();
+    }
+    return $self->{'scripting-variables'};
 }
 
 #
