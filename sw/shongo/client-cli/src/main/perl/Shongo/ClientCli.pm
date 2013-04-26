@@ -307,13 +307,18 @@ sub status()
         console_print_error("Server hasn't return Controller object!");
         return;
     }
-    printf("+----------------------------------------------------------------------+\n");
-    printf("| Connected to the following controller:                               |\n");
-    printf("| -------------------------------------------------------------------- |\n");
-    printf("| URL:                 %-47s |\n", $self->{'client'}->get_url());
-    printf("| Domain Name:         %-47s |\n", $response->{"domain"}->{"name"});
-    printf("| Domain Organization: %-47s |\n", $response->{"domain"}->{"organization"});
-    printf("+----------------------------------------------------------------------+\n");
+    if ( $self->is_scripting() ) {
+        console_print_text($response->{"domain"});
+    }
+    else {
+        printf("+----------------------------------------------------------------------+\n");
+        printf("| Connected to the following controller:                               |\n");
+        printf("| -------------------------------------------------------------------- |\n");
+        printf("| URL:                 %-47s |\n", $self->{'client'}->get_url());
+        printf("| Domain Name:         %-47s |\n", $response->{"domain"}->{"name"});
+        printf("| Domain Organization: %-47s |\n", $response->{"domain"}->{"organization"});
+        printf("+----------------------------------------------------------------------+\n");
+    }
 }
 
 #

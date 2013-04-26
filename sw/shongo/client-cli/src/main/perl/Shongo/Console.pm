@@ -39,8 +39,13 @@ use Shongo::Common;
 sub console_print_text
 {
     my ($text) = @_;
-    if ( ref($text) eq 'HASH' && exists $text->{'to_string'} ) {
-        $text = $text->{'to_string'}();
+    if ( ref($text) eq 'HASH' ) {
+        if ( exists $text->{'to_string'} ) {
+            $text = $text->{'to_string'}();
+        }
+        else {
+            $text = JSON->new()->pretty->encode($text);
+        }
     }
     elsif ( ref($text) eq 'ARRAY' ) {
         if ( Shongo::ClientCli::is_scripting() ) {
