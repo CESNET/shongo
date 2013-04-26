@@ -20,7 +20,7 @@
         <th>Purpose</th>
         <th>Validity</th>
         <th>State</th>
-        <th width="220px">Action</th>
+        <th width="180px">Action</th>
     </tr>
     </thead>
     <tbody>
@@ -34,7 +34,7 @@
         <td>
             <a href="[% location %]/detail?id=[% aliasRequest.id %]">detail</a>
             [% IF aliasRequest.stateCode == 'started' %]
-            | <a href="[% location %]/room?reservation-request-id=[% aliasRequest.id %]">room management</a>
+            | <a href="[% location %]/room?reservation-request-id=[% aliasRequest.id %]">management</a>
             [% END %]
             | <a href="[% location %]/delete?id=[% aliasRequest.id %]">delete</a>
         </td>
@@ -60,7 +60,7 @@
         <th>Duration</th>
         <th style="text-align: right;">Participants</th>
         <th>State</th>
-        <th width="220px">Action</th>
+        <th width="180px">Action</th>
     </tr>
     </thead>
     <tbody>
@@ -76,7 +76,7 @@
         <td>
             <a href="[% location %]/detail?id=[% roomRequest.id %]">detail</a>
             [% IF roomRequest.stateCode == 'started' %]
-            | <a href="[% location %]/room?reservation-request-id=[% roomRequest.id %]">room management</a>
+            | <a href="[% location %]/room?reservation-request-id=[% roomRequest.id %]">management</a>
             [% END %]
             | <a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a>
         </td>
