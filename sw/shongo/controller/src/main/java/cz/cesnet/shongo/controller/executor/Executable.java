@@ -323,7 +323,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      * @return formatted {@link #reports} as string
      */
     @Transient
-    protected String getReportText()
+    protected String getReportText(Report.MessageType messageType)
     {
         int count = 0;
         StringBuilder stringBuilder = new StringBuilder();
@@ -342,7 +342,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
             stringBuilder.append("[");
             stringBuilder.append(dateTime);
             stringBuilder.append("] ");
-            stringBuilder.append(report.getMessage(Report.MessageType.USER));
+            stringBuilder.append(report.getMessage(messageType));
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
@@ -379,11 +379,19 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
      */
-    public cz.cesnet.shongo.controller.api.Executable toApi()
+    public final cz.cesnet.shongo.controller.api.Executable toApi(boolean admin)
+    {
+        return (toApi(admin ? Report.MessageType.DOMAIN_ADMIN : Report.MessageType.USER));
+    }
+
+    /**
+     * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
+     */
+    public cz.cesnet.shongo.controller.api.Executable toApi(Report.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.Executable executableApi = createApi();
         executableApi.setId(EntityIdentifier.formatId(this));
-        toApi(executableApi);
+        toApi(executableApi, messageType);
         return executableApi;
     }
 
@@ -398,14 +406,15 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
      *
-     * @param executableApi which should be filled from this {@link cz.cesnet.shongo.controller.executor.Executable}
+     * @param executableApi which should be filled from this {@link Executable}
+     * @param messageType
      */
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
     {
         executableApi.setId(EntityIdentifier.formatId(this));
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
-        executableApi.setStateReport(getReportText());
+        executableApi.setStateReport(getReportText(messageType));
     }
 
     /**

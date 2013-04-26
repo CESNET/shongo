@@ -427,7 +427,7 @@ public class ReservationServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("read reservation %s", entityId);
             }
 
-            return reservation.toApi();
+            return reservation.toApi(authorization.isAdmin(userId));
         }
         finally {
             entityManager.close();
@@ -448,7 +448,7 @@ public class ReservationServiceImpl extends Component
                 Long id = EntityIdentifier.parseId(
                         cz.cesnet.shongo.controller.reservation.Reservation.class, reservationId);
                 cz.cesnet.shongo.controller.reservation.Reservation reservationImpl = reservationManager.get(id);
-                reservations.add(reservationImpl.toApi());
+                reservations.add(reservationImpl.toApi(authorization.isAdmin(userId)));
             }
             return reservations;
         }
@@ -485,7 +485,7 @@ public class ReservationServiceImpl extends Component
                     reservationManager.list(reservationIds, reservationRequestId, reservationClasses, technologies);
             List<Reservation> apiReservations = new ArrayList<Reservation>();
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
-                apiReservations.add(reservation.toApi());
+                apiReservations.add(reservation.toApi(authorization.isAdmin(userId)));
             }
             return apiReservations;
         }

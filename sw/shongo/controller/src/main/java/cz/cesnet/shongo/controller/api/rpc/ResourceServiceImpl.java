@@ -352,7 +352,7 @@ public class ResourceServiceImpl extends Component
             Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
                     resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
             for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
-                resourceAllocation.addReservation(resourceReservation.toApi());
+                resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdmin(userId)));
             }
 
             // Fill alias allocations
@@ -362,7 +362,7 @@ public class ResourceServiceImpl extends Component
                 List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
                         resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
                 for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
-                    resourceAllocation.addReservation(aliasReservation.toApi());
+                    resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdmin(userId)));
                 }
             }
             return resourceAllocation;

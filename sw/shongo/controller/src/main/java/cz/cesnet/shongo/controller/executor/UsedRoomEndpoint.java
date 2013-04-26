@@ -110,14 +110,14 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
                 (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
         resourceRoomEndpointApi.setId(EntityIdentifier.formatId(this));
         resourceRoomEndpointApi.setSlot(getSlot());
         resourceRoomEndpointApi.setState(getState().toApi());
-        resourceRoomEndpointApi.setStateReport(getReportText());
+        resourceRoomEndpointApi.setStateReport(getReportText(messageType));
 
         if (roomEndpoint instanceof ResourceRoomEndpoint) {
             ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;

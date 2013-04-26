@@ -44,9 +44,9 @@ public class ResourceReservation extends Reservation
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ResourceReservation toApi()
+    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(boolean admin)
     {
-        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi();
+        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi(admin);
     }
 
     @Override
@@ -56,12 +56,12 @@ public class ResourceReservation extends Reservation
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
         resourceReservationApi.setResourceId(EntityIdentifier.formatId(resource));
         resourceReservationApi.setResourceName(resource.getName());
-        super.toApi(api);
+        super.toApi(api, admin);
     }
 }

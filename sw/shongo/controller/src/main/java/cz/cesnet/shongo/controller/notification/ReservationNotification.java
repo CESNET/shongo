@@ -57,20 +57,20 @@ public class ReservationNotification extends Notification
             if (reservationRequest != null) {
                 this.reservationRequest = reservationRequest.toApi();
             }
-            this.reservation = reservation.toApi();
+            this.reservation = reservation.toApi(false);
 
             if (reservation.getClass().equals(Reservation.class)) {
                 Collection<AliasReservation> childAliasReservations =
                         reservation.getChildReservations(AliasReservation.class);
                 if (childAliasReservations.size() > 0) {
                     for (AliasReservation aliasReservation : childAliasReservations) {
-                        aliasReservations.add(aliasReservation.toApi());
+                        aliasReservations.add(aliasReservation.toApi(false));
                     }
                 }
             }
             else if (reservation instanceof AliasReservation) {
                 AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasReservations.add(aliasReservation.toApi());
+                aliasReservations.add(aliasReservation.toApi(false));
             }
         }
         catch (Exception exception) {

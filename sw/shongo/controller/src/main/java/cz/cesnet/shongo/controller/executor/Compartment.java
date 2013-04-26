@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -106,25 +107,25 @@ public class Compartment extends Executable
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable.Compartment toApi()
+    public cz.cesnet.shongo.controller.api.Executable.Compartment toApi(Report.MessageType messageType)
     {
-        return (cz.cesnet.shongo.controller.api.Executable.Compartment) super.toApi();
+        return (cz.cesnet.shongo.controller.api.Executable.Compartment) super.toApi(messageType);
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
     {
-        super.toApi(executableApi);
+        super.toApi(executableApi, messageType);
 
         cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
                 (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
         for (Endpoint endpoint : getEndpoints()) {
-            compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi());
+            compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi(messageType));
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-                compartmentApi.addRoom(resourceRoomEndpoint.toApi());
+                compartmentApi.addRoom(resourceRoomEndpoint.toApi(messageType));
             }
         }
         for (Connection connection : getConnections()) {
@@ -134,7 +135,7 @@ public class Compartment extends Executable
             connectionApi.setEndpointToId(EntityIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());
             connectionApi.setState(connection.getState().toApi());
-            connectionApi.setStateReport(getReportText());
+            connectionApi.setStateReport(getReportText(messageType));
             compartmentApi.addConnection(connectionApi);
         }
     }

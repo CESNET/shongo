@@ -150,7 +150,7 @@ public class ExecutableServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
-            Executable executableApi = executable.toApi();
+            Executable executableApi = executable.toApi(authorization.isAdmin(userId));
             cz.cesnet.shongo.controller.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {

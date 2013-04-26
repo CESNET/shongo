@@ -366,10 +366,10 @@ public class Reservation extends PersistentObject implements Reportable
     /**
      * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
      */
-    public cz.cesnet.shongo.controller.api.Reservation toApi()
+    public cz.cesnet.shongo.controller.api.Reservation toApi(boolean admin)
     {
         cz.cesnet.shongo.controller.api.Reservation api = createApi();
-        toApi(api);
+        toApi(api, admin);
         return api;
     }
 
@@ -383,8 +383,9 @@ public class Reservation extends PersistentObject implements Reportable
 
     /**
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param admin
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
     {
         api.setId(EntityIdentifier.formatId(this));
         if (getReservationRequest() != null) {
@@ -392,7 +393,7 @@ public class Reservation extends PersistentObject implements Reportable
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
-            api.setExecutable(getExecutable().toApi());
+            api.setExecutable(getExecutable().toApi(admin));
         }
         if (getParentReservation() != null) {
             api.setParentReservationId(EntityIdentifier.formatId(getParentReservation()));

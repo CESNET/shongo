@@ -94,7 +94,7 @@ public class ExecutableReportTest extends AbstractControllerTest
         // Start virtual room
         ExecutionResult result = executor.execute(dateTime);
 
-        reservation = getReservationService().getReservation(SECURITY_TOKEN, reservation.getId());
+        reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservation.getId());
         Assert.assertTrue(reservation.getExecutable().getStateReport().contains("test test"));
     }
 

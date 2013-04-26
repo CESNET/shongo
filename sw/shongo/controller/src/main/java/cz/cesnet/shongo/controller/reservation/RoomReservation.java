@@ -104,7 +104,7 @@ public class RoomReservation extends Reservation implements EndpointProvider
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, boolean admin)
     {
         cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
@@ -112,6 +112,6 @@ public class RoomReservation extends Reservation implements EndpointProvider
         roomReservationApi.setResourceId(EntityIdentifier.formatId(deviceResource));
         roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
-        super.toApi(api);
+        super.toApi(api, admin);
     }
 }
