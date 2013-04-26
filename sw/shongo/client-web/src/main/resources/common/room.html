@@ -1,0 +1,79 @@
+<h1>Room Management</h1>
+
+<dl class="dl-horizontal">
+
+    <dt>Identifier:</dt>
+    <dd>[% executable.id %] (id: [% room.id %])</dd>
+
+    <dt>Type:</dt>
+    <dd>[% room.type %]</dd>
+
+    <dt>Name:</dt>
+    <dd>[% room.name %]</dd>
+
+    <dt>Description:</dt>
+    <dd>[% room.description %]</dd>
+
+    <dt>Aliases:</dt>
+    <dd>
+        [% INCLUDE common/text_with_tooltip.html
+        text         = executable.aliases
+        tooltipId    = 'aliases-description'
+        tooltipClass = 'aliases-description'
+        tooltipText  = executable.aliasesDescription
+        -%]
+        [% '<span class="empty">None</span>' IF !executable.aliases %]
+    </dd>
+
+</dl>
+
+<h2>List of actual participants</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>EPPN</th>
+    </tr>
+    </thead>
+    <tbody>
+    [%- FOREACH roomParticipant IN roomParticipants %]
+    <tr>
+        <td>[% roomParticipant.displayName %]</td>
+        <td>[% roomParticipant.userIdentity %]</td>
+    </tr>
+    [%- END %]
+    [%- IF !roomParticipant.size %]
+    <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
+    [% END %]
+    </tbody>
+</table>
+
+[%- IF roomRecordings %]
+<h2>List of recordings</h2>
+
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>URL</th>
+    </tr>
+    </thead>
+    <tbody>
+    [%- FOREACH roomRecording IN roomRecordings %]
+    <tr>
+        <td>TODO:</td>
+        <td>TODO:</td>
+    </tr>
+    [%- END %]
+    [%- IF !roomRecordings.size %]
+    <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
+    [% END %]
+    </tbody>
+</table>
+[% END %]
+
+<div class="pull-right">
+    <a class="btn btn-primary" href="[% back %]">Back</a>
+    <a class="btn" href="">Refresh</a>
+</div>

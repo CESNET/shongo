@@ -452,7 +452,7 @@ public class Report
     public boolean isApiFault()
     {
         cz.cesnet.shongo.generator.xml.ReportUser reportUser = report.getUser();
-        if (reportUser != null && reportUser.isVisible()) {
+        if (reportUser != null && reportUser.isVisible() != null && reportUser.isVisible()) {
             return reportUser.getVia() != null && reportUser.getVia().equals(cz.cesnet.shongo.generator.xml.ReportUserVia.API);
         }
         return false;
@@ -520,7 +520,7 @@ public class Report
     public String getVisibleFlags()
     {
         StringBuilder visibleFlags = new StringBuilder();
-        if (report.getUser() != null && report.getUser().isVisible()) {
+        if (report.getUser() != null && report.getUser().isVisible() != null && report.getUser().isVisible()) {
             visibleFlags.append("VISIBLE_TO_USER");
         }
         if (report.getDomainAdmin() != null && report.getDomainAdmin().isVisible()) {

@@ -13,7 +13,7 @@ public class RoomUser implements StructType, Concept
 {
     private String userId;
     private String roomId;
-    private UserIdentity userIdentity;
+    private String userIdentity;
     private String displayName = null;
 
     private DateTime joinTime;
@@ -189,7 +189,7 @@ public class RoomUser implements StructType, Concept
     /**
      * @return User identity (may be NULL, e.g., when the user is calling from a cell phone)
      */
-    public UserIdentity getUserIdentity()
+    public String getUserIdentity()
     {
         return userIdentity;
     }
@@ -197,7 +197,7 @@ public class RoomUser implements StructType, Concept
     /**
      * @param userIdentity User identity
      */
-    public void setUserIdentity(UserIdentity userIdentity)
+    public void setUserIdentity(String userIdentity)
     {
         this.userIdentity = userIdentity;
     }

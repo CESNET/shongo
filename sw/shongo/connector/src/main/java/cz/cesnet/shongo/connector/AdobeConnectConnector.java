@@ -610,19 +610,27 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
 
-        Element response = request("meeting-usermanager-user-list", attributes);
-
         ArrayList<RoomUser> participantList = new ArrayList<RoomUser>();
 
-        for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
-            System.out.println(userDetails.getChildText("principal-id"));
+        Element response = null;
+        try {
+            response = request("meeting-usermanager-user-list", attributes);
+        }
+        catch (RequestFailedCommandException exception) {
+            // Participant list is not available, so return empty list
+            if (exception.getCode().equals("no-access") && exception.getSubCode().equals("not-available")) {
+                return participantList;
+            }
+        }
 
+        for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
             RoomUser roomUser = new RoomUser();
             roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
             roomUser.setDisplayName(userDetails.getChildText("username"));
             roomUser.setRoomId(roomId);
             roomUser.setUserId(userDetails.getChildText("user-id"));
-            roomUser.setUserIdentity(new UserIdentity("principal-id"));
+            // TODO: Set eppn instead of principal-id (or even better set shongo user-id)
+            roomUser.setUserIdentity(userDetails.getChildText("principal-id"));
 
             participantList.add(roomUser);
         }
@@ -635,7 +643,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         Collection<RoomUser> participants = this.listParticipants(roomId);
         for (RoomUser roomUser : participants) {
-            if (roomUser.getUserId() == roomUserId) {
+            if (roomUser.getUserId().equals(roomUserId)) {
                 return roomUser;
             }
         }
@@ -794,7 +802,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (this.isError(doc)) {
                 logger.error(String.format("Login to server %s failed", info.getDeviceAddress()));
 
-                throw new RuntimeException("Login to server " + info.getDeviceAddress() + " failed");
+                throw new CommandException("Login to server " + info.getDeviceAddress() + " failed");
             }
             else {
                 logger.debug(String.format("Login to server %s succeeded", info.getDeviceAddress()));
@@ -827,7 +835,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
 
         if (breezesession == null) {
-            throw new RuntimeException("Could not log in to Adobe Connect server: " + info.getDeviceAddress());
+            throw new CommandException("Could not log in to Adobe Connect server: " + info.getDeviceAddress());
         }
     }
 
@@ -847,8 +855,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param attributes atrtributes of action
      * @return XML action response
      * @throws CommandException
+     * @throws RequestFailedCommandException
      */
-    protected Element request(String action, Map<String, String> attributes) throws CommandException
+    protected Element request(String action, Map<String, String> attributes) throws CommandException, RequestFailedCommandException
     {
         try {
             if (this.breezesession == null) {
@@ -881,10 +890,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                         login();
                         continue;
                     }
-                    String error = formatError(result);
-                    logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), error));
-
-                    throw new RuntimeException(error + ". URL: " + url);
+                    throw new RequestFailedCommandException(url, result);
                 }
                 else {
                     logger.debug(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
@@ -901,8 +907,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         catch (JDOMException e) {
             throw new RuntimeException("Error initializing parser", e);
         }
-        catch (Exception exception) {
-            throw new CommandException(exception.getMessage(), exception);
+        catch (RequestFailedCommandException exception) {
+            logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), exception));
+            throw exception;
         }
     }
 
@@ -943,39 +950,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return false;
     }
 
-    /**
-     * @param result
-     * @return formatted error contained in the given {@code result}
-     */
-    private String formatError(Document result)
-    {
-        Element status = result.getRootElement().getChild("status");
-
-        List<Attribute> statusAttributes = status.getAttributes();
-        StringBuilder errorMsg = new StringBuilder();
-        for (Attribute attribute : statusAttributes) {
-            String attributeName = attribute.getName();
-            String attributeValue = attribute.getValue();
-            errorMsg.append(" ");
-            errorMsg.append(attributeName);
-            errorMsg.append(": ");
-            errorMsg.append(attributeValue);
-
-        }
-
-        String code = status.getAttributeValue("code");
-        if (status.getChild(code) != null) {
-            List<Attribute> childAttributes = status.getChild(code).getAttributes();
-            for (Attribute attribute : childAttributes) {
-                errorMsg.append(", ");
-                errorMsg.append(attribute.getName());
-                errorMsg.append(": ");
-                errorMsg.append(attribute.getValue());
-            }
-        }
-        return errorMsg.toString();
-    }
-
     public static void main(String[] args) throws Exception
     {
         try {
@@ -1013,4 +987,64 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         System.out.println("-- SOURCE DATA --");
         System.out.println();
     }*/
+
+    public static class RequestFailedCommandException extends CommandException
+    {
+        private URL requestUrl;
+
+        private Document requestResult;
+
+        public RequestFailedCommandException(URL requestUrl, Document requestResult)
+        {
+            this.requestUrl = requestUrl;
+            this.requestResult = requestResult;
+        }
+
+        @Override
+        public String getMessage()
+        {
+            return String.format("%s. URL: %s", getError(), requestUrl);
+        }
+
+        public String getError()
+        {
+            Element status = requestResult.getRootElement().getChild("status");
+
+            List<Attribute> statusAttributes = status.getAttributes();
+            StringBuilder errorMsg = new StringBuilder();
+            for (Attribute attribute : statusAttributes) {
+                String attributeName = attribute.getName();
+                String attributeValue = attribute.getValue();
+                errorMsg.append(" ");
+                errorMsg.append(attributeName);
+                errorMsg.append(": ");
+                errorMsg.append(attributeValue);
+
+            }
+
+            String code = status.getAttributeValue("code");
+            if (status.getChild(code) != null) {
+                List<Attribute> childAttributes = status.getChild(code).getAttributes();
+                for (Attribute attribute : childAttributes) {
+                    errorMsg.append(", ");
+                    errorMsg.append(attribute.getName());
+                    errorMsg.append(": ");
+                    errorMsg.append(attribute.getValue());
+                }
+            }
+            return errorMsg.toString();
+        }
+
+        public String getCode()
+        {
+            Element status = requestResult.getRootElement().getChild("status");
+            return status.getAttributeValue("code");
+        }
+
+        public String getSubCode()
+        {
+            Element status = requestResult.getRootElement().getChild("status");
+            return status.getAttributeValue("subcode");
+        }
+    }
 }

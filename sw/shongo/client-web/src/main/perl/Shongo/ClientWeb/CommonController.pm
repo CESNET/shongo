@@ -621,4 +621,60 @@ sub format_selectable
     return '<span style="float:left" class="' . $class . '"">' . $text . '</span>';
 }
 
+sub room_action
+{
+    my ($self) = @_;
+    my $executable = undef;
+    my $executable_id = $self->get_param('id');
+    if ( defined($executable_id) ) {
+        $executable = $self->{'application'}->secure_request('Executable.getExecutable', $executable_id);
+    }
+    else {
+        my $reservation_request_id = $self->get_param('reservation-request-id');
+        if ( defined($reservation_request_id) ) {
+            my $reservation_request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $reservation_request_id);
+            if ( defined($reservation_request->{'reservationId'}) ) {
+                my $reservation = $self->{'application'}->secure_request('Reservation.getReservation', $reservation_request->{'reservationId'});
+                $executable = $reservation->{'executable'};
+            }
+        }
+        else {
+            die('Room id or reservation request id must be present.');
+        }
+    }
+    if ( !defined($executable) ) {
+        die('Executable must be defined.');
+    }
+    my $resource_id = $executable->{'resourceId'};
+    my $room_id = $executable->{'roomId'};
+    if ( !defined($resource_id) || !defined($room_id) ) {
+        die('Resource id and room id mut be defined.');
+    }
+
+    my $room = $self->{'application'}->secure_request(
+        'ResourceControl.getRoom',
+        RPC::XML::string->new($resource_id),
+        RPC::XML::string->new($room_id)
+    );
+    if ( !defined($room) ) {
+        die('Room must be defined.');
+    }
+
+    $room->{'type'} = join("/", map($Shongo::Common::Technology->{$_}, @{$room->{'technologies'}}));
+
+    my $room_participants = $self->{'application'}->secure_request(
+        'ResourceControl.listParticipants',
+        RPC::XML::string->new($resource_id),
+        RPC::XML::string->new($room_id)
+    );
+
+    $self->format_aliases($executable, $executable->{'aliases'}, 1);
+
+    $self->render_page('Room Management', 'common/room.html', {
+        'executable' => $executable,
+        'room' => $room,
+        'roomParticipants' => $room_participants
+    });
+}
+
 1;

@@ -13,8 +13,8 @@ import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.rpc.ExecutorService;
-import cz.cesnet.shongo.controller.api.rpc.ExecutorServiceImpl;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlServiceImpl;
 import cz.cesnet.shongo.controller.executor.*;
@@ -69,11 +69,11 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * @return {@link ExecutorService} from the {@link #controllerClient}
+     * @return {@link cz.cesnet.shongo.controller.api.rpc.ExecutableService} from the {@link #controllerClient}
      */
-    public ExecutorService getExecutorService()
+    public ExecutableService getExecutorService()
     {
-        return getControllerClient().getService(ExecutorService.class);
+        return getControllerClient().getService(ExecutableService.class);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class ExecutorTest extends AbstractControllerTest
 
         Controller controller = getController();
         getController().addRpcService(new ResourceControlServiceImpl());
-        getController().addRpcService(new ExecutorServiceImpl());
+        getController().addRpcService(new ExecutableServiceImpl());
 
         executor = new Executor();
         executor.setEntityManagerFactory(getEntityManagerFactory());

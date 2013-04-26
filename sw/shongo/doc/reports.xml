@@ -206,11 +206,14 @@
                 TODO:
             </description>
             <message>
-                Receiver agent ${receiverAgent} threw CommandException while processing command ${command}: ${reason}
+                Receiver agent ${receiverAgent} failed to perform command ${command}: ${reason}
             </message>
             <example>
                 TODO:
             </example>
+            <user>
+                <message>Command ${command} ended with error.</message>
+            </user>
             <resolution>stop</resolution>
         </report>
 

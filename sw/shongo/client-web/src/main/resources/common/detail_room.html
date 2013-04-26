@@ -7,6 +7,7 @@
         <th>Duration</th>
         <th>State</th>
         <th width="500px">[% technologies %] alias</th>
+        <th>Action</th>
     </tr>
     </thead>
     <tbody>
@@ -33,6 +34,11 @@
                     tooltipClass = 'aliases-description'
                     tooltipText  = childRequest.reservation.aliasesDescription
             %]
+        </td>
+        <td>
+            [% IF childRequest.stateCode == 'started' %]
+            <a href="[% location %]/room?id=[% childRequest.reservation.executable.id %]">room management</a>
+            [% END %]
         </td>
     </tr>
     [%- END %]

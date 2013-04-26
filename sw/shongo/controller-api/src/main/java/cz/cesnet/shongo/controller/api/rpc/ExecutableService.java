@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface ExecutorService extends Service
+public interface ExecutableService extends Service
 {
     /**
      * Deletes a given compartment.

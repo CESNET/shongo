@@ -12,11 +12,14 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.jade.SendLocalCommand;
+import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -210,7 +213,7 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         return (Room) performDeviceAction(deviceResourceId, agentName, new GetRoom(roomId));
     }
 
@@ -238,7 +241,7 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId)
     {
-        String agentName = validate(token, deviceResourceId);
+        String agentName = validate(token, deviceResourceId, roomId);
         return (List<RoomUser>) performDeviceAction(deviceResourceId, agentName, new ListParticipants(roomId));
     }
 
@@ -335,15 +338,47 @@ public class ResourceControlServiceImpl extends Component
      */
     private String validate(SecurityToken token, String deviceResourceId)
     {
-        String userId = authorization.validate(token);
-        EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
-        String agentName = getAgentName(entityId);
-
-        if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
-            ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", entityId);
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            String userId = authorization.validate(token);
+            EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
+            String agentName = getAgentName(entityId, entityManager);
+            if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
+                ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", entityId);
+            }
+            return agentName;
         }
+        finally {
+            entityManager.close();
+        }
+    }
 
-        return agentName;
+    /**
+     * @param token            to be validated against given {@code deviceResourceId}
+     * @param deviceResourceId
+     * @return agent name
+     */
+    private String validate(SecurityToken token, String deviceResourceId, String roomId)
+    {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            String userId = authorization.validate(token);
+            EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
+            String agentName = getAgentName(deviceResourceIdentifier, entityManager);
+            if (!authorization.hasPermission(userId, deviceResourceIdentifier, Permission.CONTROL_RESOURCE)) {
+                ExecutableManager executableManager = new ExecutableManager(entityManager);
+                RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(
+                        deviceResourceIdentifier.getPersistenceId(), roomId, DateTime.now());
+                if (roomEndpoint == null || !authorization.hasPermission(
+                        userId, new EntityIdentifier(roomEndpoint), Permission.READ)) {
+                    ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
+                }
+            }
+            return agentName;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -352,17 +387,16 @@ public class ResourceControlServiceImpl extends Component
      * @param entityId shongo-id of device agent of which to get
      * @return agent name of managed resource with given {@code deviceResourceId}
      */
-    protected String getAgentName(EntityIdentifier entityId)
+    protected String getAgentName(EntityIdentifier entityId, EntityManager entityManager)
     {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         DeviceResource deviceResource = resourceManager.getDevice(entityId.getPersistenceId());
-        entityManager.close();
         Mode mode = deviceResource.getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
         }
         throw new RuntimeException(String.format("Resource '%s' is not managed!", entityId.toId()));
+
     }
 }

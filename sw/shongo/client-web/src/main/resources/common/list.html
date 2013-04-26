@@ -20,7 +20,7 @@
         <th>Purpose</th>
         <th>Validity</th>
         <th>State</th>
-        <th>Action</th>
+        <th width="220px">Action</th>
     </tr>
     </thead>
     <tbody>
@@ -31,7 +31,13 @@
         <td>[% aliasRequest.purpose %]</td>
         <td>[% util.interval_format_date(aliasRequest.earliestSlot) %]</td>
         <td><a href="[% location %]/detail?id=[% aliasRequest.id %]" class="state-[% aliasRequest.stateCode %]">[% aliasRequest.state %]<div class="info-icon"></div></a></td>
-        <td><a href="[% location %]/delete?id=[% aliasRequest.id %]">delete</a></td>
+        <td>
+            <a href="[% location %]/detail?id=[% aliasRequest.id %]">detail</a>
+            [% IF aliasRequest.stateCode == 'started' %]
+            | <a href="[% location %]/room?reservation-request-id=[% aliasRequest.id %]">room management</a>
+            [% END %]
+            | <a href="[% location %]/delete?id=[% aliasRequest.id %]">delete</a>
+        </td>
     </tr>
     [%- END %]
     [% IF !aliasRequests.size %]
@@ -54,7 +60,7 @@
         <th>Duration</th>
         <th style="text-align: right;">Participants</th>
         <th>State</th>
-        <th>Action</th>
+        <th width="220px">Action</th>
     </tr>
     </thead>
     <tbody>
@@ -67,7 +73,13 @@
         <td>[% util.period_format(roomRequest.duration) %]</td>
         <td style="text-align: right;">[% roomRequest.type.participantCount %]</td>
         <td><a href="[% location %]/detail?id=[% roomRequest.id %]" class="state-[% roomRequest.stateCode %]">[% roomRequest.state %]<div class="info-icon"></div></a></td>
-        <td><a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a></td>
+        <td>
+            <a href="[% location %]/detail?id=[% roomRequest.id %]">detail</a>
+            [% IF roomRequest.stateCode == 'started' %]
+            | <a href="[% location %]/room?reservation-request-id=[% roomRequest.id %]">room management</a>
+            [% END %]
+            | <a href="[% location %]/delete?id=[% roomRequest.id %]">delete</a>
+        </td>
     </tr>
     [%- END %]
     [% IF !roomRequests.size %]

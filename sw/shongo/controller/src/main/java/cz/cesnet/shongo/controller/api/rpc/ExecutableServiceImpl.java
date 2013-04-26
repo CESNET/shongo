@@ -16,12 +16,12 @@ import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
- * Reservation service implementation
+ * Implementation of {@link ExecutableService}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutorServiceImpl extends Component
-        implements ExecutorService, Component.EntityManagerFactoryAware,
+public class ExecutableServiceImpl extends Component
+        implements ExecutableService, Component.EntityManagerFactoryAware,
                    Component.AuthorizationAware
 {
     /**

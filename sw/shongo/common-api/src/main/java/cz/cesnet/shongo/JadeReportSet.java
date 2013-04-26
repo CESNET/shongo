@@ -960,7 +960,7 @@ public class JadeReportSet extends AbstractReportSet
     }
 
     /**
-     * Receiver agent {@link #receiverAgent} threw CommandException while processing command {@link #command}: {@link #reason}
+     * Receiver agent {@link #receiverAgent} failed to perform command {@link #command}: {@link #reason}
      */
     public static class CommandFailedReport extends CommandAbstractErrorReport implements SerializableReport
     {
@@ -1032,10 +1032,15 @@ public class JadeReportSet extends AbstractReportSet
         {
             StringBuilder message = new StringBuilder();
             switch (messageType) {
+                case USER:
+                    message.append("Command ");
+                    message.append((command == null ? "null" : command));
+                    message.append(" ended with error.");
+                    break;
                 default:
                     message.append("Receiver agent ");
                     message.append((receiverAgent == null ? "null" : receiverAgent));
-                    message.append(" threw CommandException while processing command ");
+                    message.append(" failed to perform command ");
                     message.append((command == null ? "null" : command));
                     message.append(": ");
                     message.append((reason == null ? "null" : reason));

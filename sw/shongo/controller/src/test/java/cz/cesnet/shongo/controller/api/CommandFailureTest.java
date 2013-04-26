@@ -19,6 +19,8 @@ import jade.core.AID;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
+
 /**
  * Tests for {@link cz.cesnet.shongo.JadeReport}s,
  *
@@ -42,7 +44,7 @@ public class CommandFailureTest extends AbstractControllerTest
         getController().addRpcService(new ResourceControlServiceImpl()
         {
             @Override
-            protected String getAgentName(EntityIdentifier entityId)
+            protected String getAgentName(EntityIdentifier entityId, EntityManager entityManager)
             {
                 return "mcu";
             }

@@ -78,6 +78,9 @@
                 tooltipClass = 'state-report'
                 tooltipText  = childRequest.stateReport
         -%]
+        [% IF request.stateCode == 'started' %]
+        [<a href="[% location %]/room?id=[% request.reservation.executable.id %]">room management</a>]
+        [% END %]
     </dd>
 
     <dt>Room Name:</dt>
