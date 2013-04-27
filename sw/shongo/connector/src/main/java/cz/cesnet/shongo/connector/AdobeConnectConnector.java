@@ -699,6 +699,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
         }
 
+        if (isError(response)) {
+            logger.debug("Problem getting meeting participants. May be caused by calling unsafe AC method. This should just mean, that there is no participants.");
+            return participantList;
+        }
+
         for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
             RoomUser roomUser = new RoomUser();
             roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
@@ -995,13 +1000,30 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
-     * @param result
+     * @param result Document returned by AC API call
      * @return true if the given {@code result} represents and error,
      *         false otherwise
      */
     private boolean isError(Document result)
     {
         Element status = result.getRootElement().getChild("status");
+        if (status != null) {
+            String code = status.getAttributeValue("code");
+            if (code != null && code.equals("ok")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @param response Element returned by AC API call
+     * @return true if the given {@code result} represents and error,
+     *         false otherwise
+     */
+    private boolean isError(Element response)
+    {
+        Element status = response.getChild("status");
         if (status != null) {
             String code = status.getAttributeValue("code");
             if (code != null && code.equals("ok")) {
