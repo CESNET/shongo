@@ -1226,6 +1226,12 @@ ParamsLoop:
     }
 
     @Override
+    public Collection<String> getAllRecordings(String roomId) throws CommandException, CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(); // TODO
+    }
+
+    @Override
     public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO

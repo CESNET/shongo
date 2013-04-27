@@ -42,6 +42,16 @@ public interface RecordingService
     String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
+     * Returns URL for every recording.
+     *
+     * @param roomId identifier of room
+     * @return collection of URLs
+     * @throws CommandException
+     * @throws CommandUnsupportedException
+     */
+    Collection<String> getAllRecordings(String roomId) throws CommandException, CommandUnsupportedException;
+
+    /**
      * Lists all participants present during a given recording.
      * <p/>
      * Suitable for sending notifications about availability of the recording.

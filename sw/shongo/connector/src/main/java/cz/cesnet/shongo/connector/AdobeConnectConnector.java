@@ -152,6 +152,54 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
+     * Set session state
+     *
+     * @param roomId identifier of the room
+     * @param state state of session; true for end, false for start session
+     */
+    protected void endMeetingUpdate(String roomId, String state) throws CommandException
+    {
+        HashMap<String,String> sessionsAttributes = new HashMap<String, String>();
+        sessionsAttributes.put("sco-id",roomId);
+        Element sessionsResponse = request("report-meeting-sessions",sessionsAttributes);
+
+        if (sessionsResponse.getChild("report-meeting-sessions").getChildren().size() == 0)
+            return;
+
+        HashMap<String,String> endMeetingAttributes = new HashMap<String, String>();
+        endMeetingAttributes.put("sco-id",roomId);
+        endMeetingAttributes.put("state",state);
+
+        try {
+            request("meeting-roommanager-endmeeting-update", endMeetingAttributes);
+        } catch (CommandException ex) {
+            logger.debug("Failed to end or start meeting. Probably just AC error, everythink should be working properly.");
+        }
+    }
+
+    /**
+     * End current session.
+     *
+     * @param roomId indetifier of the room
+     * @throws CommandException
+     */
+    protected void endMeeting(String roomId) throws CommandException
+    {
+        endMeetingUpdate(roomId, "true");
+    }
+
+    /**
+     * Start new session. Host can do it from AC.
+     *
+     * @param roomId identifier of the room
+     * @throws CommandException
+     */
+    protected void startMeeting(String roomId) throws CommandException
+    {
+        endMeetingUpdate(roomId, "false");
+    }
+
+    /**
      * This method is not supported, cause the AC XML API (secret one) is not working
      *
      * @throws CommandUnsupportedException
@@ -277,6 +325,26 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 .getChild("sco").getChildText("url-path");
 
         return url;
+    }
+
+    public Collection<String> getAllRecordings(String roomId) throws CommandException
+    {
+        ArrayList<String> recordingList = new ArrayList<String>();
+
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+        attributes.put("filter-icon","archive");
+
+        Element response = request("sco-contents",attributes);
+
+        for(Element recording : response.getChild("scos").getChildren()) {
+            if (recording.getChild("date-end") == null)
+                continue;
+            String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + recording.getChildText("url-path");
+            recordingList.add(url);
+        }
+
+        return Collections.unmodifiableList(recordingList);
     }
 
     @java.lang.Override
@@ -488,9 +556,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             // Add room participants
             if (room.getLicenseCount() > 0) {
+                startMeeting(roomId);
                 for (UserInformation participant : room.getParticipants()) {
                     addRoomParticipant(roomId, participant);
                 }
+            } else if (room.getLicenseCount() == 0) {
+                endMeeting(roomId);
             }
 
             //importRoomSettings(response.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
@@ -523,11 +594,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             // Add/modify participants
             if(room.getLicenseCount() > 0){
+                startMeeting(roomId);
                 for (UserInformation participant : room.getParticipants()) {
                     addRoomParticipant(roomId, participant);
                 }
+            } else if (room.getLicenseCount() == 0) {
+                endMeeting(roomId);
             }
 
+
+            //TODO: will this be needed?
             // Delete participants
             Set<UserInformation> deletedParticipants = room.getPropertyItemsMarkedAsDeleted(Room.PARTICIPANTS);
             for (UserInformation deleteParticipant : deletedParticipants) {
@@ -628,8 +704,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
             roomUser.setDisplayName(userDetails.getChildText("username"));
             roomUser.setRoomId(roomId);
-            roomUser.setUserId(userDetails.getChildText("user-id"));
-            // TODO: Set eppn instead of principal-id (or even better set shongo user-id)
+
+            HashMap<String,String> userAttributes = new HashMap<String, String>();
+            userAttributes.put("filter-principal-id",userDetails.getChildText("principal-id"));
+            Element userResponse = request("principal-list", userAttributes);
+
+            roomUser.setUserId(userResponse.getChild("principal-list").getChild("principal").getChildText("login"));
+
             roomUser.setUserIdentity(userDetails.getChildText("principal-id"));
 
             participantList.add(roomUser);
@@ -963,6 +1044,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             /************************/
 
+            acc.endMeetingUpdate("52411","true");
+
+            //acc.endMeetingUpdate("49157","true");
 
             acc.disconnect();
 
