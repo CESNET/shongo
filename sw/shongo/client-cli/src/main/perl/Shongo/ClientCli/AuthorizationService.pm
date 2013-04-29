@@ -94,8 +94,8 @@ sub get_user()
     if ( defined($response) ) {
         my $object = Shongo::ClientCli::API::Object->new();
         $object->set_object_name('User Information');
-        $object->add_attribute('Id', {}, $response->{'id'});
-        $object->add_attribute('EPPN', {}, $response->{'eduPersonPrincipalName'});
+        $object->add_attribute('Id', {}, $response->{'userId'});
+        $object->add_attribute('EPPN', {}, $response->{'originalId'});
         $object->add_attribute('First Name', {}, $response->{'firstName'});
         $object->add_attribute('Last Name', {}, $response->{'lastName'});
         console_print_text($object);

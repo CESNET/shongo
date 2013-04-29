@@ -10,13 +10,24 @@ public class GetUserInformation extends ControllerCommand
 {
     private String userId;
 
+    private String originalId;
+
     public GetUserInformation()
     {
     }
 
-    public GetUserInformation(String userId)
+    public static GetUserInformation byUserId(String userId)
     {
-        this.userId = userId;
+        GetUserInformation getUserInformation = new GetUserInformation();
+        getUserInformation.setUserId(userId);
+        return getUserInformation;
+    }
+
+    public static GetUserInformation byOriginalId(String originalId)
+    {
+        GetUserInformation getUserInformation = new GetUserInformation();
+        getUserInformation.setOriginalId(originalId);
+        return getUserInformation;
     }
 
     public String getUserId()
@@ -29,15 +40,35 @@ public class GetUserInformation extends ControllerCommand
         this.userId = userId;
     }
 
+    public String getOriginalId()
+    {
+        return originalId;
+    }
+
+    public void setOriginalId(String originalId)
+    {
+        this.originalId = originalId;
+    }
+
     @Override
     public Object execute(Service commonService, String senderAgentName) throws CommandException
     {
-        return commonService.getUserInformation(userId);
+        if (userId != null) {
+            return commonService.getUserInformation(userId);
+        }
+        else {
+            return commonService.getUserInformationByOriginalId(originalId);
+        }
     }
 
     @Override
     public String toString()
     {
-        return String.format(GetUserInformation.class.getSimpleName() + " (userId: %s)", userId);
+        if (userId != null) {
+            return String.format(GetUserInformation.class.getSimpleName() + " (userId: %s)", userId);
+        }
+        else {
+            return String.format(GetUserInformation.class.getSimpleName() + " (originalId: %s)", originalId);
+        }
     }
 }

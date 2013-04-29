@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -16,6 +18,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,7 +125,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected String createAdobeConnectUser(UserInformation userInformation) throws CommandException
     {
-        String principalName = userInformation.getEduPersonPrincipalName();
+        String principalName = userInformation.getOriginalId();
         if (principalName == null) {
             logger.warn("Participant '{}' doesn't have EPPN and he cannot use the Adobe Connect.",
                     userInformation.getFullName());
@@ -680,6 +683,62 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return null;
     }
 
+    /**
+     * Cache of user login (EPPN) by user principal-id.
+     */
+    private ExpirationMap<String, String> cachedLoginByPrincipalId =
+            new ExpirationMap<String, String>(Duration.standardHours(1));
+
+    /**
+     * Cache of {@link UserInformation} by user login (EPPN).
+     */
+    private ExpirationMap<String, UserInformation> cachedUserInformationByLogin =
+            new ExpirationMap<String, UserInformation>(Duration.standardHours(1));
+
+    /**
+     * @param userPrincipalId principal-id of an user
+     * @return user login (EPPN) for given {@code userPrincipalId}
+     * @throws CommandException
+     */
+    public String getUserLoginByPrincipalId(String userPrincipalId) throws CommandException
+    {
+        String userLogin;
+        if (cachedLoginByPrincipalId.contains(userPrincipalId)) {
+            logger.debug("Using cached user login by principal-id '{}'...", userPrincipalId);
+            userLogin = cachedLoginByPrincipalId.get(userPrincipalId);
+
+        }
+        else {
+            logger.debug("Fetching user login by principal-id '{}'...", userPrincipalId);
+            HashMap<String,String> userAttributes = new HashMap<String, String>();
+            userAttributes.put("filter-principal-id", userPrincipalId);
+            Element userResponse = request("principal-list", userAttributes);
+            userLogin = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
+            cachedLoginByPrincipalId.put(userPrincipalId, userLogin);
+        }
+        return userLogin;
+    }
+
+    /**
+     * @param userLogin login of an user
+     * @return {@link UserInformation} for given {@code userLogin}
+     * @throws CommandException
+     */
+    public UserInformation getUserInformationByLogin(String userLogin) throws CommandException
+    {
+        UserInformation userInformation;
+        if (cachedUserInformationByLogin.contains(userLogin)) {
+            logger.debug("Using cached user information by login '{}'...", userLogin);
+            userInformation = cachedUserInformationByLogin.get(userLogin);
+        }
+        else {
+            logger.debug("Fetching user information by login '{}'...", userLogin);
+            userInformation = (UserInformation) performControllerAction(GetUserInformation.byOriginalId(userLogin));
+            cachedUserInformationByLogin.put(userLogin, userInformation);
+        }
+        return userInformation;
+    }
+
     @java.lang.Override
     public Collection<RoomUser> listParticipants(String roomId) throws CommandException
     {
@@ -711,14 +770,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
             roomUser.setDisplayName(userDetails.getChildText("username"));
             roomUser.setRoomId(roomId);
+            roomUser.setRoomUserId(userDetails.getChildText("user-id"));
 
-            HashMap<String,String> userAttributes = new HashMap<String, String>();
-            userAttributes.put("filter-principal-id",userDetails.getChildText("principal-id"));
-            Element userResponse = request("principal-list", userAttributes);
-
-            roomUser.setUserId(userResponse.getChild("principal-list").getChild("principal").getChildText("login"));
-
-            roomUser.setUserIdentity(userDetails.getChildText("principal-id"));
+            String userLogin = getUserLoginByPrincipalId(userDetails.getChildText("principal-id"));
+            UserInformation userInformation = getUserInformationByLogin(userLogin);
+            if (userInformation != null) {
+                roomUser.setUserId(userInformation.getUserId());
+            }
 
             participantList.add(roomUser);
         }
@@ -731,7 +789,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         Collection<RoomUser> participants = this.listParticipants(roomId);
         for (RoomUser roomUser : participants) {
-            if (roomUser.getUserId().equals(roomUserId)) {
+            if (roomUser.getRoomUserId().equals(roomUserId)) {
                 return roomUser;
             }
         }

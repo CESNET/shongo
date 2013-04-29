@@ -32,7 +32,7 @@ public class ConnectorContainerCommandSet extends ContainerCommandSet
                     return;
                 }
                 SendLocalCommand sendLocalCommand = container.sendAgentCommand(agentName, "Controller",
-                        new GetUserInformation(args[1]));
+                        GetUserInformation.byUserId(args[1]));
                 if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
                     UserInformation userInformation = (UserInformation) sendLocalCommand.getResult();
                     Shell.printInfo("User: %s", userInformation.toString());

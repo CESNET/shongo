@@ -54,6 +54,17 @@ public class ServiceImpl implements Service
     }
 
     @Override
+    public UserInformation getUserInformationByOriginalId(String originalUserId) throws CommandException
+    {
+        for (UserInformation userInformation : Authorization.getInstance().listUserInformation()) {
+            if (originalUserId.equals(userInformation.getOriginalId())) {
+                return userInformation;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public Room getRoom(String agentName, String roomId) throws CommandException
     {
         Long deviceResourceId = getDeviceResourceIdByAgentName(agentName);

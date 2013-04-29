@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.authorization;
+package cz.cesnet.shongo;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -14,7 +14,7 @@ import java.util.Map;
  * @param <V>
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-class ExpirationMap<K, V> implements Iterable<V>
+public class ExpirationMap<K, V> implements Iterable<V>
 {
     /**
      * Cache of {@link V} by {@link K}.
@@ -27,11 +27,46 @@ class ExpirationMap<K, V> implements Iterable<V>
     private Duration expiration = null;
 
     /**
+     * Constructor.
+     */
+    public ExpirationMap()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param expiration sets the {@link #expiration}
+     */
+    public ExpirationMap(Duration expiration)
+    {
+        setExpiration(expiration);
+    }
+
+    /**
      * @param expiration sets the {@link #expiration}
      */
     public void setExpiration(Duration expiration)
     {
         this.expiration = expiration;
+    }
+
+    /**
+     * @param key
+     * @return true if given {@code key} exists, false otherwise
+     */
+    public synchronized boolean contains(K key)
+    {
+        Entry<V> entry = entries.get(key);
+        if (entry != null) {
+            if (entry.expirationDateTime == null || entry.expirationDateTime.isAfter(DateTime.now())) {
+                return true;
+            }
+            else {
+                entries.remove(key);
+            }
+        }
+        return false;
     }
 
     /**

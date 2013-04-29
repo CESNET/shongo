@@ -310,46 +310,51 @@ sub fault_action
 {
     my ($self, $fault_response) = @_;
 
-    select STDOUT;
-    $self->render_headers();
-
-    my $params = undef;
     my $title = undef;
-    my $message = $fault_response->string();
-    if ($message =~ /^{.+}$/ ) {
-        $params = decode_json($message);
-        $message = $params->{'message'};
-    }
-
-    my $code = $fault_response->code();
-    if ( $code == 11 ) {
-        my $Type = {
-            'AbstractReservationRequest' => 'Reservation request'
-        };
-        my $entityId = $params->{'id'};
-        my $entity = $params->{'entity'};
-        if ( defined($Type->{$entity}) ) {
-            $entity = $Type->{$entity};
-        }
-        $title = "$entity not found";
-        $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
-    }
-    elsif ( $code == 102 ) {
-        my $action = $params->{'action'};
-        $title = "Not authorized";
-        $message = "You are not authorized to <strong>$action</strong>.";
-        $message .= '<p>If you think that you should be authorized to specified action contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
-
-    }
-    elsif ( $code == 107 ) {
-        my $reservationRequestId = $params->{'id'};
-        $title = "Reservation request cannot be deleted";
-        $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";
+    my $message = undef;
+    if ( ref($fault_response) eq 'HASH' ) {
+        $title = $fault_response->{'title'};
+        $message = $fault_response->{'message'};
     }
     else {
-        $title = "Error (code: $code)";
+        my $params = undef;
+        my $code = $fault_response->code();
+        $message = $fault_response->string();
+        if ($message =~ /^{.+}$/ ) {
+            $params = decode_json($message);
+            $message = $params->{'message'};
+        }
+        if ( $code == 11 ) {
+            my $Type = {
+                'AbstractReservationRequest' => 'Reservation request'
+            };
+            my $entityId = $params->{'id'};
+            my $entity = $params->{'entity'};
+            if ( defined($Type->{$entity}) ) {
+                $entity = $Type->{$entity};
+            }
+            $title = "$entity not found";
+            $message = "$entity with identifier <strong>$entityId</strong> doesn't exist.";
+        }
+        elsif ( $code == 102 ) {
+            my $action = $params->{'action'};
+            $title = "Not authorized";
+            $message = "You are not authorized to <strong>$action</strong>.";
+            $message .= '<p>If you think that you should be authorized to specified action contact the <a href="mailto: ' . $self->{'configuration'}->{'contact'} . '">developers</a>.</p>';
+
+        }
+        elsif ( $code == 107 ) {
+            my $reservationRequestId = $params->{'id'};
+            $title = "Reservation request cannot be deleted";
+            $message = "Reservation request <strong>$reservationRequestId</strong> cannot be deleted.";
+        }
+        else {
+            $title = "Error (code: $code)";
+        }
     }
 
+    select STDOUT;
+    $self->render_headers();
     $self->render_page('Error', 'fault.html', {
         'faultTitle' => $title,
         'faultMessage' => $message,

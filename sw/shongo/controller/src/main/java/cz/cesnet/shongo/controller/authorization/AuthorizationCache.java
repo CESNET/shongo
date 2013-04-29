@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import org.joda.time.Duration;

@@ -645,6 +645,14 @@ sub room_action
     if ( !defined($executable) ) {
         die('Executable must be defined.');
     }
+
+    if ( $executable->{'state'} ne 'STARTED' ) {
+        $self->{'application'}->fault_action({
+            'title' => "Room Not Started",
+            'message' => "Room <strong>" . $executable->{'id'} . "</strong> is not started."
+        });
+    }
+
     my $resource_id = $executable->{'resourceId'};
     my $room_id = $executable->{'roomId'};
     if ( !defined($resource_id) || !defined($room_id) ) {
@@ -667,6 +675,11 @@ sub room_action
         RPC::XML::string->new($resource_id),
         RPC::XML::string->new($room_id)
     );
+    foreach my $room_participant (@{$room_participants}) {
+        if ( defined($room_participant->{'userId'}) ) {
+            $room_participant->{'user'} = $self->{'application'}->get_user_information($room_participant->{'userId'});
+        }
+    }
 
     $self->format_aliases($executable, $executable->{'aliases'}, 1);
 

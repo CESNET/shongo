@@ -111,7 +111,7 @@ public class JadeServiceTest extends AbstractControllerTest
         {
             if (command instanceof PingCommand) {
                 SendLocalCommand sendLocalCommand = sendCommand(getControllerAgentName(),
-                        new GetUserInformation(Authorization.ROOT_USER_ID));
+                        GetUserInformation.byUserId(Authorization.ROOT_USER_ID));
                 Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
                 UserInformation userInformation = (UserInformation) sendLocalCommand.getResult();
                 Assert.assertEquals(Authorization.ROOT_USER_INFORMATION.getFirstName(), userInformation.getFirstName());

@@ -20,9 +20,9 @@ public class UserInformation implements PersonInformation, Concept
     private String userId;
 
     /**
-     * eduPerson Principal Name.
+     * Original user-id from identity provider.
      */
-    private String eduPersonPrincipalName;
+    private String originalId;
 
     /**
      * First name of the use (e.g., given name).
@@ -68,19 +68,19 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     /**
-     * @return {@link #eduPersonPrincipalName}
+     * @return {@link #originalId}
      */
-    public String getEduPersonPrincipalName()
+    public String getOriginalId()
     {
-        return eduPersonPrincipalName;
+        return originalId;
     }
 
     /**
-     * @param eduPersonPrincipalName sets the {@link #eduPersonPrincipalName}
+     * @param originalId sets the {@link #originalId}
      */
-    public void setEduPersonPrincipalName(String eduPersonPrincipalName)
+    public void setOriginalId(String originalId)
     {
-        this.eduPersonPrincipalName = eduPersonPrincipalName;
+        this.originalId = originalId;
     }
 
     /**

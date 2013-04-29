@@ -11,9 +11,9 @@ import org.joda.time.DateTime;
  */
 public class RoomUser implements StructType, Concept
 {
-    private String userId;
+    private String roomUserId;
     private String roomId;
-    private String userIdentity;
+    private String userId;
     private String displayName = null;
 
     private DateTime joinTime;
@@ -173,33 +173,33 @@ public class RoomUser implements StructType, Concept
     /**
      * @return User identification in room (technology specific).
      */
+    public String getRoomUserId()
+    {
+        return roomUserId;
+    }
+
+    /**
+     * @param roomUserId User identification in room (technology specific).
+     */
+    public void setRoomUserId(String roomUserId)
+    {
+        this.roomUserId = roomUserId;
+    }
+
+    /**
+     * @return the shongo user-id or null
+     */
     public String getUserId()
     {
         return userId;
     }
 
     /**
-     * @param userId User identification in room (technology specific).
+     * @param userId sets the shongo user-id
      */
     public void setUserId(String userId)
     {
         this.userId = userId;
-    }
-
-    /**
-     * @return User identity (may be NULL, e.g., when the user is calling from a cell phone)
-     */
-    public String getUserIdentity()
-    {
-        return userIdentity;
-    }
-
-    /**
-     * @param userIdentity User identity
-     */
-    public void setUserIdentity(String userIdentity)
-    {
-        this.userIdentity = userIdentity;
     }
 
     /**

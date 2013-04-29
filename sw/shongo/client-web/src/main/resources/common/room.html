@@ -33,14 +33,14 @@
     <thead>
     <tr>
         <th>Name</th>
-        <th>EPPN</th>
+        <th>Email</th>
     </tr>
     </thead>
     <tbody>
     [%- FOREACH roomParticipant IN roomParticipants %]
     <tr>
         <td>[% roomParticipant.displayName %]</td>
-        <td>[% roomParticipant.userIdentity %]</td>
+        <td>[% roomParticipant.user.emails.0 %]</td>
     </tr>
     [%- END %]
     [%- IF !roomParticipant.size %]

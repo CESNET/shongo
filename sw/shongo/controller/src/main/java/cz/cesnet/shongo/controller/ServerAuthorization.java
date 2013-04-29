@@ -368,7 +368,7 @@ public class ServerAuthorization extends Authorization
         userInformation.setLastName(data.get("family_name").getTextValue());
 
         if (data.has("original_id")) {
-            userInformation.setEduPersonPrincipalName(data.get("original_id").getTextValue());
+            userInformation.setOriginalId(data.get("original_id").getTextValue());
         }
         if (data.has("organization")) {
             userInformation.setOrganization(data.get("organization").getTextValue());
