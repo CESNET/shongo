@@ -468,6 +468,18 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'listRecordings', @supportedMethods) {
+        $shell->add_commands({
+            "list-recordings" => {
+                desc => "List recordings in a given room",
+                minargs => 1, args => "[roomId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_list_recordings($resourceId, $args[0]);
+                }
+            }
+        });
+    }
 
     if ( defined($command) ) {
         $shell->command($command);
@@ -1084,5 +1096,31 @@ sub resource_get_device_load_info
     }
 }
 
+sub resource_list_recordings
+{
+    my ($resourceId, $roomId) = @_;
+
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'ResourceControl.listRecordings',
+        RPC::XML::string->new($resourceId),
+        RPC::XML::string->new($roomId)
+    );
+    if ( !defined($response) ) {
+        return;
+    }
+    my $table = {
+        'columns' => [
+            {'field' => 'url',   'title' => 'URL'}
+        ],
+        'data' => []
+    };
+    # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
+    foreach my $recording (@{$response}) {
+        push(@{$table->{'data'}}, {
+            'url' => $recording
+        });
+    }
+    console_print_table($table);
+}
 
 1;

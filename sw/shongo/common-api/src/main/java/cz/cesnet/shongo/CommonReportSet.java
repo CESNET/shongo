@@ -23,6 +23,7 @@ public class CommonReportSet extends AbstractReportSet
     public static final int ENTITY_NOT_FOUND_REPORT = 11;
     public static final int ENTITY_INVALID_REPORT = 12;
     public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 13;
+    public static final int METHOD_NOT_DEFINED_REPORT = 14;
 
     /**
      * Unknown error: {@link #description}
@@ -2171,6 +2172,137 @@ public class CommonReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Method {@link #method} is not defined.
+     */
+    public static class MethodNotDefinedReport extends Report implements ApiFault
+    {
+        protected String method;
+
+        public MethodNotDefinedReport()
+        {
+        }
+
+        public MethodNotDefinedReport(String method)
+        {
+            setMethod(method);
+        }
+
+        public String getMethod()
+        {
+            return method;
+        }
+
+        public void setMethod(String method)
+        {
+            this.method = method;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return METHOD_NOT_DEFINED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new MethodNotDefinedException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            method = (String) reportSerializer.getParameter("method", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("method", method);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Method ");
+                    message.append((method == null ? "null" : method));
+                    message.append(" is not defined.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link MethodNotDefinedReport}.
+     */
+    public static class MethodNotDefinedException extends ReportRuntimeException implements ApiFaultException
+    {
+        public MethodNotDefinedException(MethodNotDefinedReport report)
+        {
+            this.report = report;
+        }
+
+        public MethodNotDefinedException(Throwable throwable, MethodNotDefinedReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public MethodNotDefinedException(String method)
+        {
+            MethodNotDefinedReport report = new MethodNotDefinedReport();
+            report.setMethod(method);
+            this.report = report;
+        }
+
+        public MethodNotDefinedException(Throwable throwable, String method)
+        {
+            super(throwable);
+            MethodNotDefinedReport report = new MethodNotDefinedReport();
+            report.setMethod(method);
+            this.report = report;
+        }
+
+        public String getMethod()
+        {
+            return getReport().getMethod();
+        }
+
+        @Override
+        public MethodNotDefinedReport getReport()
+        {
+            return (MethodNotDefinedReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (MethodNotDefinedReport) report;
+        }
+    }
+
     @Override
     protected void fillReportClasses()
     {
@@ -2188,5 +2320,6 @@ public class CommonReportSet extends AbstractReportSet
         addReportClass(EntityNotFoundReport.class);
         addReportClass(EntityInvalidReport.class);
         addReportClass(EntityNotDeletableReferencedReport.class);
+        addReportClass(MethodNotDefinedReport.class);
     }
 }

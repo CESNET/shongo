@@ -49,7 +49,7 @@ public interface RecordingService
      * @throws CommandException
      * @throws CommandUnsupportedException
      */
-    Collection<String> getAllRecordings(String roomId) throws CommandException, CommandUnsupportedException;
+    Collection<String> listRecordings(String roomId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Lists all participants present during a given recording.

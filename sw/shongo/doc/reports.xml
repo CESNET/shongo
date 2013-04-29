@@ -520,6 +520,24 @@
             <user visible="true" via="api"/>
         </report>
 
+        <report>
+            <id>method-not-defined</id>
+            <classification severity="error"/>
+            <params>
+                <param name="method" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Method ${method} is not defined.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+        </report>
+
     </scope>
 
     <scope name="controller">

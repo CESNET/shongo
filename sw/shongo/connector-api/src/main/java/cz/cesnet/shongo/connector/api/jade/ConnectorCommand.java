@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import cz.cesnet.shongo.connector.api.MultipointService;
+import cz.cesnet.shongo.connector.api.RecordingService;
 import jade.content.onto.Ontology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,25 @@ public abstract class ConnectorCommand extends Command
             throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
         }
         return (MultipointService) connector;
+    }
+
+    /**
+     * Returns the passed connector as a RecordingService. Throws an exception if the typecast fails.
+     *
+     * @param connector a connector
+     * @return connector typecast to an RecordingService
+     * @throws CommandUnsupportedException
+     */
+    protected static RecordingService getRecording(CommonService connector)
+            throws CommandException, CommandUnsupportedException
+    {
+        if (connector == null) {
+            throw new CommandException("Not connected to the recording service.");
+        }
+        if (!(connector instanceof RecordingService)) {
+            throw new CommandUnsupportedException("The command is implemented only on a recording service.");
+        }
+        return (RecordingService) connector;
     }
 
     @Override

@@ -133,5 +133,20 @@ public interface ResourceControlService extends Service
             String roomUserId, int level);
 
     @API
-    public void showMessage(SecurityToken token, String deviceResourceIdentifier, int duration, String text);
+    public void showMessage(SecurityToken token, String deviceResourceId, int duration, String text);
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Recording service.
+    //
+
+    /**
+     * @param token
+     * @param deviceResourceId
+     * @param roomId identifier of room
+     * @return list of recording URLs for room with given {@code roomId}
+     */
+    @API
+    public Collection<String> listRecordings(SecurityToken token, String deviceResourceId, String roomId);
 }

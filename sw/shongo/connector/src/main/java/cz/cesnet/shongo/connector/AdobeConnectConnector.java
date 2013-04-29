@@ -33,15 +33,12 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
- * Created with IntelliJ IDEA.
- * User: opicak
- * Date: 10/9/12
- * Time: 1:23 PM
- * To change this template use File | Settings | File Templates.
+ * {@link AbstractConnector} for Adobe Connect.
+ *
+ * @author opicak <pavelka@cesnet.cz>
  */
-public class AdobeConnectConnector extends AbstractConnector implements MultipointService
+public class AdobeConnectConnector extends AbstractConnector implements MultipointService, RecordingService
 {
     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
@@ -330,7 +327,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return url;
     }
 
-    public Collection<String> getAllRecordings(String roomId) throws CommandException
+    public Collection<String> listRecordings(String roomId) throws CommandException
     {
         ArrayList<String> recordingList = new ArrayList<String>();
 

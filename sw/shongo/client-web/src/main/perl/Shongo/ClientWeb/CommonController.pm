@@ -681,12 +681,21 @@ sub room_action
         }
     }
 
-    $self->format_aliases($executable, $executable->{'aliases'}, 1);
+    my $roomRecordings = undef;
+    if ( scalar(@{$room->{'technologies'}}) == 1 && $room->{'technologies'}->[0] eq 'ADOBE_CONNECT' ) {
+        $roomRecordings = $self->{'application'}->secure_request(
+            'ResourceControl.listRecordings',
+            RPC::XML::string->new($resource_id),
+            RPC::XML::string->new($room_id)
+        );
+    }
 
+    $self->format_aliases($executable, $executable->{'aliases'}, 1);
     $self->render_page('Room Management', 'common/room.html', {
         'executable' => $executable,
         'room' => $room,
-        'roomParticipants' => $room_participants
+        'roomParticipants' => $room_participants,
+        'roomRecordings' => $roomRecordings
     });
 }
 

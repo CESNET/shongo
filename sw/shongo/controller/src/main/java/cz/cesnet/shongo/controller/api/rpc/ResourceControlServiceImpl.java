@@ -8,6 +8,7 @@ import cz.cesnet.shongo.connector.api.jade.endpoint.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.io.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.*;
 import cz.cesnet.shongo.connector.api.jade.multipoint.users.*;
+import cz.cesnet.shongo.connector.api.jade.recording.ListRecordings;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -313,6 +314,13 @@ public class ResourceControlServiceImpl extends Component
     {
         String agentName = validate(token, deviceResourceId);
         performDeviceAction(deviceResourceId, agentName, new ShowMessage(duration, text));
+    }
+
+    @Override
+    public Collection<String> listRecordings(SecurityToken token, String deviceResourceId, String roomId)
+    {
+        String agentName = validate(token, deviceResourceId, roomId);
+        return (Collection<String>) performDeviceAction(deviceResourceId, agentName, new ListRecordings(roomId));
     }
 
     /**

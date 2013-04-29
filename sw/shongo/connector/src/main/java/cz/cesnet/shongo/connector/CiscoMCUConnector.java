@@ -1204,54 +1204,6 @@ ParamsLoop:
 
     //</editor-fold>
 
-    //<editor-fold desc="RECORDING SERVICE">
-
-    @Override
-    public void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public void downloadRecording(String downloadURL, String targetPath)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public Collection<String> getAllRecordings(String roomId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public int startRecording(String roomId, ContentType format, RoomLayout layout)
-            throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
-    {
-        throw new CommandUnsupportedException(); // TODO
-    }
-
-    //</editor-fold>
-
     //<editor-fold desc="MONITORING SERVICE">
 
     @Override

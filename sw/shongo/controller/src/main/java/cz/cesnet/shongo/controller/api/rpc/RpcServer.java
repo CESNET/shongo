@@ -515,6 +515,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         {
             XmlRpcHandler result = (XmlRpcHandler) handlerMap.get(pHandlerName);
             if (result == null) {
+                Exception exception = null;
                 try {
                     // When no handler is found try to find it by requested class
                     int pos = pHandlerName.lastIndexOf(".");
@@ -542,9 +543,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     }
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+                    exception = e;
                 }
-                throw new XmlRpcNoSuchHandlerException("No such handler: " + pHandlerName);
+                throw new CommonReportSet.MethodNotDefinedException(exception, pHandlerName);
             }
             return result;
         }
