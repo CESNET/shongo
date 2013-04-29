@@ -45,17 +45,6 @@ my $template = Template->new({
     ENCODING => 'utf8'
 });
 
-# Catch errors
-use CGI::Carp qw(fatalsToBrowser);
-BEGIN {
-    sub carp_error {
-        my $error = shift;
-        my $error_application = Shongo::Web::Application->new($cgi, $template);
-        $error_application->error_action($error);
-    }
-    CGI::Carp::set_die_handler( \&carp_error );
-}
-
 # Initialize logger
 my $logger_file = $current_directory . '/log/client-web.log';
 my $logger_configuration = "";
@@ -71,12 +60,72 @@ my $logger = Log::Log4perl->get_logger('cz.cesnet.shongo.client-web');
 my $configuration = $session->param('configuration');
 if ( !defined($configuration) ) {
     $logger->debug('Loading configuration...');
-    $configuration = XMLin($resources_directory . '/default.cfg.xml', KeyAttr => {}, ForceArray => []);
+    $configuration = XMLin($resources_directory . '/default.cfg.xml');
     my $configuration_filename = $current_directory . '/client-web.cfg.xml';
     if ( -e $configuration_filename ) {
         $configuration = Hash::Merge::Simple::merge($configuration, XMLin($configuration_filename));
     }
     $session->param('configuration', $configuration);
+}
+
+# Catch errors
+use CGI::Carp qw(fatalsToBrowser);
+BEGIN {
+    my $processing_error = 0;
+    sub carp_error {
+        my $error = shift;
+        my $error_application = Shongo::Web::Application->new($cgi, $template);
+        if ( $processing_error ) {
+            select STDOUT;
+            $error_application->render_headers();
+            print "Unexpected Error: " . $error . "\n";
+            exit(0);
+        }
+        $processing_error = 1;
+
+        use Devel::StackTrace;
+        my $stack_trace = '';
+        my $index = 0;
+        foreach my $frame (Devel::StackTrace->new()->frames) {
+            if ( !($frame->{'subroutine'} eq 'Devel::StackTrace::new') ) {
+                $index++;
+                my $filename = $frame->{'filename'};
+                $filename =~ s/^\/.+\/main\/perl\///g;
+                $filename =~ s/^\/.+\/src\/public\///g;
+                $filename =~ s/^\/.+\/perl\d\///g;
+                $filename =~ s/^\/.+\/perl\/\d+(.\d+)+\///g;
+                $stack_trace .= sprintf("%d. %s (%d) %s()\n",
+                    $index,
+                    $filename,
+                    $frame->{'line'},
+                    $frame->{'subroutine'}
+                );
+            }
+        }
+
+        if ( defined($configuration->{'administrator'}) ) {
+            var_dump($configuration);
+            use Email::Sender::Simple qw(sendmail);
+            use Email::Sender::Transport::SMTP;
+
+            my $transport = Email::Sender::Transport::SMTP->new(
+                host => $configuration->{'smtp'}->{'host'},
+                port => $configuration->{'smtp'}->{'port'}
+            );
+            my $message = Email::Simple->create(
+                header => [
+                    From    => $configuration->{'smtp'}->{'sender'},
+                    To      => $configuration->{'administrator'},
+                    Subject => $configuration->{'smtp'}->{'subject-prefix'} . 'Web Client Error',
+                ],
+                body => $error . "\n\n Stacktrace:\n\n" . $stack_trace,
+            );
+            sendmail($message, { transport => $transport });
+        }
+
+        $error_application->error_action($error);
+    }
+    CGI::Carp::set_die_handler( \&carp_error );
 }
 
 # Initialize application

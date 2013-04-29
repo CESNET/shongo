@@ -11,6 +11,8 @@
 
     <!-- Contact email -->
     <contact>vidcon@cesnet.cz</contact>
+    <!-- Administrator email -->
+    <!--<administrator></administrator>-->
 
     <!-- Authorization -->
     <security>
@@ -19,5 +21,14 @@
         <redirect-uri>http://127.0.0.1:8182</redirect-uri>
         <secret>testclientsecret</secret>
     </security>
+
+    <!-- Configuration for sending emails -->
+    <smtp>
+        <sender>no-reply@shongo.cz</sender>
+        <!--<host></host>-->
+        <port>25</port>
+        <subject-prefix></subject-prefix>
+    </smtp>
+
 
 </configuration>
