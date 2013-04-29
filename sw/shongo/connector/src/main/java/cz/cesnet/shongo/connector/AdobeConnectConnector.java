@@ -697,11 +697,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (exception.getCode().equals("no-access") && exception.getSubCode().equals("not-available")) {
                 return participantList;
             }
-        }
-
-        if (isError(response)) {
-            logger.debug("Problem getting meeting participants. May be caused by calling unsafe AC method. This should just mean, that there is no participants.");
-            return participantList;
+            // Participant list cannot be retrieved because of internal error
+            else if (exception.getCode().equals("internal-error")) {
+                logger.warn("Problem getting meeting participants. May be caused by calling unsafe AC method."
+                        + " This should just mean, that there is no participants.", exception);
+                return participantList;
+            }
+            throw exception;
         }
 
         for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
