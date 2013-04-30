@@ -719,6 +719,7 @@ sub new
         keep_quotes => 0,
         debug_complete => 0,
         display_summary_in_help => 1,
+        disable_term => 0,
         @_
     );
 
@@ -745,16 +746,19 @@ sub new
         $self->{$_} = $args{$_};
     }
 
-    $self->{term} = Term::ReadLine->new($args{'app'});
-    $self->{term}->MinLine(0);  # manually call AddHistory
+    if ( !$args{disable_term} ) {
+        $self->{term} = Term::ReadLine->new($args{'app'});
+        $self->{term}->MinLine(0);  # manually call AddHistory
 
-    my $attrs = $self->{term}->Attribs;
-# there appear to be catastrophic bugs with history_word_delimiters
-# it goes into an infinite loop when =,[] are in token_chars
-    # $attrs->{history_word_delimiters} = " \t\n".$self->{token_chars};
-    $attrs->{completion_function} = sub { completion_function($self, @_); };
+        my $attrs = $self->{term}->Attribs;
+        # there appear to be catastrophic bugs with history_word_delimiters
+        # it goes into an infinite loop when =,[] are in token_chars
+        # $attrs->{history_word_delimiters} = " \t\n".$self->{token_chars};
+        $attrs->{completion_function} = sub { completion_function($self, @_); };
 
-    $self->{OUT} = $self->{term}->OUT || \*STDOUT;
+        $self->{OUT} = $self->{term}->OUT || \*STDOUT;
+    }
+
     $self->{prevcmd} = "";  # cmd to run again if user hits return
 
     @{$self->{eof_exit_hooks}} = ();
@@ -852,7 +856,7 @@ sub process_a_cmd
     }
 
     # Add to history unless it's a dupe of the previous command.
-    if($save_to_history && $rawline ne $self->{prevcmd}) {
+    if(defined($self->{term}) && $save_to_history && $rawline ne $self->{prevcmd}) {
         $self->{term}->addhistory($rawline);
     }
     $self->{prevcmd} = $rawline;

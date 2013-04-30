@@ -226,7 +226,7 @@ public abstract class Notification
             if (duration.equals(Temporal.PERIOD_INFINITY)) {
                 return "(infinity)";
             }
-            return PeriodFormat.getDefault().print(duration);
+            return PeriodFormat.getDefault().print(Temporal.roundPeriod(duration));
         }
 
         /**

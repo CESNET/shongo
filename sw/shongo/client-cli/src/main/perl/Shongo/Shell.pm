@@ -21,9 +21,17 @@ sub new
 {
     my $class = shift;
     my $name = shift;
-    my $self = Term::ShellUI->new(@_, commands => {}, name => $name, backslash_continues_command => 1);
+    my $disable_term = shift;
+    my $self = Term::ShellUI->new(@_,
+        commands => {},
+        name => $name,
+        backslash_continues_command => 1,
+        disable_term => $disable_term
+    );
 
-    $self->{term}->ornaments(0);
+    if ( defined($self->{'term'}) ) {
+        $self->{'term'}->ornaments(0);
+    }
 
     $self = (bless($self, $class));
     $self->load_history();
@@ -39,8 +47,10 @@ sub process_a_cmd
     my ($self) = @_;
 
     # Set completion function before every command
-    my $attrs = $self->{term}->Attribs;
-    $attrs->{completion_function} = sub { Term::ShellUI::completion_function($self, @_); };
+    if ( defined($self->{'term'}) ) {
+        my $attrs = $self->{'term'}->Attribs;
+        $attrs->{completion_function} = sub { Term::ShellUI::completion_function($self, @_); };
+    }
 
     # Default implementation
     my $result = Term::ShellUI::process_a_cmd(@_);
@@ -52,16 +62,18 @@ sub process_a_cmd
 sub load_history
 {
     my ($self) = @_;
-
-    history_set_group_to($self->{'name'}, $self->{term});
+    if ( defined($self->{'term'}) ) {
+        history_set_group_to($self->{'name'}, $self->{'term'});
+    }
 }
 
 # @Override
 sub save_history
 {
     my ($self) = @_;
-
-    history_get_group_from($self->{'name'}, $self->{term});
+    if ( defined($self->{'term'}) ) {
+        history_get_group_from($self->{'name'}, $self->{'term'});
+    }
 }
 
 #
@@ -116,14 +128,18 @@ sub command
     console_print_debug("Performing command '" . $string . "'.\n");
 
     # store history
-    $self->{term}->addhistory($command);
-    $self->save_history();
+    if ( defined($self->{'term'}) ) {
+        $self->{'term'}->addhistory($command);
+        $self->save_history();
+    }
 
     $self->process_a_cmd($command);
 
     # reload history
-    $self->{term}->addhistory($command);
-    $self->save_history();
+    if ( defined($self->{'term'}) ) {
+        $self->{'term'}->addhistory($command);
+        $self->save_history();
+    }
 }
 
 #

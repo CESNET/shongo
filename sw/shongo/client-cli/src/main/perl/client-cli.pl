@@ -114,7 +114,7 @@ my $history_file = get_home_directory() . '/.shongo_client';
 history_load($history_file);
 
 # Create shell
-my $shell = Shongo::ClientCli::Shell->new();
+my $shell = Shongo::ClientCli::Shell->new(defined($cmd) || defined($file) || $scripting);
 
 # Run command from argument
 if ( defined($cmd) ) {
