@@ -89,7 +89,7 @@ sub list_connectors()
         push(@{$table->{'data'}}, {
             'agent' => $connector->{'name'},
             'resource' => $connector->{'resourceId'},
-            'status' => $Status->{$connector->{'status'}}
+            'status' => [$connector->{'status'}, $Status->{$connector->{'status'}}]
         });
     }
     console_print_table($table);

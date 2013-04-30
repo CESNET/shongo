@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.api.jade.PingCommand;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -8,6 +9,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
 
 import javax.persistence.EntityManager;
@@ -111,7 +113,16 @@ public class CommonServiceImpl extends Component
 
             Connector connector = new Connector();
             connector.setName(agentName);
-            connector.setStatus(Status.AVAILABLE);
+
+            SendLocalCommand sendLocalCommand = new SendLocalCommand(agentName, new PingCommand());
+            controllerAgent.performLocalCommand(sendLocalCommand);
+            sendLocalCommand.waitForProcessed();
+            if (sendLocalCommand.getState().equals(SendLocalCommand.State.SUCCESSFUL)) {
+                connector.setStatus(Status.AVAILABLE);
+            }
+            else {
+                connector.setStatus(Status.NOT_AVAILABLE);
+            }
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
