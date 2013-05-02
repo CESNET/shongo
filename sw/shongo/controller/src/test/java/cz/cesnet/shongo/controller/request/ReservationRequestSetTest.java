@@ -14,12 +14,11 @@ import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-
-import static junit.framework.Assert.*;
 
 /**
  * Test for processing {@link ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
@@ -127,11 +126,11 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             reservationRequestManager.create(reservationRequestSet);
 
             personId1 = person1.getId();
-            assertNotNull("The person should have assigned identifier", personId1);
+            Assert.assertNotNull("The person should have assigned identifier", personId1);
             personId2 = person2.getId();
-            assertNotNull("The person should have assigned identifier", personId2);
+            Assert.assertNotNull("The person should have assigned identifier", personId2);
             reservationRequestSetId = reservationRequestSet.getId();
-            assertNotNull("The reservation request set should have assigned identifier", reservationRequestSetId);
+            Assert.assertNotNull("The reservation request set should have assigned identifier", reservationRequestSetId);
 
             entityManager.getTransaction().commit();
             entityManager.close();
@@ -144,20 +143,20 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            assertNotNull("The reservation request set should be stored in database",
+            Assert.assertNotNull("The reservation request set should be stored in database",
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId));
 
             preprocessor.run(interval, entityManager);
 
             List<ReservationRequest> compartmentRequestList =
                     reservationRequestManager.listReservationRequestsBySet(reservationRequestSetId);
-            assertEquals("One reservation request should be created for the reservation request set", 1,
+            Assert.assertEquals("One reservation request should be created for the reservation request set", 1,
                     compartmentRequestList.size());
-            assertEquals("No complete reservation requests should be present", 0,
+            Assert.assertEquals("No complete reservation requests should be present", 0,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             reservationRequestId = compartmentRequestList.get(0).getId();
-            assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
+            Assert.assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
 
             entityManager.close();
         }
@@ -173,13 +172,13 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // First person rejects
             reservationRequestManager.rejectPersonRequest(reservationRequestId, personId1);
-            assertEquals("No complete reservation requests should be present", 0,
+            Assert.assertEquals("No complete reservation requests should be present", 0,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             // Second person accepts and fails because he must select an endpoint first
             try {
                 reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
-                fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
+                Assert.fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
             catch (RuntimeException exception) {
             }
@@ -188,7 +187,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             reservationRequestManager.selectEndpointForPersonSpecification(reservationRequestId, personId2,
                     new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080086")));
             reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
-            assertEquals("One complete reservation request should be present", 1,
+            Assert.assertEquals("One complete reservation request should be present", 1,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             entityManager.getTransaction().commit();
@@ -208,11 +207,11 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             ReservationRequest reservationRequest =
                     reservationRequestManager.getReservationRequest(reservationRequestId);
-            assertEquals("Reservation request should be in ALLOCATED state.",
+            Assert.assertEquals("Reservation request should be in ALLOCATED state.",
                     ReservationRequest.State.ALLOCATED, reservationRequest.getState());
 
             Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
-            assertNotNull("Reservation should be created for the reservation request", reservation);
+            Assert.assertNotNull("Reservation should be created for the reservation request", reservation);
 
             entityManager.close();
         }
@@ -244,10 +243,10 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             // Checks allocation failed
             ReservationRequest reservationRequest = reservationRequestManager
                     .getReservationRequest(reservationRequestId);
-            assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
+            Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
                     ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
             Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
-            assertNull("Reservation should not be created for the reservation request", reservation);
+            Assert.assertNull("Reservation should not be created for the reservation request", reservation);
 
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
@@ -263,7 +262,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Checks allocated
             entityManager.refresh(reservationRequest);
-            assertEquals("Reservation request should be in ALLOCATED state.",
+            Assert.assertEquals("Reservation request should be in ALLOCATED state.",
                     ReservationRequest.State.ALLOCATED, reservationRequest.getState());
 
             entityManager.close();

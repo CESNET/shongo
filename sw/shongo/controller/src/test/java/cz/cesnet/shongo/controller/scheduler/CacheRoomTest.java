@@ -10,11 +10,10 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
-
-import static junitx.framework.Assert.assertEquals;
 
 /**
  * Tests for caching of virtual rooms by {@link Cache}.
@@ -72,52 +71,52 @@ public class CacheRoomTest extends AbstractDatabaseTest
 
         // Test different intervals
         result = findAvailableRooms(cache, Interval.parse("0/1"), 50);
-        assertEquals(2, result.size());
+        Assert.assertEquals(2, result.size());
 
         result = findAvailableRooms(cache, Interval.parse("200/250"), 50);
-        assertEquals(2, result.size());
+        Assert.assertEquals(2, result.size());
 
         result = findAvailableRooms(cache, Interval.parse("50/100"), 50);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
 
         result = findAvailableRooms(cache, Interval.parse("100/150"), 50);
-        assertEquals(1, result.size());
+        Assert.assertEquals(1, result.size());
 
         // Test different technologies
         result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
                 new Technology[]{Technology.H323, Technology.ADOBE_CONNECT});
-        assertEquals(1, result.size());
-        assertEquals(mcu1, result.get(0).getDeviceResource());
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(mcu1, result.get(0).getDeviceResource());
 
         result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
                 new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT});
-        assertEquals(1, result.size());
-        assertEquals(mcu2, result.get(0).getDeviceResource());
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(mcu2, result.get(0).getDeviceResource());
 
         // Test different number of required ports
         result = findAvailableRooms(cache, Interval.parse("100/149"), 10,
                 new Technology[]{Technology.ADOBE_CONNECT});
         sortResult(result);
-        assertEquals(2, result.size());
-        assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailableLicenseCount());
-        assertEquals(mcu2, result.get(1).getDeviceResource());
-        assertEquals(20, result.get(1).getAvailableLicenseCount());
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals(mcu1, result.get(0).getDeviceResource());
+        Assert.assertEquals(50, result.get(0).getAvailableLicenseCount());
+        Assert.assertEquals(mcu2, result.get(1).getDeviceResource());
+        Assert.assertEquals(20, result.get(1).getAvailableLicenseCount());
 
         result = findAvailableRooms(cache, Interval.parse("100/149"), 20,
                 new Technology[]{Technology.ADOBE_CONNECT});
         sortResult(result);
-        assertEquals(2, result.size());
-        assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailableLicenseCount());
-        assertEquals(mcu2, result.get(1).getDeviceResource());
-        assertEquals(20, result.get(1).getAvailableLicenseCount());
+        Assert.assertEquals(2, result.size());
+        Assert.assertEquals(mcu1, result.get(0).getDeviceResource());
+        Assert.assertEquals(50, result.get(0).getAvailableLicenseCount());
+        Assert.assertEquals(mcu2, result.get(1).getDeviceResource());
+        Assert.assertEquals(20, result.get(1).getAvailableLicenseCount());
 
         result = findAvailableRooms(cache, Interval.parse("100/149"), 21,
                 new Technology[]{Technology.ADOBE_CONNECT});
-        assertEquals(1, result.size());
-        assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailableLicenseCount());
+        Assert.assertEquals(1, result.size());
+        Assert.assertEquals(mcu1, result.get(0).getDeviceResource());
+        Assert.assertEquals(50, result.get(0).getAvailableLicenseCount());
     }
 
     /**

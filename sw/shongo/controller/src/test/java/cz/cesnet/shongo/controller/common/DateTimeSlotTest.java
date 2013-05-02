@@ -4,12 +4,11 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
-
-import static junit.framework.Assert.*;
 
 /**
  * Time slot tests
@@ -32,7 +31,7 @@ public class DateTimeSlotTest
     @Test
     public void testGetters() throws Exception
     {
-        assertEquals(Period.parse("PT120M").normalizedStandard(), timeSlot.getDuration().normalizedStandard());
+        Assert.assertEquals(Period.parse("PT120M").normalizedStandard(), timeSlot.getDuration().normalizedStandard());
     }
 
     @Test
@@ -40,9 +39,9 @@ public class DateTimeSlotTest
     {
         for (int day = 1; day < 31; day += 7) {
             String date = String.format("2012-03-%02d", day);
-            assertFalse("Should not be active " + date, timeSlot.isActive(DateTime.parse(date + "T11:59")));
-            assertTrue("Should be active " + date, timeSlot.isActive(DateTime.parse(date + "T13:00")));
-            assertFalse("Should not be active " + date, timeSlot.isActive(DateTime.parse(date + "T14:01")));
+            Assert.assertFalse("Should not be active " + date, timeSlot.isActive(DateTime.parse(date + "T11:59")));
+            Assert.assertTrue("Should be active " + date, timeSlot.isActive(DateTime.parse(date + "T13:00")));
+            Assert.assertFalse("Should not be active " + date, timeSlot.isActive(DateTime.parse(date + "T14:01")));
         }
     }
 
@@ -57,9 +56,9 @@ public class DateTimeSlotTest
                 new Interval(DateTime.parse("2012-03-29T12:00"), Period.parse("PT2H"))
         };
         List<Interval> timeSlots = timeSlot.enumerate();
-        assertEquals(correctTimeSlots.length, timeSlots.size());
+        Assert.assertEquals(correctTimeSlots.length, timeSlots.size());
         for (int index = 0; index < correctTimeSlots.length; index++) {
-            assertEquals(correctTimeSlots[index], timeSlots.get(index));
+            Assert.assertEquals(correctTimeSlots[index], timeSlots.get(index));
         }
     }
 
@@ -73,9 +72,9 @@ public class DateTimeSlotTest
         };
         List<Interval> timeSlots = timeSlot.enumerate(
                 DateTime.parse("2012-03-02"), DateTime.parse("2012-03-23"));
-        assertEquals(correctTimeSlots.length, timeSlots.size());
+        Assert.assertEquals(correctTimeSlots.length, timeSlots.size());
         for (int index = 0; index < correctTimeSlots.length; index++) {
-            assertEquals(correctTimeSlots[index], timeSlots.get(index));
+            Assert.assertEquals(correctTimeSlots[index], timeSlots.get(index));
         }
     }
 
@@ -83,18 +82,18 @@ public class DateTimeSlotTest
     public void testGetEarliest() throws Exception
     {
         DateTime referenceDateTime = DateTime.parse("2012-03-08T14:01");
-        assertEquals(new Interval(DateTime.parse("2012-03-15T12:00"), Period.parse("PT2H")),
+        Assert.assertEquals(new Interval(DateTime.parse("2012-03-15T12:00"), Period.parse("PT2H")),
                 timeSlot.getEarliest(referenceDateTime));
     }
 
     @Test
     public void testEquals() throws Exception
     {
-        assertEquals(timeSlot, timeSlot);
+        Assert.assertEquals(timeSlot, timeSlot);
 
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 DateTime.parse("2012-03-01T12:00"), Period.parse("P1W"), LocalDate.parse("2012-03-31"));
         DateTimeSlot timeSlot = new PeriodicDateTimeSlot(periodicDateTime, new Period("PT2H"));
-        assertEquals(timeSlot, this.timeSlot);
+        Assert.assertEquals(timeSlot, this.timeSlot);
     }
 }

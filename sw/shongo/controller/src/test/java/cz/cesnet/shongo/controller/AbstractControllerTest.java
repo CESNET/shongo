@@ -7,14 +7,13 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.Interval;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.LinkedList;
-
-import static junit.framework.Assert.*;
 
 /**
  * Abstract controller test provides a {@link Controller} instance to extending classes.
@@ -333,7 +332,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         ReservationRequest reservationRequest;
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            assertEquals(1, reservationRequestSet.getReservationRequests().size());
+            Assert.assertEquals(1, reservationRequestSet.getReservationRequests().size());
             reservationRequest = reservationRequestSet.getReservationRequests().get(0);
         }
         else {
@@ -343,12 +342,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             System.err.println(reservationRequest.getStateReport());
             Thread.sleep(100);
         }
-        assertEquals("Reservation request should be in ALLOCATED state.",
+        Assert.assertEquals("Reservation request should be in ALLOCATED state.",
                 ReservationRequestState.ALLOCATED, reservationRequest.getState());
         String reservationId = reservationRequest.getReservationId();
-        assertNotNull(reservationId);
+        Assert.assertNotNull(reservationId);
         Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
-        assertNotNull("Reservation should be allocated for the reservation request.", reservation);
+        Assert.assertNotNull("Reservation should be allocated for the reservation request.", reservation);
         return reservation;
     }
 
@@ -366,16 +365,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         ReservationRequest reservationRequest;
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            assertEquals(1, reservationRequestSet.getReservationRequests().size());
+            Assert.assertEquals(1, reservationRequestSet.getReservationRequests().size());
             reservationRequest = reservationRequestSet.getReservationRequests().get(0);
         }
         else {
             reservationRequest = (ReservationRequest) abstractReservationRequest;
         }
-        assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
+        Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
                 ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
         String reservationId = reservationRequest.getReservationId();
-        assertNull("No reservation should be allocated for the reservation request.", reservationId);
+        Assert.assertNull("No reservation should be allocated for the reservation request.", reservationId);
     }
 
     /**

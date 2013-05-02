@@ -7,11 +7,9 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 

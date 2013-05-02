@@ -9,9 +9,6 @@ import cz.cesnet.shongo.controller.api.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
-
 /**
  * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.executor.Compartment}.
  *
@@ -44,9 +41,9 @@ public class ProvidedReservationTest extends AbstractControllerTest
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
         Reservation reservation = checkAllocated(id);
-        assertEquals(ExistingReservation.class, reservation.getClass());
+        Assert.assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
+        Assert.assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -83,12 +80,12 @@ public class ProvidedReservationTest extends AbstractControllerTest
         request.addProvidedReservationId(lectureRoomReservation.getId());
 
         Reservation reservation = allocateAndCheck(request);
-        assertEquals(1, reservation.getChildReservationIds().size());
+        Assert.assertEquals(1, reservation.getChildReservationIds().size());
         Reservation childReservation = getReservationService().getReservation(SECURITY_TOKEN,
                 reservation.getChildReservationIds().get(0));
-        assertEquals(ExistingReservation.class, childReservation.getClass());
+        Assert.assertEquals(ExistingReservation.class, childReservation.getClass());
         ExistingReservation childExistingReservation = (ExistingReservation) childReservation;
-        assertEquals(lectureRoomReservation.getId(), childExistingReservation.getReservation().getId());
+        Assert.assertEquals(lectureRoomReservation.getId(), childExistingReservation.getReservation().getId());
     }
 
     @Test
@@ -113,9 +110,9 @@ public class ProvidedReservationTest extends AbstractControllerTest
         reservationRequest.addProvidedReservationId(aliasReservation.getId());
 
         Reservation reservation = allocateAndCheck(reservationRequest);
-        assertEquals(ExistingReservation.class, reservation.getClass());
+        Assert.assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
+        Assert.assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -140,7 +137,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
-        assertEquals(aliasReservation.getValue(), "950000001");
+        Assert.assertEquals(aliasReservation.getValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -153,7 +150,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         allocateAndCheck(compartmentReservationRequest);
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
-            fail("Exception that reservation request cannot be deleted should be thrown");
+            Assert.fail("Exception that reservation request cannot be deleted should be thrown");
         }
         catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }
@@ -207,9 +204,9 @@ public class ProvidedReservationTest extends AbstractControllerTest
         reservationRequestSet.addProvidedReservationId(terminalReservation.getId());
 
         Reservation reservation = allocateAndCheck(reservationRequestSet);
-        assertEquals(ExistingReservation.class, reservation.getClass());
+        Assert.assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
+        Assert.assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -368,14 +365,14 @@ public class ProvidedReservationTest extends AbstractControllerTest
         try {
             getReservationService().modifyReservationRequest(SECURITY_TOKEN,
                     getReservationService().getReservationRequest(SECURITY_TOKEN, aliasReservationRequestId));
-            fail("Exception that reservation request cannot be modified should be thrown");
+            Assert.fail("Exception that reservation request cannot be modified should be thrown");
         }
         catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }
 
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
-            fail("Exception that reservation request cannot be deleted should be thrown");
+            Assert.fail("Exception that reservation request cannot be deleted should be thrown");
         }
         catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
         }

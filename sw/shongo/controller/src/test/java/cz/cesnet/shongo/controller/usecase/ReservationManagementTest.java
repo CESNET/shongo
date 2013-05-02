@@ -8,15 +8,15 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import junitx.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 
 /**
  * Tests for creating, updating and deleting {@link AbstractReservationRequest}s.
@@ -48,8 +48,8 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check created reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("request", reservationRequest.getDescription());
-        assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
+        Assert.assertEquals("request", reservationRequest.getDescription());
+        Assert.assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setDescription("requestModified");
@@ -64,8 +64,8 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check modified reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
-        assertEquals("requestModified", reservationRequest.getDescription());
-        assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
+        Assert.assertEquals("requestModified", reservationRequest.getDescription());
+        Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
@@ -73,10 +73,10 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check deleted reservation request
         try {
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-            fail("Reservation request should not exist.");
+            Assert.fail("Reservation request should not exist.");
         }
         catch (CommonReportSet.EntityNotFoundException exception) {
-            assertEquals(id, exception.getId());
+            Assert.assertEquals(id, exception.getId());
         }
     }
 
@@ -103,8 +103,8 @@ public class ReservationManagementTest extends AbstractControllerTest
 
         // Check created reservation request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        assertEquals("request", reservationRequest.getDescription());
-        assertEquals(1, reservationRequest.getReservationRequests().size());
+        Assert.assertEquals("request", reservationRequest.getDescription());
+        Assert.assertEquals(1, reservationRequest.getReservationRequests().size());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setDescription("requestModified");
@@ -118,8 +118,8 @@ public class ReservationManagementTest extends AbstractControllerTest
 
         // Check modified reservation request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        assertEquals("requestModified", reservationRequest.getDescription());
-        assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
+        Assert.assertEquals("requestModified", reservationRequest.getDescription());
+        Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
@@ -127,10 +127,10 @@ public class ReservationManagementTest extends AbstractControllerTest
         // Check deleted reservation request
         try {
             getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-            fail("Reservation request should not exist.");
+            Assert.fail("Reservation request should not exist.");
         }
         catch (CommonReportSet.EntityNotFoundException exception) {
-            assertEquals(id, exception.getId());
+            Assert.assertEquals(id, exception.getId());
         }
     }
 
@@ -281,9 +281,9 @@ public class ReservationManagementTest extends AbstractControllerTest
         Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot1.getEnd());
         Interval slot2 = ((ReservationRequestSummary) result[1]).getEarliestSlot();
         Assert.assertEquals(Temporal.DATETIME_INFINITY_START, slot2.getStart());
-        Assert.assertNotEquals(Temporal.DATETIME_INFINITY_END, slot2.getEnd());
+        Assert.assertThat(Temporal.DATETIME_INFINITY_END, is(not(slot2.getEnd())));
         Interval slot3 = ((ReservationRequestSummary) result[2]).getEarliestSlot();
-        Assert.assertNotEquals(Temporal.DATETIME_INFINITY_START, slot3.getStart());
+        Assert.assertThat(Temporal.DATETIME_INFINITY_START, is(not(slot3.getStart())));
         Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());
     }
 
@@ -318,7 +318,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         try {
             getReservationService().checkSpecificationAvailability(SECURITY_TOKEN,
                     new RoomSpecification(1, Technology.H323), interval);
-            fail("Room specification should not be able to be checked for availability for now.");
+            Assert.fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {
         }

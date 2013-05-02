@@ -4,10 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
+import org.junit.Assert;
 import org.junit.Test;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 
 /**
  * Tests for {@link Resource}.
@@ -29,22 +27,25 @@ public class ResourceTest
         capablity2.setMaximumFuture(DateTimeSpecification.fromString("P1Y"));
         resource.addCapability(capablity2);
 
-        DateTime referenceDateTime = DateTime.now();
-        assertTrue(resource.isAvailableInFuture(DateTime.parse("0"), referenceDateTime));
-        assertTrue(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P2M")), referenceDateTime));
-        assertTrue(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P4M")), referenceDateTime));
-        assertFalse(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P5M")), referenceDateTime));
+        DateTime dateTime = DateTime.now();
+        Assert.assertTrue(resource.isAvailableInFuture(DateTime.parse("0"), dateTime));
+        Assert.assertTrue(resource.isAvailableInFuture(dateTime.plus(Period.parse("P2M")), dateTime));
+        Assert.assertTrue(resource.isAvailableInFuture(dateTime.plus(Period.parse("P4M")), dateTime));
+        Assert.assertFalse(resource.isAvailableInFuture(dateTime.plus(Period.parse("P5M")), dateTime));
 
-        assertTrue(capability1.isAvailableInFuture(DateTime.parse("0"), referenceDateTime));
-        assertTrue(capability1.isAvailableInFuture(referenceDateTime.plus(Period.parse("P2M")), referenceDateTime));
-        assertTrue(capability1.isAvailableInFuture(referenceDateTime.plus(Period.parse("P4M")), referenceDateTime));
-        assertFalse(capability1.isAvailableInFuture(referenceDateTime.plus(Period.parse("P5M")), referenceDateTime));
+        Assert.assertTrue(capability1.isAvailableInFuture(DateTime.parse("0"), dateTime));
+        Assert.assertTrue(
+                capability1.isAvailableInFuture(dateTime.plus(Period.parse("P2M")), dateTime));
+        Assert.assertTrue(capability1.isAvailableInFuture(dateTime.plus(Period.parse("P4M")), dateTime));
+        Assert.assertFalse(
+                capability1.isAvailableInFuture(dateTime.plus(Period.parse("P5M")), dateTime));
 
-        assertTrue(capablity2.isAvailableInFuture(DateTime.parse("0"), referenceDateTime));
-        assertTrue(capablity2.isAvailableInFuture(referenceDateTime.plus(Period.parse("P2M")), referenceDateTime));
-        assertTrue(capablity2.isAvailableInFuture(referenceDateTime.plus(Period.parse("P4M")), referenceDateTime));
-        assertTrue(capablity2.isAvailableInFuture(referenceDateTime.plus(Period.parse("P8M")), referenceDateTime));
-        assertFalse(
-                capablity2.isAvailableInFuture(referenceDateTime.plus(Period.parse("P13M")), referenceDateTime));
+        Assert.assertTrue(capablity2.isAvailableInFuture(DateTime.parse("0"), dateTime));
+        Assert.assertTrue(capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P2M")), dateTime));
+        Assert.assertTrue(
+                capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P4M")), dateTime));
+        Assert.assertTrue(capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P8M")), dateTime));
+        Assert.assertFalse(
+                capablity2.isAvailableInFuture(dateTime.plus(Period.parse("P13M")), dateTime));
     }
 }

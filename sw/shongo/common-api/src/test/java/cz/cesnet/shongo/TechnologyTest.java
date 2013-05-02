@@ -1,13 +1,12 @@
 package cz.cesnet.shongo;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for {@link Technology}.
@@ -58,7 +57,7 @@ public class TechnologyTest
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY3, TECHNOLOGY4}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY5, TECHNOLOGY6}));
-        assertEquals(buildSet(new Technology[][]{
+        Assert.assertEquals(buildSet(new Technology[][]{
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY5},
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY6},
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY4, TECHNOLOGY5},
@@ -73,7 +72,7 @@ public class TechnologyTest
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY1, TECHNOLOGY6}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY5, TECHNOLOGY6}));
-        assertEquals(buildSet(new Technology[][]{
+        Assert.assertEquals(buildSet(new Technology[][]{
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY6},
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY5},
                 new Technology[]{TECHNOLOGY2, TECHNOLOGY6}
@@ -83,7 +82,7 @@ public class TechnologyTest
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY2, TECHNOLOGY3}));
         technologySets.add(buildSet(new Technology[]{TECHNOLOGY4, TECHNOLOGY5}));
-        assertEquals(buildSet(new Technology[][]{
+        Assert.assertEquals(buildSet(new Technology[][]{
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY4},
                 new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY5},
                 new Technology[]{TECHNOLOGY2, TECHNOLOGY4},

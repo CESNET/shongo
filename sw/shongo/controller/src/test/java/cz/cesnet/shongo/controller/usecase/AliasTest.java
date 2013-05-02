@@ -7,11 +7,10 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for allocation of {@link cz.cesnet.shongo.controller.api.AliasReservation}
@@ -40,7 +39,7 @@ public class AliasTest extends AbstractControllerTest
         reservationRequestFirst.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestFirst.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequestFirst);
-        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+        Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
@@ -87,7 +86,7 @@ public class AliasTest extends AbstractControllerTest
         firstReservationRequest.setSpecification(
                 new AliasSpecification(AliasType.ROOM_NAME).withResourceId(firstAliasProviderId));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(firstReservationRequest);
-        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+        Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
 
         ReservationRequest reservationRequestSecond = new ReservationRequest();
         reservationRequestSecond.setSlot("2012-01-01T00:00", "P1Y");
@@ -134,8 +133,8 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals(2, aliasReservation.getAliases().size());
-        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+        Assert.assertEquals(2, aliasReservation.getAliases().size());
+        Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
 
         reservationRequest = new ReservationRequest();
@@ -143,10 +142,10 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("Test Test"));
         aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be filtered.", "test-test", aliasReservation.getValue());
-        assertEquals(2, aliasReservation.getAliases().size());
-        assertEquals("Test Test", aliasReservation.getAlias(AliasType.ROOM_NAME).getValue());
-        assertEquals("test-test", aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
+        Assert.assertEquals("Requested value should be filtered.", "test-test", aliasReservation.getValue());
+        Assert.assertEquals(2, aliasReservation.getAliases().size());
+        Assert.assertEquals("Test Test", aliasReservation.getAlias(AliasType.ROOM_NAME).getValue());
+        Assert.assertEquals("test-test", aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
     }
 
     /**
@@ -174,8 +173,8 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals(2, aliasReservation.getAliases().size());
-        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+        Assert.assertEquals(2, aliasReservation.getAliases().size());
+        Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
     }
 
@@ -210,8 +209,8 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals(2, aliasReservation.getAliases().size());
-        assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
+        Assert.assertEquals(2, aliasReservation.getAliases().size());
+        Assert.assertEquals(aliasReservation.getAlias(AliasType.ROOM_NAME).getValue(),
                 aliasReservation.getAlias(AliasType.ADOBE_CONNECT_URI).getValue());
     }
 
@@ -235,7 +234,7 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI).withValue("test"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
+        Assert.assertEquals("Requested value should be allocated.", "test", aliasReservation.getValue());
     }
 
     /**
@@ -260,7 +259,7 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164).withValue("950087095"));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Requested value should be allocated.", "095", aliasReservation.getValue());
+        Assert.assertEquals("Requested value should be allocated.", "095", aliasReservation.getValue());
     }
 
     /**
@@ -291,7 +290,7 @@ public class AliasTest extends AbstractControllerTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
-        assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
+        Assert.assertEquals("Not restricted alias should be allocated.", "test", aliasReservation.getValue());
     }
 
     /**
@@ -323,13 +322,13 @@ public class AliasTest extends AbstractControllerTest
         reservationRequest.setSpecification(aliasSetSpecification);
         Reservation reservation = allocateAndCheck(reservationRequest);
         List<String> childReservationIds = reservation.getChildReservationIds();
-        assertEquals("Reservation should have two child alias reservations.", 2, childReservationIds.size());
+        Assert.assertEquals("Reservation should have two child alias reservations.", 2, childReservationIds.size());
         AliasReservation reservationFirst = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
                 childReservationIds.get(0));
-        assertEquals(firstAliasProvider.getName(), reservationFirst.getValueReservation().getResourceName());
+        Assert.assertEquals(firstAliasProvider.getName(), reservationFirst.getValueReservation().getResourceName());
         AliasReservation reservationSecond = (AliasReservation) getReservationService().getReservation(SECURITY_TOKEN,
                 childReservationIds.get(1));
-        assertEquals(secondAliasProvider.getName(), reservationSecond.getValueReservation().getResourceName());
+        Assert.assertEquals(secondAliasProvider.getName(), reservationSecond.getValueReservation().getResourceName());
     }
 
     /**
@@ -360,6 +359,6 @@ public class AliasTest extends AbstractControllerTest
         aliasSpecification.setValue("test");
         reservationRequest.setSpecification(aliasSpecification);
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(reservationRequest);
-        assertEquals("Room name alias for H.323 or SIP should be allocated.", "test", aliasReservation.getValue());
+        Assert.assertEquals("Room name alias for H.323 or SIP should be allocated.", "test", aliasReservation.getValue());
     }
 }

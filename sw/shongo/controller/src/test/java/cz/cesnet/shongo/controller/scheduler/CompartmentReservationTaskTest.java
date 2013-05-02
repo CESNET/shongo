@@ -15,9 +15,9 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.Report;
-import junitx.framework.Assert;
 import org.joda.time.Interval;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
