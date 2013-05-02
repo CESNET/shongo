@@ -333,7 +333,7 @@ public class Container
      */
     private void stopAgent(String agentName)
     {
-        if (isAgentStarted(agentName) == false) {
+        if (!agents.containsKey(agentName)) {
             return;
         }
         AgentController agentController = agentControllers.get(agentName);
@@ -343,7 +343,7 @@ public class Container
                 agentControllers.remove(agentName);
             }
             catch (StaleProxyException exception) {
-                logger.error("Failed to kill agent.", exception);
+                logger.error("Failed to stop agent.", exception);
             }
         }
     }
@@ -379,6 +379,7 @@ public class Container
      */
     public void addAgent(String agentName, Class agentClass, Object[] arguments)
     {
+        logger.info("Adding agent '{}'...", agentName);
         agents.put(agentName, agentClass);
         if (arguments != null) {
             agentsArguments.put(agentName, arguments);
@@ -398,6 +399,7 @@ public class Container
      */
     public void addAgent(String agentName, Agent agent, Object[] arguments)
     {
+        logger.info("Adding agent '{}'...", agentName);
         agents.put(agentName, agent);
         if (arguments != null) {
             agentsArguments.put(agentName, arguments);
@@ -415,6 +417,7 @@ public class Container
      */
     public void removeAgent(String agentName)
     {
+        logger.info("Removing agent '{}'...", agentName);
         stopAgent(agentName);
         agents.remove(agentName);
         agentsArguments.remove(agentName);
@@ -454,11 +457,26 @@ public class Container
      */
     public void waitForJadeAgentsToStart()
     {
+        int count = 100;
         boolean started;
         do {
             started = true;
             try {
                 Thread.sleep(50);
+                count--;
+                if (count == 0) {
+                    String agentNames = "";
+                    for (String agentName : getAgentNames()) {
+                        if (!isAgentStarted(agentName)) {
+                            if (!agentNames.isEmpty()) {
+                                agentNames += ", ";
+                            }
+                            agentNames += agentName;
+                        }
+                    }
+                    logger.error("Cannot start [" + agentNames + "]!");
+                    throw new RuntimeException("Cannot start [" + agentNames + "]!");
+                }
             }
             catch (InterruptedException exception) {
             }

@@ -185,30 +185,35 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             @Override
             public Container startJade()
             {
-                if (AbstractControllerTest.jadeContainer == null) {
-                    AbstractControllerTest.jadeContainer = super.startJade();
-                }
-                else {
-                    logger.info("Reusing JADE container...");
-                    this.jadeContainer = AbstractControllerTest.jadeContainer;
+                synchronized (AbstractControllerTest.class) {
+                    if (AbstractControllerTest.jadeContainer == null) {
+                        AbstractControllerTest.jadeContainer = super.startJade();
+                    }
+                    else {
+                        logger.info("Reusing JADE container...");
+                        this.jadeContainer = AbstractControllerTest.jadeContainer;
 
-                    // Add jade agent
-                    addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+                        // Add jade agent
+                        addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+                    }
+                    jadeContainer.waitForJadeAgentsToStart();
+                    return AbstractControllerTest.jadeContainer;
                 }
-                return AbstractControllerTest.jadeContainer;
             }
 
             @Override
             public void stop()
             {
-                if (this.jadeContainer != null) {
-                    logger.info("Stopping JADE agents...");
-                    for (String agentName : new LinkedList<String>(this.jadeContainer.getAgentNames())) {
-                        this.jadeContainer.removeAgent(agentName);
+                synchronized (AbstractControllerTest.class) {
+                    if (this.jadeContainer != null) {
+                        logger.info("Stopping JADE agents...");
+                        for (String agentName : new LinkedList<String>(this.jadeContainer.getAgentNames())) {
+                            this.jadeContainer.removeAgent(agentName);
+                        }
+                        this.jadeContainer = null;
                     }
-                    this.jadeContainer = null;
+                    super.stop();
                 }
-                super.stop();
             }
         };
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
