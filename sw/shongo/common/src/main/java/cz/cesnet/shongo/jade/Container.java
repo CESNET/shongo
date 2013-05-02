@@ -295,19 +295,33 @@ public class Container
             }
         }
         else if (agent instanceof Agent) {
-            try {
-                Agent agentInstance = (Agent) agent;
-                if (agentInstance.getState() == Agent.AP_DELETED) {
-                    logger.error("Can't start agent that was deleted [{} of type {}]!", agentName,
-                            agentInstance.getClass().getName());
+            Agent agentInstance = (Agent) agent;
+            if (agentInstance.getState() == Agent.AP_DELETED) {
+                logger.error("Can't start agent that was deleted [{} of type {}]!", agentName,
+                        agentInstance.getClass().getName());
+                return false;
+            }
+            int count = 10;
+            while (count > 0) {
+                try {
+                    agentInstance.setArguments(arguments);
+                    agentController = containerController.acceptNewAgent(agentName, agentInstance);
+                    break;
+                }
+                catch (StaleProxyException exception) {
+                    if (exception.getMessage().contains("Name-clash")) {
+                        logger.info("Agent '{}' already exists in platform, trying again...", agentName);
+                        try {
+                            Thread.sleep(100);
+                        }
+                        catch (InterruptedException interruptedException) {
+                            logger.error("Interrupted", interruptedException);
+                        }
+                        continue;
+                    }
+                    logger.error("Failed to accept or start agent.", exception);
                     return false;
                 }
-                agentInstance.setArguments(arguments);
-                agentController = containerController.acceptNewAgent(agentName, agentInstance);
-            }
-            catch (StaleProxyException exception) {
-                logger.error("Failed to accept or start agent.", exception);
-                return false;
             }
             try {
                 agentController.start();
@@ -338,9 +352,9 @@ public class Container
         }
         AgentController agentController = agentControllers.get(agentName);
         if (agentController != null) {
+            agentControllers.remove(agentName);
             try {
                 agentController.kill();
-                agentControllers.remove(agentName);
             }
             catch (StaleProxyException exception) {
                 logger.error("Failed to stop agent.", exception);
