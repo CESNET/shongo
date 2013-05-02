@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.Resource}s.
+ * Tests for creating, updating and deleting {@link cz.cesnet.shongo.controller.api.AclRecord}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

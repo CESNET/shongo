@@ -5,13 +5,14 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.jade.Container;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-
 import java.util.Collection;
+import java.util.LinkedList;
 
 import static junit.framework.Assert.*;
 
@@ -164,6 +165,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
     }
 
+    private static Container jadeContainer;
+
     @Override
     public void before() throws Exception
     {
@@ -177,7 +180,37 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         System.setProperty(Configuration.JADE_PORT, "8585");
 
         // Create controller
-        controller = new cz.cesnet.shongo.controller.Controller();
+        controller = new cz.cesnet.shongo.controller.Controller()
+        {
+            @Override
+            public Container startJade()
+            {
+                if (AbstractControllerTest.jadeContainer == null) {
+                    AbstractControllerTest.jadeContainer = super.startJade();
+                }
+                else {
+                    logger.info("Reusing JADE container...");
+                    this.jadeContainer = AbstractControllerTest.jadeContainer;
+
+                    // Add jade agent
+                    addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+                }
+                return AbstractControllerTest.jadeContainer;
+            }
+
+            @Override
+            public void stop()
+            {
+                if (this.jadeContainer != null) {
+                    logger.info("Stopping JADE agents...");
+                    for (String agentName : new LinkedList<String>(this.jadeContainer.getAgentNames())) {
+                        this.jadeContainer.removeAgent(agentName);
+                    }
+                    this.jadeContainer = null;
+                }
+                super.stop();
+            }
+        };
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
 

@@ -59,7 +59,7 @@ public class Controller
     /**
      * Configuration of the controller.
      */
-    private Configuration configuration;
+    protected Configuration configuration;
 
     /**
      * Entity manager factory.
@@ -89,7 +89,7 @@ public class Controller
     /**
      * Jade container.
      */
-    private Container jadeContainer;
+    protected Container jadeContainer;
 
     /**
      * List of threads which are started for the controller.
@@ -99,7 +99,7 @@ public class Controller
     /**
      * Jade agent.
      */
-    private ControllerAgent jadeAgent = new ControllerAgent();
+    protected ControllerAgent jadeAgent = new ControllerAgent();
 
     /**
      * @see EmailSender
@@ -477,7 +477,7 @@ public class Controller
     /**
      * Start JADE container.
      */
-    public void startJade()
+    public Container startJade()
     {
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
@@ -491,6 +491,8 @@ public class Controller
 
         // Add jade agent
         addJadeAgent(configuration.getString(Configuration.JADE_AGENT_NAME), jadeAgent);
+
+        return jadeContainer;
     }
 
     /**
@@ -583,7 +585,9 @@ public class Controller
             component.destroy();
         }
         // Destroy authorization
-        authorization.destroy();
+        if (authorization != null) {
+            authorization.destroy();
+        }
 
         // Reset single instance of domain controller.
         instance = null;

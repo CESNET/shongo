@@ -221,17 +221,21 @@ public class Container
         if (isStarted()) {
             // Stop agents
             for (String agentName : agents.keySet()) {
+                logger.info("Stopping agent '{}'...", agentName);
                 stopAgent(agentName);
+                logger.info("Agent stopped '{}'.", agentName);
             }
 
             // Stop platform
             try {
+                logger.info("Killing container ...");
                 if (profile.isMain()) {
                     containerController.getPlatformController().kill();
                 }
                 else {
                     containerController.kill();
                 }
+                logger.info("Container killed.");
                 containerController = null;
             }
             catch (Exception exception) {
