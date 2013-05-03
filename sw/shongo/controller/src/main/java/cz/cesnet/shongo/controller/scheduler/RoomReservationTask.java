@@ -238,7 +238,11 @@ public class RoomReservationTask extends ReservationTask
                 if (!firstHasProvidedRoom && secondHasProvidedRoom) {
                     return 1;
                 }
-                return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
+                int result = -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
+                if (result != 0) {
+                    return result;
+                }
+                return -Integer.valueOf(first.getMaximumLicenseCount()).compareTo(second.getMaximumLicenseCount());
             }
         });
         // Get the first available room

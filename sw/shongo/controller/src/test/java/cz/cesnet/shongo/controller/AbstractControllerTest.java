@@ -84,6 +84,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private ControllerClient controllerClient;
 
     /**
+     * Working interval for {@link #runPreprocessor()} and {@link #runScheduler()}.
+     */
+    private Interval workingInterval = Temporal.INTERVAL_INFINITE;
+
+    /**
      * @return {@link Configuration} from the {@link #controller}
      */
     public Controller getController()
@@ -130,6 +135,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public String getUserId(SecurityToken securityToken)
     {
         return authorization.getUserInformation(securityToken).getUserId();
+    }
+
+    /**
+     * @param workingInterval sets the {@link #workingInterval}
+     */
+    public void setWorkingInterval(Interval workingInterval)
+    {
+        this.workingInterval = workingInterval;
     }
 
     /**
@@ -298,7 +311,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runPreprocessor()
     {
-        runPreprocessor(Temporal.INTERVAL_INFINITE);
+        runPreprocessor(workingInterval);
     }
 
     /**
@@ -306,7 +319,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler()
     {
-        runScheduler(Temporal.INTERVAL_INFINITE);
+        runScheduler(workingInterval);
     }
 
     /**
