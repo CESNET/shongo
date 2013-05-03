@@ -36,7 +36,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
     }
 
     @Override
-    public void after()
+    public void after() throws Exception
     {
         Domain.setLocalDomain(null);
 

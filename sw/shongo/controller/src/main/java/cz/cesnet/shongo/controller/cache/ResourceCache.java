@@ -20,7 +20,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceCache extends AbstractReservationCache<Resource, ResourceReservation>
+public class ResourceCache extends AbstractCache<Resource>
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceCache.class);
 
@@ -51,7 +51,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     @Override
-    public void addObject(Resource resource, EntityManager entityManager)
+    public void addObject(Resource resource)
     {
         // Load lazy collections
         resource.getAdministrators().size();
@@ -69,7 +69,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
                 addResourceCapability(terminalCapability);
             }
         }
-        super.addObject(resource, entityManager);
+        super.addObject(resource);
     }
 
     @Override
@@ -214,19 +214,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         return devices;
     }
 
-    @Override
-    protected void updateObjectState(Resource resource, Interval workingInterval,
-            EntityManager entityManager)
-    {
-        // Get all allocated virtual rooms for the device and add them to the device state
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<ResourceReservation> resourceReservations = resourceManager.listResourceReservationsInInterval(
-                resource.getId(), getWorkingInterval());
-        for (ResourceReservation resourceReservation : resourceReservations) {
-            addReservation(resource, resourceReservation);
-        }
-    }
-
     /**
      * Check if resource is available (the {@link Resource#maximumFuture} is not verified).
      *
@@ -251,16 +238,18 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         }
 
         // Check if resource is not already allocated
-        ObjectState<ResourceReservation> resourceState = getObjectStateRequired(resource);
-        Set<ResourceReservation> resourceReservations;
+        Long resourceId = resource.getId();
+        ResourceManager resourceManager = new ResourceManager(context.getEntityManager());
+        List<ResourceReservation> resourceReservations =
+                resourceManager.listResourceReservationsInInterval(resourceId, context.getInterval());
+
+        // Apply transaction
         CacheTransaction cacheTransaction = context.getCacheTransaction();
         if (cacheTransaction != null) {
-            resourceReservations = resourceState.getReservations(context.getInterval(),
-                    cacheTransaction.getResourceCacheTransaction());
+            cacheTransaction.applyResourceReservations(resourceId, resourceReservations);
         }
-        else {
-            resourceReservations = resourceState.getReservations(context.getInterval());
-        }
+
+        // Perform check
         if (resourceReservations.size() > 0) {
             throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
         }
@@ -283,8 +272,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
 
         if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
-            if (!capability.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-                DateTime maxDateTime = capability.getMaximumFutureDateTime(getReferenceDateTime());
+            if (!capability.isAvailableInFuture(context.getInterval().getEnd(), context.getReferenceDateTime())) {
+                DateTime maxDateTime = capability.getMaximumFutureDateTime(context.getReferenceDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
@@ -305,8 +294,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
 
         if (context.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
-            if (!resource.isAvailableInFuture(context.getInterval().getEnd(), getReferenceDateTime())) {
-                DateTime maxDateTime = resource.getMaximumFutureDateTime(getReferenceDateTime());
+            if (!resource.isAvailableInFuture(context.getInterval().getEnd(), context.getReferenceDateTime())) {
+                DateTime maxDateTime = resource.getMaximumFutureDateTime(context.getReferenceDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }

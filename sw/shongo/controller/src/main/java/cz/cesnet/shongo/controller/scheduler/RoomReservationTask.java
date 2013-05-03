@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
-import cz.cesnet.shongo.controller.cache.RoomCache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
@@ -19,6 +18,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -125,12 +125,15 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws SchedulerException
     {
-        validateReservationSlot(RoomReservation.class);
-
         Context context = getContext();
         Cache cache = getCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
-        RoomCache roomCache = cache.getRoomCache();
+        Interval interval = getInterval();
+
+        // Check maximum duration
+        if (context.isMaximumFutureAndDurationRestricted()) {
+            checkMaximumDuration(interval, cache.getRoomReservationMaximumDuration());
+        }
 
         Set<RoomProviderCapability> specifiedRoomProviders = null;
         if (deviceResource != null) {
@@ -143,16 +146,17 @@ public class RoomReservationTask extends ReservationTask
         Map<Long, RoomVariant> roomVariantByRoomProviderId = new HashMap<Long, RoomVariant>();
         for (Set<Technology> technologies : technologyVariants) {
             Collection<RoomProviderCapability> roomProviders = specifiedRoomProviders;
-            if (roomProviders == null) {
-                roomProviders = new HashSet<RoomProviderCapability>();
-                roomProviders.addAll(roomCache.getObjects());
-            }
-
-            for (Iterator<RoomProviderCapability> iterator = roomProviders.iterator(); iterator.hasNext(); ) {
-                RoomProviderCapability roomProvider = iterator.next();
-                if (!roomProvider.getDeviceResource().hasTechnologies(technologies)) {
-                    iterator.remove();
+            if (roomProviders != null) {
+                for (Iterator<RoomProviderCapability> iterator = roomProviders.iterator(); iterator.hasNext(); ) {
+                    RoomProviderCapability roomProvider = iterator.next();
+                    if (!roomProvider.getDeviceResource().hasTechnologies(technologies)) {
+                        iterator.remove();
+                    }
                 }
+            }
+            else {
+                roomProviders = new HashSet<RoomProviderCapability>();
+                roomProviders.addAll(cache.getRoomProviders(technologies));
             }
 
             for (RoomProviderCapability roomProvider : roomProviders) {
@@ -201,13 +205,13 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Get available rooms
-        beginReport(new SchedulerReportSet.FindingAvailableResourceReport(), true);
+        beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         try {
             for (Long roomProviderId : roomVariantByRoomProviderId.keySet()) {
-                RoomProviderCapability roomProvider = roomCache.getObject(roomProviderId);
+                RoomProviderCapability roomProvider = cache.getRoomProvider(roomProviderId);
                 RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProviderId);
-                AvailableRoom availableRoom = roomCache.getAvailableRoom(roomProvider, context);
+                AvailableRoom availableRoom = cache.getAvailableRoom(roomProvider, context);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
                     addReport(new SchedulerReportSet.ResourceReport(roomProvider.getResource()));
@@ -249,7 +253,7 @@ public class RoomReservationTask extends ReservationTask
         for (AvailableRoom availableRoom : availableRooms) {
             RoomProviderCapability roomProvider = availableRoom.getRoomProviderCapability();
             DeviceResource deviceResource = roomProvider.getDeviceResource();
-            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource), false);
+            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
             CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
             try {
                 // Get device and it's room variant
@@ -257,7 +261,7 @@ public class RoomReservationTask extends ReservationTask
 
                 // Create room reservation
                 RoomReservation roomReservation = new RoomReservation();
-                roomReservation.setSlot(getInterval());
+                roomReservation.setSlot(interval);
                 roomReservation.setRoomProviderCapability(roomProvider);
 
                 // Room configuration
@@ -279,7 +283,7 @@ public class RoomReservationTask extends ReservationTask
 
                     // Reuse provided reservation which allocates the provided room
                     ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(getInterval());
+                    existingReservation.setSlot(interval);
                     existingReservation.setReservation(providedReservation);
                     addChildReservation(existingReservation);
                     cacheTransaction.removeProvidedReservation(providedReservation);
@@ -400,7 +404,7 @@ public class RoomReservationTask extends ReservationTask
                     }
 
                     // Setup abstract room endpoint
-                    roomEndpoint.setSlot(getInterval());
+                    roomEndpoint.setSlot(interval);
                     roomEndpoint.setRoomDescription(context.getReservationDescription());
                     roomEndpoint.setRoomConfiguration(roomConfiguration);
                     roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);

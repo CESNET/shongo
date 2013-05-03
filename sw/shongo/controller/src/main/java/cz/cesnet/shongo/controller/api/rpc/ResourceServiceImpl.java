@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.hibernate.exception.ConstraintViolationException;
+import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -123,7 +124,7 @@ public class ResourceServiceImpl extends Component
 
             // Add resource to the cache
             if (cache != null) {
-                cache.addResource(resource, entityManager);
+                cache.addResource(resource);
             }
         }
         finally {
@@ -170,7 +171,7 @@ public class ResourceServiceImpl extends Component
 
             // Update resource in the cache
             if (cache != null) {
-                cache.updateResource(resource, entityManager);
+                cache.updateResource(resource);
             }
         }
         finally {
@@ -311,10 +312,7 @@ public class ResourceServiceImpl extends Component
         String userId = authorization.validate(token);
 
         if (interval == null) {
-            interval = cache.getWorkingInterval();
-            if (interval == null) {
-                interval = new Interval(DateTime.now(), Period.days(31));
-            }
+            interval = new Interval(DateMidnight.now(), Period.days(31));
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -334,8 +332,8 @@ public class ResourceServiceImpl extends Component
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                AvailableRoom availableRoom = cache.getRoomCache().getAvailableRoom(
-                        roomProviderCapability, new ReservationTask.Context(userId, cache, interval));
+                AvailableRoom availableRoom = cache.getAvailableRoom(
+                        roomProviderCapability, new ReservationTask.Context(userId, interval, cache, entityManager));
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

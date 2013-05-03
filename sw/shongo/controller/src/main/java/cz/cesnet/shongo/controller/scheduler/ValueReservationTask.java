@@ -4,7 +4,6 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableValue;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.cache.ValueCache;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -62,10 +61,9 @@ public class ValueReservationTask extends ReservationTask
         Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
-        ValueCache valueCache = cache.getValueCache();
         CacheTransaction cacheTransaction = getCacheTransaction();
 
-        DateTime referenceDateTime = valueCache.getReferenceDateTime();
+
 
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
@@ -82,7 +80,8 @@ public class ValueReservationTask extends ReservationTask
         // Get new available value
         AvailableValue availableValue;
         try {
-            availableValue = valueCache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction);
+            availableValue = cache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction,
+                    context.getEntityManager());
         }
         catch (ValueProvider.InvalidValueException exception) {
             throw new SchedulerReportSet.ValueInvalidException(requestedValue);

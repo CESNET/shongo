@@ -56,8 +56,7 @@ public class Configuration extends CombinedConfiguration
     /**
      * Maximum duration of reservations.
      */
-    public static final String RESERVATION_RESOURCE_MAX_DURATION = "reservation.resource.max-duration";
-    public static final String RESERVATION_VALUE_MAX_DURATION = "reservation.value.max-duration";
+    public static final String RESERVATION_ROOM_MAX_DURATION = "reservation.room.max-duration";
 
     /**
      * SMTP configuration.

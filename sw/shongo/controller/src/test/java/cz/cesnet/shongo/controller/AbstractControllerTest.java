@@ -249,7 +249,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     @Override
-    public void after()
+    public void after() throws Exception
     {
         controller.stop();
         controller.destroy();

@@ -1,15 +1,14 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.cache.ReusedReservationCache;
-import cz.cesnet.shongo.controller.cache.RoomCache;
-import cz.cesnet.shongo.controller.cache.ValueCache;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.cache.*;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import org.joda.time.DateTime;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -17,10 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a component for a domain controller that holds cached data.
@@ -32,14 +28,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
-     * Maximum duration of a {@link ResourceReservation}.
+     * Maximum duration of a {@link RoomReservation}.
      */
-    private Period resourceReservationMaximumDuration;
-
-    /**
-     * Maximum duration of a {@link AliasReservation}.
-     */
-    private Period valueReservationMaximumDuration;
+    private Period roomReservationMaximumDuration;
 
     /**
      * @see ResourceCache
@@ -47,34 +38,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private ResourceCache resourceCache;
 
     /**
-     * @see ValueCache
-     */
-    private ValueCache valueCache;
-
-    /**
-     * @see RoomCache
-     */
-    private RoomCache roomCache;
-
-    /**
-     * @see ReusedReservationCache
-     */
-    private ReusedReservationCache reusedReservationCache = new ReusedReservationCache();
-
-    /**
      * Set of existing {@link AliasProviderCapability}.
      */
     private Map<Long, AliasProviderCapability> aliasProviderById = new HashMap<Long, AliasProviderCapability>();
 
     /**
-     * Working interval for which are loaded allocated virtual rooms.
+     * Set of existing {@link RoomProviderCapability}.
      */
-    private Interval workingInterval;
-
-    /**
-     * Represents a reference data time which is a rounded now().
-     */
-    private DateTime referenceDateTime;
+    private Map<Long, RoomProviderCapability> roomProviderById = new HashMap<Long, RoomProviderCapability>();
 
     /**
      * {@link EntityManagerFactory} used to load resources in {@link #init(Configuration)} method.
@@ -82,46 +53,28 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * Specifies whether resources and allocations don't have to be persisted before they are added to the resource
-     * database (useful for testing purposes).
-     */
-    private boolean generateTestingIds = false;
-
-    /**
      * Constructor.
      */
     public Cache()
     {
         resourceCache = new ResourceCache();
-        valueCache = new ValueCache();
-        roomCache = new RoomCache(resourceCache);
     }
 
     /**
-     * @return new instance of {@link Cache} for testing purposes (without connection to the database)
+     * Constructor.
      */
-    public static Cache createTestingCache()
+    public Cache(EntityManagerFactory entityManagerFactory)
     {
-        Cache cache = new Cache();
-        cache.setGenerateTestingIds();
-        cache.init();
-        return cache;
+        this.resourceCache = new ResourceCache();
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
-     * @return {@link #resourceReservationMaximumDuration}
+     * @return {@link #roomReservationMaximumDuration}
      */
-    public Period getResourceReservationMaximumDuration()
+    public Period getRoomReservationMaximumDuration()
     {
-        return resourceReservationMaximumDuration;
-    }
-
-    /**
-     * @return {@link #valueReservationMaximumDuration}
-     */
-    public Period getValueReservationMaximumDuration()
-    {
-        return valueReservationMaximumDuration;
+        return roomReservationMaximumDuration;
     }
 
     /**
@@ -130,80 +83,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public ResourceCache getResourceCache()
     {
         return resourceCache;
-    }
-
-    /**
-     * @return {@link #valueCache}
-     */
-    public ValueCache getValueCache()
-    {
-        return valueCache;
-    }
-
-    /**
-     * @return {@link #roomCache}
-     */
-    public RoomCache getRoomCache()
-    {
-        return roomCache;
-    }
-
-    /**
-     * @return {@link #workingInterval}
-     */
-    public Interval getWorkingInterval()
-    {
-        return workingInterval;
-    }
-
-    /**
-     * @return {@link #referenceDateTime}
-     */
-    public DateTime getReferenceDateTime()
-    {
-        if (referenceDateTime == null) {
-            return DateTime.now();
-        }
-        return referenceDateTime;
-    }
-
-    /**
-     * @param workingInterval sets the {@link #workingInterval}
-     * @param entityManager   used for reloading allocations of resources for the new interval
-     */
-    public synchronized void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
-    {
-        if (!workingInterval.equals(this.workingInterval)) {
-            logger.debug("Setting new working interval '{}' to cache...",
-                    Temporal.formatInterval(workingInterval));
-            this.workingInterval = workingInterval;
-
-            referenceDateTime = workingInterval.getStart();
-
-            Interval resourceWorkingInterval = new Interval(
-                    workingInterval.getStart().minus(resourceReservationMaximumDuration),
-                    workingInterval.getEnd().plus(resourceReservationMaximumDuration));
-            resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
-            roomCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
-
-            Interval aliasWorkingInterval = new Interval(
-                    workingInterval.getStart().minus(valueReservationMaximumDuration),
-                    workingInterval.getEnd().plus(valueReservationMaximumDuration));
-            valueCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
-
-            Interval maxWorkingInterval = new Interval(
-                    Temporal.min(resourceWorkingInterval.getStart(), aliasWorkingInterval.getStart()),
-                    Temporal.max(resourceWorkingInterval.getEnd(), aliasWorkingInterval.getEnd()));
-            reusedReservationCache.setWorkingInterval(maxWorkingInterval, referenceDateTime, entityManager);
-        }
-    }
-
-    /**
-     * Enable {@link #generateTestingIds}
-     */
-    protected void setGenerateTestingIds()
-    {
-        generateTestingIds = true;
     }
 
     @Override
@@ -217,8 +96,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         super.init(configuration);
 
-        resourceReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_RESOURCE_MAX_DURATION);
-        valueReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_VALUE_MAX_DURATION);
+        roomReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_ROOM_MAX_DURATION);
 
         logger.debug("Starting cache...");
 
@@ -239,9 +117,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public synchronized void reset()
     {
         resourceCache.clear();
-        valueCache.clear();
-        roomCache.clear();
-        reusedReservationCache.clear();
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
 
@@ -250,63 +125,34 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             List<Resource> resourceList = resourceManager.list(null, null);
             for (Resource resource : resourceList) {
                 try {
-                    addResource(resource, entityManager);
+                    addResource(resource);
                 }
                 catch (Exception exception) {
                     throw new RuntimeException("Failed to add resource to the cache.", exception);
                 }
             }
-            reusedReservationCache.loadObjects(entityManager);
             entityManager.close();
         }
     }
 
     /**
-     * @param persistentObject to be checked whether it is persisted (has {@link PersistentObject#id} filled)
-     */
-    private void checkPersisted(PersistentObject persistentObject)
-    {
-        if (!persistentObject.isPersisted()) {
-            // For testing purposes assign testing id
-            if (generateTestingIds) {
-                persistentObject.generateTestingId();
-                return;
-            }
-            // Throw error that object is not persisted
-            persistentObject.checkPersisted();
-        }
-    }
-
-    /**
      * @param resource
-     * @param entityManager
      */
-    public synchronized void addResource(Resource resource, EntityManager entityManager)
+    public synchronized void addResource(Resource resource)
     {
-        // Create resource in the database if it wasn't created yet
-        if (entityManager != null && !resource.isPersisted()) {
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            resourceManager.create(resource);
-        }
-
         // Add resource to resource cache
-        checkPersisted(resource);
+        resource.checkPersisted();
         resource.loadLazyCollections();
-        resourceCache.addObject(resource, entityManager);
-
-        // Add value provider
-        ValueProviderCapability valueProviderCapability = resource.getCapability(ValueProviderCapability.class);
-        if (valueProviderCapability != null) {
-            ValueProvider valueProvider = valueProviderCapability.getValueProvider();
-            checkPersisted(valueProvider);
-            valueCache.addObject(valueProvider, entityManager);
-        }
+        resourceCache.addObject(resource);
 
         // Add room provider capability
-        RoomProviderCapability roomProviderCapability = resource.getCapability(RoomProviderCapability.class);
-        if (roomProviderCapability != null) {
-            checkPersisted(roomProviderCapability);
-            roomCache.addObject(roomProviderCapability, entityManager);
+        RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
+        if (roomProvider != null) {
+            // Load lazy collections
+            roomProvider.loadLazyCollections();
+            // Add room provider to the set of existing room providers
+            roomProvider.checkPersisted();
+            roomProviderById.put(roomProvider.getId(), roomProvider);
         }
 
         // Process all alias providers in the resource
@@ -315,37 +161,31 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             // Load lazy collections
             aliasProvider.loadLazyCollections();
             // Add alias provider to the set of existing alias providers
-            checkPersisted(aliasProvider);
+            aliasProvider.checkPersisted();
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);
-
-            // Add new value provider (but only when the alias provider owns the value provider)
-            ValueProvider valueProvider = aliasProvider.getValueProvider().getTargetValueProvider();
-            if (valueProvider.getCapability().equals(aliasProvider)) {
-                checkPersisted(valueProvider);
-                valueCache.addObject(valueProvider, entityManager);
-            }
         }
     }
 
     /**
-     * @see {@link #addResource(Resource, EntityManager)}
+     * @param resource
      */
-    public synchronized void addResource(Resource resource)
+    public synchronized void addResource(Resource resource, EntityManager entityManager)
     {
-        addResource(resource, null);
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        resourceManager.create(resource);
+        addResource(resource);
     }
 
     /**
      * Update resource in the cache.
      *
      * @param resource
-     * @param entityManager entity manager used for loading of resource allocations from the database
      */
-    public synchronized void updateResource(Resource resource, EntityManager entityManager)
+    public synchronized void updateResource(Resource resource)
     {
         removeResource(resource);
         try {
-            addResource(resource, entityManager);
+            addResource(resource);
         }
         catch (Exception exception) {
             throw new RuntimeException("Failed to update resource in the resource cache.", exception);
@@ -362,88 +202,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         // Remove resource from resource cache
         resourceCache.removeObject(resource);
 
-        // Remove all value providers for the resource
-        valueCache.removeValueProviders(resource);
-
-        // Remove room provider for the resource
-        roomCache.removeRoomProviderCapability(resource);
+        // Remove room provider capability
+        RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
+        if (roomProvider != null) {
+            roomProviderById.remove(roomProvider.getId());
+        }
 
         // Process all alias providers in the resource
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Remove alias provider from the set of existing alias providers
             aliasProviderById.remove(aliasProvider.getId());
-        }
-    }
-
-    /**
-     * @param reservation to be added to the {@link Cache}
-     */
-    public synchronized void addReservation(Reservation reservation, EntityManager entityManager)
-    {
-        // Create reservation in the database if it wasn't created yet
-        if (entityManager != null && !reservation.isPersisted()) {
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            reservationManager.create(reservation);
-        }
-
-        checkPersisted(reservation);
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            reusedReservationCache.addReservation(existingReservation.getReservation(), existingReservation);
-        }
-        else if (reservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            resourceCache.addReservation(resourceReservation.getResource(), resourceReservation);
-        }
-        else if (reservation instanceof ValueReservation) {
-            ValueReservation valueReservation = (ValueReservation) reservation;
-            valueCache.addReservation(valueReservation.getValueProvider(), valueReservation);
-        }
-        else if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            roomCache.addReservation(roomReservation.getRoomProviderCapability(), roomReservation);
-        }
-
-        // Add child reservations
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            addReservation(childReservation, entityManager);
-        }
-    }
-
-    /**
-     * @see {@link #addResource(Resource, EntityManager)}
-     */
-    public synchronized void addReservation(Reservation reservation)
-    {
-        addReservation(reservation, null);
-    }
-
-    /**
-     * @param reservation to be removed from the cache (and all child reservations)
-     */
-    public synchronized void removeReservation(Reservation reservation)
-    {
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            reusedReservationCache.removeReservation(existingReservation.getReservation(), existingReservation);
-        }
-        else if (reservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            resourceCache.removeReservation(resourceReservation.getResource(), resourceReservation);
-        }
-        else if (reservation instanceof ValueReservation) {
-            ValueReservation valueReservation = (ValueReservation) reservation;
-            valueCache.removeReservation(valueReservation.getValueProvider(), valueReservation);
-        }
-        else if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            roomCache.removeReservation(roomReservation.getRoomProviderCapability(), roomReservation);
-        }
-
-        // Remove child reservations
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            removeReservation(childReservation);
         }
     }
 
@@ -456,11 +225,132 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @see {@link ReusedReservationCache#isProvidedReservationAvailable(cz.cesnet.shongo.controller.reservation.Reservation, org.joda.time.Interval)}
+     * @param technologies to be lookup-ed
+     * @return list of {@link RoomProviderCapability}s which supports given {@code technologies}
      */
-    public boolean isProvidedReservationAvailable(Reservation providedReservation, Interval interval)
+    public Collection<RoomProviderCapability> getRoomProviders(Set<Technology> technologies)
     {
-        return reusedReservationCache.isProvidedReservationAvailable(providedReservation, interval);
+        Set<RoomProviderCapability> roomProviders = new HashSet<RoomProviderCapability>();
+        for (RoomProviderCapability roomProvider : roomProviderById.values()) {
+            if (technologies == null || roomProvider.getDeviceResource().hasTechnologies(technologies)) {
+                roomProviders.add(roomProvider);
+            }
+        }
+        return roomProviders;
     }
 
+    /**
+     * @param roomProviderId
+     * @return {@link RoomProviderCapability} with given {@code roomProviderId}
+     */
+    public RoomProviderCapability getRoomProvider(Long roomProviderId)
+    {
+        return roomProviderById.get(roomProviderId);
+    }
+
+    /**
+     * @param providedReservation
+     * @param interval
+     * @param entityManager
+     * @return true whether given {@code providedReservation} is available in given {@code interval},
+     *         false otherwise
+     */
+    public boolean isProvidedReservationAvailable(Reservation providedReservation, Interval interval,
+            EntityManager entityManager)
+    {
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<ExistingReservation> existingReservations =
+                reservationManager.getExistingReservations(providedReservation, interval);
+        return existingReservations.size() == 0;
+    }
+
+    /**
+     * Find available alias in given {@code aliasProviderCapability}.
+     *
+     * @param valueProvider
+     * @param requestedValue
+     * @param interval
+     * @param transaction
+     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
+     */
+    public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue, Interval interval,
+            CacheTransaction transaction, EntityManager entityManager)
+            throws ValueProvider.InvalidValueException, ValueProvider.ValueAlreadyAllocatedException,
+                   ValueProvider.NoAvailableValueException
+    {
+        // Find available alias value
+        String value = null;
+        // Provided value reservation by which the value is already allocated
+        ValueReservation valueReservation = null;
+        ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
+        // Preferably use  provided alias
+        Set<ValueReservation> providedValueReservations =
+                transaction.getProvidedValueReservations(targetValueProvider);
+        if (providedValueReservations.size() > 0) {
+            if (requestedValue != null) {
+                for (ValueReservation possibleValueReservation : providedValueReservations) {
+                    if (possibleValueReservation.getValue().equals(requestedValue)) {
+                        valueReservation = possibleValueReservation;
+                        value = valueReservation.getValue();
+                        break;
+                    }
+                }
+            }
+            else {
+                valueReservation = providedValueReservations.iterator().next();
+                value = valueReservation.getValue();
+            }
+        }
+        // Else use generated value
+        if (value == null) {
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            Long targetValueProviderId = targetValueProvider.getId();
+            List<ValueReservation> allocatedValues = resourceManager.listValueReservationsInInterval(
+                    targetValueProviderId, interval);
+            transaction.applyValueReservations(targetValueProviderId, allocatedValues);
+            Set<String> usedValues = new HashSet<String>();
+            for (ValueReservation allocatedValue : allocatedValues) {
+                usedValues.add(allocatedValue.getValue());
+            }
+            if (requestedValue != null) {
+                value = valueProvider.generateValue(usedValues, requestedValue);
+            }
+            else {
+                value = valueProvider.generateValue(usedValues);
+            }
+        }
+        AvailableValue availableAlias = new AvailableValue();
+        availableAlias.setValue(value);
+        availableAlias.setValueReservation(valueReservation);
+        return availableAlias;
+    }
+
+    /**
+     * @param roomProviderCapability
+     * @param context
+     * @return {@link AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
+     */
+    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability,
+            ReservationTask.Context context)
+    {
+        int usedLicenseCount = 0;
+        if (resourceCache.isResourceAvailable(roomProviderCapability.getResource(), context)) {
+
+            ReservationManager reservationManager = new ReservationManager(context.getEntityManager());
+            List<RoomReservation> roomReservations =
+                    reservationManager.getRoomReservations(roomProviderCapability, context.getInterval());
+            context.getCacheTransaction().applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+            for (RoomReservation roomReservation : roomReservations) {
+                usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
+            }
+        }
+        else {
+            usedLicenseCount = roomProviderCapability.getLicenseCount();
+        }
+        AvailableRoom availableRoom = new AvailableRoom();
+        availableRoom.setRoomProviderCapability(roomProviderCapability);
+        availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
+        availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
+        return availableRoom;
+    }
 }

@@ -28,7 +28,7 @@ public class XmlRpcClient
     private static final String URL = "http://127.0.0.1:9090";
     //private static final String URL = "https://mcuc.cesnet.cz/RPC2";
     //private static final String URL = "https://mcu-1.sukb.muni.cz/RPC2";
-    private static final String PASSWORD = "uracq674q";
+    private static final String PASSWORD = "";
     private static final String CONFERENCE_NAME = "shongo-test";
     //private static final String CONFERENCE_NAME = "FI MU";
 

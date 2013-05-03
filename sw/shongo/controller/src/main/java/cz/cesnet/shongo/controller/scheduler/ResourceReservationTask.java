@@ -3,16 +3,14 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.cache.RoomCache;
-import cz.cesnet.shongo.controller.reservation.EndpointReservation;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 
+import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -88,10 +86,13 @@ public class ResourceReservationTask extends ReservationTask
             if (deviceResource.isTerminal()) {
                 resourceReservation = new EndpointReservation();
             }
-            RoomProviderCapability roomProvider = deviceResource.getCapability(RoomProviderCapability.class);
-            if (roomProvider != null) {
-                RoomCache roomCache = cache.getRoomCache();
-                if (roomCache.getRoomReservations(roomProvider, interval, cacheTransaction).size() > 0) {
+            RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
+            if (roomProviderCapability != null) {
+                ReservationManager reservationManager = new ReservationManager(context.getEntityManager());
+                List<RoomReservation> roomReservations =
+                        reservationManager.getRoomReservations(roomProviderCapability, interval);
+                cacheTransaction.applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+                if (roomReservations.size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
                 }

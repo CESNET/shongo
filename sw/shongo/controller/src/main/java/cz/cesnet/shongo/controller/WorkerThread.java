@@ -127,8 +127,8 @@ public class WorkerThread extends Thread
         synchronized (ThreadLock.class) {
             //logger.debug("Worker lock acquired...   [[[[[")
 
-            ReadableDateTime dateTimeNow = DateMidnight.now();
-            Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
+            DateMidnight dateTimeNow = DateMidnight.now();
+            Interval interval = new Interval(dateTimeNow, intervalLength);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);

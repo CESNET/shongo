@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
@@ -12,8 +13,8 @@ import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.report.Report;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,9 +83,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     {
         logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
-        // Set current interval as working to the cache (it will reload allocations only when
-        // the interval changes)
-        cache.setWorkingInterval(interval, entityManager);
+        // Date/time which represents now
+        DateTime referenceDateTime = interval.getStart();
 
         // Storage for reservation notifications
         Map<Long, ReservationNotification> notificationByReservationId =
@@ -102,7 +102,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Get all reservations which should be deleted, and store theirs reservation request
             Map<Reservation, ReservationRequest> toDeleteReservations = new HashMap<Reservation, ReservationRequest>();
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
-                toDeleteReservations.put(reservation, (ReservationRequest) reservation.getReservationRequest());
+                toDeleteReservations.put(reservation, reservation.getReservationRequest());
             }
 
             // Get all reservation requests which should be allocated
@@ -148,7 +148,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     reservationRequestManager.update(reservationRequest);
                 }
 
-                reservationManager.delete(reservation, authorizationManager, cache);
+                reservationManager.delete(reservation, authorizationManager);
 
                 // Remember the old reservation for the reservation request
                 oldReservationIds.put(reservationRequest, reservationId);
@@ -157,7 +157,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Allocate all reservation requests
             for (ReservationRequest reservationRequest : reservationRequests) {
                 Long oldReservationId = oldReservationIds.get(reservationRequest);
-                Reservation newReservation = allocateReservationRequest(reservationRequest, entityManager);
+                Reservation newReservation =
+                        allocateReservationRequest(reservationRequest, referenceDateTime, entityManager);
                 if (newReservation != null) {
                     newReservations.put(newReservation, oldReservationId);
                 }
@@ -227,8 +228,11 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
+     * @param referenceDateTime
+     * @param entityManager
      */
-    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, EntityManager entityManager)
+    private Reservation allocateReservationRequest(ReservationRequest reservationRequest,
+            DateTime referenceDateTime, EntityManager entityManager)
     {
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
@@ -250,12 +254,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         Interval slot = reservationRequest.getSlot();
 
         // Create scheduler task context
-        ReservationTask.Context context = new ReservationTask.Context(reservationRequest, cache, slot, entityManager);
-
+        ReservationTask.Context context =
+                new ReservationTask.Context(reservationRequest, cache, slot, referenceDateTime, entityManager);
         try {
             // Fill provided reservations to transaction
             for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
-                if (!context.getCache().isProvidedReservationAvailable(providedReservation, slot)) {
+                if (!cache.isProvidedReservationAvailable(providedReservation, slot, entityManager)) {
                     throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
                 }
                 if (!providedReservation.getSlot().contains(slot)) {
@@ -277,9 +281,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
             reservation = reservationTask.perform();
             reservationManager.create(reservation);
-
-            // Update cache
-            cache.addReservation(reservation);
 
             // Update reservation request
             reservationRequest.setReservation(reservation);

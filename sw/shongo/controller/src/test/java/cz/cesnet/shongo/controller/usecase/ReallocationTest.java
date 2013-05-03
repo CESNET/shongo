@@ -61,7 +61,7 @@ public class ReallocationTest extends AbstractControllerTest
 
         // Allocate a new room reservation
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setSlot("2013-01-01T00:00", "P1Y");
+        reservationRequest.setSlot("2013-01-01T12:00", "PT1H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(3, Technology.H323));
         String reservationRequestId = allocate(reservationRequest);
@@ -96,7 +96,7 @@ public class ReallocationTest extends AbstractControllerTest
 
         // Allocate a new room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
-        roomReservationRequest.setSlot("2013-01-01T00:00", "P1Y");
+        roomReservationRequest.setSlot("2013-01-01T12:00", "PT1H");
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         roomReservationRequest.setSpecification(new RoomSpecification(3, Technology.H323));
         String roomReservationRequestId = allocate(roomReservationRequest);
@@ -105,7 +105,7 @@ public class ReallocationTest extends AbstractControllerTest
         Assert.assertEquals(multipoint1Id, roomReservation1.getResourceId());
 
         ReservationRequest maintenanceReservationRequest = new ReservationRequest();
-        maintenanceReservationRequest.setSlot("2013-06-01T00:00", "P1D");
+        maintenanceReservationRequest.setSlot("2013-01-01T00:00", "P1D");
         maintenanceReservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
         maintenanceReservationRequest.setSpecification(new ResourceSpecification(multipoint1Id));
         allocateAndCheck(maintenanceReservationRequest);

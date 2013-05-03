@@ -143,7 +143,7 @@ public class AliasReservationTask extends ReservationTask
         }
 
         // Find matching alias providers
-        beginReport(new SchedulerReportSet.FindingAvailableResourceReport(), true);
+        beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
         List<AliasProviderCapability> aliasProviders = new ArrayList<AliasProviderCapability>();
         Map<AliasProviderCapability, String> valueByAliasProvider = new HashMap<AliasProviderCapability, String>();
         for (AliasProviderCapability aliasProvider : possibleAliasProviders) {
@@ -241,7 +241,7 @@ public class AliasReservationTask extends ReservationTask
         ValueReservation availableValueReservation = null;
         AliasProviderCapability availableAliasProvider = null;
         for (AliasProviderCapability aliasProvider : aliasProviders) {
-            beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProvider.getResource()), true);
+            beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProvider.getResource()));
 
             // Preferably reuse provided alias reservation
             AliasReservation providedAliasReservation = availableProvidedAlias.get(aliasProvider);

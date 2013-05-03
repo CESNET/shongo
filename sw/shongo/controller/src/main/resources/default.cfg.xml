@@ -91,17 +91,11 @@
 
     <!-- Reservation configuration -->
     <reservation>
-        <!-- Configuration for reservation of resources -->
-        <resource>
+        <!-- Configuration of room reservations -->
+        <room>
             <!-- Maximum duration of a single resource reservation -->
             <max-duration>P1W</max-duration>
-        </resource>
-
-        <!-- Configuration for reservation of values (which are used for aliases) -->
-        <value>
-            <!-- Maximum duration of a single alias reservation -->
-            <max-duration>P1Y</max-duration>
-        </value>
+        </room>
     </reservation>
 
     <!-- Configuration for sending emails -->

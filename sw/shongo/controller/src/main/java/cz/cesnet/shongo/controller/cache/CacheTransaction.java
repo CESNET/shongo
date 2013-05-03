@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -20,22 +21,22 @@ public class CacheTransaction
     private final Interval interval;
 
     /**
-     * {@link AbstractReservationCache.Transaction} for {@link ResourceReservation}s.
+     * {@link ReservationTransaction} for {@link ResourceReservation}s.
      */
-    private AbstractReservationCache.Transaction<ResourceReservation> resourceCacheTransaction =
-            new AbstractReservationCache.Transaction<ResourceReservation>();
+    private ReservationTransaction<ResourceReservation> resourceReservationTransaction =
+            new ReservationTransaction<ResourceReservation>();
 
     /**
-     * {@link AbstractReservationCache.Transaction} for {@link ValueReservation}s.
+     * {@link ReservationTransaction} for {@link ValueReservation}s.
      */
-    private AbstractReservationCache.Transaction<ValueReservation> valueCacheTransaction =
-            new AbstractReservationCache.Transaction<ValueReservation>();
+    private ReservationTransaction<ValueReservation> valueReservationTransaction =
+            new ReservationTransaction<ValueReservation>();
 
     /**
-     * {@link AbstractReservationCache.Transaction} for {@link RoomReservation}s.
+     * {@link ReservationTransaction} for {@link RoomReservation}s.
      */
-    private AbstractReservationCache.Transaction<RoomReservation> roomCacheTransaction =
-            new AbstractReservationCache.Transaction<RoomReservation>();
+    private ReservationTransaction<RoomReservation> roomReservationTransaction =
+            new ReservationTransaction<RoomReservation>();
 
     /**
      * Set of allocated {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
@@ -53,12 +54,14 @@ public class CacheTransaction
     private Set<Reservation> providedReservations = new HashSet<Reservation>();
 
     /**
-     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
+     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
+     * {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
      */
     private Map<Executable, Reservation> providedReservationByExecutable = new HashMap<Executable, Reservation>();
 
     /**
-     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
+     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
+     * {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
      */
     private Map<Long, Set<AliasReservation>> providedReservationsByAliasProviderId =
             new HashMap<Long, Set<AliasReservation>>();
@@ -82,30 +85,6 @@ public class CacheTransaction
     public Interval getInterval()
     {
         return interval;
-    }
-
-    /**
-     * @return {@link #resourceCacheTransaction}
-     */
-    public AbstractReservationCache.Transaction<ResourceReservation> getResourceCacheTransaction()
-    {
-        return resourceCacheTransaction;
-    }
-
-    /**
-     * @return {@link #valueCacheTransaction}
-     */
-    public AbstractReservationCache.Transaction<ValueReservation> getValueCacheTransaction()
-    {
-        return valueCacheTransaction;
-    }
-
-    /**
-     * @return {@link #roomCacheTransaction}
-     */
-    public AbstractReservationCache.Transaction<RoomReservation> getRoomCacheTransaction()
-    {
-        return roomCacheTransaction;
     }
 
     /**
@@ -180,7 +159,7 @@ public class CacheTransaction
 
     /**
      * @param aliasProvider
-     * @return collection of provided {@link cz.cesnet.shongo.controller.reservation.AliasReservation}
+     * @return collection of provided {@link AliasReservation}
      */
     public Collection<AliasReservation> getProvidedAliasReservations(AliasProviderCapability aliasProvider)
     {
@@ -193,12 +172,21 @@ public class CacheTransaction
     }
 
     /**
-     * @param resource for which the provided {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s should be returned
-     * @return provided {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s for given {@code resource}
+     * @param resource for which the provided {@link ResourceReservation}s should be returned
+     * @return provided {@link ResourceReservation}s for given {@code resource}
      */
     public Set<ResourceReservation> getProvidedResourceReservations(Resource resource)
     {
-        return resourceCacheTransaction.getProvidedReservations(resource.getId());
+        return resourceReservationTransaction.getProvidedReservations(resource.getId());
+    }
+
+    /**
+     * @param valueProvider for which the provided {@link ValueReservation}s should be returned
+     * @return provided {@link ValueReservation}s for given {@code valueProvider}
+     */
+    public Set<ValueReservation> getProvidedValueReservations(ValueProvider valueProvider)
+    {
+        return valueReservationTransaction.getProvidedReservations(valueProvider.getId());
     }
 
     /**
@@ -216,17 +204,17 @@ public class CacheTransaction
             if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
                 Resource resource = resourceReservation.getResource();
-                resourceCacheTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
+                resourceReservationTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
                 addReferencedResource(resource);
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueCacheTransaction.addAllocatedReservation(
+                valueReservationTransaction.addAllocatedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
             }
             else if (reservation instanceof RoomReservation) {
                 RoomReservation roomReservation = (RoomReservation) reservation;
-                roomCacheTransaction.addAllocatedReservation(
+                roomReservationTransaction.addAllocatedReservation(
                         roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
         }
@@ -247,17 +235,17 @@ public class CacheTransaction
             if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
                 Resource resource = resourceReservation.getResource();
-                resourceCacheTransaction.removeAllocatedReservation(resource.getId(), resourceReservation);
+                resourceReservationTransaction.removeAllocatedReservation(resource.getId(), resourceReservation);
                 addReferencedResource(resource);
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueCacheTransaction.removeAllocatedReservation(
+                valueReservationTransaction.removeAllocatedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
             }
             else if (reservation instanceof RoomReservation) {
                 RoomReservation roomReservation = (RoomReservation) reservation;
-                roomCacheTransaction.removeAllocatedReservation(
+                roomReservationTransaction.removeAllocatedReservation(
                         roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
         }
@@ -312,17 +300,17 @@ public class CacheTransaction
             }
             else if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
-                resourceCacheTransaction.addProvidedReservation(
+                resourceReservationTransaction.addProvidedReservation(
                         resourceReservation.getResource().getId(), resourceReservation);
             }
             else if (reservation instanceof ValueReservation) {
                 ValueReservation valueReservation = (ValueReservation) reservation;
-                valueCacheTransaction.addProvidedReservation(
+                valueReservationTransaction.addProvidedReservation(
                         valueReservation.getValueProvider().getId(), valueReservation);
             }
             else if (reservation instanceof RoomReservation) {
                 RoomReservation roomReservation = (RoomReservation) reservation;
-                roomCacheTransaction.addProvidedReservation(
+                roomReservationTransaction.addProvidedReservation(
                         roomReservation.getRoomProviderCapability().getId(), roomReservation);
             }
             else if (reservation instanceof AliasReservation) {
@@ -364,17 +352,17 @@ public class CacheTransaction
         }
         else if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            resourceCacheTransaction.removeProvidedReservation(
+            resourceReservationTransaction.removeProvidedReservation(
                     resourceReservation.getResource().getId(), resourceReservation);
         }
         else if (reservation instanceof ValueReservation) {
             ValueReservation aliasReservation = (ValueReservation) reservation;
-            valueCacheTransaction.removeProvidedReservation(
+            valueReservationTransaction.removeProvidedReservation(
                     aliasReservation.getValueProvider().getId(), aliasReservation);
         }
         else if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
-            roomCacheTransaction.removeProvidedReservation(
+            roomReservationTransaction.removeProvidedReservation(
                     roomReservation.getRoomProviderCapability().getId(), roomReservation);
         }
         else if (reservation instanceof AliasReservation) {
@@ -429,6 +417,155 @@ public class CacheTransaction
         savepoint.previousSavepoint = currentSavepoint;
         currentSavepoint = savepoint;
         return savepoint;
+    }
+
+    /**
+     * Apply {@link #resourceReservationTransaction} to given {@code resourceReservations}.
+     *
+     * @param resourceId
+     * @param resourceReservations
+     */
+    public void applyResourceReservations(Long resourceId, List<ResourceReservation> resourceReservations)
+    {
+        resourceReservationTransaction.applyReservations(resourceId, resourceReservations);
+    }
+
+    /**
+     * Apply {@link #roomReservationTransaction} to given {@code roomReservations}.
+     *
+     * @param roomProviderId
+     * @param roomReservations
+     */
+    public void applyRoomReservations(Long roomProviderId, List<RoomReservation> roomReservations)
+    {
+        roomReservationTransaction.applyReservations(roomProviderId, roomReservations);
+    }
+
+    /**
+     * Apply {@link #valueReservationTransaction} to given {@code valueReservations}.
+     *
+     * @param valueProviderId
+     * @param valueReservations
+     */
+    public void applyValueReservations(Long valueProviderId, List<ValueReservation> valueReservations)
+    {
+        valueReservationTransaction.applyReservations(valueProviderId, valueReservations);
+    }
+
+    /**
+     * Represents a transaction inside {@link AbstractReservationCache}.
+     */
+    public static class ReservationTransaction<R extends Reservation>
+    {
+        /**
+         * Already allocated reservations in the {@link ReservationTransaction} (which make resources unavailable
+         * for further reservations).
+         */
+        private Map<Long, Set<R>> allocatedReservationsByObjectId = new HashMap<Long, Set<R>>();
+
+        /**
+         * Provided reservations in the {@link ReservationTransaction} (which make resources available for further reservations).
+         */
+        private Map<Long, Set<R>> providedReservationsByObjectId = new HashMap<Long, Set<R>>();
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be added to the {@link ReservationTransaction} as allocated
+         */
+        public void addAllocatedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+                allocatedReservationsByObjectId.put(objectId, reservations);
+            }
+            reservations.add(reservation);
+        }
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be removed from the {@link ReservationTransaction} as allocated
+         */
+        public void removeAllocatedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                return;
+            }
+            reservations.remove(reservation);
+        }
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be added to the {@link ReservationTransaction} as provided
+         */
+        public void addProvidedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+                providedReservationsByObjectId.put(objectId, reservations);
+            }
+            reservations.add(reservation);
+        }
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be removed from the {@link ReservationTransaction}'s provided {@link Reservation}s
+         */
+        public void removeProvidedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations != null) {
+                reservations.remove(reservation);
+            }
+        }
+
+        /**
+         * @param objectId for object
+         * @return set of provided {@link Reservation}s for object with given {@code objectId}
+         */
+        public Set<R> getProvidedReservations(Long objectId)
+        {
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+            }
+            return reservations;
+        }
+
+        /**
+         * Apply {@link ReservationTransaction} to given {@code reservations} for given object with given {@code objectId}.
+         *
+         * @param objectId     for which the {@link ReservationTransaction} should apply
+         * @param reservations to which the {@link ReservationTransaction} should apply
+         */
+        private  <T extends Reservation> void applyReservations(Long objectId, Collection<T> reservations)
+        {
+            Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
+            if (providedReservationsToApply != null) {
+                Map<Long, T> reservationById = new HashMap<Long, T>();
+                for (T reservation : reservations) {
+                    reservationById.put(reservation.getId(), reservation);
+                }
+                for (R providedReservation : providedReservationsToApply) {
+                    Reservation reservation = reservationById.get(providedReservation.getId());
+                    if (reservation != null) {
+                        @SuppressWarnings("unchecked")
+                        T typedReservation = (T) reservation;
+                        reservations.remove(typedReservation);
+                    }
+                }
+            }
+            Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
+            if (allocatedReservationsToApply != null) {
+                for (R reservation : allocatedReservationsToApply) {
+                    @SuppressWarnings("unchecked")
+                    T typedReservation = (T) reservation;
+                    reservations.add(typedReservation);
+                }
+            }
+        }
     }
 
     /**

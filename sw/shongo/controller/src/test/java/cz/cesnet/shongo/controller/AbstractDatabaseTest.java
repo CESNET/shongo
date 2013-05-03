@@ -74,7 +74,7 @@ public abstract class AbstractDatabaseTest
      * Perform tests clean-up.
      */
     @After
-    public void after()
+    public void after() throws Exception
     {
         // Do not close entity manager factory to allow re-usage of it for the next test
     }

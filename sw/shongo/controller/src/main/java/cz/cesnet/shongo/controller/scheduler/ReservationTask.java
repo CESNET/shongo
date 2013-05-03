@@ -10,8 +10,10 @@ import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -44,11 +46,6 @@ public abstract class ReservationTask
      * Stack of active {@link SchedulerReport}s.
      */
     private Stack<SchedulerReport> activeReports = new Stack<SchedulerReport>();
-
-    /**
-     * Set of {@link SchedulerReport}s which should not propagate errors to parent reports.
-     */
-    private Set<SchedulerReport> disabledErrorPropagation = new HashSet<SchedulerReport>();
 
     /**
      * Constructor.
@@ -246,16 +243,12 @@ public abstract class ReservationTask
     }
 
     /**
-     * @param report         to be added and to be used as parent for next reports until {@link #endReport()} is called
-     * @param propagateError specifies whether error should be propagated to parent report
+     * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
      */
-    protected void beginReport(SchedulerReport report, boolean propagateError)
+    protected void beginReport(SchedulerReport report)
     {
         addReport(report);
         activeReports.push(report);
-        if (!propagateError) {
-            disabledErrorPropagation.add(report);
-        }
     }
 
     /**
@@ -264,7 +257,6 @@ public abstract class ReservationTask
     protected void endReport()
     {
         activeReports.pop();
-        disabledErrorPropagation.remove(reports);
     }
 
     /**
@@ -275,7 +267,6 @@ public abstract class ReservationTask
     protected void endReportError(SchedulerReport errorReport)
     {
         SchedulerReport report = activeReports.pop();
-        disabledErrorPropagation.remove(reports);
 
         report.addChildReport(errorReport);
     }
@@ -319,7 +310,7 @@ public abstract class ReservationTask
         Reservation reservation = null;
         SchedulerReport mainReport = createMainReport();
         if (mainReport != null) {
-            beginReport(mainReport, false);
+            beginReport(mainReport);
             try {
                 reservation = createReservation();
                 validateReservation(reservation);
@@ -378,15 +369,7 @@ public abstract class ReservationTask
     protected void validateReservationSlot(Class<? extends Reservation> type)
             throws SchedulerReportSet.DurationLongerThanMaximumException
     {
-        // Check maximum duration
-        if (context.isMaximumFutureAndDurationRestricted()) {
-            if (type.equals(ResourceReservation.class)) {
-                checkMaximumDuration(getInterval(), context.getCache().getResourceReservationMaximumDuration());
-            }
-            else if (type.equals(ValueReservation.class) || type.equals(AliasReservation.class)) {
-                checkMaximumDuration(getInterval(), context.getCache().getValueReservationMaximumDuration());
-            }
-        }
+
     }
 
     /**
@@ -395,7 +378,6 @@ public abstract class ReservationTask
      */
     protected void validateReservation(Reservation reservation) throws SchedulerException
     {
-        validateReservationSlot(reservation.getClass());
     }
 
     /**
@@ -406,7 +388,7 @@ public abstract class ReservationTask
      * @throws SchedulerReportSet.DurationLongerThanMaximumException
      *
      */
-    private static void checkMaximumDuration(Interval slot, Period maximumDuration)
+    protected static void checkMaximumDuration(Interval slot, Period maximumDuration)
             throws SchedulerReportSet.DurationLongerThanMaximumException
     {
         Period duration = Temporal.getIntervalDuration(slot);
@@ -441,6 +423,16 @@ public abstract class ReservationTask
         private CacheTransaction cacheTransaction;
 
         /**
+         * Time which represents now.
+         */
+        private DateTime referenceDateTime = DateTime.now();
+
+        /**
+         * Entity manager.
+         */
+        private EntityManager entityManager;
+
+        /**
          * @see AuthorizationManager
          */
         private AuthorizationManager authorizationManager;
@@ -452,11 +444,12 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link CacheTransaction#interval}
          */
-        public Context(String userId, Cache cache, Interval interval)
+        public Context(String userId, Interval interval, Cache cache, EntityManager entityManager)
         {
             this.userId = userId;
             this.cache = cache;
             this.cacheTransaction = new CacheTransaction(interval);
+            this.entityManager = entityManager;
         }
 
         /**
@@ -465,13 +458,15 @@ public abstract class ReservationTask
          * @param reservationRequest sets the {@link #reservationRequest}
          * @param cache              sets the {@link #cache}
          * @param interval           sets the {@link CacheTransaction#interval}
+         * @param referenceDateTime  sets the {@link #referenceDateTime}
          * @param entityManager      which can be used
          */
         public Context(ReservationRequest reservationRequest, Cache cache, Interval interval,
-                EntityManager entityManager)
+                DateTime referenceDateTime, EntityManager entityManager)
         {
-            this(reservationRequest.getUserId(), cache, interval);
+            this(reservationRequest.getUserId(), interval, cache, entityManager);
             this.reservationRequest = reservationRequest;
+            this.referenceDateTime = referenceDateTime;
             if (entityManager != null) {
                 this.authorizationManager = new AuthorizationManager(entityManager);
             }
@@ -483,9 +478,9 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link CacheTransaction#interval}
          */
-        public Context(Cache cache, Interval interval)
+        public Context(Interval interval, Cache cache, EntityManager entityManager)
         {
-            this(Authorization.ROOT_USER_ID, cache, interval);
+            this(Authorization.ROOT_USER_ID, interval, cache, entityManager);
         }
 
         /**
@@ -559,11 +554,19 @@ public abstract class ReservationTask
         }
 
         /**
-         * @return {@link #authorizationManager}
+         * @return {@link #referenceDateTime}
          */
-        public AuthorizationManager getAuthorizationManager()
+        public DateTime getReferenceDateTime()
         {
-            return authorizationManager;
+            return referenceDateTime;
+        }
+
+        /**
+         * @return {@link #entityManager}
+         */
+        public EntityManager getEntityManager()
+        {
+            return entityManager;
         }
 
         /**

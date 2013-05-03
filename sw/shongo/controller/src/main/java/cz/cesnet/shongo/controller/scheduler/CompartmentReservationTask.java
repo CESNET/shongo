@@ -247,7 +247,7 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology), true);
+        beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology));
         CacheTransaction.Savepoint cacheTransactionSavepoint = getContext().getCacheTransaction().createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
@@ -279,7 +279,7 @@ public class CompartmentReservationTask extends ReservationTask
             throws SchedulerException
     {
         // Allocate alias for the target endpoint
-        beginReport(new SchedulerReportSet.ConnectionFromToReport(endpointFrom, endpointTo), true);
+        beginReport(new SchedulerReportSet.ConnectionFromToReport(endpointFrom, endpointTo));
         try {
             // Created connection
             Connection connection = null;

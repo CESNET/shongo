@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
@@ -78,7 +79,7 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservation to be deleted in the database
      */
-    public void delete(Reservation reservation, AuthorizationManager authorizationManager, Cache cache)
+    public void delete(Reservation reservation, AuthorizationManager authorizationManager)
     {
         // Get all reservations and disconnect them from parents
         Collection<Reservation> reservations = new LinkedList<Reservation>();
@@ -96,9 +97,6 @@ public class ReservationManager extends AbstractManager
 
         // Delete all reservations
         for (Reservation reservationToDelete : reservations) {
-            // Remove additional reservation from the cache
-            cache.removeReservation(reservationToDelete);
-
             // Delete additional reservation
             super.delete(reservationToDelete);
         }
@@ -295,35 +293,44 @@ public class ReservationManager extends AbstractManager
      * Get list of reused {@link Reservation}s. Reused {@link Reservation} is a {@link Reservation} which is referenced
      * by at least one {@link ExistingReservation} in the {@link ExistingReservation#reservation} attribute.
      *
+     * @param referencedDateTime ignore all reservations which ends before the specified date/time
      * @return list of reused {@link Reservation}.
      */
-    public List<Reservation> getReusedReservations()
+    public List<Reservation> getReusedReservations(DateTime referencedDateTime)
     {
         List<Reservation> reservations = entityManager.createQuery(
-                "SELECT DISTINCT reservation.reservation FROM ExistingReservation reservation", Reservation.class)
+                "SELECT DISTINCT reusedReservation FROM ExistingReservation reservation"
+                        + " LEFT JOIN reservation.reservation reusedReservation"
+                        + " WHERE reusedReservation.slotEnd > dateTime", Reservation.class)
+                .setParameter("dateTime", referencedDateTime)
                 .getResultList();
         return reservations;
     }
 
     /**
-     * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}.
+     * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
+     * in given {@code interval}.
      *
      * @param reusedReservation which must be referenced in the {@link ExistingReservation#reservation}
+     * @param interval
      * @return list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
      */
-    public List<ExistingReservation> getExistingReservations(Reservation reusedReservation)
+    public List<ExistingReservation> getExistingReservations(Reservation reusedReservation, Interval interval)
     {
-        List<ExistingReservation> reservations = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT reservation FROM ExistingReservation reservation"
-                        + " WHERE reservation.reservation = :reusedReservation",
+                        + " WHERE reservation.reservation = :reusedReservation"
+                        + " AND reservation.slotStart < :end"
+                        + " AND reservation.slotEnd > :start",
                 ExistingReservation.class)
                 .setParameter("reusedReservation", reusedReservation)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
                 .getResultList();
-        return reservations;
     }
 
     /**
-     * Get list of {@link ResourceReservation} for given {@code resource} in given {@code slot}.
+     * Get list of {@link ResourceReservation} for given {@code resource} in given {@code interval}.
      *
      * @param resource
      * @param interval
@@ -331,7 +338,7 @@ public class ReservationManager extends AbstractManager
      */
     public List<ResourceReservation> getResourceReservations(Resource resource, Interval interval)
     {
-        List<ResourceReservation> reservations = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT reservation FROM ResourceReservation reservation"
                         + " WHERE reservation.resource = :resource"
                         + " AND reservation.slotStart < :end"
@@ -341,11 +348,31 @@ public class ReservationManager extends AbstractManager
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return reservations;
     }
 
     /**
-     * Get list of {@link ValueReservation} for given {@code valueProvider} in given {@code slot}.
+     * Get list of {@link RoomReservation} for given {@code roomProviderCapability} in given {@code interval}.
+     *
+     * @param roomProviderCapability
+     * @param interval
+     * @return list of {@link RoomReservation} for given {@code resource}
+     */
+    public List<RoomReservation> getRoomReservations(RoomProviderCapability roomProviderCapability, Interval interval)
+    {
+        return entityManager.createQuery(
+                "SELECT reservation FROM RoomReservation reservation"
+                        + " WHERE reservation.roomProviderCapability = :roomProviderCapability"
+                        + " AND reservation.slotStart < :end"
+                        + " AND reservation.slotEnd > :start",
+                RoomReservation.class)
+                .setParameter("roomProviderCapability", roomProviderCapability)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+    }
+
+    /**
+     * Get list of {@link ValueReservation} for given {@code valueProvider} in given {@code interval}.
      *
      * @param valueProvider
      * @param interval
@@ -353,7 +380,7 @@ public class ReservationManager extends AbstractManager
      */
     public List<ValueReservation> getValueReservations(ValueProvider valueProvider, Interval interval)
     {
-        List<ValueReservation> reservations = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT reservation FROM ValueReservation reservation"
                         + " WHERE reservation.valueProvider = :valueProvider"
                         + " AND reservation.slotStart < :end"
@@ -363,7 +390,6 @@ public class ReservationManager extends AbstractManager
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return reservations;
     }
 
     /**
