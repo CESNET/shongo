@@ -100,14 +100,20 @@ public class ReallocationTest extends AbstractControllerTest
         roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         roomReservationRequest.setSpecification(new RoomSpecification(3, Technology.H323));
         String roomReservationRequestId = allocate(roomReservationRequest);
-        RoomReservation roomReservation1 = (RoomReservation) checkAllocated(roomReservationRequestId);
+        RoomReservation roomReservation = (RoomReservation) checkAllocated(roomReservationRequestId);
 
-        Assert.assertEquals(multipoint1Id, roomReservation1.getResourceId());
+        Assert.assertEquals(multipoint1Id, roomReservation.getResourceId());
 
         ReservationRequest maintenanceReservationRequest = new ReservationRequest();
         maintenanceReservationRequest.setSlot("2013-01-01T00:00", "P1D");
         maintenanceReservationRequest.setPurpose(ReservationRequestPurpose.MAINTENANCE);
         maintenanceReservationRequest.setSpecification(new ResourceSpecification(multipoint1Id));
-        allocateAndCheck(maintenanceReservationRequest);
+        ResourceReservation maintenanceReservation =
+                (ResourceReservation) allocateAndCheck(maintenanceReservationRequest);
+        roomReservation = (RoomReservation) getReservationService().getReservation(
+                SECURITY_TOKEN, roomReservationRequestId);
+
+        Assert.assertEquals(multipoint1Id, maintenanceReservation.getResourceId());
+        Assert.assertEquals(multipoint2Id, roomReservation.getResourceId());
     }
 }

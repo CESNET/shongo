@@ -27,8 +27,7 @@ public class ResourceCache extends AbstractCache<Resource>
     /**
      * Map of capability states by theirs types.
      */
-    private Map<Class<? extends Capability>, CapabilityState> capabilityStateByType =
-            new HashMap<Class<? extends Capability>, CapabilityState>();
+    private Map<Class<? extends Capability>, CapabilityState> capabilityStateByType;
 
     /**
      * @see DeviceTopology
@@ -93,8 +92,8 @@ public class ResourceCache extends AbstractCache<Resource>
     @Override
     public void clear()
     {
+        capabilityStateByType = new HashMap<Class<? extends Capability>, CapabilityState>();
         deviceTopology = new DeviceTopology();
-        capabilityStateByType.clear();
         super.clear();
     }
 

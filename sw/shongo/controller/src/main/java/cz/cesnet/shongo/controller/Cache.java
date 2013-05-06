@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.cache.*;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.cache.AvailableValue;
+import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.joda.time.Interval;
@@ -100,7 +103,26 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         logger.debug("Starting cache...");
 
-        reset();
+        if (entityManagerFactory != null) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+
+                logger.debug("Loading resources...");
+                ResourceManager resourceManager = new ResourceManager(entityManager);
+                List<Resource> resourceList = resourceManager.list(null, null);
+                for (Resource resource : resourceList) {
+                    try {
+                        addResource(resource);
+                    }
+                    catch (Exception exception) {
+                        throw new RuntimeException("Failed to add resource to the cache.", exception);
+                    }
+                }
+            }
+            finally {
+                entityManager.close();
+            }
+        }
     }
 
     @Override
@@ -109,30 +131,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         logger.debug("Stopping cache...");
 
         super.destroy();
-    }
-
-    /**
-     * Reload cache from given {@code entityManager}.
-     */
-    public synchronized void reset()
-    {
-        resourceCache.clear();
-        if (entityManagerFactory != null) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-
-            logger.debug("Loading resources...");
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            List<Resource> resourceList = resourceManager.list(null, null);
-            for (Resource resource : resourceList) {
-                try {
-                    addResource(resource);
-                }
-                catch (Exception exception) {
-                    throw new RuntimeException("Failed to add resource to the cache.", exception);
-                }
-            }
-            entityManager.close();
-        }
     }
 
     /**

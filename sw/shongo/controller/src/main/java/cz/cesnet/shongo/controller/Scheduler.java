@@ -183,12 +183,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
-            try {
-                cache.reset();
-            }
-            catch (Exception resettingException) {
-                Reporter.reportInternalError(Reporter.SCHEDULER, "Cache resetting failed", resettingException);
-            }
             Reporter.reportInternalError(Reporter.SCHEDULER, exception);
             return;
         }
