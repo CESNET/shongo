@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -169,7 +170,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Get provided room endpoints
         Collection<ResourceRoomEndpoint> providedRooms =
-                schedulerContext.getProvidedExecutables(ResourceRoomEndpoint.class);
+                schedulerContext.getAvailableExecutables(ResourceRoomEndpoint.class);
         // Map of available provided rooms which doesn't have enough capacity
         final Map<Long, ResourceRoomEndpoint> availableProvidedRooms = new HashMap<Long, ResourceRoomEndpoint>();
         // Find provided room with enough capacity to be reused or suitable room to which will be allocated more capacity
@@ -183,16 +184,22 @@ public class RoomReservationTask extends ReservationTask
             RoomVariant roomVariant = roomVariantByRoomProviderId.get(providedRoomProviderId);
             // If provided room has enough allocated capacity
             if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
-                Reservation providedReservation =
-                        schedulerContext.getProvidedReservationByExecutable(providedRoomEndpoint);
-                addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
+                AvailableReservation<Reservation> availableReservation =
+                        schedulerContext.getAvailableReservationByExecutable(providedRoomEndpoint);
+                Reservation originalReservation = availableReservation.getOriginalReservation();
+                if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                    throw new TodoImplementException("reallocate room");
+                }
+                else {
+                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
-                // Reuse provided reservation which allocates the provided room
-                ExistingReservation existingReservation = new ExistingReservation();
-                existingReservation.setSlot(getInterval());
-                existingReservation.setReservation(providedReservation);
-                schedulerContext.removeProvidedReservation(providedReservation);
-                return existingReservation;
+                    // Reuse provided reservation which allocates the provided room
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(getInterval());
+                    existingReservation.setReservation(originalReservation);
+                    schedulerContext.removeAvailableReservation(availableReservation);
+                    return existingReservation;
+                }
             }
             // Else provided room doesn't have enough capacity
             else {
@@ -274,28 +281,34 @@ public class RoomReservationTask extends ReservationTask
                 // If provided room is available
                 ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(roomProvider.getId());
                 if (availableProvidedRoom != null) {
-                    Reservation providedReservation =
-                            schedulerContext.getProvidedReservationByExecutable(availableProvidedRoom);
-                    addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
+                    AvailableReservation<Reservation> availableReservation =
+                            schedulerContext.getAvailableReservationByExecutable(availableProvidedRoom);
+                    Reservation originalReservation = availableReservation.getOriginalReservation();
+                    if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                        throw new TodoImplementException("reallocate room");
+                    }
+                    else {
+                        addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
-                    // Reuse provided reservation which allocates the provided room
-                    ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(interval);
-                    existingReservation.setReservation(providedReservation);
-                    addChildReservation(existingReservation);
-                    schedulerContext.removeProvidedReservation(providedReservation);
+                        // Reuse provided reservation which allocates the provided room
+                        ExistingReservation existingReservation = new ExistingReservation();
+                        existingReservation.setSlot(interval);
+                        existingReservation.setReservation(originalReservation);
+                        addChildReservation(existingReservation);
+                        schedulerContext.removeAvailableReservation(availableReservation);
 
-                    // Reserve only the remaining capacity
-                    roomConfiguration.setLicenseCount(
-                            roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
+                        // Reserve only the remaining capacity
+                        roomConfiguration.setLicenseCount(
+                                roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
 
-                    if (schedulerContext.isExecutableAllowed()) {
-                        addReport(new SchedulerReportSet.ExecutableReusingReport(availableProvidedRoom));
+                        if (schedulerContext.isExecutableAllowed()) {
+                            addReport(new SchedulerReportSet.ExecutableReusingReport(availableProvidedRoom));
 
-                        // Create new used room endpoint
-                        UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
-                        usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
-                        roomEndpoint = usedRoomEndpoint;
+                            // Create new used room endpoint
+                            UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
+                            usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
+                            roomEndpoint = usedRoomEndpoint;
+                        }
                     }
                 }
                 else {

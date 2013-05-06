@@ -18,7 +18,7 @@ public class AvailableValue
     /**
      * Provided {@link ValueReservation} by which the {@link AvailableValue} is already allocated.
      */
-    private ValueReservation valueReservation;
+    private AvailableReservation<ValueReservation> availableValueReservation;
 
     /**
      * @return {@link #value}
@@ -37,18 +37,18 @@ public class AvailableValue
     }
 
     /**
-     * @return {@link #valueReservation}
+     * @return {@link #availableValueReservation}
      */
-    public ValueReservation getValueReservation()
+    public AvailableReservation<ValueReservation> getAvailableValueReservation()
     {
-        return valueReservation;
+        return availableValueReservation;
     }
 
     /**
-     * @param valueReservation {@link #valueReservation}
+     * @param availableValueReservation {@link #availableValueReservation}
      */
-    public void setValueReservation(ValueReservation valueReservation)
+    public void setAvailableValueReservation(AvailableReservation<ValueReservation> availableValueReservation)
     {
-        this.valueReservation = valueReservation;
+        this.availableValueReservation = availableValueReservation;
     }
 }

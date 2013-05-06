@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.*;
@@ -61,17 +62,24 @@ public class ResourceReservationTask extends ReservationTask
         resourceCache.checkResourceAvailableByParent(resource, schedulerContext);
 
         // Reuse existing reservation
-        Set<ResourceReservation> resourceReservations = schedulerContext.getProvidedResourceReservations(resource);
-        if (resourceReservations.size() > 0) {
-            ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
-            addReport(new SchedulerReportSet.ReservationReusingReport(providedResourceReservation));
+        Set<AvailableReservation<ResourceReservation>> availableReservations =
+                schedulerContext.getAvailableResourceReservations(resource);
+        if (availableReservations.size() > 0) {
+            AvailableReservation<ResourceReservation> availableReservation = availableReservations.iterator().next();
+            Reservation originalReservation = availableReservation.getOriginalReservation();
+            if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                throw new TodoImplementException("reallocate resource");
+            }
+            else {
+                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
-            // Reuse provided reservation
-            ExistingReservation existingReservation = new ExistingReservation();
-            existingReservation.setSlot(interval);
-            existingReservation.setReservation(providedResourceReservation);
-            schedulerContext.removeProvidedReservation(providedResourceReservation);
-            return existingReservation;
+                // Reuse provided reservation
+                ExistingReservation existingReservation = new ExistingReservation();
+                existingReservation.setSlot(interval);
+                existingReservation.setReservation(originalReservation);
+                schedulerContext.removeAvailableReservation(availableReservation);
+                return existingReservation;
+            }
         }
 
         // Proper instance of new resource reservation

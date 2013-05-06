@@ -157,7 +157,8 @@ public class SchedulerReportTest extends AbstractDatabaseTest
         ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(schedulerContext);
         Reservation reservation = print(messageType, reservationTask);
         reservation.generateTestingId();
-        schedulerContext.addProvidedReservation(reservation);
+        schedulerContext.addAvailableReservation(
+                AvailableReservation.create(reservation, AvailableReservation.Type.REUSABLE));
 
         reservationTask = reservationTaskProvider2.createReservationTask(schedulerContext);
         print(messageType, reservationTask);

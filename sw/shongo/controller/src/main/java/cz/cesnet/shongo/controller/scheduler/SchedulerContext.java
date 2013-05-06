@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -25,7 +25,7 @@ import java.util.*;
 public class SchedulerContext
 {
     /**
-     * {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest} for which the {@link Reservation} should be allocated.
+     * {@link ReservationRequest} for which the {@link Reservation} should be allocated.
      */
     private ReservationRequest reservationRequest;
 
@@ -60,9 +60,9 @@ public class SchedulerContext
     private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
 
     /**
-     * Set of provided {@link Reservation}s.
+     * Set of {@link AvailableReservation}s.
      */
-    private Set<Reservation> providedReservations = new HashSet<Reservation>();
+    private Set<AvailableReservation> availableReservations = new HashSet<AvailableReservation>();
 
     /**
      * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s.
@@ -83,22 +83,21 @@ public class SchedulerContext
             new ReservationTransaction<RoomReservation>();
 
     /**
-     * Set of resources referenced from {@link ResourceReservation}s in the transaction.
+     * Set of resources referenced from {@link ResourceReservation}s in the context.
      */
     private Set<Resource> referencedResources = new HashSet<Resource>();
 
     /**
-     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
-     * {@link Reservation} which allocates them.
+     * Map of {@link AvailableReservation}s by {@link Executable}s which is allocated by them.
      */
-    private Map<Executable, Reservation> providedReservationByExecutable = new HashMap<Executable, Reservation>();
+    private Map<Executable, AvailableReservation<? extends Reservation>> availableReservationByExecutable =
+            new HashMap<Executable, AvailableReservation<? extends Reservation>>();
 
     /**
-     * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
-     * {@link Reservation} which allocates them.
+     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link Executable}s which allocates them.
      */
-    private Map<Long, Set<AliasReservation>> providedReservationsByAliasProviderId =
-            new HashMap<Long, Set<AliasReservation>>();
+    private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
+            new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
 
     /**
      * Current {@link Savepoint} to which are recorded all performed changes.
@@ -261,24 +260,8 @@ public class SchedulerContext
     }
 
     /**
-     * @return {@link #allocatedReservations}
-     */
-    public Set<Reservation> getAllocatedReservations()
-    {
-        return Collections.unmodifiableSet(allocatedReservations);
-    }
-
-    /**
-     * @return {@link #providedReservations}
-     */
-    public Set<Reservation> getProvidedReservations()
-    {
-        return Collections.unmodifiableSet(providedReservations);
-    }
-
-    /**
      * @param resource to be checked
-     * @return true if given resource was referenced by any {@link ResourceReservation} added to the transaction,
+     * @return true if given resource was referenced by any {@link ResourceReservation} added to the context,
      *         false otherwise
      */
     public boolean containsReferencedResource(Resource resource)
@@ -287,63 +270,82 @@ public class SchedulerContext
     }
 
     /**
-     * @param executableType
-     * @return collection of provided {@link cz.cesnet.shongo.controller.executor.Executable}s of given {@code executableType}
+     * @return {@link #allocatedReservations}
      */
-    public <T extends Executable> Collection<T> getProvidedExecutables(Class<T> executableType)
+    public Set<Reservation> getAllocatedReservations()
     {
-        Set<T> providedExecutables = new HashSet<T>();
-        for (Executable providedExecutable : providedReservationByExecutable.keySet()) {
-            if (executableType.isInstance(providedExecutable)) {
-                providedExecutables.add(executableType.cast(providedExecutable));
+        return Collections.unmodifiableSet(allocatedReservations);
+    }
+
+    /**
+     * @return {@link #availableReservations}
+     */
+    public Set<AvailableReservation> getAvailableReservations()
+    {
+        return Collections.unmodifiableSet(availableReservations);
+    }
+
+    /**
+     * @param executableType
+     * @return collection of available {@link Executable}s of given {@code executableType}
+     */
+    public <T extends Executable> Collection<T> getAvailableExecutables(Class<T> executableType)
+    {
+        Set<T> availableExecutables = new HashSet<T>();
+        for (Executable availableExecutable : availableReservationByExecutable.keySet()) {
+            if (executableType.isInstance(availableExecutable)) {
+                availableExecutables.add(executableType.cast(availableExecutable));
             }
         }
-        return providedExecutables;
+        return availableExecutables;
     }
 
     /**
      * @param executable
-     * @return provided {@link Reservation} for given {@code executable}
+     * @return {@link AvailableReservation} for given {@code executable}
      */
-    public Reservation getProvidedReservationByExecutable(Executable executable)
+    public AvailableReservation<Reservation> getAvailableReservationByExecutable(Executable executable)
     {
-        Reservation providedReservation = providedReservationByExecutable.get(executable);
-        if (providedReservation == null) {
-            throw new IllegalArgumentException("Provided reservation doesn't exists for given executable!");
+        AvailableReservation<? extends Reservation> availableReservation =
+                availableReservationByExecutable.get(executable);
+        if (availableReservation == null) {
+            throw new IllegalArgumentException("Available reservation doesn't exists for given executable!");
         }
-        return providedReservation;
+        return availableReservation.cast(Reservation.class);
     }
 
     /**
      * @param aliasProvider
-     * @return collection of provided {@link AliasReservation}
+     * @return collection of {@link AvailableReservation}s ({@link AliasReservation}s) for given {@code aliasProvider}
      */
-    public Collection<AliasReservation> getProvidedAliasReservations(AliasProviderCapability aliasProvider)
+    public Collection<AvailableReservation<AliasReservation>> getAvailableAliasReservations(
+            AliasProviderCapability aliasProvider)
     {
         Long aliasProviderId = aliasProvider.getId();
-        Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
-        if (aliasReservations != null) {
-            return aliasReservations;
+        Set<AvailableReservation<AliasReservation>> availableReservations =
+                availableReservationsByAliasProviderId.get(aliasProviderId);
+        if (availableReservations != null) {
+            return availableReservations;
         }
         return Collections.emptyList();
     }
 
     /**
-     * @param resource for which the provided {@link ResourceReservation}s should be returned
-     * @return provided {@link ResourceReservation}s for given {@code resource}
+     * @param resource for which the {@link AvailableReservation}s should be returned
+     * @return {@link AvailableReservation}s ({@link ResourceReservation}s) for given {@code resource}
      */
-    public Set<ResourceReservation> getProvidedResourceReservations(Resource resource)
+    public Set<AvailableReservation<ResourceReservation>> getAvailableResourceReservations(Resource resource)
     {
-        return resourceReservationTransaction.getProvidedReservations(resource.getId());
+        return resourceReservationTransaction.getAvailableReservations(resource.getId());
     }
 
     /**
-     * @param valueProvider for which the provided {@link ValueReservation}s should be returned
-     * @return provided {@link ValueReservation}s for given {@code valueProvider}
+     * @param valueProvider for which the {@link AvailableReservation}s should be returned
+     * @return {@link AvailableReservation}s ({@link ValueReservation}s) for given {@code valueProvider}
      */
-    public Set<ValueReservation> getProvidedValueReservations(ValueProvider valueProvider)
+    public Set<AvailableReservation<ValueReservation>> getAvailableValueReservations(ValueProvider valueProvider)
     {
-        return valueReservationTransaction.getProvidedReservations(valueProvider.getId());
+        return valueReservationTransaction.getAvailableReservations(valueProvider.getId());
     }
 
     /**
@@ -352,7 +354,7 @@ public class SchedulerContext
     public void addAllocatedReservation(Reservation reservation)
     {
         if (!allocatedReservations.add(reservation)) {
-            // Reservation is already added as allocated to the transaction
+            // Reservation is already added as allocated to the context
             return;
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.ADDED);
@@ -383,7 +385,7 @@ public class SchedulerContext
     public void removeAllocatedReservation(Reservation reservation)
     {
         if (!allocatedReservations.remove(reservation)) {
-            // Reservation is not added as allocated to the transaction
+            // Reservation is not added as allocated to the context
             return;
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.REMOVED);
@@ -429,105 +431,98 @@ public class SchedulerContext
     }
 
     /**
-     * @param reservation to be added to the {@link SchedulerContext} as provided (the resources allocated by
-     *                    the {@code reservation} are considered as available).
+     * @param availableReservation to be added to the {@link SchedulerContext}
      */
-    public void addProvidedReservation(Reservation reservation)
+    public void addAvailableReservation(AvailableReservation<? extends Reservation> availableReservation)
     {
-        if (!providedReservations.add(reservation)) {
-            // Reservation is already added as provided to the transaction
+        if (!availableReservations.add(availableReservation)) {
+            // Reservation is already added as available to the context
             return;
         }
-        onChange(ObjectType.PROVIDED_RESERVATION, reservation, ObjectState.ADDED);
+        onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.ADDED);
 
-        if (reservation.getSlot().contains(getInterval())) {
-            Executable executable = reservation.getExecutable();
-            if (executable != null) {
-                if (!providedReservationByExecutable.containsKey(executable)) {
-                    providedReservationByExecutable.put(executable, reservation);
-                }
+        Reservation originalReservation = availableReservation.getOriginalReservation();
+        Reservation targetReservation = availableReservation.getTargetReservation();
+        AvailableReservation.Type type = availableReservation.getType();
+        Executable executable = targetReservation.getExecutable();
+        if (executable != null) {
+            if (!availableReservationByExecutable.containsKey(executable)) {
+                availableReservationByExecutable.put(executable, availableReservation);
             }
+        }
 
-            if (reservation instanceof ExistingReservation) {
-                throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
-                // It will be necessary to evaluate existing reservation to target reservation and to keep the
-                // reference to the existing reservation.
-                // In the end the existing reservation must be used as child reservation for any newly allocated
-                // reservations and not the target reservation itself (a collision would occur).
+        if (targetReservation instanceof ResourceReservation) {
+            ResourceReservation resourceReservation = (ResourceReservation) targetReservation;
+            resourceReservationTransaction.addAvailableReservation(resourceReservation.getResource().getId(),
+                    availableReservation.cast(ResourceReservation.class));
+        }
+        else if (targetReservation instanceof ValueReservation) {
+            ValueReservation valueReservation = (ValueReservation) targetReservation;
+            valueReservationTransaction.addAvailableReservation(valueReservation.getValueProvider().getId(),
+                    availableReservation.cast(ValueReservation.class));
+        }
+        else if (targetReservation instanceof RoomReservation) {
+            RoomReservation roomReservation = (RoomReservation) targetReservation;
+            roomReservationTransaction.addAvailableReservation(roomReservation.getRoomProviderCapability().getId(),
+                    availableReservation.cast(RoomReservation.class));
+        }
+        else if (targetReservation instanceof AliasReservation) {
+            AliasReservation aliasReservation = (AliasReservation) targetReservation;
+            Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
+            Set<AvailableReservation<AliasReservation>> availableReservations =
+                    availableReservationsByAliasProviderId.get(aliasProviderId);
+            if (availableReservations == null) {
+                availableReservations = new HashSet<AvailableReservation<AliasReservation>>();
+                availableReservationsByAliasProviderId.put(aliasProviderId, availableReservations);
             }
-            else if (reservation instanceof ResourceReservation) {
-                ResourceReservation resourceReservation = (ResourceReservation) reservation;
-                resourceReservationTransaction.addProvidedReservation(
-                        resourceReservation.getResource().getId(), resourceReservation);
-            }
-            else if (reservation instanceof ValueReservation) {
-                ValueReservation valueReservation = (ValueReservation) reservation;
-                valueReservationTransaction.addProvidedReservation(
-                        valueReservation.getValueProvider().getId(), valueReservation);
-            }
-            else if (reservation instanceof RoomReservation) {
-                RoomReservation roomReservation = (RoomReservation) reservation;
-                roomReservationTransaction.addProvidedReservation(
-                        roomReservation.getRoomProviderCapability().getId(), roomReservation);
-            }
-            else if (reservation instanceof AliasReservation) {
-                AliasReservation aliasReservation = (AliasReservation) reservation;
-                Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
-                Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
-                if (aliasReservations == null) {
-                    aliasReservations = new HashSet<AliasReservation>();
-                    providedReservationsByAliasProviderId.put(aliasProviderId, aliasReservations);
-                }
-                aliasReservations.add(aliasReservation);
-            }
+            availableReservations.add(availableReservation.cast(AliasReservation.class));
         }
 
         // Add all child reservations
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            addProvidedReservation(childReservation);
+        for (Reservation childReservation : originalReservation.getChildReservations()) {
+            addAvailableReservation(AvailableReservation.create(childReservation, type));
         }
     }
 
     /**
-     * @param reservation to be removed from the provided {@link Reservation}s from the {@link SchedulerContext}
+     * @param availableReservation to be removed from the {@link SchedulerContext}
      */
-    public void removeProvidedReservation(Reservation reservation)
+    public void removeAvailableReservation(AvailableReservation<? extends Reservation> availableReservation)
     {
-        if (!providedReservations.remove(reservation)) {
-            // Reservation is not added as provided to the transaction
+        if (!availableReservations.remove(availableReservation)) {
+            // Reservation is not added to the context
             return;
         }
-        onChange(ObjectType.PROVIDED_RESERVATION, reservation, ObjectState.REMOVED);
+        onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.REMOVED);
 
-        Executable executable = reservation.getExecutable();
+        Reservation targetReservation = availableReservation.getTargetReservation();
+        Executable executable = targetReservation.getExecutable();
         if (executable != null) {
-            providedReservationByExecutable.remove(executable);
+            availableReservationByExecutable.remove(executable);
         }
 
-        if (reservation instanceof ExistingReservation) {
-            throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
+        if (targetReservation instanceof ResourceReservation) {
+            ResourceReservation resourceReservation = (ResourceReservation) targetReservation;
+            resourceReservationTransaction.removeAvailableReservation(resourceReservation.getResource().getId(),
+                    availableReservation.cast(ResourceReservation.class));
         }
-        else if (reservation instanceof ResourceReservation) {
-            ResourceReservation resourceReservation = (ResourceReservation) reservation;
-            resourceReservationTransaction.removeProvidedReservation(
-                    resourceReservation.getResource().getId(), resourceReservation);
+        else if (targetReservation instanceof ValueReservation) {
+            ValueReservation aliasReservation = (ValueReservation) targetReservation;
+            valueReservationTransaction.removeAvailableReservation(aliasReservation.getValueProvider().getId(),
+                    availableReservation.cast(ValueReservation.class));
         }
-        else if (reservation instanceof ValueReservation) {
-            ValueReservation aliasReservation = (ValueReservation) reservation;
-            valueReservationTransaction.removeProvidedReservation(
-                    aliasReservation.getValueProvider().getId(), aliasReservation);
+        else if (targetReservation instanceof RoomReservation) {
+            RoomReservation roomReservation = (RoomReservation) targetReservation;
+            roomReservationTransaction.removeAvailableReservation(roomReservation.getRoomProviderCapability().getId(),
+                    availableReservation.cast(RoomReservation.class));
         }
-        else if (reservation instanceof RoomReservation) {
-            RoomReservation roomReservation = (RoomReservation) reservation;
-            roomReservationTransaction.removeProvidedReservation(
-                    roomReservation.getRoomProviderCapability().getId(), roomReservation);
-        }
-        else if (reservation instanceof AliasReservation) {
-            AliasReservation aliasReservation = (AliasReservation) reservation;
+        else if (targetReservation instanceof AliasReservation) {
+            AliasReservation aliasReservation = (AliasReservation) targetReservation;
             Long aliasProviderId = aliasReservation.getAliasProviderCapability().getId();
-            Set<AliasReservation> aliasReservations = providedReservationsByAliasProviderId.get(aliasProviderId);
-            if (aliasReservations != null) {
-                aliasReservations.remove(aliasReservation);
+            Set<AvailableReservation<AliasReservation>> availableReservations =
+                    availableReservationsByAliasProviderId.get(aliasProviderId);
+            if (availableReservations != null) {
+                availableReservations.remove(availableReservation.cast(AliasReservation.class));
             }
         }
     }
@@ -610,73 +605,17 @@ public class SchedulerContext
     }
 
     /**
-     * @param providedReservation
-     * @return true whether given {@code providedReservation} is available in given {@code interval},
+     * @param reservation
+     * @return true whether given {@code reservation} is available in given {@code interval} (it means it is not
+     *         referenced by any {@link ExistingReservation}),
      *         false otherwise
      */
-    public boolean isProvidedReservationAvailable(Reservation providedReservation)
+    public boolean isReservationAvailable(Reservation reservation)
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
         List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(providedReservation, interval);
+                reservationManager.getExistingReservations(reservation, interval);
         return existingReservations.size() == 0;
-    }
-
-    /**
-     * Find available alias in given {@code aliasProviderCapability}.
-     *
-     * @param valueProvider
-     * @param requestedValue
-     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
-     */
-    public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue)
-            throws ValueProvider.InvalidValueException, ValueProvider.ValueAlreadyAllocatedException,
-                   ValueProvider.NoAvailableValueException
-    {
-        // Find available alias value
-        String value = null;
-        // Provided value reservation by which the value is already allocated
-        ValueReservation valueReservation = null;
-        ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
-        // Preferably use  provided alias
-        Set<ValueReservation> providedValueReservations = getProvidedValueReservations(targetValueProvider);
-        if (providedValueReservations.size() > 0) {
-            if (requestedValue != null) {
-                for (ValueReservation possibleValueReservation : providedValueReservations) {
-                    if (possibleValueReservation.getValue().equals(requestedValue)) {
-                        valueReservation = possibleValueReservation;
-                        value = valueReservation.getValue();
-                        break;
-                    }
-                }
-            }
-            else {
-                valueReservation = providedValueReservations.iterator().next();
-                value = valueReservation.getValue();
-            }
-        }
-        // Else use generated value
-        if (value == null) {
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            Long targetValueProviderId = targetValueProvider.getId();
-            List<ValueReservation> allocatedValues = resourceManager.listValueReservationsInInterval(
-                    targetValueProviderId, interval);
-            applyValueReservations(targetValueProviderId, allocatedValues);
-            Set<String> usedValues = new HashSet<String>();
-            for (ValueReservation allocatedValue : allocatedValues) {
-                usedValues.add(allocatedValue.getValue());
-            }
-            if (requestedValue != null) {
-                value = valueProvider.generateValue(usedValues, requestedValue);
-            }
-            else {
-                value = valueProvider.generateValue(usedValues);
-            }
-        }
-        AvailableValue availableAlias = new AvailableValue();
-        availableAlias.setValue(value);
-        availableAlias.setValueReservation(valueReservation);
-        return availableAlias;
     }
 
     /**
@@ -724,7 +663,8 @@ public class SchedulerContext
         /**
          * Changes which were made after the {@link Savepoint} and which are supposed to be reverted.
          */
-        private Map<ObjectType, Map<Object, ObjectState>> changes = new HashMap<ObjectType, Map<Object, ObjectState>>();
+        private Map<ObjectType, Map<Object, ObjectState>> changes =
+                new HashMap<ObjectType, Map<Object, ObjectState>>();
 
         /**
          * Revert changes performed by this and all next {@link Savepoint}s.
@@ -766,14 +706,17 @@ public class SchedulerContext
                             }
                         }
                         break;
-                    case PROVIDED_RESERVATION:
+                    case AVAILABLE_RESERVATION:
                         for (Object object : objectTypeChanges.keySet()) {
+                            @SuppressWarnings("unchecked")
+                            AvailableReservation<Reservation> availableReservation =
+                                    (AvailableReservation<Reservation>) object;
                             ObjectState objectState = objectTypeChanges.get(object);
                             if (objectState == ObjectState.ADDED) {
-                                removeProvidedReservation((Reservation) object);
+                                removeAvailableReservation(availableReservation);
                             }
                             else {
-                                addProvidedReservation((Reservation) object);
+                                addAvailableReservation(availableReservation);
                             }
                         }
                         break;
@@ -836,10 +779,10 @@ public class SchedulerContext
         ALLOCATED_RESERVATION,
 
         /**
-         * {@link SchedulerContext#providedReservationByExecutable}
-         * {@link SchedulerContext#providedReservationsByAliasProviderId}
+         * {@link SchedulerContext#availableReservationByExecutable}
+         * {@link SchedulerContext#availableReservationsByAliasProviderId}
          */
-        PROVIDED_RESERVATION
+        AVAILABLE_RESERVATION
     }
 
     /**

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -203,23 +202,22 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
         // Get existing reservation
         Reservation reservation = reservationRequest.getReservation();
-
-        // Old reservation exists
         if (reservation != null) {
-            // TODO: Try to intelligently reallocate and not delete old reservation
-            throw new TodoImplementException("Reallocate reservation");
+            schedulerContext.addAvailableReservation(
+                    AvailableReservation.create(reservation, AvailableReservation.Type.REALLOCATABLE));
         }
 
         try {
             // Fill provided reservations to transaction
             for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
-                if (!schedulerContext.isProvidedReservationAvailable(providedReservation)) {
+                if (!schedulerContext.isReservationAvailable(providedReservation)) {
                     throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
                 }
                 if (!providedReservation.getSlot().contains(schedulerContext.getInterval())) {
                     throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
                 }
-                schedulerContext.addProvidedReservation(providedReservation);
+                schedulerContext.addAvailableReservation(
+                        AvailableReservation.create(providedReservation, AvailableReservation.Type.REUSABLE));
             }
 
             // Get reservation task

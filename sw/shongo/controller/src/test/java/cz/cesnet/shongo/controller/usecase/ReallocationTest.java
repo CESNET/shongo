@@ -45,7 +45,9 @@ public class ReallocationTest extends AbstractControllerTest
         reservationRequest.setSlot("2013-01-01T00:00", "P2Y");
         AliasReservation aliasReservation2 = (AliasReservation) allocateAndCheck(reservationRequest);
 
-        Assert.assertEquals("Reservation identifiers should be same (the reservation should be only extended)",
+        Assert.assertEquals("Value reservation identifiers should be same (the reservation should be only extended)",
+                aliasReservation1.getValueReservation().getId(), aliasReservation2.getValueReservation().getId());
+        Assert.assertEquals("Alias reservation identifiers should be same (the reservation should be only extended)",
                 aliasReservation1.getId(), aliasReservation2.getId());
     }
 

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
@@ -170,28 +171,28 @@ public class AliasReservationTask extends ReservationTask
         }
         endReport();
 
-        // Build map of provided alias reservation by alias provider
-        final Map<AliasProviderCapability, AliasReservation> availableProvidedAlias =
-                new HashMap<AliasProviderCapability, AliasReservation>();
+        // Build map of available alias reservation by alias provider
+        final Map<AliasProviderCapability, AvailableReservation<AliasReservation>> availableAliasByAliasProvider =
+                new HashMap<AliasProviderCapability, AvailableReservation<AliasReservation>>();
         for (AliasProviderCapability aliasProvider : aliasProviders) {
-            Collection<AliasReservation> providedAliasReservations =
-                    schedulerContext.getProvidedAliasReservations(aliasProvider);
-            if (providedAliasReservations.size() > 0) {
-                AliasReservation providedAliasReservation = null;
+            Collection<AvailableReservation<AliasReservation>> availableReservations =
+                    schedulerContext.getAvailableAliasReservations(aliasProvider);
+            if (availableReservations.size() > 0) {
+                AvailableReservation<AliasReservation> availableAliasReservation = null;
                 String value = valueByAliasProvider.get(aliasProvider);
                 if (value != null) {
-                    for (AliasReservation possibleProvidedAliasReservation : providedAliasReservations) {
-                        if (possibleProvidedAliasReservation.getValue().equals(value)) {
-                            providedAliasReservation = possibleProvidedAliasReservation;
+                    for (AvailableReservation<AliasReservation> possibleAvailableReservation : availableReservations) {
+                        if (possibleAvailableReservation.getTargetReservation().getValue().equals(value)) {
+                            availableAliasReservation = possibleAvailableReservation;
                             break;
                         }
                     }
                 }
                 else {
-                    providedAliasReservation = providedAliasReservations.iterator().next();
+                    availableAliasReservation = availableReservations.iterator().next();
                 }
-                if (providedAliasReservation != null) {
-                    availableProvidedAlias.put(aliasProvider, providedAliasReservation);
+                if (availableAliasReservation != null) {
+                    availableAliasByAliasProvider.put(aliasProvider, availableAliasReservation);
                 }
             }
         }
@@ -203,8 +204,8 @@ public class AliasReservationTask extends ReservationTask
             @Override
             public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
             {
-                boolean firstHasProvidedAlias = availableProvidedAlias.containsKey(provider1);
-                boolean secondHasProvidedAlias = availableProvidedAlias.containsKey(provider2);
+                boolean firstHasProvidedAlias = availableAliasByAliasProvider.containsKey(provider1);
+                boolean secondHasProvidedAlias = availableAliasByAliasProvider.containsKey(provider2);
                 if (firstHasProvidedAlias && !secondHasProvidedAlias) {
                     return -1;
                 }
@@ -242,15 +243,21 @@ public class AliasReservationTask extends ReservationTask
             beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProvider.getResource()));
 
             // Preferably reuse provided alias reservation
-            AliasReservation providedAliasReservation = availableProvidedAlias.get(aliasProvider);
-            if (providedAliasReservation != null) {
-                addReport(new SchedulerReportSet.ReservationReusingReport(providedAliasReservation));
+            AvailableReservation<AliasReservation> availableAliasReservation = availableAliasByAliasProvider.get(aliasProvider);
+            if (availableAliasReservation != null) {
+                Reservation originalReservation = availableAliasReservation.getOriginalReservation();
+                if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                    throw new TodoImplementException("reallocate alias");
+                }
+                else {
+                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
-                ExistingReservation existingReservation = new ExistingReservation();
-                existingReservation.setSlot(interval);
-                existingReservation.setReservation(providedAliasReservation);
-                schedulerContext.removeProvidedReservation(providedAliasReservation);
-                return existingReservation;
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(interval);
+                    existingReservation.setReservation(originalReservation);
+                    schedulerContext.removeAvailableReservation(availableAliasReservation);
+                    return existingReservation;
+                }
             }
 
             // Check whether alias provider can be allocated

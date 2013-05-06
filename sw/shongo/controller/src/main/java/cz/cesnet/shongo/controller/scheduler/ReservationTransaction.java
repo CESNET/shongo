@@ -16,9 +16,11 @@ public class ReservationTransaction<R extends Reservation>
     private Map<Long, Set<R>> allocatedReservationsByObjectId = new HashMap<Long, Set<R>>();
 
     /**
-     * Provided reservations in the {@link ReservationTransaction} (which make resources available for further reservations).
+     * {@link AvailableReservation}s in the {@link ReservationTransaction} (which make resources available for
+     * further reservations).
      */
-    private Map<Long, Set<R>> providedReservationsByObjectId = new HashMap<Long, Set<R>>();
+    private Map<Long, Set<AvailableReservation<R>>> availableReservationsByObjectId =
+            new HashMap<Long, Set<AvailableReservation<R>>>();
 
     /**
      * @param objectId    for object for which the {@code reservation} is added
@@ -48,40 +50,40 @@ public class ReservationTransaction<R extends Reservation>
     }
 
     /**
-     * @param objectId    for object for which the {@code reservation} is added
-     * @param reservation to be added to the {@link ReservationTransaction} as provided
+     * @param objectId             for object for which the {@code availableReservation} is added
+     * @param availableReservation to be added to the {@link ReservationTransaction}
      */
-    public void addProvidedReservation(Long objectId, R reservation)
+    public void addAvailableReservation(Long objectId, AvailableReservation<R> availableReservation)
     {
-        Set<R> reservations = providedReservationsByObjectId.get(objectId);
+        Set<AvailableReservation<R>> reservations = availableReservationsByObjectId.get(objectId);
         if (reservations == null) {
-            reservations = new HashSet<R>();
-            providedReservationsByObjectId.put(objectId, reservations);
+            reservations = new HashSet<AvailableReservation<R>>();
+            availableReservationsByObjectId.put(objectId, reservations);
         }
-        reservations.add(reservation);
+        reservations.add(availableReservation);
     }
 
     /**
-     * @param objectId    for object for which the {@code reservation} is added
-     * @param reservation to be removed from the {@link ReservationTransaction}'s provided {@link cz.cesnet.shongo.controller.reservation.Reservation}s
+     * @param objectId             for object for which the {@code availableReservation} is added
+     * @param availableReservation to be removed from the {@link ReservationTransaction}
      */
-    public void removeProvidedReservation(Long objectId, R reservation)
+    public void removeAvailableReservation(Long objectId, AvailableReservation<R> availableReservation)
     {
-        Set<R> reservations = providedReservationsByObjectId.get(objectId);
+        Set<AvailableReservation<R>> reservations = availableReservationsByObjectId.get(objectId);
         if (reservations != null) {
-            reservations.remove(reservation);
+            reservations.remove(availableReservation);
         }
     }
 
     /**
      * @param objectId for object
-     * @return set of provided {@link cz.cesnet.shongo.controller.reservation.Reservation}s for object with given {@code objectId}
+     * @return set of {@link AvailableReservation}s for object with given {@code objectId}
      */
-    public Set<R> getProvidedReservations(Long objectId)
+    public Set<AvailableReservation<R>> getAvailableReservations(Long objectId)
     {
-        Set<R> reservations = providedReservationsByObjectId.get(objectId);
+        Set<AvailableReservation<R>> reservations = availableReservationsByObjectId.get(objectId);
         if (reservations == null) {
-            reservations = new HashSet<R>();
+            reservations = Collections.emptySet();
         }
         return reservations;
     }
@@ -94,14 +96,14 @@ public class ReservationTransaction<R extends Reservation>
      */
     <T extends Reservation> void applyReservations(Long objectId, Collection<T> reservations)
     {
-        Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
-        if (providedReservationsToApply != null) {
+        Set<AvailableReservation<R>> availableReservationsToApply = availableReservationsByObjectId.get(objectId);
+        if (availableReservationsToApply != null) {
             Map<Long, T> reservationById = new HashMap<Long, T>();
             for (T reservation : reservations) {
                 reservationById.put(reservation.getId(), reservation);
             }
-            for (R providedReservation : providedReservationsToApply) {
-                Reservation reservation = reservationById.get(providedReservation.getId());
+            for (AvailableReservation<R> availableReservation : availableReservationsToApply) {
+                Reservation reservation = reservationById.get(availableReservation.getTargetReservation().getId());
                 if (reservation != null) {
                     @SuppressWarnings("unchecked")
                     T typedReservation = (T) reservation;
