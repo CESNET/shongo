@@ -257,9 +257,9 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public AliasReservationTask createReservationTask(ReservationTask.Context context)
+    public AliasReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        AliasReservationTask aliasReservationTask = new AliasReservationTask(context);
+        AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
         for (Technology technology : getAliasTechnologies()) {
             aliasReservationTask.addTechnology(technology);
         }

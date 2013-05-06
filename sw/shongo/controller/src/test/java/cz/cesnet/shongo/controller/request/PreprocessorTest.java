@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import org.joda.time.DateTime;

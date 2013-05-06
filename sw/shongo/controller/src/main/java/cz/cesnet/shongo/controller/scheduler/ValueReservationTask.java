@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.AvailableValue;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.FilteredValueReservation;
@@ -11,7 +9,6 @@ import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 /**
@@ -34,13 +31,13 @@ public class ValueReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context
+     * @param schedulerContext
      * @param valueProvider
      * @param requestedValue
      */
-    public ValueReservationTask(Context context, ValueProvider valueProvider, String requestedValue)
+    public ValueReservationTask(SchedulerContext schedulerContext, ValueProvider valueProvider, String requestedValue)
     {
-        super(context);
+        super(schedulerContext);
         this.valueProvider = valueProvider;
         this.requestedValue = requestedValue;
     }
@@ -57,31 +54,27 @@ public class ValueReservationTask extends ReservationTask
     {
         validateReservationSlot(ValueReservation.class);
 
-        Context context = getContext();
+        SchedulerContext schedulerContext = getSchedulerContext();
         Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
-        CacheTransaction cacheTransaction = getCacheTransaction();
-
-
 
         // Check if resource can be allocated and if it is available in the future
         Capability capability = valueProvider.getCapability();
-        resourceCache.checkCapabilityAvailable(capability, context);
+        resourceCache.checkCapabilityAvailable(capability, schedulerContext);
 
         // Find available value in the alias providers
         ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
         if (targetValueProvider != valueProvider) {
             // Check whether target value provider can be allocated
             capability = targetValueProvider.getCapability();
-            resourceCache.checkCapabilityAvailable(capability, context);
+            resourceCache.checkCapabilityAvailable(capability, schedulerContext);
         }
 
         // Get new available value
         AvailableValue availableValue;
         try {
-            availableValue = cache.getAvailableValue(valueProvider, requestedValue, interval, cacheTransaction,
-                    context.getEntityManager());
+            availableValue = schedulerContext.getAvailableValue(valueProvider, requestedValue);
         }
         catch (ValueProvider.InvalidValueException exception) {
             throw new SchedulerReportSet.ValueInvalidException(requestedValue);
@@ -101,7 +94,7 @@ public class ValueReservationTask extends ReservationTask
             ExistingReservation existingValueReservation = new ExistingReservation();
             existingValueReservation.setSlot(interval);
             existingValueReservation.setReservation(providedValueReservation);
-            cacheTransaction.removeProvidedReservation(providedValueReservation);
+            schedulerContext.removeProvidedReservation(providedValueReservation);
             return existingValueReservation;
         }
 

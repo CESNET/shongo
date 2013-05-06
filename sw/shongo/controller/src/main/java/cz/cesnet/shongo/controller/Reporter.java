@@ -165,9 +165,25 @@ public class Reporter
             nameBuilder.append("Unknown Internal Error");
         }
         String name = nameBuilder.toString();
-        logger.error(name + ": " + message, throwable);
+        if (message != null) {
+            logger.error(name + ": " + message, throwable);
+        }
+        else {
+            logger.error(name, throwable);
+        }
         sendReportEmail(getAdministratorEmails(), name,
                 getAdministratorEmailContent(message, reportContext, null, throwable));
+    }
+
+    /**
+     * Report internal error.
+     *
+     * @param reportContext
+     * @param exception
+     */
+    public static void reportInternalError(ReportContext reportContext, Exception exception)
+    {
+        reportInternalError(reportContext, null, exception);
     }
 
     /**
@@ -186,17 +202,6 @@ public class Reporter
         logger.error(name);
         sendReportEmail(getAdministratorEmails(), name,
                 getAdministratorEmailContent(message, reportContext, null, null));
-    }
-
-    /**
-     * Report internal error.
-     *
-     * @param reportContext
-     * @param exception
-     */
-    public static void reportInternalError(ReportContext reportContext, Exception exception)
-    {
-        reportInternalError(reportContext, null, exception);
     }
 
     /**

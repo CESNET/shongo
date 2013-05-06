@@ -1,47 +1,86 @@
-package cz.cesnet.shongo.controller.cache;
+package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Transaction for the {@link cz.cesnet.shongo.controller.Cache}.
+ * Context for the {@link cz.cesnet.shongo.controller.scheduler.ReservationTask}.
  */
-public class CacheTransaction
+public class SchedulerContext
 {
+    /**
+     * {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest} for which the {@link Reservation} should be allocated.
+     */
+    private ReservationRequest reservationRequest;
+
     /**
      * Interval for which the task is performed.
      */
     private final Interval interval;
 
     /**
-     * {@link ReservationTransaction} for {@link ResourceReservation}s.
+     * @see cz.cesnet.shongo.controller.cache.Cache
+     */
+    private Cache cache;
+
+    /**
+     * Time which represents now.
+     */
+    private DateTime referenceDateTime = DateTime.now();
+
+    /**
+     * Entity manager.
+     */
+    private EntityManager entityManager;
+
+    /**
+     * @see cz.cesnet.shongo.controller.authorization.AuthorizationManager
+     */
+    private AuthorizationManager authorizationManager;
+
+    /**
+     * Set of allocated {@link Reservation}s.
+     */
+    private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
+
+    /**
+     * Set of provided {@link Reservation}s.
+     */
+    private Set<Reservation> providedReservations = new HashSet<Reservation>();
+
+    /**
+     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s.
      */
     private ReservationTransaction<ResourceReservation> resourceReservationTransaction =
             new ReservationTransaction<ResourceReservation>();
 
     /**
-     * {@link ReservationTransaction} for {@link ValueReservation}s.
+     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ValueReservation}s.
      */
     private ReservationTransaction<ValueReservation> valueReservationTransaction =
             new ReservationTransaction<ValueReservation>();
 
     /**
-     * {@link ReservationTransaction} for {@link RoomReservation}s.
+     * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s.
      */
     private ReservationTransaction<RoomReservation> roomReservationTransaction =
             new ReservationTransaction<RoomReservation>();
-
-    /**
-     * Set of allocated {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
-     */
-    private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
 
     /**
      * Set of resources referenced from {@link ResourceReservation}s in the transaction.
@@ -49,19 +88,14 @@ public class CacheTransaction
     private Set<Resource> referencedResources = new HashSet<Resource>();
 
     /**
-     * Set of provided {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
-     */
-    private Set<Reservation> providedReservations = new HashSet<Reservation>();
-
-    /**
      * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
-     * {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
+     * {@link Reservation} which allocates them.
      */
     private Map<Executable, Reservation> providedReservationByExecutable = new HashMap<Executable, Reservation>();
 
     /**
      * Map of provided {@link cz.cesnet.shongo.controller.executor.Executable}s by
-     * {@link cz.cesnet.shongo.controller.reservation.Reservation} which allocates them.
+     * {@link Reservation} which allocates them.
      */
     private Map<Long, Set<AliasReservation>> providedReservationsByAliasProviderId =
             new HashMap<Long, Set<AliasReservation>>();
@@ -73,10 +107,34 @@ public class CacheTransaction
 
     /**
      * Constructor.
+     *
+     * @param cache    sets the {@link #cache}
+     * @param interval sets the {@link #interval}
      */
-    public CacheTransaction(Interval interval)
+    public SchedulerContext(Interval interval, Cache cache, EntityManager entityManager)
     {
         this.interval = interval;
+        this.cache = cache;
+        this.entityManager = entityManager;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param reservationRequest sets the {@link #reservationRequest}
+     * @param cache              sets the {@link #cache}
+     * @param referenceDateTime  sets the {@link #referenceDateTime}
+     * @param entityManager      which can be used
+     */
+    public SchedulerContext(ReservationRequest reservationRequest, Cache cache, DateTime referenceDateTime,
+            EntityManager entityManager)
+    {
+        this(reservationRequest.getSlot(), cache, entityManager);
+        this.reservationRequest = reservationRequest;
+        this.referenceDateTime = referenceDateTime;
+        if (entityManager != null) {
+            this.authorizationManager = new AuthorizationManager(entityManager);
+        }
     }
 
     /**
@@ -85,6 +143,105 @@ public class CacheTransaction
     public Interval getInterval()
     {
         return interval;
+    }
+
+    /**
+     * @return {@link #cache}
+     */
+    public Cache getCache()
+    {
+        return cache;
+    }
+
+    /**
+     * @return {@link #referenceDateTime}
+     */
+    public DateTime getReferenceDateTime()
+    {
+        return referenceDateTime;
+    }
+
+    /**
+     * @return {@link #entityManager}
+     */
+    public EntityManager getEntityManager()
+    {
+        return entityManager;
+    }
+
+    /**
+     * @return description of {@link #reservationRequest}
+     */
+    public String getReservationDescription()
+    {
+        if (reservationRequest == null) {
+            return null;
+        }
+        return reservationRequest.getDescription();
+    }
+
+    /**
+     * @return true whether executables should be allocated,
+     *         false otherwise
+     */
+    public boolean isExecutableAllowed()
+    {
+        return reservationRequest == null || reservationRequest.getPurpose().isExecutableAllowed();
+    }
+
+    /**
+     * @return true whether only owned resource by the reservation request owner can be allocated,
+     *         false otherwise
+     */
+    public boolean isOwnerRestricted()
+    {
+        return reservationRequest != null && reservationRequest.getPurpose().isByOwner();
+    }
+
+    /**
+     * @return true whether maximum future and maximum duration should be checked,
+     *         false otherwise
+     */
+    public boolean isMaximumFutureAndDurationRestricted()
+    {
+        return reservationRequest != null && !reservationRequest.getPurpose().isByOwner();
+    }
+
+    /**
+     * @return collection of user-ids for reservation request owners
+     */
+    public Collection<String> getOwnerIds()
+    {
+        if (reservationRequest == null) {
+            throw new IllegalStateException("Reservation request must not be null.");
+        }
+        if (authorizationManager == null) {
+            throw new IllegalStateException("Authorization manager must not be null.");
+        }
+        Set<String> ownerIds = new HashSet<String>();
+        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
+        ownerIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
+        if (ownerIds.size() == 0) {
+            ownerIds.add(reservationRequest.getUserId());
+        }
+        return ownerIds;
+    }
+
+    /**
+     * @param resource whose owner should be checked
+     * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
+     *         false otherwise
+     */
+    public boolean containsOwnerId(Resource resource)
+    {
+        Collection<String> reservationRequestOwnerIds = getOwnerIds();
+        Set<String> resourceOwnerIds = new HashSet<String>();
+        EntityIdentifier resourceId = new EntityIdentifier(resource);
+        resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resourceId, Role.OWNER));
+        if (resourceOwnerIds.size() == 0) {
+            resourceOwnerIds.add(resource.getUserId());
+        }
+        return !Collections.disjoint(resourceOwnerIds, reservationRequestOwnerIds);
     }
 
     /**
@@ -146,7 +303,7 @@ public class CacheTransaction
 
     /**
      * @param executable
-     * @return provided {@link cz.cesnet.shongo.controller.reservation.Reservation} for given {@code executable}
+     * @return provided {@link Reservation} for given {@code executable}
      */
     public Reservation getProvidedReservationByExecutable(Executable executable)
     {
@@ -190,7 +347,7 @@ public class CacheTransaction
     }
 
     /**
-     * @param reservation to be added to the {@link CacheTransaction} as already allocated.
+     * @param reservation to be added to the {@link SchedulerContext} as already allocated.
      */
     public void addAllocatedReservation(Reservation reservation)
     {
@@ -221,7 +378,7 @@ public class CacheTransaction
     }
 
     /**
-     * @param reservation to be removed from the {@link CacheTransaction} as already allocated.
+     * @param reservation to be removed from the {@link SchedulerContext} as already allocated.
      */
     public void removeAllocatedReservation(Reservation reservation)
     {
@@ -272,7 +429,7 @@ public class CacheTransaction
     }
 
     /**
-     * @param reservation to be added to the {@link CacheTransaction} as provided (the resources allocated by
+     * @param reservation to be added to the {@link SchedulerContext} as provided (the resources allocated by
      *                    the {@code reservation} are considered as available).
      */
     public void addProvidedReservation(Reservation reservation)
@@ -332,7 +489,7 @@ public class CacheTransaction
     }
 
     /**
-     * @param reservation to be removed from the provided {@link cz.cesnet.shongo.controller.reservation.Reservation}s from the {@link CacheTransaction}
+     * @param reservation to be removed from the provided {@link Reservation}s from the {@link SchedulerContext}
      */
     public void removeProvidedReservation(Reservation reservation)
     {
@@ -409,7 +566,7 @@ public class CacheTransaction
     }
 
     /**
-     * @return new {@link Savepoint} for this {@link CacheTransaction}
+     * @return new {@link Savepoint} for this {@link SchedulerContext}
      */
     public Savepoint createSavepoint()
     {
@@ -453,123 +610,104 @@ public class CacheTransaction
     }
 
     /**
-     * Represents a transaction inside {@link AbstractReservationCache}.
+     * @param providedReservation
+     * @return true whether given {@code providedReservation} is available in given {@code interval},
+     *         false otherwise
      */
-    public static class ReservationTransaction<R extends Reservation>
+    public boolean isProvidedReservationAvailable(Reservation providedReservation)
     {
-        /**
-         * Already allocated reservations in the {@link ReservationTransaction} (which make resources unavailable
-         * for further reservations).
-         */
-        private Map<Long, Set<R>> allocatedReservationsByObjectId = new HashMap<Long, Set<R>>();
-
-        /**
-         * Provided reservations in the {@link ReservationTransaction} (which make resources available for further reservations).
-         */
-        private Map<Long, Set<R>> providedReservationsByObjectId = new HashMap<Long, Set<R>>();
-
-        /**
-         * @param objectId    for object for which the {@code reservation} is added
-         * @param reservation to be added to the {@link ReservationTransaction} as allocated
-         */
-        public void addAllocatedReservation(Long objectId, R reservation)
-        {
-            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
-            if (reservations == null) {
-                reservations = new HashSet<R>();
-                allocatedReservationsByObjectId.put(objectId, reservations);
-            }
-            reservations.add(reservation);
-        }
-
-        /**
-         * @param objectId    for object for which the {@code reservation} is added
-         * @param reservation to be removed from the {@link ReservationTransaction} as allocated
-         */
-        public void removeAllocatedReservation(Long objectId, R reservation)
-        {
-            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
-            if (reservations == null) {
-                return;
-            }
-            reservations.remove(reservation);
-        }
-
-        /**
-         * @param objectId    for object for which the {@code reservation} is added
-         * @param reservation to be added to the {@link ReservationTransaction} as provided
-         */
-        public void addProvidedReservation(Long objectId, R reservation)
-        {
-            Set<R> reservations = providedReservationsByObjectId.get(objectId);
-            if (reservations == null) {
-                reservations = new HashSet<R>();
-                providedReservationsByObjectId.put(objectId, reservations);
-            }
-            reservations.add(reservation);
-        }
-
-        /**
-         * @param objectId    for object for which the {@code reservation} is added
-         * @param reservation to be removed from the {@link ReservationTransaction}'s provided {@link Reservation}s
-         */
-        public void removeProvidedReservation(Long objectId, R reservation)
-        {
-            Set<R> reservations = providedReservationsByObjectId.get(objectId);
-            if (reservations != null) {
-                reservations.remove(reservation);
-            }
-        }
-
-        /**
-         * @param objectId for object
-         * @return set of provided {@link Reservation}s for object with given {@code objectId}
-         */
-        public Set<R> getProvidedReservations(Long objectId)
-        {
-            Set<R> reservations = providedReservationsByObjectId.get(objectId);
-            if (reservations == null) {
-                reservations = new HashSet<R>();
-            }
-            return reservations;
-        }
-
-        /**
-         * Apply {@link ReservationTransaction} to given {@code reservations} for given object with given {@code objectId}.
-         *
-         * @param objectId     for which the {@link ReservationTransaction} should apply
-         * @param reservations to which the {@link ReservationTransaction} should apply
-         */
-        private  <T extends Reservation> void applyReservations(Long objectId, Collection<T> reservations)
-        {
-            Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
-            if (providedReservationsToApply != null) {
-                Map<Long, T> reservationById = new HashMap<Long, T>();
-                for (T reservation : reservations) {
-                    reservationById.put(reservation.getId(), reservation);
-                }
-                for (R providedReservation : providedReservationsToApply) {
-                    Reservation reservation = reservationById.get(providedReservation.getId());
-                    if (reservation != null) {
-                        @SuppressWarnings("unchecked")
-                        T typedReservation = (T) reservation;
-                        reservations.remove(typedReservation);
-                    }
-                }
-            }
-            Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
-            if (allocatedReservationsToApply != null) {
-                for (R reservation : allocatedReservationsToApply) {
-                    @SuppressWarnings("unchecked")
-                    T typedReservation = (T) reservation;
-                    reservations.add(typedReservation);
-                }
-            }
-        }
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<ExistingReservation> existingReservations =
+                reservationManager.getExistingReservations(providedReservation, interval);
+        return existingReservations.size() == 0;
     }
 
     /**
-     * Represents a savepoint for the {@link CacheTransaction} to which it can be reverted.
+     * Find available alias in given {@code aliasProviderCapability}.
+     *
+     * @param valueProvider
+     * @param requestedValue
+     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
+     */
+    public AvailableValue getAvailableValue(ValueProvider valueProvider, String requestedValue)
+            throws ValueProvider.InvalidValueException, ValueProvider.ValueAlreadyAllocatedException,
+                   ValueProvider.NoAvailableValueException
+    {
+        // Find available alias value
+        String value = null;
+        // Provided value reservation by which the value is already allocated
+        ValueReservation valueReservation = null;
+        ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
+        // Preferably use  provided alias
+        Set<ValueReservation> providedValueReservations = getProvidedValueReservations(targetValueProvider);
+        if (providedValueReservations.size() > 0) {
+            if (requestedValue != null) {
+                for (ValueReservation possibleValueReservation : providedValueReservations) {
+                    if (possibleValueReservation.getValue().equals(requestedValue)) {
+                        valueReservation = possibleValueReservation;
+                        value = valueReservation.getValue();
+                        break;
+                    }
+                }
+            }
+            else {
+                valueReservation = providedValueReservations.iterator().next();
+                value = valueReservation.getValue();
+            }
+        }
+        // Else use generated value
+        if (value == null) {
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            Long targetValueProviderId = targetValueProvider.getId();
+            List<ValueReservation> allocatedValues = resourceManager.listValueReservationsInInterval(
+                    targetValueProviderId, interval);
+            applyValueReservations(targetValueProviderId, allocatedValues);
+            Set<String> usedValues = new HashSet<String>();
+            for (ValueReservation allocatedValue : allocatedValues) {
+                usedValues.add(allocatedValue.getValue());
+            }
+            if (requestedValue != null) {
+                value = valueProvider.generateValue(usedValues, requestedValue);
+            }
+            else {
+                value = valueProvider.generateValue(usedValues);
+            }
+        }
+        AvailableValue availableAlias = new AvailableValue();
+        availableAlias.setValue(value);
+        availableAlias.setValueReservation(valueReservation);
+        return availableAlias;
+    }
+
+    /**
+     * @param roomProviderCapability
+     * @return {@link AvailableRoom} for given {@code roomProviderCapability} in given {@code interval}
+     */
+    public AvailableRoom getAvailableRoom(RoomProviderCapability roomProviderCapability)
+    {
+        int usedLicenseCount = 0;
+        if (cache.getResourceCache().isResourceAvailable(roomProviderCapability.getResource(), this)) {
+
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            List<RoomReservation> roomReservations =
+                    reservationManager.getRoomReservations(roomProviderCapability, interval);
+            applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+            for (RoomReservation roomReservation : roomReservations) {
+                usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
+            }
+        }
+        else {
+            usedLicenseCount = roomProviderCapability.getLicenseCount();
+        }
+        AvailableRoom availableRoom = new AvailableRoom();
+        availableRoom.setRoomProviderCapability(roomProviderCapability);
+        availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
+        availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
+        return availableRoom;
+    }
+
+    /**
+     * Represents a savepoint for the {@link SchedulerContext} to which it can be reverted.
      */
     public class Savepoint
     {
@@ -688,18 +826,18 @@ public class CacheTransaction
     private static enum ObjectType
     {
         /**
-         * {@link CacheTransaction#referencedResources}
+         * {@link SchedulerContext#referencedResources}
          */
         REFERENCED_RESOURCE,
 
         /**
-         * {@link CacheTransaction#allocatedReservations}
+         * {@link SchedulerContext#allocatedReservations}
          */
         ALLOCATED_RESERVATION,
 
         /**
-         * {@link CacheTransaction#providedReservationByExecutable}
-         * {@link CacheTransaction#providedReservationsByAliasProviderId}
+         * {@link SchedulerContext#providedReservationByExecutable}
+         * {@link SchedulerContext#providedReservationsByAliasProviderId}
          */
         PROVIDED_RESERVATION
     }
@@ -710,12 +848,12 @@ public class CacheTransaction
     private static enum ObjectState
     {
         /**
-         * Object has been added to the {@link CacheTransaction}.
+         * Object has been added to the {@link SchedulerContext}.
          */
         ADDED,
 
         /**
-         * Object has been removed from the {@link CacheTransaction}.
+         * Object has been removed from the {@link SchedulerContext}.
          */
         REMOVED
     }

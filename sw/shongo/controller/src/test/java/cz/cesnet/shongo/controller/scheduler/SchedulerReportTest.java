@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.*;
@@ -141,10 +141,9 @@ public class SchedulerReportTest extends AbstractDatabaseTest
             ReservationTaskProvider... reservationTaskProviders)
             throws SchedulerException
     {
-        ReservationTask.Context context = new ReservationTask.Context(
-                Interval.parse("2012/2013"), cache, entityManager);
+        SchedulerContext schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
         for (ReservationTaskProvider reservationTaskProvider : reservationTaskProviders) {
-            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(context);
+            ReservationTask reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
             print(messageType, reservationTask);
         }
     }
@@ -153,15 +152,14 @@ public class SchedulerReportTest extends AbstractDatabaseTest
             ReservationTaskProvider reservationTaskProvider1,
             ReservationTaskProvider reservationTaskProvider2) throws SchedulerException
     {
-        ReservationTask.Context context = new ReservationTask.Context(
-                Interval.parse("2012/2013"), cache, entityManager);
+        SchedulerContext schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
 
-        ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(context);
+        ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(schedulerContext);
         Reservation reservation = print(messageType, reservationTask);
         reservation.generateTestingId();
-        context.getCacheTransaction().addProvidedReservation(reservation);
+        schedulerContext.addProvidedReservation(reservation);
 
-        reservationTask = reservationTaskProvider2.createReservationTask(context);
+        reservationTask = reservationTaskProvider2.createReservationTask(schedulerContext);
         print(messageType, reservationTask);
     }
 

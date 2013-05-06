@@ -4,9 +4,9 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
@@ -58,12 +58,11 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
         try {
             Cache cache = new Cache();
             cache.init();
-            ReservationTask.Context context = new ReservationTask.Context(
-                    Interval.parse("2012/2013"), cache, entityManager);
+            SchedulerContext schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
 
             CompartmentReservationTask compartmentReservationTask;
 
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(
                     new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
             try {
@@ -73,7 +72,7 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             catch (SchedulerException exception) {
             }
 
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(
                     new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildReservation(
@@ -85,7 +84,7 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             catch (SchedulerException exception) {
             }
 
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(
                     new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildReservation(
@@ -105,7 +104,7 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             deviceResource.addCapability(new RoomProviderCapability(100));
             cache.addResource(deviceResource, entityManager);
 
-            compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.VIRTUAL_ROOM);
             compartmentReservationTask.addChildSpecification(
                     new ExternalEndpointSetSpecification(Technology.H323, 3));
             try {
@@ -127,10 +126,9 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
         try {
             Cache cache = new Cache();
             cache.init();
-            ReservationTask.Context context = new ReservationTask.Context(
-                    Interval.parse("2012/2013"), cache, entityManager);
+            SchedulerContext schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
 
-            CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
+            CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(new SimpleEndpointSpecification(
                     new Alias(AliasType.H323_E164, "950000001"), true, new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildReservation(
@@ -163,12 +161,12 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             deviceResource.addCapability(new AliasProviderCapability("950000001@cesnet.cz", AliasType.SIP_URI, true));
             cache.addResource(deviceResource, entityManager);
 
-            ReservationTask.Context context;
+            SchedulerContext schedulerContext;
             CompartmentReservationTask compartmentReservationTask;
             Reservation reservation;
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(
                     new SimpleEndpointSpecification(false, new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildReservation(
@@ -178,8 +176,8 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             Assert.assertEquals(4, reservation.getChildReservations().size());
             Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildReservation(
                     new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildReservation(
@@ -217,10 +215,9 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             terminal.addCapability(new StandaloneTerminalCapability());
             cache.addResource(terminal, entityManager);
 
-            ReservationTask.Context context = new ReservationTask.Context(
-                    Interval.parse("2012/2013"), cache, entityManager);
+            SchedulerContext schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
 
-            CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
+            CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 50));
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
             Reservation reservation = compartmentReservationTask.perform();
@@ -256,12 +253,12 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             resource.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI));
             cache.addResource(resource, entityManager);
 
-            ReservationTask.Context context;
+            SchedulerContext schedulerContext;
             CompartmentReservationTask compartmentReservationTask;
             Reservation reservation;
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.TERMINAL);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.TERMINAL);
             compartmentReservationTask.addChildSpecification(
                     new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildSpecification(
@@ -271,8 +268,8 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             Assert.assertEquals(4, reservation.getChildReservations().size());
             Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext, CallInitiation.VIRTUAL_ROOM);
             compartmentReservationTask.addChildSpecification(
                     new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
             compartmentReservationTask.addChildSpecification(
@@ -283,8 +280,9 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
             try {
-                context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-                compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
+                schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+                compartmentReservationTask = new CompartmentReservationTask(schedulerContext,
+                        CallInitiation.VIRTUAL_ROOM);
                 compartmentReservationTask.addChildSpecification(
                         new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
                 compartmentReservationTask.addChildSpecification(
@@ -331,20 +329,20 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             terminal2.addCapability(new StandaloneTerminalCapability());
             cache.addResource(terminal2, entityManager);
 
-            ReservationTask.Context context;
+            SchedulerContext schedulerContext;
             CompartmentReservationTask compartmentReservationTask;
             Reservation reservation;
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
             reservation = compartmentReservationTask.perform();
             Assert.assertNotNull(reservation);
             Assert.assertEquals(2, reservation.getNestedReservations().size());
             Assert.assertEquals(0, ((Compartment) reservation.getExecutable()).getConnections().size());
 
-            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache, entityManager);
-            compartmentReservationTask = new CompartmentReservationTask(context);
+            schedulerContext = new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+            compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal2));
             reservation = compartmentReservationTask.perform();
@@ -373,12 +371,13 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
             cache.addResource(endpoint, entityManager);
 
             try {
-                ReservationTask.Context context = new ReservationTask.Context(
-                        Interval.parse("2012/2013"), cache, entityManager);
-                CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
+                SchedulerContext schedulerContext =
+                        new SchedulerContext(Interval.parse("2012/2013"), cache, entityManager);
+                CompartmentReservationTask compartmentReservationTask =
+                        new CompartmentReservationTask(schedulerContext);
                 compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(endpoint));
                 compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(endpoint));
-                Reservation reservation = compartmentReservationTask.perform();
+                compartmentReservationTask.perform();
                 Assert.fail("Exception that resource is requested multiple times should be thrown");
             }
             catch (SchedulerException exception) {
@@ -421,9 +420,9 @@ public class CompartmentReservationTaskTest extends AbstractDatabaseTest
 
 
         @Override
-        public ReservationTask createReservationTask(ReservationTask.Context context)
+        public ReservationTask createReservationTask(SchedulerContext schedulerContext)
         {
-            return new ReservationTask(context)
+            return new ReservationTask(schedulerContext)
             {
                 class SimpleEndpointReservation extends Reservation implements EndpointProvider
                 {

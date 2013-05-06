@@ -2288,32 +2288,14 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * User {@link #userId} is not resource owner.
+     * User is not resource owner.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("UserNotOwnerReport")
     public static class UserNotOwnerReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected String userId;
-
         public UserNotOwnerReport()
         {
-        }
-
-        public UserNotOwnerReport(String userId)
-        {
-            setUserId(userId);
-        }
-
-        @javax.persistence.Column
-        public String getUserId()
-        {
-            return userId;
-        }
-
-        public void setUserId(String userId)
-        {
-            this.userId = userId;
         }
 
         @javax.persistence.Transient
@@ -2330,9 +2312,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("User ");
-                    message.append((userId == null ? "null" : cz.cesnet.shongo.PersonInformation.Formatter.format(cz.cesnet.shongo.controller.authorization.Authorization.getInstance().getUserInformation(userId))));
-                    message.append(" is not resource owner.");
+                    message.append("User is not resource owner.");
                     break;
             }
             return message.toString();
@@ -2355,24 +2335,17 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public UserNotOwnerException(String userId)
+        public UserNotOwnerException()
         {
             UserNotOwnerReport report = new UserNotOwnerReport();
-            report.setUserId(userId);
             this.report = report;
         }
 
-        public UserNotOwnerException(Throwable throwable, String userId)
+        public UserNotOwnerException(Throwable throwable)
         {
             super(throwable);
             UserNotOwnerReport report = new UserNotOwnerReport();
-            report.setUserId(userId);
             this.report = report;
-        }
-
-        public String getUserId()
-        {
-            return getReport().getUserId();
         }
 
         @Override

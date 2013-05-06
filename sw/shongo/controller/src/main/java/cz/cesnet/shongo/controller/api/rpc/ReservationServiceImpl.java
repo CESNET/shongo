@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -34,7 +35,7 @@ public class ReservationServiceImpl extends Component
                    Component.AuthorizationAware
 {
     /**
-     * @see cz.cesnet.shongo.controller.Cache
+     * @see cz.cesnet.shongo.controller.cache.Cache
      */
     private Cache cache;
 

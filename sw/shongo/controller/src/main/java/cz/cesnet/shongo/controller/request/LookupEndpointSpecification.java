@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -9,7 +8,6 @@ import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
-import org.joda.time.Interval;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -46,15 +44,13 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        return new ReservationTask(context)
+        return new ReservationTask(schedulerContext)
         {
             @Override
             protected Reservation createReservation() throws SchedulerException
             {
-                Interval interval = getInterval();
-                CacheTransaction cacheTransaction = getCacheTransaction();
                 ResourceCache resourceCache = getCache().getResourceCache();
 
                 Set<Technology> technologies = getTechnologies();
@@ -67,7 +63,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                     if (deviceResource == null) {
                         throw new RuntimeException("Device resource should be added to the cache.");
                     }
-                    if (resourceCache.isResourceAvailableByParent(deviceResource, getContext())) {
+                    if (resourceCache.isResourceAvailableByParent(deviceResource, getSchedulerContext())) {
                         deviceResources.add(deviceResource);
                     }
                 }
@@ -83,7 +79,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                 // If some was found
                 if (deviceResource != null) {
                     // Create reservation for the device resource
-                    ResourceReservationTask task = new ResourceReservationTask(getContext(), deviceResource);
+                    ResourceReservationTask task = new ResourceReservationTask(getSchedulerContext(), deviceResource);
                     Reservation reservation = task.perform();
                     addReports(task);
                     return reservation;

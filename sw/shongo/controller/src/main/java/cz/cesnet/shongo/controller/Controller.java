@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;

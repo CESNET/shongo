@@ -5,16 +5,16 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.scheduler.AvailableRoom;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class ResourceServiceImpl extends Component
     private static Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);
 
     /**
-     * @see Cache
+     * @see cz.cesnet.shongo.controller.cache.Cache
      */
     private Cache cache;
 
@@ -332,8 +332,8 @@ public class ResourceServiceImpl extends Component
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                AvailableRoom availableRoom = cache.getAvailableRoom(
-                        roomProviderCapability, new ReservationTask.Context(userId, interval, cache, entityManager));
+                SchedulerContext schedulerContext = new SchedulerContext(interval, cache, entityManager);
+                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
                 allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());

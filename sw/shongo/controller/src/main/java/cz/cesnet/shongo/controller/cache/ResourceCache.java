@@ -3,15 +3,13 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -216,11 +214,11 @@ public class ResourceCache extends AbstractCache<Resource>
     /**
      * Check if resource is available (the {@link Resource#maximumFuture} is not verified).
      *
-     * @param resource to be checked
-     * @param context  to be used
+     * @param resource         to be checked
+     * @param schedulerContext to be used
      * @throws SchedulerException
      */
-    private void checkResourceAvailableWithoutFuture(Resource resource, ReservationTask.Context context)
+    private void checkResourceAvailableWithoutFuture(Resource resource, SchedulerContext schedulerContext)
             throws SchedulerException
     {
         // Check if resource can be allocated and if it is available in the future
@@ -229,24 +227,21 @@ public class ResourceCache extends AbstractCache<Resource>
         }
 
         // If reservation request purpose implies allocation of only owned resources
-        if (context.isOwnerRestricted()) {
+        if (schedulerContext.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
-            if (!context.containsOwnerId(resource)) {
-                throw new SchedulerReportSet.UserNotOwnerException(context.getUserId());
+            if (!schedulerContext.containsOwnerId(resource)) {
+                throw new SchedulerReportSet.UserNotOwnerException();
             }
         }
 
         // Check if resource is not already allocated
         Long resourceId = resource.getId();
-        ResourceManager resourceManager = new ResourceManager(context.getEntityManager());
+        ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
         List<ResourceReservation> resourceReservations =
-                resourceManager.listResourceReservationsInInterval(resourceId, context.getInterval());
+                resourceManager.listResourceReservationsInInterval(resourceId, schedulerContext.getInterval());
 
         // Apply transaction
-        CacheTransaction cacheTransaction = context.getCacheTransaction();
-        if (cacheTransaction != null) {
-            cacheTransaction.applyResourceReservations(resourceId, resourceReservations);
-        }
+        schedulerContext.applyResourceReservations(resourceId, resourceReservations);
 
         // Perform check
         if (resourceReservations.size() > 0) {
@@ -258,21 +253,22 @@ public class ResourceCache extends AbstractCache<Resource>
      * Checks whether given {@code capability} is available for given {@code reservationRequest}.
      * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
-     * @param capability to be checked
-     * @param context    for checking
+     * @param capability       to be checked
+     * @param schedulerContext for checking
      * @throws SchedulerException when the given {@code resource} is not available
      */
-    public void checkCapabilityAvailable(Capability capability, ReservationTask.Context context)
+    public void checkCapabilityAvailable(Capability capability, SchedulerContext schedulerContext)
             throws SchedulerException
     {
         // Check capability resource
         Resource resource = capability.getResource();
-        checkResourceAvailableWithoutFuture(resource, context);
+        checkResourceAvailableWithoutFuture(resource, schedulerContext);
 
-        if (context.isMaximumFutureAndDurationRestricted()) {
+        if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
-            if (!capability.isAvailableInFuture(context.getInterval().getEnd(), context.getReferenceDateTime())) {
-                DateTime maxDateTime = capability.getMaximumFutureDateTime(context.getReferenceDateTime());
+            if (!capability.isAvailableInFuture(schedulerContext.getInterval().getEnd(),
+                    schedulerContext.getReferenceDateTime())) {
+                DateTime maxDateTime = capability.getMaximumFutureDateTime(schedulerContext.getReferenceDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
@@ -282,31 +278,32 @@ public class ResourceCache extends AbstractCache<Resource>
      * Checks whether given {@code resource} is available for given {@code context}.
      * Device resources with {@link RoomProviderCapability} can be available even if theirs capacity is fully used.
      *
-     * @param resource to be checked
-     * @param context  for checking
+     * @param resource         to be checked
+     * @param schedulerContext for checking
      * @throws SchedulerException when the given {@code resource} is not available
      */
-    public void checkResourceAvailable(Resource resource, ReservationTask.Context context)
+    public void checkResourceAvailable(Resource resource, SchedulerContext schedulerContext)
             throws SchedulerException
     {
-        checkResourceAvailableWithoutFuture(resource, context);
+        checkResourceAvailableWithoutFuture(resource, schedulerContext);
 
-        if (context.isMaximumFutureAndDurationRestricted()) {
+        if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
-            if (!resource.isAvailableInFuture(context.getInterval().getEnd(), context.getReferenceDateTime())) {
-                DateTime maxDateTime = resource.getMaximumFutureDateTime(context.getReferenceDateTime());
+            if (!resource.isAvailableInFuture(schedulerContext.getInterval().getEnd(),
+                    schedulerContext.getReferenceDateTime())) {
+                DateTime maxDateTime = resource.getMaximumFutureDateTime(schedulerContext.getReferenceDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
     }
 
     /**
-     * @see #checkResourceAvailable(Resource, ReservationTask.Context)
+     * @see #checkResourceAvailable(Resource, cz.cesnet.shongo.controller.scheduler.SchedulerContext)
      */
-    public boolean isResourceAvailable(Resource resource, ReservationTask.Context context)
+    public boolean isResourceAvailable(Resource resource, SchedulerContext schedulerContext)
     {
         try {
-            checkResourceAvailable(resource, context);
+            checkResourceAvailable(resource, schedulerContext);
             return true;
         }
         catch (SchedulerException exception) {
@@ -314,10 +311,10 @@ public class ResourceCache extends AbstractCache<Resource>
         }
     }
 
-    public void checkResourceAvailableByParent(Resource resource, ReservationTask.Context context)
+    public void checkResourceAvailableByParent(Resource resource, SchedulerContext schedulerContext)
             throws SchedulerException
     {
-        checkResourceAvailable(resource, context);
+        checkResourceAvailable(resource, schedulerContext);
 
         // Get top parent resource and checks whether it is available
         Resource parentResource = resource;
@@ -325,16 +322,16 @@ public class ResourceCache extends AbstractCache<Resource>
             parentResource = parentResource.getParentResource();
         }
         // Checks whether the top parent and all children resources are available
-        checkResourceAndChildResourcesAvailable(parentResource, context, resource);
+        checkResourceAndChildResourcesAvailable(parentResource, schedulerContext, resource);
     }
 
     /**
-     * @see #checkResourceAvailableByParent(Resource, ReservationTask.Context)
+     * @see #checkResourceAvailableByParent(Resource, cz.cesnet.shongo.controller.scheduler.SchedulerContext)
      */
-    public boolean isResourceAvailableByParent(Resource resource, ReservationTask.Context context)
+    public boolean isResourceAvailableByParent(Resource resource, SchedulerContext schedulerContext)
     {
         try {
-            checkResourceAvailableByParent(resource, context);
+            checkResourceAvailableByParent(resource, schedulerContext);
             return true;
         }
         catch (SchedulerException exception) {
@@ -346,12 +343,12 @@ public class ResourceCache extends AbstractCache<Resource>
      * Checks whether all children resources for given {@code dependentResource} are available
      * in given {@code interval} (recursive).
      *
-     * @param resource        to be checked for availability
-     * @param context         for checking
-     * @param skippedResource to be skipped from checking (it is available)
+     * @param resource         to be checked for availability
+     * @param schedulerContext for checking
+     * @param skippedResource  to be skipped from checking (it is available)
      * @return
      */
-    private void checkResourceAndChildResourcesAvailable(Resource resource, ReservationTask.Context context,
+    private void checkResourceAndChildResourcesAvailable(Resource resource, SchedulerContext schedulerContext,
             Resource skippedResource) throws SchedulerException
     {
         // We do not check the skipped resource (it is considered as available)
@@ -359,14 +356,14 @@ public class ResourceCache extends AbstractCache<Resource>
             return;
         }
         // If the resource is already contained in the transaction, it is available
-        if (context.getCacheTransaction().containsReferencedResource(resource)) {
+        if (schedulerContext.containsReferencedResource(resource)) {
             return;
         }
         // Check resource availability
-        checkResourceAvailable(resource, context);
+        checkResourceAvailable(resource, schedulerContext);
         // Check child resources availability
         for (Resource childResource : resource.getChildResources()) {
-            checkResourceAndChildResourcesAvailable(childResource, context, skippedResource);
+            checkResourceAndChildResourcesAvailable(childResource, schedulerContext, skippedResource);
         }
     }
 }

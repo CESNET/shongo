@@ -32,11 +32,11 @@ public class AliasSetReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context sets the {@link #context}
+     * @param schedulerContext sets the {@link #schedulerContext}
      */
-    public AliasSetReservationTask(Context context)
+    public AliasSetReservationTask(SchedulerContext schedulerContext)
     {
-        super(context);
+        super(schedulerContext);
     }
 
     /**
@@ -60,7 +60,7 @@ public class AliasSetReservationTask extends ReservationTask
     {
         validateReservationSlot(AliasReservation.class);
 
-        Context context = getContext();
+        SchedulerContext schedulerContext = getSchedulerContext();
         ResourceRoomEndpoint allocatedRoomEndpoint = null;
 
         List<Reservation> createdReservations = new ArrayList<Reservation>();
@@ -68,7 +68,7 @@ public class AliasSetReservationTask extends ReservationTask
         // Process all alias specifications
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             // Create new reservation task
-            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
+            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
             if (allocatedRoomEndpoint != null) {
                 aliasReservationTask.setTargetResource(allocatedRoomEndpoint.getDeviceResource());
             }
@@ -94,7 +94,7 @@ public class AliasSetReservationTask extends ReservationTask
                 aliasReservation.setExecutable(allocatedRoomEndpoint);
             }
             // If room endpoint is allocated by current alias reservation
-            else if (aliasProviderCapability.isPermanentRoom() && context.isExecutableAllowed() && sharedExecutable) {
+            else if (aliasProviderCapability.isPermanentRoom() && schedulerContext.isExecutableAllowed() && sharedExecutable) {
                 // Use it for next alias reservations
                 allocatedRoomEndpoint = (ResourceRoomEndpoint) aliasReservation.getExecutable();
             }

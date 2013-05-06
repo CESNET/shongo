@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 
 import javax.persistence.*;
@@ -120,9 +121,9 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        return new ReservationTask(context)
+        return new ReservationTask(schedulerContext)
         {
             @Override
             protected Reservation createReservation() throws SchedulerException

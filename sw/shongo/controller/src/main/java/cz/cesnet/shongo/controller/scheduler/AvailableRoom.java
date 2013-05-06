@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.cache;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;

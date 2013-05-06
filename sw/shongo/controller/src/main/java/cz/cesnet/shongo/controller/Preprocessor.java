@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -22,7 +23,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
     /**
-     * @see {@link Cache}
+     * @see {@link cz.cesnet.shongo.controller.cache.Cache}
      */
     private Cache cache;
 

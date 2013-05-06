@@ -5,8 +5,8 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -218,9 +218,9 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public CompartmentReservationTask createReservationTask(ReservationTask.Context context)
+    public CompartmentReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        return new CompartmentReservationTask(this, context);
+        return new CompartmentReservationTask(this, schedulerContext);
     }
 
     @Override

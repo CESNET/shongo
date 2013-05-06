@@ -2,9 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.AvailableRoom;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
@@ -64,11 +62,11 @@ public class RoomReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context sets the {@link #context}
+     * @param schedulerContext sets the {@link #schedulerContext}
      */
-    public RoomReservationTask(Context context, int participantCount)
+    public RoomReservationTask(SchedulerContext schedulerContext, int participantCount)
     {
-        super(context);
+        super(schedulerContext);
         this.participantCount = participantCount;
     }
 
@@ -125,13 +123,12 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws SchedulerException
     {
-        Context context = getContext();
+        SchedulerContext schedulerContext = getSchedulerContext();
         Cache cache = getCache();
-        CacheTransaction cacheTransaction = getCacheTransaction();
         Interval interval = getInterval();
 
         // Check maximum duration
-        if (context.isMaximumFutureAndDurationRestricted()) {
+        if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             checkMaximumDuration(interval, cache.getRoomReservationMaximumDuration());
         }
 
@@ -172,7 +169,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Get provided room endpoints
         Collection<ResourceRoomEndpoint> providedRooms =
-                cacheTransaction.getProvidedExecutables(ResourceRoomEndpoint.class);
+                schedulerContext.getProvidedExecutables(ResourceRoomEndpoint.class);
         // Map of available provided rooms which doesn't have enough capacity
         final Map<Long, ResourceRoomEndpoint> availableProvidedRooms = new HashMap<Long, ResourceRoomEndpoint>();
         // Find provided room with enough capacity to be reused or suitable room to which will be allocated more capacity
@@ -187,14 +184,14 @@ public class RoomReservationTask extends ReservationTask
             // If provided room has enough allocated capacity
             if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
                 Reservation providedReservation =
-                        cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
+                        schedulerContext.getProvidedReservationByExecutable(providedRoomEndpoint);
                 addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
 
                 // Reuse provided reservation which allocates the provided room
                 ExistingReservation existingReservation = new ExistingReservation();
                 existingReservation.setSlot(getInterval());
                 existingReservation.setReservation(providedReservation);
-                cacheTransaction.removeProvidedReservation(providedReservation);
+                schedulerContext.removeProvidedReservation(providedReservation);
                 return existingReservation;
             }
             // Else provided room doesn't have enough capacity
@@ -211,7 +208,7 @@ public class RoomReservationTask extends ReservationTask
             for (Long roomProviderId : roomVariantByRoomProviderId.keySet()) {
                 RoomProviderCapability roomProvider = cache.getRoomProvider(roomProviderId);
                 RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProviderId);
-                AvailableRoom availableRoom = cache.getAvailableRoom(roomProvider, context);
+                AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProvider);
                 if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                     availableRooms.add(availableRoom);
                     addReport(new SchedulerReportSet.ResourceReport(roomProvider.getResource()));
@@ -254,7 +251,7 @@ public class RoomReservationTask extends ReservationTask
             RoomProviderCapability roomProvider = availableRoom.getRoomProviderCapability();
             DeviceResource deviceResource = roomProvider.getDeviceResource();
             beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
-            CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
+            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
                 // Get device and it's room variant
                 RoomVariant roomVariant = roomVariantByRoomProviderId.get(roomProvider.getId());
@@ -278,7 +275,7 @@ public class RoomReservationTask extends ReservationTask
                 ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(roomProvider.getId());
                 if (availableProvidedRoom != null) {
                     Reservation providedReservation =
-                            cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
+                            schedulerContext.getProvidedReservationByExecutable(availableProvidedRoom);
                     addReport(new SchedulerReportSet.ReservationReusingReport(providedReservation));
 
                     // Reuse provided reservation which allocates the provided room
@@ -286,13 +283,13 @@ public class RoomReservationTask extends ReservationTask
                     existingReservation.setSlot(interval);
                     existingReservation.setReservation(providedReservation);
                     addChildReservation(existingReservation);
-                    cacheTransaction.removeProvidedReservation(providedReservation);
+                    schedulerContext.removeProvidedReservation(providedReservation);
 
                     // Reserve only the remaining capacity
                     roomConfiguration.setLicenseCount(
                             roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
 
-                    if (context.isExecutableAllowed()) {
+                    if (schedulerContext.isExecutableAllowed()) {
                         addReport(new SchedulerReportSet.ExecutableReusingReport(availableProvidedRoom));
 
                         // Create new used room endpoint
@@ -305,7 +302,7 @@ public class RoomReservationTask extends ReservationTask
                     // Reserve full capacity
                     roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
 
-                    if (context.isExecutableAllowed()) {
+                    if (schedulerContext.isExecutableAllowed()) {
                         addReport(new SchedulerReportSet.AllocatingExecutableReport());
 
                         // Create new room endpoint  \
@@ -316,13 +313,13 @@ public class RoomReservationTask extends ReservationTask
                 }
 
                 // Setup room endpoint
-                if (context.isExecutableAllowed()) {
+                if (schedulerContext.isExecutableAllowed()) {
                     // Set of technologies which are supported in the room
                     Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
 
                     // Allocate aliases from alias specifications
                     for (AliasSpecification aliasSpecification : aliasSpecifications) {
-                        AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(context);
+                        AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
                         aliasReservationTask.setTargetResource(deviceResource);
                         AliasReservation aliasReservation =
                                 addChildReservation(aliasReservationTask, AliasReservation.class);
@@ -364,7 +361,7 @@ public class RoomReservationTask extends ReservationTask
                     while (missingAliasTypes.size() > 0) {
                         // Allocate missing alias
                         AliasType missingAliasType = missingAliasTypes.iterator().next();
-                        AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
+                        AliasReservationTask aliasReservationTask = new AliasReservationTask(getSchedulerContext());
                         aliasReservationTask.addAliasType(missingAliasType);
                         aliasReservationTask.setTargetResource(deviceResource);
                         AliasReservation aliasReservation =
@@ -386,7 +383,7 @@ public class RoomReservationTask extends ReservationTask
                         while (missingAliasTechnologies.size() > 0) {
                             // Allocate missing alias
                             Technology technology = missingAliasTechnologies.iterator().next();
-                            AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
+                            AliasReservationTask aliasReservationTask = new AliasReservationTask(getSchedulerContext());
                             aliasReservationTask.addTechnology(technology);
                             aliasReservationTask.setTargetResource(deviceResource);
                             AliasReservation aliasReservation =
@@ -405,7 +402,7 @@ public class RoomReservationTask extends ReservationTask
 
                     // Setup abstract room endpoint
                     roomEndpoint.setSlot(interval);
-                    roomEndpoint.setRoomDescription(context.getReservationDescription());
+                    roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
                     roomEndpoint.setRoomConfiguration(roomConfiguration);
                     roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
                 }
@@ -417,13 +414,13 @@ public class RoomReservationTask extends ReservationTask
                 return roomReservation;
             }
             catch (SchedulerException exception) {
-                cacheTransactionSavepoint.revert();
+                schedulerContextSavepoint.revert();
 
                 // Try to allocate next available room
                 continue;
             }
             finally {
-                cacheTransactionSavepoint.destroy();
+                schedulerContextSavepoint.destroy();
                 endReport();
             }
         }

@@ -83,9 +83,9 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        return new ReservationTask(context)
+        return new ReservationTask(schedulerContext)
         {
             @Override
             protected Reservation createReservation() throws SchedulerException
@@ -95,7 +95,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                     throw new SchedulerReportSet.ResourceNotEndpointException(resource);
                 }
 
-                ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), resource);
+                ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getSchedulerContext(), resource);
                 Reservation reservation = resourceReservationTask.perform();
                 addReports(resourceReservationTask);
                 return reservation;

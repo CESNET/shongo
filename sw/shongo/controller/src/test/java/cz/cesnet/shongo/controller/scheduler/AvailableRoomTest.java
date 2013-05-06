@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.cache.AvailableRoom;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -22,7 +19,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CacheRoomTest extends AbstractDatabaseTest
+public class AvailableRoomTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception
@@ -135,14 +132,14 @@ public class CacheRoomTest extends AbstractDatabaseTest
     }
 
     /**
-     * Find {@link cz.cesnet.shongo.controller.cache.AvailableRoom}s in given {@code interval} which have
+     * Find {@link AvailableRoom}s in given {@code interval} which have
      * at least {@code requiredLicenseCount} available licenses and which supports given {@code technologies}.
      *
      * @param entityManager
      * @param interval
      * @param requiredLicenseCount
      * @param technologies
-     * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableRoom}
+     * @return list of {@link AvailableRoom}
      */
     public List<AvailableRoom> findAvailableRooms(Cache cache, EntityManager entityManager, Interval interval,
             int requiredLicenseCount, Set<Technology> technologies)
@@ -150,9 +147,8 @@ public class CacheRoomTest extends AbstractDatabaseTest
 
         List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         for (RoomProviderCapability roomProviderCapability : cache.getRoomProviders(technologies)) {
-            AvailableRoom availableRoom = cache.getAvailableRoom(
-                    roomProviderCapability,
-                    new ReservationTask.Context(interval, cache, entityManager));
+            SchedulerContext schedulerContext = new SchedulerContext(interval, cache, entityManager);
+            AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
             if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
                 availableRooms.add(availableRoom);
             }

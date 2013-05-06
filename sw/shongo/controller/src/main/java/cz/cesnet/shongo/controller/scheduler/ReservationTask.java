@@ -1,23 +1,13 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.Resource;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -30,7 +20,7 @@ public abstract class ReservationTask
     /**
      * Context.
      */
-    private Context context;
+    private SchedulerContext schedulerContext;
 
     /**
      * List of child {@link Reservation}s.
@@ -50,41 +40,33 @@ public abstract class ReservationTask
     /**
      * Constructor.
      */
-    public ReservationTask(Context context)
+    public ReservationTask(SchedulerContext schedulerContext)
     {
-        this.context = context;
+        this.schedulerContext = schedulerContext;
     }
 
     /**
-     * @return {@link #context}
+     * @return {@link #schedulerContext}
      */
-    public Context getContext()
+    public SchedulerContext getSchedulerContext()
     {
-        return context;
+        return schedulerContext;
     }
 
     /**
-     * @return {@link Context#getInterval()}
+     * @return {@link SchedulerContext#getInterval()}
      */
     public Interval getInterval()
     {
-        return context.getInterval();
+        return schedulerContext.getInterval();
     }
 
     /**
-     * @return {@link Context#cache}
+     * @return {@link SchedulerContext#cache}
      */
     public Cache getCache()
     {
-        return context.getCache();
-    }
-
-    /**
-     * @return {@link Context#cacheTransaction}
-     */
-    protected CacheTransaction getCacheTransaction()
-    {
-        return context.getCacheTransaction();
+        return schedulerContext.getCache();
     }
 
     /**
@@ -102,7 +84,7 @@ public abstract class ReservationTask
     public Reservation addChildReservation(Reservation reservation)
     {
         childReservations.add(reservation);
-        getCacheTransaction().addAllocatedReservation(reservation);
+        schedulerContext.addAllocatedReservation(reservation);
         return reservation.getTargetReservation();
     }
 
@@ -113,7 +95,7 @@ public abstract class ReservationTask
     public final <R extends Reservation> R addChildReservation(Reservation reservation, Class<R> reservationClass)
     {
         childReservations.add(reservation);
-        getCacheTransaction().addAllocatedReservation(reservation);
+        schedulerContext.addAllocatedReservation(reservation);
         return reservationClass.cast(reservation.getTargetReservation());
     }
 
@@ -191,7 +173,7 @@ public abstract class ReservationTask
     public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
             throws SchedulerException
     {
-        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
+        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getSchedulerContext());
         return addChildReservation(reservationTask);
     }
 
@@ -338,8 +320,8 @@ public abstract class ReservationTask
             reservation.addChildReservation(childReservation);
         }
 
-        // Add reservation to the cache
-        getCacheTransaction().addAllocatedReservation(reservation);
+        // Add reservation to the context
+        schedulerContext.addAllocatedReservation(reservation);
 
         return reservation;
     }
@@ -397,205 +379,4 @@ public abstract class ReservationTask
         }
     }
 
-    /**
-     * Context for the {@link ReservationTask}.
-     */
-    public static class Context
-    {
-        /**
-         * User-id to owner of new reservations.
-         */
-        private String userId;
-
-        /**
-         * {@link AbstractReservationRequest} for which the {@link Reservation} should be allocated.
-         */
-        private ReservationRequest reservationRequest;
-
-        /**
-         * @see Cache
-         */
-        private Cache cache;
-
-        /**
-         * @see {@link CacheTransaction}
-         */
-        private CacheTransaction cacheTransaction;
-
-        /**
-         * Time which represents now.
-         */
-        private DateTime referenceDateTime = DateTime.now();
-
-        /**
-         * Entity manager.
-         */
-        private EntityManager entityManager;
-
-        /**
-         * @see AuthorizationManager
-         */
-        private AuthorizationManager authorizationManager;
-
-        /**
-         * Constructor.
-         *
-         * @param userId   sets the {@link #userId}
-         * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link CacheTransaction#interval}
-         */
-        public Context(String userId, Interval interval, Cache cache, EntityManager entityManager)
-        {
-            this.userId = userId;
-            this.cache = cache;
-            this.cacheTransaction = new CacheTransaction(interval);
-            this.entityManager = entityManager;
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param reservationRequest sets the {@link #reservationRequest}
-         * @param cache              sets the {@link #cache}
-         * @param interval           sets the {@link CacheTransaction#interval}
-         * @param referenceDateTime  sets the {@link #referenceDateTime}
-         * @param entityManager      which can be used
-         */
-        public Context(ReservationRequest reservationRequest, Cache cache, Interval interval,
-                DateTime referenceDateTime, EntityManager entityManager)
-        {
-            this(reservationRequest.getUserId(), interval, cache, entityManager);
-            this.reservationRequest = reservationRequest;
-            this.referenceDateTime = referenceDateTime;
-            if (entityManager != null) {
-                this.authorizationManager = new AuthorizationManager(entityManager);
-            }
-        }
-
-        /**
-         * Constructor.
-         *
-         * @param cache    sets the {@link #cache}
-         * @param interval sets the {@link CacheTransaction#interval}
-         */
-        public Context(Interval interval, Cache cache, EntityManager entityManager)
-        {
-            this(Authorization.ROOT_USER_ID, interval, cache, entityManager);
-        }
-
-        /**
-         * @return description of {@link #reservationRequest}
-         */
-        public String getReservationDescription()
-        {
-            if (reservationRequest == null) {
-                return null;
-            }
-            return reservationRequest.getDescription();
-        }
-
-        /**
-         * @return {@link #userId}
-         */
-        public String getUserId()
-        {
-            return userId;
-        }
-
-        /**
-         * @return true whether executables should be allocated,
-         *         false otherwise
-         */
-        public boolean isExecutableAllowed()
-        {
-            return reservationRequest == null || reservationRequest.getPurpose().isExecutableAllowed();
-        }
-
-        /**
-         * @return true whether only owned resource by the reservation request owner can be allocated,
-         *         false otherwise
-         */
-        public boolean isOwnerRestricted()
-        {
-            return reservationRequest != null && reservationRequest.getPurpose().isByOwner();
-        }
-
-        /**
-         * @return true whether maximum future and maximum duration should be checked,
-         *         false otherwise
-         */
-        public boolean isMaximumFutureAndDurationRestricted()
-        {
-            return reservationRequest != null && !reservationRequest.getPurpose().isByOwner();
-        }
-
-        /**
-         * @return {@link CacheTransaction#interval}
-         */
-        public Interval getInterval()
-        {
-            return cacheTransaction.getInterval();
-        }
-
-        /**
-         * @return {@link #cache}
-         */
-        public Cache getCache()
-        {
-            return cache;
-        }
-
-        /**
-         * @return {@link #cacheTransaction}
-         */
-        public CacheTransaction getCacheTransaction()
-        {
-            return cacheTransaction;
-        }
-
-        /**
-         * @return {@link #referenceDateTime}
-         */
-        public DateTime getReferenceDateTime()
-        {
-            return referenceDateTime;
-        }
-
-        /**
-         * @return {@link #entityManager}
-         */
-        public EntityManager getEntityManager()
-        {
-            return entityManager;
-        }
-
-        /**
-         * @param resource whose owner should be checked
-         * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
-         *         false otherwise
-         */
-        public boolean containsOwnerId(Resource resource)
-        {
-            if (reservationRequest == null) {
-                throw new IllegalStateException("Reservation request must not be null.");
-            }
-            if (authorizationManager == null) {
-                throw new IllegalStateException("Authorization manager must not be null.");
-            }
-            Set<String> resourceOwnerIds = new HashSet<String>();
-            EntityIdentifier resourceId = new EntityIdentifier(resource);
-            resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resourceId, Role.OWNER));
-            if (resourceOwnerIds.size() == 0) {
-                resourceOwnerIds.add(resource.getUserId());
-            }
-
-            Set<String> ownerIds = new HashSet<String>();
-            EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
-            ownerIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
-            if (ownerIds.size() == 0) {
-                ownerIds.add(reservationRequest.getUserId());
-            }
-            return !Collections.disjoint(resourceOwnerIds, ownerIds);
-        }
-    }
 }

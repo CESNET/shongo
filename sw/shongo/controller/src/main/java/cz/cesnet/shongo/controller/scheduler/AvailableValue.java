@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.cache;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
@@ -10,11 +10,6 @@ import cz.cesnet.shongo.controller.resource.value.ValueProvider;
  */
 public class AvailableValue
 {
-    /**
-     * {@link cz.cesnet.shongo.controller.resource.value.PatternValueProvider} in which the {@link #value} is available.
-     */
-    private ValueProvider valueProvider;
-
     /**
      * Available value.
      */

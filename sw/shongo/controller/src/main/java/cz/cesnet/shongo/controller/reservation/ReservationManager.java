@@ -4,7 +4,6 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
@@ -399,17 +398,15 @@ public class ReservationManager extends AbstractManager
      */
     public List<Reservation> getReservationsForDeletion()
     {
-        List<Reservation> reservations = entityManager.createQuery(
+        return entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " LEFT JOIN reservation.reservationRequest reservationRequest"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
-                        + " AND (reservationRequest IS NULL OR reservationRequest.state != :state)",
+                        + " AND (reservationRequest IS NULL)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
-                .setParameter("state", ReservationRequest.State.ALLOCATED)
                 .getResultList();
-        return reservations;
     }
 
     /**

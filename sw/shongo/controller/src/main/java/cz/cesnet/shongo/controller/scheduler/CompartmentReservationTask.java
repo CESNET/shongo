@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.scheduler;
 import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.EndpointSpecification;
@@ -15,7 +15,6 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.TodoImplementException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -57,11 +56,11 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context sets the {@link #context}
+     * @param schedulerContext sets the {@link #schedulerContext}
      */
-    public CompartmentReservationTask(Context context)
+    public CompartmentReservationTask(SchedulerContext schedulerContext)
     {
-        super(context);
+        super(schedulerContext);
         this.compartmentSpecification = new CompartmentSpecification();
         initCompartment();
     }
@@ -69,12 +68,12 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context        sets the {@link #context}
-     * @param callInitiation sets the default {@link cz.cesnet.shongo.controller.CallInitiation}
+     * @param schedulerContext sets the {@link #schedulerContext}
+     * @param callInitiation   sets the default {@link cz.cesnet.shongo.controller.CallInitiation}
      */
-    public CompartmentReservationTask(Context context, CallInitiation callInitiation)
+    public CompartmentReservationTask(SchedulerContext schedulerContext, CallInitiation callInitiation)
     {
-        super(context);
+        super(schedulerContext);
         this.compartmentSpecification = new CompartmentSpecification(callInitiation);
         initCompartment();
     }
@@ -83,11 +82,11 @@ public class CompartmentReservationTask extends ReservationTask
      * Constructor.
      *
      * @param specification sets the {@link #compartmentSpecification}
-     * @param context       sets the {@link #context}
+     * @param schedulerContext       sets the {@link #schedulerContext}
      */
-    public CompartmentReservationTask(CompartmentSpecification specification, Context context)
+    public CompartmentReservationTask(CompartmentSpecification specification, SchedulerContext schedulerContext)
     {
-        super(context);
+        super(schedulerContext);
         this.compartmentSpecification = specification;
         initCompartment();
     }
@@ -147,7 +146,7 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     /**
-     * @param reservation child {@link cz.cesnet.shongo.controller.reservation.RoomReservation} to be added to the {@link CompartmentReservationTask}
+     * @param reservation child {@link RoomReservation} to be added to the {@link CompartmentReservationTask}
      * @return allocated {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}
      */
     public RoomEndpoint addChildRoomReservation(Reservation reservation)
@@ -162,7 +161,7 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        endpoint.setSlot(getContext().getInterval());
+        endpoint.setSlot(getSchedulerContext().getInterval());
         compartment.addChildExecutable(endpoint);
 
         if (!(endpoint instanceof RoomEndpoint)) {
@@ -248,12 +247,12 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology));
-        CacheTransaction.Savepoint cacheTransactionSavepoint = getContext().getCacheTransaction().createSavepoint();
+        SchedulerContext.Savepoint schedulerContextSavepoint = getSchedulerContext().createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
         catch (SchedulerException firstException) {
-            cacheTransactionSavepoint.revert();
+            schedulerContextSavepoint.revert();
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
@@ -262,7 +261,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
         finally {
-            cacheTransactionSavepoint.destroy();
+            schedulerContextSavepoint.destroy();
             endReport();
         }
     }
@@ -313,7 +312,7 @@ public class CompartmentReservationTask extends ReservationTask
                     ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
                     deviceResource = resourceRoomEndpoint.getDeviceResource();
                 }
-                AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
+                AliasReservationTask aliasReservationTask = new AliasReservationTask(getSchedulerContext());
                 aliasReservationTask.addTechnology(technology);
                 aliasReservationTask.setTargetResource(deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
@@ -339,7 +338,7 @@ public class CompartmentReservationTask extends ReservationTask
                 connection.setAlias(alias.clone());
             }
 
-            connection.setSlot(getContext().getInterval());
+            connection.setSlot(getSchedulerContext().getInterval());
             connection.setEndpointFrom(endpointFrom);
             connection.setEndpointTo(endpointTo);
             compartment.addChildExecutable(connection);
@@ -456,11 +455,11 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Find plan for connecting endpoints by a single virtual room
      *
-     * @throws SchedulerException when the {@link cz.cesnet.shongo.controller.reservation.RoomReservation} cannot be created
+     * @throws SchedulerException when the {@link RoomReservation} cannot be created
      */
     private void createSingleRoomReservation() throws SchedulerException
     {
-        RoomReservationTask roomReservationTask = new RoomReservationTask(getContext(),
+        RoomReservationTask roomReservationTask = new RoomReservationTask(getSchedulerContext(),
                 compartment.getTotalEndpointCount());
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
             roomReservationTask.addTechnologyVariant(technologies);
@@ -514,7 +513,7 @@ public class CompartmentReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws SchedulerException
     {
-        if (!getContext().isExecutableAllowed()) {
+        if (!getSchedulerContext().isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");
         }
         Set<Specification> specifications = new HashSet<Specification>();

@@ -1191,14 +1191,11 @@
         <report>
             <id>user-not-owner</id>
             <classification severity="error"/>
-            <params>
-                <param name="userId" type="String"/>
-            </params>
             <description>
                 TODO:
             </description>
             <message>
-                User ${user(userId)} is not resource owner.
+                User is not resource owner.
             </message>
         </report>
 

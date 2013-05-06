@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -9,7 +8,6 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 
@@ -28,12 +26,12 @@ public class ResourceReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context  sets the {@link #context}
+     * @param schedulerContext  sets the {@link #schedulerContext}
      * @param resource sets the {@link #resource}
      */
-    public ResourceReservationTask(Context context, Resource resource)
+    public ResourceReservationTask(SchedulerContext schedulerContext, Resource resource)
     {
-        super(context);
+        super(schedulerContext);
         this.resource = resource;
     }
 
@@ -48,23 +46,22 @@ public class ResourceReservationTask extends ReservationTask
     {
         validateReservationSlot(ResourceReservation.class);
 
-        Context context = getContext();
-        Interval interval = context.getInterval();
+        SchedulerContext schedulerContext = getSchedulerContext();
+        Interval interval = schedulerContext.getInterval();
 
         Cache cache = getCache();
-        CacheTransaction cacheTransaction = getCacheTransaction();
         ResourceCache resourceCache = cache.getResourceCache();
 
-        if (cacheTransaction.containsReferencedResource(resource)) {
+        if (schedulerContext.containsReferencedResource(resource)) {
             // Same resource is requested multiple times
             throw new SchedulerReportSet.ResourceMultipleRequestedException(resource);
         }
 
         // Check resource and parent resources availability
-        resourceCache.checkResourceAvailableByParent(resource, context);
+        resourceCache.checkResourceAvailableByParent(resource, schedulerContext);
 
         // Reuse existing reservation
-        Set<ResourceReservation> resourceReservations = cacheTransaction.getProvidedResourceReservations(resource);
+        Set<ResourceReservation> resourceReservations = schedulerContext.getProvidedResourceReservations(resource);
         if (resourceReservations.size() > 0) {
             ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
             addReport(new SchedulerReportSet.ReservationReusingReport(providedResourceReservation));
@@ -73,7 +70,7 @@ public class ResourceReservationTask extends ReservationTask
             ExistingReservation existingReservation = new ExistingReservation();
             existingReservation.setSlot(interval);
             existingReservation.setReservation(providedResourceReservation);
-            cacheTransaction.removeProvidedReservation(providedResourceReservation);
+            schedulerContext.removeProvidedReservation(providedResourceReservation);
             return existingReservation;
         }
 
@@ -88,10 +85,10 @@ public class ResourceReservationTask extends ReservationTask
             }
             RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
             if (roomProviderCapability != null) {
-                ReservationManager reservationManager = new ReservationManager(context.getEntityManager());
+                ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
                 List<RoomReservation> roomReservations =
                         reservationManager.getRoomReservations(roomProviderCapability, interval);
-                cacheTransaction.applyRoomReservations(roomProviderCapability.getId(), roomReservations);
+                schedulerContext.applyRoomReservations(roomProviderCapability.getId(), roomReservations);
                 if (roomReservations.size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new SchedulerReportSet.ResourceAlreadyAllocatedException(resource);
@@ -108,12 +105,12 @@ public class ResourceReservationTask extends ReservationTask
         resourceReservation.setResource(resource);
 
         // Add resource as referenced to the cache to prevent from multiple checking of the same parent
-        cacheTransaction.addReferencedResource(resource);
+        schedulerContext.addReferencedResource(resource);
 
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !cacheTransaction.containsReferencedResource(parentResource)) {
-            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, parentResource);
+        if (parentResource != null && !schedulerContext.containsReferencedResource(parentResource)) {
+            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(schedulerContext, parentResource);
             addChildReservation(resourceReservationTask);
         }
 

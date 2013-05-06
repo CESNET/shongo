@@ -132,9 +132,9 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        AliasSetReservationTask aliasSetReservationTask = new AliasSetReservationTask(context);
+        AliasSetReservationTask aliasSetReservationTask = new AliasSetReservationTask(schedulerContext);
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
             aliasSetReservationTask.addAliasSpecification(aliasSpecification);
         }

@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
+import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -220,9 +221,9 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(SchedulerContext schedulerContext)
     {
-        RoomReservationTask roomReservationTask = new RoomReservationTask(context, getParticipantCount());
+        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext, getParticipantCount());
         roomReservationTask.addTechnologyVariant(getTechnologies());
         roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.addAliasSpecifications(getAliasSpecifications());

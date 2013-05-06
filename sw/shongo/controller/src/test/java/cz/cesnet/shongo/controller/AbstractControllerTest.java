@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.jade.Container;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -64,7 +65,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private DummyAuthorization authorization;
 
     /**
-     * @see Cache
+     * @see cz.cesnet.shongo.controller.cache.Cache
      */
     private Cache cache;
 

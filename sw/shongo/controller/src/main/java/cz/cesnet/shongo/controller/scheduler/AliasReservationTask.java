@@ -2,8 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.CacheTransaction;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -51,11 +50,11 @@ public class AliasReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param context sets the {@link #context}
+     * @param schedulerContext sets the {@link #schedulerContext}
      */
-    public AliasReservationTask(Context context)
+    public AliasReservationTask(SchedulerContext schedulerContext)
     {
-        super(context);
+        super(schedulerContext);
     }
 
     /**
@@ -125,11 +124,10 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws SchedulerException
     {
-        Context context = getContext();
+        SchedulerContext schedulerContext = getSchedulerContext();
         Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
-        CacheTransaction cacheTransaction = getCacheTransaction();
 
         // Get possible alias providers
         Collection<AliasProviderCapability> possibleAliasProviders;
@@ -177,7 +175,7 @@ public class AliasReservationTask extends ReservationTask
                 new HashMap<AliasProviderCapability, AliasReservation>();
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             Collection<AliasReservation> providedAliasReservations =
-                    cacheTransaction.getProvidedAliasReservations(aliasProvider);
+                    schedulerContext.getProvidedAliasReservations(aliasProvider);
             if (providedAliasReservations.size() > 0) {
                 AliasReservation providedAliasReservation = null;
                 String value = valueByAliasProvider.get(aliasProvider);
@@ -249,15 +247,15 @@ public class AliasReservationTask extends ReservationTask
                 addReport(new SchedulerReportSet.ReservationReusingReport(providedAliasReservation));
 
                 ExistingReservation existingReservation = new ExistingReservation();
-                existingReservation.setSlot(getInterval());
+                existingReservation.setSlot(interval);
                 existingReservation.setReservation(providedAliasReservation);
-                cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                schedulerContext.removeProvidedReservation(providedAliasReservation);
                 return existingReservation;
             }
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(aliasProvider, context);
+                resourceCache.checkCapabilityAvailable(aliasProvider, schedulerContext);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());
@@ -265,22 +263,22 @@ public class AliasReservationTask extends ReservationTask
             }
 
             // Get new available value
-            CacheTransaction.Savepoint cacheTransactionSavepoint = cacheTransaction.createSavepoint();
+            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
                 String value = valueByAliasProvider.get(aliasProvider);
                 ValueReservationTask valueReservationTask =
-                        new ValueReservationTask(context, aliasProvider.getValueProvider(), value);
+                        new ValueReservationTask(schedulerContext, aliasProvider.getValueProvider(), value);
                 availableValueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
             }
             catch (SchedulerException exception) {
-                cacheTransactionSavepoint.revert();
+                schedulerContextSavepoint.revert();
 
                 // End allocating current alias provider and try to allocate next one
                 endReport();
                 continue;
             }
             finally {
-                cacheTransactionSavepoint.destroy();
+                schedulerContextSavepoint.destroy();
             }
 
             availableAliasProvider = aliasProvider;
@@ -293,14 +291,14 @@ public class AliasReservationTask extends ReservationTask
 
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
-        aliasReservation.setSlot(getInterval());
+        aliasReservation.setSlot(interval);
         aliasReservation.setAliasProviderCapability(availableAliasProvider);
         aliasReservation.setValueReservation(availableValueReservation);
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
         // (so we don't need reservation for the room).
         // The permanent room should not be created if the alias will be used for any specified target resource.
-        if (availableAliasProvider.isPermanentRoom() && context.isExecutableAllowed() && targetResource == null) {
+        if (availableAliasProvider.isPermanentRoom() && schedulerContext.isExecutableAllowed() && targetResource == null) {
             Resource resource = availableAliasProvider.getResource();
             RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
             if (roomProvider == null) {
@@ -308,9 +306,9 @@ public class AliasReservationTask extends ReservationTask
                         + " with room provider capability.");
             }
             ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setSlot(getInterval());
+            roomEndpoint.setSlot(interval);
             roomEndpoint.setRoomProviderCapability(roomProvider);
-            roomEndpoint.setRoomDescription(context.getReservationDescription());
+            roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
             roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
             Set<Technology> technologies = roomEndpoint.getTechnologies();
             for (Alias alias : aliasReservation.getAliases()) {
