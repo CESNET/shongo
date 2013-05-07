@@ -36,10 +36,6 @@ public class AvailableReservation<R extends Reservation>
         if (reservation == null) {
             throw new IllegalArgumentException("Reservation must not be null.");
         }
-        if (reservation instanceof ExistingReservation) {
-            // Existing reservations cannot be modified
-            type = Type.REUSABLE;
-        }
         if (type == null) {
             throw new IllegalArgumentException("Type must not be null.");
         }
@@ -124,6 +120,21 @@ public class AvailableReservation<R extends Reservation>
         }
         AvailableReservation availableReservation = (AvailableReservation) object;
         return originalReservation.equals(availableReservation.originalReservation);
+    }
+
+    public boolean isExistingReservationRequired()
+    {
+        return type.equals(Type.REUSABLE);
+    }
+
+    public boolean isModifiable()
+    {
+        return type.equals(Type.REALLOCATABLE);
+    }
+
+    public boolean isDeletable()
+    {
+        return type.equals(Type.REALLOCATABLE);
     }
 
     /**

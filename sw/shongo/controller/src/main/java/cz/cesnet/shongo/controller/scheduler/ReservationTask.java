@@ -379,4 +379,32 @@ public abstract class ReservationTask
         }
     }
 
+
+    protected <T extends Reservation> void sortAvailableReservations(
+            List<AvailableReservation<T>> availableReservations)
+    {
+        final Interval interval = getInterval();
+        Collections.sort(availableReservations, new Comparator<AvailableReservation>()
+        {
+            @Override
+            public int compare(AvailableReservation reservation1, AvailableReservation reservation2)
+            {
+                // Prefer reservations for the whole interval
+                boolean firstContainsInterval = reservation1.getOriginalReservation().getSlot().contains(interval);
+                boolean secondContainsInterval = reservation2.getOriginalReservation().getSlot().contains(interval);
+                if (secondContainsInterval && !firstContainsInterval) {
+                    return 1;
+                }
+
+                // Prefer reallocatable reservations
+                boolean firstReallocatable = reservation1.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+                boolean secondReallocatable = reservation2.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+                if (secondReallocatable && !firstReallocatable) {
+                    return 1;
+                }
+
+                return 0;
+            }
+        });
+    }
 }

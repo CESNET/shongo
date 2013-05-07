@@ -67,10 +67,7 @@ public class ResourceReservationTask extends ReservationTask
         if (availableReservations.size() > 0) {
             AvailableReservation<ResourceReservation> availableReservation = availableReservations.iterator().next();
             Reservation originalReservation = availableReservation.getOriginalReservation();
-            if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                throw new TodoImplementException("reallocate resource");
-            }
-            else {
+            if (availableReservation.isExistingReservationRequired()) {
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
                 // Reuse provided reservation
@@ -79,6 +76,9 @@ public class ResourceReservationTask extends ReservationTask
                 existingReservation.setReservation(originalReservation);
                 schedulerContext.removeAvailableReservation(availableReservation);
                 return existingReservation;
+            }
+            else {
+                throw new TodoImplementException("reallocate resource");
             }
         }
 

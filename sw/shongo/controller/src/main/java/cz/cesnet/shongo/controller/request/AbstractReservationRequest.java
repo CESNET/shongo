@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
+import cz.cesnet.shongo.report.Report;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -286,10 +287,19 @@ public abstract class AbstractReservationRequest extends PersistentObject
      * @return converted {@link AbstractReservationRequest}
      *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
      */
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi()
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(boolean admin)
+    {
+        return toApi(admin ? Report.MessageType.DOMAIN_ADMIN : Report.MessageType.USER);
+    }
+
+    /**
+     * @return converted {@link AbstractReservationRequest}
+     *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
+     */
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(Report.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
-        toApi(api);
+        toApi(api, messageType);
         return api;
     }
 
@@ -323,8 +333,9 @@ public abstract class AbstractReservationRequest extends PersistentObject
 
     /**
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param messageType
      */
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
     {
         api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());

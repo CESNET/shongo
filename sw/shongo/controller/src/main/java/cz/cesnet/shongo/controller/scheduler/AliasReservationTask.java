@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
@@ -122,6 +121,56 @@ public class AliasReservationTask extends ReservationTask
         return new SchedulerReportSet.AllocatingAliasReport(technologies, aliasTypes, value);
     }
 
+    private static class AliasProviderContext
+    {
+        private AliasProviderCapability aliasProviderCapability;
+
+        private String value = null;
+
+        private List<AvailableReservation<AliasReservation>> availableAliasReservations =
+                new LinkedList<AvailableReservation<AliasReservation>>();
+
+        private boolean reallocatableAvailableAliasReservation = false;
+
+        public AliasProviderContext(AliasProviderCapability aliasProviderCapability)
+        {
+            this.aliasProviderCapability = aliasProviderCapability;
+        }
+
+        public AliasProviderCapability getAliasProviderCapability()
+        {
+            return aliasProviderCapability;
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public void setValue(String value)
+        {
+            this.value = value;
+        }
+
+        public List<AvailableReservation<AliasReservation>> getAvailableAliasReservations()
+        {
+            return availableAliasReservations;
+        }
+
+        public void addAvailableAliasReservation(AvailableReservation<AliasReservation> availableAliasReservation)
+        {
+            availableAliasReservations.add(availableAliasReservation);
+            if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                reallocatableAvailableAliasReservation = true;
+            }
+        }
+
+        public boolean hasReallocatableAvailableAliasReservation()
+        {
+            return reallocatableAvailableAliasReservation;
+        }
+    }
+
     @Override
     protected Reservation createReservation() throws SchedulerException
     {
@@ -143,8 +192,7 @@ public class AliasReservationTask extends ReservationTask
 
         // Find matching alias providers
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
-        List<AliasProviderCapability> aliasProviders = new ArrayList<AliasProviderCapability>();
-        Map<AliasProviderCapability, String> valueByAliasProvider = new HashMap<AliasProviderCapability, String>();
+        List<AliasProviderContext> aliasProviderContexts = new LinkedList<AliasProviderContext>();
         for (AliasProviderCapability aliasProvider : possibleAliasProviders) {
             // Check whether alias provider matches the criteria
             if (aliasProvider.isRestrictedToResource() && targetResource != null) {
@@ -159,110 +207,103 @@ public class AliasReservationTask extends ReservationTask
             if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
                 continue;
             }
+
+            // Initialize alias provider
+            AliasProviderContext aliasProviderContext = new AliasProviderContext(aliasProvider);
+
+            // Set value for alias provider
+            String value = this.value;
             if (value != null) {
-                String value = aliasProvider.parseValue(this.value);
-                valueByAliasProvider.put(aliasProvider, value);
+                value = aliasProvider.parseValue(value);
+                aliasProviderContext.setValue(value);
             }
-            aliasProviders.add(aliasProvider);
+
+            // Get available alias reservations for alias provider
+            for (AvailableReservation<AliasReservation> availableAliasReservation :
+                    schedulerContext.getAvailableAliasReservations(aliasProvider)) {
+                if (value != null && !availableAliasReservation.getTargetReservation().getValue().equals(value)) {
+                    continue;
+                }
+                aliasProviderContext.addAvailableAliasReservation(availableAliasReservation);
+            }
+            sortAvailableReservations(aliasProviderContext.getAvailableAliasReservations());
+
+            // Add alias provider
+            aliasProviderContexts.add(aliasProviderContext);
+
             addReport(new SchedulerReportSet.ResourceReport(aliasProvider.getResource()));
         }
-        if (aliasProviders.size() == 0) {
+        if (aliasProviderContexts.size() == 0) {
             throw new SchedulerException(getCurrentReport());
         }
         endReport();
 
-        // Build map of available alias reservation by alias provider
-        final Map<AliasProviderCapability, AvailableReservation<AliasReservation>> availableAliasByAliasProvider =
-                new HashMap<AliasProviderCapability, AvailableReservation<AliasReservation>>();
-        for (AliasProviderCapability aliasProvider : aliasProviders) {
-            Collection<AvailableReservation<AliasReservation>> availableReservations =
-                    schedulerContext.getAvailableAliasReservations(aliasProvider);
-            if (availableReservations.size() > 0) {
-                AvailableReservation<AliasReservation> availableAliasReservation = null;
-                String value = valueByAliasProvider.get(aliasProvider);
-                if (value != null) {
-                    for (AvailableReservation<AliasReservation> possibleAvailableReservation : availableReservations) {
-                        if (possibleAvailableReservation.getTargetReservation().getValue().equals(value)) {
-                            availableAliasReservation = possibleAvailableReservation;
-                            break;
-                        }
-                    }
-                }
-                else {
-                    availableAliasReservation = availableReservations.iterator().next();
-                }
-                if (availableAliasReservation != null) {
-                    availableAliasByAliasProvider.put(aliasProvider, availableAliasReservation);
-                }
-            }
-        }
-
-        // Sort alias providers, prefer the ones with provided aliases
+        // Sort alias providers
         addReport(new SchedulerReportSet.SortingResourcesReport());
-        Collections.sort(aliasProviders, new Comparator<AliasProviderCapability>()
+        Collections.sort(aliasProviderContexts, new Comparator<AliasProviderContext>()
         {
             @Override
-            public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
+            public int compare(AliasProviderContext context1, AliasProviderContext context2)
             {
-                boolean firstHasProvidedAlias = availableAliasByAliasProvider.containsKey(provider1);
-                boolean secondHasProvidedAlias = availableAliasByAliasProvider.containsKey(provider2);
-                if (firstHasProvidedAlias && !secondHasProvidedAlias) {
-                    return -1;
-                }
-                if (!firstHasProvidedAlias && secondHasProvidedAlias) {
+                // Prefer alias providers which has reallocatable available alias reservation
+                boolean firstReallocatable = context1.hasReallocatableAvailableAliasReservation();
+                boolean secondReallocatable = context1.hasReallocatableAvailableAliasReservation();
+                if (!firstReallocatable && secondReallocatable) {
                     return 1;
+                }
+
+                // If target resource for which the alias will be used is not specified,
+                if (targetResource == null) {
+                    // Prefer alias providers which doesn't restrict target resource
+                    boolean firstRestricted = context1.aliasProviderCapability.isRestrictedToResource();
+                    boolean secondRestricted = context2.aliasProviderCapability.isRestrictedToResource();
+                    if (firstRestricted && !secondRestricted) {
+                        return 1;
+                    }
                 }
                 return 0;
             }
         });
 
-        // If target resource for which the alias will be used is not specified,
-        // we should prefer alias providers which doesn't restrict target resource
-        if (targetResource == null) {
-            // Sort the alias providers in the way that the ones which restricts target resource are at the end
-            Collections.sort(aliasProviders, new Comparator<AliasProviderCapability>()
-            {
-                @Override
-                public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
-                {
-                    if (!provider1.isRestrictedToResource() && provider2.isRestrictedToResource()) {
-                        return -1;
-                    }
-                    if (provider1.isRestrictedToResource() && !provider2.isRestrictedToResource()) {
-                        return 1;
-                    }
-                    return 0;
-                }
-            });
-        }
+        // Allocate alias reservation in some matching alias provider
 
-        // Find available value in the alias providers
-        ValueReservation availableValueReservation = null;
-        AliasProviderCapability availableAliasProvider = null;
-        for (AliasProviderCapability aliasProvider : aliasProviders) {
-            beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProvider.getResource()));
+        for (AliasProviderContext aliasProviderContext : aliasProviderContexts) {
+            AliasProviderCapability aliasProviderCapability = aliasProviderContext.getAliasProviderCapability();
+            beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProviderCapability.getResource()));
 
-            // Preferably reuse provided alias reservation
-            AvailableReservation<AliasReservation> availableAliasReservation = availableAliasByAliasProvider.get(aliasProvider);
-            if (availableAliasReservation != null) {
+            // Preferably use available alias reservation
+            for (AvailableReservation<AliasReservation> availableAliasReservation :
+                    aliasProviderContext.getAvailableAliasReservations()) {
+                // Check available alias reservation
                 Reservation originalReservation = availableAliasReservation.getOriginalReservation();
-                if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                    throw new TodoImplementException("reallocate alias");
-                }
-                else {
-                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
+                // Original reservation slot must contain requested slot
+                if (!originalReservation.getSlot().contains(interval)) {
+                    // Original reservation slot doesn't contain the requested
+                    continue;
+                }
+
+                // Available reservation will be returned so remove it from context (to not be used again)
+                schedulerContext.removeAvailableReservation(availableAliasReservation);
+
+                // Return available reservation
+                if (availableAliasReservation.isExistingReservationRequired()) {
+                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
                     ExistingReservation existingReservation = new ExistingReservation();
                     existingReservation.setSlot(interval);
                     existingReservation.setReservation(originalReservation);
                     schedulerContext.removeAvailableReservation(availableAliasReservation);
                     return existingReservation;
                 }
+                else {
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
+                    return originalReservation;
+                }
             }
 
             // Check whether alias provider can be allocated
             try {
-                resourceCache.checkCapabilityAvailable(aliasProvider, schedulerContext);
+                resourceCache.checkCapabilityAvailable(aliasProviderCapability, schedulerContext);
             }
             catch (SchedulerException exception) {
                 endReportError(exception.getReport());
@@ -272,60 +313,74 @@ public class AliasReservationTask extends ReservationTask
             // Get new available value
             SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
-                String value = valueByAliasProvider.get(aliasProvider);
-                ValueReservationTask valueReservationTask =
-                        new ValueReservationTask(schedulerContext, aliasProvider.getValueProvider(), value);
-                availableValueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
+                ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext,
+                        aliasProviderCapability.getValueProvider(), aliasProviderContext.getValue());
+                ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
+
+                // Reuse available or create new alias reservation
+                AliasReservation aliasReservation = null;
+                for (AvailableReservation<AliasReservation> availableAliasReservation :
+                        aliasProviderContext.getAvailableAliasReservations()) {
+                    Reservation originalReservation = availableAliasReservation.getOriginalReservation();
+                    if (!availableAliasReservation.isModifiable()) {
+                        continue;
+                    }
+                    if (!(originalReservation instanceof AliasReservation)) {
+                        continue;
+                    }
+                    if (originalReservation.getChildReservations().size() > 0) {
+                        continue;
+                    }
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
+                    aliasReservation = (AliasReservation) originalReservation;
+                    schedulerContext.removeAvailableReservation(availableAliasReservation);
+                    break;
+                }
+                if (aliasReservation == null) {
+                    aliasReservation = new AliasReservation();
+                }
+                aliasReservation.setSlot(interval);
+                aliasReservation.setAliasProviderCapability(aliasProviderCapability);
+                aliasReservation.setValueReservation(valueReservation);
+
+                // If alias should be allocated as permanent room, create room endpoint with zero licenses
+                // (so we don't need reservation for the room).
+                // The permanent room should not be created if the alias will be used for any specified target resource.
+                if (aliasProviderCapability.isPermanentRoom() && schedulerContext.isExecutableAllowed()
+                        && targetResource == null) {
+                    Resource resource = aliasProviderCapability.getResource();
+                    RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
+                    if (roomProvider == null) {
+                        throw new RuntimeException("Permanent room should be enabled only for device resource"
+                                + " with room provider capability.");
+                    }
+                    ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+                    roomEndpoint.setSlot(interval);
+                    roomEndpoint.setRoomProviderCapability(roomProvider);
+                    roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
+                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                    Set<Technology> technologies = roomEndpoint.getTechnologies();
+                    for (Alias alias : aliasReservation.getAliases()) {
+                        if (alias.getTechnology().isCompatibleWith(technologies)) {
+                            roomEndpoint.addAssignedAlias(alias);
+                        }
+                    }
+                    aliasReservation.setExecutable(roomEndpoint);
+                }
+
+                endReport();
+                return aliasReservation;
             }
             catch (SchedulerException exception) {
                 schedulerContextSavepoint.revert();
 
                 // End allocating current alias provider and try to allocate next one
                 endReport();
-                continue;
             }
             finally {
                 schedulerContextSavepoint.destroy();
             }
-
-            availableAliasProvider = aliasProvider;
-            endReport();
-            break;
         }
-        if (availableValueReservation == null) {
-            throw new SchedulerException(getCurrentReport());
-        }
-
-        // Create new reservation
-        AliasReservation aliasReservation = new AliasReservation();
-        aliasReservation.setSlot(interval);
-        aliasReservation.setAliasProviderCapability(availableAliasProvider);
-        aliasReservation.setValueReservation(availableValueReservation);
-
-        // If alias should be allocated as permanent room, create room endpoint with zero licenses
-        // (so we don't need reservation for the room).
-        // The permanent room should not be created if the alias will be used for any specified target resource.
-        if (availableAliasProvider.isPermanentRoom() && schedulerContext.isExecutableAllowed() && targetResource == null) {
-            Resource resource = availableAliasProvider.getResource();
-            RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
-            if (roomProvider == null) {
-                throw new RuntimeException("Permanent room should be enabled only for device resource"
-                        + " with room provider capability.");
-            }
-            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-            roomEndpoint.setSlot(interval);
-            roomEndpoint.setRoomProviderCapability(roomProvider);
-            roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
-            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-            Set<Technology> technologies = roomEndpoint.getTechnologies();
-            for (Alias alias : aliasReservation.getAliases()) {
-                if (alias.getTechnology().isCompatibleWith(technologies)) {
-                    roomEndpoint.addAssignedAlias(alias);
-                }
-            }
-            aliasReservation.setExecutable(roomEndpoint);
-        }
-
-        return aliasReservation;
+        throw new SchedulerException(getCurrentReport());
     }
 }

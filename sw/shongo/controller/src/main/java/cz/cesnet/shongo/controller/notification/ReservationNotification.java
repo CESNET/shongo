@@ -55,7 +55,7 @@ public class ReservationNotification extends Notification
         AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
         try {
             if (reservationRequest != null) {
-                this.reservationRequest = reservationRequest.toApi();
+                this.reservationRequest = reservationRequest.toApi(false);
             }
             this.reservation = reservation.toApi(false);
 

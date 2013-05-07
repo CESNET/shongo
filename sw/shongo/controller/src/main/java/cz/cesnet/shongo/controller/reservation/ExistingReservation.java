@@ -45,12 +45,8 @@ public class ExistingReservation extends Reservation
 
     @Override
     @Transient
-    public Reservation getTargetReservation()
+    public Reservation getAllocationReservation()
     {
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            return existingReservation.getTargetReservation();
-        }
         return reservation;
     }
 

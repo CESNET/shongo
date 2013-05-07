@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
+import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -248,7 +249,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
@@ -256,9 +257,9 @@ public class ReservationRequestSet extends AbstractReservationRequest
             reservationRequestSetApi.addSlot(slot.toApi());
         }
         for (ReservationRequest reservationRequest : getReservationRequests()) {
-            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi());
+            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(messageType));
         }
-        super.toApi(api);
+        super.toApi(api, messageType);
     }
 
     @Override

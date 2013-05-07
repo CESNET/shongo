@@ -72,7 +72,7 @@ public class ReallocationTest extends AbstractControllerTest
         // Increase the room capacity
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
-        ((RoomSpecification)reservationRequest.getSpecification()).setParticipantCount(5);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(5);
         RoomReservation roomReservation2 = (RoomReservation) allocateAndCheck(reservationRequest);
 
         Assert.assertEquals("Reservation identifiers should be same (only the room capacity should be increased)",

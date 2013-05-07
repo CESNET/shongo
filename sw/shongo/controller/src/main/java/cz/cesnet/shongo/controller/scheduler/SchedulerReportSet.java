@@ -1244,6 +1244,45 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
+     * Reallocating reservation {@link #reservation}.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReservationReallocatingReport")
+    public static class ReservationReallocatingReport extends ReservationReport
+    {
+        public ReservationReallocatingReport()
+        {
+        }
+
+        public ReservationReallocatingReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        {
+            setReservation(reservation);
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.INFORMATION;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Reallocating reservation ");
+                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
+                    message.append(".");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
      * Reusing reservation {@link #reservation}.
      */
     @javax.persistence.Entity
@@ -2375,6 +2414,7 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ReservationReport.class);
         addReportClass(ReservationNotAvailableReport.class);
         addReportClass(ReservationNotUsableReport.class);
+        addReportClass(ReservationReallocatingReport.class);
         addReportClass(ReservationReusingReport.class);
         addReportClass(ValueAlreadyAllocatedReport.class);
         addReportClass(ValueInvalidReport.class);

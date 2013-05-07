@@ -404,7 +404,7 @@ public class ReservationServiceImpl extends Component
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
             }
 
-            return reservationRequest.toApi();
+            return reservationRequest.toApi(authorization.isAdmin(userId));
         }
         finally {
             entityManager.close();

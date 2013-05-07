@@ -278,7 +278,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return report string containing report header and all {@link #reports}
      */
     @Transient
-    public String getReportText()
+    public String getReportText(Report.MessageType messageType)
     {
         StringBuilder stringBuilder = new StringBuilder();
         for (SchedulerReport report : reports) {
@@ -286,7 +286,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
             }
-            stringBuilder.append(report.getMessageRecursive(Report.MessageType.USER));
+            stringBuilder.append(report.getMessageRecursive(messageType));
         }
         return (stringBuilder.length() > 0 ? stringBuilder.toString() : null);
     }
@@ -403,23 +403,23 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi()
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Report.MessageType messageType)
     {
-        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi();
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(messageType);
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api)
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setState(getStateAsApi());
-        reservationRequestApi.setStateReport(getReportText());
+        reservationRequestApi.setStateReport(getReportText(messageType));
         if (isReservationAllocated()) {
             reservationRequestApi.setReservationId(EntityIdentifier.formatId(getReservation()));
         }
-        super.toApi(api);
+        super.toApi(api, messageType);
     }
 
     @Override

@@ -328,11 +328,30 @@ public class Reservation extends PersistentObject implements Reportable
     }
 
     /**
-     * @return this {@link Reservation} which allocates any resources (it can be overridden, e.g., by
+     * @return {@link Reservation} which allocates any resources (recursively calls {@link #getAllocationReservation()})
+     */
+    @Transient
+    public final Reservation getTargetReservation()
+    {
+        Reservation allocationReservation = this;
+        while (true) {
+            Reservation newReservation = allocationReservation.getAllocationReservation();
+            if (newReservation == allocationReservation) {
+                break;
+            }
+            else {
+                allocationReservation = newReservation;
+            }
+        }
+        return allocationReservation;
+    }
+
+    /**
+     * @return {@link Reservation} which allocates any resources (it can be overridden, e.g., by
      *         {@link ExistingReservation} to return proper reused {@link Reservation})
      */
     @Transient
-    public Reservation getTargetReservation()
+    public Reservation getAllocationReservation()
     {
         return this;
     }

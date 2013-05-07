@@ -957,6 +957,17 @@
         </report>
 
         <report extends="reservation">
+            <id>reservation-reallocating</id>
+            <classification severity="info"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reallocating reservation ${reservation}.
+            </message>
+        </report>
+
+        <report extends="reservation">
             <id>reservation-reusing</id>
             <classification severity="info"/>
             <description>

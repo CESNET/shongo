@@ -187,10 +187,7 @@ public class RoomReservationTask extends ReservationTask
                 AvailableReservation<Reservation> availableReservation =
                         schedulerContext.getAvailableReservationByExecutable(providedRoomEndpoint);
                 Reservation originalReservation = availableReservation.getOriginalReservation();
-                if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                    throw new TodoImplementException("reallocate room");
-                }
-                else {
+                if (availableReservation.isExistingReservationRequired()) {
                     addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
                     // Reuse provided reservation which allocates the provided room
@@ -199,6 +196,9 @@ public class RoomReservationTask extends ReservationTask
                     existingReservation.setReservation(originalReservation);
                     schedulerContext.removeAvailableReservation(availableReservation);
                     return existingReservation;
+                }
+                else {
+                    throw new TodoImplementException("reallocate room");
                 }
             }
             // Else provided room doesn't have enough capacity
@@ -284,10 +284,7 @@ public class RoomReservationTask extends ReservationTask
                     AvailableReservation<Reservation> availableReservation =
                             schedulerContext.getAvailableReservationByExecutable(availableProvidedRoom);
                     Reservation originalReservation = availableReservation.getOriginalReservation();
-                    if (availableReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                        throw new TodoImplementException("reallocate room");
-                    }
-                    else {
+                    if (availableReservation.isExistingReservationRequired()) {
                         addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
 
                         // Reuse provided reservation which allocates the provided room
@@ -309,6 +306,9 @@ public class RoomReservationTask extends ReservationTask
                             usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
                             roomEndpoint = usedRoomEndpoint;
                         }
+                    }
+                    else {
+                        throw new TodoImplementException("reallocate room");
                     }
                 }
                 else {

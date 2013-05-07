@@ -89,6 +89,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Storage for reservation notifications
         List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
 
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
@@ -105,9 +106,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             // Get all reservation requests which should be allocated
-            ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
             List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
-            reservationRequests.addAll(compartmentRequestManager.listCompletedReservationRequests(interval));
+            reservationRequests.addAll(reservationRequestManager.listCompletedReservationRequests(interval));
 
             // Sort reservation requests by theirs priority, purpose and created date/time
             Collections.sort(reservationRequests, new Comparator<ReservationRequest>()
@@ -130,12 +130,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             for (ReservationRequest reservationRequest : reservationRequests) {
                 Reservation oldReservation = reservationRequest.getReservation();
                 Reservation newReservation = allocateReservationRequest(
-                        reservationRequest, referenceDateTime, entityManager);
+                        reservationRequest, referenceDateTime, entityManager, authorizationManager);
                 if (oldReservation != null && oldReservation != newReservation) {
                     notifications.add(new ReservationNotification(
                             ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
-                    // Delete the old reservation
-                    reservationManager.delete(oldReservation, authorizationManager);
                 }
                 if (newReservation != null) {
                     if (newReservation == oldReservation) {
@@ -187,7 +185,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * @param entityManager
      */
     private Reservation allocateReservationRequest(ReservationRequest reservationRequest,
-            DateTime referenceDateTime, EntityManager entityManager)
+            DateTime referenceDateTime, EntityManager entityManager, AuthorizationManager authorizationManager)
     {
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
@@ -232,7 +230,15 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             reservation = reservationTask.perform();
-            reservationManager.create(reservation);
+            if (!reservation.isPersisted()) {
+                reservationManager.create(reservation);
+            }
+
+            for (AvailableReservation availableReservation : schedulerContext.getAvailableReservations()) {
+                if (availableReservation.isDeletable()) {
+                    reservationManager.delete(availableReservation.getOriginalReservation(), authorizationManager);
+                }
+            }
 
             // Update reservation request
             reservationRequest.setReservation(reservation);

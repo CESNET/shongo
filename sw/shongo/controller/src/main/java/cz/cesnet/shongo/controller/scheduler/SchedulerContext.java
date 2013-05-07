@@ -65,6 +65,12 @@ public class SchedulerContext
     private Set<AvailableReservation> availableReservations = new HashSet<AvailableReservation>();
 
     /**
+     * Map of {@link AvailableReservation}s by {@link AvailableReservation#originalReservation}s.
+     */
+    private Map<Reservation, AvailableReservation<? extends Reservation>> availableReservationByOriginalReservation =
+            new HashMap<Reservation, AvailableReservation<? extends Reservation>>();
+
+    /**
      * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s.
      */
     private ReservationTransaction<ResourceReservation> resourceReservationTransaction =
@@ -444,6 +450,8 @@ public class SchedulerContext
         Reservation originalReservation = availableReservation.getOriginalReservation();
         Reservation targetReservation = availableReservation.getTargetReservation();
         AvailableReservation.Type type = availableReservation.getType();
+        availableReservationByOriginalReservation.put(originalReservation, availableReservation);
+
         Executable executable = targetReservation.getExecutable();
         if (executable != null) {
             if (!availableReservationByExecutable.containsKey(executable)) {
@@ -496,6 +504,9 @@ public class SchedulerContext
         onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.REMOVED);
 
         Reservation targetReservation = availableReservation.getTargetReservation();
+        Reservation originalReservation = availableReservation.getOriginalReservation();
+        availableReservationByOriginalReservation.remove(originalReservation);
+
         Executable executable = targetReservation.getExecutable();
         if (executable != null) {
             availableReservationByExecutable.remove(executable);
@@ -524,6 +535,30 @@ public class SchedulerContext
             if (availableReservations != null) {
                 availableReservations.remove(availableReservation.cast(AliasReservation.class));
             }
+        }
+
+        // Remove all parent reservations
+        Reservation parentReservation = originalReservation.getParentReservation();
+        if (parentReservation != null) {
+            if (availableReservation.isModifiable()) {
+                originalReservation.setParentReservation(null);
+            }
+            else {
+                AvailableReservation<? extends Reservation> parentAvailableReservation =
+                        availableReservationByOriginalReservation.get(parentReservation);
+                if (parentAvailableReservation != null) {
+                    removeAvailableReservation(parentAvailableReservation);
+                }
+            }
+        }
+        // Remove all child reservations
+        for (Reservation childReservation : originalReservation.getChildReservations()) {
+            AvailableReservation<? extends Reservation> childAvailableReservation =
+                    availableReservationByOriginalReservation.get(childReservation);
+            if (childAvailableReservation == null) {
+                throw new RuntimeException("Child reservation should be available.");
+            }
+            removeAvailableReservation(childAvailableReservation);
         }
     }
 

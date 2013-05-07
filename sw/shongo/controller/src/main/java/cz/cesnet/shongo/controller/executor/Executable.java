@@ -381,7 +381,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     public final cz.cesnet.shongo.controller.api.Executable toApi(boolean admin)
     {
-        return (toApi(admin ? Report.MessageType.DOMAIN_ADMIN : Report.MessageType.USER));
+        return toApi(admin ? Report.MessageType.DOMAIN_ADMIN : Report.MessageType.USER);
     }
 
     /**
