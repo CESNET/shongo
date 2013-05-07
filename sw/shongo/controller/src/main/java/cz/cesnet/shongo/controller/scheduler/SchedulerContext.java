@@ -10,7 +10,6 @@ import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.joda.time.DateTime;
@@ -497,6 +496,17 @@ public class SchedulerContext
      */
     public void removeAvailableReservation(AvailableReservation<? extends Reservation> availableReservation)
     {
+        removeAvailableReservation(availableReservation, true, true);
+    }
+
+    /**
+     * @param availableReservation to be removed from the {@link SchedulerContext}
+     * @param removeParent         specifies whether parent {@code availableReservation} should be removed
+     * @param removeChildren       specifies whether child {@code availableReservation} should be removed
+     */
+    private void removeAvailableReservation(AvailableReservation<? extends Reservation> availableReservation,
+            boolean removeParent, boolean removeChildren)
+    {
         if (!availableReservations.remove(availableReservation)) {
             // Reservation is not added to the context
             return;
@@ -537,28 +547,35 @@ public class SchedulerContext
             }
         }
 
-        // Remove all parent reservations
-        Reservation parentReservation = originalReservation.getParentReservation();
-        if (parentReservation != null) {
-            if (availableReservation.isModifiable()) {
-                originalReservation.setParentReservation(null);
-            }
-            else {
-                AvailableReservation<? extends Reservation> parentAvailableReservation =
-                        availableReservationByOriginalReservation.get(parentReservation);
-                if (parentAvailableReservation != null) {
-                    removeAvailableReservation(parentAvailableReservation);
+        // Remove all reservations (recursive)
+        if (removeParent) {
+            Reservation parentReservation = originalReservation.getParentReservation();
+            if (parentReservation != null) {
+                if (availableReservation.isModifiable()) {
+                    originalReservation.setParentReservation(null);
+                }
+                else {
+                    AvailableReservation<? extends Reservation> parentAvailableReservation =
+                            availableReservationByOriginalReservation.get(parentReservation);
+                    if (parentAvailableReservation != null) {
+                        removeAvailableReservation(parentAvailableReservation, true, false);
+                    }
                 }
             }
         }
-        // Remove all child reservations
-        for (Reservation childReservation : originalReservation.getChildReservations()) {
-            AvailableReservation<? extends Reservation> childAvailableReservation =
-                    availableReservationByOriginalReservation.get(childReservation);
-            if (childAvailableReservation == null) {
-                throw new RuntimeException("Child reservation should be available.");
+
+        // Remove child reservations (recursive)
+        if (removeChildren) {
+            List<Reservation> childReservations = new LinkedList<Reservation>(
+                    originalReservation.getChildReservations());
+            for (Reservation childReservation : childReservations) {
+                AvailableReservation<? extends Reservation> childAvailableReservation =
+                        availableReservationByOriginalReservation.get(childReservation);
+                if (childAvailableReservation == null) {
+                    throw new RuntimeException("Child reservation should be available.");
+                }
+                removeAvailableReservation(childAvailableReservation, false, true);
             }
-            removeAvailableReservation(childAvailableReservation);
         }
     }
 
@@ -748,7 +765,7 @@ public class SchedulerContext
                                     (AvailableReservation<Reservation>) object;
                             ObjectState objectState = objectTypeChanges.get(object);
                             if (objectState == ObjectState.ADDED) {
-                                removeAvailableReservation(availableReservation);
+                                removeAvailableReservation(availableReservation, false, false);
                             }
                             else {
                                 addAvailableReservation(availableReservation);
