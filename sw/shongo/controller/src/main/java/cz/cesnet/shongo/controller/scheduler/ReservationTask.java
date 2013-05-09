@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
@@ -107,7 +107,7 @@ public abstract class ReservationTask
     private Reservation performChildReservationTask(ReservationTask reservationTask) throws SchedulerException
     {
         try {
-            Reservation reservation = reservationTask.perform();
+            Reservation reservation = reservationTask.perform(null);
             addReports(reservationTask);
             return reservation;
         }
@@ -284,17 +284,26 @@ public abstract class ReservationTask
     /**
      * Perform the {@link ReservationTask}.
      *
+     * @param allocatedReservation null or already allocated {@link Reservation} which should be reallocated
      * @return created {@link Reservation}
      * @throws SchedulerException when the {@link ReservationTask} failed
      */
-    public final Reservation perform() throws SchedulerException
+    public final Reservation perform(Reservation allocatedReservation) throws SchedulerException
     {
+        AvailableReservation<? extends Reservation> allocatedAvailableReservation = null;
+        if (allocatedReservation != null) {
+            allocatedAvailableReservation = schedulerContext.getAvailableReservation(allocatedReservation);
+            if (allocatedAvailableReservation == null) {
+                throw new IllegalArgumentException("Allocated reservation is not available.");
+            }
+        }
+
         Reservation reservation = null;
         SchedulerReport mainReport = createMainReport();
         if (mainReport != null) {
             beginReport(mainReport);
             try {
-                reservation = createReservation();
+                reservation = allocateReservation(allocatedReservation);
                 validateReservation(reservation);
             }
             catch (SchedulerException exception) {
@@ -312,7 +321,11 @@ public abstract class ReservationTask
             }
         }
         else {
-            reservation = createReservation();
+            reservation = allocateReservation(allocatedReservation);
+            validateReservation(reservation);
+        }
+        if (allocatedAvailableReservation != null && reservation.equals(allocatedReservation)) {
+            schedulerContext.removeAvailableReservation(allocatedAvailableReservation);
         }
 
         // Add child reservations
@@ -327,21 +340,11 @@ public abstract class ReservationTask
     }
 
     /**
-     * Perform the {@link ReservationTask}.
-     *
-     * @return created {@link Reservation}
-     * @throws SchedulerException when the {@link ReservationTask} failed
-     */
-    public final <R> R perform(Class<R> reservationClass) throws SchedulerException
-    {
-        return reservationClass.cast(perform());
-    }
-
-    /**
+     * @param allocatedReservation
      * @return created {@link Reservation}
      * @throws SchedulerException when the {@link Reservation} cannot be created
      */
-    protected abstract Reservation createReservation() throws SchedulerException;
+    protected abstract Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException;
 
     /**
      * @param type to be validated
@@ -379,26 +382,34 @@ public abstract class ReservationTask
         }
     }
 
-
+    /**
+     * @param availableReservations to be sorted
+     * @param allocatedReservation which should be first (has the highest priority)
+     */
     protected <T extends Reservation> void sortAvailableReservations(
-            List<AvailableReservation<T>> availableReservations)
+            final List<AvailableReservation<T>> availableReservations, final Reservation allocatedReservation)
     {
         final Interval interval = getInterval();
         Collections.sort(availableReservations, new Comparator<AvailableReservation>()
         {
             @Override
-            public int compare(AvailableReservation reservation1, AvailableReservation reservation2)
+            public int compare(AvailableReservation first, AvailableReservation second)
             {
+                // Prefer allocatedReservation
+                if (allocatedReservation != null && second.getOriginalReservation().equals(allocatedReservation)) {
+                    return 1;
+                }
+
                 // Prefer reservations for the whole interval
-                boolean firstContainsInterval = reservation1.getOriginalReservation().getSlot().contains(interval);
-                boolean secondContainsInterval = reservation2.getOriginalReservation().getSlot().contains(interval);
+                boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(interval);
+                boolean secondContainsInterval = second.getOriginalReservation().getSlot().contains(interval);
                 if (secondContainsInterval && !firstContainsInterval) {
                     return 1;
                 }
 
                 // Prefer reallocatable reservations
-                boolean firstReallocatable = reservation1.getType().equals(AvailableReservation.Type.REALLOCATABLE);
-                boolean secondReallocatable = reservation2.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+                boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+                boolean secondReallocatable = second.getType().equals(AvailableReservation.Type.REALLOCATABLE);
                 if (secondReallocatable && !firstReallocatable) {
                     return 1;
                 }

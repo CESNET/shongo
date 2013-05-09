@@ -46,7 +46,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
 
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setCache(new Cache());
@@ -134,7 +134,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         preprocessor.setAuthorization(new DummyAuthorization(getEntityManagerFactory()));
         preprocessor.init();
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
@@ -187,7 +187,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         List<ReservationRequest> reservationRequests = null;
         CompartmentSpecification createdCompartmentSpecification = null;
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // -------------------------------

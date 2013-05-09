@@ -267,7 +267,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runPreprocessor(Interval interval)
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         preprocessor.run(interval, entityManager);
         entityManager.close();
     }
@@ -279,7 +279,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runScheduler(Interval interval)
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         scheduler.run(interval, entityManager);
         entityManager.close();
     }
@@ -289,7 +289,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void runAuthorizationPropagation()
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         authorizationManager.propagate(authorization);
         entityManager.close();
@@ -427,23 +427,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Reallocate given {@link AbstractReservationRequest} with given {@code reservationRequestId}.
-     *
-     * @param reservationRequestId to be allocated
-     * @throws Exception
-     */
-    public void reallocate(String reservationRequestId) throws Exception
-    {
-        AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(
-                SECURITY_TOKEN_ROOT, reservationRequestId);
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN_ROOT, reservationRequest);
-        if (reservationRequest instanceof ReservationRequestSet) {
-            runPreprocessor();
-        }
-        runScheduler();
-    }
-
-    /**
      * Allocate given {@code reservationRequest} and call {@link #checkAllocated(String)}.
      *
      * @param reservationRequest to be allocated and checked
@@ -467,6 +450,23 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         String reservationRequestId = allocate(reservationRequest);
         checkAllocationFailed(reservationRequestId);
+    }
+
+    /**
+     * Reallocate given {@link AbstractReservationRequest} with given {@code reservationRequestId}.
+     *
+     * @param reservationRequestId to be allocated
+     * @throws Exception
+     */
+    public void reallocate(String reservationRequestId) throws Exception
+    {
+        AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(
+                SECURITY_TOKEN_ROOT, reservationRequestId);
+        getReservationService().modifyReservationRequest(SECURITY_TOKEN_ROOT, reservationRequest);
+        if (reservationRequest instanceof ReservationRequestSet) {
+            runPreprocessor();
+        }
+        runScheduler();
     }
 
     /**

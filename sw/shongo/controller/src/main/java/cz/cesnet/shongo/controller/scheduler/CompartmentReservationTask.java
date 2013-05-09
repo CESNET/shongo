@@ -464,7 +464,7 @@ public class CompartmentReservationTask extends ReservationTask
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
             roomReservationTask.addTechnologyVariant(technologies);
         }
-        Reservation reservation = roomReservationTask.perform();
+        Reservation reservation = roomReservationTask.perform(null);
         addReports(roomReservationTask);
         RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
         for (Endpoint endpoint : compartment.getEndpoints()) {
@@ -511,7 +511,7 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
         if (!getSchedulerContext().isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");

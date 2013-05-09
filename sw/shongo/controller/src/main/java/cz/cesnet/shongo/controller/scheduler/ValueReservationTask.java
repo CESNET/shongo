@@ -53,7 +53,7 @@ public class ValueReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
         validateReservationSlot(ValueReservation.class);
 
@@ -81,7 +81,7 @@ public class ValueReservationTask extends ReservationTask
         List<AvailableReservation<ValueReservation>> availableValueReservations =
                 new LinkedList<AvailableReservation<ValueReservation>>();
         availableValueReservations.addAll(schedulerContext.getAvailableValueReservations(targetValueProvider));
-        sortAvailableReservations(availableValueReservations);
+        sortAvailableReservations(availableValueReservations, allocatedReservation);
 
         // Find matching available value reservation
         for (AvailableReservation<ValueReservation> availableValueReservation : availableValueReservations) {
@@ -118,12 +118,12 @@ public class ValueReservationTask extends ReservationTask
                 else {
                     // Check allocation reservation
                     Reservation allocationReservation = originalReservation.getAllocationReservation();
-                    if (!schedulerContext.isReservationAvailable(allocationReservation)) {
-                        // Allocation reservation is not available for the whole requested slot (another existing reservation reuse it)
-                        continue;
-                    }
                     if (!allocationReservation.getSlot().contains(interval)) {
                         // Allocation reservation slot doesn't contain the requested (allocation reservation can never be extended)
+                        continue;
+                    }
+                    if (!schedulerContext.isReservationAvailable(allocationReservation)) {
+                        // Allocation reservation is not available for the whole requested slot (another existing reservation reuse it)
                         continue;
                     }
                 }
@@ -150,7 +150,7 @@ public class ValueReservationTask extends ReservationTask
             }
         }
 
-        // Allocate new reservation
+        // Allocate value reservation
         try {
             // Get new available value for allocation
             String availableValue;
@@ -161,13 +161,19 @@ public class ValueReservationTask extends ReservationTask
                 availableValue = valueProvider.generateValue(usedValues);
             }
 
-            // Allocate new value reservation
             ValueReservation valueReservation;
-            if (valueProvider instanceof FilteredValueProvider) {
-                valueReservation = new FilteredValueReservation(requestedValue);
+            if (allocatedReservation != null && allocatedReservation instanceof ValueReservation) {
+                // Reallocate existing value reservation
+                valueReservation = (ValueReservation) allocatedReservation;
             }
             else {
-                valueReservation = new ValueReservation();
+                // Create new value reservation
+                if (valueProvider instanceof FilteredValueProvider) {
+                    valueReservation = new FilteredValueReservation(requestedValue);
+                }
+                else {
+                    valueReservation = new ValueReservation();
+                }
             }
             valueReservation.setSlot(interval);
             valueReservation.setValueProvider(targetValueProvider);

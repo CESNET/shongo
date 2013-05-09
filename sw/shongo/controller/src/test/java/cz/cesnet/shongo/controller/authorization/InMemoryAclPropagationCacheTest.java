@@ -39,7 +39,7 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
         String user1Id = "1";
         String user2Id = "2";
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
 
         entityManager.getTransaction().begin();
 
@@ -77,7 +77,7 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
     {
         String userId = "1";
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
 
         entityManager.getTransaction().begin();
 
@@ -114,7 +114,7 @@ public class InMemoryAclPropagationCacheTest extends AbstractDatabaseTest
     {
         String userId = "1";
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
 
         entityManager.getTransaction().begin();
 

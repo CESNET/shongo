@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 
@@ -150,12 +150,27 @@ public abstract class Specification extends PersistentObject implements Reportab
     public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
             EntityManager entityManager)
     {
-        Specification specification = null;
-        if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
-            specification = new MultiCompartmentSpecification();
+        Specification specification;
+        if (api instanceof cz.cesnet.shongo.controller.api.ValueSpecification) {
+            specification = new ValueSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
+            specification = new AliasSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSetSpecification) {
+            specification = new AliasSetSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
+            specification = new ResourceSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
+            specification = new RoomSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
             specification = new CompartmentSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
+            specification = new MultiCompartmentSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) {
             specification = new ExistingEndpointSpecification();
@@ -171,18 +186,6 @@ public abstract class Specification extends PersistentObject implements Reportab
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.PersonSpecification) {
             specification = new PersonSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
-            specification = new AliasSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSetSpecification) {
-            specification = new AliasSetSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
-            specification = new ResourceSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
-            specification = new RoomSpecification();
         }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());

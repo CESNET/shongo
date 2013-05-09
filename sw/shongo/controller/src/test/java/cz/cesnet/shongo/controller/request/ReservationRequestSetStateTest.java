@@ -20,7 +20,7 @@ public class ReservationRequestSetStateTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         entityManager.getTransaction().begin();
 
         // Create reservation request set and manager that will manage it's states

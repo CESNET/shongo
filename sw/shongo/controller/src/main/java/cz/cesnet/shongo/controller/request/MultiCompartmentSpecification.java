@@ -126,7 +126,7 @@ public class MultiCompartmentSpecification extends Specification
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation createReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
             {
                 Reservation multiCompartmentReservation = new Reservation();
                 multiCompartmentReservation.setSlot(getInterval());

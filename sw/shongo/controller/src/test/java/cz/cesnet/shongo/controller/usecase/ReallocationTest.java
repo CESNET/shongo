@@ -18,12 +18,93 @@ import org.junit.Test;
 public class ReallocationTest extends AbstractControllerTest
 {
     @Test
-    public void testExtendAlias() throws Exception
+    public void testValueModification() throws Exception
+    {
+        Resource valueProvider = new Resource();
+        valueProvider.setName("valueProvider");
+        valueProvider.setAllocatable(true);
+        valueProvider.addCapability(new ValueProviderCapability("{number:0:100}").withAllowedAnyRequestedValue());
+        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+
+        // Allocate value
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2014-01-01T00:00", "2014-06-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ValueSpecification(valueProviderId, "1"));
+        String reservationRequestId = allocate(reservationRequest);
+        ValueReservation valueReservation1 = (ValueReservation) checkAllocated(reservationRequestId);
+
+        Assert.assertEquals("Value should be allocated.", "1", valueReservation1.getValue());
+
+        // Modify allocated value
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest.setSpecification(new ValueSpecification(valueProviderId, "2"));
+        ValueReservation valueReservation2 = (ValueReservation) allocateAndCheck(reservationRequest);
+
+        Assert.assertEquals("The same (only modified) reservation should be allocated.",
+                valueReservation1.getId(), valueReservation2.getId());
+        Assert.assertEquals("Modified value should be allocated.", "2", valueReservation2.getValue());
+    }
+
+    @Test
+    public void testValueExtension() throws Exception
+    {
+        Resource valueProvider = new Resource();
+        valueProvider.setName("valueProvider");
+        valueProvider.setAllocatable(true);
+        valueProvider.addCapability(new ValueProviderCapability("{number:0:100}").withAllowedAnyRequestedValue());
+        String valueProviderId = getResourceService().createResource(SECURITY_TOKEN, valueProvider);
+
+        // Allocate a value (#1)
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot("2014-01-01T00:00", "2014-06-01T00:00");
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(new ValueSpecification(valueProviderId));
+        String reservationRequest1Id = allocate(reservationRequest1);
+        ValueReservation valueReservation1 = (ValueReservation) checkAllocated(reservationRequest1Id);
+
+        Assert.assertEquals("First number from range should be allocated.", "0", valueReservation1.getValue());
+
+        // Allocate same value (#2) before
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot("2013-01-01T00:00", "2013-06-01T00:00");
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new ValueSpecification(valueProviderId));
+        String reservationRequest2Id = allocate(reservationRequest2);
+        ValueReservation valueReservation2_1 = (ValueReservation) checkAllocated(reservationRequest2Id);
+
+        Assert.assertEquals("Same number should be allocated.", "0", valueReservation2_1.getValue());
+
+        // Extend #2 to not intersect #1
+        reservationRequest2 = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequest2Id);
+        reservationRequest2.setSlot("2013-01-01T00:00", "2014-01-01T00:00");
+        ValueReservation valueReservation2_2 = (ValueReservation) allocateAndCheck(reservationRequest2);
+
+        Assert.assertEquals("The same (only modified) reservation should be allocated.",
+                valueReservation2_1.getId(), valueReservation2_2.getId());
+        Assert.assertEquals("Value should not be changed.",
+                valueReservation2_1.getValue(), valueReservation2_2.getValue());
+
+        // Extend #2 to intersect #1
+        reservationRequest2 = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequest2Id);
+        reservationRequest2.setSlot("2013-01-01T00:00", "2014-06-01T00:00");
+        ValueReservation valueReservation2_3 = (ValueReservation) allocateAndCheck(reservationRequest2);
+
+        Assert.assertEquals("The same (only modified) reservation should be allocated.",
+                valueReservation2_1.getId(), valueReservation2_2.getId());
+        Assert.assertEquals("Second number from range should be allocated.", "1", valueReservation2_3.getValue());
+    }
+
+    @Test
+    public void testAliasExtension() throws Exception
     {
         Resource aliasProvider = new Resource();
-        aliasProvider.setMaximumFuture(Period.parse("P1Y"));
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
+        aliasProvider.setMaximumFuture(Period.parse("P1Y"));
         aliasProvider.addCapability(new AliasProviderCapability("test", AliasType.ROOM_NAME));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
@@ -52,7 +133,7 @@ public class ReallocationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testIncreaseRoomCapacity() throws Exception
+    public void testRoomCapacityIncrease() throws Exception
     {
         DeviceResource multipoint = new DeviceResource();
         multipoint.setName("multipoint");

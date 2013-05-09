@@ -77,10 +77,10 @@ public class ResourceSpecification extends Specification implements ReservationT
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation createReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
             {
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getSchedulerContext(), resource);
-                Reservation reservation = resourceReservationTask.perform();
+                Reservation reservation = resourceReservationTask.perform(null);
                 addReports(resourceReservationTask);
                 return reservation;
             }

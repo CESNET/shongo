@@ -130,6 +130,8 @@ public class AliasReservationTask extends ReservationTask
         private List<AvailableReservation<AliasReservation>> availableAliasReservations =
                 new LinkedList<AvailableReservation<AliasReservation>>();
 
+        private boolean allocated = false;
+
         private boolean reallocatableAvailableAliasReservation = false;
 
         public AliasProviderContext(AliasProviderCapability aliasProviderCapability)
@@ -165,6 +167,16 @@ public class AliasReservationTask extends ReservationTask
             }
         }
 
+        private boolean isAllocated()
+        {
+            return allocated;
+        }
+
+        private void setAllocated(boolean allocated)
+        {
+            this.allocated = allocated;
+        }
+
         public boolean hasReallocatableAvailableAliasReservation()
         {
             return reallocatableAvailableAliasReservation;
@@ -172,7 +184,7 @@ public class AliasReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
         SchedulerContext schedulerContext = getSchedulerContext();
         Interval interval = getInterval();
@@ -224,9 +236,14 @@ public class AliasReservationTask extends ReservationTask
                 if (value != null && !availableAliasReservation.getTargetReservation().getValue().equals(value)) {
                     continue;
                 }
+                if (allocatedReservation != null) {
+                    if (availableAliasReservation.getOriginalReservation().equals(allocatedReservation)) {
+                        aliasProviderContext.setAllocated(true);
+                    }
+                }
                 aliasProviderContext.addAvailableAliasReservation(availableAliasReservation);
             }
-            sortAvailableReservations(aliasProviderContext.getAvailableAliasReservations());
+            sortAvailableReservations(aliasProviderContext.getAvailableAliasReservations(), allocatedReservation);
 
             // Add alias provider
             aliasProviderContexts.add(aliasProviderContext);
@@ -243,11 +260,16 @@ public class AliasReservationTask extends ReservationTask
         Collections.sort(aliasProviderContexts, new Comparator<AliasProviderContext>()
         {
             @Override
-            public int compare(AliasProviderContext context1, AliasProviderContext context2)
+            public int compare(AliasProviderContext first, AliasProviderContext second)
             {
+                // Prefer alias provider which is already allocated by allocatedReservation
+                if (second.isAllocated()) {
+                    return 1;
+                }
+
                 // Prefer alias providers which has reallocatable available alias reservation
-                boolean firstReallocatable = context1.hasReallocatableAvailableAliasReservation();
-                boolean secondReallocatable = context1.hasReallocatableAvailableAliasReservation();
+                boolean firstReallocatable = first.hasReallocatableAvailableAliasReservation();
+                boolean secondReallocatable = second.hasReallocatableAvailableAliasReservation();
                 if (!firstReallocatable && secondReallocatable) {
                     return 1;
                 }
@@ -255,8 +277,8 @@ public class AliasReservationTask extends ReservationTask
                 // If target resource for which the alias will be used is not specified,
                 if (targetResource == null) {
                     // Prefer alias providers which doesn't restrict target resource
-                    boolean firstRestricted = context1.aliasProviderCapability.isRestrictedToResource();
-                    boolean secondRestricted = context2.aliasProviderCapability.isRestrictedToResource();
+                    boolean firstRestricted = first.aliasProviderCapability.isRestrictedToResource();
+                    boolean secondRestricted = second.aliasProviderCapability.isRestrictedToResource();
                     if (firstRestricted && !secondRestricted) {
                         return 1;
                     }

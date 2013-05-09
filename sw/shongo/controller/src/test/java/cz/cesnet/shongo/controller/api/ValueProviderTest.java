@@ -97,7 +97,7 @@ public class ValueProviderTest extends AbstractControllerTest
      */
     private int getAliasProviderCount()
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         long result = (Long) entityManager.createQuery("SELECT count(valueProvider) FROM ValueProvider valueProvider")
                 .getSingleResult();
         entityManager.close();

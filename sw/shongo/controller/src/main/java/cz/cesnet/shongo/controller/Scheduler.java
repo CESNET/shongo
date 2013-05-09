@@ -229,7 +229,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
             }
 
-            reservation = reservationTask.perform();
+            // (Re)allocate reservation
+            reservation = reservationTask.perform(reservation);
             if (!reservation.isPersisted()) {
                 reservationManager.create(reservation);
             }

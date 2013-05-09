@@ -291,6 +291,15 @@ public class SchedulerContext
     }
 
     /**
+     * @param originalReservation for which the {@link AvailableReservation} should be returned
+     * @return {@link #availableReservations} for given {@code originalReservation}
+     */
+    public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
+    {
+        return availableReservationByOriginalReservation.get(originalReservation);
+    }
+
+    /**
      * @param executableType
      * @return collection of available {@link Executable}s of given {@code executableType}
      */

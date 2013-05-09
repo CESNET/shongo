@@ -38,7 +38,7 @@ public abstract class AbstractDatabaseTest
     /**
      * @return entity manager
      */
-    protected EntityManager getEntityManager()
+    protected EntityManager createEntityManager()
     {
         return entityManagerFactory.createEntityManager();
     }

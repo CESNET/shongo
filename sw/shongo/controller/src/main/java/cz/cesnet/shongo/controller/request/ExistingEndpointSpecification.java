@@ -88,7 +88,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation createReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
             {
                 if (!(resource instanceof DeviceResource) || !((DeviceResource) resource).isTerminal()) {
                     // Requested resource is not endpoint
@@ -96,7 +96,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 }
 
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getSchedulerContext(), resource);
-                Reservation reservation = resourceReservationTask.perform();
+                Reservation reservation = resourceReservationTask.perform(null);
                 addReports(resourceReservationTask);
                 return reservation;
             }

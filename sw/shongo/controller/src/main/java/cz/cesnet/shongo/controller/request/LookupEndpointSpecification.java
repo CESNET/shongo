@@ -49,7 +49,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation createReservation() throws SchedulerException
+            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
             {
                 ResourceCache resourceCache = getCache().getResourceCache();
 
@@ -80,7 +80,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                 if (deviceResource != null) {
                     // Create reservation for the device resource
                     ResourceReservationTask task = new ResourceReservationTask(getSchedulerContext(), deviceResource);
-                    Reservation reservation = task.perform();
+                    Reservation reservation = task.perform(null);
                     addReports(task);
                     return reservation;
                 }

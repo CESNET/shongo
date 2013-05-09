@@ -122,7 +122,7 @@ public class RoomReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
         SchedulerContext schedulerContext = getSchedulerContext();
         Cache cache = getCache();

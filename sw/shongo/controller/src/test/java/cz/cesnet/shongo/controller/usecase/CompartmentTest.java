@@ -183,7 +183,7 @@ public class CompartmentTest extends AbstractControllerTest
 
         runScheduler();
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = createEntityManager();
         List<cz.cesnet.shongo.controller.executor.Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable",
                 cz.cesnet.shongo.controller.executor.Executable.class).getResultList();

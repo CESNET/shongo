@@ -1,13 +1,13 @@
-package cz.cesnet.shongo.controller.request;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -22,28 +22,12 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Test for processing {@link ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
+ * Test for processing {@link cz.cesnet.shongo.controller.request.ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSetTest extends AbstractDatabaseTest
+public class ReservationRequestSetTest extends AbstractSchedulerTest
 {
-    @Override
-    public void before() throws Exception
-    {
-        super.before();
-
-        Domain.setLocalDomain(new Domain("cz.cesnet"));
-    }
-
-    @Override
-    public void after() throws Exception
-    {
-        Domain.setLocalDomain(null);
-
-        super.after();
-    }
-
     @Test
     public void test() throws Exception
     {
@@ -53,8 +37,6 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         Preprocessor preprocessor = null;
         // Scheduler
         Scheduler scheduler = null;
-        // Cache
-        Cache cache = null;
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
         Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
@@ -70,41 +52,31 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Setup cache
         // ------------
         {
-            cache = new Cache();
-            cache.setEntityManagerFactory(getEntityManagerFactory());
-            cache.init();
-
             authorization = new DummyAuthorization(getEntityManagerFactory());
 
             preprocessor = new Preprocessor();
-            preprocessor.setCache(cache);
+            preprocessor.setCache(getCache());
             preprocessor.setAuthorization(authorization);
             preprocessor.init();
 
             scheduler = new Scheduler();
-            scheduler.setCache(cache);
+            scheduler.setCache(getCache());
             scheduler.setAuthorization(authorization);
             scheduler.init();
 
-            EntityManager entityManager = getEntityManager();
-
             DeviceResource deviceResource = new DeviceResource();
-            deviceResource.setUserId(Authorization.ROOT_USER_ID);
-            deviceResource.setName("MCU");
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new RoomProviderCapability(100));
             deviceResource.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
             deviceResource.setAllocatable(true);
-            cache.addResource(deviceResource, entityManager);
-
-            entityManager.close();
+            createResource(deviceResource);
         }
 
         // ---------------------------
         // Create reservation request
         // ---------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
             entityManager.getTransaction().begin();
 
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
@@ -141,7 +113,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Create compartment request(s) from reservation request(s)
         // ----------------------------------------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             Assert.assertNotNull("The reservation request set should be stored in database",
@@ -166,7 +138,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Persons accepts or rejects the invitation
         // ------------------------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
             entityManager.getTransaction().begin();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -199,7 +171,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
 
             scheduler.run(interval, entityManager);
 
@@ -221,7 +193,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Modify compartment request
         // ---------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -273,7 +245,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Delete reservation request
         // ---------------------------
         {
-            EntityManager entityManager = getEntityManager();
+            EntityManager entityManager = createEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
@@ -292,13 +264,6 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             scheduler.run(interval, entityManager);
 
             entityManager.close();
-        }
-
-        // ------------------------
-        // Clean-up
-        // ------------------------
-        {
-            cache.destroy();
         }
     }
 }

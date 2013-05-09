@@ -56,7 +56,7 @@ public class AliasSetReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation createReservation() throws SchedulerException
+    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
         validateReservationSlot(AliasReservation.class);
 
@@ -74,7 +74,7 @@ public class AliasSetReservationTask extends ReservationTask
             }
 
             // Allocate missing alias
-            Reservation reservation = aliasReservationTask.perform();
+            Reservation reservation = aliasReservationTask.perform(null);
             addReports(aliasReservationTask);
             createdReservations.add(reservation);
             AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
