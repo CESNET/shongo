@@ -338,6 +338,7 @@ public class AliasReservationTask extends ReservationTask
                         aliasProviderCapability.getValueProvider(), aliasProviderContext.getValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
+                // Allocate reservation
                 AliasReservation aliasReservation;
                 if (allocatedReservation != null && allocatedReservation instanceof AliasReservation) {
                     // Reallocate existing alias reservation
@@ -346,27 +347,13 @@ public class AliasReservationTask extends ReservationTask
                     aliasReservation.clearChildReservations();
                 }
                 else {
-                    aliasReservation = null;
                     // Find empty available alias reservation (without child reservations)
-                    for (AvailableReservation<AliasReservation> availableAliasReservation :
-                            aliasProviderContext.getAvailableAliasReservations()) {
-                        Reservation originalReservation = availableAliasReservation.getOriginalReservation();
-                        if (!availableAliasReservation.isModifiable()) {
-                            continue;
-                        }
-                        if (!(originalReservation instanceof AliasReservation)) {
-                            continue;
-                        }
-                        if (originalReservation.getChildReservations().size() > 0) {
-                            continue;
-                        }
-                        addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                        aliasReservation = (AliasReservation) originalReservation;
-                        schedulerContext.removeAvailableReservation(availableAliasReservation);
-                        break;
+                    aliasReservation = popEmptyAvailableReservation(AliasReservation.class);
+                    if (aliasReservation != null) {
+                        addReport(new SchedulerReportSet.ReservationReallocatingReport(aliasReservation));
                     }
                     // Else create new alias reservation
-                    if (aliasReservation == null) {
+                    else {
                         aliasReservation = new AliasReservation();
                     }
                 }

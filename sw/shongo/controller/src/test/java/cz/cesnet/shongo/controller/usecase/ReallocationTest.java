@@ -280,7 +280,7 @@ public class ReallocationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testRoomCapacityIncrease() throws Exception
+    public void testRoomModification() throws Exception
     {
         DeviceResource multipoint = new DeviceResource();
         multipoint.setName("multipoint");
@@ -305,6 +305,18 @@ public class ReallocationTest extends AbstractControllerTest
 
         Assert.assertEquals("Reservation identifiers should be same (only the room capacity should be increased)",
                 roomReservation1.getId(), roomReservation2.getId());
+    }
+
+    @Test
+    public void testRoomExtension() throws Exception
+    {
+        // TODO:
+    }
+
+    @Test
+    public void testAliasRoomCapacityExtension() throws Exception
+    {
+        // TODO:
     }
 
     @Test
@@ -343,7 +355,9 @@ public class ReallocationTest extends AbstractControllerTest
         roomReservation = (RoomReservation) getReservationService().getReservation(
                 SECURITY_TOKEN, roomReservationRequestId);
 
-        Assert.assertEquals(multipoint1Id, maintenanceReservation.getResourceId());
-        Assert.assertEquals(multipoint2Id, roomReservation.getResourceId());
+        Assert.assertEquals("Maintenance reservation should be allocated.",
+                multipoint1Id, maintenanceReservation.getResourceId());
+        Assert.assertEquals("Room should be migrated to another device.",
+                multipoint2Id, roomReservation.getResourceId());
     }
 }

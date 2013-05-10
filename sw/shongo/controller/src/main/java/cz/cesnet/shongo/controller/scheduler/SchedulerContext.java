@@ -61,7 +61,8 @@ public class SchedulerContext
     /**
      * Set of {@link AvailableReservation}s.
      */
-    private Set<AvailableReservation> availableReservations = new HashSet<AvailableReservation>();
+    private Set<AvailableReservation<? extends Reservation>> availableReservations =
+            new HashSet<AvailableReservation<? extends Reservation>>();
 
     /**
      * Map of {@link AvailableReservation}s by {@link AvailableReservation#originalReservation}s.
@@ -285,7 +286,7 @@ public class SchedulerContext
     /**
      * @return {@link #availableReservations}
      */
-    public Set<AvailableReservation> getAvailableReservations()
+    public Set<AvailableReservation<? extends Reservation>> getAvailableReservations()
     {
         return Collections.unmodifiableSet(availableReservations);
     }
@@ -313,7 +314,7 @@ public class SchedulerContext
 
     /**
      * @param originalReservation for which the {@link AvailableReservation} should be returned
-     * @return {@link #availableReservations} for given {@code originalReservation}
+     * @return {@link AvailableReservation} for given {@code originalReservation}
      */
     public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
     {

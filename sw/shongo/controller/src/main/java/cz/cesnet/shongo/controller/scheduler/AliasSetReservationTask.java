@@ -104,14 +104,14 @@ public class AliasSetReservationTask extends ReservationTask
                     aliasReservation.setExecutable(allocatedRoomEndpoint);
                 }
                 // If room endpoint is allocated by current alias reservation
-                else if (aliasProviderCapability.isPermanentRoom() && schedulerContext
-                        .isExecutableAllowed() && sharedExecutable) {
+                else if (aliasProviderCapability.isPermanentRoom()
+                        && schedulerContext.isExecutableAllowed() && sharedExecutable) {
                     // Use it for next alias reservations
                     allocatedRoomEndpoint = (ResourceRoomEndpoint) aliasReservation.getExecutable();
                 }
             }
 
-            // Create compound reservation request
+            // Allocate compound reservation
             Reservation reservation;
             if (allocatedReservation != null && allocatedReservation.getClass().equals(Reservation.class)) {
                 // Reallocate existing reservation
@@ -120,8 +120,15 @@ public class AliasSetReservationTask extends ReservationTask
                 reservation.clearChildReservations();
             }
             else {
-                // Create new reservation
-                reservation = new Reservation();
+                // Find empty available reservation (without child reservations)
+                reservation = popEmptyAvailableReservation(Reservation.class);
+                if (reservation != null) {
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(reservation));
+                }
+                // Else create new reservation
+                else {
+                    reservation = new Reservation();
+                }
             }
             reservation.setSlot(getInterval());
             if (sharedExecutable) {

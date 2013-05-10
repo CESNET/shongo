@@ -418,4 +418,31 @@ public abstract class ReservationTask
             }
         });
     }
+
+    /**
+     * Find {@link AvailableReservation} of given {@code reservationType} without child {@link Reservation}s and remove
+     * it from {@link #schedulerContext} and return it.
+     *
+     * @param reservationType requested type
+     * @return {@link AvailableReservation} or null
+     */
+    protected <T extends Reservation> T popEmptyAvailableReservation(Class<T> reservationType)
+    {
+        for (AvailableReservation<? extends Reservation> availableReservation :
+                schedulerContext.getAvailableReservations()) {
+            Reservation originalReservation = availableReservation.getOriginalReservation();
+            if (!availableReservation.isModifiable()) {
+                continue;
+            }
+            if (!originalReservation.getClass().equals(reservationType)) {
+                continue;
+            }
+            if (originalReservation.getChildReservations().size() > 0) {
+                continue;
+            }
+            schedulerContext.removeAvailableReservation(availableReservation);
+            return reservationType.cast(originalReservation);
+        }
+        return null;
+    }
 }
