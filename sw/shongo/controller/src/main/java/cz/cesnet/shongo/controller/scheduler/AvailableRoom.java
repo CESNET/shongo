@@ -69,7 +69,7 @@ public class AvailableRoom
     /**
      * @return {@link #maximumLicenseCount}
      */
-    public int getMaximumLicenseCount()
+    public Integer getMaximumLicenseCount()
     {
         return maximumLicenseCount;
     }
@@ -85,7 +85,7 @@ public class AvailableRoom
     /**
      * @return ratio of fullness for the device (0.0 - 1.0)
      */
-    public double getFullnessRatio()
+    public Double getFullnessRatio()
     {
         return 1.0 - (double) availableLicenseCount / (double) maximumLicenseCount;
     }

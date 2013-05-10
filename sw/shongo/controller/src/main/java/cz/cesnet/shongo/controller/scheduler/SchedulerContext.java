@@ -100,7 +100,7 @@ public class SchedulerContext
             new HashMap<Executable, AvailableReservation<? extends Reservation>>();
 
     /**
-     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link Executable}s which allocates them.
+     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link AliasProviderCapability} identifiers.
      */
     private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
             new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
@@ -382,6 +382,15 @@ public class SchedulerContext
     public Set<AvailableReservation<ValueReservation>> getAvailableValueReservations(ValueProvider valueProvider)
     {
         return valueReservationTransaction.getAvailableReservations(valueProvider.getId());
+    }
+
+    /**
+     * @param roomProvider for which the {@link AvailableReservation}s should be returned
+     * @return {@link AvailableReservation}s ({@link RoomReservation}s) for given {@code roomProvider}
+     */
+    public Set<AvailableReservation<RoomReservation>> getAvailableRoomReservations(RoomProviderCapability roomProvider)
+    {
+        return roomReservationTransaction.getAvailableReservations(roomProvider.getId());
     }
 
     /**

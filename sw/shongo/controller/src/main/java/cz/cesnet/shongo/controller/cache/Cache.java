@@ -221,6 +221,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
+     * @return collection of existing {@link RoomProviderCapability}s
+     */
+    public Collection<RoomProviderCapability> getRoomProviders()
+    {
+        return roomProviderById.values();
+    }
+
+    /**
      * @param technologies to be lookup-ed
      * @return list of {@link RoomProviderCapability}s which supports given {@code technologies}
      */

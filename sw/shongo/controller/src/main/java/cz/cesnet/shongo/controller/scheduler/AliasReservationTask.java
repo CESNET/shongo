@@ -121,68 +121,6 @@ public class AliasReservationTask extends ReservationTask
         return new SchedulerReportSet.AllocatingAliasReport(technologies, aliasTypes, value);
     }
 
-    private static class AliasProviderContext
-    {
-        private AliasProviderCapability aliasProviderCapability;
-
-        private String value = null;
-
-        private List<AvailableReservation<AliasReservation>> availableAliasReservations =
-                new LinkedList<AvailableReservation<AliasReservation>>();
-
-        private boolean allocated = false;
-
-        private boolean reallocatableAvailableAliasReservation = false;
-
-        public AliasProviderContext(AliasProviderCapability aliasProviderCapability)
-        {
-            this.aliasProviderCapability = aliasProviderCapability;
-        }
-
-        public AliasProviderCapability getAliasProviderCapability()
-        {
-            return aliasProviderCapability;
-        }
-
-        public String getValue()
-        {
-            return value;
-        }
-
-        public void setValue(String value)
-        {
-            this.value = value;
-        }
-
-        public List<AvailableReservation<AliasReservation>> getAvailableAliasReservations()
-        {
-            return availableAliasReservations;
-        }
-
-        public void addAvailableAliasReservation(AvailableReservation<AliasReservation> availableAliasReservation)
-        {
-            availableAliasReservations.add(availableAliasReservation);
-            if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                reallocatableAvailableAliasReservation = true;
-            }
-        }
-
-        private boolean isAllocated()
-        {
-            return allocated;
-        }
-
-        private void setAllocated(boolean allocated)
-        {
-            this.allocated = allocated;
-        }
-
-        public boolean hasReallocatableAvailableAliasReservation()
-        {
-            return reallocatableAvailableAliasReservation;
-        }
-    }
-
     @Override
     protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
@@ -192,75 +130,75 @@ public class AliasReservationTask extends ReservationTask
         ResourceCache resourceCache = cache.getResourceCache();
 
         // Get possible alias providers
-        Collection<AliasProviderCapability> possibleAliasProviders;
-        if (aliasProviderCapabilities.size() > 0) {
+        Collection<AliasProviderCapability> aliasProviderCapabilities;
+        if (this.aliasProviderCapabilities.size() > 0) {
             // Use only specified alias providers
-            possibleAliasProviders = aliasProviderCapabilities;
+            aliasProviderCapabilities = this.aliasProviderCapabilities;
         }
         else {
             // Use all alias providers from the cache
-            possibleAliasProviders = cache.getAliasProviders();
+            aliasProviderCapabilities = cache.getAliasProviders();
         }
 
         // Find matching alias providers
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
-        List<AliasProviderContext> aliasProviderContexts = new LinkedList<AliasProviderContext>();
-        for (AliasProviderCapability aliasProvider : possibleAliasProviders) {
+        List<AliasProvider> aliasProviders = new LinkedList<AliasProvider>();
+        for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
             // Check whether alias provider matches the criteria
-            if (aliasProvider.isRestrictedToResource() && targetResource != null) {
+            if (aliasProviderCapability.isRestrictedToResource() && targetResource != null) {
                 // Skip alias providers which cannot be used for specified target resource
-                if (!aliasProvider.getResource().getId().equals(targetResource.getId())) {
+                if (!aliasProviderCapability.getResource().getId().equals(targetResource.getId())) {
                     continue;
                 }
             }
-            if (technologies.size() > 0 && !aliasProvider.providesAliasTechnology(technologies)) {
+            if (technologies.size() > 0 && !aliasProviderCapability.providesAliasTechnology(technologies)) {
                 continue;
             }
-            if (aliasTypes.size() > 0 && !aliasProvider.providesAliasType(aliasTypes)) {
+            if (aliasTypes.size() > 0 && !aliasProviderCapability.providesAliasType(aliasTypes)) {
                 continue;
             }
 
             // Initialize alias provider
-            AliasProviderContext aliasProviderContext = new AliasProviderContext(aliasProvider);
+            AliasProvider aliasProvider = new AliasProvider(aliasProviderCapability);
 
             // Set value for alias provider
             String value = this.value;
             if (value != null) {
-                value = aliasProvider.parseValue(value);
-                aliasProviderContext.setValue(value);
+                value = aliasProviderCapability.parseValue(value);
+                aliasProvider.setValue(value);
             }
 
             // Get available alias reservations for alias provider
             for (AvailableReservation<AliasReservation> availableAliasReservation :
-                    schedulerContext.getAvailableAliasReservations(aliasProvider)) {
+                    schedulerContext.getAvailableAliasReservations(aliasProviderCapability)) {
                 if (value != null && !availableAliasReservation.getTargetReservation().getValue().equals(value)) {
                     continue;
                 }
                 if (allocatedReservation != null) {
                     if (availableAliasReservation.getOriginalReservation().equals(allocatedReservation)) {
-                        aliasProviderContext.setAllocated(true);
+                        aliasProvider.setAllocated(true);
                     }
                 }
-                aliasProviderContext.addAvailableAliasReservation(availableAliasReservation);
+                aliasProvider.addAvailableAliasReservation(availableAliasReservation);
             }
-            sortAvailableReservations(aliasProviderContext.getAvailableAliasReservations(), allocatedReservation);
+            sortAvailableReservations(aliasProvider.getAvailableAliasReservations(), allocatedReservation);
 
             // Add alias provider
-            aliasProviderContexts.add(aliasProviderContext);
+            aliasProviders.add(aliasProvider);
 
-            addReport(new SchedulerReportSet.ResourceReport(aliasProvider.getResource()));
+            addReport(new SchedulerReportSet.ResourceReport(aliasProviderCapability.getResource()));
         }
-        if (aliasProviderContexts.size() == 0) {
+        if (aliasProviders.size() == 0) {
             throw new SchedulerException(getCurrentReport());
         }
         endReport();
 
         // Sort alias providers
         addReport(new SchedulerReportSet.SortingResourcesReport());
-        Collections.sort(aliasProviderContexts, new Comparator<AliasProviderContext>()
+        Collections.sort(aliasProviders, new Comparator<AliasProvider>()
         {
             @Override
-            public int compare(AliasProviderContext first, AliasProviderContext second)
+            public int compare(AliasProvider first, AliasProvider second)
             {
                 // Prefer alias provider which is already allocated by allocatedReservation
                 if (second.isAllocated()) {
@@ -288,13 +226,13 @@ public class AliasReservationTask extends ReservationTask
         });
 
         // Allocate alias reservation in some matching alias provider
-        for (AliasProviderContext aliasProviderContext : aliasProviderContexts) {
-            AliasProviderCapability aliasProviderCapability = aliasProviderContext.getAliasProviderCapability();
+        for (AliasProvider aliasProvider : aliasProviders) {
+            AliasProviderCapability aliasProviderCapability = aliasProvider.getAliasProviderCapability();
             beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProviderCapability.getResource()));
 
             // Preferably use available alias reservation
             for (AvailableReservation<AliasReservation> availableAliasReservation :
-                    aliasProviderContext.getAvailableAliasReservations()) {
+                    aliasProvider.getAvailableAliasReservations()) {
                 // Check available alias reservation
                 Reservation originalReservation = availableAliasReservation.getOriginalReservation();
 
@@ -335,7 +273,7 @@ public class AliasReservationTask extends ReservationTask
             SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
                 ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext,
-                        aliasProviderCapability.getValueProvider(), aliasProviderContext.getValue());
+                        aliasProviderCapability.getValueProvider(), aliasProvider.getValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
                 // Allocate reservation
@@ -400,5 +338,70 @@ public class AliasReservationTask extends ReservationTask
             }
         }
         throw new SchedulerException(getCurrentReport());
+    }
+
+    /**
+     * Represents {@link AliasProviderCapability} which can be used allocated by the {@link AliasReservationTask}.
+     */
+    private static class AliasProvider
+    {
+        private AliasProviderCapability aliasProviderCapability;
+
+        private String value = null;
+
+        private List<AvailableReservation<AliasReservation>> availableAliasReservations =
+                new LinkedList<AvailableReservation<AliasReservation>>();
+
+        private boolean allocated = false;
+
+        private boolean reallocatableAvailableAliasReservation = false;
+
+        public AliasProvider(AliasProviderCapability aliasProviderCapability)
+        {
+            this.aliasProviderCapability = aliasProviderCapability;
+        }
+
+        public AliasProviderCapability getAliasProviderCapability()
+        {
+            return aliasProviderCapability;
+        }
+
+        public String getValue()
+        {
+            return value;
+        }
+
+        public void setValue(String value)
+        {
+            this.value = value;
+        }
+
+        public List<AvailableReservation<AliasReservation>> getAvailableAliasReservations()
+        {
+            return availableAliasReservations;
+        }
+
+        public void addAvailableAliasReservation(AvailableReservation<AliasReservation> availableAliasReservation)
+        {
+            availableAliasReservations.add(availableAliasReservation);
+            if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+                reallocatableAvailableAliasReservation = true;
+            }
+        }
+
+        private boolean isAllocated()
+        {
+            return allocated;
+        }
+
+        private void setAllocated(boolean allocated)
+        {
+            this.allocated = allocated;
+        }
+
+        public boolean hasReallocatableAvailableAliasReservation()
+        {
+            return reallocatableAvailableAliasReservation;
+        }
     }
 }
