@@ -164,6 +164,7 @@ public class ValueReservationTask extends ReservationTask
             ValueReservation valueReservation;
             if (allocatedReservation != null && allocatedReservation instanceof ValueReservation) {
                 // Reallocate existing value reservation
+                addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
                 valueReservation = (ValueReservation) allocatedReservation;
             }
             else {

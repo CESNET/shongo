@@ -4,7 +4,8 @@ import cz.cesnet.shongo.api.rpc.StructType;
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.Interval;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -32,7 +33,7 @@ public class Reservation extends IdentifiedObject implements StructType
     /**
      * Child {@link Reservation} shongo-ids.
      */
-    private List<String> childReservationIds = new ArrayList<String>();
+    private List<String> childReservationIds = new LinkedList<String>();
 
     /**
      * @see Executable
@@ -109,6 +110,14 @@ public class Reservation extends IdentifiedObject implements StructType
     public void addChildReservationId(String childReservationId)
     {
         childReservationIds.add(childReservationId);
+    }
+
+    /**
+     * Sort {@link #childReservationIds}.
+     */
+    public void sortChildReservationIds()
+    {
+        Collections.sort(childReservationIds);
     }
 
     /**

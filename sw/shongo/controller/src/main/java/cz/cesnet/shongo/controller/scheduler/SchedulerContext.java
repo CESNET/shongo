@@ -291,6 +291,27 @@ public class SchedulerContext
     }
 
     /**
+     * @return {@link #availableReservations}
+     */
+    public Set<AvailableReservation> getParentAvailableReservations()
+    {
+        Set<AvailableReservation> parentAvailableReservations = new HashSet<AvailableReservation>();
+        for (AvailableReservation availableReservation : availableReservations) {
+            Reservation originalReservation = availableReservation.getOriginalReservation();
+            Reservation parentReservation = originalReservation.getParentReservation();
+            if (parentReservation != null) {
+                AvailableReservation parentAvailableReservation = getAvailableReservation(parentReservation);
+                if (parentAvailableReservation == null) {
+                    throw new IllegalArgumentException("Parent allocated reservation is not available.");
+                }
+                continue;
+            }
+            parentAvailableReservations.add(availableReservation);
+        }
+        return parentAvailableReservations;
+    }
+
+    /**
      * @param originalReservation for which the {@link AvailableReservation} should be returned
      * @return {@link #availableReservations} for given {@code originalReservation}
      */

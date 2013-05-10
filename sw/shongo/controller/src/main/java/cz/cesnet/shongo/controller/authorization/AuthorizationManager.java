@@ -6,7 +6,6 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -270,6 +269,25 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
+     * Creates all {@link AclRecord}s from given {@code parentEntity} to given {@code childEntity} which the
+     * {@code childEntity} allows.
+     *
+     * @param parentEntity from which should be fetch all existing {@link AclRecord}s and distributed to all childs
+     */
+    public void updateAclRecordsForChildEntities(PersistentObject parentEntity)
+    {
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
+        }
+
+        EntityIdentifier parentEntityId = new EntityIdentifier(parentEntity);
+        Collection<AclRecord> parentAclRecords = activeTransaction.getAclRecords(parentEntityId);
+        for (AclRecord parentAclRecord : parentAclRecords) {
+            afterAclRecordCreated(parentAclRecord, parentEntity);
+        }
+    }
+
+    /**
      * Create a new {@link AclRecord}.
      *
      * @param userId   of user for which the ACL is created.
@@ -333,14 +351,23 @@ public class AuthorizationManager extends AbstractManager
     {
         AclRecord childAclRecord = createAclRecord(userId, childEntity, role);
 
-        AclRecordDependency aclRecordDependency = new AclRecordDependency();
-        aclRecordDependency.setParentAclRecord(parentAclRecord);
-        aclRecordDependency.setChildAclRecord(childAclRecord);
-        aclRecordDependency.setType(dependencyType);
-        entityManager.persist(aclRecordDependency);
+        List<AclRecordDependency> aclRecordDependencies =
+                entityManager.createQuery("SELECT dependency FROM AclRecordDependency dependency"
+                        + " WHERE dependency.parentAclRecord = :parent AND dependency.childAclRecord = :child",
+                        AclRecordDependency.class)
+                        .setParameter("parent", parentAclRecord)
+                        .setParameter("child", childAclRecord)
+                        .getResultList();
+        if (aclRecordDependencies.size() == 0) {
+            AclRecordDependency aclRecordDependency = new AclRecordDependency();
+            aclRecordDependency.setParentAclRecord(parentAclRecord);
+            aclRecordDependency.setChildAclRecord(childAclRecord);
+            aclRecordDependency.setType(dependencyType);
+            entityManager.persist(aclRecordDependency);
 
-        Controller.loggerAcl.info("Created ACL Dependency (parent: {}, child: {}, type: {})",
-                new Object[]{parentAclRecord.getId(), childAclRecord.getId(), dependencyType});
+            Controller.loggerAcl.info("Created ACL Dependency (parent: {}, child: {}, type: {})",
+                    new Object[]{parentAclRecord.getId(), childAclRecord.getId(), dependencyType});
+        }
     }
 
     /**

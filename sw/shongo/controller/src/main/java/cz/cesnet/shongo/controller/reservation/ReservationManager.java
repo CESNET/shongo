@@ -78,7 +78,7 @@ public class ReservationManager extends AbstractManager
     /**
      * @param reservation to be deleted in the database
      */
-    public void delete(Reservation reservation, AuthorizationManager authorizationManager)
+    public synchronized void delete(Reservation reservation, AuthorizationManager authorizationManager)
     {
         // Get all reservations and disconnect them from parents
         Collection<Reservation> reservations = new LinkedList<Reservation>();
@@ -96,7 +96,7 @@ public class ReservationManager extends AbstractManager
 
         // Delete all reservations
         for (Reservation reservationToDelete : reservations) {
-            // Delete additional reservation
+            // Delete reservation
             super.delete(reservationToDelete);
         }
     }

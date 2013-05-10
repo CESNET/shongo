@@ -44,7 +44,7 @@ public class ValueSpecification extends Specification
     /**
      * @return {@link #valueProvider}
      */
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     public ValueProvider getValueProvider()
     {
         return valueProvider;

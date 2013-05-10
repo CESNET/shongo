@@ -288,7 +288,6 @@ public class AliasReservationTask extends ReservationTask
         });
 
         // Allocate alias reservation in some matching alias provider
-
         for (AliasProviderContext aliasProviderContext : aliasProviderContexts) {
             AliasProviderCapability aliasProviderCapability = aliasProviderContext.getAliasProviderCapability();
             beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProviderCapability.getResource()));
@@ -339,27 +338,37 @@ public class AliasReservationTask extends ReservationTask
                         aliasProviderCapability.getValueProvider(), aliasProviderContext.getValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
-                // Reuse available or create new alias reservation
-                AliasReservation aliasReservation = null;
-                for (AvailableReservation<AliasReservation> availableAliasReservation :
-                        aliasProviderContext.getAvailableAliasReservations()) {
-                    Reservation originalReservation = availableAliasReservation.getOriginalReservation();
-                    if (!availableAliasReservation.isModifiable()) {
-                        continue;
-                    }
-                    if (!(originalReservation instanceof AliasReservation)) {
-                        continue;
-                    }
-                    if (originalReservation.getChildReservations().size() > 0) {
-                        continue;
-                    }
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                    aliasReservation = (AliasReservation) originalReservation;
-                    schedulerContext.removeAvailableReservation(availableAliasReservation);
-                    break;
+                AliasReservation aliasReservation;
+                if (allocatedReservation != null && allocatedReservation instanceof AliasReservation) {
+                    // Reallocate existing alias reservation
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
+                    aliasReservation = (AliasReservation) allocatedReservation;
+                    aliasReservation.clearChildReservations();
                 }
-                if (aliasReservation == null) {
-                    aliasReservation = new AliasReservation();
+                else {
+                    aliasReservation = null;
+                    // Find empty available alias reservation (without child reservations)
+                    for (AvailableReservation<AliasReservation> availableAliasReservation :
+                            aliasProviderContext.getAvailableAliasReservations()) {
+                        Reservation originalReservation = availableAliasReservation.getOriginalReservation();
+                        if (!availableAliasReservation.isModifiable()) {
+                            continue;
+                        }
+                        if (!(originalReservation instanceof AliasReservation)) {
+                            continue;
+                        }
+                        if (originalReservation.getChildReservations().size() > 0) {
+                            continue;
+                        }
+                        addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
+                        aliasReservation = (AliasReservation) originalReservation;
+                        schedulerContext.removeAvailableReservation(availableAliasReservation);
+                        break;
+                    }
+                    // Else create new alias reservation
+                    if (aliasReservation == null) {
+                        aliasReservation = new AliasReservation();
+                    }
                 }
                 aliasReservation.setSlot(interval);
                 aliasReservation.setAliasProviderCapability(aliasProviderCapability);

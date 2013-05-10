@@ -139,6 +139,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     if (newReservation == oldReservation) {
                         notifications.add(new ReservationNotification(
                                 ReservationNotification.Type.MODIFIED, newReservation, authorizationManager));
+                        // Update ACL records for modified reservation
+                        authorizationManager.updateAclRecordsForChildEntities(newReservation);
                     }
                     else {
                         notifications.add(new ReservationNotification(
@@ -235,7 +237,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 reservationManager.create(reservation);
             }
 
-            for (AvailableReservation availableReservation : schedulerContext.getAvailableReservations()) {
+            for (AvailableReservation availableReservation : schedulerContext.getParentAvailableReservations()) {
                 if (availableReservation.isDeletable()) {
                     reservationManager.delete(availableReservation.getOriginalReservation(), authorizationManager);
                 }

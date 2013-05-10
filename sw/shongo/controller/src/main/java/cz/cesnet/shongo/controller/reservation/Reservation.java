@@ -211,7 +211,7 @@ public class Reservation extends PersistentObject implements Reportable
     /**
      * @return {@link #parentReservation}
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @Access(AccessType.FIELD)
     public Reservation getParentReservation()
     {
@@ -284,6 +284,16 @@ public class Reservation extends PersistentObject implements Reportable
         if (childReservations.contains(reservation)) {
             childReservations.remove(reservation);
             reservation.setParentReservation(null);
+        }
+    }
+
+    /**
+     * Remove all {@link Reservation}s from {@link #childReservations}.
+     */
+    public void clearChildReservations()
+    {
+        while(!childReservations.isEmpty()) {
+            removeChildReservation(childReservations.get(0));
         }
     }
 
@@ -420,6 +430,7 @@ public class Reservation extends PersistentObject implements Reportable
         for (Reservation childReservation : getChildReservations()) {
             api.addChildReservationId(EntityIdentifier.formatId(childReservation));
         }
+        api.sortChildReservationIds();
     }
 
     /**

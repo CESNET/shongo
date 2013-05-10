@@ -58,7 +58,7 @@ public class AliasReservation extends Reservation
     /**
      * @return {@link #valueReservation}
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(cascade = CascadeType.PERSIST, optional = false)
     @Access(AccessType.FIELD)
     public ValueReservation getValueReservation()
     {
