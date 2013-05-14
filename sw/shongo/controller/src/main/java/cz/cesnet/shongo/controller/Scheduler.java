@@ -86,24 +86,27 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Date/time which represents now
         DateTime referenceDateTime = interval.getStart();
 
-        // Storage for reservation notifications
-        List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
-
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
+            // Storage for reservation notifications
+            List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
+
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
-            // Get all reservations which should be deleted, and store theirs reservation request
+            // Delete all reservations which should be deleted
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
                 notifications.add(new ReservationNotification(
                         ReservationNotification.Type.DELETED, reservation, authorizationManager));
                 // Delete the reservation
                 reservationManager.delete(reservation, authorizationManager);
             }
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
 
             // Get all reservation requests which should be allocated
             List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
@@ -128,34 +131,83 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
             // Allocate all reservation requests
             for (ReservationRequest reservationRequest : reservationRequests) {
-                Reservation oldReservation = reservationRequest.getReservation();
-                Reservation newReservation = allocateReservationRequest(
-                        reservationRequest, referenceDateTime, entityManager, authorizationManager);
-                if (oldReservation != null && oldReservation != newReservation) {
-                    notifications.add(new ReservationNotification(
-                            ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
+                try {
+                    authorizationManager.beginTransaction(authorization);
+                    entityManager.getTransaction().begin();
+
+                    // If rollback has happened we must reload the entity
+                    reservationRequest = entityManager.merge(reservationRequest);
+
+                    Reservation oldReservation = reservationRequest.getReservation();
+                    Reservation newReservation = allocateReservationRequest(
+                            reservationRequest, referenceDateTime, entityManager, authorizationManager);
+                    if (oldReservation != null && oldReservation != newReservation) {
+                        notifications.add(new ReservationNotification(
+                                ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
+                    }
+                    if (newReservation != null) {
+                        if (newReservation == oldReservation) {
+                            notifications.add(new ReservationNotification(
+                                    ReservationNotification.Type.MODIFIED, newReservation, authorizationManager));
+                            // Update ACL records for modified reservation
+                            authorizationManager.updateAclRecordsForChildEntities(newReservation);
+                        }
+                        else {
+                            notifications.add(new ReservationNotification(
+                                    ReservationNotification.Type.NEW, newReservation, authorizationManager));
+                            // Create ACL records for new reservation
+                            authorizationManager.createAclRecordsForChildEntity(reservationRequest, newReservation);
+                        }
+                    }
+                    entityManager.getTransaction().commit();
+                    authorizationManager.commitTransaction();
                 }
-                if (newReservation != null) {
-                    if (newReservation == oldReservation) {
-                        notifications.add(new ReservationNotification(
-                                ReservationNotification.Type.MODIFIED, newReservation, authorizationManager));
-                        // Update ACL records for modified reservation
-                        authorizationManager.updateAclRecordsForChildEntities(newReservation);
+                catch (SchedulerException exception) {
+                    // Allocation of reservation request has failed and thus rollback transaction
+                    if (authorizationManager.isTransactionActive()) {
+                        authorizationManager.rollbackTransaction();
                     }
-                    else {
-                        notifications.add(new ReservationNotification(
-                                ReservationNotification.Type.NEW, newReservation, authorizationManager));
-                        // Create ACL records for new reservation
-                        authorizationManager.createAclRecordsForChildEntity(reservationRequest, newReservation);
+                    if (entityManager.getTransaction().isActive()) {
+                        entityManager.getTransaction().rollback();
                     }
+
+                    entityManager.getTransaction().begin();
+
+                    // Because rollback has happened we must reload the entity
+                    reservationRequest = entityManager.merge(reservationRequest);
+
+                    // Update reservation request state to failed
+                    SchedulerReport report = exception.getTopReport();
+                    reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
+                    reservationRequest.clearReports();
+                    reservationRequest.addReport(report);
+
+                    entityManager.getTransaction().commit();
+
+                    // Report allocation failure to domain admin
+                    Reporter.reportAllocationFailed(reservationRequest,
+                            report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
                 }
             }
+
+            authorizationManager.beginTransaction(authorization);
+            entityManager.getTransaction().begin();
 
             // Delete all executables which should be deleted
             executableManager.deleteAllNotReferenced(authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
+
+            // Notify about reservations
+            if (notificationManager != null && notifications.size() > 0) {
+                if (notificationManager.hasExecutors()) {
+                    logger.debug("Notifying about changes in reservations...");
+                    for (ReservationNotification reservationNotification : notifications) {
+                        notificationManager.executeNotification(reservationNotification);
+                    }
+                }
+            }
         }
         catch (Exception exception) {
             if (authorizationManager.isTransactionActive()) {
@@ -165,17 +217,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 entityManager.getTransaction().rollback();
             }
             Reporter.reportInternalError(Reporter.SCHEDULER, exception);
-            return;
-        }
-
-        // Notify about reservations
-        if (notificationManager != null && notifications.size() > 0) {
-            if (notificationManager.hasExecutors()) {
-                logger.debug("Notifying about changes in reservations...");
-                for (ReservationNotification reservationNotification : notifications) {
-                    notificationManager.executeNotification(reservationNotification);
-                }
-            }
         }
     }
 
@@ -186,12 +227,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * @param referenceDateTime
      * @param entityManager
      */
-    private Reservation allocateReservationRequest(ReservationRequest reservationRequest,
-            DateTime referenceDateTime, EntityManager entityManager, AuthorizationManager authorizationManager)
+    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, DateTime referenceDateTime,
+            EntityManager entityManager, AuthorizationManager authorizationManager) throws SchedulerException
     {
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
-
-        reservationRequest.clearReports();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -207,56 +246,47 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     AvailableReservation.create(reservation, AvailableReservation.Type.REALLOCATABLE));
         }
 
-        try {
-            // Fill provided reservations to transaction
-            for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
-                if (!schedulerContext.isReservationAvailable(providedReservation)) {
-                    throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
-                }
-                if (!providedReservation.getSlot().contains(schedulerContext.getInterval())) {
-                    throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
-                }
-                schedulerContext.addAvailableReservation(
-                        AvailableReservation.create(providedReservation, AvailableReservation.Type.REUSABLE));
-            }
 
-            // Get reservation task
-            Specification specification = reservationRequest.getSpecification();
-            ReservationTask reservationTask;
-            if (specification instanceof ReservationTaskProvider) {
-                ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
-                reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
+        // Fill provided reservations to transaction
+        for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
+            if (!schedulerContext.isReservationAvailable(providedReservation)) {
+                throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
             }
-            else {
-                throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
+            if (!providedReservation.getSlot().contains(schedulerContext.getInterval())) {
+                throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
             }
-
-            // (Re)allocate reservation
-            reservation = reservationTask.perform(reservation);
-            if (!reservation.isPersisted()) {
-                reservationManager.create(reservation);
-            }
-
-            for (AvailableReservation availableReservation : schedulerContext.getParentAvailableReservations()) {
-                if (availableReservation.isDeletable()) {
-                    reservationManager.delete(availableReservation.getOriginalReservation(), authorizationManager);
-                }
-            }
-
-            // Update reservation request
-            reservationRequest.setReservation(reservation);
-            reservationRequest.setState(ReservationRequest.State.ALLOCATED);
-            reservationRequest.setReports(reservationTask.getReports());
-            reservationRequestManager.update(reservationRequest);
+            schedulerContext.addAvailableReservation(
+                    AvailableReservation.create(providedReservation, AvailableReservation.Type.REUSABLE));
         }
-        catch (SchedulerException exception) {
-            SchedulerReport report = exception.getTopReport();
-            reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
-            reservationRequest.addReport(report);
 
-            Reporter.reportAllocationFailed(reservationRequest,
-                    report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+        // Get reservation task
+        Specification specification = reservationRequest.getSpecification();
+        ReservationTask reservationTask;
+        if (specification instanceof ReservationTaskProvider) {
+            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+            reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
         }
+        else {
+            throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
+        }
+
+        // (Re)allocate reservation
+        reservation = reservationTask.perform(reservation);
+        if (!reservation.isPersisted()) {
+            reservationManager.create(reservation);
+        }
+
+        for (AvailableReservation availableReservation : schedulerContext.getParentAvailableReservations()) {
+            if (availableReservation.isDeletable()) {
+                reservationManager.delete(availableReservation.getOriginalReservation(), authorizationManager);
+            }
+        }
+
+        // Update reservation request
+        reservationRequest.setReservation(reservation);
+        reservationRequest.setState(ReservationRequest.State.ALLOCATED);
+        reservationRequest.setReports(reservationTask.getReports());
+        reservationRequestManager.update(reservationRequest);
 
         return reservation;
     }
