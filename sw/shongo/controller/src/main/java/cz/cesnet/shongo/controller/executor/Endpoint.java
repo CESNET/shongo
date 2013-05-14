@@ -69,6 +69,14 @@ public abstract class Endpoint extends Executable
     }
 
     /**
+     * Remove all {@link #assignedAliases}
+     */
+    public void clearAssignedAliases()
+    {
+        assignedAliases.clear();
+    }
+
+    /**
      * @return number of the endpoints which the {@link Endpoint} represents.
      */
     @Transient

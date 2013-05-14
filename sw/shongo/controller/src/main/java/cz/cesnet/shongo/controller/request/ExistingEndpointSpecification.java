@@ -95,9 +95,9 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                     throw new SchedulerReportSet.ResourceNotEndpointException(resource);
                 }
 
-                ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getSchedulerContext(), resource);
-                Reservation reservation = resourceReservationTask.perform(null);
-                addReports(resourceReservationTask);
+                ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, resource);
+                Reservation reservation = reservationTask.perform(null);
+                addReports(reservationTask);
                 return reservation;
             }
         };

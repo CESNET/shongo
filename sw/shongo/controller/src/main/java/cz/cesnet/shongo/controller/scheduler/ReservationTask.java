@@ -3,8 +3,10 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.cache.Cache;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -20,7 +22,7 @@ public abstract class ReservationTask
     /**
      * Context.
      */
-    private SchedulerContext schedulerContext;
+    protected SchedulerContext schedulerContext;
 
     /**
      * List of child {@link Reservation}s.
@@ -43,14 +45,6 @@ public abstract class ReservationTask
     public ReservationTask(SchedulerContext schedulerContext)
     {
         this.schedulerContext = schedulerContext;
-    }
-
-    /**
-     * @return {@link #schedulerContext}
-     */
-    public SchedulerContext getSchedulerContext()
-    {
-        return schedulerContext;
     }
 
     /**
@@ -173,7 +167,7 @@ public abstract class ReservationTask
     public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
             throws SchedulerException
     {
-        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getSchedulerContext());
+        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(schedulerContext);
         return addChildReservation(reservationTask);
     }
 
@@ -395,26 +389,26 @@ public abstract class ReservationTask
             @Override
             public int compare(AvailableReservation first, AvailableReservation second)
             {
-                // Prefer allocatedReservation
-                if (allocatedReservation != null && second.getOriginalReservation().equals(allocatedReservation)) {
-                    return 1;
-                }
+                return compareAvailableReservations(first, second, allocatedReservation, interval);
+            }
+        });
+    }
 
-                // Prefer reservations for the whole interval
-                boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(interval);
-                boolean secondContainsInterval = second.getOriginalReservation().getSlot().contains(interval);
-                if (secondContainsInterval && !firstContainsInterval) {
-                    return 1;
-                }
-
-                // Prefer reallocatable reservations
-                boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);
-                boolean secondReallocatable = second.getType().equals(AvailableReservation.Type.REALLOCATABLE);
-                if (secondReallocatable && !firstReallocatable) {
-                    return 1;
-                }
-
-                return 0;
+    /**
+     * @param availableExecutables to be sorted
+     * @param allocatedReservation which should be first (has the highest priority)
+     */
+    protected <T extends Executable> void sortAvailableExecutables(
+            final List<AvailableExecutable<T>> availableExecutables, final Reservation allocatedReservation)
+    {
+        final Interval interval = getInterval();
+        Collections.sort(availableExecutables, new Comparator<AvailableExecutable>()
+        {
+            @Override
+            public int compare(AvailableExecutable first, AvailableExecutable second)
+            {
+                return compareAvailableReservations(first.getAvailableReservation(), second.getAvailableReservation(),
+                        allocatedReservation, interval);
             }
         });
     }
@@ -444,5 +438,60 @@ public abstract class ReservationTask
             return reservationType.cast(originalReservation);
         }
         return null;
+    }
+
+    /**
+     * @see #popEmptyAvailableReservation(Class)
+     */
+    protected RoomReservation popEmptyAvailableReservation(Class<RoomReservation> reservationType)
+    {
+        for (AvailableReservation<? extends Reservation> availableReservation :
+                schedulerContext.getAvailableReservations()) {
+            Reservation originalReservation = availableReservation.getOriginalReservation();
+            if (!availableReservation.isModifiable()) {
+                continue;
+            }
+            if (!originalReservation.getClass().equals(reservationType)) {
+                continue;
+            }
+            if (originalReservation.getChildReservations().size() > 0) {
+                continue;
+            }
+            schedulerContext.removeAvailableReservation(availableReservation);
+            return reservationType.cast(originalReservation);
+        }
+        return null;
+    }
+
+    /**
+     * @param first
+     * @param second
+     * @param allocatedReservation
+     * @param interval
+     * @return comparison result for preference of {@code first} and {@code second} {@link AvailableReservation}
+     */
+    public static int compareAvailableReservations(AvailableReservation first, AvailableReservation second,
+            Reservation allocatedReservation, Interval interval)
+    {
+        // Prefer allocatedReservation
+        if (allocatedReservation != null && second.getOriginalReservation().equals(allocatedReservation)) {
+            return 1;
+        }
+
+        // Prefer reservations for the whole interval
+        boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(interval);
+        boolean secondContainsInterval = second.getOriginalReservation().getSlot().contains(interval);
+        if (secondContainsInterval && !firstContainsInterval) {
+            return 1;
+        }
+
+        // Prefer reallocatable reservations
+        boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+        boolean secondReallocatable = second.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+        if (secondReallocatable && !firstReallocatable) {
+            return 1;
+        }
+
+        return 0;
     }
 }

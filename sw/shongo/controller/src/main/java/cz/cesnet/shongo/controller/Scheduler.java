@@ -162,7 +162,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
                 }
-                catch (SchedulerException exception) {
+                catch (Exception exception) {
                     // Allocation of reservation request has failed and thus rollback transaction
                     if (authorizationManager.isTransactionActive()) {
                         authorizationManager.rollbackTransaction();
@@ -177,16 +177,27 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     reservationRequest = entityManager.merge(reservationRequest);
 
                     // Update reservation request state to failed
-                    SchedulerReport report = exception.getTopReport();
                     reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
                     reservationRequest.clearReports();
-                    reservationRequest.addReport(report);
+                    if (exception instanceof SchedulerException) {
+                        SchedulerException schedulerException = (SchedulerException) exception;
+                        SchedulerReport report = schedulerException.getTopReport();
+                        reservationRequest.addReport(report);
+                    }
 
                     entityManager.getTransaction().commit();
 
-                    // Report allocation failure to domain admin
-                    Reporter.reportAllocationFailed(reservationRequest,
-                            report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+                    if (exception instanceof SchedulerException) {
+                        // Report allocation failure to domain admin
+                        SchedulerException schedulerException = (SchedulerException) exception;
+                        SchedulerReport report = schedulerException.getTopReport();
+                        Reporter.reportAllocationFailed(reservationRequest,
+                                report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+                    }
+                    else {
+                        // Report allocation failure internal error
+                        Reporter.reportInternalError(Reporter.SCHEDULER, exception);
+                    }
                 }
             }
 

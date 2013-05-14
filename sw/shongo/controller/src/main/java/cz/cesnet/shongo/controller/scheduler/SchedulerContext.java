@@ -94,10 +94,9 @@ public class SchedulerContext
     private Set<Resource> referencedResources = new HashSet<Resource>();
 
     /**
-     * Map of {@link AvailableReservation}s by {@link Executable}s which is allocated by them.
+     * Map of {@link AvailableExecutable}s by {@link Executable}s.
      */
-    private Map<Executable, AvailableReservation<? extends Reservation>> availableReservationByExecutable =
-            new HashMap<Executable, AvailableReservation<? extends Reservation>>();
+    private Map<Executable, AvailableExecutable> availableExecutables = new HashMap<Executable, AvailableExecutable>();
 
     /**
      * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link AliasProviderCapability} identifiers.
@@ -325,29 +324,17 @@ public class SchedulerContext
      * @param executableType
      * @return collection of available {@link Executable}s of given {@code executableType}
      */
-    public <T extends Executable> Collection<T> getAvailableExecutables(Class<T> executableType)
+    public <E extends Executable> Collection<AvailableExecutable<E>> getAvailableExecutables(Class<E> executableType)
     {
-        Set<T> availableExecutables = new HashSet<T>();
-        for (Executable availableExecutable : availableReservationByExecutable.keySet()) {
-            if (executableType.isInstance(availableExecutable)) {
-                availableExecutables.add(executableType.cast(availableExecutable));
+        Set<AvailableExecutable<E>> availableExecutables = new HashSet<AvailableExecutable<E>>();
+        for (AvailableExecutable availableExecutable : this.availableExecutables.values()) {
+            if (executableType.isInstance(availableExecutable.getExecutable())) {
+                @SuppressWarnings("unchecked")
+                AvailableExecutable<E> typedAvailableExecutable = availableExecutable;
+                availableExecutables.add(typedAvailableExecutable);
             }
         }
         return availableExecutables;
-    }
-
-    /**
-     * @param executable
-     * @return {@link AvailableReservation} for given {@code executable}
-     */
-    public AvailableReservation<Reservation> getAvailableReservationByExecutable(Executable executable)
-    {
-        AvailableReservation<? extends Reservation> availableReservation =
-                availableReservationByExecutable.get(executable);
-        if (availableReservation == null) {
-            throw new IllegalArgumentException("Available reservation doesn't exists for given executable!");
-        }
-        return availableReservation.cast(Reservation.class);
     }
 
     /**
@@ -493,8 +480,9 @@ public class SchedulerContext
 
         Executable executable = targetReservation.getExecutable();
         if (executable != null) {
-            if (!availableReservationByExecutable.containsKey(executable)) {
-                availableReservationByExecutable.put(executable, availableReservation);
+            if (!availableExecutables.containsKey(executable)) {
+                availableExecutables.put(executable,
+                        new AvailableExecutable<Executable>(executable, availableReservation));
             }
         }
 
@@ -559,7 +547,7 @@ public class SchedulerContext
 
         Executable executable = targetReservation.getExecutable();
         if (executable != null) {
-            availableReservationByExecutable.remove(executable);
+            availableExecutables.remove(executable);
         }
 
         if (targetReservation instanceof ResourceReservation) {
@@ -871,8 +859,8 @@ public class SchedulerContext
         ALLOCATED_RESERVATION,
 
         /**
-         * {@link SchedulerContext#availableReservationByExecutable}
-         * {@link SchedulerContext#availableReservationsByAliasProviderId}
+         * {@link SchedulerContext#availableReservations}
+         * {@link SchedulerContext#availableExecutables}
          */
         AVAILABLE_RESERVATION
     }

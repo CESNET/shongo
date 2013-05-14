@@ -47,7 +47,6 @@ public class ResourceReservationTask extends ReservationTask
     {
         validateReservationSlot(ResourceReservation.class);
 
-        SchedulerContext schedulerContext = getSchedulerContext();
         Interval interval = schedulerContext.getInterval();
 
         Cache cache = getCache();

@@ -135,7 +135,6 @@ public class ValueSpecification extends Specification
                 @Override
                 protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
                 {
-                    SchedulerContext schedulerContext = getSchedulerContext();
                     for (String value : values) {
                         addChildReservation(new ValueReservationTask(schedulerContext, valueProvider, value));
                     }

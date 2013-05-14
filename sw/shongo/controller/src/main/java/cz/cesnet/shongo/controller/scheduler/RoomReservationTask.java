@@ -3,10 +3,9 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.cache.Cache;
-import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
@@ -112,16 +111,44 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
-        SchedulerContext schedulerContext = getSchedulerContext();
-        Cache cache = getCache();
-        ResourceCache resourceCache = cache.getResourceCache();
-        Interval interval = getInterval();
-
         // Check maximum duration
         if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
-            checkMaximumDuration(interval, cache.getRoomReservationMaximumDuration());
+            checkMaximumDuration(getInterval(), getCache().getRoomReservationMaximumDuration());
         }
 
+        // Find room provider variants
+        List<RoomProviderVariant> roomProviderVariants = getRoomProviderVariants(allocatedReservation);
+
+        // Sort room provider variants
+        sortRoomProviderVariants(roomProviderVariants);
+
+        // Try to allocate room reservation in room provider variants
+        for (RoomProviderVariant roomProviderVariant : roomProviderVariants) {
+            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
+            try {
+                Reservation reservation = allocateVariant(roomProviderVariant, allocatedReservation);
+                if (reservation != null) {
+                    return reservation;
+                }
+            }
+            catch (SchedulerException exception) {
+                schedulerContextSavepoint.revert();
+            }
+            finally {
+                schedulerContextSavepoint.destroy();
+            }
+        }
+        throw new SchedulerException(getCurrentReport());
+    }
+
+    /**
+     * @param allocatedReservation which can be reallocated
+     * @return list of possible {@link RoomProviderVariant}s
+     * @throws SchedulerException when none {@link RoomProviderVariant} is found
+     */
+    private List<RoomProviderVariant> getRoomProviderVariants(Reservation allocatedReservation)
+            throws SchedulerException
+    {
         // Get possible room providers
         Collection<RoomProviderCapability> roomProviderCapabilities;
         if (deviceResource != null) {
@@ -131,10 +158,14 @@ public class RoomReservationTask extends ReservationTask
         }
         else {
             // Use all room providers from the cache
-            roomProviderCapabilities = cache.getRoomProviders();
+            roomProviderCapabilities = getCache().getRoomProviders();
         }
 
-        // Find matching room provider variants
+        // Available room endpoints
+        Collection<AvailableExecutable<RoomEndpoint>> availableRoomEndpoints =
+                schedulerContext.getAvailableExecutables(RoomEndpoint.class);
+
+        // Find all matching room provider variants
         beginReport(new SchedulerReportSet.FindingAvailableResourceReport());
         List<RoomProviderVariant> roomProviderVariants = new LinkedList<RoomProviderVariant>();
         for (RoomProviderCapability roomProviderCapability : roomProviderCapabilities) {
@@ -162,22 +193,39 @@ public class RoomReservationTask extends ReservationTask
                 roomProvider.addRoomProviderVariant(roomProviderVariant);
             }
             if (roomProvider == null) {
+                // No technology variant is available in the room provider
                 continue;
             }
 
             addReport(new SchedulerReportSet.ResourceReport(deviceResource));
 
-            // Add available room reservations to room provider
-            for (AvailableReservation<RoomReservation> availableRoomReservation :
-                    schedulerContext.getAvailableRoomReservations(roomProviderCapability)) {
+            // Add available rooms to room provider
+            for (AvailableExecutable<RoomEndpoint> availableExecutable : availableRoomEndpoints) {
+                RoomEndpoint roomEndpoint = availableExecutable.getExecutable();
+
+                // Check whether available room is in current device resource
+                Long roomEndpointResourceId;
+                if (roomEndpoint instanceof ResourceRoomEndpoint) {
+                    roomEndpointResourceId = ((ResourceRoomEndpoint) roomEndpoint).getResource().getId();
+                }
+                else if (roomEndpoint instanceof UsedRoomEndpoint) {
+                    roomEndpointResourceId = ((UsedRoomEndpoint) roomEndpoint).getResource().getId();
+                }
+                else {
+                    throw new TodoImplementException(roomEndpoint.getClass().getName());
+                }
+                if (!roomEndpointResourceId.equals(deviceResource.getId())) {
+                    continue;
+                }
+
                 if (allocatedReservation != null) {
-                    if (availableRoomReservation.getOriginalReservation().equals(allocatedReservation)) {
+                    if (availableExecutable.getOriginalReservation().equals(allocatedReservation)) {
                         roomProvider.setAllocated(true);
                     }
                 }
-                roomProvider.addAvailableRoomReservation(availableRoomReservation);
+                roomProvider.addAvailableRoomEndpoint(availableExecutable);
             }
-            sortAvailableReservations(roomProvider.getAvailableRoomReservations(), allocatedReservation);
+            sortAvailableExecutables(roomProvider.getAvailableRoomEndpoints(), allocatedReservation);
 
             // Add room provider
             for (RoomProviderVariant roomProviderVariant : roomProvider.getRoomProviderVariants()) {
@@ -188,8 +236,14 @@ public class RoomReservationTask extends ReservationTask
             throw new SchedulerException(getCurrentReport());
         }
         endReport();
+        return roomProviderVariants;
+    }
 
-        // Sort room provider variants
+    /**
+     * @param roomProviderVariants to be sorted by preference
+     */
+    private void sortRoomProviderVariants(List<RoomProviderVariant> roomProviderVariants)
+    {
         addReport(new SchedulerReportSet.SortingResourcesReport());
         Collections.sort(roomProviderVariants, new Comparator<RoomProviderVariant>()
         {
@@ -201,7 +255,7 @@ public class RoomReservationTask extends ReservationTask
 
                 if (firstRoomProvider != secondRoomProvider) {
                     // Prefer room provider which is already allocated by allocatedReservation
-                    if (secondRoomProvider.isAllocated()) {
+                    if (!firstRoomProvider.isAllocated() && secondRoomProvider.isAllocated()) {
                         return 1;
                     }
 
@@ -213,14 +267,14 @@ public class RoomReservationTask extends ReservationTask
                     }
 
                     // Prefer room providers which has some available room reservation(s)
-                    boolean firstHasAvailableRoom = firstRoomProvider.getAvailableRoomReservations().size() > 0;
-                    boolean secondHasAvailableRoom = secondRoomProvider.getAvailableRoomReservations().size() > 0;
+                    boolean firstHasAvailableRoom = firstRoomProvider.getAvailableRoomEndpoints().size() > 0;
+                    boolean secondHasAvailableRoom = secondRoomProvider.getAvailableRoomEndpoints().size() > 0;
                     if (!firstHasAvailableRoom && secondHasAvailableRoom) {
                         return 1;
                     }
 
                     AvailableRoom firstRoom = firstRoomProvider.getAvailableRoom();
-                    AvailableRoom secondRoom = firstRoomProvider.getAvailableRoom();
+                    AvailableRoom secondRoom = secondRoomProvider.getAvailableRoom();
 
                     // Prefer already allocated room providers
                     if (firstRoom.getFullnessRatio() < secondRoom.getFullnessRatio()) {
@@ -241,284 +295,406 @@ public class RoomReservationTask extends ReservationTask
                 return 0;
             }
         });
-
-        // TODO: continue reworking
-        if (true) {
-            throw new TodoImplementException();
-        }
-
-        // Allocate room reservation in some matching room provider variant
-        for (RoomProviderVariant roomProviderVariant : roomProviderVariants) {
-            RoomProvider roomProvider = roomProviderVariant.getRoomProvider();
-            RoomProviderCapability roomProviderCapability = roomProvider.getRoomProviderCapability();
-            DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
-            beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
-            SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
-            try {
-                // Preferably use available room reservation
-                for (AvailableReservation<RoomReservation> availableAliasReservation :
-                        roomProvider.getAvailableRoomReservations()) {
-                    // Check available room reservation
-                    Reservation originalReservation = availableAliasReservation.getOriginalReservation();
-
-                    // Original reservation slot must contain requested slot
-                    if (!originalReservation.getSlot().contains(interval)) {
-                        // Original reservation slot doesn't contain the requested
-                        continue;
-                    }
-
-                    // Available reservation will be returned so remove it from context (to not be used again)
-                    schedulerContext.removeAvailableReservation(availableAliasReservation);
-
-                    // Return available reservation
-                    if (availableAliasReservation.isExistingReservationRequired()) {
-                        addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                        ExistingReservation existingReservation = new ExistingReservation();
-                        existingReservation.setSlot(interval);
-                        existingReservation.setReservation(originalReservation);
-                        schedulerContext.removeAvailableReservation(availableAliasReservation);
-                        return existingReservation;
-                    }
-                    else {
-                        addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                        return originalReservation;
-                    }
-                }
-
-                // Check whether alias provider can be allocated
-                try {
-                    resourceCache.checkCapabilityAvailable(roomProviderCapability, schedulerContext);
-                }
-                catch (SchedulerException exception) {
-                    endReportError(exception.getReport());
-                    continue;
-                }
-
-                throw new SchedulerException(new TodoImplementException());
-
-                // Create room reservation
-                /*RoomReservation roomReservation = new RoomReservation();
-                roomReservation.setSlot(interval);
-                roomReservation.setRoomProviderCapability(roomProviderCapability);
-
-                // Room configuration
-                RoomConfiguration roomConfiguration = new RoomConfiguration();
-                roomConfiguration.setTechnologies(roomProviderVariant.getTechnologies());
-                for (RoomSetting roomSetting : roomSettings) {
-                    roomConfiguration.addRoomSetting(roomSetting.clone());
-                }
-
-                // Allocated room endpoint
-                RoomEndpoint roomEndpoint = null;
-
-                // If provided room is available
-                ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(roomProviderCapability.getId());
-                if (availableProvidedRoom != null) {
-                    AvailableReservation<Reservation> availableReservation =
-                            schedulerContext.getAvailableReservationByExecutable(availableProvidedRoom);
-                    Reservation originalReservation = availableReservation.getOriginalReservation();
-                    if (availableReservation.isExistingReservationRequired()) {
-                        addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-
-                        // Reuse provided reservation which allocates the provided room
-                        ExistingReservation existingReservation = new ExistingReservation();
-                        existingReservation.setSlot(interval);
-                        existingReservation.setReservation(originalReservation);
-                        addChildReservation(existingReservation);
-                        schedulerContext.removeAvailableReservation(availableReservation);
-
-                        // Reserve only the remaining capacity
-                        roomConfiguration.setLicenseCount(
-                                roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
-
-                        if (schedulerContext.isExecutableAllowed()) {
-                            addReport(new SchedulerReportSet.ExecutableReusingReport(availableProvidedRoom));
-
-                            // Create new used room endpoint
-                            UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
-                            usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
-                            roomEndpoint = usedRoomEndpoint;
-                        }
-                    }
-                    else {
-                        throw new TodoImplementException("reallocate room");
-                    }
-                }
-                else {
-                    // Reserve full capacity
-                    roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
-
-                    if (schedulerContext.isExecutableAllowed()) {
-                        addReport(new SchedulerReportSet.AllocatingExecutableReport());
-
-                        // Create new room endpoint  \
-                        ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
-                        resourceRoomEndpoint.setRoomProviderCapability(roomProviderCapability);
-                        roomEndpoint = resourceRoomEndpoint;
-                    }
-                }
-
-                // Setup room endpoint
-                if (schedulerContext.isExecutableAllowed()) {
-                    // Set of technologies which are supported in the room
-                    Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
-
-                    // Allocate aliases from alias specifications
-                    for (AliasSpecification aliasSpecification : aliasSpecifications) {
-                        AliasReservationTask aliasReservationTask = aliasSpecification
-                                .createReservationTask(schedulerContext);
-                        aliasReservationTask.setTargetResource(deviceResource);
-                        AliasReservation aliasReservation =
-                                addChildReservation(aliasReservationTask, AliasReservation.class);
-                        // Assign allocated aliases to the room
-                        for (Alias alias : aliasReservation.getAliases()) {
-                            // Assign only aliases which can be assigned to the room (according to room technologies)
-                            Technology aliasTechnology = alias.getTechnology();
-                            if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
-                                roomEndpoint.addAssignedAlias(alias);
-                            }
-                        }
-                    }
-
-                    // Allocate aliases for the room
-                    // Set of alias types which should be supported in the room
-                    RoomProviderCapability roomProviderCapability =
-                            deviceResource.getCapability(RoomProviderCapability.class);
-                    Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
-                    // Remove all aliases which should be supported but which aren't technology compatible with current
-                    // room configuration
-                    for (AliasType aliasType : roomAliasTypes) {
-                        if (!aliasType.getTechnology().isCompatibleWith(roomTechnologies)) {
-                            roomAliasTypes.remove(aliasType);
-                        }
-                    }
-
-                    // Build set of technologies and alias types which are missing (by adding all and removing all
-                    // for which the room already has an alias).
-                    Set<Technology> missingAliasTechnologies = new HashSet<Technology>();
-                    Set<AliasType> missingAliasTypes = new HashSet<AliasType>();
-                    missingAliasTechnologies.addAll(roomTechnologies);
-                    missingAliasTypes.addAll(roomAliasTypes);
-                    for (Alias alias : roomEndpoint.getAliases()) {
-                        missingAliasTechnologies.remove(alias.getTechnology());
-                        missingAliasTypes.remove(alias.getType());
-                    }
-
-                    // Allocate aliases for alias types which are missing
-                    while (missingAliasTypes.size() > 0) {
-                        // Allocate missing alias
-                        AliasType missingAliasType = missingAliasTypes.iterator().next();
-                        AliasReservationTask aliasReservationTask = new AliasReservationTask(getSchedulerContext());
-                        aliasReservationTask.addAliasType(missingAliasType);
-                        aliasReservationTask.setTargetResource(deviceResource);
-                        AliasReservation aliasReservation =
-                                addChildReservation(aliasReservationTask, AliasReservation.class);
-                        // Assign allocated aliases to the room
-                        for (Alias alias : aliasReservation.getAliases()) {
-                            // Assign only aliases which can be assigned to the room (according to room technologies)
-                            Technology aliasTechnology = alias.getTechnology();
-                            if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
-                                roomEndpoint.addAssignedAlias(alias);
-                                missingAliasTechnologies.remove(aliasTechnology);
-                                missingAliasTypes.remove(alias.getType());
-                            }
-                        }
-                    }
-
-                    // Setup abstract room endpoint
-                    roomEndpoint.setSlot(interval);
-                    roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
-                    roomEndpoint.setRoomConfiguration(roomConfiguration);
-                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-                }
-
-                // Set room configuration and executable
-                roomReservation.setRoomConfiguration(roomConfiguration);
-                roomReservation.setExecutable(roomEndpoint);
-
-                return roomReservation;*/
-            }
-            catch (SchedulerException exception) {
-                schedulerContextSavepoint.revert();
-
-                // Try to allocate next available room
-                continue;
-            }
-            finally {
-                schedulerContextSavepoint.destroy();
-                endReport();
-            }
-        }
-        throw new SchedulerException(getCurrentReport());
     }
 
     /**
-     * Represents {@link RoomProviderCapability} which can be used allocated by the {@link RoomReservationTask}.
+     * Try to allocate given {@code roomProviderVariant}.
+     *
+     * @param roomProviderVariant  to be allocated
+     * @param allocatedReservation which can be reallocated
+     * @return allocated {@link Reservation}
+     * @throws SchedulerException when the allocation fails
+     */
+    private Reservation allocateVariant(RoomProviderVariant roomProviderVariant, Reservation allocatedReservation)
+            throws SchedulerException
+    {
+        Interval interval = getInterval();
+        RoomProvider roomProvider = roomProviderVariant.getRoomProvider();
+        RoomProviderCapability roomProviderCapability = roomProvider.getRoomProviderCapability();
+        DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
+
+        beginReport(new SchedulerReportSet.AllocatingResourceReport(deviceResource));
+        try {
+            // Preferably use available room reservation
+            for (AvailableExecutable<RoomEndpoint> availableRoomEndpoint : roomProvider.getAvailableRoomEndpoints()) {
+                // Check available room endpoint
+                Reservation originalReservation = availableRoomEndpoint.getOriginalReservation();
+                RoomEndpoint roomEndpoint = availableRoomEndpoint.getExecutable();
+
+                // Original reservation slot must contain requested slot
+                if (!originalReservation.getSlot().contains(interval)) {
+                    // Original reservation slot doesn't contain the requested
+                    continue;
+                }
+
+                // Check room configuration
+                RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+                if (!roomEndpoint.getTechnologies().containsAll(roomProviderVariant.getTechnologies())) {
+                    // Room reservation doesn't allocate all technologies
+                    continue;
+                }
+                if (roomConfiguration.getLicenseCount() < roomProviderVariant.getLicenseCount()) {
+                    // Room reservation doesn't allocate enough licenses
+                    if (availableRoomEndpoint.getType().equals(AvailableReservation.Type.REUSABLE)) {
+                        // Reuse available reservation and allocate the missing capacity
+                        roomProviderVariant.setReusableRoomEndpoint(availableRoomEndpoint);
+                    }
+                    continue;
+                }
+
+                // TODO: check room settings
+
+                AvailableReservation<Reservation> availableReservation =
+                        availableRoomEndpoint.getAvailableReservation();
+
+                // Available reservation will be returned so remove it from context (to not be used again)
+                schedulerContext.removeAvailableReservation(availableReservation);
+
+                // Return available reservation
+                if (availableReservation.isExistingReservationRequired()) {
+                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(interval);
+                    existingReservation.setReservation(originalReservation);
+                    return existingReservation;
+                }
+                else {
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
+                    return originalReservation;
+                }
+            }
+
+            // Check whether room provider can be allocated
+            getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
+
+            // Allocate room reservation
+            RoomReservation roomReservation;
+            if (allocatedReservation != null && allocatedReservation instanceof RoomReservation) {
+                // Reallocate existing room reservation
+                addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
+                roomReservation = (RoomReservation) allocatedReservation;
+                roomReservation.clearChildReservations();
+            }
+            else {
+                // TODO: reallocate some existing modifiable reservation
+
+                // Create new room reservation
+                roomReservation = new RoomReservation();
+            }
+
+            // Allocated room endpoint
+            RoomConfiguration roomConfiguration = new RoomConfiguration();
+            RoomEndpoint roomEndpoint = roomReservation.getEndpoint();
+            roomEndpoint = allocateRoomEndpoint(roomProviderVariant, roomConfiguration, roomEndpoint);
+            if (roomEndpoint != null) {
+                // Setup room endpoint
+                roomEndpoint.setSlot(interval);
+                roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
+                roomEndpoint.setRoomConfiguration(roomConfiguration);
+
+                // Allocate aliases for the room endpoint
+                allocateAliases(roomProviderCapability, roomEndpoint);
+
+                // Update room endpoint state
+                if (roomEndpoint.getState() == null) {
+                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                }
+                else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
+                    roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
+                }
+            }
+
+            // Setup room reservation
+            roomReservation.setSlot(interval);
+            roomReservation.setRoomProviderCapability(roomProviderCapability);
+            roomReservation.setRoomConfiguration(roomConfiguration);
+            roomReservation.setExecutable(roomEndpoint);
+
+            endReport();
+
+            return roomReservation;
+        }
+        catch (SchedulerException exception) {
+            endReportError(exception.getReport());
+            throw exception;
+        }
+    }
+
+    /**
+     * Allocate {@link RoomEndpoint} and initialize {@code roomConfiguration} for given {@code roomProviderVariant}.
+     *
+     * @param roomProviderVariant  to be allocated
+     * @param roomConfiguration    to be initialized
+     * @param existingRoomEndpoint which is already allocated and which can be reallocated
+     * @return (re)allocated {@link RoomEndpoint} or null if no executable should be allocated
+     */
+    private RoomEndpoint allocateRoomEndpoint(RoomProviderVariant roomProviderVariant,
+            RoomConfiguration roomConfiguration, RoomEndpoint existingRoomEndpoint)
+    {
+        // Room configuration
+        roomConfiguration.setTechnologies(roomProviderVariant.getTechnologies());
+        roomConfiguration.setLicenseCount(roomProviderVariant.getLicenseCount());
+        for (RoomSetting roomSetting : roomSettings) {
+            roomConfiguration.addRoomSetting(roomSetting.clone());
+        }
+
+        AvailableExecutable<RoomEndpoint> reusableRoomEndpoint = roomProviderVariant.getReusableRoomEndpoint();
+        if (reusableRoomEndpoint != null) {
+            if (!reusableRoomEndpoint.getType().equals(AvailableReservation.Type.REUSABLE)) {
+                throw new RuntimeException("Reused room should be reusable.");
+            }
+            Reservation originalReservation = reusableRoomEndpoint.getOriginalReservation();
+            RoomEndpoint reusedRoomEndpoint = reusableRoomEndpoint.getExecutable();
+            addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+
+            // Reuse available reservation which allocates the reusable room
+            ExistingReservation existingReservation = new ExistingReservation();
+            existingReservation.setSlot(getInterval());
+            existingReservation.setReservation(originalReservation);
+            addChildReservation(existingReservation);
+            schedulerContext.removeAvailableReservation(reusableRoomEndpoint.getAvailableReservation());
+
+            // Reserve only the remaining capacity
+            int allocatedLicenseCount = reusedRoomEndpoint.getRoomConfiguration().getLicenseCount();
+            int remainingLicenseCount = roomProviderVariant.getLicenseCount() - allocatedLicenseCount;
+            roomConfiguration.setLicenseCount(remainingLicenseCount);
+
+            if (schedulerContext.isExecutableAllowed()) {
+                addReport(new SchedulerReportSet.ExecutableReusingReport(reusedRoomEndpoint));
+
+                // Allocate room endpoint
+                if (existingRoomEndpoint != null && existingRoomEndpoint instanceof UsedRoomEndpoint) {
+                    UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) existingRoomEndpoint;
+                    if (usedRoomEndpoint.getResource().equals(deviceResource)) {
+                        // Reallocate existing room endpoint
+                        usedRoomEndpoint.clearAssignedAliases();
+                        return usedRoomEndpoint;
+                    }
+                    else if (usedRoomEndpoint.getState().isStarted()) {
+                        throw new TodoImplementException("Schedule room migration.");
+                    }
+                }
+
+                // Create new used room endpoint
+                UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
+                usedRoomEndpoint.setRoomEndpoint(reusedRoomEndpoint);
+                return usedRoomEndpoint;
+            }
+        }
+        else if (schedulerContext.isExecutableAllowed()) {
+            addReport(new SchedulerReportSet.AllocatingExecutableReport());
+
+            // Allocate room endpoint
+            if (existingRoomEndpoint != null && existingRoomEndpoint instanceof ResourceRoomEndpoint) {
+                ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) existingRoomEndpoint;
+                if (resourceRoomEndpoint.getResource().equals(deviceResource)) {
+                    // Reallocate existing room endpoint
+                    resourceRoomEndpoint.clearAssignedAliases();
+                    return resourceRoomEndpoint;
+                }
+                else if (resourceRoomEndpoint.getState().isStarted()) {
+                    throw new TodoImplementException("Schedule room migration.");
+                }
+            }
+
+            // Create new resource room endpoint
+            ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+            resourceRoomEndpoint.setRoomProviderCapability(roomProviderVariant.getRoomProviderCapability());
+            return resourceRoomEndpoint;
+        }
+        return null;
+    }
+
+    /**
+     * Allocate {@link Alias}es for given {@code roomEndpoint}.
+     *
+     * @param roomProviderCapability for which the given {@code roomEndpoint} is allocated
+     * @param roomEndpoint           for which the {@link Alias}es should be allocated.
+     * @throws SchedulerException when the allocation of {@link Alias}es fails
+     */
+    private void allocateAliases(RoomProviderCapability roomProviderCapability, RoomEndpoint roomEndpoint)
+            throws SchedulerException
+    {
+        DeviceResource deviceResource = roomProviderCapability.getDeviceResource();
+
+        // Set of technologies which are supported in the room
+        Set<Technology> roomTechnologies = roomEndpoint.getTechnologies();
+
+        // Allocate aliases from alias specifications
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
+            aliasReservationTask.setTargetResource(deviceResource);
+            AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
+            // Assign allocated aliases to the room
+            for (Alias alias : aliasReservation.getAliases()) {
+                // Assign only aliases which can be assigned to the room (according to room technologies)
+                Technology aliasTechnology = alias.getTechnology();
+                if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
+                    roomEndpoint.addAssignedAlias(alias);
+                }
+            }
+        }
+
+        // Allocate aliases for the room
+        // Set of alias types which should be supported in the room
+        Set<AliasType> roomAliasTypes = roomProviderCapability.getRequiredAliasTypes();
+        // Remove all aliases which should be supported but which aren't technology compatible with current
+        // room configuration
+        for (AliasType aliasType : roomAliasTypes) {
+            if (!aliasType.getTechnology().isCompatibleWith(roomTechnologies)) {
+                roomAliasTypes.remove(aliasType);
+            }
+        }
+
+        // Build set of technologies and alias types which are missing (by adding all and removing all
+        // for which the room already has an alias).
+        Set<AliasType> missingAliasTypes = new HashSet<AliasType>();
+        missingAliasTypes.addAll(roomAliasTypes);
+        for (Alias alias : roomEndpoint.getAliases()) {
+            missingAliasTypes.remove(alias.getType());
+        }
+
+        // Allocate aliases for alias types which are missing
+        while (missingAliasTypes.size() > 0) {
+            // Allocate missing alias
+            AliasType missingAliasType = missingAliasTypes.iterator().next();
+            AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
+            aliasReservationTask.addAliasType(missingAliasType);
+            aliasReservationTask.setTargetResource(deviceResource);
+            AliasReservation aliasReservation =
+                    addChildReservation(aliasReservationTask, AliasReservation.class);
+            // Assign allocated aliases to the room
+            for (Alias alias : aliasReservation.getAliases()) {
+                // Assign only aliases which can be assigned to the room (according to room technologies)
+                Technology aliasTechnology = alias.getTechnology();
+                if (aliasTechnology.isCompatibleWith(roomTechnologies)) {
+                    roomEndpoint.addAssignedAlias(alias);
+                    missingAliasTypes.remove(alias.getType());
+                }
+            }
+        }
+    }
+
+    /**
+     * Represents {@link RoomProviderCapability} which can be allocated by the {@link RoomReservationTask}.
      */
     private static class RoomProvider
     {
+        /**
+         * @see RoomProviderCapability
+         */
         private RoomProviderCapability roomProviderCapability;
 
+        /**
+         * {@link AvailableRoom} for the {@link #roomProviderCapability}.
+         */
         private AvailableRoom availableRoom;
 
+        /**
+         * Possible {@link RoomProviderVariant}s.
+         */
         private List<RoomProviderVariant> roomProviderVariants = new LinkedList<RoomProviderVariant>();
 
-        private List<AvailableReservation<RoomReservation>> availableRoomReservations =
-                new LinkedList<AvailableReservation<RoomReservation>>();
+        /**
+         * Available {@link RoomEndpoint}s which can be reused/reallocated.
+         */
+        private List<AvailableExecutable<RoomEndpoint>> availableRoomEndpoints =
+                new LinkedList<AvailableExecutable<RoomEndpoint>>();
 
+        /**
+         * Specifies whether already allocated reservation for the {@link #roomProviderCapability} was specified
+         * to the reservation task.
+         */
         private boolean allocated = false;
 
+        /**
+         * Specifies whether {@link AvailableReservation.Type#REALLOCATABLE} {@link AvailableReservation} was specified
+         * for the {@link #roomProviderCapability}.
+         */
         private boolean reallocatableAvailableRoomReservation = false;
 
+        /**
+         * Constructor.
+         *
+         * @param roomProviderCapability sets the {@link #roomProviderCapability}
+         * @param availableRoom          sets the {@link #availableRoom}
+         */
         public RoomProvider(RoomProviderCapability roomProviderCapability, AvailableRoom availableRoom)
         {
             this.roomProviderCapability = roomProviderCapability;
             this.availableRoom = availableRoom;
         }
 
+        /**
+         * @return {@link #roomProviderCapability}
+         */
         private RoomProviderCapability getRoomProviderCapability()
         {
             return roomProviderCapability;
         }
 
+        /**
+         * @return {@link #availableRoom}
+         */
         private AvailableRoom getAvailableRoom()
         {
             return availableRoom;
         }
 
+        /**
+         * @param roomProviderVariant to be added to the {@link #roomProviderVariants}
+         */
         public void addRoomProviderVariant(RoomProviderVariant roomProviderVariant)
         {
             roomProviderVariants.add(roomProviderVariant);
         }
 
+        /**
+         * @return {@link #roomProviderVariants}
+         */
         public List<RoomProviderVariant> getRoomProviderVariants()
         {
             return roomProviderVariants;
         }
 
-        public List<AvailableReservation<RoomReservation>> getAvailableRoomReservations()
+        /**
+         * @return {@link #availableRoomEndpoints}
+         */
+        public List<AvailableExecutable<RoomEndpoint>> getAvailableRoomEndpoints()
         {
-            return availableRoomReservations;
+            return availableRoomEndpoints;
         }
 
-        public void addAvailableRoomReservation(AvailableReservation<RoomReservation> availableRoomReservation)
+        /**
+         * @param availableRoomEndpoint to be added to the {@link #availableRoomEndpoints}
+         */
+        public void addAvailableRoomEndpoint(AvailableExecutable<RoomEndpoint> availableRoomEndpoint)
         {
-            availableRoomReservations.add(availableRoomReservation);
-            if (availableRoomReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
+            availableRoomEndpoints.add(availableRoomEndpoint);
+            if (availableRoomEndpoint.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
                 reallocatableAvailableRoomReservation = true;
             }
         }
 
+        /**
+         * @return {@link #allocated}
+         */
         private boolean isAllocated()
         {
             return allocated;
         }
 
+        /**
+         * @param allocated sets the {@link #allocated}
+         */
         private void setAllocated(boolean allocated)
         {
             this.allocated = allocated;
         }
 
+        /**
+         * @return {@link #reallocatableAvailableRoomReservation}
+         */
         public boolean hasReallocatableAvailableRoomReservation()
         {
             return reallocatableAvailableRoomReservation;
@@ -541,6 +717,12 @@ public class RoomReservationTask extends ReservationTask
          * Number of licenses.
          */
         private int licenseCount;
+
+        /**
+         * Reusable {@link RoomEndpoint} which doesn't allocate the whole requested capacity
+         * but the missing capacity can be additionally allocated.
+         */
+        private AvailableExecutable<RoomEndpoint> reusableRoomEndpoint = null;
 
         /**
          * Constructor.
@@ -576,6 +758,42 @@ public class RoomReservationTask extends ReservationTask
         public int getLicenseCount()
         {
             return licenseCount;
+        }
+
+        /**
+         * @return {@link #reusableRoomEndpoint}
+         */
+        public AvailableExecutable<RoomEndpoint> getReusableRoomEndpoint()
+        {
+            return reusableRoomEndpoint;
+        }
+
+        /**
+         * @param reusableRoomEndpoint sets the {@link #reusableRoomEndpoint}
+         */
+        public void setReusableRoomEndpoint(AvailableExecutable<RoomEndpoint> reusableRoomEndpoint)
+        {
+            if (this.reusableRoomEndpoint == null) {
+                this.reusableRoomEndpoint = reusableRoomEndpoint;
+            }
+            else {
+                // Reuse available reservation with greater license count
+                int newLicenseCount = reusableRoomEndpoint.getExecutable().getRoomConfiguration().getLicenseCount();
+                int existingLicenseCount =
+                        this.reusableRoomEndpoint.getExecutable().getRoomConfiguration().getLicenseCount();
+
+                if (newLicenseCount < existingLicenseCount) {
+                    this.reusableRoomEndpoint = reusableRoomEndpoint;
+                }
+            }
+        }
+
+        /**
+         * @return {@link #roomProvider#getRoomProviderCapability()}
+         */
+        public RoomProviderCapability getRoomProviderCapability()
+        {
+            return roomProvider.getRoomProviderCapability();
         }
 
         /**

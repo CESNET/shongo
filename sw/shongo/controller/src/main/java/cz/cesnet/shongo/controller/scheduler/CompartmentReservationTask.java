@@ -161,7 +161,7 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        endpoint.setSlot(getSchedulerContext().getInterval());
+        endpoint.setSlot(getInterval());
         compartment.addChildExecutable(endpoint);
 
         if (!(endpoint instanceof RoomEndpoint)) {
@@ -247,7 +247,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         beginReport(new SchedulerReportSet.ConnectionBetweenReport(endpointFrom, endpointTo, technology));
-        SchedulerContext.Savepoint schedulerContextSavepoint = getSchedulerContext().createSavepoint();
+        SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
@@ -312,7 +312,7 @@ public class CompartmentReservationTask extends ReservationTask
                     ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
                     deviceResource = resourceRoomEndpoint.getDeviceResource();
                 }
-                AliasReservationTask aliasReservationTask = new AliasReservationTask(getSchedulerContext());
+                AliasReservationTask aliasReservationTask = new AliasReservationTask(schedulerContext);
                 aliasReservationTask.addTechnology(technology);
                 aliasReservationTask.setTargetResource(deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
@@ -338,7 +338,7 @@ public class CompartmentReservationTask extends ReservationTask
                 connection.setAlias(alias.clone());
             }
 
-            connection.setSlot(getSchedulerContext().getInterval());
+            connection.setSlot(getInterval());
             connection.setEndpointFrom(endpointFrom);
             connection.setEndpointTo(endpointTo);
             compartment.addChildExecutable(connection);
@@ -459,7 +459,7 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void createSingleRoomReservation() throws SchedulerException
     {
-        RoomReservationTask roomReservationTask = new RoomReservationTask(getSchedulerContext(),
+        RoomReservationTask roomReservationTask = new RoomReservationTask(schedulerContext,
                 compartment.getTotalEndpointCount());
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
             roomReservationTask.addTechnologyVariant(technologies);
@@ -513,7 +513,7 @@ public class CompartmentReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
-        if (!getSchedulerContext().isExecutableAllowed()) {
+        if (!schedulerContext.isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");
         }
         Set<Specification> specifications = new HashSet<Specification>();

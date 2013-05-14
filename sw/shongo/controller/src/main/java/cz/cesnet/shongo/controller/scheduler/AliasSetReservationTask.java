@@ -61,8 +61,6 @@ public class AliasSetReservationTask extends ReservationTask
     {
         validateReservationSlot(AliasReservation.class);
 
-        SchedulerContext schedulerContext = getSchedulerContext();
-
         if (aliasSpecifications.size() == 1) {
             AliasSpecification aliasSpecification = aliasSpecifications.get(0);
             AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);

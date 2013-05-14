@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -124,7 +125,6 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
     {
-        SchedulerContext schedulerContext = getSchedulerContext();
         Interval interval = getInterval();
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
@@ -251,7 +251,6 @@ public class AliasReservationTask extends ReservationTask
                     ExistingReservation existingReservation = new ExistingReservation();
                     existingReservation.setSlot(interval);
                     existingReservation.setReservation(originalReservation);
-                    schedulerContext.removeAvailableReservation(availableAliasReservation);
                     return existingReservation;
                 }
                 else {
@@ -341,46 +340,83 @@ public class AliasReservationTask extends ReservationTask
     }
 
     /**
-     * Represents {@link AliasProviderCapability} which can be used allocated by the {@link AliasReservationTask}.
+     * Represents {@link AliasProviderCapability} which can be allocated by the {@link AliasReservationTask}.
      */
     private static class AliasProvider
     {
+        /**
+         * @see AliasProviderCapability
+         */
         private AliasProviderCapability aliasProviderCapability;
 
+        /**
+         * Value which is requested for allocation.
+         */
         private String value = null;
 
+        /**
+         * List of {@link AvailableReservation}s ({@link AliasReservation}s).
+         */
         private List<AvailableReservation<AliasReservation>> availableAliasReservations =
                 new LinkedList<AvailableReservation<AliasReservation>>();
 
+        /**
+         * Specifies whether already allocated reservation for the {@link #aliasProviderCapability} was specified
+         * to the reservation task.
+         */
         private boolean allocated = false;
 
+        /**
+         * Specifies whether {@link AvailableReservation.Type#REALLOCATABLE} {@link AvailableReservation} was specified
+         * for the {@link #aliasProviderCapability}.
+         */
         private boolean reallocatableAvailableAliasReservation = false;
 
+        /**
+         * Constructor.
+         *
+         * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
+         */
         public AliasProvider(AliasProviderCapability aliasProviderCapability)
         {
             this.aliasProviderCapability = aliasProviderCapability;
         }
 
+        /**
+         * @return {@link #aliasProviderCapability}
+         */
         public AliasProviderCapability getAliasProviderCapability()
         {
             return aliasProviderCapability;
         }
 
+        /**
+         * @return {@link #value}
+         */
         public String getValue()
         {
             return value;
         }
 
+        /**
+         * @param value sets the {@link #value}
+         */
         public void setValue(String value)
         {
             this.value = value;
         }
 
+        /**
+         * @return {@link #availableAliasReservations}
+         */
         public List<AvailableReservation<AliasReservation>> getAvailableAliasReservations()
         {
             return availableAliasReservations;
         }
 
+        /**
+         * @param availableAliasReservation to be added to the {@link #availableAliasReservations}
+         */
         public void addAvailableAliasReservation(AvailableReservation<AliasReservation> availableAliasReservation)
         {
             availableAliasReservations.add(availableAliasReservation);
@@ -389,16 +425,25 @@ public class AliasReservationTask extends ReservationTask
             }
         }
 
+        /**
+         * @return {@link #allocated}
+         */
         private boolean isAllocated()
         {
             return allocated;
         }
 
+        /**
+         * @param allocated sets the {@link #allocated}
+         */
         private void setAllocated(boolean allocated)
         {
             this.allocated = allocated;
         }
 
+        /**
+         * @return {@link #reallocatableAvailableAliasReservation}
+         */
         public boolean hasReallocatableAvailableAliasReservation()
         {
             return reallocatableAvailableAliasReservation;

@@ -63,7 +63,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                     if (deviceResource == null) {
                         throw new RuntimeException("Device resource should be added to the cache.");
                     }
-                    if (resourceCache.isResourceAvailableByParent(deviceResource, getSchedulerContext())) {
+                    if (resourceCache.isResourceAvailableByParent(deviceResource, schedulerContext)) {
                         deviceResources.add(deviceResource);
                     }
                 }
@@ -79,7 +79,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                 // If some was found
                 if (deviceResource != null) {
                     // Create reservation for the device resource
-                    ResourceReservationTask task = new ResourceReservationTask(getSchedulerContext(), deviceResource);
+                    ResourceReservationTask task = new ResourceReservationTask(schedulerContext, deviceResource);
                     Reservation reservation = task.perform(null);
                     addReports(task);
                     return reservation;

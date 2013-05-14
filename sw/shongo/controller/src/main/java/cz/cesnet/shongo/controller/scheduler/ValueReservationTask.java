@@ -57,7 +57,6 @@ public class ValueReservationTask extends ReservationTask
     {
         validateReservationSlot(ValueReservation.class);
 
-        final SchedulerContext schedulerContext = getSchedulerContext();
         final Interval interval = getInterval();
         final Cache cache = getCache();
         final ResourceCache resourceCache = cache.getResourceCache();
@@ -75,7 +74,7 @@ public class ValueReservationTask extends ReservationTask
         }
 
         // Already used values for targetValueProvider in the interval
-        Set<String> usedValues = getUsedValues(targetValueProvider, interval, schedulerContext);
+        Set<String> usedValues = getUsedValues(targetValueProvider, interval);
 
         // Get available value reservations
         List<AvailableReservation<ValueReservation>> availableValueReservations =
@@ -192,14 +191,19 @@ public class ValueReservationTask extends ReservationTask
         }
     }
 
-    private static Set<String> getUsedValues(ValueProvider valueProvider, Interval interval, SchedulerContext context)
+    /**
+     * @param valueProvider for which the used values should be returned
+     * @param interval for which interval
+     * @return set of used values for given {@code valueProvider} in given {@code interval}
+     */
+    private Set<String> getUsedValues(ValueProvider valueProvider, Interval interval)
     {
         Set<String> usedValues;
-        ResourceManager resourceManager = new ResourceManager(context.getEntityManager());
+        ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
         Long valueProviderId = valueProvider.getId();
         List<ValueReservation> allocatedValues =
                 resourceManager.listValueReservationsInInterval(valueProviderId, interval);
-        context.applyValueReservations(valueProviderId, allocatedValues);
+        schedulerContext.applyValueReservations(valueProviderId, allocatedValues);
         usedValues = new HashSet<String>();
         for (ValueReservation allocatedValue : allocatedValues) {
             usedValues.add(allocatedValue.getValue());

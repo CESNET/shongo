@@ -15,7 +15,7 @@ import java.util.*;
 public class RoomConfiguration extends PersistentObject
 {
     /**
-     * Set of technologies which the virtual room shall support.
+     * Set of technologies which the room shall support (if the set is empty the room shall support all possible technologies).
      */
     private Set<Technology> technologies = new HashSet<Technology>();
 
