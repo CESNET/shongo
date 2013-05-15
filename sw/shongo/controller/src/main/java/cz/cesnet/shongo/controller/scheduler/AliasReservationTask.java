@@ -4,7 +4,6 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -35,7 +34,7 @@ public class AliasReservationTask extends ReservationTask
     /**
      * Requested {@link String} value for the {@link Alias}.
      */
-    private String value;
+    private String requestedValue;
 
     /**
      * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
@@ -84,11 +83,11 @@ public class AliasReservationTask extends ReservationTask
     }
 
     /**
-     * @param value sets the {@link #value}
+     * @param requestedValue sets the {@link #requestedValue}
      */
-    public void setValue(String value)
+    public void setRequestedValue(String requestedValue)
     {
-        this.value = value;
+        this.requestedValue = requestedValue;
     }
 
     /**
@@ -119,11 +118,11 @@ public class AliasReservationTask extends ReservationTask
     @Override
     protected SchedulerReport createMainReport()
     {
-        return new SchedulerReportSet.AllocatingAliasReport(technologies, aliasTypes, value);
+        return new SchedulerReportSet.AllocatingAliasReport(technologies, aliasTypes, requestedValue);
     }
 
     @Override
-    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+    protected Reservation allocateReservation() throws SchedulerException
     {
         Interval interval = getInterval();
         Cache cache = getCache();
@@ -162,26 +161,19 @@ public class AliasReservationTask extends ReservationTask
             AliasProvider aliasProvider = new AliasProvider(aliasProviderCapability);
 
             // Set value for alias provider
-            String value = this.value;
-            if (value != null) {
-                value = aliasProviderCapability.parseValue(value);
-                aliasProvider.setValue(value);
+            if (this.requestedValue != null) {
+                aliasProvider.setRequestedValue(aliasProviderCapability.parseValue(requestedValue));
             }
 
             // Get available alias reservations for alias provider
             for (AvailableReservation<AliasReservation> availableAliasReservation :
                     schedulerContext.getAvailableAliasReservations(aliasProviderCapability)) {
-                if (value != null && !availableAliasReservation.getTargetReservation().getValue().equals(value)) {
-                    continue;
-                }
-                if (allocatedReservation != null) {
-                    if (availableAliasReservation.getOriginalReservation().equals(allocatedReservation)) {
-                        aliasProvider.setAllocated(true);
-                    }
+                if (availableAliasReservation.equals(reallocatableReservation)) {
+                    aliasProvider.setAllocated(true);
                 }
                 aliasProvider.addAvailableAliasReservation(availableAliasReservation);
             }
-            sortAvailableReservations(aliasProvider.getAvailableAliasReservations(), allocatedReservation);
+            sortAvailableReservations(aliasProvider.getAvailableAliasReservations());
 
             // Add alias provider
             aliasProviders.add(aliasProvider);
@@ -225,37 +217,68 @@ public class AliasReservationTask extends ReservationTask
             }
         });
 
+        AvailableReservation<? extends Reservation> reallocatableReservation = this.reallocatableReservation;
+
         // Allocate alias reservation in some matching alias provider
         for (AliasProvider aliasProvider : aliasProviders) {
             AliasProviderCapability aliasProviderCapability = aliasProvider.getAliasProviderCapability();
+            String requestedValue = aliasProvider.getRequestedValue();
             beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProviderCapability.getResource()));
+
+            this.reallocatableReservation = reallocatableReservation;
 
             // Preferably use available alias reservation
             for (AvailableReservation<AliasReservation> availableAliasReservation :
                     aliasProvider.getAvailableAliasReservations()) {
                 // Check available alias reservation
                 Reservation originalReservation = availableAliasReservation.getOriginalReservation();
+                AliasReservation aliasReservation = availableAliasReservation.getTargetReservation();
 
-                // Original reservation slot must contain requested slot
-                if (!originalReservation.getSlot().contains(interval)) {
-                    // Original reservation slot doesn't contain the requested
-                    continue;
+                // Reallocatable reservation
+                if (availableAliasReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
+                    if (this.reallocatableReservation == null) {
+                        this.reallocatableReservation = availableAliasReservation;
+                    }
+                    else {
+                        // Prefer available alias reservation which match requested value
+                        AliasReservation oldAliasReservation =
+                                getReallocatableOriginalReservation(AliasReservation.class);
+                        if (!oldAliasReservation.getValue().equals(requestedValue)
+                                && aliasReservation.getValue().equals(requestedValue)) {
+                            this.reallocatableReservation = availableAliasReservation;
+                        }
+                    }
                 }
-
-                // Available reservation will be returned so remove it from context (to not be used again)
-                schedulerContext.removeAvailableReservation(availableAliasReservation);
-
-                // Return available reservation
-                if (availableAliasReservation.isExistingReservationRequired()) {
-                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                    ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(interval);
-                    existingReservation.setReservation(originalReservation);
-                    return existingReservation;
-                }
+                // Reusable available reservation
                 else {
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                    return originalReservation;
+                    // Original reservation slot must contain requested slot
+                    if (!originalReservation.getSlot().contains(interval)) {
+                        continue;
+                    }
+
+                    // Value must match requested value
+                    if (requestedValue != null && !aliasReservation.getValue().equals(requestedValue)) {
+                        continue;
+                    }
+
+                    // Available reservation will be returned so remove it from context (to not be used again)
+                    schedulerContext.removeAvailableReservation(availableAliasReservation);
+
+                    // Return available reservation
+                    ExistingReservation existingValueReservation;
+                    if (isReallocatableOriginalReservation(ExistingReservation.class)) {
+                        // Reallocate existing alias reservation
+                        existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
+                        addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
+                    }
+                    else {
+                        // Create new existing alias reservation
+                        existingValueReservation = new ExistingReservation();
+                    }
+                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+                    existingValueReservation.setSlot(interval);
+                    existingValueReservation.setReservation(originalReservation);
+                    return existingValueReservation;
                 }
             }
 
@@ -272,27 +295,20 @@ public class AliasReservationTask extends ReservationTask
             SchedulerContext.Savepoint schedulerContextSavepoint = schedulerContext.createSavepoint();
             try {
                 ValueReservationTask valueReservationTask = new ValueReservationTask(schedulerContext,
-                        aliasProviderCapability.getValueProvider(), aliasProvider.getValue());
+                        aliasProviderCapability.getValueProvider(), aliasProvider.getRequestedValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
                 // Allocate reservation
                 AliasReservation aliasReservation;
-                if (allocatedReservation != null && allocatedReservation instanceof AliasReservation) {
-                    // Reallocate existing alias reservation
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
-                    aliasReservation = (AliasReservation) allocatedReservation;
+                if (isReallocatableOriginalReservationStrict(AliasReservation.class)) {
+                    // Reallocate alias reservation
+                    aliasReservation = getReallocatableOriginalReservation(AliasReservation.class);
                     aliasReservation.clearChildReservations();
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(aliasReservation));
                 }
                 else {
-                    // Find empty available alias reservation (without child reservations)
-                    aliasReservation = popEmptyAvailableReservation(AliasReservation.class);
-                    if (aliasReservation != null) {
-                        addReport(new SchedulerReportSet.ReservationReallocatingReport(aliasReservation));
-                    }
-                    // Else create new alias reservation
-                    else {
-                        aliasReservation = new AliasReservation();
-                    }
+                    // Create new alias reservation
+                    aliasReservation = new AliasReservation();
                 }
                 aliasReservation.setSlot(interval);
                 aliasReservation.setAliasProviderCapability(aliasProviderCapability);
@@ -352,7 +368,7 @@ public class AliasReservationTask extends ReservationTask
         /**
          * Value which is requested for allocation.
          */
-        private String value = null;
+        private String requestedValue = null;
 
         /**
          * List of {@link AvailableReservation}s ({@link AliasReservation}s).
@@ -391,19 +407,19 @@ public class AliasReservationTask extends ReservationTask
         }
 
         /**
-         * @return {@link #value}
+         * @return {@link #requestedValue}
          */
-        public String getValue()
+        public String getRequestedValue()
         {
-            return value;
+            return requestedValue;
         }
 
         /**
-         * @param value sets the {@link #value}
+         * @param requestedValue sets the {@link #requestedValue}
          */
-        public void setValue(String value)
+        public void setRequestedValue(String requestedValue)
         {
-            this.value = value;
+            this.requestedValue = requestedValue;
         }
 
         /**

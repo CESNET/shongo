@@ -511,7 +511,7 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+    protected Reservation allocateReservation() throws SchedulerException
     {
         if (!schedulerContext.isExecutableAllowed()) {
             throw new TodoImplementException("Allocating compartment without executable (does it make sense?).");

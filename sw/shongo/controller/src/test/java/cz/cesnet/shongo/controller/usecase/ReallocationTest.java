@@ -130,9 +130,8 @@ public class ReallocationTest extends AbstractControllerTest
         Assert.assertEquals("The same (only modified) reservation should be allocated.",
                 aliasReservation1.getId(), aliasReservation2.getId());
         Assert.assertEquals("Modified Alias should be allocated.", "2", aliasReservation2.getValue());
-        Assert.assertFalse("New value reservation should be allocated.",
-                aliasReservation1.getValueReservation().getId().equals(
-                        aliasReservation2.getValueReservation().getId()));
+        Assert.assertEquals("The same (only modified) value reservation should be allocated.",
+                aliasReservation1.getValueReservation().getId(), aliasReservation2.getValueReservation().getId());
     }
 
     @Test
@@ -219,12 +218,14 @@ public class ReallocationTest extends AbstractControllerTest
         Assert.assertEquals("First alias should be allocated.", "1", aliasReservation2_1.getValue());
         Assert.assertEquals("The same (only modified) child reservation should be allocated.",
                 aliasReservation1_1.getId(), aliasReservation2_1.getId());
-        Assert.assertEquals("Third alias should be allocated.", "2", aliasReservation2_2.getValue());
-        Assert.assertEquals("Existing child reservation should be allocated.",
+        Assert.assertEquals("Modified alias should be allocated.", "22", aliasReservation2_2.getValue());
+        Assert.assertEquals("The same (only modified) child reservation should be allocated.",
                 aliasReservation1_2.getId(), aliasReservation2_2.getId());
-        Assert.assertEquals("Modified alias should be allocated.", "22", aliasReservation2_3.getValue());
-        Assert.assertFalse("New child reservation should be allocated.",
-                aliasReservation1_2.getId().equals(aliasReservation2_3.getId()));
+
+        Assert.assertTrue("New child reservation should be allocated.",
+                !aliasReservation1_1.getId().equals(aliasReservation2_3.getId()) &&
+                        !aliasReservation1_2.getId().equals(aliasReservation2_3.getId()));
+        Assert.assertEquals("Third alias should be allocated.", "2", aliasReservation2_3.getValue());
     }
 
     @Test
@@ -305,18 +306,44 @@ public class ReallocationTest extends AbstractControllerTest
 
         Assert.assertEquals("Reservation identifiers should be same (only the room capacity should be increased)",
                 roomReservation1.getId(), roomReservation2.getId());
+        Assert.assertEquals("Executable identifiers should be same.",
+                roomReservation1.getExecutable().getId(), roomReservation2.getExecutable().getId());
     }
 
     @Test
     public void testRoomExtension() throws Exception
     {
-        // TODO:
+        DeviceResource multipoint = new DeviceResource();
+        multipoint.setName("multipoint");
+        multipoint.setAllocatable(true);
+        multipoint.addTechnology(Technology.H323);
+        multipoint.addCapability(new RoomProviderCapability(5));
+        getResourceService().createResource(SECURITY_TOKEN, multipoint);
+
+        // Allocate a new room reservation
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2013-01-01T12:00", "PT1H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(3, Technology.H323));
+        String reservationRequestId = allocate(reservationRequest);
+        RoomReservation roomReservation1 = (RoomReservation) checkAllocated(reservationRequestId);
+
+        // Extend the validity of the room reservation
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequestId);
+        reservationRequest.setSlot("2013-01-01T12:00", "PT2H");
+        RoomReservation roomReservation2 = (RoomReservation) allocateAndCheck(reservationRequest);
+
+        Assert.assertEquals("Reservation identifiers should be same (only the room capacity should be increased)",
+                roomReservation1.getId(), roomReservation2.getId());
+        Assert.assertEquals("Executable identifiers should be same.",
+                roomReservation1.getExecutable().getId(), roomReservation2.getExecutable().getId());
     }
 
     @Test
     public void testAliasRoomCapacityExtension() throws Exception
     {
-        // TODO:
+        throw new TodoImplementException();
     }
 
     @Test

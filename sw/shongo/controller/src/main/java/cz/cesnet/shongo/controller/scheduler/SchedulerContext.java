@@ -463,6 +463,28 @@ public class SchedulerContext
     }
 
     /**
+     * @param originalReservation to be added to the {@link SchedulerContext} as available
+     * @param type                of available reservation
+     */
+    public AvailableReservation<? extends Reservation> addAvailableReservation(Reservation originalReservation,
+            AvailableReservation.Type type)
+    {
+        if (availableReservationByOriginalReservation.containsKey(originalReservation)) {
+            // Reservation is already added as available to the context
+            AvailableReservation<? extends Reservation> availableReservation =
+                    availableReservationByOriginalReservation.get(originalReservation);
+            if (!availableReservation.isType(type)) {
+                throw new IllegalArgumentException("Reservation is already addded with different type.");
+            }
+            return availableReservation;
+        }
+        AvailableReservation<? extends Reservation> availableReservation =
+                AvailableReservation.create(originalReservation, type);
+        addAvailableReservation(availableReservation);
+        return availableReservation;
+    }
+
+    /**
      * @param availableReservation to be added to the {@link SchedulerContext}
      */
     public void addAvailableReservation(AvailableReservation<? extends Reservation> availableReservation)
@@ -471,12 +493,11 @@ public class SchedulerContext
             // Reservation is already added as available to the context
             return;
         }
-        onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.ADDED);
-
         Reservation originalReservation = availableReservation.getOriginalReservation();
         Reservation targetReservation = availableReservation.getTargetReservation();
         AvailableReservation.Type type = availableReservation.getType();
         availableReservationByOriginalReservation.put(originalReservation, availableReservation);
+        onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.ADDED);
 
         Executable executable = targetReservation.getExecutable();
         if (executable != null) {
@@ -515,7 +536,7 @@ public class SchedulerContext
 
         // Add all child reservations
         for (Reservation childReservation : originalReservation.getChildReservations()) {
-            addAvailableReservation(AvailableReservation.create(childReservation, type));
+            addAvailableReservation(childReservation, type);
         }
     }
 

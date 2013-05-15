@@ -14,7 +14,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.*;
@@ -102,7 +102,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link RoomSetting}
      * @return {@link RoomSetting} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link RoomSetting} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link RoomSetting} doesn't exist
      */
     @Transient
     private RoomSetting getRoomSettingById(Long id) throws CommonReportSet.EntityNotFoundException
@@ -155,7 +156,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     /**
      * @param id of the requested {@link AliasSpecification}
      * @return {@link AliasSpecification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link AliasSpecification} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link AliasSpecification} doesn't exist
      */
     @Transient
     private AliasSpecification getAliasSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
@@ -201,8 +203,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         RoomSpecification roomSpecification = (RoomSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getParticipantCount(), roomSpecification.getParticipantCount());
-        modified |= !ObjectUtils.equals(getDeviceResource(), roomSpecification.getDeviceResource());
+        modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
+        modified |= !ObjectHelper.isSame(getDeviceResource(), roomSpecification.getDeviceResource());
 
         setParticipantCount(roomSpecification.getParticipantCount());
         setDeviceResource(roomSpecification.getDeviceResource());

@@ -4,13 +4,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpointSet;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Transient;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -79,7 +78,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
                 (ExternalEndpointSetSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount());
+        modified |= !ObjectHelper.isSame(getCount(), externalEndpointSpecification.getCount());
 
         setCount(externalEndpointSpecification.getCount());
 

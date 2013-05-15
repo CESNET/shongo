@@ -2,10 +2,9 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.controller.common.Person;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
-import java.util.Map;
 
 /**
  * Represents a {@link Specification} for a person.
@@ -131,7 +130,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         PersonSpecification personSpecification = (PersonSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getPerson(), personSpecification.getPerson());
+        modified |= !ObjectHelper.isSame(getPerson(), personSpecification.getPerson());
 
         setPerson(personSpecification.getPerson());
 

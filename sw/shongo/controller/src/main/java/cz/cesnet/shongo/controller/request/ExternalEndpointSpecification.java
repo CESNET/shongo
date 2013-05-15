@@ -1,17 +1,16 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.TodoImplementException;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -108,7 +107,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
 
         boolean modified = super.synchronizeFrom(specification);
 
-        if (!ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases())) {
+        if (!ObjectHelper.isSame(getAliases(), externalEndpointSpecification.getAliases())) {
             setAliases(externalEndpointSpecification.getAliases());
             modified = true;
         }

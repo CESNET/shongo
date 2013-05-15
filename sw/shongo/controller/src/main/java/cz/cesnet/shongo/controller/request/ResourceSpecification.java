@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.*;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -64,7 +64,7 @@ public class ResourceSpecification extends Specification implements ReservationT
         ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getResource(), resourceSpecification.getResource());
+        modified |= !ObjectHelper.isSame(getResource(), resourceSpecification.getResource());
 
         setResource(resourceSpecification.getResource());
 
@@ -77,7 +77,7 @@ public class ResourceSpecification extends Specification implements ReservationT
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+            protected Reservation allocateReservation() throws SchedulerException
             {
                 ResourceReservationTask reservationTask = new ResourceReservationTask(schedulerContext, resource);
                 Reservation reservation = reservationTask.perform(null);

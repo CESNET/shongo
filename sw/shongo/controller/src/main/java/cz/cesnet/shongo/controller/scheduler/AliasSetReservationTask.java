@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 
@@ -57,14 +56,14 @@ public class AliasSetReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+    protected Reservation allocateReservation() throws SchedulerException
     {
         validateReservationSlot(AliasReservation.class);
 
         if (aliasSpecifications.size() == 1) {
             AliasSpecification aliasSpecification = aliasSpecifications.get(0);
             AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
-            Reservation reservation = aliasReservationTask.perform(allocatedReservation);
+            Reservation reservation = aliasReservationTask.perform(getReallocatableOriginalReservation());
             addReports(aliasReservationTask);
             return reservation;
         }
@@ -111,10 +110,11 @@ public class AliasSetReservationTask extends ReservationTask
 
             // Allocate compound reservation
             Reservation reservation;
-            if (allocatedReservation != null && allocatedReservation.getClass().equals(Reservation.class)) {
+            if (isReallocatableOriginalReservationStrict(Reservation.class)) {
                 // Reallocate existing reservation
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
-                reservation = allocatedReservation;
+                reservation = getReallocatableOriginalReservation(Reservation.class);
+                addReport(new SchedulerReportSet.ReservationReallocatingReport(reservation));
+
                 reservation.clearChildReservations();
             }
             else {

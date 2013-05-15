@@ -47,6 +47,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
         Long reservationRequestSetId = null;
         // Id for reservation request which is created from the reservation request set
         Long reservationRequestId = null;
+        // Id for reservation
+        Long reservationId = null;
 
         // ------------
         // Setup cache
@@ -109,9 +111,9 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             entityManager.close();
         }
 
-        // ----------------------------------------------------------
-        // Create compartment request(s) from reservation request(s)
-        // ----------------------------------------------------------
+        // -----------------------------------------------------------
+        // Create reservation request(s) from reservation request set
+        // -----------------------------------------------------------
         {
             EntityManager entityManager = createEntityManager();
 
@@ -168,7 +170,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
         }
 
         // -----------------------------------------
-        // Schedule complete compartment request(s)
+        // Schedule complete reservation request(s)
         // -----------------------------------------
         {
             EntityManager entityManager = createEntityManager();
@@ -185,6 +187,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
 
             Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
             Assert.assertNotNull("Reservation should be created for the reservation request", reservation);
+            reservationId = reservation.getId();
 
             entityManager.close();
         }
@@ -219,7 +222,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
                     ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
             Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
-            Assert.assertNull("Reservation should not be created for the reservation request", reservation);
+            Assert.assertEquals("Old reservation should be kept for the reservation request",
+                    reservationId, reservation.getId());
 
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();

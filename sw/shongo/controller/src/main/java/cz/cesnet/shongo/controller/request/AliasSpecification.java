@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.*;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -231,10 +231,10 @@ public class AliasSpecification extends Specification
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
-                || !ObjectUtils.equals(getAliasTypes(), aliasSpecification.getAliasTypes())
-                || !ObjectUtils.equals(getValue(), aliasSpecification.getValue())
-                || !ObjectUtils.equals(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
+        modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
+                || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
+                || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
+                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
         setAliasTechnologies(aliasSpecification.getAliasTechnologies());
         setAliasTypes(aliasSpecification.getAliasTypes());
@@ -266,7 +266,7 @@ public class AliasSpecification extends Specification
         for (AliasType aliasType : getAliasTypes()) {
             aliasReservationTask.addAliasType(aliasType);
         }
-        aliasReservationTask.setValue(value);
+        aliasReservationTask.setRequestedValue(value);
         if (aliasProviderCapability != null) {
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
         }

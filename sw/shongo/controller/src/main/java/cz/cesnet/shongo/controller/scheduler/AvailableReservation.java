@@ -46,7 +46,7 @@ public class AvailableReservation<R extends Reservation>
 
     /**
      * @param reservation sets the {@link #originalReservation}
-     * @param type sets the {@link #type}
+     * @param type        sets the {@link #type}
      * @return new instance of {@link AvailableReservation}
      */
     public static <T extends Reservation> AvailableReservation<T> create(T reservation, Type type)
@@ -86,6 +86,16 @@ public class AvailableReservation<R extends Reservation>
     public Type getType()
     {
         return type;
+    }
+
+    /**
+     * @param type
+     * @return true whether {@link #type} is of given {@code type},
+     *         false otherwise
+     */
+    public boolean isType(Type type)
+    {
+        return this.type.equals(type);
     }
 
     /**

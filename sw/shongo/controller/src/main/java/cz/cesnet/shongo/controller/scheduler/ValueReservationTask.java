@@ -12,7 +12,10 @@ import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import org.joda.time.Interval;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents {@link cz.cesnet.shongo.controller.scheduler.ReservationTask} for a {@link cz.cesnet.shongo.controller.reservation.AliasReservation}.
@@ -53,7 +56,7 @@ public class ValueReservationTask extends ReservationTask
     }
 
     @Override
-    protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+    protected Reservation allocateReservation() throws SchedulerException
     {
         validateReservationSlot(ValueReservation.class);
 
@@ -80,7 +83,7 @@ public class ValueReservationTask extends ReservationTask
         List<AvailableReservation<ValueReservation>> availableValueReservations =
                 new LinkedList<AvailableReservation<ValueReservation>>();
         availableValueReservations.addAll(schedulerContext.getAvailableValueReservations(targetValueProvider));
-        sortAvailableReservations(availableValueReservations, allocatedReservation);
+        sortAvailableReservations(availableValueReservations);
 
         // Find matching available value reservation
         for (AvailableReservation<ValueReservation> availableValueReservation : availableValueReservations) {
@@ -88,83 +91,71 @@ public class ValueReservationTask extends ReservationTask
             Reservation originalReservation = availableValueReservation.getOriginalReservation();
             ValueReservation valueReservation = availableValueReservation.getTargetReservation();
 
-            // Value must match requested value
-            if (requestedValue != null) {
-                if (!valueReservation.getValue().equals(requestedValue)) {
-                    // Value is different than requested
-                    continue;
-                }
-            }
-
-            // Original reservation slot must contain requested slot
-            if (!originalReservation.getSlot().contains(interval)) {
-                if (!availableValueReservation.isModifiable()) {
-                    // Original reservation slot doesn't contain the requested and the original reservation
-                    // cannot be extended because it is not modifiable
-                    continue;
-                }
-
-                if (originalReservation == valueReservation) {
-                    // Original equals to target reservation and it can be extended,
-                    // and thus check if the value is available for the requested slot
-                    String possibleValue = valueReservation.getValue();
-                    if (usedValues.contains(possibleValue)) {
-                        // Reservation slot doesn't contain the requested slot and the reservation cannot be extended,
-                        // because the value is already allocated in the extended slot by another reservation
-                        continue;
-                    }
+            // Reallocatable reservation
+            if (availableValueReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
+                if (reallocatableReservation == null) {
+                    reallocatableReservation = availableValueReservation;
                 }
                 else {
-                    // Check allocation reservation
-                    Reservation allocationReservation = originalReservation.getAllocationReservation();
-                    if (!allocationReservation.getSlot().contains(interval)) {
-                        // Allocation reservation slot doesn't contain the requested (allocation reservation can never be extended)
-                        continue;
-                    }
-                    if (!schedulerContext.isReservationAvailable(allocationReservation)) {
-                        // Allocation reservation is not available for the whole requested slot (another existing reservation reuse it)
-                        continue;
+                    // Prefer available value reservation which match requested value
+                    ValueReservation oldValueReservation = getReallocatableOriginalReservation(ValueReservation.class);
+                    if (!oldValueReservation.getValue().equals(requestedValue)
+                            && valueReservation.getValue().equals(requestedValue)) {
+                        reallocatableReservation = availableValueReservation;
                     }
                 }
-
-                // Original reservation can be extended so extend it's slot to match the requested
-                originalReservation.setSlot(interval);
             }
+            // Reusable available reservation
+            else {
+                // Original reservation slot must contain requested slot
+                if (!originalReservation.getSlot().contains(interval)) {
+                    continue;
+                }
 
-            // Available reservation will be returned so remove it from context (to not be used again)
-            schedulerContext.removeAvailableReservation(availableValueReservation);
+                // Value must match requested value
+                if (requestedValue != null && !valueReservation.getValue().equals(requestedValue)) {
+                    continue;
+                }
 
-            // Return available reservation
-            if (availableValueReservation.isExistingReservationRequired()) {
+                // Available reservation will be returned so remove it from context (to not be used again)
+                schedulerContext.removeAvailableReservation(availableValueReservation);
+
+                // Return available reservation
+                ExistingReservation existingValueReservation;
+                if (isReallocatableOriginalReservation(ExistingReservation.class)) {
+                    // Reallocate existing value reservation
+                    existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
+                    addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
+                }
+                else {
+                    // Create new existing value reservation
+                    existingValueReservation = new ExistingReservation();
+                }
                 addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                ExistingReservation existingValueReservation = new ExistingReservation();
                 existingValueReservation.setSlot(interval);
                 existingValueReservation.setReservation(originalReservation);
                 return existingValueReservation;
-            }
-            else {
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                return originalReservation;
-
             }
         }
 
         // Allocate value reservation
         try {
-            // Get new available value for allocation
-            String availableValue;
-            if (requestedValue != null) {
-                availableValue = valueProvider.generateValue(usedValues, requestedValue);
-            }
-            else {
-                availableValue = valueProvider.generateValue(usedValues);
-            }
-
+            String value;
             ValueReservation valueReservation;
-            if (allocatedReservation != null && allocatedReservation instanceof ValueReservation) {
-                // Reallocate existing value reservation
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(allocatedReservation));
-                valueReservation = (ValueReservation) allocatedReservation;
+            if (isReallocatableOriginalReservation(ValueReservation.class)) {
+                // Reallocate value reservation
+                valueReservation = getReallocatableOriginalReservation(ValueReservation.class);
+                addReport(new SchedulerReportSet.ReservationReallocatingReport(valueReservation));
+                // Generate existing/new value
+                if (requestedValue != null) {
+                    value = valueProvider.generateValue(usedValues, requestedValue);
+                }
+                else {
+                    value = valueReservation.getValue();
+                    if (usedValues.contains(value)) {
+                        value = valueProvider.generateValue(usedValues);
+                    }
+                }
             }
             else {
                 // Create new value reservation
@@ -174,10 +165,17 @@ public class ValueReservationTask extends ReservationTask
                 else {
                     valueReservation = new ValueReservation();
                 }
+                // Generate new value
+                if (requestedValue != null) {
+                    value = valueProvider.generateValue(usedValues, requestedValue);
+                }
+                else {
+                    value = valueProvider.generateValue(usedValues);
+                }
             }
             valueReservation.setSlot(interval);
             valueReservation.setValueProvider(targetValueProvider);
-            valueReservation.setValue(availableValue);
+            valueReservation.setValue(value);
             return valueReservation;
         }
         catch (ValueProvider.InvalidValueException exception) {
@@ -193,7 +191,7 @@ public class ValueReservationTask extends ReservationTask
 
     /**
      * @param valueProvider for which the used values should be returned
-     * @param interval for which interval
+     * @param interval      for which interval
      * @return set of used values for given {@code valueProvider} in given {@code interval}
      */
     private Set<String> getUsedValues(ValueProvider valueProvider, Interval interval)

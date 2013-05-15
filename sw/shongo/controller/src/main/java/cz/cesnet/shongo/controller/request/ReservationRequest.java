@@ -470,6 +470,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
          * Allocation of the {@link ReservationRequest} failed. The reason can be found from
          * the {@link ReservationRequest#getReports()}
          */
-        ALLOCATION_FAILED;
+        ALLOCATION_FAILED,
     }
 }

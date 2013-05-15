@@ -87,6 +87,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager, reservationRequestSet);
         try {
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
@@ -116,9 +117,6 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 }
                 set.add(reservationRequest);
             }
-
-            // Build set of existing specifications for the set
-            Set<Long> specifications = new HashSet<Long>();
 
             // Reservation requests are synchronized per specification from the set
             Specification specification = reservationRequestSet.getSpecification();
@@ -150,7 +148,11 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
                     reservationRequest = map.get(slot);
-                    if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
+                    boolean modified = updateReservationRequest(
+                            reservationRequest, reservationRequestSet, specification);
+                    // Reservation request should be allocated when it was modified or
+                    // when the reservation request set was modified, ie., it is not preprocessed in the slot
+                    if (modified || stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
                         // Reservation request was modified, so we must clear it's state
                         reservationRequest.clearState();
                     }
@@ -198,8 +200,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
 
             // Set state preprocessed state for the interval to reservation request
-            PreprocessorStateManager.setState(entityManager, reservationRequestSet,
-                    PreprocessorState.PREPROCESSED, interval);
+            stateManager.setState(PreprocessorState.PREPROCESSED, interval);
 
             // Create ACL records
             for (ReservationRequest reservationRequest : newReservationRequests) {

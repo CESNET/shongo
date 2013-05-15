@@ -5,12 +5,11 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a {@link Specification} for an endpoint which can participate in a conference.
@@ -44,7 +43,8 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     /**
      * @param id of the {@link cz.cesnet.shongo.controller.common.Person}
      * @return {@link cz.cesnet.shongo.controller.common.Person} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
      */
     @Transient
     private Person getPersonById(Long id) throws CommonReportSet.EntityNotFoundException
@@ -97,7 +97,7 @@ public abstract class EndpointSpecification extends ParticipantSpecification
         EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getCallInitiation(), endpointSpecification.getCallInitiation());
+        modified |= !ObjectHelper.isSame(getCallInitiation(), endpointSpecification.getCallInitiation());
 
         setCallInitiation(endpointSpecification.getCallInitiation());
 

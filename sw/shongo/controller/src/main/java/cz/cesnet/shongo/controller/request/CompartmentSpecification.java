@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.*;
@@ -103,7 +103,8 @@ public class CompartmentSpecification extends Specification
     /**
      * @param id of the requested {@link Specification}
      * @return {@link Specification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link Specification} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link Specification} doesn't exist
      */
     @Transient
     private ParticipantSpecification getSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
@@ -210,7 +211,7 @@ public class CompartmentSpecification extends Specification
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getCallInitiation(), compartmentSpecification.getCallInitiation());
+        modified |= !ObjectHelper.isSame(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());
 

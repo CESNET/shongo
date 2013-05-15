@@ -252,11 +252,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
         // Get existing reservation
         Reservation reservation = reservationRequest.getReservation();
-        if (reservation != null) {
-            schedulerContext.addAvailableReservation(
-                    AvailableReservation.create(reservation, AvailableReservation.Type.REALLOCATABLE));
-        }
-
 
         // Fill provided reservations to transaction
         for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
@@ -266,8 +261,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             if (!providedReservation.getSlot().contains(schedulerContext.getInterval())) {
                 throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
             }
-            schedulerContext.addAvailableReservation(
-                    AvailableReservation.create(providedReservation, AvailableReservation.Type.REUSABLE));
+            schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
         }
 
         // Get reservation task

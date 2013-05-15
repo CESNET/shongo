@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.*;
-import cz.cesnet.shongo.TodoImplementException;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
@@ -36,7 +36,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         LookupEndpointSpecification lookupEndpointSpecification = (LookupEndpointSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getTechnologies(), lookupEndpointSpecification.getTechnologies());
+        modified |= !ObjectHelper.isSame(getTechnologies(), lookupEndpointSpecification.getTechnologies());
 
         setTechnologies(lookupEndpointSpecification.getTechnologies());
 
@@ -49,7 +49,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
         return new ReservationTask(schedulerContext)
         {
             @Override
-            protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+            protected Reservation allocateReservation() throws SchedulerException
             {
                 ResourceCache resourceCache = getCache().getResourceCache();
 

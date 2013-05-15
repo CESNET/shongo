@@ -212,7 +212,7 @@ public class ResourceManagementTest extends AbstractControllerTest
                 reservationRequestId);
         Assert.assertEquals(ReservationRequestState.ALLOCATED, reservationRequest.getState());
 
-        // Create reservation request after P1M -> failure
+        // Modify reservation request after P1M -> failure
         reservationRequest.setSlot("2012-02-01T12:00", "PT2H");
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));
@@ -232,7 +232,7 @@ public class ResourceManagementTest extends AbstractControllerTest
                 reservationRequestId);
         Assert.assertEquals(ReservationRequestState.ALLOCATED, reservationRequest.getState());
 
-        // Create reservation request after maximum future -> failure
+        // Modify reservation request after maximum future -> failure
         reservationRequest.setSlot("2012-03-01T12:00", "PT2H");
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));

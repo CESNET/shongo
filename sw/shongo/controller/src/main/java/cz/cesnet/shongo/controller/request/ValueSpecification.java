@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.ValueProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.scheduler.*;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -100,8 +100,8 @@ public class ValueSpecification extends Specification
         ValueSpecification valueSpecification = (ValueSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getValues(), valueSpecification.getValues())
-                || !ObjectUtils.equals(getValueProvider(), valueSpecification.getValueProvider());
+        modified |= !ObjectHelper.isSame(getValues(), valueSpecification.getValues())
+                || !ObjectHelper.isSame(getValueProvider(), valueSpecification.getValueProvider());
 
         setValueProvider(valueSpecification.getValueProvider());
         setValues(valueSpecification.getValues());
@@ -133,7 +133,7 @@ public class ValueSpecification extends Specification
             return new ReservationTask(schedulerContext)
             {
                 @Override
-                protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+                protected Reservation allocateReservation() throws SchedulerException
                 {
                     for (String value : values) {
                         addChildReservation(new ValueReservationTask(schedulerContext, valueProvider, value));

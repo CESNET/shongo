@@ -23,7 +23,7 @@ public enum ReservationRequestState
     ALLOCATED,
 
     /**
-     * The earliest reservation has failed to allocate for the request.
+     * The earliest reservation has failed to be allocated for the request.
      */
     ALLOCATION_FAILED,
 

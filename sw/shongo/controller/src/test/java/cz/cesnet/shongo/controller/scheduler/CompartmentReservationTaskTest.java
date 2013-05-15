@@ -385,7 +385,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 }
 
                 @Override
-                protected Reservation allocateReservation(Reservation allocatedReservation) throws SchedulerException
+                protected Reservation allocateReservation() throws SchedulerException
                 {
                     return new SimpleEndpointReservation();
                 }

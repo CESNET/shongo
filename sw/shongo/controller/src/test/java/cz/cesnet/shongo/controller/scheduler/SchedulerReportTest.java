@@ -111,8 +111,7 @@ public class SchedulerReportTest extends AbstractSchedulerTest
         ReservationTask reservationTask = reservationTaskProvider1.createReservationTask(schedulerContext);
         Reservation reservation = print(messageType, reservationTask);
         reservation.generateTestingId();
-        schedulerContext.addAvailableReservation(
-                AvailableReservation.create(reservation, AvailableReservation.Type.REUSABLE));
+        schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REUSABLE);
 
         reservationTask = reservationTaskProvider2.createReservationTask(schedulerContext);
         print(messageType, reservationTask);
@@ -122,6 +121,7 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     {
         try {
             Reservation reservation = reservationTask.perform(null);
+            getEntityManager().persist(reservation);
             StringBuilder builder = new StringBuilder();
             builder.append("\n");
             builder.append(reservationTask.getClass().getSimpleName() + " reports:\n");

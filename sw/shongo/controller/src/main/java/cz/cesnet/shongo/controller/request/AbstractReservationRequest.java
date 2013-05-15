@@ -2,22 +2,24 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.report.Report;
-import org.apache.commons.lang.ObjectUtils;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -190,7 +192,7 @@ public abstract class AbstractReservationRequest extends PersistentObject
     @Access(AccessType.FIELD)
     public List<Reservation> getProvidedReservations()
     {
-        return providedReservations;
+        return Collections.unmodifiableList(providedReservations);
     }
 
     /**
@@ -234,15 +236,15 @@ public abstract class AbstractReservationRequest extends PersistentObject
      */
     public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
-        boolean modified = !ObjectUtils.equals(getPurpose(), abstractReservationRequest.getPurpose())
-                || !ObjectUtils.equals(getPriority(), abstractReservationRequest.getPriority())
-                || !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription())
-                || !ObjectUtils.equals(isInterDomain(), abstractReservationRequest.isInterDomain());
+        boolean modified = !ObjectHelper.isSame(getPurpose(), abstractReservationRequest.getPurpose())
+                || !ObjectHelper.isSame(getPriority(), abstractReservationRequest.getPriority())
+                || !ObjectHelper.isSame(getDescription(), abstractReservationRequest.getDescription())
+                || !ObjectHelper.isSame(isInterDomain(), abstractReservationRequest.isInterDomain());
         setPurpose(abstractReservationRequest.getPurpose());
         setPriority(abstractReservationRequest.getPriority());
         setDescription(abstractReservationRequest.getDescription());
         setInterDomain(abstractReservationRequest.isInterDomain());
-        if (!ObjectUtils.equals(getProvidedReservations(), abstractReservationRequest.getProvidedReservations())) {
+        if (!ObjectHelper.isSame(getProvidedReservations(), abstractReservationRequest.getProvidedReservations())) {
             setProvidedReservations(abstractReservationRequest.getProvidedReservations());
             modified = true;
         }
@@ -264,6 +266,7 @@ public abstract class AbstractReservationRequest extends PersistentObject
      * Validate {@link AbstractReservationRequest}.
      *
      * @throws CommonReportSet.EntityInvalidException
+     *
      */
     public void validate() throws CommonReportSet.EntityInvalidException
     {
@@ -274,6 +277,7 @@ public abstract class AbstractReservationRequest extends PersistentObject
      *
      * @param duration to be validated
      * @throws ControllerReportSet.ReservationRequestEmptyDurationException
+     *
      */
     protected static void validateSlotDuration(Period duration)
             throws ControllerReportSet.ReservationRequestEmptyDurationException
@@ -332,7 +336,7 @@ public abstract class AbstractReservationRequest extends PersistentObject
     protected abstract cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi();
 
     /**
-     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api         {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      * @param messageType
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
