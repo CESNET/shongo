@@ -19,7 +19,6 @@ import javax.persistence.*;
 @Entity
 public class RoomReservation extends Reservation implements EndpointProvider
 {
-
     /**
      * {@link RoomProviderCapability} in which the room is allocated.
      */
