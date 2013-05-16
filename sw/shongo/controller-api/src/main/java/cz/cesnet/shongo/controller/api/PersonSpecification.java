@@ -12,7 +12,7 @@ public class PersonSpecification extends ParticipantSpecification
     /**
      * The requested person.
      */
-    public static final String PERSON = "PERSON";
+    public static final String PERSON = "person";
 
     /**
      * Constructor.

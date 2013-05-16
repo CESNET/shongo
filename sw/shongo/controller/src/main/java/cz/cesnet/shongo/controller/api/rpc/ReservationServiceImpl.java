@@ -35,11 +35,6 @@ public class ReservationServiceImpl extends Component
                    Component.AuthorizationAware
 {
     /**
-     * @see cz.cesnet.shongo.controller.cache.Cache
-     */
-    private Cache cache;
-
-    /**
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
@@ -52,11 +47,9 @@ public class ReservationServiceImpl extends Component
     /**
      * Constructor.
      *
-     * @param cache sets the {@link #cache}
      */
-    public ReservationServiceImpl(Cache cache)
+    public ReservationServiceImpl()
     {
-        this.cache = cache;
     }
 
     @Override
@@ -170,24 +163,21 @@ public class ReservationServiceImpl extends Component
      *
      * @param reservationRequest
      */
-    private void checkModifiableReservationRequest(
+    private boolean isModifiableReservationRequest(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
             EntityManager entityManager)
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        boolean modifiable = true;
         if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
             cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                     (cz.cesnet.shongo.controller.request.ReservationRequest) reservationRequest;
             if (reservationRequestImpl.getReservationRequestSet() != null) {
-                modifiable = false;
+                return false;
             }
-
-            if (modifiable) {
-                if (reservationManager.isProvided(reservationRequestImpl.getReservation())) {
-                    modifiable = false;
-                }
+            cz.cesnet.shongo.controller.reservation.Reservation reservation = reservationRequestImpl.getReservation();
+            if (reservation != null && reservationManager.isProvided(reservation)) {
+                return false;
             }
         }
         else if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
@@ -195,18 +185,24 @@ public class ReservationServiceImpl extends Component
                     (cz.cesnet.shongo.controller.request.ReservationRequestSet) reservationRequest;
             for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
                     reservationRequestSetImpl.getReservationRequests()) {
-                if (reservationManager.isProvided(reservationRequestImpl.getReservation())) {
-                    modifiable = false;
-                    break;
+                cz.cesnet.shongo.controller.reservation.Reservation reservation = reservationRequestImpl.getReservation();
+                if (reservation != null && reservationManager.isProvided(reservation)) {
+                    return false;
                 }
             }
         }
-
-        if (!modifiable) {
-            throw new ControllerReportSet.ReservationRequestNotModifiableException(
-                    EntityIdentifier.formatId(reservationRequest));
-        }
+        return true;
     }
+
+    /**
+     * Properties which can be filled to allow modification of reservation request whose reservation is provided to
+     * another reservation request.
+     */
+    private final static Set<String> MODIFIABLE_FILLED_PROPERTIES = new HashSet<String>() {{
+        add("id");
+        add(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT);
+        add(cz.cesnet.shongo.controller.api.ReservationRequestSet.SLOTS);
+    }};
 
     @Override
     public void modifyReservationRequest(SecurityToken token,
@@ -228,8 +224,13 @@ public class ReservationServiceImpl extends Component
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
             }
+            if (!isModifiableReservationRequest(reservationRequest, entityManager)) {
+                if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
+                    throw new ControllerReportSet.ReservationRequestNotModifiableException(
+                            EntityIdentifier.formatId(reservationRequest));
+                }
+            }
 
-            checkModifiableReservationRequest(reservationRequest, entityManager);
             reservationRequest.fromApi(reservationRequestApi, entityManager);
             reservationRequest.validate();
 
@@ -273,8 +274,10 @@ public class ReservationServiceImpl extends Component
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerFaultSet.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
             }
-
-            checkModifiableReservationRequest(reservationRequest, entityManager);
+            if (!isModifiableReservationRequest(reservationRequest, entityManager)) {
+                throw new ControllerReportSet.ReservationRequestNotModifiableException(
+                        EntityIdentifier.formatId(reservationRequest));
+            }
 
             reservationRequestManager.delete(reservationRequest, authorizationManager);
 

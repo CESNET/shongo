@@ -27,6 +27,19 @@ public class Reporter
     private static Logger logger = LoggerFactory.getLogger(Reporter.class);
 
     /**
+     * Specifies whether {@link #reportInternalError} should throw the error as {@link RuntimeException}s.
+     */
+    private static boolean throwInternalErrorsForTesting = false;
+
+    /**
+     * @param throwInternalErrorsForTesting sets the {@link #throwInternalErrorsForTesting}
+     */
+    public static void setThrowInternalErrorsForTesting(boolean throwInternalErrorsForTesting)
+    {
+        Reporter.throwInternalErrorsForTesting = throwInternalErrorsForTesting;
+    }
+
+    /**
      * Report given {@code report}.
      *
      * @param reportContext in which the {@code report} has been created
@@ -171,8 +184,13 @@ public class Reporter
         else {
             logger.error(name, throwable);
         }
-        sendReportEmail(getAdministratorEmails(), name,
-                getAdministratorEmailContent(message, reportContext, null, throwable));
+        if (Reporter.throwInternalErrorsForTesting) {
+            throw new RuntimeException(throwable);
+        }
+        else {
+            sendReportEmail(getAdministratorEmails(), name,
+                    getAdministratorEmailContent(message, reportContext, null, throwable));
+        }
     }
 
     /**

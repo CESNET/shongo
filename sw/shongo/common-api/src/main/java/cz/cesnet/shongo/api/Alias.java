@@ -76,4 +76,34 @@ public class Alias extends IdentifiedObject implements StructType, Concept
     {
         return String.format(Alias.class.getSimpleName() + " (type: %s, value: %s)", type.toString(), value);
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Alias alias = (Alias) o;
+
+        if (type != alias.type) {
+            return false;
+        }
+        if (!value.equals(alias.value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = type.hashCode();
+        result = 31 * result + value.hashCode();
+        return result;
+    }
 }

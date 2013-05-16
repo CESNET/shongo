@@ -168,7 +168,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));
-        controller.addRpcService(new ReservationServiceImpl(cache));
+        controller.addRpcService(new ReservationServiceImpl());
     }
 
     /**
@@ -184,6 +184,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     public void before() throws Exception
     {
         super.before();
+
+        // Enable throwing internal errors
+        Reporter.setThrowInternalErrorsForTesting(true);
 
         // Do not change default timezone by the controller
         System.setProperty(Configuration.TIMEZONE, "");
@@ -256,6 +259,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         controller.destroy();
         preprocessor.destroy();
         scheduler.destroy();
+
+        // Disable throwing internal errors
+        Reporter.setThrowInternalErrorsForTesting(true);
 
         super.after();
     }

@@ -379,10 +379,15 @@ public class ReallocationTest extends AbstractControllerTest
         // Extend the validity of the alias reservation
         aliasReservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, aliasReservationRequestId);
+        aliasReservationRequest.startModification();
         aliasReservationRequest.setSlot("2013-01-01T12:00", "PT2H");
         Reservation aliasReservation2 = allocateAndCheck(aliasReservationRequest);
 
         Assert.assertEquals(aliasReservation1.getId(), aliasReservation2.getId());
+        Executable.ResourceRoom resourceRoom1 = (Executable.ResourceRoom) aliasReservation1.getExecutable();
+        Executable.ResourceRoom resourceRoom2 = (Executable.ResourceRoom) aliasReservation2.getExecutable();
+        Assert.assertEquals(resourceRoom1.getId(), resourceRoom2.getId());
+        Assert.assertEquals(resourceRoom1.getAliases(), resourceRoom2.getAliases());
     }
 
     @Test

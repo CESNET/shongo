@@ -17,6 +17,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -508,6 +509,11 @@ public class RoomReservationTask extends ReservationTask
             ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
             resourceRoomEndpoint.setRoomProviderCapability(roomProviderCapability);
             return resourceRoomEndpoint;
+        }
+        // No room endpoint should be returned
+        if (existingRoomEndpoint != null && existingRoomEndpoint.getState().isStarted()) {
+            // If room endpoint exists it will be stopped
+            existingRoomEndpoint.setSlotEnd(DateTime.now());
         }
         return null;
     }

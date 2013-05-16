@@ -37,6 +37,13 @@ public abstract class IdentifiedChangeableObject extends IdentifiedObject
     }
 
     @Override
+    public void setId(String id)
+    {
+        super.setId(id);
+        getChangesTracking().markPropertyAsFilled("id");
+    }
+
+    @Override
     @Transient
     public ChangesTracking getChangesTracking()
     {
@@ -64,6 +71,31 @@ public abstract class IdentifiedChangeableObject extends IdentifiedObject
     public void setupNewEntity()
     {
         ChangesTracking.setupNewEntity(this);
+    }
+
+    /**
+     * Remove all filled/changed marks for properties/collections. It is useful when you don't want to send all
+     * data but only the modified (marked as filled).
+     */
+    public void startModification()
+    {
+        ChangesTracking changesTracking = getChangesTracking();
+        if (changesTracking.isPropertyFilled("id")) {
+            changesTracking.clearMarks();
+            changesTracking.markPropertyAsFilled("id");
+        }
+        else {
+            changesTracking.clearMarks();
+        }
+    }
+
+    /**
+     * @return {@link ChangesTracking#getFilledProperties()}
+     */
+    @Transient
+    public Set<String> getFilledProperties()
+    {
+        return getChangesTracking().getFilledProperties();
     }
 
     /**

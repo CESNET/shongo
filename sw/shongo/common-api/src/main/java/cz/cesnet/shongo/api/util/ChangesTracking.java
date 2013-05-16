@@ -145,6 +145,14 @@ public class ChangesTracking implements Concept
     private Map<String, CollectionChanges> collectionChangesMap = new HashMap<String, CollectionChanges>();
 
     /**
+     * @return {@link #filledProperties
+     */
+    public Set<String> getFilledProperties()
+    {
+        return filledProperties;
+    }
+
+    /**
      * @param property
      * @return true if given field was marked as filled,
      *         false otherwise

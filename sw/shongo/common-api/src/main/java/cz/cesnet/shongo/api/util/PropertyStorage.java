@@ -150,6 +150,9 @@ public class PropertyStorage
             collection = new HashSet<T>(collection);
         }
         values.put(property, collection);
+        if (changesTracking != null) {
+            changesTracking.markPropertyAsFilled(property);
+        }
     }
 
     /**
@@ -164,6 +167,9 @@ public class PropertyStorage
             collection = new LinkedList<T>(collection);
         }
         values.put(property, collection);
+        if (changesTracking != null) {
+            changesTracking.markPropertyAsFilled(property);
+        }
     }
 
     /**
@@ -179,6 +185,9 @@ public class PropertyStorage
         }
         else {
             values.put(property, null);
+            if (changesTracking != null) {
+                changesTracking.markPropertyAsFilled(property);
+            }
         }
     }
 
@@ -197,6 +206,7 @@ public class PropertyStorage
         Collection<Object> collection = getInternalCollection(property, collectionType);
         if (collection.add(item)) {
             if (changesTracking != null) {
+                changesTracking.markPropertyAsFilled(property);
                 changesTracking.markPropertyItemAsNew(property, item);
             }
             return true;
@@ -221,6 +231,7 @@ public class PropertyStorage
         }
         if (collection.remove(item)) {
             if (changesTracking != null) {
+                changesTracking.markPropertyAsFilled(property);
                 changesTracking.markPropertyItemAsDeleted(property, item);
             }
             return true;
@@ -263,6 +274,9 @@ public class PropertyStorage
     public <T> void setMap(String property, Map map)
     {
         values.put(property, map);
+        if (changesTracking != null) {
+            changesTracking.markPropertyAsFilled(property);
+        }
     }
 
     /**
@@ -279,6 +293,7 @@ public class PropertyStorage
         Map<Object, Object> map = getInternalMap(property);
         if (map.put(itemKey, itemValue) == null) {
             if (changesTracking != null) {
+                changesTracking.markPropertyAsFilled(property);
                 changesTracking.markPropertyItemAsNew(property, itemKey);
             }
             return true;
@@ -302,6 +317,7 @@ public class PropertyStorage
         }
         if (map.remove(itemKey) != null) {
             if (changesTracking != null) {
+                changesTracking.markPropertyAsFilled(property);
                 changesTracking.markPropertyItemAsDeleted(property, itemKey);
             }
             return true;

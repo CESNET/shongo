@@ -203,6 +203,12 @@ public class Converter
                 continue;
             }
 
+            if (changesTrackingObject != null && options.isStoreChanges()) {
+                if (!changesTrackingObject.isPropertyFilled(propertyName)) {
+                    continue;
+                }
+            }
+
             // Get property value
             Object value = property.getValue(object);
 

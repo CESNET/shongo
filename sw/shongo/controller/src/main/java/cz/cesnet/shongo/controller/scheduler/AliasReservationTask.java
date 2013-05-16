@@ -4,12 +4,14 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import java.util.*;
@@ -325,11 +327,34 @@ public class AliasReservationTask extends ReservationTask
                         throw new RuntimeException("Permanent room should be enabled only for device resource"
                                 + " with room provider capability.");
                     }
-                    ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+                    ResourceRoomEndpoint roomEndpoint;
+                    Executable executable = aliasReservation.getExecutable();
+                    if (executable != null && executable instanceof ResourceRoomEndpoint) {
+                        // Reallocate existing room endpoint
+                        roomEndpoint = (ResourceRoomEndpoint) executable;
+                        roomEndpoint.clearAssignedAliases();
+                    }
+                    else {
+                        if (executable != null) {
+                            // If executable exists it will be stopped
+                            executable.setSlotEnd(DateTime.now());
+                        }
+                        // Create new room endpoint
+                        roomEndpoint = new ResourceRoomEndpoint();
+                    }
+
                     roomEndpoint.setSlot(interval);
                     roomEndpoint.setRoomProviderCapability(roomProvider);
                     roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
-                    roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+
+                    // Update room endpoint state
+                    if (roomEndpoint.getState() == null) {
+                        roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+                    }
+                    else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
+                        roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
+                    }
+
                     Set<Technology> technologies = roomEndpoint.getTechnologies();
                     for (Alias alias : aliasReservation.getAliases()) {
                         if (alias.getTechnology().isCompatibleWith(technologies)) {
