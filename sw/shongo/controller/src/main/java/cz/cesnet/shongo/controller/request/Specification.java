@@ -89,41 +89,91 @@ public abstract class Specification extends PersistentObject implements Reportab
     /**
      * Synchronize properties from given {@code specification}.
      *
-     * @param specification from which will be copied all properties values to
-     *                      this {@link Specification}
-     * @return true if some modification was made
+     * @param specification from which will be copied all properties values to this {@link Specification}
+     * @param originalMap   map of original {@link Specification} instances by the new cloned instances
+     * @return true if some modification was made, false otherwise
      */
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification, Map<Specification, Specification> originalMap)
     {
         boolean modified = false;
         if (!technologies.equals(specification.getTechnologies())) {
             setTechnologies(specification.getTechnologies());
             modified = true;
         }
+        if (this instanceof CompositeSpecification && specification instanceof CompositeSpecification) {
+            CompositeSpecification compositeSpecification = (CompositeSpecification) this;
+            CompositeSpecification compositeSpecificationFrom = (CompositeSpecification) specification;
+
+            // Build set of new specifications
+            Set<Specification> newSpecifications = new HashSet<Specification>();
+            for (Specification newSpecification : compositeSpecificationFrom.getChildSpecifications()) {
+                newSpecifications.add(newSpecification);
+            }
+
+            if (originalMap != null) {
+                // We have mapping of original specifications and thus iterate over existing child specifications and:
+                // 1) update specifications whose original specification still exists
+                // 2) delete specifications whose original specification doesn't exist anymore
+                Set<Specification> deleteSpecifications = new HashSet<Specification>();
+                for (Specification childSpecification : compositeSpecification.getChildSpecifications()) {
+                    Specification originalSpecification = originalMap.get(childSpecification);
+                    if (originalSpecification != null) {
+                        if (originalSpecification == childSpecification) {
+                            // Specification should not be newly created (it can be only updated)
+                            newSpecifications.remove(originalSpecification);
+                            // No need to update (it is the same specification and thus it is already updated)
+                            continue;
+                        }
+                        else if (newSpecifications.contains(originalSpecification)) {
+                            // Specification should not be newly created (it can be only updated)
+                            newSpecifications.remove(originalSpecification);
+                            // Update specification
+                            modified |= childSpecification.synchronizeFrom(originalSpecification, originalMap);
+                            continue;
+                        }
+                    }
+                    // Original specification doesn't exist anymore and thus the specification should be deleted
+                    deleteSpecifications.add(childSpecification);
+                }
+                // Delete all child specifications whose original specification doesn't exist
+                for (Specification deletedSpecification : deleteSpecifications) {
+                    compositeSpecification.removeChildSpecification(deletedSpecification);
+                    modified = true;
+                }
+            }
+            else {
+                // We don't have mapping of original specifications and thus delete all child specifications
+                Set<Specification> childSpecifications =
+                        new HashSet<Specification>(compositeSpecification.getChildSpecifications());
+                for (Specification childSpecification : childSpecifications) {
+                    compositeSpecification.removeChildSpecification(childSpecification);
+                }
+            }
+
+            // Add new child specifications
+            for (Specification newSpecification : newSpecifications) {
+                compositeSpecification.addChildSpecification(newSpecification.clone(originalMap));
+                modified = true;
+            }
+        }
         return modified;
     }
 
     /**
-     * @param originalSpecifications map of original {@link Specification} instances by the cloned instances which should
-     *                               be populated by this cloning
-     * @return cloned instance of {@link StatefulSpecification}. If the {@link StatefulSpecification} contains some
-     *         child {@link StatefulSpecification} they should be recursively cloned too.
+     * @param originalMap map of original {@link Specification} instances by the new cloned instances
+     *                    which should be populated by this cloning
+     * @return cloned instance of {@link Specification}. If the {@link Specification} is instance of
+     *         {@link CompositeSpecification} (it can contain children) the child specifications
+     *         should be recursively cloned too.
      */
-    public Specification clone(Map<Specification, Specification> originalSpecifications)
+    public Specification clone(Map<Specification, Specification> originalMap)
     {
-        Specification newSpecification = ClassHelper.createInstanceFromClass(getClass());
-        newSpecification.synchronizeFrom(this);
-        if (this instanceof CompositeSpecification) {
-            CompositeSpecification compositeSpecification = (CompositeSpecification) this;
-            CompositeSpecification newCompositeSpecification = (CompositeSpecification) newSpecification;
-            for (Specification childSpecification : compositeSpecification.getChildSpecifications()) {
-                newCompositeSpecification.addChildSpecification(childSpecification.clone(originalSpecifications));
-            }
+        Specification specification = ClassHelper.createInstanceFromClass(getClass());
+        if (originalMap != null) {
+            originalMap.put(specification, this);
         }
-
-        originalSpecifications.put(newSpecification, this);
-
-        return newSpecification;
+        specification.synchronizeFrom(this, originalMap);
+        return specification;
     }
 
     @Override

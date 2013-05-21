@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
@@ -145,7 +145,7 @@ public class ReservationManager extends AbstractManager
             return reservation;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(Reservation.class, reservationId);
+            return ControllerReportSetHelper.throwEntityNotFoundFault(Reservation.class, reservationId);
         }
     }
 

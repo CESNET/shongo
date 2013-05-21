@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -113,7 +113,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 return roomSetting;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(RoomSetting.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(RoomSetting.class, id);
     }
 
     /**
@@ -167,7 +167,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
                 return aliasSpecification;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**
@@ -198,11 +198,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         RoomSpecification roomSpecification = (RoomSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
         modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
         modified |= !ObjectHelper.isSame(getDeviceResource(), roomSpecification.getDeviceResource());
 

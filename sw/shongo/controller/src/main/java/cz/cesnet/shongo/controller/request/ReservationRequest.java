@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -21,6 +22,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a request created by an user to get allocated some resources for video conference calls.
@@ -394,6 +396,31 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         validateSlotDuration(getSlot().toPeriod());
 
         super.validate();
+    }
+
+    @Override
+    public AbstractReservationRequest clone()
+    {
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.synchronizeFrom(this, null);
+        return reservationRequest;
+    }
+
+    @Override
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest,
+            Map<Specification, Specification> originalMap)
+    {
+        boolean modified = super.synchronizeFrom(abstractReservationRequest, originalMap);
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+
+            modified |= !ObjectHelper.isSame(getSlotStart(), reservationRequest.getSlotStart())
+                    || !ObjectHelper.isSame(getSlotEnd(), reservationRequest.getSlotEnd());
+
+            setSlotStart(reservationRequest.getSlotStart());
+            setSlotEnd(reservationRequest.getSlotEnd());
+        }
+        return modified;
     }
 
     @Override

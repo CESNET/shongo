@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -36,21 +38,12 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param abstractReservationRequest to be validated
-     */
-    private void validate(AbstractReservationRequest abstractReservationRequest) throws IllegalArgumentException
-    {
-    }
-
-    /**
      * Create a new {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be created in the database
      */
     public void create(AbstractReservationRequest abstractReservationRequest)
     {
-        validate(abstractReservationRequest);
-
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             if (reservationRequest.getState() == null) {
@@ -70,8 +63,6 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void update(AbstractReservationRequest reservationRequest, boolean clearPreprocessedState)
     {
-        validate(reservationRequest);
-
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
         super.update(reservationRequest);
@@ -92,6 +83,41 @@ public class ReservationRequestManager extends AbstractManager
     public void update(AbstractReservationRequest reservationRequest)
     {
         update(reservationRequest, true);
+    }
+
+
+    /**
+     * @param reservationRequest detached reservation request which should be modified (cloned and created)
+     * @return new cloned instance of {@link AbstractReservationRequest}
+     */
+    public AbstractReservationRequest modify(AbstractReservationRequest reservationRequest)
+    {
+        if (entityManager.contains(reservationRequest)) {
+            throw new IllegalArgumentException("Old reservation request must not be attached to persistence context.");
+        }
+        if (isModified(reservationRequest)) {
+            throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(
+                    EntityIdentifier.formatId(reservationRequest));
+        }
+        AbstractReservationRequest newReservationRequest = reservationRequest.clone();
+        create(newReservationRequest);
+
+        // Update existing modified reservation requests
+        entityManager.createQuery("UPDATE ModifiedReservationRequest"
+                + " SET primaryKey.latestReservationRequest = :newReservationRequest"
+                + " WHERE primaryKey.latestReservationRequest = :oldReservationRequest")
+                .setParameter("oldReservationRequest", reservationRequest)
+                .setParameter("newReservationRequest", newReservationRequest)
+                .executeUpdate();
+
+        // Create new modified reservation request
+        ModifiedReservationRequest modifiedReservationRequest = new ModifiedReservationRequest();
+        modifiedReservationRequest.setOldReservationRequest(reservationRequest);
+        modifiedReservationRequest.setNewReservationRequest(newReservationRequest);
+        modifiedReservationRequest.setLatestReservationRequest(newReservationRequest);
+        entityManager.persist(modifiedReservationRequest);
+
+        return newReservationRequest;
     }
 
     /**
@@ -115,8 +141,9 @@ public class ReservationRequestManager extends AbstractManager
                 // Check if reservation can be deleted
                 ReservationManager reservationManager = new ReservationManager(entityManager);
                 if (reservationManager.isProvided(reservation)) {
-                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
-                            abstractReservationRequest.getId());
+                    ControllerReportSetHelper
+                            .throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
+                                    abstractReservationRequest.getId());
                 }
                 reservation.setReservationRequest(null);
                 reservationManager.update(reservation);
@@ -140,9 +167,24 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationRequest to be checked whether it has already been modified
+     * @return true whether given {@code reservationRequest} is already modified,
+     *         false otherwise
+     */
+    public boolean isModified(AbstractReservationRequest reservationRequest)
+    {
+        return entityManager.createQuery(
+                "SELECT modifiedReservationRequest FROM ModifiedReservationRequest modifiedReservationRequest"
+                        + " WHERE modifiedReservationRequest.primaryKey.oldReservationRequest = :reservationRequest")
+                .setParameter("reservationRequest", reservationRequest)
+                .getResultList().size() > 0;
+    }
+
+    /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
      * @return {@link AbstractReservationRequest} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link AbstractReservationRequest} doesn't exist
      */
     public AbstractReservationRequest get(Long reservationRequestId) throws CommonReportSet.EntityNotFoundException
     {
@@ -155,14 +197,16 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
+            return ControllerReportSetHelper
+                    .throwEntityNotFoundFault(AbstractReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequest(Long reservationRequestId)
             throws CommonReportSet.EntityNotFoundException
@@ -176,14 +220,15 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, reservationRequestId);
+            return ControllerReportSetHelper.throwEntityNotFoundFault(ReservationRequest.class, reservationRequestId);
         }
     }
 
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
      * @return {@link ReservationRequestSet} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link ReservationRequestSet} doesn't exist
      */
     public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId)
             throws CommonReportSet.EntityNotFoundException
@@ -197,7 +242,8 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
+            return ControllerReportSetHelper
+                    .throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
@@ -276,7 +322,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given id
-     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequestNotNull(Long reservationRequestId)
             throws CommonReportSet.EntityNotFoundException
@@ -420,7 +467,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param reservationRequestId id for {@link ReservationRequest}
      * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
      * @throws RuntimeException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
-     *                        the video conference yet
+     *                          the video conference yet
      */
     public void acceptPersonRequest(Long reservationRequestId, Long personId)
     {

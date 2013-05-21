@@ -16,10 +16,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a base class for all reservation requests which contains common attributes.
@@ -28,7 +25,7 @@ import java.util.Set;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractReservationRequest extends PersistentObject
+public abstract class AbstractReservationRequest extends PersistentObject implements Cloneable
 {
     /**
      * User-id of an user who created the {@link AbstractReservationRequest}.
@@ -154,7 +151,7 @@ public abstract class AbstractReservationRequest extends PersistentObject
     /**
      * @return {@link #specification}
      */
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, optional = false)
     public Specification getSpecification()
     {
         return specification;
@@ -228,41 +225,6 @@ public abstract class AbstractReservationRequest extends PersistentObject
     }
 
     /**
-     * Synchronize properties from given {@code abstractReservationRequest}.
-     *
-     * @param abstractReservationRequest from which will be copied all properties values to
-     *                                   this {@link AbstractReservationRequest}
-     * @return true if some modification was made
-     */
-    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
-    {
-        boolean modified = !ObjectHelper.isSame(getPurpose(), abstractReservationRequest.getPurpose())
-                || !ObjectHelper.isSame(getPriority(), abstractReservationRequest.getPriority())
-                || !ObjectHelper.isSame(getDescription(), abstractReservationRequest.getDescription())
-                || !ObjectHelper.isSame(isInterDomain(), abstractReservationRequest.isInterDomain());
-        setPurpose(abstractReservationRequest.getPurpose());
-        setPriority(abstractReservationRequest.getPriority());
-        setDescription(abstractReservationRequest.getDescription());
-        setInterDomain(abstractReservationRequest.isInterDomain());
-        if (!ObjectHelper.isSame(getProvidedReservations(), abstractReservationRequest.getProvidedReservations())) {
-            setProvidedReservations(abstractReservationRequest.getProvidedReservations());
-            modified = true;
-        }
-        return modified;
-    }
-
-    @PrePersist
-    protected void onCreate()
-    {
-        if (created == null) {
-            created = DateTime.now();
-        }
-        if (priority == null) {
-            priority = 0;
-        }
-    }
-
-    /**
      * Validate {@link AbstractReservationRequest}.
      *
      * @throws CommonReportSet.EntityInvalidException
@@ -284,6 +246,71 @@ public abstract class AbstractReservationRequest extends PersistentObject
     {
         if (duration.equals(new Period())) {
             throw new ControllerReportSet.ReservationRequestEmptyDurationException();
+        }
+    }
+
+    @Override
+    public void loadLazyCollections()
+    {
+        super.loadLazyCollections();
+
+        providedReservations.size();
+    }
+
+    /**
+     * @return new cloned instance of this {@link AbstractReservationRequest}
+     */
+    @Override
+    public abstract AbstractReservationRequest clone();
+
+    /**
+     * Synchronize properties from given {@code abstractReservationRequest}.
+     *
+     * @param reservationRequest from which will be copied all properties values to this {@link AbstractReservationRequest}
+     * @param originalMap        map of original {@link Specification} instances by the new cloned instances
+     * @return true if some modification was made
+     */
+    public boolean synchronizeFrom(AbstractReservationRequest reservationRequest,
+            Map<Specification, Specification> originalMap)
+    {
+        boolean modified = !ObjectHelper.isSame(getUserId(), reservationRequest.getUserId())
+                || !ObjectHelper.isSame(getPurpose(), reservationRequest.getPurpose())
+                || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
+                || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
+                || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain());
+        setUserId(reservationRequest.getUserId());
+        setPurpose(reservationRequest.getPurpose());
+        setPriority(reservationRequest.getPriority());
+        setDescription(reservationRequest.getDescription());
+        setInterDomain(reservationRequest.isInterDomain());
+
+        Specification specification = reservationRequest.getSpecification();
+        if (this.specification == null || this.specification.getClass() != specification.getClass()) {
+            // Setup new specification
+            setSpecification(specification.clone(originalMap));
+            modified = true;
+        }
+        else {
+            // Check specification for modifications
+            modified |= this.specification.synchronizeFrom(specification, originalMap);
+        }
+
+
+        if (!ObjectHelper.isSame(getProvidedReservations(), reservationRequest.getProvidedReservations())) {
+            setProvidedReservations(reservationRequest.getProvidedReservations());
+            modified = true;
+        }
+        return modified;
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        if (created == null) {
+            created = DateTime.now();
+        }
+        if (priority == null) {
+            priority = 0;
         }
     }
 

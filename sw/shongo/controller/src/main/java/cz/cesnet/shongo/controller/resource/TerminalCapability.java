@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class TerminalCapability extends DeviceCapability
                 return alias;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(Alias.class, aliasId);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(Alias.class, aliasId);
     }
 
     /**

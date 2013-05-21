@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
 
 import javax.persistence.Query;
 import java.util.*;

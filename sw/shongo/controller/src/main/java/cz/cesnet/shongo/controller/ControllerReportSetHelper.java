@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ControllerFaultSet
+public class ControllerReportSetHelper
 {
     /**
      * @throws {@link CommonReportSet.EntityNotFoundException}

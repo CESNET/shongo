@@ -75,7 +75,7 @@ public class AuthorizationServiceImpl extends Component
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity == null) {
-                ControllerFaultSet.throwEntityNotFoundFault(entityId);
+                ControllerReportSetHelper.throwEntityNotFoundFault(entityId);
             }
         }
         finally {
@@ -90,7 +90,7 @@ public class AuthorizationServiceImpl extends Component
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
         if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.WRITE)) {
-            ControllerFaultSet.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
@@ -124,7 +124,7 @@ public class AuthorizationServiceImpl extends Component
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
             if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.WRITE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
             }
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
@@ -153,7 +153,7 @@ public class AuthorizationServiceImpl extends Component
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
             if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.READ)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("read ACL for %s", aclRecord.getEntityId());
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read ACL for %s", aclRecord.getEntityId());
             }
             return aclRecord.toApi();
         }
@@ -171,7 +171,7 @@ public class AuthorizationServiceImpl extends Component
         if (!requesterUserId.equals(userId)) {
             if (entityIdentifier != null) {
                 if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.READ)) {
-                    ControllerFaultSet.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
                 }
             }
             else {
@@ -253,10 +253,10 @@ public class AuthorizationServiceImpl extends Component
             PersistentObject entity = entityManager.find(entityIdentifier.getEntityClass(),
                     entityIdentifier.getPersistenceId());
             if (entity == null) {
-                ControllerFaultSet.throwEntityNotFoundFault(entityIdentifier);
+                ControllerReportSetHelper.throwEntityNotFoundFault(entityIdentifier);
             }
             if (!authorization.isAdmin(userId)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("change user for %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();

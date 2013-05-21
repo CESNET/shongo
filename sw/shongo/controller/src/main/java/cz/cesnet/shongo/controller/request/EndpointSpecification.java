@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.util.ObjectHelper;
@@ -10,6 +10,7 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a {@link Specification} for an endpoint which can participate in a conference.
@@ -54,7 +55,7 @@ public abstract class EndpointSpecification extends ParticipantSpecification
                 return person;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(Person.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**
@@ -92,11 +93,12 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
         modified |= !ObjectHelper.isSame(getCallInitiation(), endpointSpecification.getCallInitiation());
 
         setCallInitiation(endpointSpecification.getCallInitiation());

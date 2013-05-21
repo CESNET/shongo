@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
@@ -130,7 +130,7 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(Resource.class, resourceId);
+            return ControllerReportSetHelper.throwEntityNotFoundFault(Resource.class, resourceId);
         }
     }
 
@@ -149,7 +149,7 @@ public class ResourceManager extends AbstractManager
             return deviceResource;
         }
         catch (NoResultException exception) {
-            return ControllerFaultSet.throwEntityNotFoundFault(DeviceResource.class, deviceResourceId);
+            return ControllerReportSetHelper.throwEntityNotFoundFault(DeviceResource.class, deviceResourceId);
         }
     }
 

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
@@ -150,7 +150,7 @@ public class Resource extends PersistentObject implements Reportable
                 return capability;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(Capability.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(Capability.class, id);
     }
 
     /**
@@ -307,7 +307,7 @@ public class Resource extends PersistentObject implements Reportable
                 return person;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(Person.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(Person.class, id);
     }
 
     /**

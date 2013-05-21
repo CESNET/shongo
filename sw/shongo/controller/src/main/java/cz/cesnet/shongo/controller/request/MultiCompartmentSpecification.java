@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
@@ -66,7 +66,7 @@ public class MultiCompartmentSpecification extends Specification
                 return compartmentSpecification;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(CompartmentSpecification.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(CompartmentSpecification.class, id);
     }
 
     /**
@@ -115,7 +115,8 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         return false;
     }

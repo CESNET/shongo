@@ -5,7 +5,6 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.FilterType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;

@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSlot;
 import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -64,7 +65,18 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 return dateTimeSlot;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(DateTimeSlot.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(DateTimeSlot.class, id);
+    }
+
+    /**
+     * @param slots sets the {@link #slots}
+     */
+    public void setSlots(List<DateTimeSlot> slots)
+    {
+        this.slots.clear();
+        for (DateTimeSlot slot : slots) {
+            this.slots.add(slot);
+        }
     }
 
     /**
@@ -181,7 +193,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 return reservationRequest;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(ReservationRequest.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(ReservationRequest.class, id);
     }
 
     /**
@@ -231,6 +243,37 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 removedClonedSpecification(specification);
             }
         }
+    }
+
+    @Override
+    public void loadLazyCollections()
+    {
+        super.loadLazyCollections();
+
+        slots.size();
+    }
+
+    @Override
+    public AbstractReservationRequest clone()
+    {
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
+        reservationRequest.synchronizeFrom(this, null);
+        return reservationRequest;
+    }
+
+    @Override
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest,
+            Map<Specification, Specification> originalMap)
+    {
+        boolean modified = super.synchronizeFrom(abstractReservationRequest, originalMap);
+        if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+
+            modified |= !ObjectHelper.isSame(getSlots(), reservationRequestSet.getSlots());
+
+            setSlots(reservationRequestSet.getSlots());
+        }
+        return modified;
     }
 
     @Override

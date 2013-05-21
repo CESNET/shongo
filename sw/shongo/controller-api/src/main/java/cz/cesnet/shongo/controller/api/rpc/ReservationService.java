@@ -38,13 +38,14 @@ public interface ReservationService extends Service
     public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
 
     /**
-     * Modifies a given reservation.
+     * Modifies a given reservation request (by creating a new reservation request which is a modification of the given).
      *
      * @param token              token of the user requesting the operation
-     * @param reservationRequest reservation request with attributes to be modified
+     * @param reservationRequest reservation request to be modified
+     * @return the shongo-id of new reservation request which represents a modification of given reservation request
      */
     @API
-    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
+    public String modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
 
     /**
      * Deletes a given reservation.

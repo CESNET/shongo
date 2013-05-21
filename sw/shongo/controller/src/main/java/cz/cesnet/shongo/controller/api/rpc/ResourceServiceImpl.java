@@ -159,7 +159,7 @@ public class ResourceServiceImpl extends Component
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
             }
 
             // Synchronize from API
@@ -200,7 +200,7 @@ public class ResourceServiceImpl extends Component
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
             authorizationManager.deleteAclRecordsForEntity(resource);
@@ -222,7 +222,7 @@ public class ResourceServiceImpl extends Component
                 if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
                     logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.",
                             exception);
-                    ControllerFaultSet.throwEntityNotDeletableReferencedFault(
+                    ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                             Resource.class, entityId.getPersistenceId());
                     return;
                 }
@@ -296,7 +296,7 @@ public class ResourceServiceImpl extends Component
             cz.cesnet.shongo.controller.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("read resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
             }
 
             return resource.toApi(entityManager);
@@ -324,7 +324,7 @@ public class ResourceServiceImpl extends Component
                     resourceManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
             }
 
             RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);

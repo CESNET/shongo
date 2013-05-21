@@ -43,40 +43,50 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
 
         // Check created reservation request
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                id);
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
         Assert.assertEquals("request", reservationRequest.getDescription());
         Assert.assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setDescription("requestModified");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id2 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
+
+        // Check already modified reservation request
+        try {
+            getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+            Assert.fail("Exception that reservation request has already been modified should be thrown.");
+        }
+        catch (ControllerReportSet.ReservationRequestAlreadyModifiedException exception) {
+            Assert.assertEquals(id1, exception.getId());
+        }
 
         // Modify reservation request by new instance of reservation request
         reservationRequest = new ReservationRequest();
-        reservationRequest.setId(id);
+        reservationRequest.setId(id2);
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
 
         // Check modified reservation request
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                id);
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id3);
         Assert.assertEquals("requestModified", reservationRequest.getDescription());
         Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id1);
 
         // Check deleted reservation request
         try {
-            getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+            getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
             Assert.fail("Reservation request should not exist.");
         }
         catch (CommonReportSet.EntityNotFoundException exception) {
-            Assert.assertEquals(id, exception.getId());
+            Assert.assertEquals(id1, exception.getId());
         }
     }
 

@@ -352,7 +352,7 @@ public class ResourceControlServiceImpl extends Component
             EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             String agentName = getAgentName(entityId, entityManager);
             if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control device %s", entityId);
             }
             return agentName;
         }
@@ -379,7 +379,7 @@ public class ResourceControlServiceImpl extends Component
                         deviceResourceIdentifier.getPersistenceId(), roomId, DateTime.now());
                 if (roomEndpoint == null || !authorization.hasPermission(
                         userId, new EntityIdentifier(roomEndpoint), Permission.READ)) {
-                    ControllerFaultSet.throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
+                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
                 }
             }
             return agentName;

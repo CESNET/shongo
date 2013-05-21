@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
@@ -114,7 +114,7 @@ public class CompartmentSpecification extends Specification
                 return specification;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(ParticipantSpecification.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(ParticipantSpecification.class, id);
     }
 
     /**
@@ -206,11 +206,12 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
         modified |= !ObjectHelper.isSame(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());

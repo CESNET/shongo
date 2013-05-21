@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.report.Report;

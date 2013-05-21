@@ -148,8 +148,8 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
                     reservationRequest = map.get(slot);
-                    boolean modified = updateReservationRequest(
-                            reservationRequest, reservationRequestSet, specification);
+                    boolean modified = reservationRequest.synchronizeFrom(reservationRequestSet,
+                            reservationRequestSet.getOriginalSpecifications());
                     // Reservation request should be allocated when it was modified or
                     // when the reservation request set was modified, ie., it is not preprocessed in the slot
                     if (modified || stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
@@ -165,7 +165,8 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                     reservationRequest = new ReservationRequest();
                     reservationRequest.setUserId(reservationRequestSet.getUserId());
                     reservationRequest.setSlot(slot);
-                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
+                    reservationRequest.synchronizeFrom(reservationRequestSet,
+                            reservationRequestSet.getOriginalSpecifications());
                     reservationRequestSet.addReservationRequest(reservationRequest);
 
                     newReservationRequests.add(reservationRequest);
@@ -219,91 +220,5 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             }
             throw exception;
         }
-    }
-
-    /**
-     * Update given {@code specification} according to given {@code specificationFrom}.
-     *
-     * @param specification
-     * @param specificationFrom
-     * @param reservationRequestSet
-     * @return true if some change(s) were made in the {@link Specification}
-     *         false otherwise
-     */
-    private static boolean updateSpecification(Specification specification, Specification specificationFrom,
-            ReservationRequestSet reservationRequestSet)
-    {
-        boolean modified = false;
-        modified |= specification.synchronizeFrom(specificationFrom);
-        if (specification instanceof CompositeSpecification) {
-            CompositeSpecification compositeSpecification = (CompositeSpecification) specification;
-            CompositeSpecification compositeSpecificationFrom = (CompositeSpecification) specificationFrom;
-
-            // Get map of original specifications by cloned specifications
-            Map<Specification, Specification> originalSpecifications = reservationRequestSet
-                    .getOriginalSpecifications();
-
-            // Build set of new specifications
-            Set<Specification> newSpecifications = new HashSet<Specification>();
-            for (Specification newSpecification : compositeSpecificationFrom.getChildSpecifications()) {
-                newSpecifications.add(newSpecification);
-            }
-
-            // Update or delete child specifications
-            Set<Specification> deletedSpecifications = new HashSet<Specification>();
-            for (Specification childSpecification : compositeSpecification.getChildSpecifications()) {
-                Specification originalSpecification = originalSpecifications.get(childSpecification);
-                if (originalSpecification == null) {
-                    originalSpecification = childSpecification;
-                }
-                if (newSpecifications.contains(originalSpecification)) {
-                    modified |= updateSpecification(childSpecification, originalSpecification, reservationRequestSet);
-                    newSpecifications.remove(originalSpecification);
-                }
-                else {
-                    deletedSpecifications.add(childSpecification);
-                }
-            }
-            for (Specification deletedSpecification : deletedSpecifications) {
-                compositeSpecification.removeChildSpecification(deletedSpecification);
-                modified = true;
-            }
-
-            // Add new child specifications
-            for (Specification newSpecification : newSpecifications) {
-                compositeSpecification.addChildSpecification(newSpecification.clone(originalSpecifications));
-                modified = true;
-            }
-        }
-        return modified;
-    }
-
-    /**
-     * Update given {@code reservationRequest} according to given {@code specification}.
-     *
-     * @param reservationRequest
-     * @param specification
-     * @return true if some change(s) were made in the {@link ReservationRequest}
-     *         false otherwise
-     */
-    private static boolean updateReservationRequest(ReservationRequest reservationRequest,
-            ReservationRequestSet reservationRequestSet, Specification specification)
-    {
-        // Tracks whether the reservation request was modified
-        boolean modified = false;
-        modified |= reservationRequest.synchronizeFrom(reservationRequestSet);
-
-        Specification oldSpecification = reservationRequest.getSpecification();
-        if (oldSpecification == null || oldSpecification.getClass() != specification.getClass()) {
-            // Setup new specification
-            reservationRequest.setSpecification(specification.clone(reservationRequestSet.getOriginalSpecifications()));
-            modified = true;
-        }
-        else {
-            // Check specification for modifications
-            modified |= updateSpecification(oldSpecification, specification, reservationRequestSet);
-        }
-
-        return modified;
     }
 }

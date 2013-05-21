@@ -1,15 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerFaultSet;
+import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a {@link Specification} for multiple {@link AliasSpecification}s.
@@ -60,7 +57,7 @@ public class AliasSetSpecification extends Specification
                 return aliasSpecification;
             }
         }
-        return ControllerFaultSet.throwEntityNotFoundFault(AliasSpecification.class, id);
+        return ControllerReportSetHelper.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**
@@ -117,11 +114,12 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         AliasSetSpecification roomSpecification = (AliasSetSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
 
         if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
             setAliasSpecifications(roomSpecification.getAliasSpecifications());

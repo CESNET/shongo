@@ -93,7 +93,7 @@ public class InMemoryAclPropagationCache
         try {
             PersistentObject entity = entityManager.find(entityId.getEntityClass(), entityId.getPersistenceId());
             if (entity == null) {
-                ControllerFaultSet.throwEntityNotFoundFault(entityId);
+                ControllerReportSetHelper.throwEntityNotFoundFault(entityId);
             }
             return entity;
         }

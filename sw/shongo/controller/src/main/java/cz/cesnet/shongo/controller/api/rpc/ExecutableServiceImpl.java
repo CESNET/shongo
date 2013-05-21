@@ -78,7 +78,7 @@ public class ExecutableServiceImpl extends Component
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
             executableManager.delete(executable, authorizationManager);
@@ -87,7 +87,7 @@ public class ExecutableServiceImpl extends Component
             authorizationManager.commitTransaction();
         }
         catch (javax.persistence.RollbackException exception) {
-            ControllerFaultSet.throwEntityNotDeletableReferencedFault(
+            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     cz.cesnet.shongo.controller.executor.Executable.class, entityId.getPersistenceId());
         }
         finally {
@@ -147,7 +147,7 @@ public class ExecutableServiceImpl extends Component
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("read executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
             Executable executableApi = executable.toApi(authorization.isAdmin(userId));
@@ -178,7 +178,7 @@ public class ExecutableServiceImpl extends Component
                     executableManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
-                ControllerFaultSet.throwSecurityNotAuthorizedFault("start executable %s", entityId);
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("start executable %s", entityId);
             }
 
             executable.setNextAttempt(DateTime.now());

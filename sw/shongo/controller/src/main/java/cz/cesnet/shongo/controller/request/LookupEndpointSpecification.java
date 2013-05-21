@@ -13,6 +13,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,11 +32,12 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         LookupEndpointSpecification lookupEndpointSpecification = (LookupEndpointSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
         modified |= !ObjectHelper.isSame(getTechnologies(), lookupEndpointSpecification.getTechnologies());
 
         setTechnologies(lookupEndpointSpecification.getTechnologies());

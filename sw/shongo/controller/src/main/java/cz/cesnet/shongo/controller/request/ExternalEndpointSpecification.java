@@ -11,6 +11,7 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -101,11 +102,12 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification)
+    public boolean synchronizeFrom(Specification specification,
+            Map<Specification, Specification> originalMap)
     {
         ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification);
+        boolean modified = super.synchronizeFrom(specification, originalMap);
 
         if (!ObjectHelper.isSame(getAliases(), externalEndpointSpecification.getAliases())) {
             setAliases(externalEndpointSpecification.getAliases());
