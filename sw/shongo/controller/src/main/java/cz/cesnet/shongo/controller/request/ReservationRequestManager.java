@@ -3,11 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.authorization.AclRecord;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -16,6 +13,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +48,6 @@ public class ReservationRequestManager extends AbstractManager
                 reservationRequest.updateStateBySpecification();
             }
         }
-
         super.create(abstractReservationRequest);
     }
 
@@ -87,51 +84,70 @@ public class ReservationRequestManager extends AbstractManager
 
 
     /**
-     * @param reservationRequest detached reservation request which should be modified (cloned and created)
-     * @return new cloned instance of {@link AbstractReservationRequest}
+     * @param oldReservationRequest old reservation request which is being modified
+     * @param newReservationRequest new reservation request by which the {@code oldReservationRequest} is modified
      */
-    public AbstractReservationRequest modify(AbstractReservationRequest reservationRequest)
+    public void modify(AbstractReservationRequest oldReservationRequest,
+            AbstractReservationRequest newReservationRequest)
     {
-        if (entityManager.contains(reservationRequest)) {
-            throw new IllegalArgumentException("Old reservation request must not be attached to persistence context.");
-        }
-        if (isModified(reservationRequest)) {
-            throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(
-                    EntityIdentifier.formatId(reservationRequest));
-        }
-        AbstractReservationRequest newReservationRequest = reservationRequest.clone();
+        // Set old reservation request as modified
+        oldReservationRequest.setType(AbstractReservationRequest.Type.MODIFIED);
+
+        // Create new reservation request
         create(newReservationRequest);
 
         // Update existing modified reservation requests
         entityManager.createQuery("UPDATE ModifiedReservationRequest"
                 + " SET primaryKey.latestReservationRequest = :newReservationRequest"
                 + " WHERE primaryKey.latestReservationRequest = :oldReservationRequest")
-                .setParameter("oldReservationRequest", reservationRequest)
+                .setParameter("oldReservationRequest", oldReservationRequest)
                 .setParameter("newReservationRequest", newReservationRequest)
                 .executeUpdate();
 
         // Create new modified reservation request
         ModifiedReservationRequest modifiedReservationRequest = new ModifiedReservationRequest();
-        modifiedReservationRequest.setOldReservationRequest(reservationRequest);
+        modifiedReservationRequest.setOldReservationRequest(oldReservationRequest);
         modifiedReservationRequest.setNewReservationRequest(newReservationRequest);
         modifiedReservationRequest.setLatestReservationRequest(newReservationRequest);
         entityManager.persist(modifiedReservationRequest);
+    }
 
-        return newReservationRequest;
+    public void softDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+    {
+        PersistenceTransaction transaction = beginPersistenceTransaction();
+
+        Long reservationRequestId = reservationRequest.getId();
+        List<AbstractReservationRequest> versions = listVersions(reservationRequestId);
+        for (AbstractReservationRequest version : versions) {
+            delete(version, authorizationManager, false);
+        }
+
+        transaction.commit();
+    }
+
+    public void hardDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+    {
+        PersistenceTransaction transaction = beginPersistenceTransaction();
+
+        Long reservationRequestId = reservationRequest.getId();
+        List<AbstractReservationRequest> versions = listVersions(reservationRequestId);
+        for (AbstractReservationRequest version : versions) {
+            delete(version, authorizationManager, true);
+        }
+
+        transaction.commit();
     }
 
     /**
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
-     * @return {@link AclRecord}s which should be deleted
+     * @param authorizationManager       to be used for deleting ACL records
+     * @param hardDelete                 specifies whether request should be really deleted or only marked as deleted
      */
-    public void delete(AbstractReservationRequest abstractReservationRequest, AuthorizationManager authorizationManager)
+    private void delete(AbstractReservationRequest abstractReservationRequest,
+            AuthorizationManager authorizationManager, boolean hardDelete)
     {
-        authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
-
-        PersistenceTransaction transaction = beginPersistenceTransaction();
-
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
 
@@ -141,9 +157,8 @@ public class ReservationRequestManager extends AbstractManager
                 // Check if reservation can be deleted
                 ReservationManager reservationManager = new ReservationManager(entityManager);
                 if (reservationManager.isProvided(reservation)) {
-                    ControllerReportSetHelper
-                            .throwEntityNotDeletableReferencedFault(abstractReservationRequest.getClass(),
-                                    abstractReservationRequest.getId());
+                    ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+                            ReservationRequest.class, reservationRequest.getId());
                 }
                 reservation.setReservationRequest(null);
                 reservationManager.update(reservation);
@@ -154,16 +169,57 @@ public class ReservationRequestManager extends AbstractManager
 
             // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                delete(reservationRequest, authorizationManager);
+                delete(reservationRequest, authorizationManager, true);
             }
 
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
         }
 
-        super.delete(abstractReservationRequest);
+        if (hardDelete) {
+            authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
 
-        transaction.commit();
+            super.delete(abstractReservationRequest);
+        }
+        else {
+            abstractReservationRequest.setType(AbstractReservationRequest.Type.DELETED);
+            super.update(abstractReservationRequest);
+        }
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return list of all versions for {@link AbstractReservationRequest} with given {@code reservationRequestId}
+     */
+    private List<AbstractReservationRequest> listVersions(Long reservationRequestId)
+    {
+        try {
+            Long latestReservationRequestId = entityManager.createQuery(
+                "SELECT modifiedReservationRequest.primaryKey.latestReservationRequest.id"
+                        + "     FROM ModifiedReservationRequest modifiedReservationRequest"
+                        + "    WHERE modifiedReservationRequest.primaryKey.oldReservationRequest.id = :id"
+                        + "       OR modifiedReservationRequest.primaryKey.newReservationRequest.id = :id"
+                        + " GROUP BY modifiedReservationRequest.primaryKey.latestReservationRequest.id", Long.class)
+                .setParameter("id", reservationRequestId)
+                .getSingleResult();
+            // Multiple version exists, so find all of them
+            return entityManager.createQuery(
+                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.id = :id "
+                            + "    OR reservationRequest.id IN("
+                            + "       SELECT modified.primaryKey.oldReservationRequest"
+                            + "          FROM ModifiedReservationRequest modified"
+                            + "        WHERE modified.primaryKey.latestReservationRequest.id = :id"
+                            + "    )",
+                    AbstractReservationRequest.class)
+                    .setParameter("id", latestReservationRequestId)
+                    .getResultList();
+        } catch (NoResultException exception) {
+            // Only single version exists, so return only reservation request with given identifier
+            List<AbstractReservationRequest> reservationRequests = new LinkedList<AbstractReservationRequest>();
+            reservationRequests.add(get(reservationRequestId));
+            return reservationRequests;
+        }
     }
 
     /**
@@ -259,7 +315,8 @@ public class ReservationRequestManager extends AbstractManager
             Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
-        filter.addFilter("(TYPE(request) != ReservationRequest OR request.reservationRequestSet IS NULL)");
+        filter.addFilter("TYPE(request) != ReservationRequest OR request.reservationRequestSet IS NULL");
+        filter.addFilter("request.type = :createdType", "createdType", AbstractReservationRequest.Type.CREATED);
         filter.addIds(ids);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {

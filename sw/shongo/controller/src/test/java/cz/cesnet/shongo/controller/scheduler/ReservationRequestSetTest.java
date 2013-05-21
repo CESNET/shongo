@@ -259,7 +259,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             entityManager.getTransaction().begin();
             ReservationRequestSet reservationRequestSet =
                     reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
-            reservationRequestManager.delete(reservationRequestSet, authorizationManager);
+            reservationRequestManager.softDelete(reservationRequestSet, authorizationManager);
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 

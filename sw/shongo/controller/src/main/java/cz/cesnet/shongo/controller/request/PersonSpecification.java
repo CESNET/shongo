@@ -134,7 +134,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         boolean modified = super.synchronizeFrom(specification, originalMap);
         modified |= !ObjectHelper.isSame(getPerson(), personSpecification.getPerson());
 
-        setPerson(personSpecification.getPerson());
+        setPerson(personSpecification.getPerson().clone());
 
         if (getEndpointSpecification() != personSpecification.getEndpointSpecification()) {
             // We want make change only in the following scenarios

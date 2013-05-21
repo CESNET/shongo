@@ -18,7 +18,8 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int IDENTIFIER_INVALID_TYPE_REPORT = 106;
     public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 107;
     public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 108;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 109;
+    public static final int RESERVATION_REQUEST_DELETED_REPORT = 109;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 110;
 
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
@@ -1325,6 +1326,137 @@ public class ControllerReportSet extends AbstractReportSet
     }
 
     /**
+     * Reservation request with identifier {@link #id} is deleted.
+     */
+    public static class ReservationRequestDeletedReport extends Report implements ApiFault
+    {
+        protected String id;
+
+        public ReservationRequestDeletedReport()
+        {
+        }
+
+        public ReservationRequestDeletedReport(String id)
+        {
+            setId(id);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return RESERVATION_REQUEST_DELETED_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ReservationRequestDeletedException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Reservation request with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" is deleted.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationRequestDeletedReport}.
+     */
+    public static class ReservationRequestDeletedException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ReservationRequestDeletedException(ReservationRequestDeletedReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationRequestDeletedException(Throwable throwable, ReservationRequestDeletedReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationRequestDeletedException(String id)
+        {
+            ReservationRequestDeletedReport report = new ReservationRequestDeletedReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public ReservationRequestDeletedException(Throwable throwable, String id)
+        {
+            super(throwable);
+            ReservationRequestDeletedReport report = new ReservationRequestDeletedReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        @Override
+        public ReservationRequestDeletedReport getReport()
+        {
+            return (ReservationRequestDeletedReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ReservationRequestDeletedReport) report;
+        }
+    }
+
+    /**
      * Reservation request time slot must not be empty.
      */
     public static class ReservationRequestEmptyDurationReport extends Report implements ApiFault
@@ -1439,6 +1571,7 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(IdentifierInvalidTypeReport.class);
         addReportClass(ReservationRequestNotModifiableReport.class);
         addReportClass(ReservationRequestAlreadyModifiedReport.class);
+        addReportClass(ReservationRequestDeletedReport.class);
         addReportClass(ReservationRequestEmptyDurationReport.class);
     }
 }

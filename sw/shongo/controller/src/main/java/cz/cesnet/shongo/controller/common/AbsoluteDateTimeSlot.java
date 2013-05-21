@@ -208,4 +208,13 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
         }
         return false;
     }
+
+    @Override
+    public DateTimeSlot clone()
+    {
+        AbsoluteDateTimeSlot absoluteDateTimeSlot = new AbsoluteDateTimeSlot();
+        absoluteDateTimeSlot.setSlotStart(slotStart);
+        absoluteDateTimeSlot.setSlotEnd(slotEnd);
+        return absoluteDateTimeSlot;
+    }
 }

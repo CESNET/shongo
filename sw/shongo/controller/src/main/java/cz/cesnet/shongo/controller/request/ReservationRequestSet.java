@@ -246,14 +246,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    public void loadLazyCollections()
-    {
-        super.loadLazyCollections();
-
-        slots.size();
-    }
-
-    @Override
     public AbstractReservationRequest clone()
     {
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
@@ -271,7 +263,10 @@ public class ReservationRequestSet extends AbstractReservationRequest
 
             modified |= !ObjectHelper.isSame(getSlots(), reservationRequestSet.getSlots());
 
-            setSlots(reservationRequestSet.getSlots());
+            slots.clear();
+            for (DateTimeSlot slot : reservationRequestSet.getSlots()) {
+                addSlot(slot.clone());
+            }
         }
         return modified;
     }

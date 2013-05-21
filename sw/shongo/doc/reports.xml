@@ -718,6 +718,24 @@
         </report>
 
         <report>
+            <id>reservation-request-deleted</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reservation request with identifier ${id} is deleted.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+        </report>
+
+        <report>
             <id>reservation-request-empty-duration</id>
             <classification severity="error"/>
             <description>

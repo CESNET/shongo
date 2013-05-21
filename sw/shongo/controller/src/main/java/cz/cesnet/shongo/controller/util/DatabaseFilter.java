@@ -48,6 +48,17 @@ public class DatabaseFilter
     }
 
     /**
+     * @param filter         to be added to the {@link #filters}
+     * @param parameterName  name of parameter to be added
+     * @param parameterValue value of parameter to be added
+     */
+    public void addFilter(String filter, String parameterName, Object parameterValue)
+    {
+        filters.add(filter);
+        parameters.put(parameterName, parameterValue);
+    }
+
+    /**
      * Add parameter for filters.
      *
      * @param name  of the parameter

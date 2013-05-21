@@ -5,12 +5,15 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -223,6 +226,12 @@ public class ReservationServiceImpl extends Component
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
             }
+            switch (oldReservationRequest.getType()) {
+                case MODIFIED:
+                    throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(entityId.toId());
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
+            }
             if (!isModifiableReservationRequest(oldReservationRequest, entityManager)) {
                 if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
                     throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
@@ -230,17 +239,23 @@ public class ReservationServiceImpl extends Component
             }
 
             // Update old detached reservation request (the changes will not be serialized to database)
-            oldReservationRequest.loadLazyCollections();
             oldReservationRequest.fromApi(reservationRequestApi, entityManager);
             oldReservationRequest.validate();
 
-            authorizationManager.beginTransaction(authorization);
-            entityManager.detach(oldReservationRequest);
-            entityManager.getTransaction().begin();
-
             // Create new reservation request by cloning old reservation request
             cz.cesnet.shongo.controller.request.AbstractReservationRequest newReservationRequest =
-                    reservationRequestManager.modify(oldReservationRequest);
+                    oldReservationRequest.clone();
+
+            // Revert changes to old reservation request
+            entityManager.detach(oldReservationRequest);
+
+            authorizationManager.beginTransaction(authorization);
+            entityManager.getTransaction().begin();
+
+            oldReservationRequest = reservationRequestManager.get(entityId.getPersistenceId());
+
+            // Create new reservation request and update old reservation request
+            reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
 
             // Copy ACL records
             authorizationManager.copyAclRecords(oldReservationRequest, newReservationRequest);
@@ -277,12 +292,16 @@ public class ReservationServiceImpl extends Component
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
             }
+            switch (reservationRequest.getType()) {
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
+            }
             if (!isModifiableReservationRequest(reservationRequest, entityManager)) {
                 throw new ControllerReportSet.ReservationRequestNotModifiableException(
                         EntityIdentifier.formatId(reservationRequest));
             }
 
-            reservationRequestManager.delete(reservationRequest, authorizationManager);
+            reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -317,11 +336,13 @@ public class ReservationServiceImpl extends Component
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update reservation request %s", entityId);
             }
-            if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
-                // Reservation request was modified, so we must clear it's state
-                reservationRequest.clearState();
-                // Update state
-                reservationRequest.updateStateBySpecification();
+            switch (reservationRequest.getState()) {
+                case ALLOCATION_FAILED: {
+                    // Reservation request was modified, so we must clear it's state
+                    reservationRequest.clearState();
+                    // Update state
+                    reservationRequest.updateStateBySpecification();
+                }
             }
 
             entityManager.getTransaction().commit();
@@ -408,6 +429,10 @@ public class ReservationServiceImpl extends Component
 
             if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
+            }
+            switch (reservationRequest.getType()) {
+                case DELETED:
+                    throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
             }
 
             return reservationRequest.toApi(authorization.isAdmin(userId));

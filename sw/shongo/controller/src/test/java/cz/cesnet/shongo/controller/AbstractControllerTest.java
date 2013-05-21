@@ -468,7 +468,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(
                 SECURITY_TOKEN_ROOT, reservationRequestId);
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN_ROOT, reservationRequest);
+        getReservationService().updateReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();
         }

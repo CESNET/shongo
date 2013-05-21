@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.rpc.ResourceService;
 import org.apache.xmlrpc.XmlRpcException;
@@ -130,7 +131,7 @@ public class XmlRpcTest extends AbstractControllerTest
     @Test
     public void testModifyAndDeleteReservationRequest() throws Exception
     {
-        String id = null;
+        String id;
 
         // ---------------------------
         // Create reservation request
@@ -159,17 +160,16 @@ public class XmlRpcTest extends AbstractControllerTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                            id);
-            reservationRequestSet.setPurpose(null);
+                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+            reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
 
-            getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+            id = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestSet);
 
             reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                     SECURITY_TOKEN, id);
             Assert.assertNotNull(reservationRequestSet);
-            Assert.assertEquals(null, reservationRequestSet.getPurpose());
+            Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequestSet.getPurpose());
             Assert.assertEquals(1, reservationRequestSet.getSlots().size());
         }
 
@@ -178,18 +178,17 @@ public class XmlRpcTest extends AbstractControllerTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                            id);
+                    (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
             Assert.assertNotNull(reservationRequestSet);
 
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
 
             try {
-                reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                        SECURITY_TOKEN, id);
+                getReservationService().getReservationRequest(SECURITY_TOKEN, id);
                 Assert.fail("Exception that record doesn't exists should be thrown.");
             }
-            catch (CommonReportSet.EntityNotFoundException exception) {
+            catch (ControllerReportSet.ReservationRequestDeletedException exception) {
+                Assert.assertEquals(id, exception.getId());
             }
         }
     }

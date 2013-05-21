@@ -197,4 +197,13 @@ public class PeriodicDateTimeSlot extends DateTimeSlot
         }
         return false;
     }
+
+    @Override
+    public DateTimeSlot clone()
+    {
+        PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
+        periodicDateTimeSlot.setPeriodicDateTime(periodicDateTime.clone());
+        periodicDateTimeSlot.setDuration(duration);
+        return periodicDateTimeSlot;
+    }
 }

@@ -46,7 +46,12 @@ public class ReservationManagementTest extends AbstractControllerTest
         String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
 
+        Collection<ReservationRequestSummary> reservationRequests;
+
         // Check created reservation request
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id1 , reservationRequests.iterator().next().getId());
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
         Assert.assertEquals("request", reservationRequest.getDescription());
         Assert.assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
@@ -55,6 +60,9 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.setDescription("requestModified");
         String id2 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id2 , reservationRequests.iterator().next().getId());
 
         // Check already modified reservation request
         try {
@@ -71,6 +79,9 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
         String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id3 , reservationRequests.iterator().next().getId());
 
         // Check modified reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id3);
@@ -81,11 +92,13 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id1);
 
         // Check deleted reservation request
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("No reservation request should exist.", 0 , reservationRequests.size());
         try {
             getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
             Assert.fail("Reservation request should not exist.");
         }
-        catch (CommonReportSet.EntityNotFoundException exception) {
+        catch (ControllerReportSet.ReservationRequestDeletedException exception) {
             Assert.assertEquals(id1, exception.getId());
         }
     }

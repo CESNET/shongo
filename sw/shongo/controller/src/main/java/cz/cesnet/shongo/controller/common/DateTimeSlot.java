@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class DateTimeSlot extends PersistentObject
+public abstract class DateTimeSlot extends PersistentObject implements Cloneable
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -213,4 +213,7 @@ public abstract class DateTimeSlot extends PersistentObject
      *         false otherwise
      */
     public abstract boolean equalsApi(Object slotApi);
+
+    @Override
+    public abstract DateTimeSlot clone();
 }

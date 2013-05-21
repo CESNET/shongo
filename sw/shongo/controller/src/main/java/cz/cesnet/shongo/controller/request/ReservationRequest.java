@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.util.ObjectHelper;
-import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -84,7 +83,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotStart}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
     public DateTime getSlotStart()
     {
@@ -103,7 +102,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #slotEnd}
      */
     @Column
-    @Type(type = "DateTime")
+    @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
     public DateTime getSlotEnd()
     {

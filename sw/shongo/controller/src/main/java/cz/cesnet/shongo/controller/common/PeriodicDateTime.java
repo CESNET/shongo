@@ -16,7 +16,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PeriodicDateTime extends PersistentObject
+public class PeriodicDateTime extends PersistentObject implements Cloneable
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -405,6 +405,19 @@ public class PeriodicDateTime extends PersistentObject
         return true;
     }
 
+    @Override
+    protected PeriodicDateTime clone()
+    {
+        PeriodicDateTime periodicDateTime = new PeriodicDateTime();
+        periodicDateTime.setStart(start);
+        periodicDateTime.setPeriod(period);
+        periodicDateTime.setEnd(end);
+        for (Rule rule : rules) {
+            periodicDateTime.addRule(rule.clone());
+        }
+        return periodicDateTime;
+    }
+
     /**
      * Periodic date/time rule type.
      *
@@ -435,7 +448,7 @@ public class PeriodicDateTime extends PersistentObject
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
     @Entity
-    public static class Rule extends PersistentObject
+    public static class Rule extends PersistentObject implements Cloneable
     {
         /**
          * Type of rule.
@@ -541,6 +554,12 @@ public class PeriodicDateTime extends PersistentObject
                 throw new IllegalStateException("Periodic date/time rule should have set at least one date/time.");
             }
             return dateTimeTo != null;
+        }
+
+        @Override
+        protected Rule clone()
+        {
+            return new Rule(type, dateTimeFrom, dateTimeTo);
         }
     }
 }
