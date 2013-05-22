@@ -136,7 +136,6 @@ public class ReservationServiceImpl extends Component
                     cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                             reservationRequestApi, entityManager);
             reservationRequest.setUserId(userId);
-            reservationRequest.validate();
 
             reservationRequestManager.create(reservationRequest);
 
@@ -166,18 +165,19 @@ public class ReservationServiceImpl extends Component
      */
     private boolean isModifiableReservationRequest(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            EntityManager entityManager)
+            ReservationManager reservationManager)
     {
-        ReservationManager reservationManager = new ReservationManager(entityManager);
+        Allocation allocation = reservationRequest.getAllocation();
+        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : allocation.getReservations()) {
+            if (reservationManager.isProvided(reservation)) {
+                return false;
+            }
+        }
 
         if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
             cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                     (cz.cesnet.shongo.controller.request.ReservationRequest) reservationRequest;
             if (reservationRequestImpl.getReservationRequestSet() != null) {
-                return false;
-            }
-            cz.cesnet.shongo.controller.reservation.Reservation reservation = reservationRequestImpl.getReservation();
-            if (reservation != null && reservationManager.isProvided(reservation)) {
                 return false;
             }
         }
@@ -186,9 +186,7 @@ public class ReservationServiceImpl extends Component
                     (cz.cesnet.shongo.controller.request.ReservationRequestSet) reservationRequest;
             for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
                     reservationRequestSetImpl.getReservationRequests()) {
-                cz.cesnet.shongo.controller.reservation.Reservation reservation = reservationRequestImpl
-                        .getReservation();
-                if (reservation != null && reservationManager.isProvided(reservation)) {
+                if (isModifiableReservationRequest(reservationRequestImpl, reservationManager)) {
                     return false;
                 }
             }
@@ -232,7 +230,8 @@ public class ReservationServiceImpl extends Component
                 case DELETED:
                     throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
             }
-            if (!isModifiableReservationRequest(oldReservationRequest, entityManager)) {
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            if (!isModifiableReservationRequest(oldReservationRequest, reservationManager)) {
                 if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
                     throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
                 }
@@ -240,14 +239,13 @@ public class ReservationServiceImpl extends Component
 
             // Update old detached reservation request (the changes will not be serialized to database)
             oldReservationRequest.fromApi(reservationRequestApi, entityManager);
-            oldReservationRequest.validate();
 
             // Create new reservation request by cloning old reservation request
             cz.cesnet.shongo.controller.request.AbstractReservationRequest newReservationRequest =
                     oldReservationRequest.clone();
 
             // Revert changes to old reservation request
-            entityManager.detach(oldReservationRequest);
+            entityManager.clear();
 
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
@@ -296,7 +294,8 @@ public class ReservationServiceImpl extends Component
                 case DELETED:
                     throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
             }
-            if (!isModifiableReservationRequest(reservationRequest, entityManager)) {
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            if (!isModifiableReservationRequest(reservationRequest, reservationManager)) {
                 throw new ControllerReportSet.ReservationRequestNotModifiableException(
                         EntityIdentifier.formatId(reservationRequest));
             }

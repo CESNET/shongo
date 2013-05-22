@@ -26,8 +26,8 @@ public class ResourceReservationTask extends ReservationTask
     /**
      * Constructor.
      *
-     * @param schedulerContext  sets the {@link #schedulerContext}
-     * @param resource sets the {@link #resource}
+     * @param schedulerContext sets the {@link #schedulerContext}
+     * @param resource         sets the {@link #resource}
      */
     public ResourceReservationTask(SchedulerContext schedulerContext, Resource resource)
     {
@@ -46,7 +46,7 @@ public class ResourceReservationTask extends ReservationTask
     {
         validateReservationSlot(ResourceReservation.class);
 
-        Interval interval = schedulerContext.getInterval();
+        Interval interval = schedulerContext.getRequestedSlot();
 
         Cache cache = getCache();
         ResourceCache resourceCache = cache.getResourceCache();
@@ -70,54 +70,25 @@ public class ResourceReservationTask extends ReservationTask
             Reservation originalReservation = availableResourceReservation.getOriginalReservation();
             ResourceReservation resourceReservation = availableResourceReservation.getTargetReservation();
 
-            // Reallocatable reservation
-            if (availableResourceReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
-                if (this.reallocatableReservation == null) {
-                    this.reallocatableReservation = availableResourceReservation;
-                }
+            // Only reusable available reservations
+            if (!availableResourceReservation.isType(AvailableReservation.Type.REUSABLE)) {
+                continue;
             }
-            // Reusable available reservation
-            else {
-                // Original reservation slot must contain requested slot
-                if (!originalReservation.getSlot().contains(interval)) {
-                    continue;
-                }
 
-                // Available reservation will be returned so remove it from context (to not be used again)
-                schedulerContext.removeAvailableReservation(availableResourceReservation);
-
-                // Return available reservation
-                ExistingReservation existingValueReservation;
-                if (isReallocatableOriginalReservation(ExistingReservation.class)) {
-                    // Reallocate existing resource reservation
-                    existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
-                }
-                else {
-                    // Create new existing resource reservation
-                    existingValueReservation = new ExistingReservation();
-                }
-                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                existingValueReservation.setSlot(interval);
-                existingValueReservation.setReservation(originalReservation);
-                return existingValueReservation;
+            // Original reservation slot must contain requested slot
+            if (!originalReservation.getSlot().contains(interval)) {
+                continue;
             }
 
             // Available reservation will be returned so remove it from context (to not be used again)
             schedulerContext.removeAvailableReservation(availableResourceReservation);
 
-            // Return available reservation
-            if (availableResourceReservation.isExistingReservationRequired()) {
-                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                ExistingReservation existingValueReservation = new ExistingReservation();
-                existingValueReservation.setSlot(interval);
-                existingValueReservation.setReservation(originalReservation);
-                return existingValueReservation;
-            }
-            else {
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(originalReservation));
-                return originalReservation;
-            }
+            // Create new existing resource reservation
+            addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+            ExistingReservation existingValueReservation = new ExistingReservation();
+            existingValueReservation.setSlot(interval);
+            existingValueReservation.setReservation(originalReservation);
+            return existingValueReservation;
         }
 
         // Proper instance of new resource reservation
@@ -140,31 +111,15 @@ public class ResourceReservationTask extends ReservationTask
             }
             // Allocate endpoint reservation
             if (deviceResource.isTerminal()) {
-                if (isReallocatableOriginalReservationStrict(EndpointReservation.class)) {
-                    // Reallocate endpoint reservation
-                    resourceReservation = getReallocatableOriginalReservation(EndpointReservation.class);
-                    resourceReservation.clearChildReservations();
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(resourceReservation));
-                }
-                else {
-                    // Create new endpoint reservation
-                    resourceReservation = new EndpointReservation();
-                }
+                // Create new endpoint reservation
+                resourceReservation = new EndpointReservation();
             }
         }
 
         // Allocate resource reservation
         if (resourceReservation == null) {
-            if (isReallocatableOriginalReservationStrict(ResourceReservation.class)) {
-                // Reallocate resource reservation
-                resourceReservation = getReallocatableOriginalReservation(ResourceReservation.class);
-                resourceReservation.clearChildReservations();
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(resourceReservation));
-            }
-            else {
-                // Create new resource reservation
-                resourceReservation = new ResourceReservation();
-            }
+            // Create new resource reservation
+            resourceReservation = new ResourceReservation();
         }
 
         // Set attributes to resource reservation
@@ -177,7 +132,8 @@ public class ResourceReservationTask extends ReservationTask
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
         if (parentResource != null && !schedulerContext.containsReferencedResource(parentResource)) {
-            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(schedulerContext, parentResource);
+            ResourceReservationTask resourceReservationTask = new ResourceReservationTask(schedulerContext,
+                    parentResource);
             addChildReservation(resourceReservationTask);
         }
 

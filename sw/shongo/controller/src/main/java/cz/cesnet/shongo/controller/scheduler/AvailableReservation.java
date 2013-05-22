@@ -142,11 +142,6 @@ public class AvailableReservation<R extends Reservation>
         return type.equals(Type.REALLOCATABLE);
     }
 
-    public boolean isDeletable()
-    {
-        return type.equals(Type.REALLOCATABLE);
-    }
-
     /**
      * Type of {@link AvailableReservation}.
      */

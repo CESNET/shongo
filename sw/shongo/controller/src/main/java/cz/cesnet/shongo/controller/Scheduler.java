@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
@@ -84,7 +85,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
         // Date/time which represents now
-        DateTime referenceDateTime = interval.getStart();
+        DateTime dateTimeNow = DateTime.now();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -135,12 +136,13 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     authorizationManager.beginTransaction(authorization);
                     entityManager.getTransaction().begin();
 
-                    // If rollback has happened we must reload the entity
-                    reservationRequest = entityManager.merge(reservationRequest);
+                    // Reload the request (rollback may happened)
+                    reservationRequest = reservationRequestManager.getReservationRequest(
+                            reservationRequest.getId());
 
-                    Reservation oldReservation = reservationRequest.getReservation();
+                    Reservation oldReservation = reservationRequest.getAllocation().getCurrentReservation();
                     Reservation newReservation = allocateReservationRequest(
-                            reservationRequest, referenceDateTime, entityManager, authorizationManager);
+                            reservationRequest, dateTimeNow, entityManager, authorizationManager);
                     if (oldReservation != null && oldReservation != newReservation) {
                         notifications.add(new ReservationNotification(
                                 ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
@@ -174,7 +176,8 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     entityManager.getTransaction().begin();
 
                     // Because rollback has happened we must reload the entity
-                    reservationRequest = entityManager.merge(reservationRequest);
+                    reservationRequest = reservationRequestManager.getReservationRequest(
+                            reservationRequest.getId());
 
                     // Update reservation request state to failed
                     reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
@@ -235,33 +238,39 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
-     * @param referenceDateTime
+     * @param dateTimeNow
      * @param entityManager
      */
-    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, DateTime referenceDateTime,
+    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, DateTime dateTimeNow,
             EntityManager entityManager, AuthorizationManager authorizationManager) throws SchedulerException
     {
+        // Create scheduler task context
+        SchedulerContext schedulerContext = new SchedulerContext(reservationRequest, cache, dateTimeNow, entityManager);
+        Interval requestedSlot = schedulerContext.getRequestedSlot();
+
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        // Create scheduler task context
-        SchedulerContext schedulerContext =
-                new SchedulerContext(reservationRequest, cache, referenceDateTime, entityManager);
-
-        // Get existing reservation
-        Reservation reservation = reservationRequest.getReservation();
-
-        // Fill provided reservations to transaction
+        // Fill provided reservations as reusable
         for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
             if (!schedulerContext.isReservationAvailable(providedReservation)) {
                 throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
             }
-            if (!providedReservation.getSlot().contains(schedulerContext.getInterval())) {
+            if (!providedReservation.getSlot().contains(requestedSlot)) {
                 throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
             }
             schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
+        }
+
+        // Fill already allocated reservations as reallocatable
+        Allocation allocation = reservationRequest.getAllocation();
+        for (Reservation allocatedReservation : allocation.getReservations()) {
+            if (!requestedSlot.overlaps(allocatedReservation.getSlot())) {
+                continue;
+            }
+            schedulerContext.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
         }
 
         // Get reservation task
@@ -275,20 +284,39 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             throw new SchedulerReportSet.SpecificationNotAllocatableException(specification);
         }
 
-        // (Re)allocate reservation
-        reservation = reservationTask.perform(reservation);
+        // Allocate reservation
+        Reservation reservation = reservationTask.perform();
         if (!reservation.isPersisted()) {
             reservationManager.create(reservation);
         }
 
+        // Add new allocated reservation
+        allocation.addReservation(reservation);
+
+        // Update/delete old allocated reservations
         for (AvailableReservation availableReservation : schedulerContext.getParentAvailableReservations()) {
-            if (availableReservation.isDeletable()) {
-                reservationManager.delete(availableReservation.getOriginalReservation(), authorizationManager);
+            if (!availableReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
+                continue;
             }
+            Reservation allocatedReservation = availableReservation.getOriginalReservation();
+            // Keep only reservations which takes place before new reservation
+            if (allocatedReservation.getSlotStart().isBefore(requestedSlot.getStart())) {
+                // Reservation time slot should be updated to not intersect the new reservation time slot
+                if (allocatedReservation.getSlotEnd().isAfter(requestedSlot.getStart())) {
+                    // Shorten the reservation time slot
+                    reservationManager.updateReservationSlotEnd(allocatedReservation, requestedSlot.getStart());
+                }
+                // Reservation should not be deleted
+                continue;
+            }
+
+            // Remove the reservation from allocation
+            allocation.removeReservation(allocatedReservation);
+            // Delete the reservation
+            reservationManager.delete(allocatedReservation, authorizationManager);
         }
 
         // Update reservation request
-        reservationRequest.setReservation(reservation);
         reservationRequest.setState(ReservationRequest.State.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);

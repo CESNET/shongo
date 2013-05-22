@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -60,9 +61,6 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.setDescription("requestModified");
         String id2 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
-        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
-        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
-        Assert.assertEquals(id2 , reservationRequests.iterator().next().getId());
 
         // Check already modified reservation request
         try {
@@ -73,19 +71,25 @@ public class ReservationManagementTest extends AbstractControllerTest
             Assert.assertEquals(id1, exception.getId());
         }
 
+        // Check modified
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id2 , reservationRequests.iterator().next().getId());
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
+        Assert.assertEquals("requestModified", reservationRequest.getDescription());
+
         // Modify reservation request by new instance of reservation request
         reservationRequest = new ReservationRequest();
         reservationRequest.setId(id2);
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
         String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
+
+        // Check modified reservation request
         reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
         Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
         Assert.assertEquals(id3 , reservationRequests.iterator().next().getId());
-
-        // Check modified reservation request
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id3);
-        Assert.assertEquals("requestModified", reservationRequest.getDescription());
         Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
@@ -121,39 +125,65 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ResourceSpecification(resourceId));
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runPreprocessor();
+        String id1 = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:1", id1);
+
+        Collection<ReservationRequestSummary> reservationRequests;
 
         // Check created reservation request
-        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id1 , reservationRequests.iterator().next().getId());
+        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
         Assert.assertEquals("request", reservationRequest.getDescription());
-        Assert.assertEquals(1, reservationRequest.getReservationRequests().size());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setDescription("requestModified");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id2 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:2", id2);
+
+        // Check already modified reservation request
+        try {
+            getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+            Assert.fail("Exception that reservation request has already been modified should be thrown.");
+        }
+        catch (ControllerReportSet.ReservationRequestAlreadyModifiedException exception) {
+            Assert.assertEquals(id1, exception.getId());
+        }
+
+        // Check modified
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id2 , reservationRequests.iterator().next().getId());
+        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
+        Assert.assertEquals("requestModified", reservationRequest.getDescription());
 
         // Modify reservation request by new instance of reservation request
         reservationRequest = new ReservationRequestSet();
-        reservationRequest.setId(id);
+        reservationRequest.setId(id2);
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
 
         // Check modified reservation request
-        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        Assert.assertEquals("requestModified", reservationRequest.getDescription());
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("One reservation request should exist.", 1 , reservationRequests.size());
+        Assert.assertEquals(id3 , reservationRequests.iterator().next().getId());
+        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id3);
         Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequest.getPurpose());
 
         // Delete reservation request
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id1);
 
         // Check deleted reservation request
+        reservationRequests = getReservationService().listReservationRequests(SECURITY_TOKEN, null);
+        Assert.assertEquals("No reservation request should exist.", 0 , reservationRequests.size());
         try {
-            getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+            getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
             Assert.fail("Reservation request should not exist.");
         }
-        catch (CommonReportSet.EntityNotFoundException exception) {
-            Assert.assertEquals(id, exception.getId());
+        catch (ControllerReportSet.ReservationRequestDeletedException exception) {
+            Assert.assertEquals(id1, exception.getId());
         }
     }
 
@@ -167,7 +197,7 @@ public class ReservationManagementTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testListReservationRequests() throws Exception
+    public void testListReservationRequestsByTechnology() throws Exception
     {
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
@@ -215,20 +245,20 @@ public class ReservationManagementTest extends AbstractControllerTest
         Assert.assertEquals(6, reservationRequests.size());
 
         Assert.assertEquals(4, getReservationService().listReservationRequests(SECURITY_TOKEN,
-                buildFilter(new Technology[]{Technology.H323})).size());
+                buildTechnologyFilter(new Technology[]{Technology.H323})).size());
         Assert.assertEquals(3, getReservationService().listReservationRequests(SECURITY_TOKEN,
-                buildFilter(new Technology[]{Technology.SIP})).size());
+                buildTechnologyFilter(new Technology[]{Technology.SIP})).size());
         Assert.assertEquals(5, getReservationService().listReservationRequests(SECURITY_TOKEN,
-                buildFilter(new Technology[]{Technology.H323, Technology.SIP})).size());
+                buildTechnologyFilter(new Technology[]{Technology.H323, Technology.SIP})).size());
         Assert.assertEquals(1, getReservationService().listReservationRequests(SECURITY_TOKEN,
-                buildFilter(new Technology[]{Technology.ADOBE_CONNECT})).size());
+                buildTechnologyFilter(new Technology[]{Technology.ADOBE_CONNECT})).size());
     }
 
     /**
      * @param technologies
-     * @return builded filter for {@link cz.cesnet.shongo.controller.api.rpc.ReservationService#listReservationRequests(SecurityToken, java.util.Map)}
+     * @return built filter for {@link ReservationService#listReservationRequests(SecurityToken, java.util.Map)}
      */
-    private static Map<String, Object> buildFilter(Technology[] technologies)
+    private static Map<String, Object> buildTechnologyFilter(Technology[] technologies)
     {
         Map<String, Object> filter = new HashMap<String, Object>();
         Set<Technology> filterTechnologies = null;
@@ -289,10 +319,10 @@ public class ReservationManagementTest extends AbstractControllerTest
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
 
         ReservationRequest reservationRequest3 = new ReservationRequest();
-        reservationRequest2.setSlot(DateTime.parse("2012-01-01"), Temporal.DATETIME_INFINITY_END);
-        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest2.setSpecification(new ResourceSpecification(resourceId));
-        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
+        reservationRequest3.setSlot(DateTime.parse("2012-01-01"), Temporal.DATETIME_INFINITY_END);
+        reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest3.setSpecification(new ResourceSpecification(resourceId));
+        getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest3);
 
         List<Object> params = new ArrayList<Object>();
         params.add(SECURITY_TOKEN.getAccessToken());

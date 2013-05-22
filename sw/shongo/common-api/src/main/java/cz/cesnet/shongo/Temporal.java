@@ -1,9 +1,6 @@
 package cz.cesnet.shongo;
 
-import org.joda.time.DateTime;
-import org.joda.time.Duration;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.PeriodFormat;
@@ -68,6 +65,14 @@ public class Temporal
      */
     public static void initialize()
     {
+    }
+
+    /**
+     * @return rounded {@link org.joda.time.DateTime#now()} to seconds
+     */
+    public static DateTime nowRounded()
+    {
+        return DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
     }
 
     /**
@@ -188,7 +193,7 @@ public class Temporal
                 | (days > 0 ? DAYS : 0) | (hours > 0 ? HOURS : 0) | (minutes > 0 ? MINUTES : 0);
 
         // Seconds are not needed if the period is longer than minute
-        if ( (nonZeroFields & (YEARS | MONTHS | WEEKS | DAYS | HOURS | MINUTES)) != 0 ) {
+        if ((nonZeroFields & (YEARS | MONTHS | WEEKS | DAYS | HOURS | MINUTES)) != 0) {
             if (period.getSeconds() >= 30) {
                 minutes++;
             }
@@ -200,7 +205,7 @@ public class Temporal
             minutes = 0;
         }
         // Minutes are not needed if the period is longer than day
-        if ( (nonZeroFields & (YEARS | MONTHS | WEEKS | DAYS)) != 0 ) {
+        if ((nonZeroFields & (YEARS | MONTHS | WEEKS | DAYS)) != 0) {
             if (minutes >= 30) {
                 hours++;
             }
@@ -213,7 +218,7 @@ public class Temporal
             hours = 0;
         }
         // Hours are not needed if the period is longer than week
-        if ( (nonZeroFields & (YEARS | MONTHS | WEEKS)) != 0 ) {
+        if ((nonZeroFields & (YEARS | MONTHS | WEEKS)) != 0) {
             if (hours >= 12) {
                 days++;
             }
@@ -226,7 +231,7 @@ public class Temporal
             days = 0;
         }
         // Days are not needed if the period is longer than month
-        if ( (nonZeroFields & (YEARS | MONTHS)) != 0 ) {
+        if ((nonZeroFields & (YEARS | MONTHS)) != 0) {
             if (days >= 4) {
                 weeks++;
             }

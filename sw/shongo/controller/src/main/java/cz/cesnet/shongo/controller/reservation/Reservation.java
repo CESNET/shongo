@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.report.Report;
@@ -35,9 +36,9 @@ public class Reservation extends PersistentObject implements Reportable
     private CreatedBy createdBy;
 
     /**
-     * {@link ReservationRequest} for which the {@link Reservation} is allocated.
+     * {@link Allocation} for which the {@link Reservation} is allocated.
      */
-    private ReservationRequest reservationRequest;
+    private Allocation allocation;
 
     /**
      * Interval start date/time.
@@ -83,13 +84,12 @@ public class Reservation extends PersistentObject implements Reportable
     }
 
     /**
-     * @return {@link #reservationRequest}
+     * @return {@link #allocation#getReservationRequest()}
      */
-    @OneToOne
-    @Access(AccessType.FIELD)
-    public ReservationRequest getReservationRequest()
+    @Transient
+    public AbstractReservationRequest getReservationRequest()
     {
-        return reservationRequest;
+        return allocation.getReservationRequest();
     }
 
     /**
@@ -98,30 +98,42 @@ public class Reservation extends PersistentObject implements Reportable
     @Transient
     public AbstractReservationRequest getTopReservationRequest()
     {
-        if (reservationRequest != null) {
+        AbstractReservationRequest abstractReservationRequest = getReservationRequest();
+        if (abstractReservationRequest != null && abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             ReservationRequestSet reservationRequestSet = reservationRequest.getReservationRequestSet();
             if (reservationRequestSet != null) {
                 return reservationRequestSet;
             }
         }
-        return reservationRequest;
+        return abstractReservationRequest;
     }
 
     /**
-     * @param reservationRequest sets the {@link #reservationRequest}
+     * @return {@link #allocation}
      */
-    public void setReservationRequest(ReservationRequest reservationRequest)
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public Allocation getAllocation()
+    {
+        return allocation;
+    }
+
+    /**
+     * @param allocation sets the {@link #allocation}
+     */
+    public void setAllocation(Allocation allocation)
     {
         // Manage bidirectional association
-        if (reservationRequest != this.reservationRequest) {
-            if (this.reservationRequest != null) {
-                ReservationRequest oldReservationRequest = this.reservationRequest;
-                this.reservationRequest = null;
-                oldReservationRequest.setReservation(null);
+        if (allocation != this.allocation) {
+            if (this.allocation != null) {
+                Allocation oldAllocation = this.allocation;
+                this.allocation = null;
+                oldAllocation.removeReservation(this);
             }
-            if (reservationRequest != null) {
-                this.reservationRequest = reservationRequest;
-                this.reservationRequest.setReservation(this);
+            if (allocation != null) {
+                this.allocation = allocation;
+                this.allocation.addReservation(this);
             }
         }
     }

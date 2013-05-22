@@ -38,7 +38,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
         try {
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Exception about not enough requested ports should be thrown.");
         }
         catch (SchedulerException exception) {
@@ -50,7 +50,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
         try {
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Exception about no available virtual room should be thrown.");
         }
         catch (SchedulerException exception) {
@@ -62,7 +62,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         try {
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Exception about no alias available should be thrown.");
         }
         catch (SchedulerException exception) {
@@ -79,7 +79,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         compartmentReservationTask.addChildSpecification(
                 new ExternalEndpointSetSpecification(Technology.H323, 3));
         try {
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Exception about cannot create.");
         }
         catch (SchedulerException exception) {
@@ -95,7 +95,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 new Alias(AliasType.H323_E164, "950000001"), true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
-        Reservation reservation = compartmentReservationTask.perform(null);
+        Reservation reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(2, reservation.getChildReservations().size());
         Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -123,7 +123,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 new SimpleEndpointSpecification(false, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(4, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -134,7 +134,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.SIP}));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(5, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -161,7 +161,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
         compartmentReservationTask.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 50));
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
-        Reservation reservation = compartmentReservationTask.perform(null);
+        Reservation reservation = compartmentReservationTask.perform();
         Assert.assertEquals(3, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
         Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
@@ -193,7 +193,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildSpecification(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(4, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -204,7 +204,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildSpecification(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(5, reservation.getChildReservations().size());
         Assert.assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -217,7 +217,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                     new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
             compartmentReservationTask.addChildSpecification(
                     new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Only one SIP alias should be possible to allocate.");
         }
         catch (SchedulerException exception) {
@@ -254,7 +254,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         schedulerContext = createSchedulerContext();
         compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(2, reservation.getNestedReservations().size());
         Assert.assertEquals(0, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -263,7 +263,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
         compartmentReservationTask = new CompartmentReservationTask(schedulerContext);
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal2));
-        reservation = compartmentReservationTask.perform(null);
+        reservation = compartmentReservationTask.perform();
         Assert.assertNotNull(reservation);
         Assert.assertEquals(3, reservation.getNestedReservations().size());
         Assert.assertEquals(1, ((Compartment) reservation.getExecutable()).getConnections().size());
@@ -284,7 +284,7 @@ public class CompartmentReservationTaskTest extends AbstractSchedulerTest
                     new CompartmentReservationTask(schedulerContext);
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(endpoint));
             compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(endpoint));
-            compartmentReservationTask.perform(null);
+            compartmentReservationTask.perform();
             Assert.fail("Exception that resource is requested multiple times should be thrown");
         }
         catch (SchedulerException exception) {

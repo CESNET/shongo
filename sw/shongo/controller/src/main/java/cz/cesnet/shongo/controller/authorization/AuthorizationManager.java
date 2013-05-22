@@ -6,6 +6,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -510,20 +512,21 @@ public class AuthorizationManager extends AbstractManager
         Role role = aclRecord.getRole();
 
         // Create child ACL records
-        if (entity instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
-            for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
-                    createChildAclRecord(aclRecord, userId, reservationRequest, role,
-                            AclRecordDependency.Type.DELETE_DETACH);
+        if (entity instanceof AbstractReservationRequest) {
+            if (entity instanceof ReservationRequestSet) {
+                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
+                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                    if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
+                        createChildAclRecord(aclRecord, userId, reservationRequest, role,
+                                AclRecordDependency.Type.DELETE_DETACH);
+                    }
                 }
             }
-        }
-        else if (entity instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) entity;
-            Reservation reservation = reservationRequest.getReservation();
-            if (reservation != null) {
-                if (EntityType.RESERVATION.allowsRole(role)) {
+
+            AbstractReservationRequest reservationRequest = (AbstractReservationRequest) entity;
+            if (EntityType.RESERVATION.allowsRole(role)) {
+                Allocation allocation = reservationRequest.getAllocation();
+                for (Reservation reservation : allocation.getReservations()) {
                     createChildAclRecord(aclRecord, userId, reservation, role, AclRecordDependency.Type.DELETE_DETACH);
                 }
             }

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -19,29 +20,29 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Context for the {@link cz.cesnet.shongo.controller.scheduler.ReservationTask}.
+ * Context for the {@link ReservationTask}.
  */
 public class SchedulerContext
 {
+    /**
+     * Time which represents now.
+     */
+    private final DateTime dateTimeNow;
+
     /**
      * {@link ReservationRequest} for which the {@link Reservation} should be allocated.
      */
     private ReservationRequest reservationRequest;
 
     /**
-     * Interval for which the task is performed.
+     * Requested slot for which the {@link Reservation}s should be allocated.
      */
-    private final Interval interval;
+    private Interval requestedSlot;
 
     /**
      * @see cz.cesnet.shongo.controller.cache.Cache
      */
     private Cache cache;
-
-    /**
-     * Time which represents now.
-     */
-    private DateTime referenceDateTime = DateTime.now();
 
     /**
      * Entity manager.
@@ -112,14 +113,16 @@ public class SchedulerContext
     /**
      * Constructor.
      *
+     * @param requestedSlot sets the {@link #requestedSlot}
      * @param cache    sets the {@link #cache}
-     * @param interval sets the {@link #interval}
      */
-    public SchedulerContext(Interval interval, Cache cache, EntityManager entityManager)
+    public SchedulerContext(Interval requestedSlot, Cache cache, EntityManager entityManager)
     {
-        this.interval = interval;
+        this.dateTimeNow = DateTime.now();
         this.cache = cache;
         this.entityManager = entityManager;
+
+        setRequestedSlot(reservationRequest.getSlot());
     }
 
     /**
@@ -127,26 +130,46 @@ public class SchedulerContext
      *
      * @param reservationRequest sets the {@link #reservationRequest}
      * @param cache              sets the {@link #cache}
-     * @param referenceDateTime  sets the {@link #referenceDateTime}
+     * @param dateTimeNow        sets the {@link #dateTimeNow}
      * @param entityManager      which can be used
      */
-    public SchedulerContext(ReservationRequest reservationRequest, Cache cache, DateTime referenceDateTime,
+    public SchedulerContext(ReservationRequest reservationRequest, Cache cache, DateTime dateTimeNow,
             EntityManager entityManager)
     {
-        this(reservationRequest.getSlot(), cache, entityManager);
+        this.dateTimeNow = dateTimeNow;
         this.reservationRequest = reservationRequest;
-        this.referenceDateTime = referenceDateTime;
+        this.cache = cache;
+        this.entityManager = entityManager;
+
+        setRequestedSlot(reservationRequest.getSlot());
+
         if (entityManager != null) {
             this.authorizationManager = new AuthorizationManager(entityManager);
         }
     }
 
     /**
-     * @return {@link #interval}
+     * @param requestedSlot sets the {@link #requestedSlot}
      */
-    public Interval getInterval()
+    private void setRequestedSlot(Interval requestedSlot)
     {
-        return interval;
+        if (requestedSlot.isBefore(dateTimeNow)) {
+            throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
+        }
+        this.requestedSlot = requestedSlot;
+        if (requestedSlot.contains(dateTimeNow)) {
+            // Update requested slot to allocate only in future
+            this.requestedSlot = new Interval(
+                    Temporal.max(dateTimeNow, this.requestedSlot.getStart()), this.requestedSlot.getEnd());
+        }
+    }
+
+    /**
+     * @return {@link #requestedSlot}
+     */
+    public Interval getRequestedSlot()
+    {
+        return requestedSlot;
     }
 
     /**
@@ -158,11 +181,11 @@ public class SchedulerContext
     }
 
     /**
-     * @return {@link #referenceDateTime}
+     * @return {@link #dateTimeNow}
      */
-    public DateTime getReferenceDateTime()
+    public DateTime getDateTimeNow()
     {
-        return referenceDateTime;
+        return dateTimeNow;
     }
 
     /**
@@ -391,7 +414,7 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.ADDED);
 
-        if (reservation.getSlot().contains(getInterval())) {
+        if (reservation.getSlot().contains(getRequestedSlot())) {
             if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
                 Resource resource = resourceReservation.getResource();
@@ -422,7 +445,7 @@ public class SchedulerContext
         }
         onChange(ObjectType.ALLOCATED_RESERVATION, reservation, ObjectState.REMOVED);
 
-        if (reservation.getSlot().contains(getInterval())) {
+        if (reservation.getSlot().contains(getRequestedSlot())) {
             if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
                 Resource resource = resourceReservation.getResource();
@@ -715,7 +738,7 @@ public class SchedulerContext
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
         List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(reservation, interval);
+                reservationManager.getExistingReservations(reservation, requestedSlot);
         return existingReservations.size() == 0;
     }
 
@@ -730,7 +753,7 @@ public class SchedulerContext
 
             ReservationManager reservationManager = new ReservationManager(entityManager);
             List<RoomReservation> roomReservations =
-                    reservationManager.getRoomReservations(roomProviderCapability, interval);
+                    reservationManager.getRoomReservations(roomProviderCapability, requestedSlot);
             applyRoomReservations(roomProviderCapability.getId(), roomReservations);
             for (RoomReservation roomReservation : roomReservations) {
                 usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();

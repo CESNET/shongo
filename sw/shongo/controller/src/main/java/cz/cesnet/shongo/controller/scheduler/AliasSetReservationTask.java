@@ -63,7 +63,7 @@ public class AliasSetReservationTask extends ReservationTask
         if (aliasSpecifications.size() == 1) {
             AliasSpecification aliasSpecification = aliasSpecifications.get(0);
             AliasReservationTask aliasReservationTask = aliasSpecification.createReservationTask(schedulerContext);
-            Reservation reservation = aliasReservationTask.perform(getReallocatableOriginalReservation());
+            Reservation reservation = aliasReservationTask.perform();
             addReports(aliasReservationTask);
             return reservation;
         }
@@ -81,7 +81,7 @@ public class AliasSetReservationTask extends ReservationTask
                 }
 
                 // Allocate missing alias
-                Reservation reservation = aliasReservationTask.perform(null);
+                Reservation reservation = aliasReservationTask.perform();
                 addReports(aliasReservationTask);
                 createdReservations.add(reservation);
                 AliasReservation aliasReservation = reservation.getTargetReservation(AliasReservation.class);
@@ -109,25 +109,7 @@ public class AliasSetReservationTask extends ReservationTask
             }
 
             // Allocate compound reservation
-            Reservation reservation;
-            if (isReallocatableOriginalReservationStrict(Reservation.class)) {
-                // Reallocate existing reservation
-                reservation = getReallocatableOriginalReservation(Reservation.class);
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(reservation));
-
-                reservation.clearChildReservations();
-            }
-            else {
-                // Find empty available reservation (without child reservations)
-                reservation = popEmptyAvailableReservation(Reservation.class);
-                if (reservation != null) {
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(reservation));
-                }
-                // Else create new reservation
-                else {
-                    reservation = new Reservation();
-                }
-            }
+            Reservation reservation = new Reservation();
             reservation.setSlot(getInterval());
             if (sharedExecutable) {
                 reservation.setExecutable(allocatedRoomEndpoint);

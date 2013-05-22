@@ -170,9 +170,6 @@ public class AliasReservationTask extends ReservationTask
             // Get available alias reservations for alias provider
             for (AvailableReservation<AliasReservation> availableAliasReservation :
                     schedulerContext.getAvailableAliasReservations(aliasProviderCapability)) {
-                if (availableAliasReservation.equals(reallocatableReservation)) {
-                    aliasProvider.setAllocated(true);
-                }
                 aliasProvider.addAvailableAliasReservation(availableAliasReservation);
             }
             sortAvailableReservations(aliasProvider.getAvailableAliasReservations());
@@ -194,18 +191,6 @@ public class AliasReservationTask extends ReservationTask
             @Override
             public int compare(AliasProvider first, AliasProvider second)
             {
-                // Prefer alias provider which is already allocated by allocatedReservation
-                if (second.isAllocated()) {
-                    return 1;
-                }
-
-                // Prefer alias providers which has reallocatable available alias reservation
-                boolean firstReallocatable = first.hasReallocatableAvailableAliasReservation();
-                boolean secondReallocatable = second.hasReallocatableAvailableAliasReservation();
-                if (!firstReallocatable && secondReallocatable) {
-                    return 1;
-                }
-
                 // If target resource for which the alias will be used is not specified,
                 if (targetResource == null) {
                     // Prefer alias providers which doesn't restrict target resource
@@ -219,15 +204,11 @@ public class AliasReservationTask extends ReservationTask
             }
         });
 
-        AvailableReservation<? extends Reservation> reallocatableReservation = this.reallocatableReservation;
-
         // Allocate alias reservation in some matching alias provider
         for (AliasProvider aliasProvider : aliasProviders) {
             AliasProviderCapability aliasProviderCapability = aliasProvider.getAliasProviderCapability();
             String requestedValue = aliasProvider.getRequestedValue();
             beginReport(new SchedulerReportSet.AllocatingResourceReport(aliasProviderCapability.getResource()));
-
-            this.reallocatableReservation = reallocatableReservation;
 
             // Preferably use available alias reservation
             for (AvailableReservation<AliasReservation> availableAliasReservation :
@@ -236,52 +217,30 @@ public class AliasReservationTask extends ReservationTask
                 Reservation originalReservation = availableAliasReservation.getOriginalReservation();
                 AliasReservation aliasReservation = availableAliasReservation.getTargetReservation();
 
-                // Reallocatable reservation
-                if (availableAliasReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
-                    if (this.reallocatableReservation == null) {
-                        this.reallocatableReservation = availableAliasReservation;
-                    }
-                    else {
-                        // Prefer available alias reservation which match requested value
-                        AliasReservation oldAliasReservation =
-                                getReallocatableOriginalReservation(AliasReservation.class);
-                        if (!oldAliasReservation.getValue().equals(requestedValue)
-                                && aliasReservation.getValue().equals(requestedValue)) {
-                            this.reallocatableReservation = availableAliasReservation;
-                        }
-                    }
+                // Only reusable available reservations
+                if (!availableAliasReservation.isType(AvailableReservation.Type.REUSABLE)) {
+                    continue;
                 }
-                // Reusable available reservation
-                else {
-                    // Original reservation slot must contain requested slot
-                    if (!originalReservation.getSlot().contains(interval)) {
-                        continue;
-                    }
 
-                    // Value must match requested value
-                    if (requestedValue != null && !aliasReservation.getValue().equals(requestedValue)) {
-                        continue;
-                    }
-
-                    // Available reservation will be returned so remove it from context (to not be used again)
-                    schedulerContext.removeAvailableReservation(availableAliasReservation);
-
-                    // Return available reservation
-                    ExistingReservation existingValueReservation;
-                    if (isReallocatableOriginalReservation(ExistingReservation.class)) {
-                        // Reallocate existing alias reservation
-                        existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
-                        addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
-                    }
-                    else {
-                        // Create new existing alias reservation
-                        existingValueReservation = new ExistingReservation();
-                    }
-                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                    existingValueReservation.setSlot(interval);
-                    existingValueReservation.setReservation(originalReservation);
-                    return existingValueReservation;
+                // Original reservation slot must contain requested slot
+                if (!originalReservation.getSlot().contains(interval)) {
+                    continue;
                 }
+
+                // Value must match requested value
+                if (requestedValue != null && !aliasReservation.getValue().equals(requestedValue)) {
+                    continue;
+                }
+
+                // Available reservation will be returned so remove it from context (to not be used again)
+                schedulerContext.removeAvailableReservation(availableAliasReservation);
+
+                // Create new existing alias reservation
+                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+                ExistingReservation existingValueReservation = new ExistingReservation();
+                existingValueReservation.setSlot(interval);
+                existingValueReservation.setReservation(originalReservation);
+                return existingValueReservation;
             }
 
             // Check whether alias provider can be allocated
@@ -300,18 +259,8 @@ public class AliasReservationTask extends ReservationTask
                         aliasProviderCapability.getValueProvider(), aliasProvider.getRequestedValue());
                 ValueReservation valueReservation = addChildReservation(valueReservationTask, ValueReservation.class);
 
-                // Allocate reservation
-                AliasReservation aliasReservation;
-                if (isReallocatableOriginalReservationStrict(AliasReservation.class)) {
-                    // Reallocate alias reservation
-                    aliasReservation = getReallocatableOriginalReservation(AliasReservation.class);
-                    aliasReservation.clearChildReservations();
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(aliasReservation));
-                }
-                else {
-                    // Create new alias reservation
-                    aliasReservation = new AliasReservation();
-                }
+                // Create new alias reservation
+                AliasReservation aliasReservation = new AliasReservation();
                 aliasReservation.setSlot(interval);
                 aliasReservation.setAliasProviderCapability(aliasProviderCapability);
                 aliasReservation.setValueReservation(valueReservation);
@@ -402,18 +351,6 @@ public class AliasReservationTask extends ReservationTask
                 new LinkedList<AvailableReservation<AliasReservation>>();
 
         /**
-         * Specifies whether already allocated reservation for the {@link #aliasProviderCapability} was specified
-         * to the reservation task.
-         */
-        private boolean allocated = false;
-
-        /**
-         * Specifies whether {@link AvailableReservation.Type#REALLOCATABLE} {@link AvailableReservation} was specified
-         * for the {@link #aliasProviderCapability}.
-         */
-        private boolean reallocatableAvailableAliasReservation = false;
-
-        /**
          * Constructor.
          *
          * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
@@ -461,33 +398,6 @@ public class AliasReservationTask extends ReservationTask
         public void addAvailableAliasReservation(AvailableReservation<AliasReservation> availableAliasReservation)
         {
             availableAliasReservations.add(availableAliasReservation);
-            if (availableAliasReservation.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                reallocatableAvailableAliasReservation = true;
-            }
-        }
-
-        /**
-         * @return {@link #allocated}
-         */
-        private boolean isAllocated()
-        {
-            return allocated;
-        }
-
-        /**
-         * @param allocated sets the {@link #allocated}
-         */
-        private void setAllocated(boolean allocated)
-        {
-            this.allocated = allocated;
-        }
-
-        /**
-         * @return {@link #reallocatableAvailableAliasReservation}
-         */
-        public boolean hasReallocatableAvailableAliasReservation()
-        {
-            return reallocatableAvailableAliasReservation;
         }
     }
 }

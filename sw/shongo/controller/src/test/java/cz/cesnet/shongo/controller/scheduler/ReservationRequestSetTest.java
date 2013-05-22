@@ -185,7 +185,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             Assert.assertEquals("Reservation request should be in ALLOCATED state.",
                     ReservationRequest.State.ALLOCATED, reservationRequest.getState());
 
-            Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
+            Reservation reservation = reservationRequest.getAllocation().getCurrentReservation();
             Assert.assertNotNull("Reservation should be created for the reservation request", reservation);
             reservationId = reservation.getId();
 
@@ -221,7 +221,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
                     .getReservationRequest(reservationRequestId);
             Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
                     ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
-            Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
+            Reservation reservation = reservationRequest.getAllocation().getCurrentReservation();
             Assert.assertEquals("Old reservation should be kept for the reservation request",
                     reservationId, reservation.getId());
 

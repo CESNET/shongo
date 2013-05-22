@@ -52,11 +52,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     private ReservationRequestSet reservationRequestSet;
 
     /**
-     * Allocated {@link Reservation}.
-     */
-    private Reservation reservation;
-
-    /**
      * List of {@link SchedulerReport}s for this {@link ReservationRequest}.
      */
     private List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
@@ -202,35 +197,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     /**
-     * @return {@link #reservation}
-     */
-    @OneToOne(mappedBy = "reservationRequest")
-    @Access(AccessType.FIELD)
-    public Reservation getReservation()
-    {
-        return reservation;
-    }
-
-    /**
-     * @param reservation sets the {@link #reservation}
-     */
-    public void setReservation(Reservation reservation)
-    {
-        // Manage bidirectional association
-        if (reservation != this.reservation) {
-            if (this.reservation != null) {
-                Reservation oldReservation = this.reservation;
-                this.reservation = null;
-                oldReservation.setReservationRequest(null);
-            }
-            if (reservation != null) {
-                this.reservation = reservation;
-                this.reservation.setReservationRequest(this);
-            }
-        }
-    }
-
-    /**
      * @return {@link #reports}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -324,6 +290,16 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         }
     }
 
+    @Override
+    protected void onCreate()
+    {
+        super.onCreate();
+
+        if (state == null) {
+            updateStateBySpecification();
+        }
+    }
+
     /**
      * @return {@link #state} converted to API
      */
@@ -336,7 +312,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
             case COMPLETE:
                 return ReservationRequestState.NOT_ALLOCATED;
             case ALLOCATED:
-                Reservation reservation = getReservation();
+                Reservation reservation = getAllocation().getCurrentReservation();
                 if (reservation == null) {
                     throw new IllegalStateException("Allocated reservation request should have a reservation.");
                 }
@@ -363,16 +339,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
             default:
                 throw new TodoImplementException();
         }
-    }
-
-    /**
-     * @return true if {@link ReservationRequest} is in {@link State#ALLOCATED} and the {@link #reservation} is filled
-     *         false otherwise
-     */
-    @Transient
-    private boolean isReservationAllocated()
-    {
-        return getState().equals(State.ALLOCATED) && getReservation() != null;
     }
 
     @Transient
@@ -442,8 +408,11 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText(messageType));
-        if (isReservationAllocated()) {
-            reservationRequestApi.setReservationId(EntityIdentifier.formatId(getReservation()));
+        if (getState().equals(State.ALLOCATED)) {
+            Reservation reservation = getAllocation().getCurrentReservation();
+            if (reservation != null) {
+                reservationRequestApi.setReservationId(EntityIdentifier.formatId(reservation));
+            }
         }
         super.toApi(api, messageType);
     }

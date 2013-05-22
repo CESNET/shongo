@@ -238,7 +238,7 @@ public class ResourceCache extends AbstractCache<Resource>
         Long resourceId = resource.getId();
         ResourceManager resourceManager = new ResourceManager(schedulerContext.getEntityManager());
         List<ResourceReservation> resourceReservations =
-                resourceManager.listResourceReservationsInInterval(resourceId, schedulerContext.getInterval());
+                resourceManager.listResourceReservationsInInterval(resourceId, schedulerContext.getRequestedSlot());
 
         // Apply transaction
         schedulerContext.applyResourceReservations(resourceId, resourceReservations);
@@ -266,9 +266,9 @@ public class ResourceCache extends AbstractCache<Resource>
 
         if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
-            if (!capability.isAvailableInFuture(schedulerContext.getInterval().getEnd(),
-                    schedulerContext.getReferenceDateTime())) {
-                DateTime maxDateTime = capability.getMaximumFutureDateTime(schedulerContext.getReferenceDateTime());
+            if (!capability.isAvailableInFuture(schedulerContext.getRequestedSlot().getEnd(),
+                    schedulerContext.getDateTimeNow())) {
+                DateTime maxDateTime = capability.getMaximumFutureDateTime(schedulerContext.getDateTimeNow());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
@@ -289,9 +289,9 @@ public class ResourceCache extends AbstractCache<Resource>
 
         if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
-            if (!resource.isAvailableInFuture(schedulerContext.getInterval().getEnd(),
-                    schedulerContext.getReferenceDateTime())) {
-                DateTime maxDateTime = resource.getMaximumFutureDateTime(schedulerContext.getReferenceDateTime());
+            if (!resource.isAvailableInFuture(schedulerContext.getRequestedSlot().getEnd(),
+                    schedulerContext.getDateTimeNow())) {
+                DateTime maxDateTime = resource.getMaximumFutureDateTime(schedulerContext.getDateTimeNow());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }

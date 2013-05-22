@@ -13,7 +13,6 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -42,12 +41,10 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void create(AbstractReservationRequest abstractReservationRequest)
     {
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            if (reservationRequest.getState() == null) {
-                reservationRequest.updateStateBySpecification();
-            }
-        }
+        Allocation allocation = new Allocation();
+        allocation.setReservationRequest(abstractReservationRequest);
+        abstractReservationRequest.setAllocation(allocation);
+        abstractReservationRequest.validate();
         super.create(abstractReservationRequest);
     }
 
@@ -92,32 +89,35 @@ public class ReservationRequestManager extends AbstractManager
     {
         // Set old reservation request as modified
         oldReservationRequest.setType(AbstractReservationRequest.Type.MODIFIED);
+        oldReservationRequest.validate();
+
+        // Set new reservation request to allocation
+        Allocation allocation = oldReservationRequest.getAllocation();
+        allocation.setReservationRequest(newReservationRequest);
 
         // Create new reservation request
-        create(newReservationRequest);
-
-        // Update existing modified reservation requests
-        entityManager.createQuery("UPDATE ModifiedReservationRequest"
-                + " SET primaryKey.latestReservationRequest = :newReservationRequest"
-                + " WHERE primaryKey.latestReservationRequest = :oldReservationRequest")
-                .setParameter("oldReservationRequest", oldReservationRequest)
-                .setParameter("newReservationRequest", newReservationRequest)
-                .executeUpdate();
-
-        // Create new modified reservation request
-        ModifiedReservationRequest modifiedReservationRequest = new ModifiedReservationRequest();
-        modifiedReservationRequest.setOldReservationRequest(oldReservationRequest);
-        modifiedReservationRequest.setNewReservationRequest(newReservationRequest);
-        modifiedReservationRequest.setLatestReservationRequest(newReservationRequest);
-        entityManager.persist(modifiedReservationRequest);
+        newReservationRequest.setModifiedReservationRequest(oldReservationRequest);
+        newReservationRequest.setAllocation(allocation);
+        newReservationRequest.validate();
+        super.create(newReservationRequest);
     }
 
+    /**
+     * Mark as deleted existing {@link AbstractReservationRequest} and all it's versions in the database.
+     *
+     * @param reservationRequest   to be marked as deleted (and all it's versions)
+     * @param authorizationManager to be used for deleting ACL records
+     */
     public void softDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        Long reservationRequestId = reservationRequest.getId();
-        List<AbstractReservationRequest> versions = listVersions(reservationRequestId);
+        if (!deleteAllocation(reservationRequest.getAllocation())) {
+            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+                    ReservationRequest.class, reservationRequest.getId());
+        }
+
+        List<AbstractReservationRequest> versions = listVersions(reservationRequest);
         for (AbstractReservationRequest version : versions) {
             delete(version, authorizationManager, false);
         }
@@ -125,17 +125,46 @@ public class ReservationRequestManager extends AbstractManager
         transaction.commit();
     }
 
+    /**
+     * Delete existing {@link AbstractReservationRequest} and all it's versions in the database.
+     *
+     * @param reservationRequest   to be deleted (and all it's versions)
+     * @param authorizationManager to be used for deleting ACL records
+     */
     public void hardDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        Long reservationRequestId = reservationRequest.getId();
-        List<AbstractReservationRequest> versions = listVersions(reservationRequestId);
+        if (!deleteAllocation(reservationRequest.getAllocation())) {
+            ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
+                    ReservationRequest.class, reservationRequest.getId());
+        }
+
+        List<AbstractReservationRequest> versions = listVersions(reservationRequest);
         for (AbstractReservationRequest version : versions) {
             delete(version, authorizationManager, true);
         }
 
         transaction.commit();
+    }
+
+    /**
+     * @param allocation for which the {@link Allocation#reservations} should be deleted
+     */
+    private boolean deleteAllocation(Allocation allocation)
+    {
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+
+        // Detach reservations from allocation and they will be deleted by scheduler
+        for (Reservation reservation : allocation.getReservations()) {
+            // Check if reservation can be deleted
+            if (reservationManager.isProvided(reservation)) {
+                return false;
+            }
+            reservation.setAllocation(null);
+            reservationManager.update(reservation);
+        }
+        return true;
     }
 
     /**
@@ -148,28 +177,12 @@ public class ReservationRequestManager extends AbstractManager
     private void delete(AbstractReservationRequest abstractReservationRequest,
             AuthorizationManager authorizationManager, boolean hardDelete)
     {
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-
-            // Keep reservation (it is deleted by scheduler)
-            Reservation reservation = reservationRequest.getReservation();
-            if (reservation != null) {
-                // Check if reservation can be deleted
-                ReservationManager reservationManager = new ReservationManager(entityManager);
-                if (reservationManager.isProvided(reservation)) {
-                    ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
-                            ReservationRequest.class, reservationRequest.getId());
-                }
-                reservation.setReservationRequest(null);
-                reservationManager.update(reservation);
-            }
-        }
-        else if (abstractReservationRequest instanceof ReservationRequestSet) {
+        if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
 
             // Delete all reservation requests from set
             for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                delete(reservationRequest, authorizationManager, true);
+                hardDelete(reservationRequest, authorizationManager);
             }
 
             // Clear state
@@ -188,52 +201,15 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param reservationRequestId
-     * @return list of all versions for {@link AbstractReservationRequest} with given {@code reservationRequestId}
+     * @param reservationRequest
+     * @return list of all versions for given {@code reservationRequest}
      */
-    private List<AbstractReservationRequest> listVersions(Long reservationRequestId)
+    private List<AbstractReservationRequest> listVersions(AbstractReservationRequest reservationRequest)
     {
-        try {
-            Long latestReservationRequestId = entityManager.createQuery(
-                "SELECT modifiedReservationRequest.primaryKey.latestReservationRequest.id"
-                        + "     FROM ModifiedReservationRequest modifiedReservationRequest"
-                        + "    WHERE modifiedReservationRequest.primaryKey.oldReservationRequest.id = :id"
-                        + "       OR modifiedReservationRequest.primaryKey.newReservationRequest.id = :id"
-                        + " GROUP BY modifiedReservationRequest.primaryKey.latestReservationRequest.id", Long.class)
-                .setParameter("id", reservationRequestId)
-                .getSingleResult();
-            // Multiple version exists, so find all of them
-            return entityManager.createQuery(
-                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                            + " WHERE reservationRequest.id = :id "
-                            + "    OR reservationRequest.id IN("
-                            + "       SELECT modified.primaryKey.oldReservationRequest"
-                            + "          FROM ModifiedReservationRequest modified"
-                            + "        WHERE modified.primaryKey.latestReservationRequest.id = :id"
-                            + "    )",
-                    AbstractReservationRequest.class)
-                    .setParameter("id", latestReservationRequestId)
-                    .getResultList();
-        } catch (NoResultException exception) {
-            // Only single version exists, so return only reservation request with given identifier
-            List<AbstractReservationRequest> reservationRequests = new LinkedList<AbstractReservationRequest>();
-            reservationRequests.add(get(reservationRequestId));
-            return reservationRequests;
-        }
-    }
-
-    /**
-     * @param reservationRequest to be checked whether it has already been modified
-     * @return true whether given {@code reservationRequest} is already modified,
-     *         false otherwise
-     */
-    public boolean isModified(AbstractReservationRequest reservationRequest)
-    {
-        return entityManager.createQuery(
-                "SELECT modifiedReservationRequest FROM ModifiedReservationRequest modifiedReservationRequest"
-                        + " WHERE modifiedReservationRequest.primaryKey.oldReservationRequest = :reservationRequest")
-                .setParameter("reservationRequest", reservationRequest)
-                .getResultList().size() > 0;
+        return entityManager.createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                + " WHERE reservationRequest.allocation = :allocation", AbstractReservationRequest.class)
+                .setParameter("allocation", reservationRequest.getAllocation())
+                .getResultList();
     }
 
     /**
@@ -298,8 +274,8 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequestSet;
         }
         catch (NoResultException exception) {
-            return ControllerReportSetHelper
-                    .throwEntityNotFoundFault(ReservationRequestSet.class, reservationRequestSetId);
+            return ControllerReportSetHelper.throwEntityNotFoundFault(
+                    ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
@@ -374,81 +350,6 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
-    }
-
-    /**
-     * @param reservationRequestId of the {@link ReservationRequest}
-     * @return {@link ReservationRequest} with given id
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when the {@link ReservationRequest} doesn't exist
-     */
-    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId)
-            throws CommonReportSet.EntityNotFoundException
-    {
-        return getReservationRequest(reservationRequestId);
-    }
-
-    /**
-     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet)
-    {
-        return listReservationRequestsBySet(reservationRequestSet.getId());
-    }
-
-    /**
-     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
-     *                                should be returned
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet}
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId)
-    {
-        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.id IN("
-                        + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id)"
-                        + " ORDER BY reservationRequest.slotStart", ReservationRequest.class)
-                .setParameter("id", reservationRequestSetId)
-                .getResultList();
-        return compartmentRequestList;
-    }
-
-    /**
-     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
-     * @param interval              in which the {@link ReservationRequest}s should tak place
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
-     *         given {@code interval}
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
-            Interval interval)
-    {
-        return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
-    }
-
-    /**
-     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
-     *                                should be returned
-     * @param interval                in which the {@link ReservationRequest}s should tak place
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
-     *         given {@code interval}
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId, Interval interval)
-    {
-        List<ReservationRequest> reservationRequests = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id "
-                        + " AND reservationRequest.slotStart < :end"
-                        + " AND reservationRequest.slotEnd > :start",
-                ReservationRequest.class)
-                .setParameter("id", reservationRequestSetId)
-                .setParameter("start", interval.getStart())
-                .setParameter("end", interval.getEnd())
-                .getResultList();
-        return reservationRequests;
     }
 
     /**
@@ -528,7 +429,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void acceptPersonRequest(Long reservationRequestId, Long personId)
     {
-        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
         if (personSpecification.getEndpointSpecification() == null) {
             throw new RuntimeException(
@@ -549,7 +450,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void rejectPersonRequest(Long reservationRequestId, Long personId)
     {
-        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
         personSpecification.setInvitationState(PersonSpecification.InvitationState.REJECTED);
         reservationRequest.updateStateBySpecification();
@@ -564,7 +465,7 @@ public class ReservationRequestManager extends AbstractManager
     public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
             EndpointSpecification endpointSpecification)
     {
-        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        ReservationRequest reservationRequest = getReservationRequest(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
 
         CompartmentSpecification compartmentSpecification =
@@ -574,5 +475,68 @@ public class ReservationRequestManager extends AbstractManager
         }
         personSpecification.setEndpointSpecification(endpointSpecification);
         update(reservationRequest);
+    }
+
+    /**
+     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place
+     */
+    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet)
+    {
+        return listReservationRequestsBySet(reservationRequestSet.getId());
+    }
+
+    /**
+     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
+     *                                should be returned
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet}
+     */
+    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId)
+    {
+        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.id IN("
+                        + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + " WHERE reservationRequestSet.id = :id)"
+                        + " ORDER BY reservationRequest.slotStart", ReservationRequest.class)
+                .setParameter("id", reservationRequestSetId)
+                .getResultList();
+        return compartmentRequestList;
+    }
+
+    /**
+     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
+     * @param interval              in which the {@link ReservationRequest}s should tak place
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
+     *         given {@code interval}
+     */
+    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
+            Interval interval)
+    {
+        return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
+    }
+
+    /**
+     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
+     *                                should be returned
+     * @param interval                in which the {@link ReservationRequest}s should tak place
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
+     *         given {@code interval}
+     */
+    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId, Interval interval)
+    {
+        List<ReservationRequest> reservationRequests = entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + " WHERE reservationRequestSet.id = :id "
+                        + " AND reservationRequest.slotStart < :end"
+                        + " AND reservationRequest.slotEnd > :start",
+                ReservationRequest.class)
+                .setParameter("id", reservationRequestSetId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return reservationRequests;
     }
 }

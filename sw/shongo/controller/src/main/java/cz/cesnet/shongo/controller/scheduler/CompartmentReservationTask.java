@@ -464,7 +464,7 @@ public class CompartmentReservationTask extends ReservationTask
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
             roomReservationTask.addTechnologyVariant(technologies);
         }
-        Reservation reservation = roomReservationTask.perform(null);
+        Reservation reservation = roomReservationTask.perform();
         addReports(roomReservationTask);
         RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
         for (Endpoint endpoint : compartment.getEndpoints()) {

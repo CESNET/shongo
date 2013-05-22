@@ -37,9 +37,21 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private DateTime created;
 
     /**
+     * {@link Allocation} for this {@link AbstractReservationRequest}.
+     * Modified reservation requests share same {@link Allocation} instance.
+     */
+    private Allocation allocation;
+
+    /**
      * Specifies {@link Type} of the {@link AbstractReservationRequest}.
      */
     private Type type;
+
+    /**
+     * Previous {@link AbstractReservationRequest} which is modified by this {@link AbstractReservationRequest}
+     * (it's type must be {@link Type#MODIFIED}).
+     */
+    private AbstractReservationRequest modifiedReservationRequest;
 
     /**
      * @see ReservationRequestPurpose
@@ -101,6 +113,24 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * @return {@link #allocation}
+     */
+    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @Access(AccessType.FIELD)
+    public Allocation getAllocation()
+    {
+        return allocation;
+    }
+
+    /**
+     * @param allocation sets the {@link #allocation}
+     */
+    public void setAllocation(Allocation allocation)
+    {
+        this.allocation = allocation;
+    }
+
+    /**
      * @return {@link #type}
      */
     @Column(nullable = false)
@@ -116,6 +146,24 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     public void setType(Type type)
     {
         this.type = type;
+    }
+
+    /**
+     * @return {@link #modifiedReservationRequest}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public AbstractReservationRequest getModifiedReservationRequest()
+    {
+        return modifiedReservationRequest;
+    }
+
+    /**
+     * @param modifiedReservationRequest sets the {@link #modifiedReservationRequest}
+     */
+    public void setModifiedReservationRequest(AbstractReservationRequest modifiedReservationRequest)
+    {
+        this.modifiedReservationRequest = modifiedReservationRequest;
     }
 
     /**
@@ -254,6 +302,10 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     public void validate() throws CommonReportSet.EntityInvalidException
     {
+        if (modifiedReservationRequest != null && !modifiedReservationRequest.getType().equals(Type.MODIFIED)) {
+            throw new CommonReportSet.EntityInvalidException(EntityIdentifier.formatId(modifiedReservationRequest),
+                    "Modified reservation request isn't of type MODIFIED.");
+        }
     }
 
     /**
@@ -471,6 +523,6 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
          * {@link AbstractReservationRequest} is deleted which means that it is not visible to users and it is
          * preserved only for history purposes.
          */
-        DELETED,
+        DELETED
     }
 }

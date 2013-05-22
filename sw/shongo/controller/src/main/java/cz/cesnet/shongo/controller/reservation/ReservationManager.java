@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
@@ -55,6 +52,40 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
+     * @param reservation reservation and all child reservations (recursive) to have date/time slot end updated
+     * @param slotEnd new date/time slot end
+     */
+    public void updateReservationSlotEnd(Reservation reservation, DateTime slotEnd)
+    {
+        reservation.setSlotEnd(slotEnd);
+
+        // Update executable
+        Executable executable = reservation.getExecutable();
+        if (executable != null) {
+            updateExecutableSlotEnd(executable, slotEnd);
+        }
+
+        // Update child reservations
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            updateReservationSlotEnd(childReservation, slotEnd);
+        }
+    }
+
+    /**
+     * @param executable executable and all child executables (recursive) to have date/time slot end updated
+     * @param slotEnd new date/time slot end
+     */
+    private void updateExecutableSlotEnd(Executable executable, DateTime slotEnd)
+    {
+        executable.setSlotEnd(slotEnd);
+
+        // Update child executables
+        for (Executable childExecutable : executable.getChildExecutables()) {
+            updateExecutableSlotEnd(childExecutable, slotEnd);
+        }
+    }
+
+    /**
      * Get all reservations recursive and remove the child reservations from it's parents.
      * <p/>
      * This operation is required because value reservations should be deleted in the end
@@ -90,7 +121,7 @@ public class ReservationManager extends AbstractManager
         }
 
         // Date/time now for stopping executables
-        DateTime dateTimeNow = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+        DateTime dateTimeNow = Temporal.nowRounded();
         // Stop all executables
         stopReservationExecutables(reservation, dateTimeNow);
 
@@ -112,12 +143,8 @@ public class ReservationManager extends AbstractManager
         // Process current reservation
         Executable executable = reservation.getExecutable();
         if (executable != null) {
-            if (executable.getSlotEnd().isAfter(dateTimeNow)) {
-                DateTime newSlotEnd = dateTimeNow;
-                if (newSlotEnd.isBefore(executable.getSlotStart())) {
-                    newSlotEnd = executable.getSlotStart();
-                }
-                executable.setSlotEnd(newSlotEnd);
+            if (executable.getSlot().contains(dateTimeNow)) {
+                updateExecutableSlotEnd(executable, dateTimeNow);
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 executableManager.update(executable);
             }
@@ -146,34 +173,6 @@ public class ReservationManager extends AbstractManager
         }
         catch (NoResultException exception) {
             return ControllerReportSetHelper.throwEntityNotFoundFault(Reservation.class, reservationId);
-        }
-    }
-
-    /**
-     * @param reservationRequest for which the {@link Reservation} should be returned
-     * @return {@link Reservation} for the given {@link ReservationRequest} or null if doesn't exists
-     */
-    public Reservation getByReservationRequest(ReservationRequest reservationRequest)
-    {
-        return getByReservationRequest(reservationRequest.getId());
-    }
-
-    /**
-     * @param reservationRequestId of the {@link ReservationRequest} for which the {@link Reservation} should be returned
-     * @return {@link Reservation} for the given {@link ReservationRequest} or null if doesn't exists
-     */
-    public Reservation getByReservationRequest(Long reservationRequestId)
-    {
-        try {
-            Reservation reservation = entityManager.createQuery(
-                    "SELECT reservation FROM Reservation reservation WHERE reservation.reservationRequest.id = :id",
-                    Reservation.class)
-                    .setParameter("id", reservationRequestId)
-                    .getSingleResult();
-            return reservation;
-        }
-        catch (NoResultException exception) {
-            return null;
         }
     }
 
@@ -210,9 +209,9 @@ public class ReservationManager extends AbstractManager
         }
         if (reservationRequestId != null) {
             // List only reservations which are allocated for request with given id
-            filter.addFilter("reservation IN ("
-                    + "   SELECT reservation FROM Reservation reservation"
-                    + "   LEFT JOIN reservation.reservationRequest reservationRequest"
+            filter.addFilter("reservation.allocation IS NOT NULL AND reservation.allocation IN ("
+                    + "   SELECT allocation FROM ReservationRequest reservationRequest"
+                    + "   LEFT JOIN reservation.allocation allocation"
                     + "   LEFT JOIN reservationRequest.reservationRequestSet reservationRequestSet"
                     + "   WHERE reservationRequest.id = :reservationRequestId OR reservationRequestSet.id = :reservationRequestId"
                     + " )");
@@ -400,10 +399,10 @@ public class ReservationManager extends AbstractManager
     {
         return entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " LEFT JOIN reservation.reservationRequest reservationRequest"
+                        + " LEFT JOIN reservation.allocation allocation"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
-                        + " AND (reservationRequest IS NULL)",
+                        + " AND (allocation IS NULL)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();

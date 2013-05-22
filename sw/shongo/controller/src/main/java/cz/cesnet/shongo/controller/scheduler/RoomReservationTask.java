@@ -218,9 +218,6 @@ public class RoomReservationTask extends ReservationTask
                     continue;
                 }
 
-                if (availableExecutable.getAvailableReservation().equals(reallocatableReservation)) {
-                    roomProvider.setAllocated(true);
-                }
                 roomProvider.addAvailableRoomEndpoint(availableExecutable);
             }
             sortAvailableExecutables(roomProvider.getAvailableRoomEndpoints());
@@ -252,18 +249,6 @@ public class RoomReservationTask extends ReservationTask
                 RoomProvider secondRoomProvider = second.getRoomProvider();
 
                 if (firstRoomProvider != secondRoomProvider) {
-                    // Prefer room provider which is already allocated by allocatedReservation
-                    if (!firstRoomProvider.isAllocated() && secondRoomProvider.isAllocated()) {
-                        return 1;
-                    }
-
-                    // Prefer room providers which has reallocatable available room reservation(s)
-                    boolean firstReallocatable = firstRoomProvider.hasReallocatableAvailableRoomReservation();
-                    boolean secondReallocatable = secondRoomProvider.hasReallocatableAvailableRoomReservation();
-                    if (!firstReallocatable && secondReallocatable) {
-                        return 1;
-                    }
-
                     // Prefer room providers which has some available room reservation(s)
                     boolean firstHasAvailableRoom = firstRoomProvider.getAvailableRoomEndpoints().size() > 0;
                     boolean secondHasAvailableRoom = secondRoomProvider.getAvailableRoomEndpoints().size() > 0;
@@ -298,7 +283,7 @@ public class RoomReservationTask extends ReservationTask
     /**
      * Try to allocate given {@code roomProviderVariant}.
      *
-     * @param roomProviderVariant  to be allocated
+     * @param roomProviderVariant to be allocated
      * @return allocated {@link Reservation}
      * @throws SchedulerException when the allocation fails
      */
@@ -320,72 +305,50 @@ public class RoomReservationTask extends ReservationTask
                 AvailableReservation<Reservation> availableReservation =
                         availableRoomEndpoint.getAvailableReservation();
 
-                // Reallocatable reservation
-                if (availableReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
-                    if (this.reallocatableReservation == null) {
-                        this.reallocatableReservation = availableReservation;
-                    }
+                // Only reusable available reservations
+                if (!availableReservation.isType(AvailableReservation.Type.REUSABLE)) {
+                    continue;
                 }
-                // Reusable available reservation
-                else {
-                    // Original reservation slot must contain requested slot
-                    if (!originalReservation.getSlot().contains(interval)) {
-                        continue;
-                    }
 
-                    // Check room configuration
-                    RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
-                    if (!roomEndpoint.getTechnologies().containsAll(roomProviderVariant.getTechnologies())) {
-                        // Room reservation doesn't allocate all technologies
-                        continue;
-                    }
-                    if (roomConfiguration.getLicenseCount() < roomProviderVariant.getLicenseCount()) {
-                        // Room reservation doesn't allocate enough licenses
-                        if (availableRoomEndpoint.getType().equals(AvailableReservation.Type.REUSABLE)) {
-                            // Reuse available reservation and allocate the missing capacity
-                            roomProviderVariant.setReusableRoomEndpoint(availableRoomEndpoint);
-                        }
-                        continue;
-                    }
-
-                    // TODO: check room settings
-
-                    // Available reservation will be returned so remove it from context (to not be used again)
-                    schedulerContext.removeAvailableReservation(availableReservation);
-
-                    // Return available reservation
-                    ExistingReservation existingValueReservation;
-                    if (isReallocatableOriginalReservation(ExistingReservation.class)) {
-                        // Reallocate existing room reservation
-                        existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
-                        addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
-                    }
-                    else {
-                        // Create new existing room reservation
-                        existingValueReservation = new ExistingReservation();
-                    }
-                    addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                    existingValueReservation.setSlot(interval);
-                    existingValueReservation.setReservation(originalReservation);
-                    return existingValueReservation;
+                // Original reservation slot must contain requested slot
+                if (!originalReservation.getSlot().contains(interval)) {
+                    continue;
                 }
+
+                // Check room configuration
+                RoomConfiguration roomConfiguration = roomEndpoint.getRoomConfiguration();
+                if (!roomEndpoint.getTechnologies().containsAll(roomProviderVariant.getTechnologies())) {
+                    // Room reservation doesn't allocate all technologies
+                    continue;
+                }
+                if (roomConfiguration.getLicenseCount() < roomProviderVariant.getLicenseCount()) {
+                    // Room reservation doesn't allocate enough licenses
+                    if (availableRoomEndpoint.getType().equals(AvailableReservation.Type.REUSABLE)) {
+                        // Reuse available reservation and allocate the missing capacity
+                        roomProviderVariant.setReusableRoomEndpoint(availableRoomEndpoint);
+                    }
+                    continue;
+                }
+
+                // TODO: check room settings
+
+                // Available reservation will be returned so remove it from context (to not be used again)
+                schedulerContext.removeAvailableReservation(availableReservation);
+
+                // Create new existing room reservation
+                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+                ExistingReservation existingValueReservation = new ExistingReservation();
+                existingValueReservation.setSlot(interval);
+                existingValueReservation.setReservation(originalReservation);
+                return existingValueReservation;
+
             }
 
             // Check whether room provider can be allocated
             getCache().getResourceCache().checkCapabilityAvailable(roomProviderCapability, schedulerContext);
 
             // Allocate room reservation
-            RoomReservation roomReservation;
-            if (isReallocatableOriginalReservationStrict(RoomReservation.class)) {
-                // Reallocate room reservation
-                roomReservation = getReallocatableOriginalReservation(RoomReservation.class);
-                roomReservation.clearChildReservations();
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(roomReservation));
-            }
-            else {
-                // Create new room reservation
-                roomReservation = new RoomReservation();
-            }
+            RoomReservation roomReservation = new RoomReservation();
 
             // Allocated room endpoint
             RoomConfiguration roomConfiguration = new RoomConfiguration();
@@ -615,18 +578,6 @@ public class RoomReservationTask extends ReservationTask
                 new LinkedList<AvailableExecutable<RoomEndpoint>>();
 
         /**
-         * Specifies whether already allocated reservation for the {@link #roomProviderCapability} was specified
-         * to the reservation task.
-         */
-        private boolean allocated = false;
-
-        /**
-         * Specifies whether {@link AvailableReservation.Type#REALLOCATABLE} {@link AvailableReservation} was specified
-         * for the {@link #roomProviderCapability}.
-         */
-        private boolean reallocatableAvailableRoomReservation = false;
-
-        /**
          * Constructor.
          *
          * @param roomProviderCapability sets the {@link #roomProviderCapability}
@@ -684,33 +635,6 @@ public class RoomReservationTask extends ReservationTask
         public void addAvailableRoomEndpoint(AvailableExecutable<RoomEndpoint> availableRoomEndpoint)
         {
             availableRoomEndpoints.add(availableRoomEndpoint);
-            if (availableRoomEndpoint.getType().equals(AvailableReservation.Type.REALLOCATABLE)) {
-                reallocatableAvailableRoomReservation = true;
-            }
-        }
-
-        /**
-         * @return {@link #allocated}
-         */
-        private boolean isAllocated()
-        {
-            return allocated;
-        }
-
-        /**
-         * @param allocated sets the {@link #allocated}
-         */
-        private void setAllocated(boolean allocated)
-        {
-            this.allocated = allocated;
-        }
-
-        /**
-         * @return {@link #reallocatableAvailableRoomReservation}
-         */
-        public boolean hasReallocatableAvailableRoomReservation()
-        {
-            return reallocatableAvailableRoomReservation;
         }
     }
 

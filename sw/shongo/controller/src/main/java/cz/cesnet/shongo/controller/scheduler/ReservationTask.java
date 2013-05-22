@@ -24,11 +24,6 @@ public abstract class ReservationTask
     protected SchedulerContext schedulerContext;
 
     /**
-     * Already allocated {@link Reservation} which should be reallocated.
-     */
-    protected AvailableReservation<? extends Reservation> reallocatableReservation;
-
-    /**
      * List of child {@link Reservation}s.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
@@ -52,59 +47,11 @@ public abstract class ReservationTask
     }
 
     /**
-     * @param reservationType
-     * @return true if {@link AvailableReservation#getOriginalReservation()} for {@link #reallocatableReservation} is
-     *         instance of given {@code reservationType},
-     *         false otherwise
-     */
-    public boolean isReallocatableOriginalReservation(Class<? extends Reservation> reservationType)
-    {
-        if (reallocatableReservation == null) {
-            return false;
-        }
-        return reservationType.isInstance(reallocatableReservation.getOriginalReservation());
-    }
-
-    /**
-     * @param reservationType
-     * @return true if {@link AvailableReservation#getOriginalReservation()} for {@link #reallocatableReservation} is
-     *         precise of given {@code reservationType},
-     *         false otherwise
-     */
-    public boolean isReallocatableOriginalReservationStrict(Class<? extends Reservation> reservationType)
-    {
-        if (reallocatableReservation == null) {
-            return false;
-        }
-        return reservationType.equals(reallocatableReservation.getOriginalReservation().getClass());
-    }
-
-    /**
-     * @return {@link AvailableReservation#getOriginalReservation()} for {@link #reallocatableReservation} or null
-     */
-    public Reservation getReallocatableOriginalReservation()
-    {
-        return (reallocatableReservation != null ? reallocatableReservation.getOriginalReservation() : null);
-    }
-
-    /**
-     * @param requiredReservationType
-     * @return {@link AvailableReservation#getOriginalReservation()} for {@link #reallocatableReservation}
-     */
-    public <T extends Reservation> T getReallocatableOriginalReservation(Class<T> requiredReservationType)
-    {
-        if (reallocatableReservation == null) {
-            throw new IllegalStateException("Reallocatable reservation must not be null.");
-        }
-        return requiredReservationType.cast(reallocatableReservation.getOriginalReservation());
-    }
-
-    /**
-     * @return {@link SchedulerContext#getInterval()}
+     * @return {@link SchedulerContext#getRequestedSlot()}
      */
     public Interval getInterval()
     {
-        return schedulerContext.getInterval();
+        return schedulerContext.getRequestedSlot();
     }
 
     /**
@@ -153,7 +100,7 @@ public abstract class ReservationTask
     private Reservation performChildReservationTask(ReservationTask reservationTask) throws SchedulerException
     {
         try {
-            Reservation reservation = reservationTask.perform(null);
+            Reservation reservation = reservationTask.perform();
             addReports(reservationTask);
             return reservation;
         }
@@ -330,17 +277,11 @@ public abstract class ReservationTask
     /**
      * Perform the {@link ReservationTask}.
      *
-     * @param reallocatableReservation sets the {@link #reallocatableReservation}
      * @return created {@link Reservation}
      * @throws SchedulerException when the {@link ReservationTask} failed
      */
-    public final Reservation perform(Reservation reallocatableReservation) throws SchedulerException
+    public final Reservation perform() throws SchedulerException
     {
-        if (reallocatableReservation != null) {
-            this.reallocatableReservation = schedulerContext.addAvailableReservation(
-                    reallocatableReservation, AvailableReservation.Type.REALLOCATABLE);
-        }
-
         Reservation reservation = null;
         SchedulerReport mainReport = createMainReport();
         if (mainReport != null) {
@@ -366,11 +307,6 @@ public abstract class ReservationTask
         else {
             reservation = allocateReservation();
             validateReservation(reservation);
-        }
-        AvailableReservation<? extends Reservation> availableReservation =
-                schedulerContext.getAvailableReservation(reservation);
-        if (availableReservation != null) {
-            schedulerContext.removeAvailableReservation(availableReservation);
         }
 
         // Add child reservations
@@ -464,7 +400,7 @@ public abstract class ReservationTask
      * @param reservationType requested type
      * @return {@link AvailableReservation} or null
      */
-    protected <T extends Reservation> T popEmptyAvailableReservation(Class<T> reservationType)
+    /*protected <T extends Reservation> T popEmptyAvailableReservation(Class<T> reservationType)
     {
         for (AvailableReservation<? extends Reservation> availableReservation :
                 schedulerContext.getAvailableReservations()) {
@@ -482,7 +418,7 @@ public abstract class ReservationTask
             return reservationType.cast(originalReservation);
         }
         return null;
-    }
+    }*/
 
     /**
      * @param first
@@ -491,11 +427,6 @@ public abstract class ReservationTask
      */
     public int compareAvailableReservations(AvailableReservation first, AvailableReservation second)
     {
-        // Prefer reallocatableReservation
-        if (reallocatableReservation != null && second.equals(reallocatableReservation)) {
-            return 1;
-        }
-
         // Prefer reservations for the whole interval
         Interval interval = getInterval();
         boolean firstContainsInterval = first.getOriginalReservation().getSlot().contains(interval);
@@ -505,11 +436,11 @@ public abstract class ReservationTask
         }
 
         // Prefer reallocatable reservations
-        boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);
+        /*boolean firstReallocatable = first.getType().equals(AvailableReservation.Type.REALLOCATABLE);
         boolean secondReallocatable = second.getType().equals(AvailableReservation.Type.REALLOCATABLE);
         if (secondReallocatable && !firstReallocatable) {
             return 1;
-        }
+        }*/
 
         return 0;
     }

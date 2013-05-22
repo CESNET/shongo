@@ -91,87 +91,49 @@ public class ValueReservationTask extends ReservationTask
             Reservation originalReservation = availableValueReservation.getOriginalReservation();
             ValueReservation valueReservation = availableValueReservation.getTargetReservation();
 
-            // Reallocatable reservation
-            if (availableValueReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
-                if (reallocatableReservation == null) {
-                    reallocatableReservation = availableValueReservation;
-                }
-                else {
-                    // Prefer available value reservation which match requested value
-                    ValueReservation oldValueReservation = getReallocatableOriginalReservation(ValueReservation.class);
-                    if (!oldValueReservation.getValue().equals(requestedValue)
-                            && valueReservation.getValue().equals(requestedValue)) {
-                        reallocatableReservation = availableValueReservation;
-                    }
-                }
+            // Only reusable available reservations
+            if (!availableValueReservation.isType(AvailableReservation.Type.REUSABLE)) {
+                continue;
             }
-            // Reusable available reservation
-            else {
-                // Original reservation slot must contain requested slot
-                if (!originalReservation.getSlot().contains(interval)) {
-                    continue;
-                }
 
-                // Value must match requested value
-                if (requestedValue != null && !valueReservation.getValue().equals(requestedValue)) {
-                    continue;
-                }
-
-                // Available reservation will be returned so remove it from context (to not be used again)
-                schedulerContext.removeAvailableReservation(availableValueReservation);
-
-                // Return available reservation
-                ExistingReservation existingValueReservation;
-                if (isReallocatableOriginalReservation(ExistingReservation.class)) {
-                    // Reallocate existing value reservation
-                    existingValueReservation = getReallocatableOriginalReservation(ExistingReservation.class);
-                    addReport(new SchedulerReportSet.ReservationReallocatingReport(existingValueReservation));
-                }
-                else {
-                    // Create new existing value reservation
-                    existingValueReservation = new ExistingReservation();
-                }
-                addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
-                existingValueReservation.setSlot(interval);
-                existingValueReservation.setReservation(originalReservation);
-                return existingValueReservation;
+            // Original reservation slot must contain requested slot
+            if (!originalReservation.getSlot().contains(interval)) {
+                continue;
             }
+
+            // Value must match requested value
+            if (requestedValue != null && !valueReservation.getValue().equals(requestedValue)) {
+                continue;
+            }
+
+            // Available reservation will be returned so remove it from context (to not be used again)
+            schedulerContext.removeAvailableReservation(availableValueReservation);
+
+            // Create new existing value reservation
+            addReport(new SchedulerReportSet.ReservationReusingReport(originalReservation));
+            ExistingReservation existingValueReservation = new ExistingReservation();
+            existingValueReservation.setSlot(interval);
+            existingValueReservation.setReservation(originalReservation);
+            return existingValueReservation;
         }
 
         // Allocate value reservation
         try {
             String value;
             ValueReservation valueReservation;
-            if (isReallocatableOriginalReservation(ValueReservation.class)) {
-                // Reallocate value reservation
-                valueReservation = getReallocatableOriginalReservation(ValueReservation.class);
-                addReport(new SchedulerReportSet.ReservationReallocatingReport(valueReservation));
-                // Generate existing/new value
-                if (requestedValue != null) {
-                    value = valueProvider.generateValue(usedValues, requestedValue);
-                }
-                else {
-                    value = valueReservation.getValue();
-                    if (usedValues.contains(value)) {
-                        value = valueProvider.generateValue(usedValues);
-                    }
-                }
+            // Create new value reservation
+            if (valueProvider instanceof FilteredValueProvider) {
+                valueReservation = new FilteredValueReservation(requestedValue);
             }
             else {
-                // Create new value reservation
-                if (valueProvider instanceof FilteredValueProvider) {
-                    valueReservation = new FilteredValueReservation(requestedValue);
-                }
-                else {
-                    valueReservation = new ValueReservation();
-                }
-                // Generate new value
-                if (requestedValue != null) {
-                    value = valueProvider.generateValue(usedValues, requestedValue);
-                }
-                else {
-                    value = valueProvider.generateValue(usedValues);
-                }
+                valueReservation = new ValueReservation();
+            }
+            // Generate new value
+            if (requestedValue != null) {
+                value = valueProvider.generateValue(usedValues, requestedValue);
+            }
+            else {
+                value = valueProvider.generateValue(usedValues);
             }
             valueReservation.setSlot(interval);
             valueReservation.setValueProvider(targetValueProvider);

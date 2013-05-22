@@ -120,7 +120,7 @@ public class SchedulerReportTest extends AbstractSchedulerTest
     private Reservation print(Report.MessageType messageType, ReservationTask reservationTask) throws SchedulerException
     {
         try {
-            Reservation reservation = reservationTask.perform(null);
+            Reservation reservation = reservationTask.perform();
             getEntityManager().persist(reservation);
             StringBuilder builder = new StringBuilder();
             builder.append("\n");

@@ -82,7 +82,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                 if (deviceResource != null) {
                     // Create reservation for the device resource
                     ResourceReservationTask task = new ResourceReservationTask(schedulerContext, deviceResource);
-                    Reservation reservation = task.perform(null);
+                    Reservation reservation = task.perform();
                     addReports(task);
                     return reservation;
                 }
