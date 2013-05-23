@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -51,7 +53,7 @@ public class Allocation extends PersistentObject
      */
     @OneToMany
     @Access(AccessType.FIELD)
-    public List<Reservation> getReservations()
+    public List<Reservation>    getReservations()
     {
         return Collections.unmodifiableList(reservations);
     }
@@ -65,20 +67,12 @@ public class Allocation extends PersistentObject
         if (reservations.isEmpty()) {
             return null;
         }
-        else if (reservations.size() == 0) {
+        else if (reservations.size() == 1) {
             return reservations.get(0);
         }
         else {
             throw new TodoImplementException();
         }
-    }
-
-    /**
-     * @param reservations sets the {@link #reservations}
-     */
-    public void setReservations(List<Reservation> reservations)
-    {
-        this.reservations = reservations;
     }
 
     /**
@@ -88,8 +82,16 @@ public class Allocation extends PersistentObject
     {
         // Manage bidirectional association
         if (reservations.contains(reservation) == false) {
-            if (reservations.size() > 0) {
-                throw new TodoImplementException();
+            // Check if reservation doesn't collide with any old one
+            Interval reservationSlot = reservation.getSlot();
+            for (Reservation oldReservation : reservations) {
+                if (reservationSlot.overlaps(oldReservation.getSlot())) {
+                    throw new IllegalStateException(
+                            String.format("New reservation cannot be added to allocation"
+                                    + " because it's time slot '%s' collides with '%s' from old reservation '%s'.",
+                                    reservationSlot, oldReservation.getSlot(),
+                                    EntityIdentifier.formatId(oldReservation)));
+                }
             }
             reservations.add(reservation);
             reservation.setAllocation(this);

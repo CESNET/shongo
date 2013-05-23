@@ -51,7 +51,7 @@ public class Configuration extends CombinedConfiguration
      * Worker configuration (it runs scheduler and executor).
      */
     public static final String WORKER_PERIOD = "worker.period";
-    public static final String WORKER_INTERVAL = "worker.interval";
+    public static final String WORKER_LOOKAHEAD = "worker.lookahead";
 
     /**
      * Maximum duration of reservations.

@@ -166,6 +166,8 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
                     reservationRequest.setSlot(slot);
                     reservationRequest.synchronizeFrom(reservationRequestSet,
                             reservationRequestSet.getOriginalSpecifications());
+                    reservationRequestManager.create(reservationRequest);
+
                     reservationRequestSet.addReservationRequest(reservationRequest);
 
                     newReservationRequests.add(reservationRequest);

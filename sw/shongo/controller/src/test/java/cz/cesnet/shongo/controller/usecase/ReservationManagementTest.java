@@ -374,6 +374,8 @@ public class ReservationManagementTest extends AbstractControllerTest
             Assert.fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {
+            Assert.assertTrue(exception.getMessage().contains(
+                    "Specification 'RoomSpecification' cannot be checked for availability"));
         }
     }
 }

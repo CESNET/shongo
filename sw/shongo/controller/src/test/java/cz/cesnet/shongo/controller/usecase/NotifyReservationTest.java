@@ -72,7 +72,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(3, notificationExecutor.getSentCount()); // new/modified/deleted
+        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
     }
 
     /**
@@ -110,7 +110,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(3, notificationExecutor.getSentCount()); // new/modified/deleted
+        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
     }
 
     /**

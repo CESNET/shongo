@@ -332,7 +332,7 @@ public class ResourceServiceImpl extends Component
             // Setup resource allocation
             ResourceAllocation resourceAllocation = null;
             if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
-                SchedulerContext schedulerContext = new SchedulerContext(interval, cache, entityManager);
+                SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, interval);
                 AvailableRoom availableRoom = schedulerContext.getAvailableRoom(roomProviderCapability);
                 RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
                 allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());

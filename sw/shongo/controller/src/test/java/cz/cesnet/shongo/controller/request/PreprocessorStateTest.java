@@ -16,12 +16,13 @@ import javax.persistence.EntityManager;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSetStateTest extends AbstractDatabaseTest
+public class PreprocessorStateTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception
     {
         EntityManager entityManager = createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         entityManager.getTransaction().begin();
 
         // Create reservation request set and manager that will manage it's states
@@ -29,9 +30,8 @@ public class ReservationRequestSetStateTest extends AbstractDatabaseTest
         reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(new CompartmentSpecification());
-        entityManager.persist(reservationRequestSet);
-        PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager,
-                reservationRequestSet);
+        reservationRequestManager.create(reservationRequestSet);
+        PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager, reservationRequestSet);
 
         // Check setter without interval
         stateManager.setState(PreprocessorState.NOT_PREPROCESSED);

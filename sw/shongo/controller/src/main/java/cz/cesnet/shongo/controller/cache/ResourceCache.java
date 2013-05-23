@@ -229,7 +229,7 @@ public class ResourceCache extends AbstractCache<Resource>
         // If reservation request purpose implies allocation of only owned resources
         if (schedulerContext.isOwnerRestricted()) {
             // Check resource owner against reservation request owner
-            if (!schedulerContext.containsOwnerId(resource)) {
+            if (!schedulerContext.containsOwnerUserId(resource)) {
                 throw new SchedulerReportSet.UserNotOwnerException();
             }
         }
@@ -267,8 +267,8 @@ public class ResourceCache extends AbstractCache<Resource>
         if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the capability can be allocated in the interval future
             if (!capability.isAvailableInFuture(schedulerContext.getRequestedSlot().getEnd(),
-                    schedulerContext.getDateTimeNow())) {
-                DateTime maxDateTime = capability.getMaximumFutureDateTime(schedulerContext.getDateTimeNow());
+                    schedulerContext.getMinimumDateTime())) {
+                DateTime maxDateTime = capability.getMaximumFutureDateTime(schedulerContext.getMinimumDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }
@@ -290,8 +290,8 @@ public class ResourceCache extends AbstractCache<Resource>
         if (schedulerContext.isMaximumFutureAndDurationRestricted()) {
             // Check if the resource can be allocated in the interval future
             if (!resource.isAvailableInFuture(schedulerContext.getRequestedSlot().getEnd(),
-                    schedulerContext.getDateTimeNow())) {
-                DateTime maxDateTime = resource.getMaximumFutureDateTime(schedulerContext.getDateTimeNow());
+                    schedulerContext.getMinimumDateTime())) {
+                DateTime maxDateTime = resource.getMaximumFutureDateTime(schedulerContext.getMinimumDateTime());
                 throw new SchedulerReportSet.ResourceNotAvailableException(resource, maxDateTime);
             }
         }

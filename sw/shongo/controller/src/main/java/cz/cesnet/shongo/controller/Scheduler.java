@@ -76,21 +76,21 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     }
 
     /**
-     * Run scheduler for a given interval.
+     * Allocate reservation requests which intersects given {@code interval}. Reservations are allocated in given
+     * {@code interval} or more in future (and thus not before given {@code interval}).
      *
-     * @param interval
+     * @param interval only reservation requests which intersects this interval should be allocated
+     * @param entityManager to be used
      */
     public void run(Interval interval, EntityManager entityManager)
     {
         logger.debug("Running scheduler for interval '{}'...", Temporal.formatInterval(interval));
 
-        // Date/time which represents now
-        DateTime dateTimeNow = DateTime.now();
-
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, interval.getStart());
+        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
         try {
             // Storage for reservation notifications
             List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
@@ -141,8 +141,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                             reservationRequest.getId());
 
                     Reservation oldReservation = reservationRequest.getAllocation().getCurrentReservation();
-                    Reservation newReservation = allocateReservationRequest(
-                            reservationRequest, dateTimeNow, entityManager, authorizationManager);
+                    Reservation newReservation = allocateReservationRequest(reservationRequest, schedulerContext);
                     if (oldReservation != null && oldReservation != newReservation) {
                         notifications.add(new ReservationNotification(
                                 ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
@@ -238,20 +237,24 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
-     * @param dateTimeNow
-     * @param entityManager
+     * @param schedulerContext
      */
-    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, DateTime dateTimeNow,
-            EntityManager entityManager, AuthorizationManager authorizationManager) throws SchedulerException
+    private Reservation allocateReservationRequest(ReservationRequest reservationRequest,
+            SchedulerContext schedulerContext) throws SchedulerException
     {
         // Create scheduler task context
-        SchedulerContext schedulerContext = new SchedulerContext(reservationRequest, cache, dateTimeNow, entityManager);
-        Interval requestedSlot = schedulerContext.getRequestedSlot();
+        schedulerContext.clear();
+        schedulerContext.setReservationRequest(reservationRequest);
 
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
+        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
+        Interval requestedSlot = schedulerContext.getRequestedSlot();
+
+        EntityManager entityManager = schedulerContext.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
+        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
 
         // Fill provided reservations as reusable
         for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
@@ -290,31 +293,39 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             reservationManager.create(reservation);
         }
 
+        // Get set of all new reservations
+        Set<Reservation> newReservations = reservation.getSetOfAllReservations();
+
+        // Remove/update/delete old allocated reservations
+        Collection<Reservation> oldReservations = new LinkedList<Reservation>();
+        oldReservations.addAll(allocation.getReservations());
+        for (Reservation oldReservation : oldReservations) {
+            // If old reservation has been reallocated to a new reservation
+            if (newReservations.contains(oldReservation)) {
+                // Remove reallocated reservation from allocation (it will be re-added be new reservation)
+                allocation.removeReservation(oldReservation);
+                // Reallocated reservation should not be deleted
+                continue;
+            }
+
+            // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
+            if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
+                // If old reservation time slot intersects the new reservation time slot
+                if (oldReservation.getSlotEnd().isAfter(requestedSlot.getStart())) {
+                    // Shorten the old reservation time slot to not intersect the new reservation time slot
+                    reservationManager.updateReservationSlotEnd(oldReservation, requestedSlot.getStart());
+                }
+                // Old reservation which takes place in the past should not be deleted
+                continue;
+            }
+
+            // Remove the old reservation from allocation
+            allocation.removeReservation(oldReservation);
+            // Delete the old reservation
+            reservationManager.delete(oldReservation, authorizationManager);
+        }
         // Add new allocated reservation
         allocation.addReservation(reservation);
-
-        // Update/delete old allocated reservations
-        for (AvailableReservation availableReservation : schedulerContext.getParentAvailableReservations()) {
-            if (!availableReservation.isType(AvailableReservation.Type.REALLOCATABLE)) {
-                continue;
-            }
-            Reservation allocatedReservation = availableReservation.getOriginalReservation();
-            // Keep only reservations which takes place before new reservation
-            if (allocatedReservation.getSlotStart().isBefore(requestedSlot.getStart())) {
-                // Reservation time slot should be updated to not intersect the new reservation time slot
-                if (allocatedReservation.getSlotEnd().isAfter(requestedSlot.getStart())) {
-                    // Shorten the reservation time slot
-                    reservationManager.updateReservationSlotEnd(allocatedReservation, requestedSlot.getStart());
-                }
-                // Reservation should not be deleted
-                continue;
-            }
-
-            // Remove the reservation from allocation
-            allocation.removeReservation(allocatedReservation);
-            // Delete the reservation
-            reservationManager.delete(allocatedReservation, authorizationManager);
-        }
 
         // Update reservation request
         reservationRequest.setState(ReservationRequest.State.ALLOCATED);

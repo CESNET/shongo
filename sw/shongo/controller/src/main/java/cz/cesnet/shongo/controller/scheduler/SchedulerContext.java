@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -25,14 +25,24 @@ import java.util.*;
 public class SchedulerContext
 {
     /**
-     * Time which represents now.
+     * @see cz.cesnet.shongo.controller.cache.Cache
      */
-    private final DateTime dateTimeNow;
+    private final Cache cache;
 
     /**
-     * {@link ReservationRequest} for which the {@link Reservation} should be allocated.
+     * Entity manager.
      */
-    private ReservationRequest reservationRequest;
+    private final EntityManager entityManager;
+
+    /**
+     * @see cz.cesnet.shongo.controller.authorization.AuthorizationManager
+     */
+    private final AuthorizationManager authorizationManager;
+
+    /**
+     * Represents a minimum date/time before which the {@link Reservation}s cannot be allocated.
+     */
+    private final DateTime minimumDateTime;
 
     /**
      * Requested slot for which the {@link Reservation}s should be allocated.
@@ -40,24 +50,19 @@ public class SchedulerContext
     private Interval requestedSlot;
 
     /**
-     * @see cz.cesnet.shongo.controller.cache.Cache
+     * Description for allocated reservations or executables
      */
-    private Cache cache;
+    private String description;
 
     /**
-     * Entity manager.
+     * {@link ReservationRequestPurpose} for which the reservations are allocated.
      */
-    private EntityManager entityManager;
+    private ReservationRequestPurpose purpose;
 
     /**
-     * @see cz.cesnet.shongo.controller.authorization.AuthorizationManager
+     * Set of user-ids for which the reservations are being allocated.
      */
-    private AuthorizationManager authorizationManager;
-
-    /**
-     * Set of allocated {@link Reservation}s.
-     */
-    private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
+    private Set<String> userIds = new HashSet<String>();
 
     /**
      * Set of {@link AvailableReservation}s.
@@ -70,6 +75,22 @@ public class SchedulerContext
      */
     private Map<Reservation, AvailableReservation<? extends Reservation>> availableReservationByOriginalReservation =
             new HashMap<Reservation, AvailableReservation<? extends Reservation>>();
+
+    /**
+     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link AliasProviderCapability} identifiers.
+     */
+    private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
+            new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
+
+    /**
+     * Map of {@link AvailableExecutable}s by {@link Executable}s.
+     */
+    private Map<Executable, AvailableExecutable> availableExecutables = new HashMap<Executable, AvailableExecutable>();
+
+    /**
+     * Set of allocated {@link Reservation}s.
+     */
+    private Set<Reservation> allocatedReservations = new HashSet<Reservation>();
 
     /**
      * {@link ReservationTransaction} for {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s.
@@ -95,17 +116,6 @@ public class SchedulerContext
     private Set<Resource> referencedResources = new HashSet<Resource>();
 
     /**
-     * Map of {@link AvailableExecutable}s by {@link Executable}s.
-     */
-    private Map<Executable, AvailableExecutable> availableExecutables = new HashMap<Executable, AvailableExecutable>();
-
-    /**
-     * Map of {@link AvailableReservation}s ({@link AliasReservation}s) by {@link AliasProviderCapability} identifiers.
-     */
-    private Map<Long, Set<AvailableReservation<AliasReservation>>> availableReservationsByAliasProviderId =
-            new HashMap<Long, Set<AvailableReservation<AliasReservation>>>();
-
-    /**
      * Current {@link Savepoint} to which are recorded all performed changes.
      */
     private Savepoint currentSavepoint;
@@ -113,63 +123,90 @@ public class SchedulerContext
     /**
      * Constructor.
      *
-     * @param requestedSlot sets the {@link #requestedSlot}
-     * @param cache    sets the {@link #cache}
+     * @param cache           sets the {@link #cache}
+     * @param entityManager   which can be used
+     * @param minimumDateTime sets the {@link #minimumDateTime}
      */
-    public SchedulerContext(Interval requestedSlot, Cache cache, EntityManager entityManager)
+    public SchedulerContext(Cache cache, EntityManager entityManager, DateTime minimumDateTime)
     {
-        this.dateTimeNow = DateTime.now();
+        if (minimumDateTime == null) {
+            throw new IllegalArgumentException("Minimum date/time must not be null.");
+        }
         this.cache = cache;
         this.entityManager = entityManager;
-
-        setRequestedSlot(reservationRequest.getSlot());
+        this.authorizationManager = new AuthorizationManager(entityManager);
+        this.minimumDateTime = minimumDateTime;
     }
 
     /**
      * Constructor.
      *
-     * @param reservationRequest sets the {@link #reservationRequest}
-     * @param cache              sets the {@link #cache}
-     * @param dateTimeNow        sets the {@link #dateTimeNow}
-     * @param entityManager      which can be used
+     * @param cache         sets the {@link #cache}
+     * @param entityManager which can be used
+     * @param requestedSlot sets the {@link #requestedSlot}
      */
-    public SchedulerContext(ReservationRequest reservationRequest, Cache cache, DateTime dateTimeNow,
-            EntityManager entityManager)
+    public SchedulerContext(Cache cache, EntityManager entityManager, Interval requestedSlot)
     {
-        this.dateTimeNow = dateTimeNow;
-        this.reservationRequest = reservationRequest;
-        this.cache = cache;
-        this.entityManager = entityManager;
-
-        setRequestedSlot(reservationRequest.getSlot());
-
-        if (entityManager != null) {
-            this.authorizationManager = new AuthorizationManager(entityManager);
-        }
+        this(cache, entityManager, requestedSlot.getStart());
+        setRequestedSlot(requestedSlot);
     }
 
     /**
      * @param requestedSlot sets the {@link #requestedSlot}
      */
-    private void setRequestedSlot(Interval requestedSlot)
+    public void setRequestedSlot(Interval requestedSlot)
     {
-        if (requestedSlot.isBefore(dateTimeNow)) {
+        if (requestedSlot.isBefore(minimumDateTime)) {
             throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
         }
+
         this.requestedSlot = requestedSlot;
-        if (requestedSlot.contains(dateTimeNow)) {
-            // Update requested slot to allocate only in future
-            this.requestedSlot = new Interval(
-                    Temporal.max(dateTimeNow, this.requestedSlot.getStart()), this.requestedSlot.getEnd());
+
+        // Update requested slot to not allocate before minimum date/time
+        if (this.requestedSlot.contains(minimumDateTime)) {
+            this.requestedSlot = new Interval(minimumDateTime, this.requestedSlot.getEnd());
         }
     }
 
     /**
-     * @return {@link #requestedSlot}
+     * Clear current content of this {@link SchedulerContext}.
      */
-    public Interval getRequestedSlot()
+    public void clear()
     {
-        return requestedSlot;
+        requestedSlot = null;
+        description = null;
+        purpose = null;
+        userIds.clear();
+        availableReservations.clear();
+        availableReservationByOriginalReservation.clear();
+        availableReservationsByAliasProviderId.clear();
+        availableExecutables.clear();
+        allocatedReservations.clear();
+        resourceReservationTransaction.clear();
+        valueReservationTransaction.clear();
+        roomReservationTransaction.clear();
+        referencedResources.clear();
+        currentSavepoint = null;
+    }
+
+    /**
+     * Initialize {@link SchedulerContext} from {@link ReservationRequest}.
+     *
+     * @param reservationRequest from which the {@link SchedulerContext} should be initialized
+     */
+    public void setReservationRequest(ReservationRequest reservationRequest)
+    {
+        setRequestedSlot(reservationRequest.getSlot());
+
+        this.description = reservationRequest.getDescription();
+        this.purpose = reservationRequest.getPurpose();
+
+        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
+        userIds.clear();
+        userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
+        if (userIds.size() == 0) {
+            userIds.add(reservationRequest.getUserId());
+        }
     }
 
     /**
@@ -181,14 +218,6 @@ public class SchedulerContext
     }
 
     /**
-     * @return {@link #dateTimeNow}
-     */
-    public DateTime getDateTimeNow()
-    {
-        return dateTimeNow;
-    }
-
-    /**
      * @return {@link #entityManager}
      */
     public EntityManager getEntityManager()
@@ -197,14 +226,35 @@ public class SchedulerContext
     }
 
     /**
-     * @return description of {@link #reservationRequest}
+     * @return {@link #authorizationManager}
      */
-    public String getReservationDescription()
+    public AuthorizationManager getAuthorizationManager()
     {
-        if (reservationRequest == null) {
-            return null;
-        }
-        return reservationRequest.getDescription();
+        return authorizationManager;
+    }
+
+    /**
+     * @return {@link #minimumDateTime}
+     */
+    public DateTime getMinimumDateTime()
+    {
+        return minimumDateTime;
+    }
+
+    /**
+     * @return {@link #requestedSlot}
+     */
+    public Interval getRequestedSlot()
+    {
+        return requestedSlot;
+    }
+
+    /**
+     * @return {@link #description}
+     */
+    public String getDescription()
+    {
+        return description;
     }
 
     /**
@@ -213,7 +263,7 @@ public class SchedulerContext
      */
     public boolean isExecutableAllowed()
     {
-        return reservationRequest == null || reservationRequest.getPurpose().isExecutableAllowed();
+        return purpose == null || purpose.isExecutableAllowed();
     }
 
     /**
@@ -222,7 +272,7 @@ public class SchedulerContext
      */
     public boolean isOwnerRestricted()
     {
-        return reservationRequest != null && reservationRequest.getPurpose().isByOwner();
+        return purpose != null && purpose.isByOwner();
     }
 
     /**
@@ -231,44 +281,23 @@ public class SchedulerContext
      */
     public boolean isMaximumFutureAndDurationRestricted()
     {
-        return reservationRequest != null && !reservationRequest.getPurpose().isByOwner();
-    }
-
-    /**
-     * @return collection of user-ids for reservation request owners
-     */
-    public Collection<String> getOwnerIds()
-    {
-        if (reservationRequest == null) {
-            throw new IllegalStateException("Reservation request must not be null.");
-        }
-        if (authorizationManager == null) {
-            throw new IllegalStateException("Authorization manager must not be null.");
-        }
-        Set<String> ownerIds = new HashSet<String>();
-        EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
-        ownerIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
-        if (ownerIds.size() == 0) {
-            ownerIds.add(reservationRequest.getUserId());
-        }
-        return ownerIds;
+        return purpose != null && !purpose.isByOwner();
     }
 
     /**
      * @param resource whose owner should be checked
-     * @return true if the {@link #reservationRequest} has an owner who is in the given {@code userIds},
-     *         false otherwise
+     * @return true if the {@link #userIds} contains an identifier of an owner
+     *         who is owner of given {@code resource}, false otherwise
      */
-    public boolean containsOwnerId(Resource resource)
+    public boolean containsOwnerUserId(Resource resource)
     {
-        Collection<String> reservationRequestOwnerIds = getOwnerIds();
         Set<String> resourceOwnerIds = new HashSet<String>();
         EntityIdentifier resourceId = new EntityIdentifier(resource);
         resourceOwnerIds.addAll(authorizationManager.getUserIdsWithRole(resourceId, Role.OWNER));
         if (resourceOwnerIds.size() == 0) {
             resourceOwnerIds.add(resource.getUserId());
         }
-        return !Collections.disjoint(resourceOwnerIds, reservationRequestOwnerIds);
+        return !Collections.disjoint(resourceOwnerIds, userIds);
     }
 
     /**
@@ -316,7 +345,7 @@ public class SchedulerContext
     /**
      * @return {@link #availableReservations}
      */
-    public Set<AvailableReservation> getParentAvailableReservations()
+    /*public Set<AvailableReservation> getParentAvailableReservations()
     {
         Set<AvailableReservation> parentAvailableReservations = new HashSet<AvailableReservation>();
         for (AvailableReservation availableReservation : availableReservations) {
@@ -332,16 +361,16 @@ public class SchedulerContext
             parentAvailableReservations.add(availableReservation);
         }
         return parentAvailableReservations;
-    }
+    }*/
 
     /**
      * @param originalReservation for which the {@link AvailableReservation} should be returned
      * @return {@link AvailableReservation} for given {@code originalReservation}
      */
-    public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
+    /*public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
     {
         return availableReservationByOriginalReservation.get(originalReservation);
-    }
+    }*/
 
     /**
      * @param executableType

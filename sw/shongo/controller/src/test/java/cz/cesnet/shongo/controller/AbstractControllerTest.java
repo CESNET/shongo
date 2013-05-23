@@ -421,8 +421,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             reservationRequestId = getReservationService().createReservationRequest(securityToken, reservationRequest);
         }
         else {
-            reservationRequestId = reservationRequest.getId();
-            getReservationService().modifyReservationRequest(securityToken, reservationRequest);
+            reservationRequestId = getReservationService().modifyReservationRequest(securityToken, reservationRequest);
         }
         if (reservationRequest instanceof ReservationRequestSet) {
             runPreprocessor();

@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -211,7 +212,7 @@ public class ReservationManager extends AbstractManager
             // List only reservations which are allocated for request with given id
             filter.addFilter("reservation.allocation IS NOT NULL AND reservation.allocation IN ("
                     + "   SELECT allocation FROM ReservationRequest reservationRequest"
-                    + "   LEFT JOIN reservation.allocation allocation"
+                    + "   LEFT JOIN reservationRequest.allocation allocation"
                     + "   LEFT JOIN reservationRequest.reservationRequestSet reservationRequestSet"
                     + "   WHERE reservationRequest.id = :reservationRequestId OR reservationRequestSet.id = :reservationRequestId"
                     + " )");
@@ -427,8 +428,10 @@ public class ReservationManager extends AbstractManager
         // Checks whether reservation isn't referenced in existing reservation requests
         List reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest.id FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE :reservation MEMBER OF reservationRequest.providedReservations")
+                        + " WHERE reservationRequest.type = :createdType"
+                        + "   AND :reservation MEMBER OF reservationRequest.providedReservations")
                 .setParameter("reservation", reservation)
+                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
                 .getResultList();
         if (reservationRequests.size() > 0) {
             return true;

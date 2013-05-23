@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import org.joda.time.*;
@@ -24,9 +25,9 @@ public class WorkerThread extends Thread
     private Duration period;
 
     /**
-     * Length of working interval from now.
+     * Length of working interval which stars at "now()".
      */
-    private Period intervalLength;
+    private Period lookahead;
 
     /**
      * @see Preprocessor
@@ -78,11 +79,11 @@ public class WorkerThread extends Thread
     }
 
     /**
-     * @param intervalLength sets the {@link #intervalLength}
+     * @param lookahead sets the {@link #lookahead}
      */
-    public void setIntervalLength(Period intervalLength)
+    public void setLookahead(Period lookahead)
     {
-        this.intervalLength = intervalLength;
+        this.lookahead = lookahead;
     }
 
     @Override
@@ -93,8 +94,8 @@ public class WorkerThread extends Thread
         if (period == null) {
             throw new IllegalStateException("Worker must have period set!");
         }
-        if (intervalLength == null) {
-            throw new IllegalStateException("Worker must have interval length set!");
+        if (lookahead == null) {
+            throw new IllegalStateException("Worker must have lookahead length set!");
         }
 
         try {
@@ -127,8 +128,8 @@ public class WorkerThread extends Thread
         synchronized (ThreadLock.class) {
             //logger.debug("Worker lock acquired...   [[[[[")
 
-            DateMidnight dateTimeNow = DateMidnight.now();
-            Interval interval = new Interval(dateTimeNow, intervalLength);
+            // We want to pre-process and schedule only reservation requests
+            Interval interval = new Interval(Temporal.nowRounded(), lookahead);
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);

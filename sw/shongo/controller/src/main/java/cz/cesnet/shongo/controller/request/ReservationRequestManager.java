@@ -13,6 +13,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -156,7 +157,7 @@ public class ReservationRequestManager extends AbstractManager
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         // Detach reservations from allocation and they will be deleted by scheduler
-        for (Reservation reservation : allocation.getReservations()) {
+        for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
             // Check if reservation can be deleted
             if (reservationManager.isProvided(reservation)) {
                 return false;

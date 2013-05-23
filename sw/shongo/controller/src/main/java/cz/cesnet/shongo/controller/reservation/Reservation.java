@@ -16,10 +16,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents an allocation for any target. Each {@link Reservation} can contains multiple {@link #childReservations}.
@@ -89,7 +86,7 @@ public class Reservation extends PersistentObject implements Reportable
     @Transient
     public AbstractReservationRequest getReservationRequest()
     {
-        return allocation.getReservationRequest();
+        return (allocation != null ? allocation.getReservationRequest() : null);
     }
 
     /**
@@ -327,21 +324,33 @@ public class Reservation extends PersistentObject implements Reportable
     }
 
     /**
-     * @return child {@link Reservation}s, theirs child {@link Reservation}, etc. (recursive)
+     * @return set of this and all child {@link Reservation}s (recursive)
      */
     @Transient
-    public List<Reservation> getNestedReservations()
+    public Set<Reservation> getSetOfAllReservations()
     {
-        List<Reservation> reservations = new ArrayList<Reservation>();
+        Set<Reservation> reservations = new HashSet<Reservation>();
+        reservations.add(this);
         getNestedReservations(reservations);
         return reservations;
     }
 
     /**
-     * @param reservations to which will be added child {@link Reservation}s, theirs child {@link Reservation}, etc.
+     * @return list of all child {@link Reservation}s (recursive, this {@link Reservation} is not included)
      */
     @Transient
-    private void getNestedReservations(List<Reservation> reservations)
+    public List<Reservation> getNestedReservations()
+    {
+        List<Reservation> reservations = new LinkedList<Reservation>();
+        getNestedReservations(reservations);
+        return reservations;
+    }
+
+    /**
+     * @param reservations to which will be added all child {@link Reservation}s (recursive)
+     */
+    @Transient
+    private void getNestedReservations(Collection<Reservation> reservations)
     {
         for (Reservation childReservation : childReservations) {
             reservations.add(childReservation);

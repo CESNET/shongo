@@ -23,6 +23,15 @@ public class ReservationTransaction<R extends Reservation>
             new HashMap<Long, Set<AvailableReservation<R>>>();
 
     /**
+     * Clear content of this {@link ReservationTransaction}.
+     */
+    public void clear()
+    {
+        allocatedReservationsByObjectId.clear();
+        availableReservationsByObjectId.clear();
+    }
+
+    /**
      * @param objectId    for object for which the {@code reservation} is added
      * @param reservation to be added to the {@link ReservationTransaction} as allocated
      */

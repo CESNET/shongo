@@ -199,25 +199,22 @@ public class ResourceManagementTest extends AbstractControllerTest
         String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         // Create reservation request before P1M -> success
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setDescription("request");
-        reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
-        String reservationRequestId = getReservationService().createReservationRequest(SECURITY_TOKEN,
-                reservationRequest);
+        ReservationRequest request = new ReservationRequest();
+        request.setDescription("request");
+        request.setSlot("2012-01-01T12:00", "PT2H");
+        request.setPurpose(ReservationRequestPurpose.SCIENCE);
+        request.setSpecification(new ResourceSpecification(resourceId));
+        String requestId = getReservationService().createReservationRequest(SECURITY_TOKEN, request);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        Assert.assertEquals(ReservationRequestState.ALLOCATED, reservationRequest.getState());
+        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, requestId);
+        Assert.assertEquals(ReservationRequestState.ALLOCATED, request.getState());
 
         // Modify reservation request after P1M -> failure
-        reservationRequest.setSlot("2012-02-01T12:00", "PT2H");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        request.setSlot("2012-02-01T12:00", "PT2H");
+        requestId = getReservationService().modifyReservationRequest(SECURITY_TOKEN, request);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        Assert.assertEquals(ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
+        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, requestId);
+        Assert.assertEquals(ReservationRequestState.ALLOCATION_FAILED, request.getState());
 
         // Modify resource absolute maximum future to 2012-03-01
         resource = getResourceService().getResource(SECURITY_TOKEN, resourceId);
@@ -225,19 +222,17 @@ public class ResourceManagementTest extends AbstractControllerTest
         getResourceService().modifyResource(SECURITY_TOKEN, resource);
 
         // Create reservation request before maximum future -> success
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        requestId = getReservationService().modifyReservationRequest(SECURITY_TOKEN, request);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        Assert.assertEquals(ReservationRequestState.ALLOCATED, reservationRequest.getState());
+        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, requestId);
+        Assert.assertEquals(ReservationRequestState.ALLOCATED, request.getState());
 
         // Modify reservation request after maximum future -> failure
-        reservationRequest.setSlot("2012-03-01T12:00", "PT2H");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        request.setSlot("2012-03-01T12:00", "PT2H");
+        requestId = getReservationService().modifyReservationRequest(SECURITY_TOKEN, request);
         runScheduler(Interval.parse("2012-01-01/2012-12-01"));
-        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestId);
-        Assert.assertEquals(ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
+        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, requestId);
+        Assert.assertEquals(ReservationRequestState.ALLOCATION_FAILED, request.getState());
     }
 
     /**

@@ -524,7 +524,7 @@ public class Controller
         WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
                 authorization, entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(Configuration.WORKER_PERIOD));
-        workerThread.setIntervalLength(configuration.getPeriod(Configuration.WORKER_INTERVAL));
+        workerThread.setLookahead(configuration.getPeriod(Configuration.WORKER_LOOKAHEAD));
         addThread(workerThread);
     }
 

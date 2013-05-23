@@ -294,7 +294,7 @@ public class AliasReservationTask extends ReservationTask
 
                     roomEndpoint.setSlot(interval);
                     roomEndpoint.setRoomProviderCapability(roomProvider);
-                    roomEndpoint.setRoomDescription(schedulerContext.getReservationDescription());
+                    roomEndpoint.setRoomDescription(schedulerContext.getDescription());
 
                     // Update room endpoint state
                     if (roomEndpoint.getState() == null) {

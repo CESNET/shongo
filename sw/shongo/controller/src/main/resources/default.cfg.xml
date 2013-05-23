@@ -63,7 +63,7 @@
         <!-- Period in which the worker is periodically working -->
         <period>PT5S</period>
         <!-- Length of working interval -->
-        <interval>P31D</interval>
+        <lookahead>P31D</lookahead>
     </worker>
 
     <!-- Executor periodically checks compartments for execution -->
