@@ -336,8 +336,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @param originalMap        map of original {@link Specification} instances by the new cloned instances
      * @return true if some modification was made
      */
-    public boolean synchronizeFrom(AbstractReservationRequest reservationRequest,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(AbstractReservationRequest reservationRequest)
     {
         boolean modified = !ObjectHelper.isSame(getUserId(), reservationRequest.getUserId())
                 || !ObjectHelper.isSame(getPurpose(), reservationRequest.getPurpose())
@@ -353,12 +352,12 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         Specification specification = reservationRequest.getSpecification();
         if (this.specification == null || this.specification.getClass() != specification.getClass()) {
             // Setup new specification
-            setSpecification(specification.clone(originalMap));
+            setSpecification(specification.clone());
             modified = true;
         }
         else {
             // Check specification for modifications
-            modified |= this.specification.synchronizeFrom(specification, originalMap);
+            modified |= this.specification.synchronizeFrom(specification);
         }
 
         if (!ObjectHelper.isSame(getProvidedReservations(), reservationRequest.getProvidedReservations())) {

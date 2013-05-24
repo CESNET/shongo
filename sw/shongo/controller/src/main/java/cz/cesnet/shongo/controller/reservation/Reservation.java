@@ -98,9 +98,9 @@ public class Reservation extends PersistentObject implements Reportable
         AbstractReservationRequest abstractReservationRequest = getReservationRequest();
         if (abstractReservationRequest != null && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            ReservationRequestSet reservationRequestSet = reservationRequest.getReservationRequestSet();
-            if (reservationRequestSet != null) {
-                return reservationRequestSet;
+            Allocation parentAllocation = reservationRequest.getParentAllocation();
+            if (parentAllocation != null) {
+                abstractReservationRequest = parentAllocation.getReservationRequest();
             }
         }
         return abstractReservationRequest;

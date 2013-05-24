@@ -44,13 +44,9 @@ public class MultiCompartmentSpecification extends Specification
 
     @Override
     @Transient
-    public Collection<Specification> getChildSpecifications()
+    public List<? extends Specification> getChildSpecifications()
     {
-        Collection<Specification> specifications = new ArrayList<Specification>();
-        for (CompartmentSpecification compartmentSpecification : this.specifications) {
-            specifications.add(compartmentSpecification);
-        }
-        return specifications;
+        return Collections.unmodifiableList(specifications);
     }
 
     /**
@@ -115,8 +111,7 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         return false;
     }

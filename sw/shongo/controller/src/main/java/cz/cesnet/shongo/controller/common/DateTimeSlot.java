@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Transient;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -88,12 +89,12 @@ public abstract class DateTimeSlot extends PersistentObject implements Cloneable
     }
 
     /**
-     * Enumerate list of time slots from single time slot. Time slot can contain for instance
-     * periodic date, that can represents multiple absolute date/times.
-     * Return only time slots that take place (whole or intersects) inside interval.
+     * Enumerate collection of date/time slots from this {@link DateTimeSlot} (it can contain, e.g.,
+     * periodic date, that can represents multiple absolute date/times). Return only date/time slots
+     * that take place (whole or intersects) inside interval.
      *
-     * @param interval
-     * @return array of time slots with absolute date/times
+     * @param interval which must all returned date/time slots intersect
+     * @return list of all absolute date/time slots which intersect given {@code interval}
      */
     public List<Interval> enumerate(Interval interval)
     {
@@ -101,13 +102,14 @@ public abstract class DateTimeSlot extends PersistentObject implements Cloneable
     }
 
     /**
-     * Enumerate list of time slots from single time slot. Time slot can contain for instance
-     * periodic date, that can represents multiple absolute date/times.
-     * Return only time slots that take place (whole or intersects) inside interval.
+     * Enumerate collection of date/time slots from this {@link DateTimeSlot} (it can contain, e.g.,
+     * periodic date, that can represents multiple absolute date/times). Return only date/time slots
+     * that take place (whole or intersects) inside interval.
      *
      * @param intervalStart
      * @param intervalEnd
-     * @return array of time slots with absolute date/times
+     * @return list of all absolute date/time slots which intersect interval constructed from
+     *         given {@code intervalStart} and {@code intervalEnd}
      */
     public final List<Interval> enumerate(DateTime intervalStart, DateTime intervalEnd)
     {

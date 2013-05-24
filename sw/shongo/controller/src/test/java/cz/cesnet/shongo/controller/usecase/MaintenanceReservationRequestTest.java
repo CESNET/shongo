@@ -145,17 +145,16 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        reservationRequestId = allocate(reservationRequest);
 
         // Check deleted reservation
-        runPreprocessor();
         Assert.assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         // Change resource in the request
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(
                 SECURITY_TOKEN, reservationRequestId);
         ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(secondResourceId);
-        allocate(reservationRequest);
+        reservationRequestId = allocate(reservationRequest);
 
         // Check modified reservation
         Collection<Reservation> reservations = getReservationService()
@@ -204,7 +203,6 @@ public class MaintenanceReservationRequestTest extends AbstractControllerTest
         secondReservationRequest.setSpecification(new ResourceSpecification(mcuId));
 
         String secondReservationRequestId = allocate(secondReservationRequest);
-        runPreprocessor();
         checkAllocationFailed(secondReservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestId);

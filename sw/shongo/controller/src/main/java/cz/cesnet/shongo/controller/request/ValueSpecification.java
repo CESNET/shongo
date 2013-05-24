@@ -13,7 +13,6 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.*;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -96,12 +95,11 @@ public class ValueSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         ValueSpecification valueSpecification = (ValueSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getValues(), valueSpecification.getValues())
                 || !ObjectHelper.isSame(getValueProvider(), valueSpecification.getValueProvider());
 

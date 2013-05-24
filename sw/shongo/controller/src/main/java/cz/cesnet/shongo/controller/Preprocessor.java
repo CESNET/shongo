@@ -94,101 +94,84 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
             logger.info("Pre-processing reservation request '{}'...", reservationRequestSet.getId());
 
-            // Get list of date/time slots
-            Collection<Interval> slots = reservationRequestSet.enumerateSlots(interval);
+            // Get allocation for the reservation request set
+            Allocation allocation = reservationRequestSet.getAllocation();
 
-            // List all reservation requests for the set
-            List<ReservationRequest> reservationRequests =
-                    reservationRequestManager.listReservationRequestsBySet(reservationRequestSet, interval);
-
-            // Build map of reservation requests by original specification
-            Map<Specification, Set<ReservationRequest>> reservationRequestsByOriginalSpecification =
-                    new HashMap<Specification, Set<ReservationRequest>>();
-            for (ReservationRequest reservationRequest : reservationRequests) {
-                Specification originalSpecification = reservationRequestSet.getOriginalSpecifications()
-                        .get(reservationRequest.getSpecification());
-                if (originalSpecification == null) {
-                    originalSpecification = reservationRequest.getSpecification();
-                }
-                Set<ReservationRequest> set = reservationRequestsByOriginalSpecification.get(originalSpecification);
-                if (set == null) {
-                    set = new HashSet<ReservationRequest>();
-                    reservationRequestsByOriginalSpecification.put(originalSpecification, set);
-                }
-                set.add(reservationRequest);
-            }
-
-            // Reservation requests are synchronized per specification from the set
-            Specification specification = reservationRequestSet.getSpecification();
-            if (specification == null) {
-                throw new RuntimeException("Specification should not be null!");
-            }
-            // List existing reservation requests for the set in the interval
-            Set<ReservationRequest> reservationRequestsForSpecification =
-                    reservationRequestsByOriginalSpecification.get(specification);
-
-            // Create map of reservation requests with date/time slot as key
-            // and remove reservation request from list of all reservation request
-            Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
-            if (reservationRequestsForSpecification != null) {
-                for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
-                    map.put(reservationRequest.getSlot(), reservationRequest);
-                    reservationRequests.remove(reservationRequest);
-                }
-            }
-
-            // New reservation requests for creating ACL records
-            Collection<ReservationRequest> newReservationRequests = new LinkedList<ReservationRequest>();
+            // List all child reservation requests for the set
+            List<ReservationRequest> childReservationRequests =
+                    reservationRequestManager.listChildReservationRequests(reservationRequestSet, interval);
 
             // For each requested slot we must create or modify reservation request.
             // If we find date/time slot in prepared map we modify the corresponding request
             // and remove it from map, otherwise we create a new reservation request.
-            for (Interval slot : slots) {
-                ReservationRequest reservationRequest;
+            for (Interval slot : reservationRequestSet.enumerateSlots(interval)) {
+                // Find existing child reservation request by date/time slot
+                ReservationRequest childReservationRequest = null;
+                Interval childReservationRequestOverlap = null;
+                for (ReservationRequest possibleChildReservationRequest : childReservationRequests) {
+                    Interval possibleOverlap = slot.overlap(possibleChildReservationRequest.getSlot());
+                    // If possible child reservation request overlaps current slot
+                    if (possibleOverlap != null) {
+                        if (childReservationRequest != null) {
+                            // If possible child reservation has already been found and new one does not fit better
+                            long millisOld = childReservationRequestOverlap.toDurationMillis();
+                            long millisNew = possibleOverlap.toDurationMillis();
+                            if (millisNew <= millisOld) {
+                                // Skip the new one
+                                continue;
+                            }
+                        }
+                        // Existing child reservation request was found
+                        childReservationRequest = possibleChildReservationRequest;
+                        childReservationRequestOverlap = possibleOverlap;
+                    }
+                }
+
                 // Modify existing reservation request
-                if (map.containsKey(slot)) {
-                    reservationRequest = map.get(slot);
-                    boolean modified = reservationRequest.synchronizeFrom(reservationRequestSet,
-                            reservationRequestSet.getOriginalSpecifications());
-                    // Reservation request should be allocated when it was modified or
-                    // when the reservation request set was modified, ie., it is not preprocessed in the slot
-                    if (modified || stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
-                        // Reservation request was modified, so we must clear it's state
-                        reservationRequest.clearState();
+                if (childReservationRequest != null) {
+                    // Update child reservation request
+                    boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet);
+
+                    // Update child reservation request date/time slot
+                    if (!slot.equals(childReservationRequest.getSlot())) {
+                        childReservationRequest.setSlot(slot);
+                        modified = true;
                     }
 
-                    // Remove the slot from the map for the corresponding reservation request to not be deleted
-                    map.remove(slot);
+                    // When the child reservation request was modified or when the parent reservation request
+                    // was modified (ie., it is not preprocessed in the slot), the child should be (re)allocated
+                    if (modified || stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
+                        // We must reallocate child reservation request, so clear it's state
+                        childReservationRequest.clearState();
+                    }
+
+                    // Remove the child reservation request from the list to not be deleted
+                    childReservationRequests.remove(childReservationRequest);
                 }
-                // Create new reservation request
                 else {
-                    reservationRequest = new ReservationRequest();
-                    reservationRequest.setSlot(slot);
-                    reservationRequest.synchronizeFrom(reservationRequestSet,
-                            reservationRequestSet.getOriginalSpecifications());
-                    reservationRequestManager.create(reservationRequest);
+                    // Create a new reservation request
+                    childReservationRequest = new ReservationRequest();
+                    childReservationRequest.setSlot(slot);
+                    childReservationRequest.synchronizeFrom(reservationRequestSet);
+                    reservationRequestManager.create(childReservationRequest);
 
-                    reservationRequestSet.addReservationRequest(reservationRequest);
+                    // Add the new reservation request as child to allocation
+                    allocation.addChildReservationRequest(childReservationRequest);
 
-                    newReservationRequests.add(reservationRequest);
+                    // Create ACL records for the new reservation request
+                    authorizationManager.createAclRecordsForChildEntity(reservationRequestSet, childReservationRequest);
                 }
-                reservationRequest.updateStateBySpecification();
+
+                // Update state for modified/new reservation request
+                childReservationRequest.updateStateBySpecification();
             }
 
-            // All reservation requests that remains in map must be deleted
-            for (ReservationRequest reservationRequest : map.values()) {
-                reservationRequests.remove(reservationRequest);
-                reservationRequestSet.removeReservationRequest(reservationRequest);
+            // All child reservation requests that remains in list must be deleted
+            for (ReservationRequest reservationRequest : childReservationRequests) {
+                // Remove child reservation request from allocation
+                allocation.removeChildReservationRequest(reservationRequest);
 
-                // Delete ACL records
-                reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
-            }
-
-            // All reservation requests that remains in list of all must be deleted
-            for (ReservationRequest reservationRequest : reservationRequests) {
-                reservationRequestSet.removeReservationRequest(reservationRequest);
-
-                // Delete ACL records
+                // Delete child reservation request and all it's ACL records
                 reservationRequestManager.hardDelete(reservationRequest, authorizationManager);
             }
 
@@ -203,11 +186,6 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
             // Set state preprocessed state for the interval to reservation request
             stateManager.setState(PreprocessorState.PREPROCESSED, interval);
-
-            // Create ACL records
-            for (ReservationRequest reservationRequest : newReservationRequests) {
-                authorizationManager.createAclRecordsForChildEntity(reservationRequestSet, reservationRequest);
-            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();

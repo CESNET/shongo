@@ -10,7 +10,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Transient;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -73,12 +72,12 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification, Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         ExternalEndpointSetSpecification externalEndpointSpecification =
                 (ExternalEndpointSetSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getCount(), externalEndpointSpecification.getCount());
 
         setCount(externalEndpointSpecification.getCount());

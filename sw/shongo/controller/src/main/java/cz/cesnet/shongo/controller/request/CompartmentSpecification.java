@@ -62,13 +62,9 @@ public class CompartmentSpecification extends Specification
 
     @Override
     @Transient
-    public Collection<Specification> getChildSpecifications()
+    public List<? extends Specification> getChildSpecifications()
     {
-        Collection<Specification> specifications = new ArrayList<Specification>();
-        for (ParticipantSpecification participantSpecification : this.specifications) {
-            specifications.add(participantSpecification);
-        }
-        return specifications;
+        return Collections.unmodifiableList(specifications);
     }
 
     /**
@@ -206,12 +202,11 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getCallInitiation(), compartmentSpecification.getCallInitiation());
 
         setCallInitiation(compartmentSpecification.getCallInitiation());

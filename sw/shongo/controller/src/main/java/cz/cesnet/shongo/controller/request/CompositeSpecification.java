@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Should be implemented by {@link Specification}s which are composed from multiple other {@link Specification}s.
@@ -12,7 +13,7 @@ public interface CompositeSpecification
     /**
      * @return collection of {@link Specification}s from which is the {@link CompositeSpecification} composed.
      */
-    public Collection<Specification> getChildSpecifications();
+    public List<? extends Specification> getChildSpecifications();
 
     /**
      * @param specification to be added to the {@link CompositeSpecification}.

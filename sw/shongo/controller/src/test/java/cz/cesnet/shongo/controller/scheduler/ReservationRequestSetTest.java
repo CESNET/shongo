@@ -40,13 +40,13 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
         Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
-        // Ids for persons which are requested to participate in the compartment
-        Long personId1 = null;
-        Long personId2 = null;
         // Id for reservation request set which is created
         Long reservationRequestSetId = null;
         // Id for reservation request which is created from the reservation request set
         Long reservationRequestId = null;
+        // Ids for persons which are requested to participate in the compartment
+        Long personId1 = null;
+        Long personId2 = null;
         // Id for reservation
         Long reservationId = null;
 
@@ -100,10 +100,6 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.create(reservationRequestSet);
 
-            personId1 = person1.getId();
-            Assert.assertNotNull("The person should have assigned identifier", personId1);
-            personId2 = person2.getId();
-            Assert.assertNotNull("The person should have assigned identifier", personId2);
             reservationRequestSetId = reservationRequestSet.getId();
             Assert.assertNotNull("The reservation request set should have assigned identifier", reservationRequestSetId);
 
@@ -123,15 +119,31 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
 
             preprocessor.run(interval, entityManager);
 
-            List<ReservationRequest> compartmentRequestList =
-                    reservationRequestManager.listReservationRequestsBySet(reservationRequestSetId);
+            ReservationRequestSet reservationRequestSet =
+                    reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
+            List<ReservationRequest> reservationRequests =
+                    reservationRequestManager.listChildReservationRequests(reservationRequestSet);
             Assert.assertEquals("One reservation request should be created for the reservation request set", 1,
-                    compartmentRequestList.size());
+                    reservationRequests.size());
             Assert.assertEquals("No complete reservation requests should be present", 0,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());
 
-            reservationRequestId = compartmentRequestList.get(0).getId();
+            ReservationRequest reservationRequest = reservationRequests.get(0);
+            reservationRequestId = reservationRequest.getId();
             Assert.assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
+
+            CompartmentSpecification specification = (CompartmentSpecification) reservationRequest.getSpecification();
+            for (ParticipantSpecification childSpecification : specification.getSpecifications()) {
+                if (childSpecification instanceof PersonSpecification) {
+                    PersonSpecification personSpecification = (PersonSpecification) childSpecification;
+                    if (personSpecification.getEndpointSpecification() != null) {
+                        personId1 = personSpecification.getPerson().getId();
+                    }
+                    else {
+                        personId2 = personSpecification.getPerson().getId();
+                    }
+                }
+            }
 
             entityManager.close();
         }

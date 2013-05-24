@@ -9,6 +9,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -269,29 +271,8 @@ public class AuthorizationServiceImpl extends Component
                 resource.setUserId(newUserId);
                 authorizationManager.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
             }
-            else if (entity instanceof ReservationRequestSet) {
-                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
-                // Change user to reservation request set
-                for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
-                        authorizationManager.listAclRecords(reservationRequestSet.getUserId(),
-                                entityIdentifier, Role.OWNER)) {
-                    authorizationManager.deleteAclRecord(aclRecord);
-                }
-                reservationRequestSet.setUserId(newUserId);
-                authorizationManager.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
-                // Change user to child reservation requests
-                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                    EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
-                    for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
-                            authorizationManager.listAclRecords(reservationRequest.getUserId(),
-                                    reservationRequestId, Role.OWNER)) {
-                        authorizationManager.deleteAclRecord(aclRecord);
-                    }
-                    reservationRequest.setUserId(newUserId);
-                    authorizationManager.createAclRecord(newUserId, reservationRequestId, Role.OWNER);
-                }
-            }
-            else if (entity instanceof ReservationRequest) {
+            else if (entity instanceof AbstractReservationRequest) {
+                // Change user to reservation request
                 ReservationRequest reservationRequest = (ReservationRequest) entity;
                 for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
                         authorizationManager.listAclRecords(reservationRequest.getUserId(),
@@ -300,6 +281,19 @@ public class AuthorizationServiceImpl extends Component
                 }
                 reservationRequest.setUserId(newUserId);
                 authorizationManager.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
+
+                // Change user to child reservation requests
+                Allocation allocation = reservationRequest.getAllocation();
+                for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
+                    EntityIdentifier reservationRequestId = new EntityIdentifier(childReservationRequest);
+                    for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
+                            authorizationManager.listAclRecords(childReservationRequest.getUserId(),
+                                    reservationRequestId, Role.OWNER)) {
+                        authorizationManager.deleteAclRecord(aclRecord);
+                    }
+                    childReservationRequest.setUserId(newUserId);
+                    authorizationManager.createAclRecord(newUserId, reservationRequestId, Role.OWNER);
+                }
             }
             else {
                 throw new RuntimeException("The user cannot be set for entity of type "

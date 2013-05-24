@@ -10,7 +10,6 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a {@link Specification} for an endpoint which can participate in a conference.
@@ -93,12 +92,11 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getCallInitiation(), endpointSpecification.getCallInitiation());
 
         setCallInitiation(endpointSpecification.getCallInitiation());

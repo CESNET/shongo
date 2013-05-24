@@ -10,7 +10,6 @@ import cz.cesnet.shongo.util.ObjectHelper;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
-import java.util.Map;
 
 /**
  * Represents a specific existing resource in the compartment.
@@ -60,12 +59,11 @@ public class ResourceSpecification extends Specification implements ReservationT
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         ResourceSpecification resourceSpecification = (ResourceSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getResource(), resourceSpecification.getResource());
 
         setResource(resourceSpecification.getResource());

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.util.ObjectHelper;
 
 import javax.persistence.*;
-import java.util.Map;
 
 /**
  * Represents a {@link Specification} for a person.
@@ -126,12 +125,11 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         PersonSpecification personSpecification = (PersonSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getPerson(), personSpecification.getPerson());
 
         setPerson(personSpecification.getPerson().clone());

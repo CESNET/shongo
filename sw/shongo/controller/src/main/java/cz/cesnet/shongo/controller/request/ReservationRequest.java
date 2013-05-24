@@ -32,6 +32,11 @@ import java.util.Map;
 public class ReservationRequest extends AbstractReservationRequest implements Reporter.ReportContext
 {
     /**
+     * {@link Allocation} for which this {@link ReservationRequest} has been created as child.
+     */
+    private Allocation parentAllocation;
+
+    /**
      * Start date/time from which the reservation is requested.
      */
     private DateTime slotStart;
@@ -45,11 +50,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * State of the compartment request.
      */
     private State state;
-
-    /**
-     * {@link ReservationRequestSet} for which the {@link ReservationRequest} is created.
-     */
-    private ReservationRequestSet reservationRequestSet;
 
     /**
      * List of {@link SchedulerReport}s for this {@link ReservationRequest}.
@@ -72,6 +72,35 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     {
         setUserId(userId);
         setPurpose(purpose);
+    }
+
+    /**
+     * @return {@link #parentAllocation}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public Allocation getParentAllocation()
+    {
+        return parentAllocation;
+    }
+
+    /**
+     * @param parentAllocation sets the {@link #parentAllocation}
+     */
+    public void setParentAllocation(Allocation parentAllocation)
+    {
+        // Manage bidirectional association
+        if (parentAllocation != this.parentAllocation) {
+            if (this.parentAllocation != null) {
+                Allocation oldParentAllocation = this.parentAllocation;
+                this.parentAllocation = null;
+                oldParentAllocation.removeChildReservationRequest(this);
+            }
+            if (parentAllocation != null) {
+                this.parentAllocation = parentAllocation;
+                this.parentAllocation.addChildReservationRequest(this);
+            }
+        }
     }
 
     /**
@@ -165,35 +194,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     public void clearState()
     {
         this.state = null;
-    }
-
-    /**
-     * @return {@link #reservationRequestSet}
-     */
-    @OneToOne
-    @Access(AccessType.FIELD)
-    public ReservationRequestSet getReservationRequestSet()
-    {
-        return reservationRequestSet;
-    }
-
-    /**
-     * @param reservationRequestSet sets the {@link #reservationRequestSet}
-     */
-    public void setReservationRequestSet(ReservationRequestSet reservationRequestSet)
-    {
-        // Manage bidirectional association
-        if (reservationRequestSet != this.reservationRequestSet) {
-            if (this.reservationRequestSet != null) {
-                ReservationRequestSet oldReservationRequestSet = this.reservationRequestSet;
-                this.reservationRequestSet = null;
-                oldReservationRequestSet.removeReservationRequest(this);
-            }
-            if (reservationRequestSet != null) {
-                this.reservationRequestSet = reservationRequestSet;
-                this.reservationRequestSet.addReservationRequest(this);
-            }
-        }
     }
 
     /**
@@ -367,15 +367,14 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     public AbstractReservationRequest clone()
     {
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.synchronizeFrom(this, null);
+        reservationRequest.synchronizeFrom(this);
         return reservationRequest;
     }
 
     @Override
-    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
-        boolean modified = super.synchronizeFrom(abstractReservationRequest, originalMap);
+        boolean modified = super.synchronizeFrom(abstractReservationRequest);
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
 

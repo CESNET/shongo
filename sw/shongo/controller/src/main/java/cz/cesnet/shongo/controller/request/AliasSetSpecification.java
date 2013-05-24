@@ -114,12 +114,11 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         AliasSetSpecification roomSpecification = (AliasSetSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
 
         if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
             setAliasSpecifications(roomSpecification.getAliasSpecifications());

@@ -113,7 +113,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        if (!deleteAllocation(reservationRequest.getAllocation())) {
+        if (!deleteAllocation(reservationRequest.getAllocation(), authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
@@ -136,7 +136,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        if (!deleteAllocation(reservationRequest.getAllocation())) {
+        if (!deleteAllocation(reservationRequest.getAllocation(), authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
@@ -150,9 +150,10 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param allocation for which the {@link Allocation#reservations} should be deleted
+     * @param allocation           for which the {@link Allocation#reservations} should be deleted
+     * @param authorizationManager to be used for deleting ACL records
      */
-    private boolean deleteAllocation(Allocation allocation)
+    private boolean deleteAllocation(Allocation allocation, AuthorizationManager authorizationManager)
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
@@ -165,6 +166,12 @@ public class ReservationRequestManager extends AbstractManager
             reservation.setAllocation(null);
             reservationManager.update(reservation);
         }
+
+        // Delete all child reservation requests
+        for (ReservationRequest reservationRequest : allocation.getChildReservationRequests()) {
+            hardDelete(reservationRequest, authorizationManager);
+        }
+
         return true;
     }
 
@@ -178,25 +185,25 @@ public class ReservationRequestManager extends AbstractManager
     private void delete(AbstractReservationRequest abstractReservationRequest,
             AuthorizationManager authorizationManager, boolean hardDelete)
     {
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+        // Clear preprocessor state
+        PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
 
-            // Delete all reservation requests from set
-            for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                hardDelete(reservationRequest, authorizationManager);
-            }
-
-            // Clear state
-            PreprocessorStateManager.clear(entityManager, reservationRequestSet);
-        }
-
+        // Hard delete
         if (hardDelete) {
             authorizationManager.deleteAclRecordsForEntity(abstractReservationRequest);
 
             super.delete(abstractReservationRequest);
         }
+        // Soft delete
         else {
             abstractReservationRequest.setType(AbstractReservationRequest.Type.DELETED);
+
+            // Clear allocation reports
+            if (abstractReservationRequest instanceof ReservationRequest) {
+                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                reservationRequest.clearReports();
+            }
+
             super.update(abstractReservationRequest);
         }
     }
@@ -292,7 +299,7 @@ public class ReservationRequestManager extends AbstractManager
             Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
-        filter.addFilter("TYPE(request) != ReservationRequest OR request.reservationRequestSet IS NULL");
+        filter.addFilter("TYPE(request) != ReservationRequest OR request.parentAllocation IS NULL");
         filter.addFilter("request.type = :createdType", "createdType", AbstractReservationRequest.Type.CREATED);
         filter.addIds(ids);
         filter.addUserId(userId);
@@ -479,62 +486,36 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place
+     * @param parentReservationRequest for which the child {@link ReservationRequest}s should be returned
+     * @return list of child {@link ReservationRequest}s for a given {@link AbstractReservationRequest}
      */
-    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet)
-    {
-        return listReservationRequestsBySet(reservationRequestSet.getId());
-    }
-
-    /**
-     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
-     *                                should be returned
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet}
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId)
+    public List<ReservationRequest> listChildReservationRequests(AbstractReservationRequest parentReservationRequest)
     {
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.id IN("
-                        + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id)"
+                        + "    WHERE reservationRequest.parentAllocation = :allocation"
                         + " ORDER BY reservationRequest.slotStart", ReservationRequest.class)
-                .setParameter("id", reservationRequestSetId)
+                .setParameter("allocation", parentReservationRequest.getAllocation())
                 .getResultList();
         return compartmentRequestList;
     }
 
     /**
-     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
-     * @param interval              in which the {@link ReservationRequest}s should tak place
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
+     * @param parentReservationRequest for which the child {@link ReservationRequest}s should be returned
+     * @param interval                 in which the {@link ReservationRequest}s must take place
+     * @return list of child {@link ReservationRequest}s for a given {@link AbstractReservationRequest} taking place in
      *         given {@code interval}
      */
-    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
+    public List<ReservationRequest> listChildReservationRequests(AbstractReservationRequest parentReservationRequest,
             Interval interval)
     {
-        return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
-    }
-
-    /**
-     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
-     *                                should be returned
-     * @param interval                in which the {@link ReservationRequest}s should tak place
-     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
-     *         given {@code interval}
-     */
-    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId, Interval interval)
-    {
         List<ReservationRequest> reservationRequests = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id "
-                        + " AND reservationRequest.slotStart < :end"
-                        + " AND reservationRequest.slotEnd > :start",
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.parentAllocation = :allocation"
+                        + "   AND reservationRequest.slotStart < :end"
+                        + "   AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
-                .setParameter("id", reservationRequestSetId)
+                .setParameter("allocation", parentReservationRequest.getAllocation())
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();

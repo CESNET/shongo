@@ -198,12 +198,11 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         RoomSpecification roomSpecification = (RoomSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getParticipantCount(), roomSpecification.getParticipantCount());
         modified |= !ObjectHelper.isSame(getDeviceResource(), roomSpecification.getDeviceResource());
 

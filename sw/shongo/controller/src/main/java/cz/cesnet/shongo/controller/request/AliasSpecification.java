@@ -226,12 +226,11 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public boolean synchronizeFrom(Specification specification,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(Specification specification)
     {
         AliasSpecification aliasSpecification = (AliasSpecification) specification;
 
-        boolean modified = super.synchronizeFrom(specification, originalMap);
+        boolean modified = super.synchronizeFrom(specification);
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())

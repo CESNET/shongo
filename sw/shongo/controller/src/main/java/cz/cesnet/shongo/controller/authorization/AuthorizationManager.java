@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
@@ -513,19 +512,19 @@ public class AuthorizationManager extends AbstractManager
 
         // Create child ACL records
         if (entity instanceof AbstractReservationRequest) {
-            if (entity instanceof ReservationRequestSet) {
-                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) entity;
-                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
-                    if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
-                        createChildAclRecord(aclRecord, userId, reservationRequest, role,
-                                AclRecordDependency.Type.DELETE_DETACH);
-                    }
+            AbstractReservationRequest reservationRequest = (AbstractReservationRequest) entity;
+            Allocation allocation = reservationRequest.getAllocation();
+
+            // Child reservation requests
+            for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
+                if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
+                    createChildAclRecord(aclRecord, userId, childReservationRequest, role,
+                            AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
 
-            AbstractReservationRequest reservationRequest = (AbstractReservationRequest) entity;
+            // Allocated reservations
             if (EntityType.RESERVATION.allowsRole(role)) {
-                Allocation allocation = reservationRequest.getAllocation();
                 for (Reservation reservation : allocation.getReservations()) {
                     createChildAclRecord(aclRecord, userId, reservation, role, AclRecordDependency.Type.DELETE_DETACH);
                 }

@@ -83,17 +83,17 @@ public class PreprocessorTest extends AbstractDatabaseTest
         // Run preprocessor
         preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")), entityManager);
-        Assert.assertEquals(1, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        Assert.assertEquals(1, reservationRequestManager.listChildReservationRequests(reservationRequestSet).size());
         preprocessor.run(new Interval(
                 DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        Assert.assertEquals(2, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        Assert.assertEquals(2, reservationRequestManager.listChildReservationRequests(reservationRequestSet).size());
         preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        Assert.assertEquals(3, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        Assert.assertEquals(3, reservationRequestManager.listChildReservationRequests(reservationRequestSet).size());
 
         // Check created reservation requests
         List<ReservationRequest> reservationRequests =
-                reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+                reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(3, reservationRequests.size());
         Assert.assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
                 reservationRequests.get(0).getSlot());
@@ -115,8 +115,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         preprocessor.run(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
 
-        // Check modified compartments
-        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        // Check modified requests
+        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(2, reservationRequests.size());
         Assert.assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
                 reservationRequests.get(0).getSlot());
@@ -153,7 +153,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03")), entityManager);
 
         List<ReservationRequest> reservationRequests =
-                reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+                reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(2, reservationRequests.size());
         Assert.assertThat("Compartment specifications in reservation requests created from single reservation request set"
                 + " should be different database instances.",
@@ -206,7 +206,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         preprocessor.run(preprocessorInterval, entityManager);
 
-        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         Assert.assertEquals(2, createdCompartmentSpecification.getChildSpecifications().size());
@@ -219,7 +219,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         preprocessor.run(preprocessorInterval, entityManager);
 
-        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         Assert.assertEquals("Specification should be deleted from the created reservation request",
@@ -231,7 +231,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         preprocessor.run(preprocessorInterval, entityManager);
 
-        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         Assert.assertEquals("Specification should be added to the created reservation request",
@@ -243,7 +243,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         preprocessor.run(preprocessorInterval, entityManager);
 
-        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
         Assert.assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         Assert.assertEquals("Specification should be updated to the created reservation request",

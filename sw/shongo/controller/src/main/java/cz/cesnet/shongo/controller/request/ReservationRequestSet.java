@@ -29,20 +29,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     private List<DateTimeSlot> slots = new ArrayList<DateTimeSlot>();
 
     /**
-     * List of created {@link ReservationRequest}s.
-     */
-    private List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
-
-    /**
-     * Map of original instances of the {@link Specification} by the cloned instances.
-     * <p/>
-     * When a {@link ReservationRequest} is created from the {@link ReservationRequestSet} for a {@link Specification}
-     * from the {@link #specification} all instances which are {@link StatefulSpecification} are cloned and we must
-     * keep the references from cloned instances to the original instances for synchronizing.
-     */
-    private Map<Specification, Specification> originalSpecifications = new HashMap<Specification, Specification>();
-
-    /**
      * @return {@link #slots}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -120,30 +106,8 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     /**
-     * @param specification which should be removed from the {@link #originalSpecifications}
-     */
-    private void removeOriginalSpecification(Specification specification)
-    {
-        Iterator<Specification> iterator = originalSpecifications.keySet().iterator();
-        while (iterator.hasNext()) {
-            Specification clonedSpecification = iterator.next();
-            Specification originalSpecification = originalSpecifications.get(clonedSpecification);
-            if (originalSpecification == specification) {
-                iterator.remove();
-            }
-        }
-        if (specification instanceof CompositeSpecification) {
-            for (Specification childSpecification : ((CompositeSpecification) specification).getChildSpecifications()) {
-                removeOriginalSpecification(childSpecification);
-            }
-        }
-    }
-
-    /**
-     * Enumerate requested date/time slots in a specific interval.
-     *
-     * @param interval
-     * @return collection of all requested absolute date/time slots for given interval
+     * @param interval which must all returned date/time slots intersect
+     * @return collection of all requested absolute date/time slots which intersect given {@code interval}
      */
     public Collection<Interval> enumerateSlots(Interval interval)
     {
@@ -169,95 +133,18 @@ public class ReservationRequestSet extends AbstractReservationRequest
         return false;
     }
 
-    /**
-     * @return {@link #reservationRequests}
-     */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequestSet")
-    @Access(AccessType.FIELD)
-    @OrderBy("slotStart")
-    public List<ReservationRequest> getReservationRequests()
-    {
-        return Collections.unmodifiableList(reservationRequests);
-    }
-
-    /**
-     * @param id of the {@link ReservationRequest}
-     * @return {@link ReservationRequest} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
-     */
-    @Transient
-    private ReservationRequest getReservationRequestById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (ReservationRequest reservationRequest : reservationRequests) {
-            if (reservationRequest.getId().equals(id)) {
-                return reservationRequest;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(ReservationRequest.class, id);
-    }
-
-    /**
-     * @param reservationRequest to be added to the {@link #reservationRequests}
-     */
-    public void addReservationRequest(ReservationRequest reservationRequest)
-    {
-        // Manage bidirectional association
-        if (reservationRequests.contains(reservationRequest) == false) {
-            reservationRequests.add(reservationRequest);
-            reservationRequest.setReservationRequestSet(this);
-        }
-    }
-
-    /**
-     * @param reservationRequest to be removed from the {@link #reservationRequests}
-     */
-    public void removeReservationRequest(ReservationRequest reservationRequest)
-    {
-        // Manage bidirectional association
-        if (reservationRequests.contains(reservationRequest)) {
-            removedClonedSpecification(reservationRequest.getSpecification());
-            reservationRequests.remove(reservationRequest);
-            reservationRequest.setReservationRequestSet(null);
-        }
-    }
-
-    /**
-     * @return {@link #originalSpecifications}
-     */
-    @ManyToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public Map<Specification, Specification> getOriginalSpecifications()
-    {
-        return originalSpecifications;
-    }
-
-    /**
-     * @param clonedSpecification to be removed from the {@link #originalSpecifications}
-     */
-    public void removedClonedSpecification(Specification clonedSpecification)
-    {
-        originalSpecifications.remove(clonedSpecification);
-        if (clonedSpecification instanceof CompositeSpecification) {
-            CompositeSpecification compositeSpecification = (CompositeSpecification) clonedSpecification;
-            for (Specification specification : compositeSpecification.getChildSpecifications()) {
-                removedClonedSpecification(specification);
-            }
-        }
-    }
-
     @Override
     public AbstractReservationRequest clone()
     {
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
-        reservationRequest.synchronizeFrom(this, null);
+        reservationRequest.synchronizeFrom(this);
         return reservationRequest;
     }
 
     @Override
-    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest,
-            Map<Specification, Specification> originalMap)
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
-        boolean modified = super.synchronizeFrom(abstractReservationRequest, originalMap);
+        boolean modified = super.synchronizeFrom(abstractReservationRequest);
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
 
@@ -294,7 +181,8 @@ public class ReservationRequestSet extends AbstractReservationRequest
         for (DateTimeSlot slot : getSlots()) {
             reservationRequestSetApi.addSlot(slot.toApi());
         }
-        for (ReservationRequest reservationRequest : getReservationRequests()) {
+        Allocation allocation = getAllocation();
+        for (ReservationRequest reservationRequest : allocation.getChildReservationRequests()) {
             reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(messageType));
         }
         super.toApi(api, messageType);

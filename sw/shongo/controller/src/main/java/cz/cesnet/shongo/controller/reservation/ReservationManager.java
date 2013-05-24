@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -54,7 +53,7 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param reservation reservation and all child reservations (recursive) to have date/time slot end updated
-     * @param slotEnd new date/time slot end
+     * @param slotEnd     new date/time slot end
      */
     public void updateReservationSlotEnd(Reservation reservation, DateTime slotEnd)
     {
@@ -74,7 +73,7 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param executable executable and all child executables (recursive) to have date/time slot end updated
-     * @param slotEnd new date/time slot end
+     * @param slotEnd    new date/time slot end
      */
     private void updateExecutableSlotEnd(Executable executable, DateTime slotEnd)
     {
@@ -209,13 +208,18 @@ public class ReservationManager extends AbstractManager
             }
         }
         if (reservationRequestId != null) {
-            // List only reservations which are allocated for request with given id
-            filter.addFilter("reservation.allocation IS NOT NULL AND reservation.allocation IN ("
-                    + "   SELECT allocation FROM ReservationRequest reservationRequest"
+            // List only reservations which are allocated for reservation request with given id or child reservation requests
+            filter.addFilter("reservation.allocation IS NOT NULL AND (reservation.allocation IN ("
+                    + "   SELECT allocation FROM AbstractReservationRequest reservationRequest"
                     + "   LEFT JOIN reservationRequest.allocation allocation"
-                    + "   LEFT JOIN reservationRequest.reservationRequestSet reservationRequestSet"
-                    + "   WHERE reservationRequest.id = :reservationRequestId OR reservationRequestSet.id = :reservationRequestId"
-                    + " )");
+                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + " ) OR reservation.allocation IN ("
+                    + "   SELECT childAllocation FROM AbstractReservationRequest reservationRequest"
+                    + "   LEFT JOIN reservationRequest.allocation allocation"
+                    + "   LEFT JOIN allocation.childReservationRequests childReservationRequest"
+                    + "   LEFT JOIN childReservationRequest.allocation childAllocation"
+                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + " ))");
             filter.addFilterParameter("reservationRequestId", reservationRequestId);
         }
 

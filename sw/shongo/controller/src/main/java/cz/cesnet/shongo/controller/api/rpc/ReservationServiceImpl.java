@@ -5,15 +5,12 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequestSet;
-import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -161,36 +158,38 @@ public class ReservationServiceImpl extends Component
     /**
      * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
      *
-     * @param reservationRequest
+     * @param abstractReservationRequest
      */
     private boolean isModifiableReservationRequest(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest,
             ReservationManager reservationManager)
     {
-        Allocation allocation = reservationRequest.getAllocation();
+        Allocation allocation = abstractReservationRequest.getAllocation();
+
+        // Check if reservation is not created by controller
+        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+            if (reservationRequestImpl.getParentAllocation() != null) {
+                return false;
+            }
+        }
+
+        // Check child reservation requests
+        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
+                allocation.getChildReservationRequests()) {
+            if (isModifiableReservationRequest(reservationRequestImpl, reservationManager)) {
+                return false;
+            }
+        }
+
+        // Check allocated reservations
         for (cz.cesnet.shongo.controller.reservation.Reservation reservation : allocation.getReservations()) {
             if (reservationManager.isProvided(reservation)) {
                 return false;
             }
         }
 
-        if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
-                    (cz.cesnet.shongo.controller.request.ReservationRequest) reservationRequest;
-            if (reservationRequestImpl.getReservationRequestSet() != null) {
-                return false;
-            }
-        }
-        else if (reservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
-            cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSetImpl =
-                    (cz.cesnet.shongo.controller.request.ReservationRequestSet) reservationRequest;
-            for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
-                    reservationRequestSetImpl.getReservationRequests()) {
-                if (isModifiableReservationRequest(reservationRequestImpl, reservationManager)) {
-                    return false;
-                }
-            }
-        }
         return true;
     }
 
@@ -329,18 +328,37 @@ public class ReservationServiceImpl extends Component
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
-                    reservationRequestManager.getReservationRequest(entityId.getPersistenceId());
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
+                    reservationRequestManager.get(entityId.getPersistenceId());
 
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update reservation request %s", entityId);
             }
-            switch (reservationRequest.getState()) {
-                case ALLOCATION_FAILED: {
-                    // Reservation request was modified, so we must clear it's state
-                    reservationRequest.clearState();
-                    // Update state
-                    reservationRequest.updateStateBySpecification();
+
+            // Update reservation requests
+            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+                switch (reservationRequest.getState()) {
+                    case ALLOCATION_FAILED: {
+                        // Reservation request was modified, so we must clear it's state
+                        reservationRequest.clearState();
+                        // Update state
+                        reservationRequest.updateStateBySpecification();
+                    }
+                }
+            }
+
+            // Update child reservation requests
+            for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest :
+                    abstractReservationRequest.getAllocation().getChildReservationRequests()) {
+                switch (reservationRequest.getState()) {
+                    case ALLOCATION_FAILED: {
+                        // Reservation request was modified, so we must clear it's state
+                        reservationRequest.clearState();
+                        // Update state
+                        reservationRequest.updateStateBySpecification();
+                    }
                 }
             }
 
@@ -585,7 +603,7 @@ public class ReservationServiceImpl extends Component
                 }
             }
             List<cz.cesnet.shongo.controller.request.ReservationRequest> requests =
-                    reservationRequestSet.getReservationRequests();
+                    reservationRequestSet.getAllocation().getChildReservationRequests();
             if (earliestSlot == null && requests.size() > 0) {
                 earliestSlot = requests.get(requests.size() - 1).getSlot();
             }
