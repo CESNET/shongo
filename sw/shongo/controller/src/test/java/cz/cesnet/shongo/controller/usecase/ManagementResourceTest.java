@@ -19,7 +19,7 @@ import java.util.HashSet;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceManagementTest extends AbstractControllerTest
+public class ManagementResourceTest extends AbstractControllerTest
 {
     /**
      * Test basic resource.

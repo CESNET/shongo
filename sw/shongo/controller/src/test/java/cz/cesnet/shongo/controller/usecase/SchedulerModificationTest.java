@@ -2,9 +2,11 @@ package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -17,9 +19,254 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReallocationTest extends AbstractControllerTest
+public class SchedulerModificationTest extends AbstractControllerTest
 {
     @Test
+    public void testExtension() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationService service = getReservationService();
+
+        // Allocate reservation for 2012
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-01/2012-02-01"));
+
+        ResourceReservation resourceReservation = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-01-01/2013-01-01"), resourceReservation.getSlot());
+
+        // Extend reservation for 2013
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-07-01/2012-08-01"));
+
+        resourceReservation = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-07-01/2014-01-01"), resourceReservation.getSlot());
+
+        // Extend reservation for 2014
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest.setSlot("2012-01-01T00:00", "2015-01-01T00:00");
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2013-07-01/2013-08-01"));
+
+        resourceReservation = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2013-07-01/2015-01-01"), resourceReservation.getSlot());
+
+        // Check all reservations
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        List<String> reservationIds = reservationRequest.getReservationIds();
+        Assert.assertEquals(3, reservationIds.size());
+        Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-07-01"), reservation1.getSlot());
+        Reservation reservation2 = service.getReservation(SECURITY_TOKEN, reservationIds.get(1));
+        Assert.assertEquals(Interval.parse("2012-07-01/2013-07-01"), reservation2.getSlot());
+        Reservation reservation3 = service.getReservation(SECURITY_TOKEN, reservationIds.get(2));
+        Assert.assertEquals(Interval.parse("2013-07-01/2015-01-01"), reservation3.getSlot());
+    }
+
+    @Test
+    public void testShortening() throws Exception
+    {
+        Resource resource = new Resource();
+        resource.setName("resource");
+        resource.setAllocatable(true);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
+
+        ReservationService service = getReservationService();
+
+        // Allocate reservation from 2012 to 2013
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "2014-01-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
+        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-01/2012-02-01"));
+
+        ResourceReservation resourceReservation = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-01-01/2014-01-01"), resourceReservation.getSlot());
+
+        // Shorten the reservation to only 2012
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        reservationRequest.setSlot("2012-01-01T00:00", "2013-01-01T00:00");
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-07-01/2012-08-01"));
+
+        resourceReservation = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-07-01/2013-01-01"), resourceReservation.getSlot());
+
+        // Check all reservations
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        List<String> reservationIds = reservationRequest.getReservationIds();
+        Assert.assertEquals(2, reservationIds.size());
+        Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-07-01"), reservation1.getSlot());
+        Reservation reservation2 = service.getReservation(SECURITY_TOKEN, reservationIds.get(1));
+        Assert.assertEquals(Interval.parse("2012-07-01/2013-01-01"), reservation2.getSlot());
+    }
+
+    @Test
+    public void testModificationOfFutureReservation() throws Exception
+    {
+        Resource resource1 = new Resource();
+        resource1.setName("resource");
+        resource1.setAllocatable(true);
+        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+
+        Resource resource2 = new Resource();
+        resource2.setName("resource");
+        resource2.setAllocatable(true);
+        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+
+        ReservationService service = getReservationService();
+
+        // Allocate reservation for 2013
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-02-01T00:00", "2012-03-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
+        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-01/2012-03-01"));
+
+        ResourceReservation resourceReservation1 = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-02-01/2012-03-01"), resourceReservation1.getSlot());
+        Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
+
+        // Modify the reservation
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-02/2012-03-02"));
+
+        ResourceReservation resourceReservation2 = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-02-01/2012-03-01"), resourceReservation2.getSlot());
+        Assert.assertEquals(resource2Id, resourceReservation2.getResourceId());
+        Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
+
+        // Check all reservations
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        List<String> reservationIds = reservationRequest.getReservationIds();
+        Assert.assertEquals(1, reservationIds.size());
+        Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
+        Assert.assertEquals(resourceReservation2.getId(), reservation.getId());
+    }
+
+    @Test
+    public void testModificationOfActiveReservation() throws Exception
+    {
+        Resource resource1 = new Resource();
+        resource1.setName("resource");
+        resource1.setAllocatable(true);
+        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+
+        Resource resource2 = new Resource();
+        resource2.setName("resource");
+        resource2.setAllocatable(true);
+        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+
+        ReservationService service = getReservationService();
+
+        // Allocate reservation for 2013
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
+        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-01/2012-02-01"));
+
+        ResourceReservation resourceReservation1 = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-02-01"), resourceReservation1.getSlot());
+        Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
+
+        // Modify the reservation
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-15/2012-02-15"));
+
+        ResourceReservation resourceReservation2 = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-01-15/2012-02-01"), resourceReservation2.getSlot());
+        Assert.assertEquals(resource2Id, resourceReservation2.getResourceId());
+        Assert.assertFalse(resourceReservation1.getId().equals(resourceReservation2.getId()));
+
+        // Check all reservations
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        List<String> reservationIds = reservationRequest.getReservationIds();
+        Assert.assertEquals(2, reservationIds.size());
+        Reservation reservation1 = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-01-15"), reservation1.getSlot());
+        Reservation reservation2 = service.getReservation(SECURITY_TOKEN, reservationIds.get(1));
+        Assert.assertEquals(Interval.parse("2012-01-15/2012-02-01"), reservation2.getSlot());
+    }
+
+    @Test
+    public void testModificationOfPastReservation() throws Exception
+    {
+        Resource resource1 = new Resource();
+        resource1.setName("resource");
+        resource1.setAllocatable(true);
+        String resource1Id = getResourceService().createResource(SECURITY_TOKEN, resource1);
+
+        Resource resource2 = new Resource();
+        resource2.setName("resource");
+        resource2.setAllocatable(true);
+        String resource2Id = getResourceService().createResource(SECURITY_TOKEN, resource2);
+
+        ReservationService service = getReservationService();
+
+        // Allocate reservation for 2013
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-01-01T00:00", "2012-02-01T00:00");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new ResourceSpecification(resource1Id));
+        String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2012-01-01/2012-02-01"));
+
+        ResourceReservation resourceReservation1 = (ResourceReservation) checkAllocated(requestId);
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-02-01"), resourceReservation1.getSlot());
+        Assert.assertEquals(resource1Id, resourceReservation1.getResourceId());
+
+        // Modify the reservation
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        ((ResourceSpecification) reservationRequest.getSpecification()).setResourceId(resource2Id);
+        requestId = service.modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+
+        runScheduler(Interval.parse("2013-01-01/2013-02-01"));
+
+        checkNotAllocated(requestId);
+
+        // Check all reservations
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);
+        List<String> reservationIds = reservationRequest.getReservationIds();
+        Assert.assertEquals(1, reservationIds.size());
+        Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
+        Assert.assertEquals(Interval.parse("2012-01-01/2012-02-01"), reservation.getSlot());
+    }
+
+    @Test
+    public void testMigration() throws Exception
+    {
+        throw new TodoImplementException();
+    }
+
+    /*@Test
     public void testValueModification() throws Exception
     {
         Resource valueProvider = new Resource();
@@ -430,5 +677,5 @@ public class ReallocationTest extends AbstractControllerTest
                 multipoint1Id, maintenanceReservation.getResourceId());
         Assert.assertEquals("Room should be migrated to another device.",
                 multipoint2Id, roomReservation.getResourceId());
-    }
+    }*/
 }

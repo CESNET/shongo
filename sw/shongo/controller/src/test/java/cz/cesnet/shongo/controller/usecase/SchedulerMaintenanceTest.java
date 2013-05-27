@@ -16,7 +16,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class MaintenanceReservationRequestTest extends AbstractControllerTest
+public class SchedulerMaintenanceTest extends AbstractControllerTest
 {
     /**
      * Test create permanent {@link ResourceReservation}s.

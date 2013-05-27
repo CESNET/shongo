@@ -364,7 +364,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    public AbstractReservationRequest clone()
+    public ReservationRequest clone()
     {
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.synchronizeFrom(this);
@@ -407,11 +407,8 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText(messageType));
-        if (getState().equals(State.ALLOCATED)) {
-            Reservation reservation = getAllocation().getCurrentReservation();
-            if (reservation != null) {
-                reservationRequestApi.setReservationId(EntityIdentifier.formatId(reservation));
-            }
+        for (Reservation reservation : getAllocation().getReservations()) {
+            reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
         }
         super.toApi(api, messageType);
     }

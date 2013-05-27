@@ -15,7 +15,7 @@ import org.junit.Test;
 import java.util.HashSet;
 
 /**
- * Tests for notifying about new {@link Reservation}s by emails.
+ * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

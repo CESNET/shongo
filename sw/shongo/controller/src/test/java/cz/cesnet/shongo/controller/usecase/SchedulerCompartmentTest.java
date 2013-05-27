@@ -2,9 +2,11 @@ package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,15 +18,91 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CompartmentTest extends AbstractControllerTest
+public class SchedulerCompartmentTest extends AbstractControllerTest
 {
+    /**
+     * Test for two standalone terminals with single technology.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testNoRoomSingleTechnology() throws Exception
+    {
+        DeviceResource firstTerminal = new DeviceResource();
+        firstTerminal.setName("firstTerminal");
+        firstTerminal.addTechnology(Technology.H323);
+        StandaloneTerminalCapability terminalCapability = new StandaloneTerminalCapability();
+        terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
+        firstTerminal.addCapability(terminalCapability);
+        firstTerminal.setAllocatable(true);
+        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+
+        DeviceResource secondTerminal = new DeviceResource();
+        secondTerminal.setName("secondTerminal");
+        secondTerminal.addTechnology(Technology.H323);
+        secondTerminal.addCapability(new StandaloneTerminalCapability());
+        secondTerminal.setAllocatable(true);
+        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
+        reservationRequest.setSpecification(compartmentSpecification);
+
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkAllocated(id);
+    }
+
+    /**
+     * Test for two standalone terminals with multiple technology.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testNoRoomMultipleTechnology() throws Exception
+    {
+        DeviceResource firstTerminal = new DeviceResource();
+        firstTerminal.setName("firstTerminal");
+        firstTerminal.addTechnology(Technology.H323);
+        firstTerminal.addTechnology(Technology.SIP);
+        StandaloneTerminalCapability terminalCapability = new StandaloneTerminalCapability();
+        terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
+        firstTerminal.addCapability(terminalCapability);
+        firstTerminal.setAllocatable(true);
+        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+
+        DeviceResource secondTerminal = new DeviceResource();
+        secondTerminal.setName("secondTerminal");
+        secondTerminal.addTechnology(Technology.H323);
+        secondTerminal.addTechnology(Technology.ADOBE_CONNECT);
+        secondTerminal.addCapability(new StandaloneTerminalCapability());
+        secondTerminal.setAllocatable(true);
+        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
+        reservationRequest.setSpecification(compartmentSpecification);
+
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkAllocated(id);
+    }
+
     /**
      * Test single technology virtual room.
      *
      * @throws Exception
      */
     @Test
-    public void testSingleTechnology() throws Exception
+    public void testRoomSingleTechnology() throws Exception
     {
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -76,7 +154,7 @@ public class CompartmentTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testMultipleTechnology() throws Exception
+    public void testRoomMultipleTechnology() throws Exception
     {
         DeviceResource firstTerminal = new DeviceResource();
         firstTerminal.setName("firstTerminal");
@@ -116,12 +194,50 @@ public class CompartmentTest extends AbstractControllerTest
     }
 
     /**
+     * Test multiple virtual room.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testMultipleRooms() throws Exception
+    {
+        if (true) {
+            // TODO: Implement scheduling of multiple virtual rooms
+            System.out.println("TODO: Implement scheduling of multiple virtual rooms.");
+            return;
+        }
+
+        DeviceResource firstMcu = new DeviceResource();
+        firstMcu.setName("firstMcu");
+        firstMcu.addTechnology(Technology.H323);
+        firstMcu.addCapability(new RoomProviderCapability(6));
+        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+
+        DeviceResource secondMcu = new DeviceResource();
+        secondMcu.setName("secondMcu");
+        secondMcu.addTechnology(Technology.H323);
+        secondMcu.addCapability(new RoomProviderCapability(6));
+        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        reservationRequest.setSpecification(compartmentSpecification);
+
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkAllocated(id);
+    }
+
+    /**
      * Test disabling whole MCU by reservation request of the MCU resource directly (not though virtual room).
      *
      * @throws Exception
      */
     @Test
-    public void testDisabledReservation() throws Exception
+    public void testDisabledRoomProvider() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -168,7 +284,7 @@ public class CompartmentTest extends AbstractControllerTest
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -192,40 +308,38 @@ public class CompartmentTest extends AbstractControllerTest
     }
 
     /**
-     * Test multiple virtual room.
+     * Test multi-compartment.
      *
      * @throws Exception
      */
     @Test
-    public void test() throws Exception
+    public void testMultiCompartment() throws Exception
     {
-        if (true) {
-            // TODO: Implement scheduling of multiple virtual rooms
-            System.out.println("TODO: Implement scheduling of multiple virtual rooms.");
-            return;
-        }
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
 
-        DeviceResource firstMcu = new DeviceResource();
-        firstMcu.setName("firstMcu");
-        firstMcu.addTechnology(Technology.H323);
-        firstMcu.addCapability(new RoomProviderCapability(6));
-        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
-
-        DeviceResource secondMcu = new DeviceResource();
-        secondMcu.setName("secondMcu");
-        secondMcu.addTechnology(Technology.H323);
-        secondMcu.addCapability(new RoomProviderCapability(6));
-        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
-
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        // Create reservation request
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.addSlot("2012-06-01T15", "PT1H");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-07-01T14:00", "PT2H", "P1W", "2012-07-15"));
+        MultiCompartmentSpecification multiCompartmentSpecification = new MultiCompartmentSpecification();
+        reservationRequestSet.setSpecification(multiCompartmentSpecification);
+        // First compartment
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
-        reservationRequest.setSpecification(compartmentSpecification);
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.SIP));
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323));
+        multiCompartmentSpecification.addSpecification(compartmentSpecification);
+        // Second compartment
+        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 2));
+        multiCompartmentSpecification.addSpecification(compartmentSpecification);
 
-        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(id);
+        allocateAndCheck(reservationRequestSet);
     }
 }

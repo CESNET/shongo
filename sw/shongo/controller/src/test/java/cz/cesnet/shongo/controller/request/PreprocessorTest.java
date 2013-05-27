@@ -62,20 +62,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addSlot("2012-06-01T15", "PT1H");
         reservationRequestSet.addSlot(new PeriodicDateTime(
                 DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")), "PT2H");
-        MultiCompartmentSpecification multiCompartmentSpecification = new MultiCompartmentSpecification();
-        reservationRequestSet.setSpecification(multiCompartmentSpecification);
-        // First compartment
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.SIP));
-        EndpointSpecification endpointSpecification = new ExternalEndpointSpecification(Technology.H323);
-        endpointSpecification.addPerson(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
-        compartmentSpecification.addChildSpecification(endpointSpecification);
-        multiCompartmentSpecification.addSpecification(compartmentSpecification);
-        // Second compartment
-        compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(
-                new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 2));
-        multiCompartmentSpecification.addSpecification(compartmentSpecification);
+        reservationRequestSet.setSpecification(new CompartmentSpecification());
 
         // Save it
         reservationRequestManager.create(reservationRequestSet);
@@ -105,8 +92,6 @@ public class PreprocessorTest extends AbstractDatabaseTest
         // Modify reservation request
         reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
         reservationRequestSet.removeSlot(reservationRequestSet.getSlots().get(0));
-        multiCompartmentSpecification = (MultiCompartmentSpecification) reservationRequestSet.getSpecification();
-        multiCompartmentSpecification.removeSpecification(multiCompartmentSpecification.getSpecifications().get(1));
 
         // Update request
         reservationRequestManager.update(reservationRequestSet);
@@ -183,73 +168,60 @@ public class PreprocessorTest extends AbstractDatabaseTest
         preprocessor.setAuthorization(new DummyAuthorization(getEntityManagerFactory()));
         preprocessor.init();
 
-        Interval preprocessorInterval = new Interval(DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03"));
-        List<ReservationRequest> reservationRequests = null;
-        CompartmentSpecification createdCompartmentSpecification = null;
-
         EntityManager entityManager = createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        try {
+            // Create reservation request set
+            ReservationRequestSet oldReservationRequest = new ReservationRequestSet();
+            oldReservationRequest.setUserId(Authorization.ROOT_USER_ID);
+            oldReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+            oldReservationRequest.addSlot("2012-01-01", "PT1H");
+            oldReservationRequest.setSpecification(new CompartmentSpecification());
+            reservationRequestManager.create(oldReservationRequest);
 
-        // -------------------------------
-        // Create reservation request set
-        // -------------------------------
-        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
-        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addSlot("2012-01-01", "PT1H");
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
-        compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
-        reservationRequestSet.setSpecification(compartmentSpecification);
-        reservationRequestManager.create(reservationRequestSet);
+            preprocessor.run(Interval.parse("2012-01-01/2012-01-02"), entityManager);
 
-        preprocessor.run(preprocessorInterval, entityManager);
+            List<ReservationRequest> reservationRequests1 =
+                    reservationRequestManager.listChildReservationRequests(oldReservationRequest);
+            Assert.assertEquals(1, reservationRequests1.size());
 
-        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
-        Assert.assertEquals(1, reservationRequests.size());
-        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
-        Assert.assertEquals(2, createdCompartmentSpecification.getChildSpecifications().size());
+            // Modify reservation request set
+            ReservationRequestSet newReservationRequest = oldReservationRequest.clone();
+            newReservationRequest.addSlot("2012-02-01", "PT1H");
+            newReservationRequest.setSpecification(new MultiCompartmentSpecification());
+            reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
 
-        // -------------------------------
-        // Modify reservation request set
-        // -------------------------------
-        compartmentSpecification.removeSpecification(compartmentSpecification.getSpecifications().get(1));
-        reservationRequestManager.update(reservationRequestSet);
+            preprocessor.run(Interval.parse("2012-02-01/2012-02-02"), entityManager);
 
-        preprocessor.run(preprocessorInterval, entityManager);
+            List<ReservationRequest> reservationRequests2 =
+                    reservationRequestManager.listChildReservationRequests(newReservationRequest);
+            Assert.assertEquals(2, reservationRequests2.size());
+            Assert.assertEquals("First reservation request should have old specification",
+                    CompartmentSpecification.class, reservationRequests2.get(0).getSpecification().getClass());
+            Assert.assertEquals("Second reservation request should have new specification",
+                    MultiCompartmentSpecification.class, reservationRequests2.get(1).getSpecification().getClass());
 
-        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
-        Assert.assertEquals(1, reservationRequests.size());
-        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
-        Assert.assertEquals("Specification should be deleted from the created reservation request",
-                1, createdCompartmentSpecification.getChildSpecifications().size());
+            oldReservationRequest = newReservationRequest;
 
-        compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
-        reservationRequestManager.update(reservationRequestSet);
+            // Modify reservation request set
+            newReservationRequest = oldReservationRequest.clone();
+            newReservationRequest.addSlot("2012-03-01", "PT1H");
+            reservationRequestManager.modify(oldReservationRequest, newReservationRequest);
 
-        preprocessor.run(preprocessorInterval, entityManager);
+            preprocessor.run(Interval.parse("2012-01-01/2012-03-02"), entityManager);
 
-        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
-        Assert.assertEquals(1, reservationRequests.size());
-        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
-        Assert.assertEquals("Specification should be added to the created reservation request",
-                2, createdCompartmentSpecification.getChildSpecifications().size());
-
-        ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).setPerson(
-                new OtherPerson("Ondrej Bouda", "bouda@cesnet.cz"));
-        reservationRequestManager.update(reservationRequestSet);
-
-        preprocessor.run(preprocessorInterval, entityManager);
-
-        reservationRequests = reservationRequestManager.listChildReservationRequests(reservationRequestSet);
-        Assert.assertEquals(1, reservationRequests.size());
-        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
-        Assert.assertEquals("Specification should be updated to the created reservation request",
-                ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).getPerson(),
-                ((PersonSpecification) createdCompartmentSpecification.getSpecifications().get(1)).getPerson());
-
-        entityManager.close();
+            List<ReservationRequest> reservationRequests3 =
+                    reservationRequestManager.listChildReservationRequests(newReservationRequest);
+            Assert.assertEquals(3, reservationRequests3.size());
+            Assert.assertEquals("All reservation requests should have new specification",
+                    MultiCompartmentSpecification.class, reservationRequests3.get(0).getSpecification().getClass());
+            Assert.assertEquals("All reservation requests should have new specification",
+                    MultiCompartmentSpecification.class, reservationRequests3.get(1).getSpecification().getClass());
+            Assert.assertEquals("All reservation requests should have new specification",
+                    MultiCompartmentSpecification.class, reservationRequests3.get(2).getSpecification().getClass());
+        }
+        finally {
+            entityManager.close();
+        }
     }
 }

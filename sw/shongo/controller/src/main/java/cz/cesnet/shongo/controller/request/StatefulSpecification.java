@@ -3,10 +3,6 @@ package cz.cesnet.shongo.controller.request;
 /**
  * Should be implemented by {@link Specification}s which has {@link #getCurrentState()} based on
  * some persisted properties.
- * <p/>
- * {@link StatefulSpecification}s must be able to {@link #clone()} itself because when they are specified in a
- * {@link ReservationRequestSet} they must be duplicated for every {@link ReservationRequest} which is created
- * from the {@link ReservationRequestSet} to not share the same state.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

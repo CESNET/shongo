@@ -134,7 +134,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    public AbstractReservationRequest clone()
+    public ReservationRequestSet clone()
     {
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.synchronizeFrom(this);

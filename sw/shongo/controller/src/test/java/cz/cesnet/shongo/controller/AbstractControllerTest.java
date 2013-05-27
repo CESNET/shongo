@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Abstract controller test provides a {@link Controller} instance to extending classes.
@@ -339,6 +340,40 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @param reservationRequestId
+     * @return collection of {@link ReservationRequest}s for given {@code reservationRequestId}
+     */
+    private Collection<ReservationRequest> getReservationRequests(String reservationRequestId)
+    {
+        List<ReservationRequest> reservationRequests = new LinkedList<ReservationRequest>();
+        AbstractReservationRequest abstractReservationRequest =
+                getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
+        if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+            Assert.assertTrue(reservationRequestSet.getReservationRequests().size() > 0);
+            reservationRequests.addAll(reservationRequestSet.getReservationRequests());
+        }
+        else {
+            reservationRequests.add((ReservationRequest) abstractReservationRequest);
+        }
+        return reservationRequests;
+    }
+
+    /**
+     * Check if {@link ReservationRequest} is not allocated.
+     *
+     * @param reservationRequestId for {@link ReservationRequest} to be checked
+     * @throws Exception
+     */
+    protected void checkNotAllocated(String reservationRequestId) throws Exception
+    {
+        for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
+            Assert.assertEquals("Reservation request should be in NOT_ALLOCATED state.",
+                    ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
+        }
+    }
+
+    /**
      * Check if {@link ReservationRequest} was successfully allocated.
      *
      * @param reservationRequestId for {@link ReservationRequest} to be checked
@@ -347,54 +382,35 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected Reservation checkAllocated(String reservationRequestId) throws Exception
     {
-        AbstractReservationRequest abstractReservationRequest =
-                getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
-        ReservationRequest reservationRequest;
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            Assert.assertEquals(1, reservationRequestSet.getReservationRequests().size());
-            reservationRequest = reservationRequestSet.getReservationRequests().get(0);
+        Reservation reservation = null;
+        for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
+            if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
+                System.err.println(reservationRequest.getStateReport());
+                Thread.sleep(100);
+            }
+            Assert.assertEquals("Reservation request should be in ALLOCATED state.",
+                    ReservationRequestState.ALLOCATED, reservationRequest.getState());
+            Assert.assertTrue("Reservation should be allocated.", reservationRequest.getReservationIds().size() > 0);
+            for (String reservationId : reservationRequest.getReservationIds()) {
+                reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
+                Assert.assertNotNull("Reservation should be allocated for the reservation request.", reservation);
+            }
         }
-        else {
-            reservationRequest = (ReservationRequest) abstractReservationRequest;
-        }
-        if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
-            System.err.println(reservationRequest.getStateReport());
-            Thread.sleep(100);
-        }
-        Assert.assertEquals("Reservation request should be in ALLOCATED state.",
-                ReservationRequestState.ALLOCATED, reservationRequest.getState());
-        String reservationId = reservationRequest.getReservationId();
-        Assert.assertNotNull(reservationId);
-        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
-        Assert.assertNotNull("Reservation should be allocated for the reservation request.", reservation);
         return reservation;
     }
 
     /**
-     * Check if {@link ReservationRequest}'s allocation failed.
+     * Check if {@link ReservationRequest} has failed to be allocated.
      *
      * @param reservationRequestId for {@link ReservationRequest} to be checked
-     * @return {@link Reservation}
      * @throws Exception
      */
     protected void checkAllocationFailed(String reservationRequestId) throws Exception
     {
-        AbstractReservationRequest abstractReservationRequest = getReservationService().getReservationRequest(
-                SECURITY_TOKEN_ROOT, reservationRequestId);
-        ReservationRequest reservationRequest;
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            Assert.assertEquals(1, reservationRequestSet.getReservationRequests().size());
-            reservationRequest = reservationRequestSet.getReservationRequests().get(0);
+        for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
+            Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
+                    ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
         }
-        else {
-            reservationRequest = (ReservationRequest) abstractReservationRequest;
-        }
-        Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
-        String reservationId = reservationRequest.getReservationId();
-        Assert.assertNull("No reservation should be allocated for the reservation request.", reservationId);
     }
 
     /**

@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RoomTest extends AbstractControllerTest
+public class SchedulerRoomTest extends AbstractControllerTest
 {
     /**
      * Test allocation of virtual room.

@@ -115,6 +115,7 @@ public class Allocation extends PersistentObject
      * @return {@link #reservations}
      */
     @OneToMany
+    @OrderBy("slotStart")
     @Access(AccessType.FIELD)
     public List<Reservation> getReservations()
     {
@@ -134,7 +135,8 @@ public class Allocation extends PersistentObject
             return reservations.get(0);
         }
         else {
-            throw new TodoImplementException();
+            // TODO: Remove getCurrentReservation and find it in the client
+            return reservations.get(reservations.size() - 1);
         }
     }
 

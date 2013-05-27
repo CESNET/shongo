@@ -6,6 +6,9 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
  * Request for reservation of resources.
  *
@@ -29,9 +32,9 @@ public class ReservationRequest extends AbstractReservationRequest
     private String stateReport;
 
     /**
-     * Allocated {@link Reservation} shongo-id.
+     * Allocated {@link Reservation}s.
      */
-    private String reservationId;
+    private List<String> reservationIds = new LinkedList<String>();
 
     /**
      * Constructor.
@@ -132,18 +135,26 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #reservationId}
+     * @return {@link #reservationIds}
      */
-    public String getReservationId()
+    public List<String> getReservationIds()
     {
-        return reservationId;
+        return reservationIds;
     }
 
     /**
-     * @param reservationId sets the {@link #reservationId}
+     * @param reservationIds sets the {@link #reservationIds}
      */
-    public void setReservationId(String reservationId)
+    public void setReservationIds(List<String> reservationIds)
     {
-        this.reservationId = reservationId;
+        this.reservationIds = reservationIds;
+    }
+
+    /**
+     * @param reservationId to be added to the {@link #reservationIds}
+     */
+    public void addReservationId(String reservationId)
+    {
+        this.reservationIds.add(reservationId);
     }
 }

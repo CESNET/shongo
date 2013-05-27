@@ -16,6 +16,9 @@ import java.util.Set;
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
  *
+ * {@link Specification}s must be able to {@link #clone()} itself, e.g., when {@link AbstractReservationRequest}
+ * is modified or when they are specified in a {@link ReservationRequestSet}.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
@@ -102,6 +105,8 @@ public abstract class Specification extends PersistentObject implements Reportab
         if (this instanceof CompositeSpecification && specification instanceof CompositeSpecification) {
             CompositeSpecification compositeSpecification = (CompositeSpecification) this;
             CompositeSpecification compositeSpecificationFrom = (CompositeSpecification) specification;
+
+
 
             // Delete all child specifications
             Set<Specification> childSpecifications =

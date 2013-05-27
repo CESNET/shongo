@@ -18,7 +18,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasTest extends AbstractControllerTest
+public class SchedulerAliasTest extends AbstractControllerTest
 {
     /**
      * Test allocation of aliases.

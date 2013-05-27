@@ -14,7 +14,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ProvidedReservationTest extends AbstractControllerTest
+public class SchedulerProvidedTest extends AbstractControllerTest
 {
     @Test
     public void testTerminal() throws Exception

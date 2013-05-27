@@ -350,10 +350,11 @@ public class ReservationRequestManager extends AbstractManager
     {
         List<ReservationRequestSet> reservationRequestList = entityManager
                 .createQuery("SELECT reservationRequest FROM ReservationRequestSet reservationRequest"
-                        + " WHERE reservationRequest NOT IN ("
+                        + " WHERE reservationRequest.type = :createdType AND reservationRequest NOT IN ("
                         + " SELECT state.reservationRequest FROM PreprocessedState state"
                         + " WHERE state.start <= :from AND state.end >= :to)",
                         ReservationRequestSet.class)
+                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
                 .setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();
@@ -369,10 +370,11 @@ public class ReservationRequestManager extends AbstractManager
     {
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.state = :state"
+                        + " WHERE reservationRequest.type = :createdType AND reservationRequest.state = :state"
                         + " AND reservationRequest.slotStart < :end"
                         + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
+                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
                 .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
