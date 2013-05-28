@@ -11,7 +11,6 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
@@ -101,23 +100,22 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new Executable.ResourceRoom();
+        return new cz.cesnet.shongo.controller.api.Executable.ResourceRoom();
     }
 
     @Override
-    public Executable.ResourceRoom toApi(Report.MessageType messageType)
+    public cz.cesnet.shongo.controller.api.Executable.ResourceRoom toApi(Report.MessageType messageType)
     {
-        return (Executable.ResourceRoom) super.toApi(messageType);
+        return (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) super.toApi(messageType);
     }
 
     @Override
-    public void toApi(Executable executableApi, Report.MessageType messageType)
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Report.MessageType messageType)
     {
-        Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
-        resourceRoomEndpointApi.setId(EntityIdentifier.formatId(this));
-        resourceRoomEndpointApi.setSlot(getSlot());
-        resourceRoomEndpointApi.setState(getState().toApi());
-        resourceRoomEndpointApi.setStateReport(getReportText(messageType));
+        super.toApi(executableApi, messageType);
+
+        cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
+                (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
         resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
         resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
         resourceRoomEndpointApi.setRoomId(getRoomId());

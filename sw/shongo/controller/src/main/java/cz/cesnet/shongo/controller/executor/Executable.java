@@ -49,6 +49,11 @@ public abstract class Executable extends PersistentObject implements Reportable,
     private DateTime nextAttempt;
 
     /**
+     * {@link Migration} to be performed to initialize this {@link Executable} from another {@link Executable}.
+     */
+    private Migration migration;
+
+    /**
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new LinkedList<Executable>();
@@ -193,6 +198,35 @@ public abstract class Executable extends PersistentObject implements Reportable,
     public void setNextAttempt(DateTime nextAttempt)
     {
         this.nextAttempt = nextAttempt;
+    }
+
+    /**
+     * @return {@link #migration}
+     */
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "targetExecutable")
+    @Access(AccessType.FIELD)
+    public Migration getMigration()
+    {
+        return migration;
+    }
+
+    /**
+     * @param migration sets the {@link #migration}
+     */
+    public void setMigration(Migration migration)
+    {
+        // Manage bidirectional association
+        if (migration != this.migration) {
+            if (this.migration != null) {
+                Migration oldMigration = this.migration;
+                this.migration = null;
+                oldMigration.setTargetExecutable(null);
+            }
+            if (migration != null) {
+                this.migration = migration;
+                this.migration.setTargetExecutable(this);
+            }
+        }
     }
 
     /**
@@ -415,6 +449,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
         executableApi.setSlot(getSlot());
         executableApi.setState(getState().toApi());
         executableApi.setStateReport(getReportText(messageType));
+        if (migration != null) {
+            executableApi.setMigratedExecutable(migration.getSourceExecutable().toApi(messageType));
+        }
     }
 
     /**

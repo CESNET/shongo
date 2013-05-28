@@ -39,6 +39,11 @@ public class Executable extends IdentifiedObject
     private String stateReport;
 
     /**
+     * {@link Executable} is migrated to this {@link Executable}.
+     */
+    private Executable migratedExecutable;
+
+    /**
      * @return {@link #reservationId}
      */
     public String getReservationId()
@@ -100,6 +105,22 @@ public class Executable extends IdentifiedObject
     public void setStateReport(String stateReport)
     {
         this.stateReport = stateReport;
+    }
+
+    /**
+     * @return {@link #migratedExecutable}
+     */
+    public Executable getMigratedExecutable()
+    {
+        return migratedExecutable;
+    }
+
+    /**
+     * @param migratedExecutable sets the {@link #migratedExecutable}
+     */
+    public void setMigratedExecutable(Executable migratedExecutable)
+    {
+        this.migratedExecutable = migratedExecutable;
     }
 
     /**

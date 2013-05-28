@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -271,33 +272,36 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Allocate reservation
-        Reservation reservation = reservationTask.perform();
-        if (!reservation.isPersisted()) {
+        Reservation allocatedReservation = reservationTask.perform();
+        if (!allocatedReservation.isPersisted()) {
             // Persist reservation
-            reservationManager.create(reservation);
+            reservationManager.create(allocatedReservation);
 
             // Create ACL records for new reservation
-            authorizationManager.createAclRecordsForChildEntity(reservationRequest, reservation);
+            authorizationManager.createAclRecordsForChildEntity(reservationRequest, allocatedReservation);
 
             // Create notification
             notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.NEW, reservation, authorizationManager));
+                    ReservationNotification.Type.NEW, allocatedReservation, authorizationManager));
         }
         else {
             // Update ACL records for modified reservation
-            authorizationManager.updateAclRecordsForChildEntities(reservation);
+            authorizationManager.updateAclRecordsForChildEntities(allocatedReservation);
 
             // Create notification
             notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.MODIFIED, reservation, authorizationManager));
+                    ReservationNotification.Type.MODIFIED, allocatedReservation, authorizationManager));
         }
 
         // Get set of all new reservations
-        Set<Reservation> newReservations = reservation.getSetOfAllReservations();
+        Set<Reservation> newReservations = allocatedReservation.getSetOfAllReservations();
 
-        // Remove/update/delete old allocated reservations
+        // Get list of old allocated reservations
         Collection<Reservation> oldReservations = new LinkedList<Reservation>();
         oldReservations.addAll(allocation.getReservations());
+
+        // Remove/update/delete old allocated reservations
+        Reservation precedingReservation = null;
         for (Reservation oldReservation : oldReservations) {
             // If old reservation has been reallocated to a new reservation
             if (newReservations.contains(oldReservation)) {
@@ -311,6 +315,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
                 // If old reservation time slot intersects the new reservation time slot
                 if (oldReservation.getSlotEnd().isAfter(requestedSlot.getStart())) {
+                    // Set preceding reservation
+                    if (precedingReservation != null) {
+                        throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
+                    }
+                    precedingReservation = oldReservation;
+
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
                     reservationManager.updateReservationSlotEnd(oldReservation, requestedSlot.getStart());
                 }
@@ -328,7 +338,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             reservationManager.delete(oldReservation, authorizationManager);
         }
         // Add new allocated reservation
-        allocation.addReservation(reservation);
+        allocation.addReservation(allocatedReservation);
+
+        // Allocate migration
+        if (precedingReservation != null && precedingReservation.getClass().equals(allocatedReservation.getClass())) {
+            reservationTask.migrateReservation(precedingReservation, allocatedReservation);
+        }
 
         // Update reservation request
         reservationRequest.setState(ReservationRequest.State.ALLOCATED);

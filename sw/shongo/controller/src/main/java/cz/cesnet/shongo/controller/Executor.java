@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.*;
 import org.joda.time.DateTime;
@@ -188,6 +189,10 @@ public class Executor extends Component
             //logger.info("Executor lock acquired...     (((((");
 
             logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
+
+            if (true) {
+                throw new TodoImplementException("Load migrations and execute them.");
+            }
 
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             ExecutableManager executableManager = new ExecutableManager(entityManager);

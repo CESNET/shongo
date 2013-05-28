@@ -150,11 +150,13 @@ public abstract class Endpoint extends Executable
     {
         super.toApi(executableApi, messageType);
 
-        cz.cesnet.shongo.controller.api.Executable.Endpoint endpointApi =
-                (cz.cesnet.shongo.controller.api.Executable.Endpoint) executableApi;
-        endpointApi.setDescription(getDescription());
-        for (Alias alias : getAssignedAliases()) {
-            endpointApi.addAlias(alias.toApi());
+        if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.Endpoint) {
+            cz.cesnet.shongo.controller.api.Executable.Endpoint endpointApi =
+                    (cz.cesnet.shongo.controller.api.Executable.Endpoint) executableApi;
+            endpointApi.setDescription(getDescription());
+            for (Alias alias : getAssignedAliases()) {
+                endpointApi.addAlias(alias.toApi());
+            }
         }
     }
 }

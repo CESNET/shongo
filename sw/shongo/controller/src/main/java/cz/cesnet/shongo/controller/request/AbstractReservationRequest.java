@@ -333,7 +333,6 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * Synchronize properties from given {@code abstractReservationRequest}.
      *
      * @param reservationRequest from which will be copied all properties values to this {@link AbstractReservationRequest}
-     * @param originalMap        map of original {@link Specification} instances by the new cloned instances
      * @return true if some modification was made
      */
     public boolean synchronizeFrom(AbstractReservationRequest reservationRequest)

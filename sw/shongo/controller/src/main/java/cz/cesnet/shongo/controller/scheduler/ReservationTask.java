@@ -321,10 +321,21 @@ public abstract class ReservationTask
     }
 
     /**
-     * @return created {@link Reservation}
-     * @throws SchedulerException when the {@link Reservation} cannot be created
+     * @return newly allocated {@link Reservation}
+     * @throws SchedulerException when the {@link Reservation} cannot be allocated
      */
     protected abstract Reservation allocateReservation() throws SchedulerException;
+
+    /**
+     * Migrate {@code oldReservation} to {@code newReservation}.
+     *
+     * @param oldReservation
+     * @param newReservation
+     * @throws SchedulerException
+     */
+    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
+    {
+    }
 
     /**
      * @param type to be validated

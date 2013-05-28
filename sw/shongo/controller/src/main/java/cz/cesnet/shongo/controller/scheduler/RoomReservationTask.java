@@ -5,10 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -140,6 +137,19 @@ public class RoomReservationTask extends ReservationTask
             }
         }
         throw new SchedulerException(getCurrentReport());
+    }
+
+    @Override
+    public void migrateReservation(Reservation oldReservation, Reservation newReservation) throws SchedulerException
+    {
+        Executable oldExecutable = oldReservation.getExecutable();
+        Executable newExecutable = newReservation.getExecutable();
+        if (oldExecutable instanceof ResourceRoomEndpoint && newExecutable instanceof ResourceRoomEndpoint) {
+            Migration migration = new Migration();
+            migration.setSourceExecutable(oldExecutable);
+            migration.setTargetExecutable(newExecutable);
+        }
+        super.migrateReservation(oldReservation, newReservation);
     }
 
     /**
