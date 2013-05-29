@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
 
+import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
@@ -15,11 +16,6 @@ public class ExecutionPlan
      * @see Executor
      */
     private Executor executor;
-
-    /**
-     * @see ExecutionResult
-     */
-    private ExecutionResult executionResult;
 
     /**
      * Set of {@link ExecutionAction}s which haven't been performed yet.
@@ -38,14 +34,18 @@ public class ExecutionPlan
     protected final Set<ExecutionAction> satisfiedActions = new HashSet<ExecutionAction>();
 
     /**
+     * Set of popped {@link ExecutionAction}s (by {@link #popExecutionActions()}).
+     */
+    private final List<ExecutionAction> poppedActions = new LinkedList<ExecutionAction>();
+
+    /**
      * Constructor.
      *
      * @param executor sets the {@link #executor}
      */
-    public ExecutionPlan(Executor executor, ExecutionResult executionResult)
+    public ExecutionPlan(Executor executor)
     {
         this.executor = executor;
-        this.executionResult = executionResult;
     }
 
     /**
@@ -57,11 +57,11 @@ public class ExecutionPlan
     }
 
     /**
-     * @return {@link #executionResult}
+     * @return {@link #poppedActions}
      */
-    public ExecutionResult getExecutionResult()
+    public Collection<ExecutionAction> getPoppedActions()
     {
-        return executionResult;
+        return poppedActions;
     }
 
     /**
@@ -71,6 +71,24 @@ public class ExecutionPlan
     {
         remainingActions.add(executionAction);
         executionAction.init(this);
+    }
+
+    /**
+     * @param executable
+     * @return {@link ExecutionAction.AbstractExecutableAction} for given {@code executable}
+     */
+    public ExecutionAction.AbstractExecutableAction getActionByExecutable(Executable executable)
+    {
+        return actionByExecutableId.get(executable.getId());
+    }
+
+    /**
+     * @param executable
+     * @param executionAction to be set from given {@code executable}
+     */
+    public void setActionByExecutable(Executable executable, ExecutionAction.AbstractExecutableAction executionAction)
+    {
+        actionByExecutableId.put(executable.getId(), executionAction);
     }
 
     /**
@@ -85,8 +103,9 @@ public class ExecutionPlan
             return;
         }
 
-        // Setup dependencies
+        // Setup dependencies and remaining actions
         for (ExecutionAction executionAction : remainingActions) {
+            remainingActions.add(executionAction);
             executionAction.buildDependencies();
         }
 
@@ -134,6 +153,9 @@ public class ExecutionPlan
         // Remove actions satisfied actions
         satisfiedActions.removeAll(executionActions);
 
+        // Added popped actions
+        poppedActions.addAll(executionActions);
+
         return executionActions;
     }
 
@@ -173,5 +195,20 @@ public class ExecutionPlan
     public synchronized boolean isEmpty()
     {
         return remainingActions.size() == 0;
+    }
+
+    /**
+     * Finish execution and return result.
+     *
+     * @param entityManager
+     * @return {@link ExecutionResult}
+     */
+    public ExecutionResult finish(EntityManager entityManager)
+    {
+        ExecutionResult executionResult = new ExecutionResult();
+        for (ExecutionAction executionAction : poppedActions) {
+            executionAction.finish(entityManager, executionResult);
+        }
+        return executionResult;
     }
 }

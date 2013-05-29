@@ -188,19 +188,18 @@ public class Executor extends Component
 
             logger.debug("Checking executables for execution at '{}'...", Temporal.formatDateTime(referenceDateTime));
 
-            if (true) {
-                throw new TodoImplementException("Load migrations and execute them.");
-            }
-
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             try {
                 // Create execution plan
                 DateTime stopDateTime = referenceDateTime.minus(executableEnd);
-                ExecutionResult executionResult = new ExecutionResult();
-                ExecutionPlan executionPlan = new ExecutionPlan(this, executionResult);
+                ExecutionPlan executionPlan = new ExecutionPlan(this);
                 for (Executable executable : executableManager.listExecutablesForStart(stopDateTime)) {
                     executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));
+                    Migration migration = executable.getMigration();
+                    if (migration != null) {
+                        executionPlan.addExecutionAction(new ExecutionAction.MigrationAction(migration));
+                    }
                 }
                 for (Executable executable : executableManager.listExecutablesForUpdate(stopDateTime)) {
                     executionPlan.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable));
@@ -224,6 +223,13 @@ public class Executor extends Component
                     }
                 }
 
+                // Finish execution plan
+                entityManager.getTransaction().begin();
+
+                ExecutionResult executionResult = executionPlan.finish(entityManager);
+
+                entityManager.getTransaction().commit();
+
                 return executionResult;
             }
             catch (Exception exception) {
@@ -231,6 +237,10 @@ public class Executor extends Component
                 return null;
             }
             finally {
+                if (entityManager.getTransaction().isActive()) {
+                    entityManager.getTransaction().rollback();
+                }
+
                 entityManager.close();
             }
 

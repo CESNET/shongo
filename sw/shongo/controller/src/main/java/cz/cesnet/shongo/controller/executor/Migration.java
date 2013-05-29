@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.Executor;
 
 import javax.persistence.*;
 
@@ -78,5 +80,16 @@ public class Migration extends PersistentObject
         if (!this.sourceExecutable.getSlotEnd().equals(this.targetExecutable.getSlotStart())) {
             throw new RuntimeException("Target executable doesn't start exactly when source executable ends.");
         }
+    }
+
+    /**
+     * Perform migration.
+     *
+     * @param executor
+     * @param executableManager
+     */
+    public void perform()
+    {
+        throw new TodoImplementException();
     }
 }

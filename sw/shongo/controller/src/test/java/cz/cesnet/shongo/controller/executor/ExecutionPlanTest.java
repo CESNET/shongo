@@ -26,7 +26,7 @@ public class ExecutionPlanTest
         executable3.addChildExecutable(executable1);
 
         try {
-            ExecutionPlan executionPlan = new ExecutionPlan(null, null);
+            ExecutionPlan executionPlan = new ExecutionPlan(null);
             executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));
             executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable2));
             executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable3));
@@ -37,7 +37,7 @@ public class ExecutionPlanTest
         }
 
         try {
-            ExecutionPlan executionPlan = new ExecutionPlan(null, null);
+            ExecutionPlan executionPlan = new ExecutionPlan(null);
             executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable2));
             executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable3));
             executionPlan.build();
@@ -60,7 +60,7 @@ public class ExecutionPlanTest
         executable1.addChildExecutable(executable2);
         executable2.addChildExecutable(executable3);
 
-        ExecutionPlan executionPlan1 = new ExecutionPlan(null, null);
+        ExecutionPlan executionPlan1 = new ExecutionPlan(null);
         executionPlan1.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));
         executionPlan1.addExecutionAction(new ExecutionAction.StartExecutableAction(executable2));
         executionPlan1.addExecutionAction(new ExecutionAction.StartExecutableAction(executable3));
@@ -71,7 +71,7 @@ public class ExecutionPlanTest
         checkExecutableAndRemove(executionPlan1, executable1);
         Assert.assertTrue(executionPlan1.isEmpty());
 
-        ExecutionPlan executionPlan2 = new ExecutionPlan(null, null);
+        ExecutionPlan executionPlan2 = new ExecutionPlan(null);
         executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable1));
         executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable2));
         executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable3));
@@ -90,7 +90,7 @@ public class ExecutionPlanTest
         final SimpleExecutable executable2 = new SimpleExecutable();
         final SimpleExecutable executable3 = new SimpleExecutable();
 
-        ExecutionPlan executionPlan1 = new ExecutionPlan(null, null);
+        ExecutionPlan executionPlan1 = new ExecutionPlan(null);
         executionPlan1.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));
         executionPlan1.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable2));
         executionPlan1.addExecutionAction(new ExecutionAction.StopExecutableAction(executable3));
@@ -105,7 +105,7 @@ public class ExecutionPlanTest
         final SimpleExecutable executable5 = new SimpleExecutable();
         executable4.addChildExecutable(executable5);
 
-        ExecutionPlan executionPlan2 = new ExecutionPlan(null, null);
+        ExecutionPlan executionPlan2 = new ExecutionPlan(null);
         executionPlan2.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));
         executionPlan2.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable2));
         executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable3));
