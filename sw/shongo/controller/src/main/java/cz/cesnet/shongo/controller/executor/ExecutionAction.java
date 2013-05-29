@@ -66,7 +66,7 @@ public abstract class ExecutionAction extends Thread
      */
     public int getExecutionPriority()
     {
-        return 0;
+        return PRIORITY_DEFAULT;
     }
 
     /**
@@ -264,7 +264,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         public int getExecutionPriority()
         {
-            return 2;
+            return PRIORITY_START;
         }
 
         @Override
@@ -322,7 +322,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         public int getExecutionPriority()
         {
-            return 1;
+            return PRIORITY_UPDATE;
         }
 
         @Override
@@ -368,7 +368,7 @@ public abstract class ExecutionAction extends Thread
         @Override
         public int getExecutionPriority()
         {
-            return 3;
+            return PRIORITY_STOP;
         }
 
         @Override
@@ -428,11 +428,31 @@ public abstract class ExecutionAction extends Thread
             this.migration = migration;
         }
 
+        /**
+         * @return {@link #migration}
+         */
+        public Migration getMigration()
+        {
+            return migration;
+        }
+
+        @Override
+        public int getExecutionPriority()
+        {
+            return PRIORITY_MIGRATE;
+        }
+
         @Override
         public void buildDependencies()
         {
             ExecutionAction sourceAction = executionPlan.getActionByExecutable(migration.getSourceExecutable());
+            if (!(sourceAction instanceof StopExecutableAction)) {
+                throw new RuntimeException("Source executable is not planned for stopping.");
+            }
             ExecutionAction targetAction = executionPlan.getActionByExecutable(migration.getTargetExecutable());
+            if (!(targetAction instanceof StartExecutableAction)) {
+                throw new RuntimeException("Target executable is not planned for starting.");
+            }
             createDependency(sourceAction, this);
             createDependency(this, targetAction);
         }
@@ -449,4 +469,13 @@ public abstract class ExecutionAction extends Thread
             return true;
         }
     }
+
+    /**
+     * Action Priority.
+     */
+    private static final int PRIORITY_STOP = 4;
+    private static final int PRIORITY_MIGRATE = 3;
+    private static final int PRIORITY_START = 2;
+    private static final int PRIORITY_UPDATE = 1;
+    private static final int PRIORITY_DEFAULT = 0;
 }

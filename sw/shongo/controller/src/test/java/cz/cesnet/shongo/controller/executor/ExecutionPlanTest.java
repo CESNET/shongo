@@ -120,6 +120,35 @@ public class ExecutionPlanTest
         Assert.assertTrue(executionPlan2.isEmpty());
     }
 
+    @Test
+    public void testMigration() throws Exception
+    {
+        final SimpleExecutable executable1 = new SimpleExecutable();
+        final SimpleExecutable executable2 = new SimpleExecutable();
+        final SimpleExecutable executable3 = new SimpleExecutable();
+        final SimpleExecutable executable4 = new SimpleExecutable();
+        final SimpleExecutable executable5 = new SimpleExecutable();
+        final Migration migration = new Migration();
+        migration.setSourceExecutable(executable4);
+        migration.setTargetExecutable(executable5);
+
+        ExecutionPlan executionPlan2 = new ExecutionPlan(null);
+        executionPlan2.addExecutionAction(new ExecutionAction.StartExecutableAction(executable1));
+        executionPlan2.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable2));
+        executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable3));
+        executionPlan2.addExecutionAction(new ExecutionAction.StopExecutableAction(executable4));
+        executionPlan2.addExecutionAction(new ExecutionAction.StartExecutableAction(executable5));
+        executionPlan2.addExecutionAction(new ExecutionAction.MigrationAction(migration));
+        executionPlan2.build();
+
+        checkExecutableAndRemove(executionPlan2, executable3);
+        checkExecutableAndRemove(executionPlan2, executable1, executable5);
+        checkMigrationAndRemove(executionPlan2, migration);
+        checkExecutableAndRemove(executionPlan2, executable4);
+        checkExecutableAndRemove(executionPlan2, executable2);
+        Assert.assertTrue(executionPlan2.isEmpty());
+    }
+
     private void checkExecutableAndRemove(ExecutionPlan executionPlan, Executable... executables)
     {
         Set<ExecutionAction.AbstractExecutableAction> executionActions =
@@ -134,6 +163,24 @@ public class ExecutionPlanTest
         Assert.assertEquals(expectedExecutables, presentExecutables);
 
         for (ExecutionAction.AbstractExecutableAction executionAction : executionActions) {
+            executionPlan.removeExecutionAction(executionAction);
+        }
+    }
+
+    private void checkMigrationAndRemove(ExecutionPlan executionPlan, Migration... migrations)
+    {
+        Set<ExecutionAction.MigrationAction> executionActions =
+                executionPlan.popExecutionActions(ExecutionAction.MigrationAction.class);
+        Set<Migration> presentExecutables = new HashSet<Migration>();
+        for (ExecutionAction.MigrationAction executionAction : executionActions) {
+            presentExecutables.add(executionAction.getMigration());
+        }
+        Set<Migration> expectedExecutables = new HashSet<Migration>();
+        Collections.addAll(expectedExecutables, migrations);
+
+        Assert.assertEquals(expectedExecutables, presentExecutables);
+
+        for (ExecutionAction.MigrationAction executionAction : executionActions) {
             executionPlan.removeExecutionAction(executionAction);
         }
     }
