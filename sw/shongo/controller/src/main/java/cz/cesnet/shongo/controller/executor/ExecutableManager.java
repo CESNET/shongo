@@ -123,10 +123,9 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param referenceDateTime which represents now
-     * @param startingDateTime for which should be found the {@link Executable}s
      * @return list of {@link Executable}s which should be started for given {@code referenceDateTime}
      */
-    public List<Executable> listExecutablesForStart(DateTime referenceDateTime, DateTime startingDateTime)
+    public List<Executable> listExecutablesForStart(DateTime referenceDateTime)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
@@ -164,10 +163,9 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param referenceDateTime which represents now
-     * @param stoppingDateTime for which should be found the {@link Executable}s
      * @return list of {@link Executable}s which should be stopped for given {@code referenceDateTime}
      */
-    public List<Executable> listExecutablesForStop(DateTime referenceDateTime, DateTime stoppingDateTime)
+    public List<Executable> listExecutablesForStop(DateTime referenceDateTime)
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"

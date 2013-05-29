@@ -12,118 +12,156 @@ import java.util.*;
 public class ExecutionPlan
 {
     /**
-     * Map of {@link ExecutablePlan}s by {@link Executable}s.
+     * @see Executor
      */
-    protected final Map<Long, ExecutablePlan> executablePlans = new HashMap<Long, ExecutablePlan>();
+    private Executor executor;
 
     /**
-     * Set of {@link Executable}s which still are in the plan (and should be processed).
+     * @see ExecutionResult
      */
-    protected final Set<Long> remainingExecutableIds = new HashSet<Long>();
+    private ExecutionResult executionResult;
 
     /**
-     * Set of {@link Executable}s with satisfied dependencies (with empty {@link ExecutablePlan#dependencies}).
+     * Set of {@link ExecutionAction}s which haven't been performed yet.
      */
-    protected final Set<Executable> satisfiedExecutables = new HashSet<Executable>();
+    private final Set<ExecutionAction> remainingActions = new HashSet<ExecutionAction>();
+
+    /**
+     * Map of {@link ExecutionAction} by {@link Executable} (used by {@link ExecutionAction}s for building dependencies).
+     */
+    final Map<Long, ExecutionAction.AbstractExecutableAction> actionByExecutableId =
+            new HashMap<Long, ExecutionAction.AbstractExecutableAction>();
+
+    /**
+     * Set of {@link ExecutionAction}s with satisfied dependencies (with empty {@link ExecutionAction#dependencies}).
+     */
+    protected final Set<ExecutionAction> satisfiedActions = new HashSet<ExecutionAction>();
 
     /**
      * Constructor.
      *
-     * @param executables from which the {@link ExecutablePlan} should be constructed
+     * @param executor sets the {@link #executor}
+     */
+    public ExecutionPlan(Executor executor, ExecutionResult executionResult)
+    {
+        this.executor = executor;
+        this.executionResult = executionResult;
+    }
+
+    /**
+     * @return {@link #executor}
+     */
+    public Executor getExecutor()
+    {
+        return executor;
+    }
+
+    /**
+     * @return {@link #executionResult}
+     */
+    public ExecutionResult getExecutionResult()
+    {
+        return executionResult;
+    }
+
+    /**
+     * @param executionAction to be added to the {@link ExecutionPlan}
+     */
+    public void addExecutionAction(ExecutionAction executionAction) throws RuntimeException
+    {
+        remainingActions.add(executionAction);
+        executionAction.init(this);
+    }
+
+    /**
+     * Build the {@link ExecutionPlan}.
+     *
      * @throws RuntimeException when the plan cannot be constructed (because of cycle)
      */
-    public ExecutionPlan(Collection<Executable> executables) throws RuntimeException
+    public void build()
     {
         // Execution plan is empty
-        if (executables.size() == 0) {
+        if (remainingActions.size() == 0) {
             return;
         }
 
-        // Initialize executable plans and set of satisfied
-        for (Executable executable : executables) {
-            executablePlans.put(executable.getId(), new ExecutablePlan(executable));
-            remainingExecutableIds.add(executable.getId());
+        // Setup dependencies
+        for (ExecutionAction executionAction : remainingActions) {
+            executionAction.buildDependencies();
         }
 
-        // Setup dependencies
-        buildDependencies();
-
         // Compute initial satisfied executables
-        for (Executable executable : executables) {
-            ExecutablePlan executablePlan = executablePlans.get(executable.getId());
-            if (executablePlan.dependencies.size() == 0) {
-                // Executable is satisfied (because it is not dependent on any other executable)
-                satisfiedExecutables.add(executable);
+        for (ExecutionAction executionAction : remainingActions) {
+            if (executionAction.dependencies.size() == 0) {
+                // Action is satisfied (because it is not dependent on any other action)
+                satisfiedActions.add(executionAction);
             }
             else {
-                // Executable is not satisfied (because it is dependent to at least one other executable)
+                // Action is not satisfied (because it is dependent to at least one other action)
             }
         }
 
         // Check for cycles
-        if (satisfiedExecutables.size() == 0) {
+        if (satisfiedActions.size() == 0) {
             throw new RuntimeException("Execution plan cannot be constructed (contains a cycle).");
         }
     }
 
     /**
-     * Setup dependencies.
-     */
-    protected void buildDependencies()
-    {
-        for (Long parentExecutableId : remainingExecutableIds) {
-            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutableId);
-            Executable parentExecutable = parentExecutablePlan.getExecutable();
-            Collection<Executable> childExecutables = parentExecutable.getChildExecutables();
-
-            // Setup dependencies in parent plan and parents in child plans
-            for (Executable childExecutable : parentExecutable.getExecutionDependencies()) {
-                ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable.getId());
-
-                // Child executable doesn't exists in the plan, so it is automatically satisfied
-                if (childExecutablePlan == null) {
-                    continue;
-                }
-
-                // Parent executable is dependent to all child executables (requires them)
-                parentExecutablePlan.dependencies.add(childExecutable);
-
-                // Child executable has new parent (is required by him)
-                childExecutablePlan.parents.add(parentExecutable);
-            }
-        }
-    }
-
-    /**
-     * @return collection of {@link Executable}s which have satisfied dependencies
+     * @return collection of {@link ExecutionAction}s which have satisfied dependencies and have highest priority
      *         and remove them from the current {@link ExecutionPlan} queue
      */
-    public synchronized Collection<Executable> popExecutables()
+    public synchronized Set<ExecutionAction> popExecutionActions()
     {
-        Set<Executable> currentExecutables = new HashSet<Executable>();
-        currentExecutables.addAll(satisfiedExecutables);
-        satisfiedExecutables.clear();
-        return currentExecutables;
+        Set<ExecutionAction> executionActions = new HashSet<ExecutionAction>();
+
+        int currentPriority = 0;
+        for (ExecutionAction executionAction : satisfiedActions) {
+            int actionPriority = executionAction.getExecutionPriority();
+            if (actionPriority < currentPriority) {
+                // Skip actions with lower priority than actions which are already added to the set
+                continue;
+            }
+            if (actionPriority > currentPriority) {
+                // Remove actions with lower priority than new action
+                executionActions.clear();
+                // Set new priority
+                currentPriority = actionPriority;
+            }
+            executionActions.add(executionAction);
+        }
+
+        // Remove actions satisfied actions
+        satisfiedActions.removeAll(executionActions);
+
+        return executionActions;
     }
 
     /**
-     * @param executable to be removed from the {@link ExecutionPlan}
-     *                   (it satisfies all dependencies to given {@code executable})
+     * @see #popExecutionActions()
      */
-    public synchronized void removeExecutable(Executable executable)
+    public <T extends ExecutionAction> Set<T> popExecutionActions(Class<T> type)
     {
-        Long executableId = executable.getId();
-        ExecutablePlan executablePlan = executablePlans.get(executableId);
-        if (executablePlan == null) {
-            throw new IllegalArgumentException("Given executable isn't in the plan.");
+        Set<T> executionActions = new HashSet<T>();
+        for (ExecutionAction executionAction : popExecutionActions()) {
+            executionActions.add(type.cast(executionAction));
         }
-        remainingExecutableIds.remove(executableId);
-        satisfiedExecutables.remove(executable);
-        for (Executable parentExecutable : executablePlan.parents) {
-            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable.getId());
-            parentExecutablePlan.dependencies.remove(executable);
-            if (parentExecutablePlan.dependencies.size() == 0) {
-                satisfiedExecutables.add(parentExecutable);
+        return executionActions;
+    }
+
+    /**
+     * @param executionAction to be removed from the {@link ExecutionPlan} (it satisfies all dependencies to given {@code executionAction})
+     */
+    public synchronized void removeExecutionAction(ExecutionAction executionAction)
+    {
+        if (!remainingActions.remove(executionAction)) {
+            throw new IllegalArgumentException("Execution action isn't in the execution plan.");
+        }
+        satisfiedActions.remove(executionAction);
+        for (ExecutionAction parentExecutionAction : executionAction.parents) {
+            parentExecutionAction.dependencies.remove(executionAction);
+            if (parentExecutionAction.dependencies.size() == 0) {
+                satisfiedActions.add(parentExecutionAction);
             }
         }
     }
@@ -134,61 +172,6 @@ public class ExecutionPlan
      */
     public synchronized boolean isEmpty()
     {
-        return remainingExecutableIds.size() == 0;
-    }
-
-    /**
-     * @param executable to be checked for parents
-     * @return true if some executables are dependent to given {@code executable} (should be started after it),
-     *         false otherwise
-     */
-    public boolean hasParents(Executable executable)
-    {
-        ExecutablePlan executablePlan = executablePlans.get(executable.getId());
-        if (executablePlan == null) {
-            throw new IllegalArgumentException("Given executable isn't in the plan.");
-        }
-        return executablePlan.parents.size() > 0;
-    }
-
-    /**
-     * Represents an {@link Executor} plan for a single {@link Executable}.
-     */
-    protected static class ExecutablePlan
-    {
-        /**
-         * {@link Executable} to which the plan belongs.
-         */
-        private Executable executable;
-
-        /**
-         * Set of {@link Executable}s which are required by this {@link #executable}
-         * (e.g., must be started before this {@link #executable} is started).
-         */
-        protected Set<Executable> dependencies = new HashSet<Executable>();
-
-        /**
-         * Set of {@link Executable}s which requires this {@link #executable}
-         * (e.g., must be started after this {@link #executable} is started).
-         */
-        protected Set<Executable> parents = new HashSet<Executable>();
-
-        /**
-         * Constructor.
-         *
-         * @param executable
-         */
-        public ExecutablePlan(Executable executable)
-        {
-            this.executable = executable;
-        }
-
-        /**
-         * @return {@link #executable}
-         */
-        public Executable getExecutable()
-        {
-            return executable;
-        }
+        return remainingActions.size() == 0;
     }
 }

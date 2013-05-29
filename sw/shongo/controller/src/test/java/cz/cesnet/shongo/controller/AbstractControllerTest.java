@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Abstract controller test provides a {@link Controller} instance to extending classes.
+ * {@link AbstractDatabaseTest} which provides a {@link Controller} instance to extending classes.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

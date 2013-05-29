@@ -541,7 +541,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     protected State onStop(Executor executor, ExecutableManager executableManager)
     {
-        return State.SKIPPED;
+        return getDefaultState();
     }
 
     /**

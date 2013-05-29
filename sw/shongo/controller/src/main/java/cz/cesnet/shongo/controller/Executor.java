@@ -181,8 +181,6 @@ public class Executor extends Component
      */
     public ExecutionResult execute(DateTime referenceDateTime)
     {
-        ExecutionResult executionResult = new ExecutionResult();
-
         // Globally synchronized (see ThreadLock documentation)
         //logger.info("Executor waiting for lock...............................");
         synchronized (ThreadLock.class) {
@@ -197,93 +195,40 @@ public class Executor extends Component
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             ExecutableManager executableManager = new ExecutableManager(entityManager);
             try {
-                // List executables which should be stopped
+                // Create execution plan
                 DateTime stopDateTime = referenceDateTime.minus(executableEnd);
-                ExecutionPlan stoppingExecutionPlan = new ReverseExecutionPlan(
-                        executableManager.listExecutablesForStop(referenceDateTime, stopDateTime));
-                Set<Executable> stoppingExecutables = new HashSet<Executable>();
-                while (!stoppingExecutionPlan.isEmpty()) {
-                    Collection<Executable> executables = stoppingExecutionPlan.popExecutables();
-                    for (Executable executable : executables) {
-                        stoppingExecutables.add(executable);
-                        ExecutorThread executorThread =
-                                new ExecutorThread(ExecutorThread.Type.STOP, executable, this, stoppingExecutionPlan);
-                        executorThread.start();
-                    }
-                    try {
-                        Thread.sleep(100);
-                    }
-                    catch (InterruptedException exception) {
-                        logger.error("Execution interrupted.", exception);
-                    }
+                ExecutionResult executionResult = new ExecutionResult();
+                ExecutionPlan executionPlan = new ExecutionPlan(this, executionResult);
+                for (Executable executable : executableManager.listExecutablesForStart(stopDateTime)) {
+                    executionPlan.addExecutionAction(new ExecutionAction.StartExecutableAction(executable));
                 }
-                entityManager.getTransaction().begin();
-                for (Executable executable : stoppingExecutables) {
-                    entityManager.refresh(executable);
-                    if (executable.getState().equals(Executable.State.SKIPPED)) {
-                        executable.setState(executable.getDefaultState());
-                    }
-                    if (!executable.getState().isStarted()) {
-                        executionResult.addStoppedExecutable(executable);
-                    }
+                for (Executable executable : executableManager.listExecutablesForUpdate(stopDateTime)) {
+                    executionPlan.addExecutionAction(new ExecutionAction.UpdateExecutableAction(executable));
                 }
-                entityManager.getTransaction().commit();
+                for (Executable executable : executableManager.listExecutablesForStop(stopDateTime)) {
+                    executionPlan.addExecutionAction(new ExecutionAction.StopExecutableAction(executable));
+                }
+                executionPlan.build();
 
-                // List executables which should be started
-                DateTime startDateTime = referenceDateTime.minus(executableStart);
-                ExecutionPlan startingExecutionPlan = new ExecutionPlan(
-                        executableManager.listExecutablesForStart(referenceDateTime, startDateTime));
-                Collection<Executable> startingExecutables = new ArrayList<Executable>();
-                while (!startingExecutionPlan.isEmpty()) {
-                    Collection<Executable> executables = startingExecutionPlan.popExecutables();
-                    for (Executable executable : executables) {
-                        startingExecutables.add(executable);
-                        ExecutorThread executorThread =
-                                new ExecutorThread(ExecutorThread.Type.START, executable, this, startingExecutionPlan);
-                        executorThread.start();
+                // Perform execution plan
+                while (!executionPlan.isEmpty()) {
+                    Collection<ExecutionAction> executionActions = executionPlan.popExecutionActions();
+                    for (ExecutionAction executionAction : executionActions) {
+                        executionAction.start();
                     }
                     try {
                         Thread.sleep(100);
                     }
                     catch (InterruptedException exception) {
                         logger.error("Execution interrupted.", exception);
-                    }
-                }
-                for (Executable executable : startingExecutables) {
-                    entityManager.refresh(executable);
-                    if (executable.getState().isStarted()) {
-                        executionResult.addStartedExecutable(executable);
                     }
                 }
 
-                // List executables which should be updated
-                ExecutionPlan updatingExecutionPlan = new ExecutionPlan(
-                        executableManager.listExecutablesForUpdate(referenceDateTime));
-                Collection<Executable> updatingExecutables = new ArrayList<Executable>();
-                while (!updatingExecutionPlan.isEmpty()) {
-                    Collection<Executable> executables = updatingExecutionPlan.popExecutables();
-                    for (Executable executable : executables) {
-                        updatingExecutables.add(executable);
-                        ExecutorThread executorThread =
-                                new ExecutorThread(ExecutorThread.Type.UPDATE, executable, this, updatingExecutionPlan);
-                        executorThread.start();
-                    }
-                    try {
-                        Thread.sleep(100);
-                    }
-                    catch (InterruptedException exception) {
-                        logger.error("Execution interrupted.", exception);
-                    }
-                }
-                for (Executable executable : updatingExecutables) {
-                    entityManager.refresh(executable);
-                    if (!executable.getState().isModified()) {
-                        executionResult.addUpdatedExecutable(executable);
-                    }
-                }
+                return executionResult;
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.EXECUTOR, exception);
+                return null;
             }
             finally {
                 entityManager.close();
@@ -292,7 +237,5 @@ public class Executor extends Component
             //logger.info("Executor releasing lock...    )))))");
         }
         //logger.info("Executor lock released...");
-
-        return executionResult;
     }
 }
