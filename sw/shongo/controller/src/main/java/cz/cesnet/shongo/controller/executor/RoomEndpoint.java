@@ -64,7 +64,12 @@ public abstract class RoomEndpoint extends Endpoint
     @Transient
     public final String getRoomDescriptionApi()
     {
-        return String.format("[exe:%d] %s", getId(), getRoomDescription());
+        if (roomDescription != null) {
+            return String.format("[exe:%d] %s", getId(), roomDescription);
+        }
+        else {
+            return String.format("[exe:%d]", getId());
+        }
     }
 
     @Override

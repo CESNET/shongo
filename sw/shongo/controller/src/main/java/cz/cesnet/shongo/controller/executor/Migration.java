@@ -73,7 +73,6 @@ public class Migration extends PersistentObject
         }
     }
 
-    @PostLoad
     @PrePersist
     protected void validate()
     {
@@ -83,13 +82,38 @@ public class Migration extends PersistentObject
     }
 
     /**
+     * @return true whether the migration is replacement for starting/stopping actions of target/source executables
+     *         (and thus the starting/stopping actions should not be performed),
+     *         false otherwise
+     */
+    @Transient
+    public boolean isReplacement()
+    {
+        ResourceRoomEndpoint sourceRoom = (ResourceRoomEndpoint) sourceExecutable;
+        ResourceRoomEndpoint targetRoom = (ResourceRoomEndpoint) targetExecutable;
+        return sourceRoom.getResource().equals(targetRoom.getResource());
+    }
+
+    /**
      * Perform migration.
      *
      * @param executor
      * @param executableManager
      */
-    public void perform()
+    public void perform(Executor executor, ExecutableManager executableManager)
     {
-        throw new TodoImplementException();
+        ResourceRoomEndpoint sourceRoom = (ResourceRoomEndpoint) executableManager.get(sourceExecutable.getId());
+        ResourceRoomEndpoint targetRoom = (ResourceRoomEndpoint) executableManager.get(targetExecutable.getId());
+        if (sourceRoom.getResource().equals(targetRoom.getResource())) {
+            targetRoom.setState(Executable.State.STARTED);
+            targetRoom.setRoomId(sourceRoom.getRoomId());
+            targetRoom.update(executor, executableManager);
+            if (targetRoom.getState().isStarted()) {
+                sourceRoom.setState(Executable.State.STOPPED);
+            }
+        }
+        else {
+            // TODO: migrate room settings
+        }
     }
 }

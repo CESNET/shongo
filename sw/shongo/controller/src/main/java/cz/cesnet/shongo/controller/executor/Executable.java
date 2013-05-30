@@ -141,6 +141,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     @Column
     @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
     public State getState()
     {
         return state;

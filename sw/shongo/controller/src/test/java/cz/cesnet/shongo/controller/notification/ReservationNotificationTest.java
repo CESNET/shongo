@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.usecase;
+package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersonInformation;
@@ -19,7 +19,7 @@ import java.util.HashSet;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotifyReservationTest extends AbstractControllerTest
+public class ReservationNotificationTest extends AbstractControllerTest
 {
     /**
      * @see TestingNotificationExecutor

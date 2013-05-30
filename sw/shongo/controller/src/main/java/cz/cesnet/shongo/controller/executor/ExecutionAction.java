@@ -34,6 +34,12 @@ public abstract class ExecutionAction extends Thread
     final Set<ExecutionAction> parents = new HashSet<ExecutionAction>();
 
     /**
+     * Specifies whether this {@link ExecutionAction} should not be performed (e.g., a migration disables this action
+     * and performs some other action).
+     */
+    private boolean skipPerform = false;
+
+    /**
      * Constructor.
      */
     public ExecutionAction()
@@ -79,6 +85,22 @@ public abstract class ExecutionAction extends Thread
     }
 
     /**
+     * @return {@link #skipPerform}
+     */
+    public boolean isSkipPerform()
+    {
+        return skipPerform;
+    }
+
+    /**
+     * @param skipPerform sets the {@link #skipPerform}
+     */
+    public void setSkipPerform(boolean skipPerform)
+    {
+        this.skipPerform = skipPerform;
+    }
+
+    /**
      * Create dependency from {@code actionFrom} to {@code actionTo}.
      *
      * @param actionFrom
@@ -120,10 +142,16 @@ public abstract class ExecutionAction extends Thread
     public abstract boolean finish(EntityManager entityManager, ExecutionResult executionResult);
 
     @Override
+    public abstract String toString();
+
+    @Override
     public void run()
     {
         if (executionPlan == null) {
             throw new IllegalStateException("Execution action is not properly initialized.");
+        }
+        if (skipPerform) {
+            throw new IllegalStateException("Execution action should not be performed it is marked for skipping.");
         }
         EntityManager entityManager = getExecutor().getEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -132,9 +160,6 @@ public abstract class ExecutionAction extends Thread
 
             // Perform action
             perform(executableManager);
-
-            // Remove action from plan
-            executionPlan.removeExecutionAction(this);
 
             entityManager.getTransaction().commit();
 
@@ -147,6 +172,9 @@ public abstract class ExecutionAction extends Thread
             Reporter.reportInternalError(Reporter.EXECUTOR, exception);
         }
         finally {
+            // Remove action from plan
+            executionPlan.removeExecutionAction(this);
+
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -302,6 +330,12 @@ public abstract class ExecutionAction extends Thread
                 return false;
             }
         }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Start [exe:%d]", executable.getId());
+        }
     }
 
     /**
@@ -347,6 +381,12 @@ public abstract class ExecutionAction extends Thread
             else {
                 return false;
             }
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Update [exe:%d]", executable.getId());
         }
     }
 
@@ -406,6 +446,12 @@ public abstract class ExecutionAction extends Thread
                 return false;
             }
         }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Stop [exe:%d]", executable.getId());
+        }
     }
 
     /**
@@ -453,20 +499,33 @@ public abstract class ExecutionAction extends Thread
             if (!(targetAction instanceof StartExecutableAction)) {
                 throw new RuntimeException("Target executable is not planned for starting.");
             }
-            createDependency(sourceAction, this);
-            createDependency(this, targetAction);
+            if (migration.isReplacement()) {
+                sourceAction.setSkipPerform(true);
+                targetAction.setSkipPerform(true);
+            }
+            else {
+                createDependency(sourceAction, this);
+                createDependency(this, targetAction);
+            }
         }
 
         @Override
         protected void perform(ExecutableManager executableManager)
         {
-            migration.perform();
+            migration.perform(getExecutor(), executableManager);
         }
 
         @Override
         public boolean finish(EntityManager entityManager, ExecutionResult executionResult)
         {
             return true;
+        }
+
+        @Override
+        public String toString()
+        {
+            return String.format("Migration [from-exe:%d, to-exe:%d]",
+                    migration.getSourceExecutable().getId(), migration.getTargetExecutable().getId());
         }
     }
 

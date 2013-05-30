@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.usecase;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;

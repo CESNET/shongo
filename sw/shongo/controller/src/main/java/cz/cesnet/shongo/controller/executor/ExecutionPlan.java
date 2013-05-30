@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -12,31 +14,40 @@ import java.util.*;
  */
 public class ExecutionPlan
 {
+    private static Logger logger = LoggerFactory.getLogger(ExecutionPlan.class);
+
     /**
      * @see Executor
      */
     private Executor executor;
 
     /**
-     * Set of {@link ExecutionAction}s which haven't been performed yet.
+     * Set of {@link ExecutionAction}s which haven't been popped yet.
      */
     private final Set<ExecutionAction> remainingActions = new HashSet<ExecutionAction>();
+
+    /**
+     * Set of {@link ExecutionAction}s with satisfied dependencies (with empty {@link ExecutionAction#dependencies})
+     * which haven't been popped yet.
+     */
+    protected final Set<ExecutionAction> satisfiedActions = new HashSet<ExecutionAction>();
+
+    /**
+     * Set of popped {@link ExecutionAction}s (by {@link #popExecutionActions()}) which has been returned for starting
+     * and which has not been completed yet (by {@link #removeExecutionAction(ExecutionAction)}).
+     */
+    private final List<ExecutionAction> poppedActions = new LinkedList<ExecutionAction>();
+
+    /**
+     * Set of completed {@link ExecutionAction}s (by {@link #popExecutionActions()}).
+     */
+    private final List<ExecutionAction> completedActions = new LinkedList<ExecutionAction>();
 
     /**
      * Map of {@link ExecutionAction} by {@link Executable} (used by {@link ExecutionAction}s for building dependencies).
      */
     final Map<Long, ExecutionAction.AbstractExecutableAction> actionByExecutableId =
             new HashMap<Long, ExecutionAction.AbstractExecutableAction>();
-
-    /**
-     * Set of {@link ExecutionAction}s with satisfied dependencies (with empty {@link ExecutionAction#dependencies}).
-     */
-    protected final Set<ExecutionAction> satisfiedActions = new HashSet<ExecutionAction>();
-
-    /**
-     * Set of popped {@link ExecutionAction}s (by {@link #popExecutionActions()}).
-     */
-    private final List<ExecutionAction> poppedActions = new LinkedList<ExecutionAction>();
 
     /**
      * Constructor.
@@ -119,6 +130,7 @@ public class ExecutionPlan
                 // Action is not satisfied (because it is dependent to at least one other action)
             }
         }
+        remainingActions.removeAll(satisfiedActions);
 
         // Check for cycles
         if (satisfiedActions.size() == 0) {
@@ -134,8 +146,22 @@ public class ExecutionPlan
     {
         Set<ExecutionAction> executionActions = new HashSet<ExecutionAction>();
 
+        // Determine highest priority of actions which has been popped but not completed
         int currentPriority = 0;
-        for (ExecutionAction executionAction : satisfiedActions) {
+        for (ExecutionAction executionAction : poppedActions) {
+            int actionPriority = executionAction.getExecutionPriority();
+            if (actionPriority > currentPriority) {
+                currentPriority = actionPriority;
+            }
+        }
+        // Find actions for popping
+        for (Iterator<ExecutionAction> iterator = satisfiedActions.iterator(); iterator.hasNext(); ) {
+            ExecutionAction executionAction = iterator.next();
+            if (executionAction.isSkipPerform()) {
+                completedActions.add(executionAction);
+                iterator.remove();
+                continue;
+            }
             int actionPriority = executionAction.getExecutionPriority();
             if (actionPriority < currentPriority) {
                 // Skip actions with lower priority than actions which are already added to the set
@@ -155,6 +181,10 @@ public class ExecutionPlan
 
         // Added popped actions
         poppedActions.addAll(executionActions);
+
+        for (ExecutionAction executionAction : executionActions) {
+            logger.debug("{} prepared.", executionAction);
+        }
 
         return executionActions;
     }
@@ -176,25 +206,30 @@ public class ExecutionPlan
      */
     public synchronized void removeExecutionAction(ExecutionAction executionAction)
     {
-        if (!remainingActions.remove(executionAction)) {
-            throw new IllegalArgumentException("Execution action isn't in the execution plan.");
+        logger.debug("{} ended.", executionAction);
+
+        if (!poppedActions.remove(executionAction)) {
+            throw new IllegalArgumentException("Execution action hasn't been popped (or has already been removed).");
         }
-        satisfiedActions.remove(executionAction);
+        completedActions.add(executionAction);
         for (ExecutionAction parentExecutionAction : executionAction.parents) {
             parentExecutionAction.dependencies.remove(executionAction);
             if (parentExecutionAction.dependencies.size() == 0) {
+                if (!remainingActions.remove(parentExecutionAction)) {
+                    throw new IllegalArgumentException("Execution action isn't in the execution plan (anymore).");
+                }
                 satisfiedActions.add(parentExecutionAction);
             }
         }
     }
 
     /**
-     * @return true if the {@link ExecutionPlan} has more {@link Executable}s with satisfied dependencies,
+     * @return true if the {@link ExecutionPlan} doesn't have any {@link ExecutionAction}s for performing
      *         false otherwise
      */
     public synchronized boolean isEmpty()
     {
-        return remainingActions.size() == 0;
+        return remainingActions.isEmpty() && satisfiedActions.isEmpty() && poppedActions.isEmpty();
     }
 
     /**
@@ -205,8 +240,11 @@ public class ExecutionPlan
      */
     public ExecutionResult finish(EntityManager entityManager)
     {
+        if (!poppedActions.isEmpty()) {
+            throw new IllegalStateException("Some execution actions has not been removed yet.");
+        }
         ExecutionResult executionResult = new ExecutionResult();
-        for (ExecutionAction executionAction : poppedActions) {
+        for (ExecutionAction executionAction : completedActions) {
             executionAction.finish(entityManager, executionResult);
         }
         return executionResult;

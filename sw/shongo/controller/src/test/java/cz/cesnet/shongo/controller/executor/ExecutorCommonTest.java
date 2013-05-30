@@ -1,21 +1,14 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.GetRoom;
-import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.jade.Agent;
-import jade.core.AID;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -24,18 +17,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Tests for {@link Executor}.
+ * Tests for {@link cz.cesnet.shongo.controller.Executor}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutorTest extends AbstractExecutorTest
+public class ExecutorCommonTest extends AbstractExecutorTest
 {
-    private static Logger logger = LoggerFactory.getLogger(ExecutorTest.class);
+    private static Logger logger = LoggerFactory.getLogger(ExecutorCommonTest.class);
 
     /**
      * Allocate {@link RoomEndpoint} and execute it.
@@ -45,7 +36,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testRoom() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -94,8 +85,8 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testCompartment() throws Exception
     {
-        ConnectorAgent terminalAgent = getController().addJadeAgent("terminal", new ConnectorAgent());
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent terminalAgent = getController().addJadeAgent("terminal", new McuTestAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -166,7 +157,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testAlias() throws Exception
     {
-        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+        McuTestAgent connectServerAgent = getController().addJadeAgent("connectServer", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -215,7 +206,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testRoomWithSetting() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -270,7 +261,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testProvidedAlias() throws Exception
     {
-        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+        McuTestAgent connectServerAgent = getController().addJadeAgent("connectServer", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -344,7 +335,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testProvidedRoomStartedSeparately() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -411,7 +402,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testProvidedRoomStartedAtOnce() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -473,7 +464,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testRoomUpdate() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -538,7 +529,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testProvidedAliasUpdate() throws Exception
     {
-        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+        McuTestAgent connectServerAgent = getController().addJadeAgent("connectServer", new McuTestAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
@@ -642,7 +633,7 @@ public class ExecutorTest extends AbstractExecutorTest
     @Test
     public void testDeleteStarted() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
         DateTime dateTime = DateTime.now();
         Period duration = Period.parse("PT2H");
@@ -691,82 +682,5 @@ public class ExecutorTest extends AbstractExecutorTest
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedCommandClasses());
-    }
-
-    /**
-     * Testing connector agent.
-     */
-    public class ConnectorAgent extends Agent
-    {
-        /**
-         * List of performed actions on connector.
-         */
-        private List<Command> performedCommands = new ArrayList<Command>();
-
-        /**
-         * Rooms.
-         */
-        private Map<String, Room> rooms = new HashMap<String, Room>();
-
-        /**
-         * @return {@link Class}es for {@link #performedCommands}
-         */
-        public List<Class<? extends Command>> getPerformedCommandClasses()
-        {
-            List<Class<? extends Command>> performedActionClasses = new ArrayList<Class<? extends Command>>();
-            for (Command command : performedCommands) {
-                performedActionClasses.add(command.getClass());
-            }
-            return performedActionClasses;
-        }
-
-        /**
-         * @param type
-         * @return {@link Command} of given {@code type}
-         */
-        public <T> T getPerformedCommandByClass(Class<T> type)
-        {
-            for (Command command : performedCommands) {
-                if (type.isAssignableFrom(command.getClass())) {
-                    return type.cast(command);
-                }
-            }
-            throw new RuntimeException("Command of type '" + type.getSimpleName() + "' was not found.");
-        }
-
-        @Override
-        protected void setup()
-        {
-            addOntology(ConnectorOntology.getInstance());
-            super.setup();
-        }
-
-        @Override
-        public Object handleCommand(Command command, AID sender) throws CommandException, CommandUnsupportedException
-        {
-            performedCommands.add(command);
-            logger.debug("ConnectorAgent '{}' receives command '{}'.", getName(), command.getClass().getSimpleName());
-            if (command instanceof CreateRoom) {
-                CreateRoom createRoom = (CreateRoom) command;
-                String roomId = String.valueOf(rooms.size() + 1);
-                rooms.put(roomId, createRoom.getRoom());
-                return roomId;
-            }
-            else if (command instanceof ModifyRoom) {
-                ModifyRoom modifyRoom = (ModifyRoom) command;
-                Room room = modifyRoom.getRoom();
-                String roomId = room.getId();
-                if (!rooms.containsKey(roomId)) {
-                    throw new RuntimeException("Room not found.");
-                }
-                rooms.put(roomId, room);
-            }
-            else if (command instanceof GetRoom) {
-                GetRoom getRoom = (GetRoom) command;
-                String roomId = getRoom.getRoomId();
-                return rooms.get(roomId);
-            }
-            return null;
-        }
     }
 }

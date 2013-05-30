@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,6 +46,7 @@ public class ExecutionPlanTest
             Assert.assertTrue(executionPlan.isEmpty());
         }
         catch (RuntimeException exception) {
+            exception.printStackTrace();
             Assert.fail("Exception should not be thrown (doesn't contain cycle).");
         }
     }
@@ -128,7 +128,14 @@ public class ExecutionPlanTest
         final SimpleExecutable executable3 = new SimpleExecutable();
         final SimpleExecutable executable4 = new SimpleExecutable();
         final SimpleExecutable executable5 = new SimpleExecutable();
-        final Migration migration = new Migration();
+        final Migration migration = new Migration()
+        {
+            @Override
+            public boolean isReplacement()
+            {
+                return false;
+            }
+        };
         migration.setSourceExecutable(executable4);
         migration.setTargetExecutable(executable5);
 
