@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+    <definition name="error" template="/WEB-INF/views/error.jsp">
+    </definition>
+
+    <definition name="layout" template="/WEB-INF/views/layout.jsp">
+        <put-attribute name="title" value=""/>
+        <put-attribute name="body" value=""/>
+    </definition>
+
+    <definition name="index" extends="layout">
+        <put-attribute name="title" value="views.index.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/index.jsp"/>
+    </definition>
+
+    <definition name="listReservationRequests" extends="layout">
+        <put-attribute name="title" value="views.listReservationRequests.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/listReservationRequests.jsp"/>
+    </definition>
+
+</tiles-definitions>

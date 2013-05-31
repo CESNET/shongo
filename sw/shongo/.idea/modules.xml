@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/client-cli/client-cli.iml" filepath="$PROJECT_DIR$/client-cli/client-cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/client-common/client-common.iml" filepath="$PROJECT_DIR$/client-common/client-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/client-web/client-web.iml" filepath="$PROJECT_DIR$/client-web/client-web.iml" />
+      <module fileurl="file://$PROJECT_DIR$/client-web-perl/client-web-perl.iml" filepath="$PROJECT_DIR$/client-web-perl/client-web-perl.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
       <module fileurl="file://$PROJECT_DIR$/common-api/common-api.iml" filepath="$PROJECT_DIR$/common-api/common-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/connector/connector.iml" filepath="$PROJECT_DIR$/connector/connector.iml" />

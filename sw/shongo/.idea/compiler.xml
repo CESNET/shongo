@@ -24,6 +24,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
+        <module name="client-web" />
         <module name="common" />
         <module name="common-api" />
         <module name="connector" />
@@ -39,6 +40,7 @@
       <module name="client-cli" target="1.6" />
       <module name="client-common" target="1.6" />
       <module name="client-web" target="1.6" />
+      <module name="client-web-perl" target="1.6" />
       <module name="common" target="1.6" />
       <module name="common-api" target="1.6" />
       <module name="connector" target="1.6" />

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                           http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+
+    <!-- Resources/Views without security (if a JSP match then <security:authorize/> won't be available) -->
+    <security:http pattern="/favicon.ico" security="none"/>
+
+    <!-- Configure security for OpenID Connect -->
+    <!-- Based on https://github.com/mitreid-connect/OpenID-Connect-Java-Spring-Server/tree/master/openid-connect-client -->
+    <security:http pattern="/**"
+                   entry-point-ref="authenticationEntryPoint"
+                   use-expressions="true"
+                   disable-url-rewriting="true" access-denied-page="/xxx">
+
+        <!--Following pages don't need login -->
+        <security:intercept-url pattern="/" access="permitAll()"/>
+
+        <!-- Other pages need login -->
+        <security:intercept-url pattern="/**" access="isAuthenticated()"/>
+
+        <!-- Configure OpenID Connect authentication filter -->
+        <security:custom-filter before="PRE_AUTH_FILTER" ref="authenticationFilter"/>
+
+        <!-- Configure logout -->
+        <security:logout logout-url="/logout" invalidate-session="true"/>
+
+    </security:http>
+
+    <!-- Configure authentication manager for OpenID Connect -->
+    <security:authentication-manager alias="authenticationManager">
+
+        <!-- Use authentication provider for OpenID Connect -->
+        <security:authentication-provider ref="authenticationProvider"/>
+
+    </security:authentication-manager>
+
+    <!-- Create authentication entry-point -->
+    <bean id="authenticationEntryPoint"
+          class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+        <constructor-arg value="/login"/>
+    </bean>
+
+    <!-- Create authentication filter for OpenID Connect -->
+    <bean id="authenticationFilter"
+          class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationFilter">
+        <property name="authenticationManager" ref="authenticationManager"/>
+    </bean>
+
+    <!-- Create authentication provider for OpenID Connect -->
+    <bean id="authenticationProvider" class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationProvider">
+    </bean>
+
+</beans>
