@@ -9,7 +9,7 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 
 /**
- * TODO:
+ * Shongo web client application.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -21,7 +21,7 @@ public class ClientWeb
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath("/");
         webAppContext.setParentLoaderPriority(true);
-        if(new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
+        if(arguments.length > 0 && new File(arguments[0] + "/WEB-INF/web.xml").exists()) {
             webAppContext.setResourceBase(arguments[0]);
         }
         else {
