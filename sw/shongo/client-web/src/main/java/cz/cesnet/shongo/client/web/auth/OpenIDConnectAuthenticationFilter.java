@@ -41,7 +41,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException
     {
-        logger.info("Returning token...");
+        logger.info("Providing authentication token...");
         return new OpenIDConnectAuthenticationToken("test");
     }
 }

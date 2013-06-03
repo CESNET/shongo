@@ -56,7 +56,6 @@
             <version>${spring.security.version}</version>
         </dependency>
 
-
         <!-- Apache Tiles -->
         <dependency>
             <groupId>org.apache.tiles</groupId>
@@ -85,20 +84,66 @@
             <artifactId>jetty-servlets</artifactId>
             <version>${jetty.version}</version>
         </dependency>
-
-        <!-- Jetty JSP/JSTL dependencies -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jsp</artifactId>
             <version>${jetty.version}</version>
         </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>jstl</artifactId>
-            <version>1.2</version>
-            <scope>provided</scope>
-        </dependency>
 
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Plugin that copy all JAR dependencies along to module target JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Generates proper manifest file with right classpath and main class -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>cz.cesnet.shongo.client.web.ClientWeb</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

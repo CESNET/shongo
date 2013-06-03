@@ -96,7 +96,6 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty.orbit:javax.el:2.2.0.v201108011116" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.orbit:com.sun.el:2.2.0.v201108011116" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.orbit:org.eclipse.jdt.core:3.7.1" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: javax.servlet:jstl:1.2" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:jul-to-slf4j:1.6.4" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-log4j12:1.6.4" level="project" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.16" level="project" />

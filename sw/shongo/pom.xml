@@ -31,7 +31,6 @@
         <module>connector</module>
         <module>tool-report-generator</module>
         <module>tool-maven-plugin-exec</module>
-        <module>client-web</module>
     </modules>
 
     <repositories>
