@@ -6,6 +6,9 @@
         <fileset id="fileset" name="Spring Application Context" removed="false">
           <file>file://$MODULE_DIR$/src/main/resources/web-context.xml</file>
           <file>file://$MODULE_DIR$/src/main/resources/application-context.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/WEB-INF/context-security.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/WEB-INF/context-application.xml</file>
+          <file>file://$MODULE_DIR$/src/main/resources/WEB-INF/context-web.xml</file>
         </fileset>
       </configuration>
     </facet>

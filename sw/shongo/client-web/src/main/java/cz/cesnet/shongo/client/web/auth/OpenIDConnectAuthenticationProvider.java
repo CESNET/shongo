@@ -1,13 +1,10 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -17,7 +14,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,16 +31,16 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
     private static Logger logger = LoggerFactory.getLogger(OpenIDConnectAuthenticationProvider.class);
 
     /**
-     * @see OpenIDConnectAuthenticationConfiguration
+     * @see ClientWebConfiguration
      */
-    private  OpenIDConnectAuthenticationConfiguration configuration;
+    private ClientWebConfiguration configuration;
 
     /**
      * Constructor.
      *
      * @param configuration sets the {@link #configuration}
      */
-    public OpenIDConnectAuthenticationProvider(OpenIDConnectAuthenticationConfiguration configuration)
+    public OpenIDConnectAuthenticationProvider(ClientWebConfiguration configuration)
     {
         this.configuration = configuration;
     }
@@ -65,7 +62,7 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
 
             JsonNode userInfoResponse;
             try {
-                HttpGet httpGet = new HttpGet(configuration.getUserInfoEndpointUrl());
+                HttpGet httpGet = new HttpGet(getUserInfoEndpointUrl());
                 httpGet.setHeader("Authorization", "Bearer " + accessToken);
 
                 HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
@@ -87,7 +84,8 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             if (userInfoResponse.has("error")) {
                 String error = userInfoResponse.get("error").getTextValue();
                 String description = userInfoResponse.get("error_description").getTextValue();
-                throw new AuthenticationServiceException("Unable to obtain user information. " + error + ": " + description);
+                throw new AuthenticationServiceException(
+                        "Unable to obtain user information. " + error + ": " + description);
             }
             // Handle success
             if (!userInfoResponse.has("id")) {
@@ -122,5 +120,17 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
     public boolean supports(Class<?> authentication)
     {
         return OpenIDConnectAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+
+    /**
+     * @return url for token endpoint
+     */
+    public String getUserInfoEndpointUrl()
+    {
+        UriComponentsBuilder requestUrlBuilder =
+                UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
+                        .pathSegment("userinfo")
+                        .queryParam("schema", "openid");
+        return requestUrlBuilder.build().toUriString();
     }
 }

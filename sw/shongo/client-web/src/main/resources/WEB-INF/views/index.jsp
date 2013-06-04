@@ -3,5 +3,5 @@
 <h1>${title}</h1>
 <spring:message code="views.index.welcome"/>
 <hr>
-<p><spring:message code="views.index.suggestions" arguments="vidcon@cesnet.cz"/></p>
+<p><spring:message code="views.index.suggestions" arguments="${configuration.contactEmail}"/></p>
 <p style="text-align: center"><spring:message code="views.index.developmentTeam"/></p>

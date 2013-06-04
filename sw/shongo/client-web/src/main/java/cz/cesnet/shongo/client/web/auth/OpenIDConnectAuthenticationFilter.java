@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import com.google.common.base.Strings;
+import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -19,7 +18,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -49,16 +47,16 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     private final static String SESSION_STATE_VARIABLE = "state";
 
     /**
-     * @see OpenIDConnectAuthenticationConfiguration
+     * @see ClientWebConfiguration
      */
-    private  OpenIDConnectAuthenticationConfiguration configuration;
+    private ClientWebConfiguration configuration;
 
     /**
      * Constructor.
      *
      * @param configuration sets the {@link #configuration}
      */
-    protected OpenIDConnectAuthenticationFilter(OpenIDConnectAuthenticationConfiguration configuration)
+    protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration)
     {
         super(FILTER_PROCESSES_URL);
         this.configuration = configuration;
@@ -97,7 +95,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
 
         logger.debug("Redirecting to authentication server...");
 
-        response.sendRedirect(configuration.getAuthorizeEndpointUrl(state));
+        response.sendRedirect(getAuthorizeEndpointUrl(state));
     }
 
     /**
@@ -131,7 +129,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
             content.add(new BasicNameValuePair("grant_type", "authorization_code"));
             content.add(new BasicNameValuePair("code", authorizationCode));
 
-            HttpPost httpPost = new HttpPost(configuration.getTokenEndpointUrl());
+            HttpPost httpPost = new HttpPost(getTokenEndpointUrl());
             httpPost.setHeader("Authorization", "secret auth=" + configuration.getAuthenticationSecret());
             httpPost.setEntity(new UrlEncodedFormEntity(content));
 
@@ -183,6 +181,35 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     }
 
     /**
+     * @param state
+     * @return url for authorize endpoint
+     */
+    private String getAuthorizeEndpointUrl(String state)
+    {
+        UriComponentsBuilder redirectUrlBuilder =
+                UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
+                        .pathSegment("authorize")
+                        .queryParam("client_id", configuration.getAuthenticationClientId())
+                        .queryParam("redirect_uri", configuration.getAuthenticationRedirectUri())
+                        .queryParam("state", state)
+                        .queryParam("scope", "openid")
+                        .queryParam("response_type", "code")
+                        .queryParam("prompt", "login");
+        return redirectUrlBuilder.build().toUriString();
+    }
+
+    /**
+     * @return url for token endpoint
+     */
+    private String getTokenEndpointUrl()
+    {
+        UriComponentsBuilder requestUrlBuilder =
+                UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
+                        .pathSegment("token");
+        return requestUrlBuilder.build().toUriString();
+    }
+
+    /**
      * Create a cryptographically random state and store it in the session.
      *
      * @param session to which the state should be stored
@@ -199,7 +226,8 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
      * @param session from which the state should be read
      * @return the state we stored in the session
      */
-    protected static String getStoredState(HttpSession session) {
+    protected static String getStoredState(HttpSession session)
+    {
         Object value = session.getAttribute(SESSION_STATE_VARIABLE);
         if (value != null && value instanceof String) {
             return (String) value;

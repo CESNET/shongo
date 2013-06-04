@@ -24,7 +24,7 @@
     <div class="navbar-inner">
 
         <div class="container">
-            <a class="brand" href="/"><spring:message code="shongo.name"/></a>
+            <a class="brand" href="/"><spring:message code="shongo.name"/> ${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     <li><a href="${path}/"><spring:message code="views.layout.link.home"/></a></li>

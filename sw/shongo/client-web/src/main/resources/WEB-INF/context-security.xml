@@ -48,15 +48,10 @@
         <constructor-arg value="/login"/>
     </bean>
 
-    <!-- Create authentication configuration for OpenID Connect -->
-    <bean id="authenticationConfiguration"
-          class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationConfiguration">
-    </bean>
-
     <!-- Create authentication filter for OpenID Connect -->
     <bean id="authenticationFilter"
           class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationFilter">
-        <constructor-arg ref="authenticationConfiguration"/>
+        <constructor-arg ref="configuration"/>
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="authenticationFailureHandler">
             <bean class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
@@ -68,7 +63,7 @@
 
     <!-- Create authentication provider for OpenID Connect -->
     <bean id="authenticationProvider" class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationProvider">
-        <constructor-arg ref="authenticationConfiguration"/>
+        <constructor-arg ref="configuration"/>
     </bean>
 
 </beans>
