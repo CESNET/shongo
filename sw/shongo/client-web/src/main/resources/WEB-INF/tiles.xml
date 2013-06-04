@@ -15,6 +15,11 @@
         <put-attribute name="body" value="/WEB-INF/views/index.jsp"/>
     </definition>
 
+    <definition name="changelog" extends="layout">
+        <put-attribute name="title" value="views.changelog.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/changelog.jsp"/>
+    </definition>
+
     <definition name="listReservationRequests" extends="layout">
         <put-attribute name="title" value="views.listReservationRequests.title"/>
         <put-attribute name="body" value="/WEB-INF/views/listReservationRequests.jsp"/>

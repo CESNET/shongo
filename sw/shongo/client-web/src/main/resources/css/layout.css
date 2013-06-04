@@ -24,3 +24,9 @@ html, body, .container, .content {
     height: 103px;
     text-align: center;
 }
+
+@media screen and (max-width: 920px) {
+    .proper-content {
+        padding-top: 85px; /* when the screen is small, move the body down */
+    }
+}

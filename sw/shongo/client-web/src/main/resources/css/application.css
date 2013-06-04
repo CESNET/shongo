@@ -9,5 +9,12 @@ p { font-size: 16px;}
 
 /** Navigation pull right margin */
 .navbar .pull-right {
+    margin-left: 10px;
     margin-right: 10px;
+}
+
+img.language {
+    border: solid 1px;
+    margin-top: -1px;
+    padding: 1px;
 }

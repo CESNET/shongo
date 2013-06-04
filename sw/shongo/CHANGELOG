@@ -16,14 +16,14 @@
       to the room capacity reservation.
 
     * Propagating user roles to devices (e.g., Adobe Connect) which are created while
-      reservation is already in "started" state
+      reservation is already in "started" state.
 
-    * Sending internal error reports to configured Shongo administrators
+    * Sending internal error reports to configured Shongo administrators.
 
-    * Scheduler and Executor are now mutually exclusive
+    * Scheduler and Executor are now mutually exclusive.
 
-    * ACL records are stored inside the Controller and only few of them are propagated to authorization server
+    * ACL records are stored inside the Controller and only few of them are propagated to authorization server.
 
 0.5.0 (2013-03-27)
 
-    * First public BETA version
+    * First public BETA version.

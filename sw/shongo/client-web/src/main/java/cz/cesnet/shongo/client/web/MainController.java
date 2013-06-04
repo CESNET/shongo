@@ -1,11 +1,16 @@
 package cz.cesnet.shongo.client.web;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 /**
  * Main controller.
@@ -24,5 +29,12 @@ public class MainController
             return "redirect:/login";
         }
         return "index";
+    }
+
+    @RequestMapping(value = "/changelog", method = RequestMethod.GET)
+    public String getChangelog(Model model)
+    {
+        model.addAttribute("changelog", Changelog.getInstance());
+        return "changelog";
     }
 }

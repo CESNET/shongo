@@ -20,22 +20,8 @@
 
 <body>
 
-<div class="navbar  navbar-fixed-top">
+<div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
-        <div class="navbar-text pull-right">
-            <spring:message code="views.layout.language"/>: <a href="?lang=en">English</a> | <a href="?lang=cs">Česky</a>
-        </div>
-
-        <div class="navbar-text pull-right">
-            <security:authorize access="!isAuthenticated()">
-                <a href="${path}/login"><spring:message code="views.layout.login"/></a>
-            </security:authorize>
-            <security:authorize access="isAuthenticated()">
-                <c:set var="userName"><b><security:authentication property="principal"/></b></c:set>
-                <spring:message code="views.layout.logged" arguments="${userName}"/>
-                <a href="${path}/logout"><spring:message code="views.layout.logout"/></a>
-            </security:authorize>
-        </div>
 
         <div class="container">
             <a class="brand" href="/"><spring:message code="shongo.name"/></a>
@@ -46,6 +32,24 @@
                 </ul>
             </div>
         </div>
+
+        <div style="margin-top: -40px; position: relative;">
+            <div class="navbar-text pull-right">
+                <a href="?lang=en"><img class="language" src="${path}/img/i18n/en.png" alt="English" title="English"/></a>
+                <a href="?lang=cs"><img class="language" src="${path}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+            </div>
+            <div class="navbar-text pull-right">
+                <security:authorize access="!isAuthenticated()">
+                    <a href="${path}/login"><spring:message code="views.layout.login"/></a>
+                </security:authorize>
+                <security:authorize access="isAuthenticated()">
+                    <c:set var="userName"><b><security:authentication property="principal"/></b></c:set>
+                    <spring:message code="views.layout.logged" arguments="${userName}"/>
+                    <a href="${path}/logout"><spring:message code="views.layout.logout"/></a>
+                </security:authorize>
+            </div>
+        </div>
+
     </div>
 </div>
 

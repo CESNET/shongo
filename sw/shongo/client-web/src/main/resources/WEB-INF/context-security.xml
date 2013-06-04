@@ -20,6 +20,7 @@
 
         <!--Following pages don't need login -->
         <security:intercept-url pattern="/" access="permitAll()"/>
+        <security:intercept-url pattern="/changelog" access="permitAll()"/>
         <security:intercept-url pattern="/login*" access="permitAll()"/>
 
         <!-- Other pages need login -->
