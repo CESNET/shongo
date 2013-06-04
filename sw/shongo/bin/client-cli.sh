@@ -1,3 +1,8 @@
+#!/bin/bash
+#
+# Run Shongo command-line client application.
+#
+
 cd `dirname $0`/../
 
 if [ "$1" = "test" ]

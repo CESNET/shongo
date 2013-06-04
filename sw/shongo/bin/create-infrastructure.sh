@@ -1,4 +1,11 @@
 cd `dirname $0`
+#
+# Create testing infrastructure in running Shongo controller.
+#
+#   "create_infrastructure.sh (localhost)"  Create infrastructure on localhost
+#   "create_infrastructure.sh shongo"       Create infrastructure on shongo.cesnet.cz
+#   "create_infrastructure.sh shongo-dev"   Create infrastructure on shongo-dev.cesnet.cz
+#
 
 MODE=local
 if [ "$1" ]

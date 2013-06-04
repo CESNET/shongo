@@ -1,10 +1,15 @@
 package cz.cesnet.shongo.client.web;
 
-import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.support.RequestContext;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,14 +21,16 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 public class ErrorController
 {
-    @RequestMapping("error")
+    private static Logger logger = LoggerFactory.getLogger(ErrorController.class);
+
+    @RequestMapping("/error")
     public String getError(HttpServletRequest request, Model model)
     {
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
         Throwable throwable = (Throwable) request.getAttribute("javax.servlet.error.exception");
         String message;
         if (throwable != null) {
-            message = Throwables.getRootCause(throwable).getMessage();
+            message = throwable.getMessage();
         }
         else {
             message = HttpStatus.valueOf(statusCode).getReasonPhrase();
@@ -31,5 +38,16 @@ public class ErrorController
         model.addAttribute("code", statusCode);
         model.addAttribute("message", message);
         return "error";
+    }
+
+    @RequestMapping("/login-error")
+    public String getLoginError(HttpServletRequest request, Model model)
+    {
+        Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        logger.error("Login failed.", exception);
+
+        model.addAttribute("exception", exception);
+        return "errorLogin";
     }
 }

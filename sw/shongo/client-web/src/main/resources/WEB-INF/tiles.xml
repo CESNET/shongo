@@ -4,8 +4,6 @@
         "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
 
 <tiles-definitions>
-    <definition name="error" template="/WEB-INF/views/error.jsp">
-    </definition>
 
     <definition name="layout" template="/WEB-INF/views/layout.jsp">
         <put-attribute name="title" value=""/>

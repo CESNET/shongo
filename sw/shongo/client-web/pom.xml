@@ -24,6 +24,24 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>common</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>controller-api</artifactId>
+            <version>${shongo.version}</version>
+        </dependency>
+
+        <!-- Google core libraries -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
+
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -59,7 +77,12 @@
         <!-- Apache Tiles -->
         <dependency>
             <groupId>org.apache.tiles</groupId>
-            <artifactId>tiles-extras</artifactId>
+            <artifactId>tiles-core</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tiles</groupId>
+            <artifactId>tiles-jsp</artifactId>
             <version>3.0.1</version>
         </dependency>
 
@@ -88,6 +111,13 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-jsp</artifactId>
             <version>${jetty.version}</version>
+        </dependency>
+
+        <!-- HTTP Client for performing HTTP requests -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.5</version>
         </dependency>
 
     </dependencies>

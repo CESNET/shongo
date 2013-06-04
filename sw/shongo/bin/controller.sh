@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Run Shongo controller application.
+#
 
 cd `dirname $0`/../
 VERSION=`cat pom.xml | grep '<shongo.version>' | sed -e 's/.\+>\(.\+\)<.\+/\1/g'`

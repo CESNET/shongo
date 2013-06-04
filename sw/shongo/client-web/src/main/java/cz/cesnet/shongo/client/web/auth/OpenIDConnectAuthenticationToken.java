@@ -7,30 +7,39 @@ import java.util.Collection;
 import java.util.LinkedList;
 
 /**
- * TODO:
+ * Authentication token for OpenID Connect.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class OpenIDConnectAuthenticationToken extends AbstractAuthenticationToken
 {
-    private Object principal;
+    private String accessToken;
 
-    public OpenIDConnectAuthenticationToken(Object principal)
+    private UserInfo userInformation;
+
+    public OpenIDConnectAuthenticationToken(String accessToken)
     {
         super(new LinkedList<GrantedAuthority>());
-        this.principal = principal;
+        this.accessToken = accessToken;
     }
 
-    public OpenIDConnectAuthenticationToken(Object principal, Collection<? extends GrantedAuthority> authorities)
+    public OpenIDConnectAuthenticationToken(String accessToken, UserInfo userInformation,
+            Collection<? extends GrantedAuthority> authorities)
     {
         super(authorities);
-        this.principal = principal;
+        this.accessToken = accessToken;
+        this.userInformation = userInformation;
+    }
+
+    public String getAccessToken()
+    {
+        return accessToken;
     }
 
     @Override
-    public Object getPrincipal()
+    public UserInfo getPrincipal()
     {
-        return principal;
+        return userInformation;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -50,6 +51,8 @@ public class ClientWeb
             }
         }
 
+        ConfiguredSSLContext.getInstance().addTrustedHostMapping("shongo-auth-dev.cesnet.cz", "hroch.cesnet.cz");
+
         WebAppContext webAppContext = new WebAppContext();
         webAppContext.setDescriptor("WEB-INF/web.xml");
         webAppContext.setContextPath("/");
@@ -66,7 +69,7 @@ public class ClientWeb
             webAppContext.setResourceBase(resourceBase);
         }
 
-        final Server server = new Server(9000);
+        final Server server = new Server(8182);
         server.setHandler(webAppContext);
         server.start();
     }

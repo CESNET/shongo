@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Check Shongo applications. Can be used in nagios NRPE plugin.
+#
+#   check_shongo.sh <connector|controller|client_web>
+#
 
 BIN=$(dirname $0)
 
