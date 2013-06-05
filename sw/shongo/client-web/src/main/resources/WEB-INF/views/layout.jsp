@@ -28,7 +28,7 @@
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     <li><a href="${path}/"><spring:message code="views.layout.link.home"/></a></li>
-                    <li><a href="${path}/reservation-requests"><spring:message code="views.layout.link.reservationRequests"/></a></li>
+                    <li><a href="${path}/reservation-request"><spring:message code="views.layout.link.reservationRequests"/></a></li>
                 </ul>
             </div>
         </div>

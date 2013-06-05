@@ -20,9 +20,19 @@
         <put-attribute name="body" value="/WEB-INF/views/changelog.jsp"/>
     </definition>
 
-    <definition name="listReservationRequests" extends="layout">
-        <put-attribute name="title" value="views.listReservationRequests.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/listReservationRequests.jsp"/>
+    <definition name="reservationRequestList" extends="layout">
+        <put-attribute name="title" value="views.reservationRequestList.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp"/>
+    </definition>
+
+    <definition name="reservationRequestDetail" extends="layout">
+        <put-attribute name="title" value="views.reservationRequestDetail.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp"/>
+    </definition>
+
+    <definition name="reservationRequestDelete" extends="layout">
+        <put-attribute name="title" value="views.reservationRequestDelete.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp"/>
     </definition>
 
 </tiles-definitions>

@@ -11,6 +11,10 @@
 </head>
 <body>
 <h1>${title} ${code}</h1>
+Processing of request ${url}:
+<br>
+<pre style="margin: 10px;">
 ${message}
+</pre>
 </body>
 </html>

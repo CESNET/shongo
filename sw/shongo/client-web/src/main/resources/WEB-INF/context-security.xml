@@ -18,6 +18,10 @@
                    use-expressions="true"
                    disable-url-rewriting="true">
 
+        <!--DEVELOPMENT -->
+        <security:intercept-url pattern="/reservation-request" access="permitAll()"/>
+        <security:intercept-url pattern="/reservation-request/**" access="permitAll()"/>
+
         <!--Following pages don't need login -->
         <security:intercept-url pattern="/" access="permitAll()"/>
         <security:intercept-url pattern="/changelog" access="permitAll()"/>

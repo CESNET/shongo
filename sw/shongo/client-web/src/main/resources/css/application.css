@@ -12,9 +12,23 @@ p { font-size: 16px;}
     margin-left: 10px;
     margin-right: 10px;
 }
-
+/** Navigation language icon */
 img.language {
     border: solid 1px;
     margin-top: -1px;
     padding: 1px;
+}
+
+/** Table empty row style */
+td.empty {
+    background-color: transparent !important;
+    text-align: center;
+    color: #AAAAAA;
+}
+
+/** Page links */
+.page {
+    border: solid 1px;
+    margin: 2px 4px;
+    padding: 2px;
 }

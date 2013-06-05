@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.client.web;
+package cz.cesnet.shongo.client.web.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,15 +23,20 @@ public class ErrorController
     @RequestMapping("/error")
     public String getError(HttpServletRequest request, Model model)
     {
+        String requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
+        String message = (String) request.getAttribute("javax.servlet.error.message");
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
         Throwable throwable = (Throwable) request.getAttribute("javax.servlet.error.exception");
-        String message;
+
+        logger.error("Error " + statusCode + ": " + message, throwable);
+
         if (throwable != null) {
             message = throwable.getMessage();
         }
-        else {
+        else if (message == null) {
             message = HttpStatus.valueOf(statusCode).getReasonPhrase();
         }
+        model.addAttribute("url", requestUri);
         model.addAttribute("code", statusCode);
         model.addAttribute("message", message);
         return "error";
