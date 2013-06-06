@@ -63,14 +63,17 @@ module.controller('PaginationController', function ($scope, $resource) {
 module.directive('paginationPageSize', function () {
     return {
         restrict: 'E',
-        replace: true,
-        template: '<div>Records per page ' +
-            '<select ng-model="pageSize" ng-change="updatePageSize()"  style="width: 60px;">' +
-            '  <option value="5" selected="true">5</option>' +
-            '  <option value="10">10</option>' +
-            '  <option value="15">15</option>' +
-            '</select>' +
-            '</div>'
+        compile: function(element, attrs, transclude) {
+            var text = element[0].innerText;
+            var html = '<div class="' + attrs.class + '">' + text + '&nbsp;&nbsp;' +
+                '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
+                '  <option value="5" selected="true">5</option>' +
+                '  <option value="10">10</option>' +
+                '  <option value="15">15</option>' +
+                '</select>' +
+                '</div>'
+            element.replaceWith(html);
+        }
     }
 });
 
@@ -80,12 +83,15 @@ module.directive('paginationPageSize', function () {
 module.directive('paginationPages', function () {
     return {
         restrict: 'E',
-        replace: true,
-        template: '<div>Pages:' +
-            '<span ng-repeat="page in pages">' +
-            '  <a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
-            '  <span ng-show="page.active" class="page">{{$index + 1}}</span>' +
-            '</span>' +
-            '</div>'
+        compile: function(element, attrs, transclude) {
+            var text = element[0].innerText;
+            var html = '<div class="' + attrs.class + '">' + text + ' ' +
+                '<span ng-repeat="page in pages">' +
+                '  <a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
+                '  <span ng-show="page.active" class="page">{{$index + 1}}</span>' +
+                '</span>' +
+                '</div>';
+            element.replaceWith(html);
+        }
     }
 });

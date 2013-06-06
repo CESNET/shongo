@@ -1,16 +1,26 @@
+<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
+<%@ page import="org.springframework.web.util.UriComponentsBuilder" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
-<%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%-- Tag Libraries --%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 
+<%-- Variables --%>
 <c:set var="path" value="${pageContext.request.contextPath}"/>
 <c:set var="title"><tiles:getAsString name="title"/></c:set>
 <spring:message code="${title}" var="title"/>
+<%
+    UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
+            (String) request.getAttribute("javax.servlet.forward.request_uri"));
+    uriBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
+    pageContext.setAttribute("urlLanguage", uriBuilder.build().toUriString());
+%>
 
+<%-- Header --%>
 <head>
     <title>${title}</title>
     <link href="${path}/css/bootstrap.min.css" rel="stylesheet">
@@ -20,11 +30,13 @@
 
 <body>
 
+<%-- Page navigation header --%>
 <div class="navbar navbar-fixed-top">
     <div class="navbar-inner">
 
         <div class="container">
-            <a class="brand" href="/"><spring:message code="shongo.name"/> ${configuration.titleSuffix}</a>
+            <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
+
             <div class="nav-collapse collapse">
                 <ul class="nav">
                     <li><a href="${path}/"><spring:message code="views.layout.link.home"/></a></li>
@@ -35,8 +47,8 @@
 
         <div style="margin-top: -40px; position: relative;">
             <div class="navbar-text pull-right">
-                <a href="?lang=en"><img class="language" src="${path}/img/i18n/en.png" alt="English" title="English"/></a>
-                <a href="?lang=cs"><img class="language" src="${path}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                <a href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${path}/img/i18n/en.png" alt="English" title="English"/></a>
+                <a href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${path}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
             </div>
             <div class="navbar-text pull-right">
                 <security:authorize access="!isAuthenticated()">
@@ -54,6 +66,7 @@
 </div>
 
 <div class="content">
+    <%-- Page content --%>
     <div class="wrapper">
         <div class="proper-content">
             <div class="container">
@@ -63,11 +76,16 @@
         </div>
         <div class="push"></div>
     </div>
-    <div class="footer" >
+
+    <%-- Page footer --%>
+    <div class="footer">
         <p class="muted">
-            <a href="${path}/changelog"><spring:message code="shongo.shortname"/> <spring:message code="shongo.version"/></a>
+            <a href="${path}/changelog"><spring:message code="shongo.shortname"/> <spring:message
+                    code="shongo.version"/></a>
             &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
-            <a title="CESNET" href="http://www.cesnet.cz/"><img src="${path}/img/cesnet.gif" alt="CESNET, z.s.p.o."/></a>
+            <a title="CESNET" href="http://www.cesnet.cz/">
+                <img src="${path}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
+            </a>
         </p>
     </div>
 </div>

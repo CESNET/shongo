@@ -30,6 +30,11 @@
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp"/>
     </definition>
 
+    <definition name="reservationRequestCreate" extends="layout">
+        <put-attribute name="title" value="views.reservationRequestCreate.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestCreate.jsp"/>
+    </definition>
+
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDelete.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp"/>

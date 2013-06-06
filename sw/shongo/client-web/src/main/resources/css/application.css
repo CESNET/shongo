@@ -32,3 +32,19 @@ td.empty {
     margin: 2px 4px;
     padding: 2px;
 }
+
+/** Description lists */
+dt, dd {
+    font-size: 1.1em;
+    height: 2em;
+}
+
+form input.error {
+    border: solid 1px red;
+    background-color: #FFF0F0;
+}
+form span.error {
+    color: red;
+    font-weight: bold;
+    margin: 5px;
+}
