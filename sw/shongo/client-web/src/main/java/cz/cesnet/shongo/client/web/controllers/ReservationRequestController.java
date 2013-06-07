@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
+import cz.cesnet.shongo.client.web.editors.PeriodEditor;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.format.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +27,12 @@ import java.util.Map;
 @RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(DateTime.class, new DateTimeEditor());
+        binder.registerCustomEditor(Period.class, new PeriodEditor());
+    }
+
     @RequestMapping(value = {"", "/list"}, method = RequestMethod.GET)
     public String getList(HttpServletRequest request)
     {
@@ -44,21 +53,21 @@ public class ReservationRequestController
     @RequestMapping(value = "/create", method = RequestMethod.GET)
     public String getCreate(Model model)
     {
-        ReservationRequest reservationRequest = new ReservationRequest();
+        ReservationRequestModel reservationRequest = new ReservationRequestModel();
         reservationRequest.setId("-- none --");
         model.addAttribute("reservationRequest", reservationRequest);
         return "reservationRequestCreate";
     }
 
-    @RequestMapping(value = "/create/confirmed", method = RequestMethod.POST)
-    public String getCreateConfirmed(@ModelAttribute("reservationRequest") ReservationRequest reservationRequest,
+    @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
+    public String getCreateConfirmed(@ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
-        reservationRequest.validate(result);
+        reservationRequestModel.validate(result);
         if (result.hasErrors()) {
             return "reservationRequestCreate";
         }
-        reservationRequest.setId("shongo:cz.cesnet:req:33");
+        reservationRequestModel.setId("shongo:cz.cesnet:req:33");
         return "reservationRequestDetail";
     }
 
@@ -128,48 +137,4 @@ public class ReservationRequestController
         return reservationRequest;
     }
 
-    public static class ReservationRequest implements Validator
-    {
-        private String id;
-
-        private String description;
-
-        public String getId()
-        {
-            return id;
-        }
-
-        public void setId(String id)
-        {
-            this.id = id;
-        }
-
-        public String getDescription()
-        {
-            return description;
-        }
-
-        public void setDescription(String description)
-        {
-            this.description = description;
-        }
-
-        @Override
-        public boolean supports(Class<?> type)
-        {
-            return ReservationRequest.class.equals(type);
-        }
-
-        @Override
-        public void validate(Object object, Errors errors)
-        {
-            ReservationRequest reservationRequest = (ReservationRequest) object;
-            reservationRequest.validate(errors);
-        }
-
-        public void validate(Errors errors)
-        {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
-        }
-    }
 }

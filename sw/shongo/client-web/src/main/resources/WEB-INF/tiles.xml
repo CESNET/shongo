@@ -8,6 +8,15 @@
     <definition name="layout" template="/WEB-INF/views/layout.jsp">
         <put-attribute name="title" value=""/>
         <put-attribute name="body" value=""/>
+        <put-list-attribute name="css">
+            <add-attribute value="bootstrap.min.css"/>
+            <add-attribute value="application.css"/>
+            <add-attribute value="layout.css"/>
+        </put-list-attribute>
+        <put-list-attribute name="js">
+            <add-attribute value="jquery.min.js"/>
+            <add-attribute value="bootstrap.min.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="index" extends="layout">
@@ -23,6 +32,11 @@
     <definition name="reservationRequestList" extends="layout">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-resource.min.js"/>
+            <add-attribute value="pagination.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="reservationRequestDetail" extends="layout">
@@ -33,6 +47,13 @@
     <definition name="reservationRequestCreate" extends="layout">
         <put-attribute name="title" value="views.reservationRequestCreate.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestCreate.jsp"/>
+        <put-list-attribute name="css" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker.css"/>
+        </put-list-attribute>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="bootstrap-datetimepicker.min.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="reservationRequestDelete" extends="layout">

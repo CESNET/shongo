@@ -39,6 +39,23 @@ dt, dd {
     height: 2em;
 }
 
+/** Form group */
+form fieldset legend.select {
+    padding-bottom: 5px;
+    margin-bottom: 0px;
+}
+form fieldset legend.select span {
+    display: inline-block;
+    line-height: 20px;
+}
+form fieldset legend.select ul {
+    display: inline-block;
+    margin: 0px;
+    padding-bottom: 3px;
+    vertical-align: bottom;
+}
+
+/** Form errors */
 form input.error {
     border: solid 1px red;
     background-color: #FFF0F0;
@@ -48,3 +65,4 @@ form span.error {
     font-weight: bold;
     margin: 5px;
 }
+
