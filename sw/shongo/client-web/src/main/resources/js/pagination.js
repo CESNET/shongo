@@ -1,44 +1,134 @@
-var module = angular.module('pagination', ['ngResource']);
+var module = angular.module('pagination', ['ngResource', 'ngCookies']);
 
-module.controller('PaginationController', function ($scope, $resource) {
-
-    var resource = null;
+/**
+ *
+ */
+module.controller('PaginationController', function ($scope, $resource, $cookieStore) {
+    // Resource used for fetching items
+    $scope.resource = null;
+    // Current page index
+    $scope.pageIndex = null;
+    // Current page size (number of items per page)
+    $scope.pageSize = 5;
+    // Specifies whether items are ready to show (e.g., they have been fetched for the first time)
+    $scope.ready = false;
+    // List of current items
+    $scope.items = [];
+    // List of current pages
+    $scope.pages = [
+        {start: 0, active: true}
+    ];
 
     /**
-     * Initialize the controller.
+     * Set fetched data.
      *
-     * @param url for listing items with ":start" and ":count" parameters
+     * @param data to be set
      */
-    $scope.init = function (url) {
-        resource = $resource(url, null, {
-            list: {method: 'GET'}
-        });
-        $scope.setPage(0);
-    };
-
     var setData = function (data) {
+        // Set current items
         $scope.items = data.items;
+        // Create pages
         $scope.pages = [];
         var pageCount = Math.floor((data.count - 1) / $scope.pageSize) + 1;
         for (var pageIndex = 0; pageIndex < pageCount; pageIndex++) {
             var pageStart = pageIndex * $scope.pageSize;
             var pageActive = (data.start >= pageStart) && (data.start < (pageStart + $scope.pageSize));
+            if (pageActive && pageIndex != $scope.pageIndex) {
+                $scope.pageIndex = pageIndex;
+            }
             $scope.pages.push({start: pageStart, active: pageActive});
         }
     };
 
-    $scope.pageSize = 5;
-    $scope.items = [];
-    $scope.pages = [
-        {start: 0, active: true}
-    ];
-    $scope.setPage = function (pageIndex) {
+    /**
+     * Initialize the controller.
+     *
+     * @param name of the controller for storing data to cookies
+     * @param url for listing items with ":start" and ":count" parameters
+     */
+    $scope.init = function (name, url) {
+        // Setup name and resource
+        $scope.name = name;
+        $scope.resource = $resource(url, null, {
+            list: {method: 'GET'}
+        });
+        // Load configuration
+        var configuration = $cookieStore.get(name);
+        if (configuration != null) {
+            $scope.pageSize = configuration.pageSize;
+        }
+        // List items for the first time (to determine total count)
+        $scope.resource.list({start: 0, count: $scope.pageSize}, function(result){
+            setData(result);
+            // If configuration is loaded set configured page index
+            if (configuration != null) {
+                $scope.pageSize = configuration.pageSize;
+                $scope.setPage(configuration.pageIndex, function(){
+                    // First time data is ready
+                    $scope.ready = true;
+                });
+            }
+            else {
+                // First time data is ready
+                $scope.ready = true;
+            }
+        });
+    };
+
+    /**
+     * Store current configuration (page index and page size).
+     */
+    $scope.storeConfiguration = function () {
+        var configuration = {
+            pageIndex: $scope.pageIndex,
+            pageSize: $scope.pageSize
+        };
+        $cookieStore.put($scope.name, configuration);
+    };
+
+    /**
+     * Set current page.
+     *
+     * @param pageIndex
+     * @param callback to be called after page is set
+     */
+    $scope.setPage = function (pageIndex, callback) {
+        if (pageIndex == $scope.pageIndex) {
+            if (callback != null) {
+                callback.call();
+            }
+            return;
+        }
+        if (!/^\d+$/.test(pageIndex)) {
+            pageIndex = 0;
+        }
+        else if (pageIndex < 0 ) {
+            pageIndex = 0;
+        }
+        else if (pageIndex >= $scope.pages.length ) {
+            pageIndex = $scope.pages.length - 1;
+        }
+
+        $scope.pageIndex = pageIndex;
+
         // Get page
         var page = $scope.pages[pageIndex];
 
         // List items
-        resource.list({start: page.start, count: $scope.pageSize}, setData);
+        $scope.resource.list({start: page.start, count: $scope.pageSize}, function(data){
+            setData(data);
+            if (callback != null) {
+                callback.call();
+            }
+
+            // Store configuration
+            $scope.storeConfiguration();
+        });
     };
+
+    /**
+     * Update page sizes by current page size.
+     */
     $scope.updatePageSize = function () {
         $scope.pageSize = parseInt($scope.pageSize);
 
@@ -53,7 +143,12 @@ module.controller('PaginationController', function ($scope, $resource) {
         start = Math.floor(start / $scope.pageSize) * $scope.pageSize;
 
         // List items
-        resource.list({start: start, count: $scope.pageSize}, setData);
+        $scope.resource.list({start: start, count: $scope.pageSize}, function(data){
+            setData(data);
+
+            // Store configuration
+            $scope.storeConfiguration();
+        });
     };
 });
 

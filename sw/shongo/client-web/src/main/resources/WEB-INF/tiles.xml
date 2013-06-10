@@ -35,6 +35,7 @@
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="angular.min.js"/>
             <add-attribute value="angular-resource.min.js"/>
+            <add-attribute value="angular-cookies.min.js"/>
             <add-attribute value="pagination.js"/>
         </put-list-attribute>
     </definition>
