@@ -21,17 +21,17 @@
 
     <definition name="index" extends="layout">
         <put-attribute name="title" value="views.index.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/index.jsp"/>
+        <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
 
     <definition name="changelog" extends="layout">
         <put-attribute name="title" value="views.changelog.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/changelog.jsp"/>
+        <put-attribute name="body" value="/WEB-INF/views/changelog.jsp" type="template"/>
     </definition>
 
     <definition name="reservationRequestList" extends="layout">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="angular.min.js"/>
             <add-attribute value="angular-resource.min.js"/>
@@ -41,12 +41,10 @@
 
     <definition name="reservationRequestDetail" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDetail.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp" type="template"/>
     </definition>
 
-    <definition name="reservationRequestCreate" extends="layout">
-        <put-attribute name="title" value="views.reservationRequestCreate.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestCreate.jsp"/>
+    <definition name="reservationRequestUpdate" extends="layout">
         <put-list-attribute name="css" inherit="true">
             <add-attribute value="bootstrap-datetimepicker.css"/>
         </put-list-attribute>
@@ -55,10 +53,32 @@
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
         </put-list-attribute>
     </definition>
+    <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
+        <put-attribute name="confirm" value=""/>
+        <put-attribute name="confirmUrl" value=""/>
+    </definition>
+
+    <definition name="reservationRequestCreate" extends="reservationRequestUpdate">
+        <put-attribute name="title" value="views.reservationRequestCreate.title"/>
+        <put-attribute name="body" value="reservationRequestCreateBody" type="definition"/>
+    </definition>
+    <definition name="reservationRequestCreateBody" extends="reservationRequestUpdateBody">
+        <put-attribute name="confirm" value="views.button.create"/>
+        <put-attribute name="confirmUrl" value="/reservation-request/create/confirmed"/>
+    </definition>
+
+    <definition name="reservationRequestModify" extends="reservationRequestUpdate">
+        <put-attribute name="title" value="views.reservationRequestModify.title"/>
+        <put-attribute name="body" value="reservationRequestModifyBody" type="definition"/>
+    </definition>
+    <definition name="reservationRequestModifyBody" extends="reservationRequestUpdateBody">
+        <put-attribute name="confirm" value="views.button.save"/>
+        <put-attribute name="confirmUrl" value="/reservation-request/modify/confirmed"/>
+    </definition>
 
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDelete.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp"/>
+        <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
     </definition>
 
 </tiles-definitions>

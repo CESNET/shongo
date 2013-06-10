@@ -1,15 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
-import cz.cesnet.shongo.client.web.editors.PeriodEditor;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.format.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,16 +20,9 @@ import java.util.Map;
 @RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.registerCustomEditor(DateTime.class, new DateTimeEditor());
-        binder.registerCustomEditor(Period.class, new PeriodEditor());
-    }
-
     @RequestMapping(value = {"", "/list"}, method = RequestMethod.GET)
-    public String getList(HttpServletRequest request)
+    public String getList()
     {
-        request.getSession().setAttribute("back", "/");
         return "reservationRequestList";
     }
 
@@ -50,34 +36,13 @@ public class ReservationRequestController
         return "reservationRequestDetail";
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public String getCreate(Model model)
-    {
-        ReservationRequestModel reservationRequest = new ReservationRequestModel();
-        reservationRequest.setId("-- none --");
-        model.addAttribute("reservationRequest", reservationRequest);
-        return "reservationRequestCreate";
-    }
-
-    @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
-    public String getCreateConfirmed(@ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
-            BindingResult result)
-    {
-        reservationRequestModel.validate(result);
-        if (result.hasErrors()) {
-            return "reservationRequestCreate";
-        }
-        reservationRequestModel.setId("shongo:cz.cesnet:req:33");
-        return "reservationRequestDetail";
-    }
-
     @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
-    public String getDelete(@PathVariable(value = "id") String id, Model model)
+    public String getDelete(@PathVariable(value = "id") String reservationRequestId, Model model)
     {
         Map<String, Object> reservationRequest = new HashMap<String, Object>();
-        reservationRequest.put("id", id);
+        reservationRequest.put("id", reservationRequestId);
         reservationRequest.put("description", "test");
-        if (id.endsWith("0")) {
+        if (reservationRequestId.endsWith("0")) {
             reservationRequest.put("dependencies", new LinkedList<Map>()
             {{
                     Map<String, Object> reservationRequest = new HashMap<String, Object>();
@@ -91,9 +56,10 @@ public class ReservationRequestController
         return "reservationRequestDelete";
     }
 
-    @RequestMapping(value = "/delete/{id:.+}/confirmed", method = RequestMethod.GET)
-    public String getDeleteConfirmed(@PathVariable(value = "id") String id)
+    @RequestMapping(value = "/delete/confirmed", method = RequestMethod.POST)
+    public String getDeleteConfirmed(HttpServletRequest request)
     {
+        String reservationRequestId = request.getParameter("id");
         return "redirect:/reservation-request";
     }
 
@@ -136,5 +102,4 @@ public class ReservationRequestController
         reservationRequest.put("description", "test " + id);
         return reservationRequest;
     }
-
 }

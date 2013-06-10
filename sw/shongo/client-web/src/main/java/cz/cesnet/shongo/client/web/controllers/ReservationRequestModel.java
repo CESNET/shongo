@@ -1,16 +1,15 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import org.joda.time.DateTime;
-import org.joda.time.Period;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 /**
-* TODO:
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * TODO:
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class ReservationRequestModel implements Validator
 {
     private String id;
@@ -168,11 +167,18 @@ public class ReservationRequestModel implements Validator
             switch (type) {
                 case ALIAS:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
+                    if (end.getMillisOfDay() == 0) {
+                        end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
+                    }
+                    if (!start.isBefore(end)) {
+                        errors.rejectValue("end", "validation.field.invalidIntervalEnd");
+                    }
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "alias.roomName", "validation.field.required");
                     break;
                 case ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "room.participantCount", "validation.field.required");
+                    ValidationUtils
+                            .rejectIfEmptyOrWhitespace(errors, "room.participantCount", "validation.field.required");
                     break;
             }
         }
@@ -184,14 +190,14 @@ public class ReservationRequestModel implements Validator
         ADOBE_CONNECT
     }
 
-    private static enum DurationType
+    public static enum DurationType
     {
         MINUTE,
         HOUR,
         DAY
     }
 
-    private static enum SpecificationType
+    public static enum SpecificationType
     {
         ALIAS,
         ROOM

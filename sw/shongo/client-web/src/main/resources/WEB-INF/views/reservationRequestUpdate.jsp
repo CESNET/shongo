@@ -1,45 +1,51 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<tiles:importAttribute/>
 
 <script type="text/javascript">
     var module = angular.module('app', []);
-    module.directive('bootstrapDateTimePicker', function() {
+    module.directive('dateTimePicker', function() {
         return {
             restrict: 'A',
             link: function postLink(scope, element, attrs, controller) {
-                var dtp = element.datetimepicker({
-                    format: "yyyy-mm-dd hh:ii",
-                    minuteStep: 1,
-                    autoclose: true,
-                    todayBtn: true,
-                    todayHighlight: true
-                });
-                element.attr("readonly", true);
-                element.data("datetimepicker").setValue();
-            }
-        }
-    });
-    module.directive('bootstrapDatePicker', function() {
-        return {
-            restrict: 'A',
-            link: function postLink(scope, element, attrs, controller) {
+                // Create date/time picker
                 element.datetimepicker({
-                    format: "yyyy-mm-dd",
-                    minView: "month",
+
+                    minuteStep: 2,
                     autoclose: true,
                     todayBtn: true,
                     todayHighlight: true
                 });
-                element.attr("readonly", true);
+                //element.attr("readonly", true);
                 element.data("datetimepicker").setValue();
+
+                // Create method for initializing "datetime" or "date" format
+                var dateTimePicker = element.data("datetimepicker");
+                dateTimePicker.setFormatDate = function() {
+                    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('month');
+                    dateTimePicker.viewSelect = element.data("datetimepicker").minView;
+                    dateTimePicker.setFormat("yyyy-mm-dd");
+                    dateTimePicker.setValue();
+                };
+                dateTimePicker.setFormatDateTime = function() {
+                    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('hour');
+                    dateTimePicker.setFormat("yyyy-mm-dd hh:ii");
+                    dateTimePicker.setValue();
+                };
+
+                if ( attrs.format == "date") {
+                    dateTimePicker.setFormatDate();
+                }
+                else {
+                    dateTimePicker.setFormatDateTime();
+                }
             }
         }
     });
-
-
 
 </script>
 
@@ -47,7 +53,7 @@
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
-           action="${contextPath}/reservation-request/create/confirmed"
+           action="${contextPath}${confirmUrl}"
            method="post"
            ng-controller="FormController">
 
@@ -56,8 +62,18 @@
             $scope.value = function(value, defaultValue) {
                 return ((value == null || value == '') ? defaultValue : value);
             };
-            $scope.type = $scope.value('${param.type}', 'ALIAS');
-            $scope.technology = $scope.value('${param.technology}', 'H323_SIP');
+            $scope.id = $scope.value('${reservationRequest.id}', null);
+            $scope.type = $scope.value('${reservationRequest.type}', 'ALIAS');
+            $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
+            $scope.$watch("type", function () {
+                var dateTimePicker = $('#start').data("datetimepicker");
+                if ( $scope.type == 'ALIAS') {
+                    dateTimePicker.setFormatDate();
+                }
+                else {
+                    dateTimePicker.setFormatDateTime();
+                }
+            });
         }
     </script>
 
@@ -75,14 +91,16 @@
             </ul>
         </legend>
 
-        <div class="control-group">
-            <form:label class="control-label" path="id">
-                <spring:message code="views.reservationRequest.identifier"/>:
-            </form:label>
-            <div class="controls">
-                <form:input path="id" readonly="true"/>
+        <c:if test="${reservationRequest.id != null}">
+            <div class="control-group">
+                <form:label class="control-label" path="id">
+                    <spring:message code="views.reservationRequest.identifier"/>:
+                </form:label>
+                <div class="controls">
+                    <form:input path="id" readonly="true"/>
+                </div>
             </div>
-        </div>
+        </c:if>
 
         <div class="control-group">
             <form:label class="control-label" path="technology">
@@ -133,7 +151,7 @@
                 <spring:message code="views.reservationRequest.start"/>:
             </form:label>
             <div class="controls">
-                <form:input path="start" cssErrorClass="error" bootstrap-date-time-picker="true"/>
+                <form:input path="start" cssErrorClass="error" date-time-picker="true"/>
                 <form:errors path="start" cssClass="error"/>
             </div>
         </div>
@@ -158,7 +176,7 @@
                 <spring:message code="views.reservationRequest.end"/>:
             </form:label>
             <div class="controls">
-                <form:input path="end" cssErrorClass="error" bootstrap-date-picker="true"/>
+                <form:input path="end" cssErrorClass="error" date-time-picker="true" format="date"/>
                 <form:errors path="end" cssClass="error"/>
             </div>
         </div>
@@ -199,8 +217,8 @@
 
     <div class="control-group">
         <div class="controls">
-            <spring:message code="views.button.create" var="create"/>
-            <input class="btn btn-primary" type="submit" value="${create}"/>
+            <spring:message code="${confirm}" var="confirm"/>
+            <input class="btn btn-primary" type="submit" value="${confirm}"/>
             <a class="btn" href="${contextPath}/reservation-request"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>

@@ -22,6 +22,7 @@
             <td>{{reservationRequest.description}}</td>
             <td>
                 <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.detail"/></a>
+                | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.modify"/></a>
                 | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.delete"/></a>
             </td>
         </tr>
@@ -54,6 +55,7 @@
             <td>{{reservationRequest.description}}</td>
             <td>
                 <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.detail"/></a>
+                | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.modify"/></a>
                 | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.delete"/></a>
             </td>
         </tr>

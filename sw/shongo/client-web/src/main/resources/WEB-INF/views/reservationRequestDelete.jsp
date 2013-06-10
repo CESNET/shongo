@@ -1,9 +1,14 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="reservationRequestName"><strong>${reservationRequest.id}</strong></c:set>
+
+<form action="${contextPath}/reservation-request/delete/confirmed" method="post">
+
+    <input type="hidden" name="id" value="${reservationRequest['id']}"/>
 
 <c:choose>
     <c:when test="${reservationRequest.dependencies.size() > 0}">
@@ -20,9 +25,11 @@
     <c:otherwise>
         <p><spring:message code="views.reservationRequestDelete.question" arguments="${reservationRequestName}"/></p>
         <div>
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/delete/${reservationRequest.id}/confirmed"><spring:message code="views.button.yes"/></a>
+            <spring:message code="views.button.yes" var="yes"/>
+            <input type="submit" class="btn btn-primary" value="${yes}"/>
             <a class="btn" href="${contextPath}/reservation-request"><spring:message code="views.button.no"/></a>
         </div>
     </c:otherwise>
 </c:choose>
 
+</form>
