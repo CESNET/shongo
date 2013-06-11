@@ -48,4 +48,9 @@
         <location>/error</location>
     </error-page>
 
+    <error-page>
+        <exception-type>cz.cesnet.shongo.controller.ControllerConnectException</exception-type>
+        <location>/controller-error</location>
+    </error-page>
+
 </web-app>

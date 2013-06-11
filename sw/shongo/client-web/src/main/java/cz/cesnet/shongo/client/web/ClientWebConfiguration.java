@@ -42,6 +42,14 @@ public class ClientWebConfiguration extends CombinedConfiguration
     }
 
     /**
+     * @return controller url
+     */
+    public String getControllerUrl()
+    {
+        return getString("controller");
+    }
+
+    /**
      * @return title suffix
      */
     public String getTitleSuffix()

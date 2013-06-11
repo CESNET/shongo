@@ -7,6 +7,7 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -40,6 +41,12 @@ public class ErrorController
         model.addAttribute("code", statusCode);
         model.addAttribute("message", message);
         return "error";
+    }
+
+    @RequestMapping(value = "/controller-error", method = RequestMethod.GET)
+    public String getControllerError()
+    {
+        return "errorController";
     }
 
     @RequestMapping("/login-error")

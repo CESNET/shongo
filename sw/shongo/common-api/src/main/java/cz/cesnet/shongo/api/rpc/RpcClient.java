@@ -1,20 +1,25 @@
 package cz.cesnet.shongo.api.rpc;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.report.AbstractReportSet;
 import cz.cesnet.shongo.report.ApiFault;
 import cz.cesnet.shongo.report.ApiFaultString;
 import cz.cesnet.shongo.report.Report;
+import org.apache.xmlrpc.XmlRpcConfig;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.XmlRpcInvocationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.net.ConnectException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +32,8 @@ import java.util.Map;
  */
 public class RpcClient
 {
+    private static Logger logger = LoggerFactory.getLogger(RpcClient.class);
+
     /**
      * XML-RPC client.
      */
@@ -64,6 +71,14 @@ public class RpcClient
     public RpcClient(String host, int port) throws Exception
     {
         connect(host, port);
+    }
+
+    /**
+     * @return XML-RPC configuration
+     */
+    public XmlRpcClientConfigImpl getConfiguration()
+    {
+        return (XmlRpcClientConfigImpl) client.getClientConfig();
     }
 
     /**
@@ -154,18 +169,30 @@ public class RpcClient
      * @param xmlRpcException
      * @return {@code xmlRpcException} converted to proper {@link Exception}
      */
-    public Exception convertException(XmlRpcException xmlRpcException)
+    protected Exception convertException(XmlRpcException xmlRpcException)
     {
+        if (xmlRpcException.linkedException instanceof ConnectException) {
+            return (ConnectException) xmlRpcException.linkedException;
+        }
         Class<? extends ApiFault> type = getApiFaultClass(xmlRpcException.code);
         if (type == null) {
-            throw new RuntimeException(String.valueOf(xmlRpcException.code));
+            return xmlRpcException;
         }
         ApiFault fault = ClassHelper.createInstanceFromClass(type);
 
         // Fill message
-        ApiFaultString apiFaultString = new ApiFaultString();
-        apiFaultString.parse(xmlRpcException.getMessage());
-        fault.readParameters(apiFaultString);
+        String message = xmlRpcException.getMessage();
+        if (ApiFaultString.isFaultString(message)) {
+            ApiFaultString apiFaultString = new ApiFaultString();
+            apiFaultString.parse(message);
+            fault.readParameters(apiFaultString);
+        }
+        else if (fault instanceof CommonReportSet.UnknownErrorReport) {
+            ((CommonReportSet.UnknownErrorReport)fault).setDescription(message);
+        }
+        else {
+            logger.warn("Unknown Message: {}", message);
+        }
 
         // Create exception for fault
         Exception exception = fault.getException();

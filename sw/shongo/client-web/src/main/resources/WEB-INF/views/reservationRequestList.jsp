@@ -37,7 +37,7 @@
 
 <hr>
 
-<div ng-controller="PaginationController" ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count')"  ng-show="ready">
+<div ng-controller="PaginationController" ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count')" ng-show="ready">
     <pagination-page-size class="pull-right"><spring:message code="views.pagination.records"/></pagination-page-size>
     <h2><spring:message code="views.reservationRequest.type.rooms"/></h2>
     <table class="table table-striped table-hover">

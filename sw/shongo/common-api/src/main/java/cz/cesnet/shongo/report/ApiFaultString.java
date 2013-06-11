@@ -3,7 +3,6 @@ package cz.cesnet.shongo.report;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
@@ -133,5 +132,15 @@ public class ApiFaultString implements ReportSerializer
         catch (IOException exception) {
             throw new RuntimeException("Failed to format JSON.", exception);
         }
+    }
+
+    /**
+     * @param message
+     * @return true if given {@code message} is fault string,
+     *         false otherwise
+     */
+    public static boolean isFaultString(String message)
+    {
+        return message.startsWith("{") && message.endsWith("{");
     }
 }

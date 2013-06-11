@@ -22,7 +22,7 @@
 
 <%-- Header --%>
 <head>
-    <title>${title}</title>
+    <title>Shongo - ${title}</title>
 
     <c:forEach items="${css}" var="file">
         <link rel="stylesheet" href="${contextPath}/css/${file}" />
@@ -77,7 +77,14 @@
     <div class="wrapper">
         <div class="proper-content">
             <div class="container">
-                <h1>${title}</h1>
+                <c:choose>
+                    <c:when test="${heading == 'title'}">
+                        <h1>${title}</h1>
+                    </c:when>
+                    <c:when test="${heading != ''}">
+                        <h1>${heading}</h1>
+                    </c:when>
+                </c:choose>
                 <tiles:insertAttribute name="body"/>
             </div>
         </div>
@@ -87,7 +94,7 @@
     <%-- Page footer --%>
     <div class="footer">
         <p class="muted">
-            <a href="${contextPath}/changelog"><spring:message code="shongo.shortname"/> <spring:message
+            <a href="${contextPath}/changelog"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
                     code="shongo.version"/></a>
             &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
             <a title="CESNET" href="http://www.cesnet.cz/">

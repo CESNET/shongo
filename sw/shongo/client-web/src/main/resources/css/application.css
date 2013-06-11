@@ -70,3 +70,18 @@ form span.error {
     margin: 5px;
 }
 
+/** Not available page */
+div.not-available {
+    margin: 50px;
+    padding: 10px 30px;
+    border: 1px solid #BBBBBB;
+    border-radius: 10px; -webkit-border-radius: 10px; -moz-border-radius: 10px;
+    text-align: center;
+}
+.not-available h2 {
+    color: red;
+}
+.not-available p {
+    font-weight: bold;
+}
+

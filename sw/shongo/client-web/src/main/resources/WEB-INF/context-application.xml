@@ -8,4 +8,20 @@
         <constructor-arg value="client-web.cfg.xml"/>
     </bean>
 
+    <bean id="controllerClient" class="cz.cesnet.shongo.controller.ControllerClient">
+        <constructor-arg>
+            <bean factory-bean="configuration" factory-method="getControllerUrl"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="controllerCommonService" class="cz.cesnet.shongo.controller.api.rpc.CommonService"
+          factory-bean="controllerClient" factory-method="getService">
+        <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.CommonService" type="java.lang.Class"/>
+    </bean>
+
+    <bean id="controllerReservationService" class="cz.cesnet.shongo.controller.api.rpc.ReservationService"
+          factory-bean="controllerClient" factory-method="getService">
+        <constructor-arg value="cz.cesnet.shongo.controller.api.rpc.ReservationService" type="java.lang.Class"/>
+    </bean>
+
 </beans>
