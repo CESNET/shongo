@@ -51,8 +51,11 @@
 
         <div style="margin-top: -40px; position: relative;">
             <div class="navbar-text pull-right">
-                <a href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
-                <a href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                <spring:message code="views.layout.timezone" var="timezone"/>
+                <span id="timezone" title="${timezone}">${sessionScope.dateTimeZone}</span>
+                &nbsp;
+                <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
+                <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
             </div>
             <div class="navbar-text pull-right">
                 <security:authorize access="!isAuthenticated()">

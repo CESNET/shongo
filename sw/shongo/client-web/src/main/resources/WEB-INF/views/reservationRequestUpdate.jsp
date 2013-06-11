@@ -114,7 +114,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ALIAS'">
+        <div class="control-group" ng-show="type == 'ALIAS'" class="hide">
             <form:label class="control-label" path="alias.roomName">
                 <spring:message code="views.reservationRequest.specification.alias.roomName"/>:
             </form:label>
@@ -124,7 +124,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ROOM'">
+        <div class="control-group" ng-show="type == 'ROOM'" class="hide">
             <form:label class="control-label" path="room.alias">
                 <spring:message code="views.reservationRequest.specification.room.alias"/>:
             </form:label>
@@ -136,7 +136,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ROOM'">
+        <div class="control-group" ng-show="type == 'ROOM'" class="hide">
             <form:label class="control-label" path="room.participantCount">
                 <spring:message code="views.reservationRequest.specification.room.participantCount"/>:
             </form:label>
@@ -156,7 +156,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ROOM'">
+        <div class="control-group" ng-show="type == 'ROOM'" class="hide">
             <form:label class="control-label" path="durationCount">
                 <spring:message code="views.reservationRequest.duration"/>:
             </form:label>
@@ -171,7 +171,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ALIAS'">
+        <div class="control-group" ng-show="type == 'ALIAS'" class="hide">
             <form:label class="control-label" path="end">
                 <spring:message code="views.reservationRequest.end"/>:
             </form:label>
@@ -203,7 +203,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ROOM' && technology == 'H323_SIP'">
+        <div class="control-group" ng-show="type == 'ROOM' && technology == 'H323_SIP'" class="hide">
             <form:label class="control-label" path="room.pin">
                 <spring:message code="views.reservationRequest.specification.room.pin"/>:
             </form:label>

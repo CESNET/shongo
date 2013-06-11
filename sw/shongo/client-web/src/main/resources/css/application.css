@@ -12,10 +12,14 @@ p { font-size: 16px;}
     margin-left: 10px;
     margin-right: 10px;
 }
+/** Navigation timezone */
+#timezone {
+    font-weight: bold;
+}
 /** Navigation language icon */
 img.language {
     border: solid 1px;
-    margin-top: -1px;
+    margin-top: -2px;
     padding: 1px;
 }
 
