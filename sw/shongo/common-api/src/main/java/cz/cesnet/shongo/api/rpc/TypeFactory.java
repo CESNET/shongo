@@ -3,6 +3,7 @@ package cz.cesnet.shongo.api.rpc;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.util.TypeFlags;
+import cz.cesnet.shongo.map.AbstractObject;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;
@@ -131,9 +132,36 @@ public class TypeFactory extends TypeFactoryImpl
         }
     }
 
+    /**
+     * {@link TypeSerializer} for {@link AbstractObject}.
+     */
+    public static class ObjectTypeSerializer extends MapSerializer
+    {
+        /**
+         * Creates a new instance.
+         *
+         * @param pTypeFactory The factory being used for creating serializers.
+         * @param pConfig      The configuration being used for creating serializers.
+         */
+        public ObjectTypeSerializer(org.apache.xmlrpc.common.TypeFactory pTypeFactory, XmlRpcStreamConfig pConfig)
+        {
+            super(pTypeFactory, pConfig);
+        }
+
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            AbstractObject abstractObject = (AbstractObject) object;
+            super.write(handler, abstractObject.toData().getData());
+        }
+    }
+
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
+        if (pObject instanceof AbstractObject) {
+            return new ObjectTypeSerializer(this, pConfig);
+        }
         int typeFlags = TypeFlags.get(pObject);
         // Null values are serialized as empty maps
         if (pObject == null) {

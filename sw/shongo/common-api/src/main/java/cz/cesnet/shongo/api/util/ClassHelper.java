@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -164,14 +165,32 @@ public class ClassHelper
             throws CommonReportSet.ClassInstantiationErrorException
     {
         if (List.class.isAssignableFrom(type)) {
-            return new ArrayList<Object>(size);
+            return new LinkedList<Object>();
         }
         else if (Set.class.isAssignableFrom(type)) {
             return new HashSet<Object>(size);
         }
         else if (Collection.class.equals(type)) {
-            return new ArrayList<Object>(size);
+            return new LinkedList<Object>();
         }
         throw new CommonReportSet.ClassInstantiationErrorException(type.getSimpleName());
+    }
+
+    /**
+     * @param collection to be duplicated
+     * @return new instance of {@link Collection} with given items
+     */
+    public static <T> Collection<T> duplicateCollection(Collection<T> collection)
+            throws CommonReportSet.ClassInstantiationErrorException
+    {
+        if (collection instanceof List) {
+            return new LinkedList<T>(collection);
+        }
+        else if (collection instanceof Set) {
+            return new HashSet<T>(collection);
+        }
+        else {
+            throw new TodoImplementException(collection.getClass().getName());
+        }
     }
 }

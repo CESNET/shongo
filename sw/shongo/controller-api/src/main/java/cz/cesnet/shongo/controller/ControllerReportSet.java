@@ -10,16 +10,17 @@ import cz.cesnet.shongo.report.*;
 public class ControllerReportSet extends AbstractReportSet
 {
     public static final int ACL_INVALID_ROLE_REPORT = 100;
-    public static final int SECURITY_INVALID_TOKEN_REPORT = 101;
-    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 102;
-    public static final int DEVICE_COMMAND_FAILED_REPORT = 103;
-    public static final int IDENTIFIER_INVALID_REPORT = 104;
-    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 105;
-    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 106;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 107;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 108;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 109;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 110;
+    public static final int SECURITY_MISSING_TOKEN_REPORT = 101;
+    public static final int SECURITY_INVALID_TOKEN_REPORT = 102;
+    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 103;
+    public static final int DEVICE_COMMAND_FAILED_REPORT = 104;
+    public static final int IDENTIFIER_INVALID_REPORT = 105;
+    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 106;
+    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 107;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 108;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 109;
+    public static final int RESERVATION_REQUEST_DELETED_REPORT = 110;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 111;
 
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
@@ -173,6 +174,109 @@ public class ControllerReportSet extends AbstractReportSet
         public ApiFault getApiFault()
         {
             return (AclInvalidRoleReport) report;
+        }
+    }
+
+    /**
+     * Security token is missing but is required.
+     */
+    public static class SecurityMissingTokenReport extends Report implements ApiFault
+    {
+        public SecurityMissingTokenReport()
+        {
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return SECURITY_MISSING_TOKEN_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new SecurityMissingTokenException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER | VISIBLE_TO_DOMAIN_ADMIN;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Security token is missing but is required.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link SecurityMissingTokenReport}.
+     */
+    public static class SecurityMissingTokenException extends ReportRuntimeException implements ApiFaultException
+    {
+        public SecurityMissingTokenException(SecurityMissingTokenReport report)
+        {
+            this.report = report;
+        }
+
+        public SecurityMissingTokenException(Throwable throwable, SecurityMissingTokenReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public SecurityMissingTokenException()
+        {
+            SecurityMissingTokenReport report = new SecurityMissingTokenReport();
+            this.report = report;
+        }
+
+        public SecurityMissingTokenException(Throwable throwable)
+        {
+            super(throwable);
+            SecurityMissingTokenReport report = new SecurityMissingTokenReport();
+            this.report = report;
+        }
+
+        @Override
+        public SecurityMissingTokenReport getReport()
+        {
+            return (SecurityMissingTokenReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (SecurityMissingTokenReport) report;
         }
     }
 
@@ -1563,6 +1667,7 @@ public class ControllerReportSet extends AbstractReportSet
     protected void fillReportClasses()
     {
         addReportClass(AclInvalidRoleReport.class);
+        addReportClass(SecurityMissingTokenReport.class);
         addReportClass(SecurityInvalidTokenReport.class);
         addReportClass(SecurityNotAuthorizedReport.class);
         addReportClass(DeviceCommandFailedReport.class);

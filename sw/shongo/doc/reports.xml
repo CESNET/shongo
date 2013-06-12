@@ -266,6 +266,25 @@
         </report>
 
         <report>
+            <id>type-mismatch</id>
+            <classification severity="error"/>
+            <params>
+                <param name="requiredType" type="String"/>
+                <param name="presentType" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Type mismatch. Present type ${presentType} doesn't match required type ${requiredType}.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+        </report>
+
+        <report>
             <id>type-illegal-value</id>
             <classification severity="error"/>
             <params>
@@ -564,6 +583,22 @@
                 TODO:
             </example>
             <user visible="true" via="api"/>
+        </report>
+
+        <report>
+            <id>security-missing-token</id>
+            <classification severity="error"/>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Security token is missing but is required.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+            <domain-admin visible="true"/>
         </report>
 
         <report>

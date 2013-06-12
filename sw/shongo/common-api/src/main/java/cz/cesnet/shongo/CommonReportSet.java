@@ -10,20 +10,21 @@ import cz.cesnet.shongo.report.*;
 public class CommonReportSet extends AbstractReportSet
 {
     public static final int UNKNOWN_ERROR_REPORT = 0;
-    public static final int TYPE_ILLEGAL_VALUE_REPORT = 1;
-    public static final int CLASS_UNDEFINED_REPORT = 2;
-    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 3;
-    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 4;
-    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 5;
-    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 6;
-    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 7;
-    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 8;
-    public static final int COLLECTION_ITEM_NULL_REPORT = 9;
-    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 10;
-    public static final int ENTITY_NOT_FOUND_REPORT = 11;
-    public static final int ENTITY_INVALID_REPORT = 12;
-    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 13;
-    public static final int METHOD_NOT_DEFINED_REPORT = 14;
+    public static final int TYPE_MISMATCH_REPORT = 1;
+    public static final int TYPE_ILLEGAL_VALUE_REPORT = 2;
+    public static final int CLASS_UNDEFINED_REPORT = 3;
+    public static final int CLASS_INSTANTIATION_ERROR_REPORT = 4;
+    public static final int CLASS_ATTRIBUTE_UNDEFINED_REPORT = 5;
+    public static final int CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT = 6;
+    public static final int CLASS_ATTRIBUTE_REQUIRED_REPORT = 7;
+    public static final int CLASS_ATTRIBUTE_READONLY_REPORT = 8;
+    public static final int CLASS_COLLECTION_REQUIRED_REPORT = 9;
+    public static final int COLLECTION_ITEM_NULL_REPORT = 10;
+    public static final int COLLECTION_ITEM_TYPE_MISMATCH_REPORT = 11;
+    public static final int ENTITY_NOT_FOUND_REPORT = 12;
+    public static final int ENTITY_INVALID_REPORT = 13;
+    public static final int ENTITY_NOT_DELETABLE_REFERENCED_REPORT = 14;
+    public static final int METHOD_NOT_DEFINED_REPORT = 15;
 
     /**
      * Unknown error: {@link #description}
@@ -155,6 +156,161 @@ public class CommonReportSet extends AbstractReportSet
         public ApiFault getApiFault()
         {
             return (UnknownErrorReport) report;
+        }
+    }
+
+    /**
+     * Type mismatch. Present type {@link #presentType} doesn't match required type {@link #requiredType}.
+     */
+    public static class TypeMismatchReport extends Report implements ApiFault
+    {
+        protected String requiredType;
+
+        protected String presentType;
+
+        public TypeMismatchReport()
+        {
+        }
+
+        public TypeMismatchReport(String requiredType, String presentType)
+        {
+            setRequiredType(requiredType);
+            setPresentType(presentType);
+        }
+
+        public String getRequiredType()
+        {
+            return requiredType;
+        }
+
+        public void setRequiredType(String requiredType)
+        {
+            this.requiredType = requiredType;
+        }
+
+        public String getPresentType()
+        {
+            return presentType;
+        }
+
+        public void setPresentType(String presentType)
+        {
+            this.presentType = presentType;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return TYPE_MISMATCH_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new TypeMismatchException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            requiredType = (String) reportSerializer.getParameter("requiredType", String.class);
+            presentType = (String) reportSerializer.getParameter("presentType", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("requiredType", requiredType);
+            reportSerializer.setParameter("presentType", presentType);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Type mismatch. Present type ");
+                    message.append((presentType == null ? "null" : presentType));
+                    message.append(" doesn't match required type ");
+                    message.append((requiredType == null ? "null" : requiredType));
+                    message.append(".");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link TypeMismatchReport}.
+     */
+    public static class TypeMismatchException extends ReportRuntimeException implements ApiFaultException
+    {
+        public TypeMismatchException(TypeMismatchReport report)
+        {
+            this.report = report;
+        }
+
+        public TypeMismatchException(Throwable throwable, TypeMismatchReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public TypeMismatchException(String requiredType, String presentType)
+        {
+            TypeMismatchReport report = new TypeMismatchReport();
+            report.setRequiredType(requiredType);
+            report.setPresentType(presentType);
+            this.report = report;
+        }
+
+        public TypeMismatchException(Throwable throwable, String requiredType, String presentType)
+        {
+            super(throwable);
+            TypeMismatchReport report = new TypeMismatchReport();
+            report.setRequiredType(requiredType);
+            report.setPresentType(presentType);
+            this.report = report;
+        }
+
+        public String getRequiredType()
+        {
+            return getReport().getRequiredType();
+        }
+
+        public String getPresentType()
+        {
+            return getReport().getPresentType();
+        }
+
+        @Override
+        public TypeMismatchReport getReport()
+        {
+            return (TypeMismatchReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (TypeMismatchReport) report;
         }
     }
 
@@ -2307,6 +2463,7 @@ public class CommonReportSet extends AbstractReportSet
     protected void fillReportClasses()
     {
         addReportClass(UnknownErrorReport.class);
+        addReportClass(TypeMismatchReport.class);
         addReportClass(TypeIllegalValueReport.class);
         addReportClass(ClassUndefinedReport.class);
         addReportClass(ClassInstantiationErrorReport.class);

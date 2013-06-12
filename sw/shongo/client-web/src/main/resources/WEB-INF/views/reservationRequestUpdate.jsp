@@ -14,7 +14,6 @@
             link: function postLink(scope, element, attrs, controller) {
                 // Create date/time picker
                 element.datetimepicker({
-
                     minuteStep: 2,
                     autoclose: true,
                     todayBtn: true,

@@ -103,7 +103,7 @@ public class ApiFaultString implements ReportSerializer
             mainJsonNode.put(name, jsonNode);
             jsonNode = mainJsonNode;
         }
-        else {
+        else if (value != null) {
             throw new TodoImplementException(value.getClass().getName());
         }
     }

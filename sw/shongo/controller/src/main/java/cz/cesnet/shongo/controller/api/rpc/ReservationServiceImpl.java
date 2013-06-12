@@ -1,16 +1,23 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
+import cz.cesnet.shongo.controller.api.Specification;
+import cz.cesnet.shongo.controller.api.map.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.map.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.RoomSpecification;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -22,6 +29,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -372,6 +380,116 @@ public class ReservationServiceImpl extends Component
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public ReservationRequestListResponse listReservationRequestsNew(ReservationRequestListRequest request)
+    {
+        authorization.validate(request.getSecurityToken());
+
+        System.err.println("\nLISTING\n");
+        System.err.flush();
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            // Create query string
+            String queryBody = " FROM AbstractReservationRequest reservationRequest"
+                    + " LEFT JOIN reservationRequest.specification specification";
+
+            // Create select query
+            TypedQuery<Object[]> listQuery = entityManager.createQuery(""
+                    + "SELECT "
+                    + " reservationRequest.id,"
+                    + " reservationRequest.userId,"
+                    + " reservationRequest.created,"
+                    + " reservationRequest.purpose,"
+                    + " reservationRequest.description,"
+                    + " specification"
+                    + queryBody, Object[].class);
+
+            // Get total result count
+            TypedQuery<Long> countQuery = entityManager.createQuery(
+                    "SELECT COUNT(reservationRequest.id)" + queryBody, Long.class);
+            Integer totalResultCount = countQuery.getSingleResult().intValue();
+
+            // Restrict first result
+            Integer firstResult = request.getStart(0);
+            if (firstResult <= 0) {
+                firstResult = 0;
+            }
+            listQuery.setFirstResult(firstResult);
+
+            // Restrict result count
+            Integer maxResultCount = request.getCount(-1);
+            if (maxResultCount != null && maxResultCount != -1) {
+                if ((firstResult + maxResultCount) > totalResultCount) {
+                    maxResultCount = totalResultCount - firstResult;
+                }
+                listQuery.setMaxResults(maxResultCount);
+            }
+
+            // List requested results
+            List<Object[]> results = listQuery.getResultList();
+
+            ReservationRequestListResponse response = new ReservationRequestListResponse();
+            response.setCount(totalResultCount);
+            response.setStart(firstResult);
+
+            Set<Long> roomReservationRequestIds = new HashSet<Long>();
+            Set<Long> aliasReservationRequestIds = new HashSet<Long>();
+            Map<Long, ReservationRequestListResponse.Item> reservationRequestById =
+                    new HashMap<Long, ReservationRequestListResponse.Item>();
+            for (Object[] result : results) {
+                Long id = (Long) result[0];
+                ReservationRequestListResponse.Item reservationRequest = new ReservationRequestListResponse.Item();
+                reservationRequest.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
+                reservationRequest.setUserId((String) result[1]);
+                reservationRequest.setCreated((DateTime) result[2]);
+                reservationRequest.setPurpose((ReservationRequestPurpose) result[3]);
+                reservationRequest.setDescription((String) result[4]);
+                response.addItem(reservationRequest);
+
+                // Prepare specification
+                Object specification = result[5];
+                if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
+                    aliasReservationRequestIds.add(id);
+                }
+                else if (specification instanceof cz.cesnet.shongo.controller.request.AliasSetSpecification) {
+                    aliasReservationRequestIds.add(id);
+                }
+                else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
+                    roomReservationRequestIds.add(id);
+                }
+                reservationRequestById.put(id, reservationRequest);
+            }
+
+            if (roomReservationRequestIds.size() > 0) {
+                // TODO: create query to fetch description
+
+                for (Long id : roomReservationRequestIds) {
+                    ReservationRequestListResponse.Item reservationRequest = reservationRequestById.get(id);
+                    ReservationRequestListResponse.RoomType roomType = new ReservationRequestListResponse.RoomType();
+                    roomType.setParticipantCount(5);
+                    roomType.setName("test");
+                    reservationRequest.setType(roomType);
+                }
+            }
+            if (aliasReservationRequestIds.size() > 0) {
+                // TODO: create query to fetch description
+
+                for (Long id : aliasReservationRequestIds) {
+                    ReservationRequestListResponse.Item reservationRequest = reservationRequestById.get(id);
+                    ReservationRequestListResponse.AliasType aliasType = new ReservationRequestListResponse.AliasType();
+                    aliasType.setType(AliasType.ROOM_NAME);
+                    aliasType.setValue("test");
+                    reservationRequest.setType(aliasType);
+                }
+            }
+            return response;
+        }
+        finally {
             entityManager.close();
         }
     }

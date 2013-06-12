@@ -11,7 +11,12 @@
     <context:component-scan base-package="cz.cesnet.shongo.client.web"/>
 
     <!-- Enables the Spring MVC @Controller programming model -->
-    <mvc:annotation-driven/>
+    <mvc:annotation-driven>
+        <mvc:argument-resolvers>
+            <!-- Enables @AccessToken custom annotation -->
+            <bean class="cz.cesnet.shongo.client.web.auth.OpenIDConnectHandlerMethodArgumentResolver"/>
+        </mvc:argument-resolvers>
+    </mvc:annotation-driven>
 
     <!-- Web site resources -->
     <mvc:resources mapping="/favicon.ico" location="/img/favicon.ico"/>

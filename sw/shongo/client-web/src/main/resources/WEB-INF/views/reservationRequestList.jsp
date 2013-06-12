@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
@@ -12,6 +13,8 @@
         <thead>
         <tr>
             <th><spring:message code="views.reservationRequest.identifier"/></th>
+            <th>user</th>
+            <th>created</th>
             <th><spring:message code="views.reservationRequest.description"/></th>
             <th width="180px"><spring:message code="views.reservationRequestList.action"/></th>
         </tr>
@@ -19,6 +22,8 @@
         <tbody>
         <tr ng-repeat="reservationRequest in items">
             <td>{{reservationRequest.id}}</td>
+            <td>{{reservationRequest.userId}}</td>
+            <td>{{reservationRequest.created}}</td>
             <td>{{reservationRequest.description}}</td>
             <td>
                 <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message code="views.reservationRequestList.action.detail"/></a>

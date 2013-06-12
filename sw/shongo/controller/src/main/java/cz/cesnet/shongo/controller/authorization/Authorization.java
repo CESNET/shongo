@@ -98,7 +98,7 @@ public abstract class Authorization
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
-            throw new RuntimeException(SecurityToken.class.getSimpleName() + " should not be empty.");
+            throw new ControllerReportSet.SecurityMissingTokenException();
         }
         return onValidate(securityToken);
     }

@@ -30,6 +30,9 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
         // Create pages
         $scope.pages = [];
         var pageCount = Math.floor((data.count - 1) / $scope.pageSize) + 1;
+        if (pageCount == 0) {
+            pageCount = 1;
+        }
         for (var pageIndex = 0; pageIndex < pageCount; pageIndex++) {
             var pageStart = pageIndex * $scope.pageSize;
             var pageActive = (data.start >= pageStart) && (data.start < (pageStart + $scope.pageSize));

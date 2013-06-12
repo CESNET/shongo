@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.map.AbstractObject;
+import cz.cesnet.shongo.map.DataMap;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import org.joda.time.DateTime;
@@ -101,6 +104,9 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
 
             }
             return new CollectionTypeConverter(type, componentType);
+        }
+        else if (AbstractObject.class.isAssignableFrom(type)) {
+            return AbstractObjectTypeConverter.getInstance(type);
         }
         return super.getTypeConverter(type);
     }
@@ -484,6 +490,72 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object result)
         {
             return ((Collection) result).toArray();
+        }
+    }
+
+    /**
+     * Converter for {@link AbstractObject}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class AbstractObjectTypeConverter implements TypeConverter
+    {
+        /**
+         * Class of {@link AbstractObject}.
+         */
+        private final Class<? extends AbstractObject> abstractObjectClass;
+
+        /**
+         * Constructor.
+         *
+         * @param abstractObjectClass sets the {@link #abstractObjectClass}
+         */
+        public AbstractObjectTypeConverter(Class<? extends AbstractObject> abstractObjectClass)
+        {
+            this.abstractObjectClass = abstractObjectClass;
+        }
+
+        @Override
+        public boolean isConvertable(Object object)
+        {
+            return object == null || object instanceof AbstractObject || object instanceof Map;
+        }
+
+        @Override
+        public Object convert(Object object)
+        {
+            if (object instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) object;
+                object = DataMap.Converter.convert(map, abstractObjectClass);
+            }
+            return object;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return result;
+        }
+
+        /**
+         * Cache for {@link AbstractObjectTypeConverter}s.
+         */
+        private static Map<Class<? extends AbstractObject>, AbstractObjectTypeConverter> cache =
+                new HashMap<Class<? extends AbstractObject>, AbstractObjectTypeConverter>();
+
+        /**
+         * @param abstractObjectClass for which the converter should be returned
+         * @return {@link AbstractObjectTypeConverter} for given {@code abstractObjectClass}
+         */
+        public static AbstractObjectTypeConverter getInstance(Class<? extends AbstractObject> abstractObjectClass)
+        {
+            AbstractObjectTypeConverter abstractObjectTypeConverter = cache.get(abstractObjectClass);
+            if (abstractObjectTypeConverter == null) {
+                abstractObjectTypeConverter = new AbstractObjectTypeConverter(abstractObjectClass);
+                cache.put(abstractObjectClass, abstractObjectTypeConverter);
+            }
+            return abstractObjectTypeConverter;
         }
     }
 }

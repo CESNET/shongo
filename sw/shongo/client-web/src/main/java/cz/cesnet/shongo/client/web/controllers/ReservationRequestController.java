@@ -1,14 +1,19 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.client.web.annotations.AccessToken;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.map.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.map.ReservationRequestListResponse;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,6 +25,9 @@ import java.util.Map;
 @RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
+    @Resource
+    private ReservationService reservationService;
+
     @RequestMapping(value = {"", "/list"}, method = RequestMethod.GET)
     public String getList()
     {
@@ -65,32 +73,17 @@ public class ReservationRequestController
 
     @RequestMapping(value = "/data", method = RequestMethod.GET)
     @ResponseBody
-    public Map getDataList(
-            @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
+    public Object getDataList(
+            @AccessToken String accessToken,
+            @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
-        int totalCount = 21;
-        if (start <= 0) {
-            start = 0;
-        }
-        int end = ((count != null && count != -1) ? (start + count) : totalCount);
-        if (end > totalCount) {
-            end = totalCount;
-        }
-
-        List<Map<String, Object>> reservationRequests = new LinkedList<Map<String, Object>>();
-        for (int index = start; index < end; index++) {
-            Map<String, Object> reservationRequest = new HashMap<String, Object>();
-            reservationRequest.put("id", "shongo:cz.cesnet:req:" + index);
-            reservationRequest.put("description", "test " + index);
-            reservationRequests.add(reservationRequest);
-        }
-
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", start);
-        data.put("count", totalCount);
-        data.put("items", reservationRequests);
-        return data;
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(accessToken);
+        request.setStart(start);
+        request.setCount(count);
+        ReservationRequestListResponse response = reservationService.listReservationRequestsNew(request);
+        return response;
     }
 
     @RequestMapping(value = "/data/{id}", method = RequestMethod.GET)

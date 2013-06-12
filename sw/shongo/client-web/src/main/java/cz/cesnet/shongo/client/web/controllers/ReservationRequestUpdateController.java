@@ -28,9 +28,12 @@ public class ReservationRequestUpdateController
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public String getCreate(Model model)
+    public String getCreate(
+            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType type,
+            Model model)
     {
         ReservationRequestModel reservationRequest = new ReservationRequestModel();
+        reservationRequest.setType(type);
         model.addAttribute("reservationRequest", reservationRequest);
         return "reservationRequestCreate";
     }

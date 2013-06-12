@@ -106,8 +106,6 @@ public abstract class Specification extends PersistentObject implements Reportab
             CompositeSpecification compositeSpecification = (CompositeSpecification) this;
             CompositeSpecification compositeSpecificationFrom = (CompositeSpecification) specification;
 
-
-
             // Delete all child specifications
             Set<Specification> childSpecifications =
                     new HashSet<Specification>(compositeSpecification.getChildSpecifications());
