@@ -4,6 +4,9 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.map.AbstractRawObject;
 import org.joda.time.DateTime;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 /**
  * Response for {@link ReservationRequestListRequest} containing list of reservation requests.
  *
@@ -53,6 +56,11 @@ public class ReservationRequestListResponse extends ListResponse<ReservationRequ
          * Type of the reservation request.
          */
         private AbstractType type;
+
+        /**
+         * List of provided reservation identifiers.
+         */
+        private Collection<String> providedReservationIds = new LinkedList<String>();
 
         public String getId()
         {
@@ -113,33 +121,51 @@ public class ReservationRequestListResponse extends ListResponse<ReservationRequ
         {
             this.type = type;
         }
+
+        public Collection<String> getProvidedReservationIds()
+        {
+            return providedReservationIds;
+        }
+
+        public void setProvidedReservationIds(Collection<String> providedReservationIds)
+        {
+            this.providedReservationIds = providedReservationIds;
+        }
+
+        public void addProvidedReservationId(String providedReservationId)
+        {
+            providedReservationIds.add(providedReservationId);
+        }
     }
 
     public static abstract class AbstractType extends AbstractRawObject
     {
     }
 
-    public static class RoomType extends AbstractType
+    public static class ResourceType extends AbstractType
     {
         /**
-         * Requested name for the room.
+         * Resource-id;
          */
-        private String name;
+        private String resourceId;
 
+        public String getResourceId()
+        {
+            return resourceId;
+        }
+
+        public void setResourceId(String resourceId)
+        {
+            this.resourceId = resourceId;
+        }
+    }
+
+    public static class RoomType extends AbstractType
+    {
         /**
          * Requested number of room participants.
          */
         private Integer participantCount;
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public void setName(String name)
-        {
-            this.name = name;
-        }
 
         public Integer getParticipantCount()
         {

@@ -6,14 +6,14 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -385,14 +385,13 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(request.getSecurityToken());
 
-        System.err.println("\nLISTING\n");
-        System.err.flush();
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            // Create query string
+            // Create query body
             String queryBody = " FROM AbstractReservationRequest reservationRequest"
                     + " LEFT JOIN reservationRequest.specification specification";
+
+            // TODO: apply filters
 
             // Create select query
             TypedQuery<Object[]> listQuery = entityManager.createQuery(""
@@ -429,11 +428,12 @@ public class ReservationServiceImpl extends Component
             // List requested results
             List<Object[]> results = listQuery.getResultList();
 
+            // Prepare response
             ReservationRequestListResponse response = new ReservationRequestListResponse();
             response.setCount(totalResultCount);
             response.setStart(firstResult);
 
-            Set<Long> roomReservationRequestIds = new HashSet<Long>();
+            // Fill reservation requests to response
             Set<Long> aliasReservationRequestIds = new HashSet<Long>();
             Map<Long, ReservationRequestListResponse.Item> reservationRequestById =
                     new HashMap<Long, ReservationRequestListResponse.Item>();
@@ -456,31 +456,69 @@ public class ReservationServiceImpl extends Component
                     aliasReservationRequestIds.add(id);
                 }
                 else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
-                    roomReservationRequestIds.add(id);
+                    cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification =
+                            (cz.cesnet.shongo.controller.request.RoomSpecification) specification;
+                    ReservationRequestListResponse.RoomType roomType = new ReservationRequestListResponse.RoomType();
+                    roomType.setParticipantCount(roomSpecification.getParticipantCount());
+                    reservationRequest.setType(roomType);
                 }
                 reservationRequestById.put(id, reservationRequest);
             }
 
-            if (roomReservationRequestIds.size() > 0) {
-                // TODO: create query to fetch description
-
-                for (Long id : roomReservationRequestIds) {
-                    ReservationRequestListResponse.Item reservationRequest = reservationRequestById.get(id);
-                    ReservationRequestListResponse.RoomType roomType = new ReservationRequestListResponse.RoomType();
-                    roomType.setParticipantCount(5);
-                    roomType.setName("test");
-                    reservationRequest.setType(roomType);
-                }
+            // Fill provided reservations
+            List<Object[]> providedReservations = entityManager.createQuery(""
+                    + "SELECT reservationRequest.id, providedReservation.id "
+                    + " FROM AbstractReservationRequest reservationRequest"
+                    + " LEFT JOIN reservationRequest.providedReservations providedReservation"
+                    + " WHERE reservationRequest.id IN(:reservationRequestIds) AND providedReservation != null",
+                    Object[].class)
+                    .setParameter("reservationRequestIds", reservationRequestById.keySet())
+                    .getResultList();
+            for (Object[] providedReservation : providedReservations) {
+                Long reservationRequestId = (Long) providedReservation[0];
+                Long providedReservationId = (Long) providedReservation[1];
+                ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
+                item.addProvidedReservationId(EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
             }
-            if (aliasReservationRequestIds.size() > 0) {
-                // TODO: create query to fetch description
 
-                for (Long id : aliasReservationRequestIds) {
-                    ReservationRequestListResponse.Item reservationRequest = reservationRequestById.get(id);
+            // Fill aliases
+            if (aliasReservationRequestIds.size() > 0) {
+                List<Object[]> aliasReservationRequests = entityManager.createQuery(""
+                        + "SELECT reservationRequest.id, aliasType, aliasSpecification.value"
+                        + " FROM AbstractReservationRequest reservationRequest, AliasSpecification aliasSpecification"
+                        + " LEFT JOIN aliasSpecification.aliasTypes aliasType"
+                        + " WHERE reservationRequest.id IN(:reservationRequestIds)"
+                        + "   AND (reservationRequest.specification.id = aliasSpecification.id"
+                        + "        OR aliasSpecification.id IN("
+                        + "           SELECT childAliasSpecification.id FROM AliasSetSpecification aliasSetSpecification LEFT JOIN aliasSetSpecification.aliasSpecifications childAliasSpecification WHERE reservationRequest.specification.id = aliasSetSpecification.id))",
+                        Object[].class)
+                        .setParameter("reservationRequestIds", reservationRequestById.keySet())
+                        .getResultList();
+                // Sort aliases
+                Collections.sort(aliasReservationRequests, new Comparator<Object[]>()
+                {
+                    @Override
+                    public int compare(Object[] object1, Object[] object2)
+                    {
+                        if (!object1[0].equals(object2[0])) {
+                            return 0;
+                        }
+                        return ((AliasType) object1[1]).compareTo((AliasType) object2[1]);
+                    }
+                });
+
+                for (Object[] aliasReservation : aliasReservationRequests) {
+                    Long aliasReservationRequestId = (Long) aliasReservation[0];
+                    if (!aliasReservationRequestIds.contains(aliasReservationRequestId)) {
+                        continue;
+                    }
+                    aliasReservationRequestIds.remove(aliasReservationRequestId);
+
+                    ReservationRequestListResponse.Item item = reservationRequestById.get(aliasReservationRequestId);
                     ReservationRequestListResponse.AliasType aliasType = new ReservationRequestListResponse.AliasType();
-                    aliasType.setType(AliasType.ROOM_NAME);
-                    aliasType.setValue("test");
-                    reservationRequest.setType(aliasType);
+                    aliasType.setType((AliasType) aliasReservation[1]);
+                    aliasType.setValue((String) aliasReservation[2]);
+                    item.setType(aliasType);
                 }
             }
             return response;

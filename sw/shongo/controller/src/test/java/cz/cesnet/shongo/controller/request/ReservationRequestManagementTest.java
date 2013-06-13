@@ -36,30 +36,6 @@ import static org.hamcrest.CoreMatchers.not;
  */
 public class ReservationRequestManagementTest extends AbstractControllerTest
 {
-    @Test
-    public void test() throws Exception
-    {
-        for (int index = 0; index < 20; index++ ) {
-            ReservationRequest reservationRequest = new ReservationRequest();
-            reservationRequest.setDescription("request");
-            reservationRequest.setSlot("2012-01-01T12:00", "PT2H");
-            reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-            if ((index % 2) == 0) {
-                reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
-            }
-            else {
-                reservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-            }
-            getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        }
-        ReservationRequestListRequest request = new ReservationRequestListRequest();
-        request.setSecurityToken(SECURITY_TOKEN);
-        ReservationRequestListResponse response = getReservationService().listReservationRequestsNew(request);
-        response = response;
-
-        throw new TodoImplementException();
-    }
-
     /**
      * Test single reservation request.
      *
@@ -257,6 +233,51 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
+    }
+
+    /**
+     * Test listing reservation requests.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testListReservationRequests() throws Exception
+    {
+        for (int index = 0; index < 9; index++ ) {
+            String number = String.valueOf(index + 1);
+            ReservationRequest request = new ReservationRequest();
+            request.setDescription("request " + number);
+            request.setSlot("2012-01-01T12:00", "PT2H");
+            request.setPurpose(ReservationRequestPurpose.SCIENCE);
+            switch (index % 3) {
+                case 0:
+                    request.setSpecification(new RoomSpecification(5, Technology.H323));
+                    break;
+                case 1:
+                    request.setSpecification(new AliasSpecification(AliasType.ROOM_NAME).withValue("room " + number));
+                    break;
+                case 2:
+                    AliasSetSpecification specification = new AliasSetSpecification();
+                    specification.addAlias(new AliasSpecification(AliasType.H323_E164).withValue(number));
+                    specification.addAlias(new AliasSpecification(AliasType.ROOM_NAME).withValue("room " + number));
+                    request.setSpecification(specification);
+                    break;
+            }
+            getReservationService().createReservationRequest(SECURITY_TOKEN, request);
+        }
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(SECURITY_TOKEN);
+        ReservationRequestListResponse response = getReservationService().listReservationRequestsNew(request);
+        Assert.assertEquals(9, response.getItems().size());
+
+        List<ReservationRequestListResponse.Item> items = response.getItems();
+        Assert.assertEquals(ReservationRequestListResponse.RoomType.class, items.get(0).getType().getClass());
+        Assert.assertEquals(ReservationRequestListResponse.AliasType.class, items.get(1).getType().getClass());
+        Assert.assertEquals(ReservationRequestListResponse.AliasType.class, items.get(2).getType().getClass());
+        ReservationRequestListResponse.AliasType a1 = (ReservationRequestListResponse.AliasType)items.get(1).getType();
+        ReservationRequestListResponse.AliasType a2 = (ReservationRequestListResponse.AliasType)items.get(1).getType();
+        Assert.assertEquals(AliasType.ROOM_NAME, a1.getType());
+        Assert.assertEquals(AliasType.ROOM_NAME, a2.getType());
     }
 
     /**

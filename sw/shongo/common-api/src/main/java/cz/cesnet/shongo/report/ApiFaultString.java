@@ -141,6 +141,6 @@ public class ApiFaultString implements ReportSerializer
      */
     public static boolean isFaultString(String message)
     {
-        return message.startsWith("{") && message.endsWith("{");
+        return message.startsWith("{") && message.endsWith("}");
     }
 }
