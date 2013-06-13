@@ -134,15 +134,11 @@ public class TypeFactory extends TypeFactoryImpl
 
     /**
      * {@link TypeSerializer} for {@link AbstractObject}.
+     *
+     * TODO: refactorize API
      */
-    public static class ObjectTypeSerializer extends MapSerializer
+    /*public static class ObjectTypeSerializer extends MapSerializer
     {
-        /**
-         * Creates a new instance.
-         *
-         * @param pTypeFactory The factory being used for creating serializers.
-         * @param pConfig      The configuration being used for creating serializers.
-         */
         public ObjectTypeSerializer(org.apache.xmlrpc.common.TypeFactory pTypeFactory, XmlRpcStreamConfig pConfig)
         {
             super(pTypeFactory, pConfig);
@@ -154,14 +150,16 @@ public class TypeFactory extends TypeFactoryImpl
             AbstractObject abstractObject = (AbstractObject) object;
             super.write(handler, abstractObject.toData().getData());
         }
-    }
+    }*/
 
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
+
+        /* TODO: refactorize API
         if (pObject instanceof AbstractObject) {
             return new ObjectTypeSerializer(this, pConfig);
-        }
+        }*/
         int typeFlags = TypeFlags.get(pObject);
         // Null values are serialized as empty maps
         if (pObject == null) {

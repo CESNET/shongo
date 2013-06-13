@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api.map;
+package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.map.AbstractRawObject;
@@ -9,7 +9,7 @@ import org.joda.time.DateTime;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestListResponse extends AbstractListResponse<ReservationRequestListResponse.Item>
+public class ReservationRequestListResponse extends ListResponse<ReservationRequestListResponse.Item>
 {
     /**
      * Constructor.
@@ -27,91 +27,91 @@ public class ReservationRequestListResponse extends AbstractListResponse<Reserva
         /**
          * Identifier of the reservation request.
          */
-        public static final String ID = "id";
+        private String id;
 
         /**
          * User-id of the user who created the reservation request.
          */
-        public static final String USER_ID = "userId";
+        private String userId;
 
         /**
          * Date/time when the reservation request was created.
          */
-        public static final String CREATED = "created";
+        private DateTime created;
 
         /**
          * Purpose of the reservation request.
          */
-        public static final String PURPOSE = "purpose";
+        private ReservationRequestPurpose purpose;
 
         /**
          * Description of the reservation request.
          */
-        public static final String DESCRIPTION = "description";
+        private String description;
 
         /**
          * Type of the reservation request.
          */
-        public static final String TYPE = "type";
+        private AbstractType type;
 
         public String getId()
         {
-            return data.getString(ID);
+            return id;
         }
 
         public void setId(String id)
         {
-            data.set(ID, id);
+            this.id = id;
         }
 
         public String getUserId()
         {
-            return data.getString(USER_ID);
+            return userId;
         }
 
         public void setUserId(String userId)
         {
-            data.set(USER_ID, userId);
+            this.userId = userId;
         }
 
         public DateTime getCreated()
         {
-            return data.getDateTime(CREATED);
+            return created;
         }
 
         public void setCreated(DateTime created)
         {
-            data.set(CREATED, created);
+            this.created = created;
         }
 
         public ReservationRequestPurpose getPurpose()
         {
-            return data.getEnum(PURPOSE, ReservationRequestPurpose.class);
+            return purpose;
         }
 
         public void setPurpose(ReservationRequestPurpose purpose)
         {
-            data.set(PURPOSE, purpose);
+            this.purpose = purpose;
         }
 
         public String getDescription()
         {
-            return data.getString(DESCRIPTION);
+            return description;
         }
 
         public void setDescription(String description)
         {
-            data.set(DESCRIPTION, description);
+            this.description = description;
         }
 
         public AbstractType getType()
         {
-            return data.getObject(TYPE, AbstractType.class);
+            return type;
         }
 
         public void setType(AbstractType type)
         {
-            data.set(TYPE, type);
+            this.type = type;
         }
     }
 
@@ -124,31 +124,31 @@ public class ReservationRequestListResponse extends AbstractListResponse<Reserva
         /**
          * Requested name for the room.
          */
-        public static final String NAME = "name";
+        private String name;
 
         /**
          * Requested number of room participants.
          */
-        public static final String PARTICIPANT_COUNT = "participantCount";
+        private Integer participantCount;
 
         public String getName()
         {
-            return data.getString(NAME);
+            return name;
         }
 
         public void setName(String name)
         {
-            data.set(NAME, name);
+            this.name = name;
         }
 
         public Integer getParticipantCount()
         {
-            return data.getInteger(PARTICIPANT_COUNT);
+            return participantCount;
         }
 
         public void setParticipantCount(Integer participantCount)
         {
-            data.set(PARTICIPANT_COUNT, participantCount);
+            this.participantCount = participantCount;
         }
     }
 
@@ -157,31 +157,31 @@ public class ReservationRequestListResponse extends AbstractListResponse<Reserva
         /**
          * Requested alias type.
          */
-        public static final String TYPE = "type";
+        private cz.cesnet.shongo.AliasType type;
 
         /**
          * Requested alias value.
          */
-        public static final String VALUE = "value";
+        private String value;
 
         public cz.cesnet.shongo.AliasType getType()
         {
-            return data.getEnum(TYPE, cz.cesnet.shongo.AliasType.class);
+            return type;
         }
 
         public void setType(cz.cesnet.shongo.AliasType type)
         {
-            data.set(TYPE, type);
+            this.type = type;
         }
 
         public String getValue()
         {
-            return data.getString(VALUE);
+            return value;
         }
 
         public void setValue(String value)
         {
-            data.set(VALUE, value);
+            this.value = value;
         }
     }
 }

@@ -3,11 +3,13 @@ package cz.cesnet.shongo.map;
 /**
  * Base class for all API objects which are base on {@link java.util.Map}.
  *
+ * TODO: refactorize API
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AbstractRawObject extends AbstractObject
 {
-    protected DataMap data;
+    /*protected DataMap data;
 
     public AbstractRawObject()
     {
@@ -25,5 +27,5 @@ public class AbstractRawObject extends AbstractObject
     {
         super.fromData(data);
         this.data = data;
-    }
+    }*/
 }

@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.annotation.Transient;
+import sun.reflect.generics.reflectiveObjects.TypeVariableImpl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -253,6 +254,27 @@ public class Property
     }
 
     /**
+     * @param type
+     * @return {@link Class} from given type
+     */
+    private static Class getTypeAsClass(Type type)
+    {
+        if (type instanceof Class) {
+            return (Class) type;
+        }
+        else if (type instanceof ParameterizedType) {
+            type = ((ParameterizedType) type).getRawType();
+            if (type instanceof Class) {
+                return (Class) type;
+            }
+        }
+        else if (type instanceof TypeVariable) {
+            return Object.class;
+        }
+        throw new PropertyException("Cannot get class from type %s.", type.toString());
+    }
+
+    /**
      * Set the property type.
      *
      * @param type        Declared property type
@@ -293,11 +315,7 @@ public class Property
             if (arguments.length != 1) {
                 throw new PropertyException("Array or collection class should have one generic argument.");
             }
-            // Argument should be Class
-            if (!(arguments[0] instanceof Class)) {
-                throw new PropertyException("Generic argument should be class");
-            }
-            valueAllowedType = (Class) arguments[0];
+            valueAllowedType = getTypeAsClass(arguments[0]);
         }
         // If type is map
         else if (TypeFlags.isMap(typeFlags)) {
@@ -310,12 +328,8 @@ public class Property
             if (arguments.length != 2) {
                 throw new PropertyException("Map class should have two generic arguments.");
             }
-            // Argument should be Class
-            if (!(arguments[0] instanceof Class)) {
-                throw new PropertyException("Generic argument should be class");
-            }
-            keyAllowedType = (Class) arguments[0];
-            valueAllowedType = (Class) arguments[1];
+            keyAllowedType = getTypeAsClass(arguments[0]);
+            valueAllowedType = getTypeAsClass(arguments[1]);
         }
 
         // Check or set value allowed type

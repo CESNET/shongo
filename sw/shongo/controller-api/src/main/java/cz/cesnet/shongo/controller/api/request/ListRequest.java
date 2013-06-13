@@ -1,13 +1,11 @@
-package cz.cesnet.shongo.controller.api.map;
-
-import cz.cesnet.shongo.map.DataMap;
+package cz.cesnet.shongo.controller.api.request;
 
 /**
  * TODO:
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AbstractListRequest extends AbstractRequest
+public class ListRequest extends AbstractRequest
 {
     /**
      * Index of first item which should be fetched.
@@ -37,22 +35,5 @@ public class AbstractListRequest extends AbstractRequest
     public void setCount(Integer count)
     {
         this.count = count;
-    }
-
-    @Override
-    public DataMap toData()
-    {
-        DataMap data = super.toData();
-        data.set("start", start);
-        data.set("count", count);
-        return data;
-    }
-
-    @Override
-    public void fromData(DataMap data)
-    {
-        super.fromData(data);
-        start = data.getInteger("start");
-        count = data.getInteger("count");
     }
 }

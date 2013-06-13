@@ -1,7 +1,4 @@
-package cz.cesnet.shongo.controller.api.map;
-
-import cz.cesnet.shongo.map.AbstractObject;
-import cz.cesnet.shongo.map.DataMap;
+package cz.cesnet.shongo.controller.api.request;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -12,7 +9,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AbstractListResponse<T> extends AbstractObject
+public class ListResponse<T> extends AbstractResponse
 {
     /**
      * Index of the first item.
@@ -31,7 +28,7 @@ public class AbstractListResponse<T> extends AbstractObject
 
     private Class<T> itemClass;
 
-    public AbstractListResponse(Class<T> itemClass)
+    public ListResponse(Class<T> itemClass)
     {
         this.itemClass = itemClass;
     }
@@ -70,27 +67,5 @@ public class AbstractListResponse<T> extends AbstractObject
     public void addItem(T item)
     {
         items.add(item);
-    }
-
-    @Override
-    public DataMap toData()
-    {
-        DataMap data = super.toData();
-        data.set("start", start);
-        data.set("count", count);
-        data.set("items", items);
-        return data;
-    }
-
-    @Override
-    public void fromData(DataMap data)
-    {
-        super.fromData(data);
-        start = data.getInt("start");
-        count = data.getInt("count");
-        items.clear();
-        for (T item : data.getCollection("items", itemClass)) {
-            items.add(item);
-        }
     }
 }

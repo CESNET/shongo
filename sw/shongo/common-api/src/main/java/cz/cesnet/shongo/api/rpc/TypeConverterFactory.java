@@ -105,9 +105,10 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             }
             return new CollectionTypeConverter(type, componentType);
         }
+        /* TODO: refactorize API
         else if (AbstractObject.class.isAssignableFrom(type)) {
             return AbstractObjectTypeConverter.getInstance(type);
-        }
+        }*/
         return super.getTypeConverter(type);
     }
 
@@ -496,21 +497,23 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Converter for {@link AbstractObject}.
      *
+     * TODO: refactorize API
+     *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class AbstractObjectTypeConverter implements TypeConverter
-    {
+    /*private static class AbstractObjectTypeConverter implements TypeConverter
+    {*/
         /**
          * Class of {@link AbstractObject}.
          */
-        private final Class<? extends AbstractObject> abstractObjectClass;
+        //private final Class<? extends AbstractObject> abstractObjectClass;
 
         /**
          * Constructor.
          *
          * @param abstractObjectClass sets the {@link #abstractObjectClass}
          */
-        public AbstractObjectTypeConverter(Class<? extends AbstractObject> abstractObjectClass)
+        /*public AbstractObjectTypeConverter(Class<? extends AbstractObject> abstractObjectClass)
         {
             this.abstractObjectClass = abstractObjectClass;
         }
@@ -536,19 +539,19 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object result)
         {
             return result;
-        }
+        }*/
 
         /**
          * Cache for {@link AbstractObjectTypeConverter}s.
          */
-        private static Map<Class<? extends AbstractObject>, AbstractObjectTypeConverter> cache =
-                new HashMap<Class<? extends AbstractObject>, AbstractObjectTypeConverter>();
+        /*private static Map<Class<? extends AbstractObject>, AbstractObjectTypeConverter> cache =
+                new HashMap<Class<? extends AbstractObject>, AbstractObjectTypeConverter>();*/
 
         /**
          * @param abstractObjectClass for which the converter should be returned
          * @return {@link AbstractObjectTypeConverter} for given {@code abstractObjectClass}
          */
-        public static AbstractObjectTypeConverter getInstance(Class<? extends AbstractObject> abstractObjectClass)
+        /*public static AbstractObjectTypeConverter getInstance(Class<? extends AbstractObject> abstractObjectClass)
         {
             AbstractObjectTypeConverter abstractObjectTypeConverter = cache.get(abstractObjectClass);
             if (abstractObjectTypeConverter == null) {
@@ -557,5 +560,5 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             }
             return abstractObjectTypeConverter;
         }
-    }
+    }*/
 }

@@ -98,7 +98,7 @@ public class ClassHelper
             ArrayList<String> list = new ArrayList<String>();
             for (Package item : Package.getPackages()) {
                 String name = item.getName();
-                if (name.startsWith("cz.cesnet.shongo.") && name.endsWith(".api")) {
+                if (name.startsWith("cz.cesnet.shongo.") && (name.endsWith(".api") || name.endsWith(".request"))) {
                     list.add(name);
                 }
             }

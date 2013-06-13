@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.map.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.map.ReservationRequestListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import org.joda.time.Interval;
 
 import java.util.Collection;

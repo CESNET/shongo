@@ -1,9 +1,8 @@
-package cz.cesnet.shongo.controller.api.map;
+package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Specification;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,7 +11,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestListRequest extends AbstractListRequest
+public class ReservationRequestListRequest extends ListRequest
 {
     private Set<Technology> technologies = new HashSet<Technology>();
 

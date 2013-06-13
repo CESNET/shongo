@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.annotations.AccessToken;
-import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.map.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.map.ReservationRequestListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.springframework.stereotype.Controller;

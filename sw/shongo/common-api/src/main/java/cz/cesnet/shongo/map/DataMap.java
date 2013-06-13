@@ -15,13 +15,13 @@ import java.util.Map;
 import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
 
 /**
- * TODO:
+ * TODO: refactorize API
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DataMap
 {
-    private Map<String, Object> data;
+    /*private Map<String, Object> data;
 
     public DataMap()
     {
@@ -120,14 +120,8 @@ public class DataMap
 
     public static class Converter
     {
-        /**
-         * {@link org.joda.time.DateTime#getMillis()} for {@link cz.cesnet.shongo.Temporal#DATETIME_INFINITY_START}
-         */
         private static final long DATETIME_INFINITY_START_MILLIS = Temporal.DATETIME_INFINITY_START.getMillis();
 
-        /**
-         * {@link org.joda.time.DateTime#getMillis()} for {@link Temporal#DATETIME_INFINITY_END}
-         */
         private static final long DATETIME_INFINITY_END_MILLIS = Temporal.DATETIME_INFINITY_END.getMillis();
 
         @SuppressWarnings("unchecked")
@@ -215,5 +209,5 @@ public class DataMap
             T targetValue = (T) abstractObject;
             return targetValue;
         }
-    }
+    }*/
 }
