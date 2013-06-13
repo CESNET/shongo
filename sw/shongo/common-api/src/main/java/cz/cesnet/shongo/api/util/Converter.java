@@ -165,6 +165,10 @@ public class Converter
         if (TypeFlags.isPrimitive(TypeFlags.get(value))) {
             return value;
         }
+        if (value instanceof Class) {
+            Class type = (Class) value;
+            return ClassHelper.getClassShortName(type);
+        }
         if (value instanceof Interval) {
             Interval interval = (Interval) value;
             return Atomic.convertIntervalToString(interval);

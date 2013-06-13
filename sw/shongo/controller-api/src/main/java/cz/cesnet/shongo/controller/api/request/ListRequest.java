@@ -17,6 +17,11 @@ public class ListRequest extends AbstractRequest
      */
     private Integer count;
 
+    public Integer getStart()
+    {
+        return start;
+    }
+
     public Integer getStart(Integer defaultStart)
     {
         return (start != null ? start : defaultStart);
@@ -25,6 +30,11 @@ public class ListRequest extends AbstractRequest
     public void setStart(Integer start)
     {
         this.start = start;
+    }
+
+    public Integer getCount()
+    {
+        return count;
     }
 
     public Integer getCount(Integer defaultCount)

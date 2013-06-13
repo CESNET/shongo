@@ -1,7 +1,20 @@
 var module = angular.module('pagination', ['ngResource', 'ngCookies']);
 
 /**
- *
+ * Ready controller.
+ */
+module.controller('ReadyController', function ($scope) {
+    $scope.readyCount = 0;
+    $scope.ready = false;
+    $scope.$watch('readyCount', function (){
+        if ($scope.readyCount == 0) {
+            $scope.ready = true;
+        }
+    });
+});
+
+/**
+ * Pagination controller.
  */
 module.controller('PaginationController', function ($scope, $resource, $cookieStore) {
     // Resource used for fetching items
@@ -12,6 +25,10 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
     $scope.pageSize = 5;
     // Specifies whether items are ready to show (e.g., they have been fetched for the first time)
     $scope.ready = false;
+    // Increment parent readyCount
+    if ( $scope.$parent != null) {
+        $scope.$parent.readyCount++;
+    }
     // List of current items
     $scope.items = [];
     // List of current pages
@@ -67,16 +84,25 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
             if (configuration != null) {
                 $scope.pageSize = configuration.pageSize;
                 $scope.setPage(configuration.pageIndex, function(){
-                    // First time data is ready
-                    $scope.ready = true;
+                    $scope.setReady();
                 });
             }
             else {
-                // First time data is ready
-                $scope.ready = true;
+                $scope.setReady();
             }
         });
     };
+
+    /**
+     * First time data is ready.
+     */
+    $scope.setReady = function() {
+        $scope.ready = true;
+        // Update parent readyCount
+        if ( $scope.$parent != null) {
+            $scope.$parent.readyCount--;
+        }
+    }
 
     /**
      * Store current configuration (page index and page size).

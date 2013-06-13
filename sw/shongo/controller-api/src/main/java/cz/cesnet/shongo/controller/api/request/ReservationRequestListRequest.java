@@ -22,6 +22,11 @@ public class ReservationRequestListRequest extends ListRequest
         return technologies;
     }
 
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
     public void addTechnology(Technology technology)
     {
         technologies.add(technology);
@@ -32,7 +37,12 @@ public class ReservationRequestListRequest extends ListRequest
         return specificationClasses;
     }
 
-    public void addSpecificationClass(Class<Specification> specificationClass)
+    public void setSpecificationClasses(Set<Class<? extends Specification>> specificationClasses)
+    {
+        this.specificationClasses = specificationClasses;
+    }
+
+    public void addSpecificationClass(Class<? extends Specification> specificationClass)
     {
         specificationClasses.add(specificationClass);
     }

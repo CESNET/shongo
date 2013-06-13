@@ -1,3 +1,4 @@
+<%@ page import="cz.cesnet.shongo.client.web.controllers.ReservationRequestModel" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -107,8 +108,8 @@
             </form:label>
             <div class="controls">
                 <form:select path="technology" ng-model="technology">
-                    <form:option value="H323_SIP">H.323/SIP</form:option>
-                    <form:option value="ADOBE_CONNECT">Adobe Connect</form:option>
+                    <form:option value="H323_SIP"><%= ReservationRequestModel.Technology.H323_SIP.getTitle() %></form:option>
+                    <form:option value="ADOBE_CONNECT"><%= ReservationRequestModel.Technology.ADOBE_CONNECT.getTitle() %></form:option>
                 </form:select>
             </div>
         </div>

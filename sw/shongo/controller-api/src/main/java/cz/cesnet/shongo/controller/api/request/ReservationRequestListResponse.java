@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.map.AbstractRawObject;
 import org.joda.time.DateTime;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Response for {@link ReservationRequestListRequest} containing list of reservation requests.
@@ -56,6 +59,11 @@ public class ReservationRequestListResponse extends ListResponse<ReservationRequ
          * Type of the reservation request.
          */
         private AbstractType type;
+
+        /**
+         * Technologies.
+         */
+        private Set<Technology> technologies = new HashSet<Technology>();
 
         /**
          * List of provided reservation identifiers.
@@ -120,6 +128,21 @@ public class ReservationRequestListResponse extends ListResponse<ReservationRequ
         public void setType(AbstractType type)
         {
             this.type = type;
+        }
+
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
+        }
+
+        public void setTechnologies(Set<Technology> technologies)
+        {
+            this.technologies = technologies;
+        }
+
+        public void addTechnology(Technology technology)
+        {
+            this.technologies.add(technology);
         }
 
         public Collection<String> getProvidedReservationIds()

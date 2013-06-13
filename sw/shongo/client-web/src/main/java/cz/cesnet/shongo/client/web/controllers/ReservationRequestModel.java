@@ -1,9 +1,14 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.Technology;
 import org.joda.time.DateTime;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * TODO:
@@ -186,8 +191,43 @@ public class ReservationRequestModel implements Validator
 
     public static enum Technology
     {
-        H323_SIP,
-        ADOBE_CONNECT
+        H323_SIP("H.323/SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
+        ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT);
+
+        private final String title;
+
+        private final Set<cz.cesnet.shongo.Technology> technologies;
+
+        private Technology(String title, cz.cesnet.shongo.Technology... technologies)
+        {
+            this.title = title;
+            Set<cz.cesnet.shongo.Technology> technologySet = new HashSet<cz.cesnet.shongo.Technology>();
+            for (cz.cesnet.shongo.Technology technology : technologies) {
+                technologySet.add(technology);
+            }
+            this.technologies = Collections.unmodifiableSet(technologySet);
+        }
+
+        public String getTitle()
+        {
+            return title;
+        }
+
+        public Set<cz.cesnet.shongo.Technology> getTechnologies()
+        {
+            return technologies;
+        }
+
+        public static Technology find(Set<cz.cesnet.shongo.Technology> technologies)
+        {
+            if (H323_SIP.technologies.containsAll(technologies)) {
+                return H323_SIP;
+            }
+            else if (ADOBE_CONNECT.technologies.containsAll(technologies)) {
+                return ADOBE_CONNECT;
+            }
+            return null;
+        }
     }
 
     public static enum DurationType

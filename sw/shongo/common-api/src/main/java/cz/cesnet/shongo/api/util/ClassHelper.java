@@ -115,7 +115,7 @@ public class ClassHelper
      */
     public static <T> T createInstanceFromClass(Class<T> type) throws CommonReportSet.ClassInstantiationErrorException
     {
-        T instance = null;
+        T instance;
         try {
             instance = type.newInstance();
         }
@@ -134,7 +134,7 @@ public class ClassHelper
     public static <T, A> T createInstanceFromClass(Class<T> type, Class<A> argumentType, A argumentValue)
             throws CommonReportSet.ClassInstantiationErrorException
     {
-        T instance = null;
+        T instance;
         try {
             instance = type.getDeclaredConstructor(argumentType).newInstance(argumentValue);
         }

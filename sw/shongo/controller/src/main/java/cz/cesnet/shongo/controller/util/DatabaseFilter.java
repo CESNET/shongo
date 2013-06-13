@@ -3,6 +3,9 @@ package cz.cesnet.shongo.controller.util;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.controller.EntityType;
+import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.Query;
 import java.util.*;
@@ -85,6 +88,19 @@ public class DatabaseFilter
                 addFilterParameter("ids", ids);
             }
         }
+    }
+
+    /**
+     * Add identifier filter.
+     *
+     * @param authorization
+     * @param userId
+     * @param entityType
+     * @param permission
+     */
+    public void addIds(Authorization authorization, String userId, EntityType entityType, Permission permission)
+    {
+        addIds(authorization.getEntitiesWithPermission(userId, entityType, permission));
     }
 
     /**

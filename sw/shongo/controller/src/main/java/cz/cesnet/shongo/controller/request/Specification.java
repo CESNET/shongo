@@ -8,14 +8,11 @@ import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
- *
+ * <p/>
  * {@link Specification}s must be able to {@link #clone()} itself, e.g., when {@link AbstractReservationRequest}
  * is modified or when they are specified in a {@link ReservationRequestSet}.
  *
@@ -158,46 +155,8 @@ public abstract class Specification extends PersistentObject implements Reportab
     public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
             EntityManager entityManager)
     {
-        Specification specification;
-        if (api instanceof cz.cesnet.shongo.controller.api.ValueSpecification) {
-            specification = new ValueSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
-            specification = new AliasSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSetSpecification) {
-            specification = new AliasSetSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
-            specification = new ResourceSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
-            specification = new RoomSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
-            specification = new CompartmentSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
-            specification = new MultiCompartmentSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) {
-            specification = new ExistingEndpointSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) {
-            specification = new ExternalEndpointSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) {
-            specification = new ExternalEndpointSetSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.LookupEndpointSpecification) {
-            specification = new LookupEndpointSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.PersonSpecification) {
-            specification = new PersonSpecification();
-        }
-        else {
-            throw new TodoImplementException(api.getClass().getCanonicalName());
-        }
+        Class<? extends Specification> specificationClass = getClassFromApi(api.getClass());
+        Specification specification = ClassHelper.createInstanceFromClass(specificationClass);
         specification.fromApi(api, entityManager);
         return specification;
     }
@@ -227,5 +186,58 @@ public abstract class Specification extends PersistentObject implements Reportab
     {
         // Update current technologies
         updateTechnologies();
+    }
+
+    /**
+     * {@link Specification} class by {@link cz.cesnet.shongo.controller.api.Specification} class.
+     */
+    private static final Map<
+            Class<? extends cz.cesnet.shongo.controller.api.Specification>,
+            Class<? extends Specification>> CLASS_BY_API = new HashMap<
+            Class<? extends cz.cesnet.shongo.controller.api.Specification>,
+            Class<? extends Specification>>();
+
+    /**
+     * Initialization for {@link #CLASS_BY_API}.
+     */
+    static {
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ValueSpecification.class,
+                ValueSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.AliasSpecification.class,
+                AliasSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.AliasSetSpecification.class,
+                AliasSetSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ResourceSpecification.class,
+                ResourceSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomSpecification.class,
+                RoomSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.CompartmentSpecification.class,
+                CompartmentSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.MultiCompartmentSpecification.class,
+                MultiCompartmentSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExistingEndpointSpecification.class,
+                ExistingEndpointSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExternalEndpointSpecification.class,
+                ExternalEndpointSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification.class,
+                ExternalEndpointSetSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.LookupEndpointSpecification.class,
+                LookupEndpointSpecification.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.PersonSpecification.class,
+                PersonSpecification.class);
+    }
+
+    /**
+     * @param specificationApiClass
+     * @return {@link Specification} for given {@code apiClass}
+     */
+    public static Class<? extends Specification> getClassFromApi(
+            Class<? extends cz.cesnet.shongo.controller.api.Specification> specificationApiClass)
+    {
+        Class<? extends Specification> specificationClass = CLASS_BY_API.get(specificationApiClass);
+        if (specificationClass == null) {
+            throw new TodoImplementException(specificationApiClass.getCanonicalName());
+        }
+        return specificationClass;
     }
 }

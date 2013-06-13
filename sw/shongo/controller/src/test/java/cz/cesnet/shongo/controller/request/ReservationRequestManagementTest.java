@@ -267,10 +267,22 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         }
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(SECURITY_TOKEN);
-        ReservationRequestListResponse response = getReservationService().listReservationRequestsNew(request);
-        Assert.assertEquals(9, response.getItems().size());
+        request.setStart(1);
+        request.setCount(5);
 
-        List<ReservationRequestListResponse.Item> items = response.getItems();
+        ReservationRequestListResponse response;
+        List<ReservationRequestListResponse.Item> items;
+
+        response = getReservationService().listReservationRequestsNew(request);
+        items = response.getItems();
+        Assert.assertEquals(5, items.size());
+        Assert.assertEquals("request 2", items.get(0).getDescription());
+
+        request.setStart(0);
+        request.setCount(null);
+        response = getReservationService().listReservationRequestsNew(request);
+        items = response.getItems();
+        Assert.assertEquals(9, items.size());
         Assert.assertEquals(ReservationRequestListResponse.RoomType.class, items.get(0).getType().getClass());
         Assert.assertEquals(ReservationRequestListResponse.AliasType.class, items.get(1).getType().getClass());
         Assert.assertEquals(ReservationRequestListResponse.AliasType.class, items.get(2).getType().getClass());
@@ -278,6 +290,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         ReservationRequestListResponse.AliasType a2 = (ReservationRequestListResponse.AliasType)items.get(1).getType();
         Assert.assertEquals(AliasType.ROOM_NAME, a1.getType());
         Assert.assertEquals(AliasType.ROOM_NAME, a2.getType());
+
+
     }
 
     /**

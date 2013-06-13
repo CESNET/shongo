@@ -6,14 +6,17 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSet;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
@@ -383,35 +386,80 @@ public class ReservationServiceImpl extends Component
     @Override
     public ReservationRequestListResponse listReservationRequestsNew(ReservationRequestListRequest request)
     {
-        authorization.validate(request.getSecurityToken());
+        String userId = authorization.validate(request.getSecurityToken());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
+            DatabaseFilter filter = new DatabaseFilter("request");
+
+            // List only reservation requests which are CREATED (and which aren't MODIFIED or DELETED)
+            filter.addFilter("request.type = :createdType", "createdType",
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.Type.CREATED);
+
+            // List only reservation requests which aren't created for another reservation request
+            filter.addFilter("TYPE(request) != ReservationRequest OR request.parentAllocation IS NULL");
+
+            // List only reservation requests which is current user permitted to read
+            filter.addIds(authorization, userId, EntityType.RESERVATION_REQUEST, Permission.READ);
+
+            if (request.getTechnologies().size() > 0) {
+                // List only reservation requests which specifies given technologies
+                filter.addFilter("request IN ("
+                        + "  SELECT reservationRequest"
+                        + "  FROM AbstractReservationRequest reservationRequest"
+                        + "  LEFT JOIN reservationRequest.specification specification"
+                        + "  LEFT JOIN specification.technologies technology"
+                        + "  WHERE technology IN(:technologies)"
+                        + ")");
+                filter.addFilterParameter("technologies", request.getTechnologies());
+            }
+
+            if (request.getSpecificationClasses().size() > 0) {
+                // List only reservation requests which has specification of given classes
+                filter.addFilter("request IN ("
+                        + "  SELECT reservationRequest"
+                        + "  FROM AbstractReservationRequest reservationRequest"
+                        + "  LEFT JOIN reservationRequest.specification reservationRequestSpecification"
+                        + "  WHERE TYPE(reservationRequestSpecification) IN(:classes)"
+                        + ")");
+                Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
+                        new HashSet<Class<? extends cz.cesnet.shongo.controller.request.Specification>>();
+                for (Class<? extends Specification> type : request.getSpecificationClasses()) {
+                    specificationClasses.add(cz.cesnet.shongo.controller.request.Specification.getClassFromApi(type));
+                }
+                filter.addFilterParameter("classes", specificationClasses);
+            }
+
             // Create query body
-            String queryBody = " FROM AbstractReservationRequest reservationRequest"
-                    + " LEFT JOIN reservationRequest.specification specification";
+            String queryBody = " FROM AbstractReservationRequest request"
+                    + " LEFT JOIN request.specification specification"
+                    + " WHERE " + filter.toQueryWhere();
 
-            // TODO: apply filters
-
-            // Create select query
+            // Create query for listing
             TypedQuery<Object[]> listQuery = entityManager.createQuery(""
                     + "SELECT "
-                    + " reservationRequest.id,"
-                    + " reservationRequest.userId,"
-                    + " reservationRequest.created,"
-                    + " reservationRequest.purpose,"
-                    + " reservationRequest.description,"
+                    + " request.id,"
+                    + " request.userId,"
+                    + " request.created,"
+                    + " request.purpose,"
+                    + " request.description,"
                     + " specification"
                     + queryBody, Object[].class);
 
-            // Get total result count
+            // Create query for counting records
             TypedQuery<Long> countQuery = entityManager.createQuery(
-                    "SELECT COUNT(reservationRequest.id)" + queryBody, Long.class);
+                    "SELECT COUNT(request.id)" + queryBody, Long.class);
+
+            // Fill filter parameters to queries
+            filter.fillQueryParameters(listQuery);
+            filter.fillQueryParameters(countQuery);
+
+            // Get total record count
             Integer totalResultCount = countQuery.getSingleResult().intValue();
 
             // Restrict first result
             Integer firstResult = request.getStart(0);
-            if (firstResult <= 0) {
+            if (firstResult < 0) {
                 firstResult = 0;
             }
             listQuery.setFirstResult(firstResult);
@@ -465,48 +513,76 @@ public class ReservationServiceImpl extends Component
                 reservationRequestById.put(id, reservationRequest);
             }
 
-            // Fill provided reservations
-            List<Object[]> providedReservations = entityManager.createQuery(""
-                    + "SELECT reservationRequest.id, providedReservation.id "
-                    + " FROM AbstractReservationRequest reservationRequest"
-                    + " LEFT JOIN reservationRequest.providedReservations providedReservation"
-                    + " WHERE reservationRequest.id IN(:reservationRequestIds) AND providedReservation != null",
-                    Object[].class)
-                    .setParameter("reservationRequestIds", reservationRequestById.keySet())
-                    .getResultList();
-            for (Object[] providedReservation : providedReservations) {
-                Long reservationRequestId = (Long) providedReservation[0];
-                Long providedReservationId = (Long) providedReservation[1];
-                ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
-                item.addProvidedReservationId(EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
+            // Fill reservation request collections
+            Set<Long> reservationRequestIds = reservationRequestById.keySet();
+            if (reservationRequestIds.size() > 0) {
+                // Fill technologies
+                List<Object[]> technologies = entityManager.createQuery(""
+                        + "SELECT reservationRequest.id, technology"
+                        + " FROM AbstractReservationRequest reservationRequest"
+                        + " LEFT JOIN reservationRequest.specification.technologies technology"
+                        + " WHERE reservationRequest.id IN(:reservationRequestIds) AND technology != null",
+                        Object[].class)
+                        .setParameter("reservationRequestIds", reservationRequestIds)
+                        .getResultList();
+                for (Object[] providedReservation : technologies) {
+                    Long reservationRequestId = (Long) providedReservation[0];
+                    Technology technology = (Technology) providedReservation[1];
+                    ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
+                    item.addTechnology(technology);
+                }
+
+                // Fill provided reservations
+                List<Object[]> providedReservations = entityManager.createQuery(""
+                        + "SELECT reservationRequest.id, providedReservation.id"
+                        + " FROM AbstractReservationRequest reservationRequest"
+                        + " LEFT JOIN reservationRequest.providedReservations providedReservation"
+                        + " WHERE reservationRequest.id IN(:reservationRequestIds) AND providedReservation != null",
+                        Object[].class)
+                        .setParameter("reservationRequestIds", reservationRequestIds)
+                        .getResultList();
+                for (Object[] providedReservation : providedReservations) {
+                    Long reservationRequestId = (Long) providedReservation[0];
+                    Long providedReservationId = (Long) providedReservation[1];
+                    ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
+                    item.addProvidedReservationId(EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
+                }
             }
 
             // Fill aliases
             if (aliasReservationRequestIds.size() > 0) {
+                // Get list of requested aliases for all reservation requests
                 List<Object[]> aliasReservationRequests = entityManager.createQuery(""
                         + "SELECT reservationRequest.id, aliasType, aliasSpecification.value"
                         + " FROM AbstractReservationRequest reservationRequest, AliasSpecification aliasSpecification"
                         + " LEFT JOIN aliasSpecification.aliasTypes aliasType"
                         + " WHERE reservationRequest.id IN(:reservationRequestIds)"
-                        + "   AND (reservationRequest.specification.id = aliasSpecification.id"
-                        + "        OR aliasSpecification.id IN("
-                        + "           SELECT childAliasSpecification.id FROM AliasSetSpecification aliasSetSpecification LEFT JOIN aliasSetSpecification.aliasSpecifications childAliasSpecification WHERE reservationRequest.specification.id = aliasSetSpecification.id))",
+                        + " AND ("
+                        + "       reservationRequest.specification.id = aliasSpecification.id"
+                        + "    OR aliasSpecification.id IN("
+                        + "       SELECT childAliasSpecification.id FROM AliasSetSpecification aliasSetSpecification"
+                        + "       LEFT JOIN aliasSetSpecification.aliasSpecifications childAliasSpecification"
+                        + "       WHERE reservationRequest.specification.id = aliasSetSpecification.id)"
+                        + " )",
                         Object[].class)
-                        .setParameter("reservationRequestIds", reservationRequestById.keySet())
+                        .setParameter("reservationRequestIds", aliasReservationRequestIds)
                         .getResultList();
-                // Sort aliases
+
+                // Sort requested aliases for each reservation request
                 Collections.sort(aliasReservationRequests, new Comparator<Object[]>()
                 {
                     @Override
                     public int compare(Object[] object1, Object[] object2)
                     {
                         if (!object1[0].equals(object2[0])) {
+                            // Skip same reservation request
                             return 0;
                         }
                         return ((AliasType) object1[1]).compareTo((AliasType) object2[1]);
                     }
                 });
 
+                // Fill first requested alias for each reservation request
                 for (Object[] aliasReservation : aliasReservationRequests) {
                     Long aliasReservationRequestId = (Long) aliasReservation[0];
                     if (!aliasReservationRequestIds.contains(aliasReservationRequestId)) {

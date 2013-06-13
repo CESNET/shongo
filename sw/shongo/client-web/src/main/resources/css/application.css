@@ -30,6 +30,15 @@ td.empty {
     color: #AAAAAA;
 }
 
+/** Spinner */
+.spinner {
+    background-image: url("/img/spinner.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 32px;
+    margin: 20px;
+}
+
 /** Page links */
 .page {
     border: solid 1px;

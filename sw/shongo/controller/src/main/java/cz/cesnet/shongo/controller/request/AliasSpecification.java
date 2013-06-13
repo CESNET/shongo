@@ -221,7 +221,11 @@ public class AliasSpecification extends Specification
         clearTechnologies();
         addTechnologies(aliasTechnologies);
         for (AliasType aliasType : aliasTypes) {
-            addTechnology(aliasType.getTechnology());
+            Technology technology = aliasType.getTechnology();
+            if (technology.equals(Technology.ALL)) {
+                continue;
+            }
+            addTechnology(technology);
         }
     }
 

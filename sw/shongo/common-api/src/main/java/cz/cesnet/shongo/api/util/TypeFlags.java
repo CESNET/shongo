@@ -242,6 +242,7 @@ public class TypeFlags
          */
         private static final Set<Class> FINAL = new HashSet<Class>()
         {{
+                add(Class.class);
                 add(String.class);
                 add(Period.class);
                 add(DateTime.class);
