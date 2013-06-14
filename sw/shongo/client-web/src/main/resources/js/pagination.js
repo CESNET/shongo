@@ -6,7 +6,7 @@ var module = angular.module('pagination', ['ngResource', 'ngCookies']);
 module.controller('ReadyController', function ($scope) {
     $scope.readyCount = 0;
     $scope.ready = false;
-    $scope.$watch('readyCount', function (){
+    $scope.$watch('readyCount', function () {
         if ($scope.readyCount == 0) {
             $scope.ready = true;
         }
@@ -16,7 +16,7 @@ module.controller('ReadyController', function ($scope) {
 /**
  * Pagination controller.
  */
-module.controller('PaginationController', function ($scope, $resource, $cookieStore) {
+module.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
     // Resource used for fetching items
     $scope.resource = null;
     // Current page index
@@ -26,9 +26,12 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
     // Specifies whether items are ready to show (e.g., they have been fetched for the first time)
     $scope.ready = false;
     // Increment parent readyCount
-    if ( $scope.$parent != null) {
+    if ($scope.$parent != null) {
         $scope.$parent.readyCount++;
     }
+    // Error
+    $scope.error = false;
+    $scope.onError = null;
     // List of current items
     $scope.items = [];
     // List of current pages
@@ -78,31 +81,43 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
             $scope.pageSize = configuration.pageSize;
         }
         // List items for the first time (to determine total count)
-        $scope.resource.list({start: 0, count: $scope.pageSize}, function(result){
+        $scope.resource.list({start: 0, count: $scope.pageSize}, function (result) {
             setData(result);
             // If configuration is loaded set configured page index
             if (configuration != null) {
                 $scope.pageSize = configuration.pageSize;
-                $scope.setPage(configuration.pageIndex, function(){
+                $scope.setPage(configuration.pageIndex, function () {
                     $scope.setReady();
                 });
             }
             else {
                 $scope.setReady();
             }
+        }, function (response) {
+            $scope.setError(response);
         });
     };
 
     /**
      * First time data is ready.
      */
-    $scope.setReady = function() {
+    $scope.setReady = function () {
         $scope.ready = true;
         // Update parent readyCount
-        if ( $scope.$parent != null) {
+        if ($scope.$parent != null) {
             $scope.$parent.readyCount--;
         }
-    }
+    };
+
+    /**
+     * First time data is ready.
+     */
+    $scope.setError = function (response) {
+        $scope.error = true;
+        if ($scope.onError != null) {
+            $scope.onError(response);
+        }
+    };
 
     /**
      * Store current configuration (page index and page size).
@@ -131,10 +146,10 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
         if (!/^\d+$/.test(pageIndex)) {
             pageIndex = 0;
         }
-        else if (pageIndex < 0 ) {
+        else if (pageIndex < 0) {
             pageIndex = 0;
         }
-        else if (pageIndex >= $scope.pages.length ) {
+        else if (pageIndex >= $scope.pages.length) {
             pageIndex = $scope.pages.length - 1;
         }
 
@@ -144,7 +159,7 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
         var page = $scope.pages[pageIndex];
 
         // List items
-        $scope.resource.list({start: page.start, count: $scope.pageSize}, function(data){
+        $scope.resource.list({start: page.start, count: $scope.pageSize}, function (data) {
             setData(data);
             if (callback != null) {
                 callback.call();
@@ -152,6 +167,8 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
 
             // Store configuration
             $scope.storeConfiguration();
+        }, function (response) {
+            $scope.setError(response);
         });
     };
 
@@ -172,12 +189,26 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
         start = Math.floor(start / $scope.pageSize) * $scope.pageSize;
 
         // List items
-        $scope.resource.list({start: start, count: $scope.pageSize}, function(data){
+        $scope.resource.list({start: start, count: $scope.pageSize}, function (data) {
             setData(data);
 
             // Store configuration
             $scope.storeConfiguration();
+        }, function(response){
+            $scope.setError(response);
         });
+    };
+});
+
+/**
+ * Directive <pagination-page-size> for displaying page size selection.
+ */
+module.directive('onError', function () {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+            scope.onError = eval(attr.onError);
+        }
     };
 });
 
@@ -187,7 +218,7 @@ module.controller('PaginationController', function ($scope, $resource, $cookieSt
 module.directive('paginationPageSize', function () {
     return {
         restrict: 'E',
-        compile: function(element, attrs, transclude) {
+        compile: function (element, attrs, transclude) {
             var text = element[0].innerText;
             var html = '<div class="' + attrs.class + '">' + text + '&nbsp;&nbsp;' +
                 '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
@@ -207,7 +238,7 @@ module.directive('paginationPageSize', function () {
 module.directive('paginationPages', function () {
     return {
         restrict: 'E',
-        compile: function(element, attrs, transclude) {
+        compile: function (element, attrs, transclude) {
             var text = element[0].innerText;
             var html = '<div class="' + attrs.class + '">' + text + ' ' +
                 '<span ng-repeat="page in pages">' +

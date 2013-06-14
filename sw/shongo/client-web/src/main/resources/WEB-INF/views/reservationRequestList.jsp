@@ -4,6 +4,20 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
+<script type="text/javascript">
+    window.onErrorResolved = false;
+    window.onError = function(response) {
+        // Handle only first error
+        if (window.onErrorResolved) {
+            return;
+        }
+        window.onErrorResolved = true;
+
+        // Rewrite document by error page
+        document.write(response.data);
+    };
+</script>
+
 <div ng-app="pagination" ng-controller="ReadyController">
 
     <div class="spinner" ng-hide="ready"></div>
@@ -11,30 +25,31 @@
     <div ng-show="ready">
 
         <div ng-controller="PaginationController"
-             ng-init="init('list_aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')">
+             ng-init="init('list_aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')"
+             on-error="window.onError">
             <pagination-page-size class="pull-right"><spring:message
                     code="views.pagination.records"/></pagination-page-size>
             <h2><spring:message code="views.reservationRequest.type.aliases"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
+                    <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
                     <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
-                    <th><spring:message code="views.reservationRequest.created"/></th>
                     <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
+                    <td>{{reservationRequest.created}}</td>
+                    <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td>{{reservationRequest.description}}</td>
-                    <td>{{reservationRequest.user}}</td>
-                    <td>{{reservationRequest.created}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
                                 code="views.reservationRequestList.action.detail"/></a>
@@ -59,30 +74,30 @@
 
         <div ng-controller="PaginationController"
              ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"
-             ng-show="ready">
+             on-error="window.onError">
             <pagination-page-size class="pull-right"><spring:message
                     code="views.pagination.records"/></pagination-page-size>
             <h2><spring:message code="views.reservationRequest.type.rooms"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
+                    <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
                     <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
-                    <th><spring:message code="views.reservationRequest.created"/></th>
                     <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
+                    <td>{{reservationRequest.created}}</td>
+                    <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td>{{reservationRequest.description}}</td>
-                    <td>{{reservationRequest.user}}</td>
-                    <td>{{reservationRequest.created}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
                                 code="views.reservationRequestList.action.detail"/></a>
