@@ -2,13 +2,9 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AliasReservation;
-import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.request.ListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -16,10 +12,9 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.AliasSetSpecification;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
@@ -455,6 +450,8 @@ public class ReservationServiceImpl extends Component
                     + " request.created,"
                     + " request.purpose,"
                     + " request.description,"
+                    + " request.slotStart,"
+                    + " request.slotEnd,"
                     + " specification";
             String queryFrom = " FROM AbstractReservationRequest request"
                     + " LEFT JOIN request.specification specification";
@@ -464,6 +461,7 @@ public class ReservationServiceImpl extends Component
 
             // Fill reservation requests to response
             Set<Long> aliasReservationRequestIds = new HashSet<Long>();
+            Set<Long> reservationRequestSetIds = new HashSet<Long>();
             Map<Long, ReservationRequestSummary> reservationRequestById =
                     new HashMap<Long, ReservationRequestSummary>();
             for (Object[] result : results) {
@@ -476,8 +474,17 @@ public class ReservationServiceImpl extends Component
                 reservationRequestSummary.setDescription((String) result[4]);
                 response.addItem(reservationRequestSummary);
 
+                DateTime slotStart = (DateTime) result[5];
+                DateTime slotEnd = (DateTime) result[6];
+                if (slotStart != null && slotEnd != null) {
+                    reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
+                }
+                else {
+                    reservationRequestSetIds.add(id);
+                }
+
                 // Prepare specification
-                Object specification = result[5];
+                Object specification = result[7];
                 if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
                     aliasReservationRequestIds.add(id);
                 }
@@ -492,6 +499,50 @@ public class ReservationServiceImpl extends Component
                     reservationRequestSummary.setType(roomType);
                 }
                 reservationRequestById.put(id, reservationRequestSummary);
+            }
+
+            // Fill reservation request set earliest slot
+            if (reservationRequestSetIds.size() > 0) {
+                // Get list of requested slots in future
+                List<Object[]> requestedSlots = entityManager.createQuery(""
+                        + "SELECT reservationRequestSet.id, reservationRequest.slotStart, reservationRequest.slotEnd"
+                        + " FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.allocation.childReservationRequests reservationRequest"
+                        + " WHERE reservationRequestSet.id IN(:reservationRequestIds)"
+                        + " AND reservationRequest != null"
+                        + " AND (reservationRequest.slotStart > :now OR reservationRequest.slotEnd > :now)",
+                        Object[].class)
+                        .setParameter("reservationRequestIds", reservationRequestSetIds)
+                        .setParameter("now", DateTime.now())
+                        .getResultList();
+
+                // Sort requested slots for each reservation request
+                Collections.sort(requestedSlots, new Comparator<Object[]>()
+                {
+                    @Override
+                    public int compare(Object[] object1, Object[] object2)
+                    {
+                        if (!object1[0].equals(object2[0])) {
+                            // Skip different reservation requests
+                            return 0;
+                        }
+                        return ((DateTime) object1[1]).compareTo((DateTime) object2[1]);
+                    }
+                });
+
+                // Fill first requested slot for each reservation request
+                for (Object[] requestedSlot : requestedSlots) {
+                    Long id = (Long) requestedSlot[0];
+                    if (!reservationRequestSetIds.contains(id)) {
+                        continue;
+                    }
+                    reservationRequestSetIds.remove(id);
+
+                    DateTime slotStart = (DateTime) requestedSlot[1];
+                    DateTime slotEnd = (DateTime) requestedSlot[2];
+                    ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
+                    reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
+                }
             }
 
             // Fill reservation request collections
@@ -557,7 +608,7 @@ public class ReservationServiceImpl extends Component
                     public int compare(Object[] object1, Object[] object2)
                     {
                         if (!object1[0].equals(object2[0])) {
-                            // Skip same reservation request
+                            // Skip different reservation requests
                             return 0;
                         }
                         return ((AliasType) object1[1]).compareTo((AliasType) object2[1]);
@@ -736,7 +787,8 @@ public class ReservationServiceImpl extends Component
                     }
                     else if (reservation.getClass().equals(cz.cesnet.shongo.controller.reservation.Reservation.class)) {
                         boolean technologyFound = false;
-                        for (cz.cesnet.shongo.controller.reservation.Reservation childReservation : reservation.getChildReservations()) {
+                        for (cz.cesnet.shongo.controller.reservation.Reservation childReservation : reservation
+                                .getChildReservations()) {
                             if (childReservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
                                 cz.cesnet.shongo.controller.reservation.AliasReservation childAliasReservation = (cz.cesnet.shongo.controller.reservation.AliasReservation) childReservation;
                                 for (Alias alias : childAliasReservation.getAliases()) {
@@ -764,7 +816,7 @@ public class ReservationServiceImpl extends Component
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
                 response.addItem(reservation.toApi(authorization.isAdmin(userId)));
             }
-            return  response;
+            return response;
         }
         finally {
             entityManager.close();
@@ -772,7 +824,8 @@ public class ReservationServiceImpl extends Component
         }
     }
 
-    private  <T> List<T> performListRequest(String queryAlias, String querySelect, Class<T> querySelectClass, String queryFrom,
+    private <T> List<T> performListRequest(String queryAlias, String querySelect, Class<T> querySelectClass,
+            String queryFrom,
             DatabaseFilter filter, ListRequest listRequest, ListResponse listResponse, EntityManager entityManager)
     {
         String queryWhere = filter.toQueryWhere();

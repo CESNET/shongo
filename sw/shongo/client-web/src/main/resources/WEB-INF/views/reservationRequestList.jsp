@@ -20,16 +20,18 @@
                 <tr>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
+                    <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.created"/></th>
-                    <th width="180px"><spring:message code="views.reservationRequestList.action"/></th>
+                    <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
+                    <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td>{{reservationRequest.description}}</td>
                     <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.created}}</td>
@@ -66,16 +68,18 @@
                 <tr>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
+                    <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.created"/></th>
-                    <th width="180px"><spring:message code="views.reservationRequestList.action"/></th>
+                    <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
+                    <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td>{{reservationRequest.description}}</td>
                     <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.created}}</td>

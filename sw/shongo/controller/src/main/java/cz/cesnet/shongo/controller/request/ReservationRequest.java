@@ -106,7 +106,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     /**
      * @return {@link #slotStart}
      */
-    @Column
+    @Column(nullable = false)
     @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
     public DateTime getSlotStart()
@@ -125,7 +125,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     /**
      * @return {@link #slotEnd}
      */
-    @Column
+    @Column(nullable = false)
     @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
     public DateTime getSlotEnd()

@@ -70,12 +70,23 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void addSlot(String startDateTime, String endDateTimeOrDuration)
     {
+        addSlot(DateTime.parse(startDateTime), endDateTimeOrDuration);
+    }
+
+    /**
+     * Add new slot to the {@link #SLOTS}.
+     *
+     * @param startDateTime
+     * @param endDateTimeOrDuration
+     */
+    public void addSlot(DateTime startDateTime, String endDateTimeOrDuration)
+    {
         Interval interval;
         try {
-            interval = new Interval(DateTime.parse(startDateTime), DateTime.parse(endDateTimeOrDuration));
+            interval = new Interval(startDateTime, DateTime.parse(endDateTimeOrDuration));
         }
         catch (IllegalArgumentException exception) {
-            interval = new Interval(DateTime.parse(startDateTime), Period.parse(endDateTimeOrDuration));
+            interval = new Interval(startDateTime, Period.parse(endDateTimeOrDuration));
         }
         addSlot(interval);
     }

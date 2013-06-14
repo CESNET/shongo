@@ -37,6 +37,11 @@ public class ReservationRequestSummary extends IdentifiedObject
     private String description;
 
     /**
+     * The earliest requested date/time slot.
+     */
+    private Interval earliestSlot;
+
+    /**
      * @see Type
      */
     private Type type;
@@ -113,6 +118,22 @@ public class ReservationRequestSummary extends IdentifiedObject
     public void setDescription(String description)
     {
         this.description = description;
+    }
+
+    /**
+     * @return {@link #earliestSlot}
+     */
+    public Interval getEarliestSlot()
+    {
+        return earliestSlot;
+    }
+
+    /**
+     * @param earliestSlot sets the {@link #earliestSlot}
+     */
+    public void setEarliestSlot(Interval earliestSlot)
+    {
+        this.earliestSlot = earliestSlot;
     }
 
     /**

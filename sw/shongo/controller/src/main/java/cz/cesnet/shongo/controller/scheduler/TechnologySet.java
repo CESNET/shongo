@@ -53,7 +53,8 @@ public class TechnologySet extends PersistentObject
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        this.technologies = technologies;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
     }
 
     @Override

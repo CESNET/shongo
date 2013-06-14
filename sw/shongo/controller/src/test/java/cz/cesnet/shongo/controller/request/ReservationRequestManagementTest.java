@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.core.Is.is;
+
 /**
  * Tests for creating, updating and deleting {@link AbstractReservationRequest}s.
  *
@@ -265,6 +268,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
             }
             getReservationService().createReservationRequest(SECURITY_TOKEN, request);
         }
+
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(SECURITY_TOKEN);
         request.setStart(1);
@@ -418,16 +422,15 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         @SuppressWarnings("unchecked")
         ListResponse<ReservationRequestSummary> result = (ListResponse<ReservationRequestSummary>)
                 getControllerClient().execute("Reservation.listReservationRequests", params);
-        throw new TodoImplementException("Implement earliest slot in reservation request summary.");
-        /*Interval slot1 = ((ReservationRequestSummary) result[0]).getEarliestSlot();
+        Interval slot1 = result.getItem(0).getEarliestSlot();
         Assert.assertEquals(Temporal.DATETIME_INFINITY_START, slot1.getStart());
         Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot1.getEnd());
-        Interval slot2 = ((ReservationRequestSummary) result[1]).getEarliestSlot();
+        Interval slot2 = result.getItem(1).getEarliestSlot();
         Assert.assertEquals(Temporal.DATETIME_INFINITY_START, slot2.getStart());
         Assert.assertThat(Temporal.DATETIME_INFINITY_END, is(not(slot2.getEnd())));
-        Interval slot3 = ((ReservationRequestSummary) result[2]).getEarliestSlot();
+        Interval slot3 = result.getItem(2).getEarliestSlot();
         Assert.assertThat(Temporal.DATETIME_INFINITY_START, is(not(slot3.getStart())));
-        Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());*/
+        Assert.assertEquals(Temporal.DATETIME_INFINITY_END, slot3.getEnd());
     }
 
     @Test

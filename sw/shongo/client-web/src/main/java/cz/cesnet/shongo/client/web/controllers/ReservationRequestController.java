@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.annotations.AccessToken;
@@ -29,16 +30,17 @@ import java.util.*;
 @RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MM");
-
-    @Resource
-    private MessageSource messageSource;
 
     @Resource
     private ReservationService reservationService;
 
     @Resource
     private UserCache userCache;
+
+    @Resource
+    private MessageSource messageSource;
 
     @RequestMapping(value = {"", "/list"}, method = RequestMethod.GET)
     public String getList()
@@ -127,6 +129,7 @@ public class ReservationRequestController
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
+        DateTimeFormatter dateFormatter = DATE_FORMATTER.withLocale(locale);
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary responseItem : response.getItems()) {
@@ -134,14 +137,20 @@ public class ReservationRequestController
             item.put("id", responseItem.getId());
             item.put("description", responseItem.getDescription());
             item.put("purpose", responseItem.getPurpose());
-            item.put("created", dateTimeFormatter.print(responseItem.getCreated()));
+            item.put("created", dateFormatter.print(responseItem.getCreated()));
             items.add(item);
 
             UserInformation userInformation = userCache.getUserInformation(securityToken, responseItem.getUserId());
             item.put("user", userInformation.getFullName());
 
-            ReservationRequestModel.Technology technology =
-                    ReservationRequestModel.Technology.find(responseItem.getTechnologies());
+            Interval earliestSlot = responseItem.getEarliestSlot();
+            if (earliestSlot != null) {
+                item.put("earliestSlotStart", dateTimeFormatter.print(earliestSlot.getStart()));
+                item.put("earliestSlotEnd", dateTimeFormatter.print(earliestSlot.getEnd()));
+            }
+
+            Set<Technology> technologies = responseItem.getTechnologies();
+            ReservationRequestModel.Technology technology = ReservationRequestModel.Technology.find(technologies);
             if (technology != null) {
                 item.put("technology", technology.getTitle());
             }
