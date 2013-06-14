@@ -4,12 +4,9 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.annotations.AccessToken;
-import cz.cesnet.shongo.controller.api.AliasSetSpecification;
-import cz.cesnet.shongo.controller.api.AliasSpecification;
-import cz.cesnet.shongo.controller.api.RoomSpecification;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormat;
@@ -20,7 +17,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -50,11 +46,13 @@ public class ReservationRequestController
     }
 
     @RequestMapping(value = "/detail/{id:.+}", method = RequestMethod.GET)
-    public String getDetail(@PathVariable(value = "id") String id, Model model)
+    public String getDetail(
+            @AccessToken String accessToken,
+            @PathVariable(value = "id") String id,
+            Model model)
     {
-        Map<String, Object> reservationRequest = new HashMap<String, Object>();
-        reservationRequest.put("id", id);
-        reservationRequest.put("description", "test");
+        SecurityToken securityToken = new SecurityToken(accessToken);
+        AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
         model.addAttribute("reservationRequest", reservationRequest);
         return "reservationRequestDetail";
     }
@@ -62,6 +60,8 @@ public class ReservationRequestController
     @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
     public String getDelete(@PathVariable(value = "id") String reservationRequestId, Model model)
     {
+        // todo
+        //reservationService.listReservations()
         Map<String, Object> reservationRequest = new HashMap<String, Object>();
         reservationRequest.put("id", reservationRequestId);
         reservationRequest.put("description", "test");
@@ -80,9 +80,12 @@ public class ReservationRequestController
     }
 
     @RequestMapping(value = "/delete/confirmed", method = RequestMethod.POST)
-    public String getDeleteConfirmed(HttpServletRequest request)
+    public String getDeleteConfirmed(
+            @AccessToken String accessToken,
+            @RequestParam(value = "id") String reservationRequestId)
     {
-        String reservationRequestId = request.getParameter("id");
+        SecurityToken securityToken = new SecurityToken(accessToken);
+        reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:/reservation-request";
     }
 
@@ -111,11 +114,11 @@ public class ReservationRequestController
                     break;
             }
         }
-        ReservationRequestListResponse response = reservationService.listReservationRequestsNew(request);
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
-        for (ReservationRequestListResponse.Item responseItem : response.getItems()) {
+        for (ReservationRequestSummary responseItem : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", responseItem.getId());
             item.put("description", responseItem.getDescription());
@@ -132,16 +135,16 @@ public class ReservationRequestController
                 item.put("technology", technology.getTitle());
             }
 
-            ReservationRequestListResponse.AbstractType type = responseItem.getType();
-            if (type instanceof ReservationRequestListResponse.RoomType) {
-                ReservationRequestListResponse.RoomType roomType = (ReservationRequestListResponse.RoomType) type;
+            ReservationRequestSummary.Type type = responseItem.getType();
+            if (type instanceof ReservationRequestSummary.RoomType) {
+                ReservationRequestSummary.RoomType roomType = (ReservationRequestSummary.RoomType) type;
                 item.put("type", messageSource.getMessage("views.reservationRequest.specification.room", null, locale));
                 item.put("participantCount", roomType.getParticipantCount());
             }
-            else if (type instanceof ReservationRequestListResponse.AliasType) {
-                ReservationRequestListResponse.AliasType aliasType = (ReservationRequestListResponse.AliasType) type;
+            else if (type instanceof ReservationRequestSummary.AliasType) {
+                ReservationRequestSummary.AliasType aliasType = (ReservationRequestSummary.AliasType) type;
                 item.put("type", messageSource.getMessage("views.reservationRequest.specification.alias", null, locale));
-                if (aliasType.getType().equals(AliasType.ROOM_NAME)) {
+                if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());
                 }
             }

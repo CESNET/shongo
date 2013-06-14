@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -472,5 +474,46 @@ public class Reservation extends PersistentObject implements Reportable
          * the most situations).
          */
         CONTROLLER
+    }
+
+    /**
+     * {@link Reservation} class by {@link cz.cesnet.shongo.controller.api.Reservation} class.
+     */
+    private static final Map<
+            Class<? extends cz.cesnet.shongo.controller.api.Reservation>,
+            Class<? extends Reservation>> CLASS_BY_API = new HashMap<
+            Class<? extends cz.cesnet.shongo.controller.api.Reservation>,
+            Class<? extends Reservation>>();
+
+    /**
+     * Initialization for {@link #CLASS_BY_API}.
+     */
+    static {
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.Reservation.class,
+                Reservation.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.AliasReservation.class,
+                AliasReservation.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ExistingReservation.class,
+                ExistingReservation.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ResourceReservation.class,
+                ResourceReservation.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.RoomReservation.class,
+                RoomReservation.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ValueReservation.class,
+                ValueReservation.class);
+    }
+
+    /**
+     * @param reservationApiClass
+     * @return {@link Reservation} for given {@code apiClass}
+     */
+    public static Class<? extends Reservation> getClassFromApi(
+            Class<? extends cz.cesnet.shongo.controller.api.Reservation> reservationApiClass)
+    {
+        Class<? extends Reservation> specificationClass = CLASS_BY_API.get(reservationApiClass);
+        if (specificationClass == null) {
+            throw new TodoImplementException(reservationApiClass.getCanonicalName());
+        }
+        return specificationClass;
     }
 }

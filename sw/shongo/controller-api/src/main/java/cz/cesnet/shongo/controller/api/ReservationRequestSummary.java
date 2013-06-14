@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+
+import java.util.*;
 
 /**
  * Summary for all types of {@link AbstractReservationRequest}.
@@ -39,14 +42,14 @@ public class ReservationRequestSummary extends IdentifiedObject
     private Type type;
 
     /**
-     * Earliest slot.
+     * Technologies.
      */
-    private Interval earliestSlot;
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
-     * @see ReservationRequestState
+     * List of provided reservation identifiers.
      */
-    private ReservationRequestState state;
+    private List<String> providedReservationIds = new LinkedList<String>();
 
     /**
      * @return {@link #userId}
@@ -129,35 +132,51 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * @return {@link #earliestSlot}
+     * @return {@link #technologies}
      */
-    public Interval getEarliestSlot()
+    public Set<Technology> getTechnologies()
     {
-        return earliestSlot;
+        return technologies;
     }
 
     /**
-     * @param earliestSlot sets the {@link #earliestSlot}
+     * @param technologies sets the {@link #technologies}
      */
-    public void setEarliestSlot(Interval earliestSlot)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        this.earliestSlot = earliestSlot;
+        this.technologies = technologies;
     }
 
     /**
-     * @return {@link #state}
+     * @param technology to be added to the {@link #technologies}
      */
-    public ReservationRequestState getState()
+    public void addTechnology(Technology technology)
     {
-        return state;
+        this.technologies.add(technology);
     }
 
     /**
-     * @param state sets the {@link #state}
+     * @return {@link #providedReservationIds}
      */
-    public void setState(ReservationRequestState state)
+    public List<String> getProvidedReservationIds()
     {
-        this.state = state;
+        return providedReservationIds;
+    }
+
+    /**
+     * @param providedReservationIds sets the {@link #providedReservationIds}
+     */
+    public void setProvidedReservationIds(List<String> providedReservationIds)
+    {
+        this.providedReservationIds = providedReservationIds;
+    }
+
+    /**
+     * @param providedReservationId to be added to the {@link #providedReservationIds}
+     */
+    public void addProvidedReservationId(String providedReservationId)
+    {
+        providedReservationIds.add(providedReservationId);
     }
 
     /**
@@ -205,11 +224,6 @@ public class ReservationRequestSummary extends IdentifiedObject
         private Integer participantCount;
 
         /**
-         * Requested name for the room.
-         */
-        private String name;
-
-        /**
          * @return {@link #participantCount}
          */
         public Integer getParticipantCount()
@@ -223,22 +237,6 @@ public class ReservationRequestSummary extends IdentifiedObject
         public void setParticipantCount(Integer participantCount)
         {
             this.participantCount = participantCount;
-        }
-
-        /**
-         * @return {@link #name}
-         */
-        public String getName()
-        {
-            return name;
-        }
-
-        /**
-         * @param name sets the {@link #name}
-         */
-        public void setName(String name)
-        {
-            this.name = name;
         }
     }
 

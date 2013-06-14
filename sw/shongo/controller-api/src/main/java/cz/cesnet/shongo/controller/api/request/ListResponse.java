@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.api.annotation.Transient;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * TODO:
+ * {@link AbstractResponse} for listing objects.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -17,7 +19,7 @@ public class ListResponse<T> extends AbstractResponse
     private int start;
 
     /**
-     * Total number of items available.
+     * Total number of items available (but {@link #items} can contain only portion of them based on request).
      */
     private int count;
 
@@ -26,28 +28,40 @@ public class ListResponse<T> extends AbstractResponse
      */
     private List<T> items = new LinkedList<T>();
 
-    private Class<T> itemClass;
-
-    public ListResponse(Class<T> itemClass)
+    /**
+     * Constructor.
+     */
+    public ListResponse()
     {
-        this.itemClass = itemClass;
     }
 
+    /**
+     * @return {@link #start}
+     */
     public int getStart()
     {
         return start;
     }
 
+    /**
+     * @param start sets the {@link #start}
+     */
     public void setStart(int start)
     {
         this.start = start;
     }
 
+    /**
+     * @return {@link #count}
+     */
     public int getCount()
     {
         return count;
     }
 
+    /**
+     * @param count sets the {@link #count}
+     */
     public void setCount(int count)
     {
         this.count = count;
@@ -59,6 +73,24 @@ public class ListResponse<T> extends AbstractResponse
     public List<T> getItems()
     {
         return Collections.unmodifiableList(items);
+    }
+
+    /**
+     * @param index
+     * @return item at {@code index}
+     */
+    public T getItem(int index)
+    {
+        return items.get(index);
+    }
+
+    /**
+     * @return size of {@link #items}
+     */
+    @Transient
+    public int getItemCount()
+    {
+        return items.size();
     }
 
     /**

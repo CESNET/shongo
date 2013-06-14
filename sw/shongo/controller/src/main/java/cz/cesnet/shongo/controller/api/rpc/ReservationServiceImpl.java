@@ -3,21 +3,23 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequestSet;
-import cz.cesnet.shongo.controller.api.Specification;
+import cz.cesnet.shongo.controller.api.AliasReservation;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.request.ListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AliasSetSpecification;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
@@ -384,7 +386,7 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public ReservationRequestListResponse listReservationRequestsNew(ReservationRequestListRequest request)
+    public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request)
     {
         String userId = authorization.validate(request.getSecurityToken());
 
@@ -430,70 +432,49 @@ public class ReservationServiceImpl extends Component
                 filter.addFilterParameter("classes", specificationClasses);
             }
 
-            // Create query body
-            String queryBody = " FROM AbstractReservationRequest request"
-                    + " LEFT JOIN request.specification specification"
-                    + " WHERE " + filter.toQueryWhere();
+            if (request.getProvidedReservationIds().size() > 0) {
+                // List only reservation requests which got provided given reservation
+                filter.addFilter("request IN ("
+                        + "  SELECT reservationRequest"
+                        + "  FROM AbstractReservationRequest reservationRequest"
+                        + "  LEFT JOIN reservationRequest.providedReservations providedReservation"
+                        + "  WHERE providedReservation.id IN (:providedReservationIds)"
+                        + ")");
+                Set<Long> providedReservationIds = new HashSet<Long>();
+                for (String providedReservationId : request.getProvidedReservationIds()) {
+                    providedReservationIds.add(EntityIdentifier.parseId(
+                            cz.cesnet.shongo.controller.reservation.Reservation.class, providedReservationId));
+                }
+                filter.addFilterParameter("providedReservationIds", providedReservationIds);
+            }
 
-            // Create query for listing
-            TypedQuery<Object[]> listQuery = entityManager.createQuery(""
-                    + "SELECT "
+            // Create parts
+            String querySelect = "SELECT "
                     + " request.id,"
                     + " request.userId,"
                     + " request.created,"
                     + " request.purpose,"
                     + " request.description,"
-                    + " specification"
-                    + queryBody, Object[].class);
-
-            // Create query for counting records
-            TypedQuery<Long> countQuery = entityManager.createQuery(
-                    "SELECT COUNT(request.id)" + queryBody, Long.class);
-
-            // Fill filter parameters to queries
-            filter.fillQueryParameters(listQuery);
-            filter.fillQueryParameters(countQuery);
-
-            // Get total record count
-            Integer totalResultCount = countQuery.getSingleResult().intValue();
-
-            // Restrict first result
-            Integer firstResult = request.getStart(0);
-            if (firstResult < 0) {
-                firstResult = 0;
-            }
-            listQuery.setFirstResult(firstResult);
-
-            // Restrict result count
-            Integer maxResultCount = request.getCount(-1);
-            if (maxResultCount != null && maxResultCount != -1) {
-                if ((firstResult + maxResultCount) > totalResultCount) {
-                    maxResultCount = totalResultCount - firstResult;
-                }
-                listQuery.setMaxResults(maxResultCount);
-            }
-
-            // List requested results
-            List<Object[]> results = listQuery.getResultList();
-
-            // Prepare response
-            ReservationRequestListResponse response = new ReservationRequestListResponse();
-            response.setCount(totalResultCount);
-            response.setStart(firstResult);
+                    + " specification";
+            String queryFrom = " FROM AbstractReservationRequest request"
+                    + " LEFT JOIN request.specification specification";
+            ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
+            List<Object[]> results = performListRequest("request", querySelect, Object[].class, queryFrom,
+                    filter, request, response, entityManager);
 
             // Fill reservation requests to response
             Set<Long> aliasReservationRequestIds = new HashSet<Long>();
-            Map<Long, ReservationRequestListResponse.Item> reservationRequestById =
-                    new HashMap<Long, ReservationRequestListResponse.Item>();
+            Map<Long, ReservationRequestSummary> reservationRequestById =
+                    new HashMap<Long, ReservationRequestSummary>();
             for (Object[] result : results) {
                 Long id = (Long) result[0];
-                ReservationRequestListResponse.Item reservationRequest = new ReservationRequestListResponse.Item();
-                reservationRequest.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
-                reservationRequest.setUserId((String) result[1]);
-                reservationRequest.setCreated((DateTime) result[2]);
-                reservationRequest.setPurpose((ReservationRequestPurpose) result[3]);
-                reservationRequest.setDescription((String) result[4]);
-                response.addItem(reservationRequest);
+                ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
+                reservationRequestSummary.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
+                reservationRequestSummary.setUserId((String) result[1]);
+                reservationRequestSummary.setCreated((DateTime) result[2]);
+                reservationRequestSummary.setPurpose((ReservationRequestPurpose) result[3]);
+                reservationRequestSummary.setDescription((String) result[4]);
+                response.addItem(reservationRequestSummary);
 
                 // Prepare specification
                 Object specification = result[5];
@@ -506,11 +487,11 @@ public class ReservationServiceImpl extends Component
                 else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
                     cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification =
                             (cz.cesnet.shongo.controller.request.RoomSpecification) specification;
-                    ReservationRequestListResponse.RoomType roomType = new ReservationRequestListResponse.RoomType();
+                    ReservationRequestSummary.RoomType roomType = new ReservationRequestSummary.RoomType();
                     roomType.setParticipantCount(roomSpecification.getParticipantCount());
-                    reservationRequest.setType(roomType);
+                    reservationRequestSummary.setType(roomType);
                 }
-                reservationRequestById.put(id, reservationRequest);
+                reservationRequestById.put(id, reservationRequestSummary);
             }
 
             // Fill reservation request collections
@@ -526,10 +507,10 @@ public class ReservationServiceImpl extends Component
                         .setParameter("reservationRequestIds", reservationRequestIds)
                         .getResultList();
                 for (Object[] providedReservation : technologies) {
-                    Long reservationRequestId = (Long) providedReservation[0];
+                    Long id = (Long) providedReservation[0];
                     Technology technology = (Technology) providedReservation[1];
-                    ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
-                    item.addTechnology(technology);
+                    ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
+                    reservationRequestSummary.addTechnology(technology);
                 }
 
                 // Fill provided reservations
@@ -542,10 +523,11 @@ public class ReservationServiceImpl extends Component
                         .setParameter("reservationRequestIds", reservationRequestIds)
                         .getResultList();
                 for (Object[] providedReservation : providedReservations) {
-                    Long reservationRequestId = (Long) providedReservation[0];
+                    Long id = (Long) providedReservation[0];
                     Long providedReservationId = (Long) providedReservation[1];
-                    ReservationRequestListResponse.Item item = reservationRequestById.get(reservationRequestId);
-                    item.addProvidedReservationId(EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
+                    ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
+                    reservationRequestSummary.addProvidedReservationId(
+                            EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
                 }
             }
 
@@ -584,74 +566,20 @@ public class ReservationServiceImpl extends Component
 
                 // Fill first requested alias for each reservation request
                 for (Object[] aliasReservation : aliasReservationRequests) {
-                    Long aliasReservationRequestId = (Long) aliasReservation[0];
-                    if (!aliasReservationRequestIds.contains(aliasReservationRequestId)) {
+                    Long id = (Long) aliasReservation[0];
+                    if (!aliasReservationRequestIds.contains(id)) {
                         continue;
                     }
-                    aliasReservationRequestIds.remove(aliasReservationRequestId);
+                    aliasReservationRequestIds.remove(id);
 
-                    ReservationRequestListResponse.Item item = reservationRequestById.get(aliasReservationRequestId);
-                    ReservationRequestListResponse.AliasType aliasType = new ReservationRequestListResponse.AliasType();
-                    aliasType.setType((AliasType) aliasReservation[1]);
+                    ReservationRequestSummary item = reservationRequestById.get(id);
+                    ReservationRequestSummary.AliasType aliasType = new ReservationRequestSummary.AliasType();
+                    aliasType.setAliasType((AliasType) aliasReservation[1]);
                     aliasType.setValue((String) aliasReservation[2]);
                     item.setType(aliasType);
                 }
             }
             return response;
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    @Override
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
-            Map<String, Object> filter)
-    {
-        String userId = authorization.validate(token);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-
-        try {
-            Set<Long> reservationRequestIds =
-                    authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION_REQUEST, Permission.READ);
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
-            Set<Technology> technologies = DatabaseFilter.getTechnologiesFromFilter(filter);
-            Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
-                    DatabaseFilter.getClassesFromFilter(filter, "specificationClass",
-                            cz.cesnet.shongo.controller.request.Specification.class);
-            Set<Long> providedReservationIds = null;
-            if (filter != null && filter.containsKey("providedReservationId")) {
-
-                Object value = filter.get("providedReservationId");
-                Object[] items;
-                if (value instanceof String) {
-                    items = new Object[]{value};
-                }
-                else {
-                    items = (Object[]) Converter.convert(value, Object[].class);
-                }
-                if (items.length > 0) {
-                    providedReservationIds = new HashSet<Long>();
-                    for (Object item : items) {
-                        providedReservationIds.add(EntityIdentifier.parseId(
-                                cz.cesnet.shongo.controller.reservation.Reservation.class,
-                                (String) Converter.convert(item, String.class)));
-                    }
-                }
-            }
-
-            List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                    reservationRequestManager.list(reservationRequestIds, filterUserId, technologies,
-                            specificationClasses, providedReservationIds);
-
-            List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-            for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
-                ReservationRequestSummary summary = getSummary(abstractReservationRequest);
-                summaryList.add(summary);
-            }
-            return summaryList;
         }
         finally {
             entityManager.close();
@@ -712,237 +640,190 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds)
+    public ListResponse<Reservation> listReservations(ReservationListRequest request)
     {
-        String userId = authorization.validate(token);
+        String userId = authorization.validate(request.getSecurityToken());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         try {
-            List<Reservation> reservations = new LinkedList<Reservation>();
-            for (String reservationId : reservationIds) {
-                Long id = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.reservation.Reservation.class, reservationId);
-                cz.cesnet.shongo.controller.reservation.Reservation reservationImpl = reservationManager.get(id);
-                reservations.add(reservationImpl.toApi(authorization.isAdmin(userId)));
-            }
-            return reservations;
-        }
-        finally {
-            entityManager.close();
-        }
-    }
+            DatabaseFilter filter = new DatabaseFilter("reservation");
 
-    @Override
-    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter)
-    {
-        String userId = authorization.validate(token);
+            // List only reservations which is current user permitted to read
+            filter.addIds(authorization, userId, EntityType.RESERVATION, Permission.READ);
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-
-        try {
-            Set<Long> reservationIds =
-                    authorization.getEntitiesWithPermission(userId, EntityType.RESERVATION, Permission.READ);
-            Long reservationRequestId = null;
-            if (filter != null) {
-                if (filter.containsKey("reservationRequestId")) {
-                    reservationRequestId = EntityIdentifier.parseId(
-                            cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
-                            (String) Converter.convert(filter.get("reservationRequestId"), String.class));
+            // List only reservations which are requested
+            if (request.getReservationIds().size() > 0) {
+                filter.addFilter("reservation.id IN (:reservationIds)");
+                Set<Long> reservationIds = new HashSet<Long>();
+                for (String reservationId : request.getReservationIds()) {
+                    reservationIds.add(EntityIdentifier.parseId(
+                            cz.cesnet.shongo.controller.reservation.Reservation.class, reservationId));
                 }
+                filter.addFilterParameter("reservationIds", reservationIds);
             }
-            Set<Technology> technologies = DatabaseFilter.getTechnologiesFromFilter(filter);
-            Set<Class<? extends cz.cesnet.shongo.controller.reservation.Reservation>> reservationClasses =
-                    DatabaseFilter.getClassesFromFilter(filter, "reservationClass",
-                            cz.cesnet.shongo.controller.reservation.Reservation.class);
 
-            List<cz.cesnet.shongo.controller.reservation.Reservation> reservations =
-                    reservationManager.list(reservationIds, reservationRequestId, reservationClasses, technologies);
-            List<Reservation> apiReservations = new ArrayList<Reservation>();
-            for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
-                apiReservations.add(reservation.toApi(authorization.isAdmin(userId)));
-            }
-            return apiReservations;
-        }
-        finally {
-            entityManager.close();
-        }
-    }
-
-    /**
-     * @param abstractReservationRequest
-     * @return {@link ReservationRequestSummary}
-     */
-    private ReservationRequestSummary getSummary(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest)
-    {
-        ReservationRequestSummary summary = new ReservationRequestSummary();
-        summary.setId(EntityIdentifier.formatId(abstractReservationRequest));
-        summary.setUserId(abstractReservationRequest.getUserId());
-        summary.setCreated(abstractReservationRequest.getCreated());
-        summary.setPurpose(abstractReservationRequest.getPurpose());
-        summary.setDescription(abstractReservationRequest.getDescription());
-
-        // Set type based on specification
-        cz.cesnet.shongo.controller.request.Specification specification =
-                abstractReservationRequest.getSpecification();
-        if (specification instanceof cz.cesnet.shongo.controller.request.ResourceSpecification) {
-            cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification =
-                    (cz.cesnet.shongo.controller.request.ResourceSpecification) specification;
-            ReservationRequestSummary.ResourceType resourceType = new ReservationRequestSummary.ResourceType();
-            resourceType.setResourceId(EntityIdentifier.formatId(resourceSpecification.getResource()));
-            summary.setType(resourceType);
-        }
-        else if (specification instanceof cz.cesnet.shongo.controller.request.RoomSpecification) {
-            cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification =
-                    (cz.cesnet.shongo.controller.request.RoomSpecification) specification;
-            summary.setType(getSummaryRoomSpecificationType(abstractReservationRequest, roomSpecification));
-        }
-        else if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
-            cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification =
-                    (cz.cesnet.shongo.controller.request.AliasSpecification) specification;
-            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasSpecification));
-        }
-        else if (specification instanceof AliasSetSpecification) {
-            AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
-            summary.setType(getSummaryAliasSpecificationType(abstractReservationRequest, aliasSetSpecification));
-        }
-
-        // Set state and get earliest slot
-        Interval earliestSlot = null;
-        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
-                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-            earliestSlot = reservationRequest.getSlot();
-            summary.setState(reservationRequest.getStateAsApi());
-        }
-        else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
-            cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
-                    (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
-            for (cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequestSet.getSlots()) {
-                Interval interval = slot.getEarliest(DateTime.now());
-                if (interval == null) {
-                    continue;
-                }
-                if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
-                    earliestSlot = interval;
-                }
-            }
-            List<cz.cesnet.shongo.controller.request.ReservationRequest> requests =
-                    reservationRequestSet.getAllocation().getChildReservationRequests();
-            if (earliestSlot == null && requests.size() > 0) {
-                earliestSlot = requests.get(requests.size() - 1).getSlot();
-            }
-            summary.setState(ReservationRequestState.NOT_ALLOCATED);
-            for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
-                if (Temporal.isIntervalEqualed(reservationRequest.getSlot(), earliestSlot)) {
-                    summary.setState(reservationRequest.getStateAsApi());
-                }
-            }
-        }
-
-        // Set earliest slot
-        summary.setEarliestSlot(earliestSlot);
-
-        return summary;
-    }
-
-    /**
-     * @param reservationRequest
-     * @param aliasSpecification
-     * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
-     */
-    private ReservationRequestSummary.AliasType getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification)
-    {
-        if (aliasSpecification.getValue() != null) {
-            ReservationRequestSummary.AliasType aliasType = new ReservationRequestSummary.AliasType();
-            aliasType.setValue(aliasSpecification.getValue());
-            Set<cz.cesnet.shongo.AliasType> aliasTypes = aliasSpecification.getAliasTypes();
-            if (aliasTypes.size() == 1) {
-                aliasType.setAliasType(aliasTypes.iterator().next());
-            }
-            return aliasType;
-        }
-        return null;
-    }
-
-    /**
-     * @param reservationRequest
-     * @param aliasSetSpecification
-     * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.AliasType}
-     */
-    private ReservationRequestSummary.Type getSummaryAliasSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            cz.cesnet.shongo.controller.request.AliasSetSpecification aliasSetSpecification)
-    {
-        for (cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification :
-                aliasSetSpecification.getAliasSpecifications()) {
-            ReservationRequestSummary.AliasType aliasType =
-                    getSummaryAliasSpecificationType(reservationRequest, aliasSpecification);
-            if (aliasType != null) {
-                return aliasType;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param reservationRequest
-     * @param roomSpecification
-     * @return {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.RoomType}
-     */
-    private ReservationRequestSummary.RoomType getSummaryRoomSpecificationType(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest,
-            cz.cesnet.shongo.controller.request.RoomSpecification roomSpecification)
-    {
-        ReservationRequestSummary.RoomType roomType = new ReservationRequestSummary.RoomType();
-        roomType.setParticipantCount(roomSpecification.getParticipantCount());
-
-        // Get room name from alias specifications
-        String roomName = null;
-        for (cz.cesnet.shongo.controller.request.AliasSpecification aliasSpecification :
-                roomSpecification.getAliasSpecifications()) {
-            String value = aliasSpecification.getValue();
-            if (value != null && aliasSpecification.hasAliasType(cz.cesnet.shongo.AliasType.ROOM_NAME)) {
-                roomName = value;
-                break;
-            }
-        }
-        // Get room name from provider reservations
-        if (roomName == null) {
-            for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
-                    reservationRequest.getProvidedReservations()) {
-                if (reservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
-                    cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation =
-                            (cz.cesnet.shongo.controller.reservation.AliasReservation) reservation;
-                    Alias alias = aliasReservation.getAlias(cz.cesnet.shongo.AliasType.ROOM_NAME);
-                    if (alias != null) {
-                        roomName = alias.getValue();
-                        break;
-                    }
+            // List only reservations of requested classes
+            Set<Class<? extends Reservation>> reservationApiClasses = request.getReservationClasses();
+            if (reservationApiClasses.size() > 0) {
+                if (reservationApiClasses.contains(AliasReservation.class)) {
+                    // List only reservations of given classes or raw reservations which have alias reservation as child
+                    filter.addFilter("reservation IN ("
+                            + "   SELECT mainReservation FROM Reservation mainReservation"
+                            + "   LEFT JOIN mainReservation.childReservations childReservation"
+                            + "   WHERE TYPE(mainReservation) IN(:classes)"
+                            + "      OR (TYPE(mainReservation) = :raw AND TYPE(childReservation) = :alias)"
+                            + " )");
+                    filter.addFilterParameter("alias", cz.cesnet.shongo.controller.reservation.AliasReservation.class);
+                    filter.addFilterParameter("raw", cz.cesnet.shongo.controller.reservation.Reservation.class);
                 }
                 else {
-                    for (cz.cesnet.shongo.controller.reservation.Reservation childReservation :
-                            reservation.getChildReservations()) {
-                        if (childReservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
-                            cz.cesnet.shongo.controller.reservation.AliasReservation childAliasReservation =
-                                    (cz.cesnet.shongo.controller.reservation.AliasReservation) childReservation;
-                            Alias alias = childAliasReservation.getAlias(cz.cesnet.shongo.AliasType.ROOM_NAME);
-                            if (alias != null) {
-                                roomName = alias.getValue();
+                    // List only reservations of given classes
+                    filter.addFilter("TYPE(reservation) IN(:classes)");
+                }
+                Set<Class<? extends cz.cesnet.shongo.controller.reservation.Reservation>> reservationClasses =
+                        new HashSet<Class<? extends cz.cesnet.shongo.controller.reservation.Reservation>>();
+                for (Class<? extends Reservation> reservationApiClass : reservationApiClasses) {
+                    reservationClasses.add(cz.cesnet.shongo.controller.reservation.Reservation.getClassFromApi(
+                            reservationApiClass));
+                }
+                filter.addFilterParameter("classes", reservationClasses);
+            }
+
+            // List only reservations allocated for requested reservation request
+            if (request.getReservationRequestId() != null) {
+                // List only reservations which are allocated for reservation request with given id or child reservation requests
+                filter.addFilter("reservation.allocation IS NOT NULL AND (reservation.allocation IN ("
+                        + "   SELECT allocation FROM AbstractReservationRequest reservationRequest"
+                        + "   LEFT JOIN reservationRequest.allocation allocation"
+                        + "   WHERE reservationRequest.id = :reservationRequestId"
+                        + " ) OR reservation.allocation IN ("
+                        + "   SELECT childAllocation FROM AbstractReservationRequest reservationRequest"
+                        + "   LEFT JOIN reservationRequest.allocation allocation"
+                        + "   LEFT JOIN allocation.childReservationRequests childReservationRequest"
+                        + "   LEFT JOIN childReservationRequest.allocation childAllocation"
+                        + "   WHERE reservationRequest.id = :reservationRequestId"
+                        + " ))");
+                filter.addFilterParameter("reservationRequestId", EntityIdentifier.parseId(
+                        cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
+                        request.getReservationRequestId()));
+            }
+
+            ListResponse<Reservation> response = new ListResponse<Reservation>();
+            List<cz.cesnet.shongo.controller.reservation.Reservation> reservations = performListRequest(
+                    "reservation", "SELECT reservation", cz.cesnet.shongo.controller.reservation.Reservation.class,
+                    "FROM Reservation reservation", filter, request, response, entityManager);
+
+            // Filter reservations by technologies
+            Set<Technology> technologies = request.getTechnologies();
+            if (technologies.size() > 0) {
+                Iterator<cz.cesnet.shongo.controller.reservation.Reservation> iterator = reservations.iterator();
+                while (iterator.hasNext()) {
+                    cz.cesnet.shongo.controller.reservation.Reservation reservation = iterator.next();
+                    if (reservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
+                        cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation = (cz.cesnet.shongo.controller.reservation.AliasReservation) reservation;
+                        boolean technologyFound = false;
+                        for (Alias alias : aliasReservation.getAliases()) {
+                            if (technologies.contains(alias.getTechnology())) {
+                                technologyFound = true;
                                 break;
                             }
                         }
+                        if (!technologyFound) {
+                            iterator.remove();
+                        }
                     }
-
+                    else if (reservation.getClass().equals(cz.cesnet.shongo.controller.reservation.Reservation.class)) {
+                        boolean technologyFound = false;
+                        for (cz.cesnet.shongo.controller.reservation.Reservation childReservation : reservation.getChildReservations()) {
+                            if (childReservation instanceof cz.cesnet.shongo.controller.reservation.AliasReservation) {
+                                cz.cesnet.shongo.controller.reservation.AliasReservation childAliasReservation = (cz.cesnet.shongo.controller.reservation.AliasReservation) childReservation;
+                                for (Alias alias : childAliasReservation.getAliases()) {
+                                    if (technologies.contains(alias.getTechnology())) {
+                                        technologyFound = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            else {
+                                throw new TodoImplementException(childReservation.getClass().getName());
+                            }
+                        }
+                        if (!technologyFound) {
+                            iterator.remove();
+                        }
+                    }
+                    else {
+                        throw new TodoImplementException(reservation.getClass().getName());
+                    }
                 }
             }
+
+            // Fill reservations to response
+            for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
+                response.addItem(reservation.toApi(authorization.isAdmin(userId)));
+            }
+            return  response;
         }
-        roomType.setName(roomName);
-        return roomType;
+        finally {
+            entityManager.close();
+
+        }
+    }
+
+    private  <T> List<T> performListRequest(String queryAlias, String querySelect, Class<T> querySelectClass, String queryFrom,
+            DatabaseFilter filter, ListRequest listRequest, ListResponse listResponse, EntityManager entityManager)
+    {
+        String queryWhere = filter.toQueryWhere();
+
+        // Create query for listing
+        StringBuilder listQueryBuilder = new StringBuilder();
+        listQueryBuilder.append(querySelect);
+        listQueryBuilder.append(" ");
+        listQueryBuilder.append(queryFrom);
+        listQueryBuilder.append(" WHERE ");
+        listQueryBuilder.append(queryWhere);
+        TypedQuery<T> listQuery = entityManager.createQuery(listQueryBuilder.toString(), querySelectClass);
+
+        // Create query for counting records
+        StringBuilder countQueryBuilder = new StringBuilder();
+        countQueryBuilder.append("SELECT COUNT(");
+        countQueryBuilder.append(queryAlias);
+        countQueryBuilder.append(".id) ");
+        countQueryBuilder.append(queryFrom);
+        countQueryBuilder.append(" WHERE ");
+        countQueryBuilder.append(queryWhere);
+        TypedQuery<Long> countQuery = entityManager.createQuery(countQueryBuilder.toString(), Long.class);
+
+        // Fill filter parameters to queries
+        filter.fillQueryParameters(listQuery);
+        filter.fillQueryParameters(countQuery);
+
+        // Get total record count
+        Integer totalResultCount = countQuery.getSingleResult().intValue();
+
+        // Restrict first result
+        Integer firstResult = listRequest.getStart(0);
+        if (firstResult < 0) {
+            firstResult = 0;
+        }
+        listQuery.setFirstResult(firstResult);
+
+        // Restrict result count
+        Integer maxResultCount = listRequest.getCount(-1);
+        if (maxResultCount != null && maxResultCount != -1) {
+            if ((firstResult + maxResultCount) > totalResultCount) {
+                maxResultCount = totalResultCount - firstResult;
+            }
+            listQuery.setMaxResults(maxResultCount);
+        }
+
+        // Setup response
+        listResponse.setCount(totalResultCount);
+        listResponse.setStart(firstResult);
+
+        // List requested results
+        return listQuery.getResultList();
     }
 }

@@ -3,12 +3,12 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListResponse;
 import org.joda.time.Interval;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Interface to the service handling operations on reservations.
@@ -68,28 +68,13 @@ public interface ReservationService extends Service
     public void updateReservationRequest(SecurityToken token, String reservationRequestId);
 
     /**
-     * Lists all the reservation requests.
-     *
-     * @param token  token of the user requesting the operation
-     * @param filter attributes for filtering reservation requests (map of name => value pairs)::
-     *               -{@code userId}                restricts reservation request creator by his user-id
-     *               -{@code technology}            technology or set of technologies of virtual room, compartment or alias
-     *               -{@code specificationClass}    specification class or set of specification classes which the requests can specify
-     *               -{@code providedReservationId} restricts reservation requests to which must be provided reservation with given identifier(s)
-     * @return collection of reservation requests
-     */
-    @API
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
-            Map<String, Object> filter);
-
-    /**
      * List reservation requests which is the requesting user entitled to see.
      *
      * @param request {@link ReservationRequestListRequest}
-     * @return {@link ReservationRequestListResponse}
+     * @return {@link ListResponse} of {@link ReservationRequestSummary}
      */
     @API
-    public ReservationRequestListResponse listReservationRequestsNew(ReservationRequestListRequest request);
+    public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request);
 
     /**
      * Gets the complete Reservation object.
@@ -109,21 +94,9 @@ public interface ReservationService extends Service
     public Reservation getReservation(SecurityToken token, String reservationId);
 
     /**
-     * @param token
-     * @param reservationIds
-     * @return collection of {@link Reservation}s with given identifiers
-     */
-    @API
-    public Collection<Reservation> getReservations(SecurityToken token, Collection<String> reservationIds);
-
-    /**
-     * @param token
-     * @param filter attributes for filtering reservations (map of name => value pairs)::
-     *               -{@code reservationRequestId}  restricts reservation request for which the {@link Reservation} is allocated
-     *               -{@code reservationClass}      set of allowed reservation classes
-     *               -{@code technology}            set of technologies of virtual room or compartment
+     * @param request {@link ReservationListRequest}
      * @return collection of already allocated {@link Reservation}s
      */
     @API
-    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter);
+    public ListResponse<Reservation> listReservations(ReservationListRequest request);
 }
