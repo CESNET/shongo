@@ -290,6 +290,15 @@ sub secure_request()
 }
 
 #
+# @see Shongo::ClientCommon::secure_hash_request
+#
+sub secure_hash_request()
+{
+    my ($self, @arguments) = @_;
+    return $self->{'client'}->secure_hash_request(@arguments);
+}
+
+#
 # Print Controller XML-RPC server info
 #
 sub status()

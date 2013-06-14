@@ -77,8 +77,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            options => 'user=s technology=s',
-            args => '[-user=*|<user-id>] [-technology]',
+            options => 'technology=s',
+            args => '[-technology]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -236,19 +236,16 @@ sub update_reservation_request()
 sub list_reservation_requests()
 {
     my ($options) = @_;
-    my $filter = {};
+    my $request = {};
     if ( defined($options->{'technology'}) ) {
-        $filter->{'technology'} = [];
+        $request->{'technologies'} = [];
         foreach my $technology (split(/,/, $options->{'technology'})) {
             $technology =~ s/(^ +)|( +$)//g;
-            push(@{$filter->{'technology'}}, $technology);
+            push(@{$request->{'technologies'}}, $technology);
         }
     }
-    if ( defined($options->{'user'}) ) {
-        $filter->{'userId'} = $options->{'user'};
-    }
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Reservation.listReservationRequests', $filter);
+    my $response = $application->secure_hash_request('Reservation.listReservationRequests', $request);
     if ( !defined($response) ) {
         return
     }
@@ -263,23 +260,30 @@ sub list_reservation_requests()
             {'field' => 'user',        'title' => 'User'},
             {'field' => 'created',     'title' => 'Created'},
             {'field' => 'type',        'title' => 'Type'},
-            {'field' => 'description', 'title' => 'Description'},
-            {'field' => 'slot',        'title' => 'Earliest Slot'},
+            {'field' => 'technology',  'title' => 'Technology'},
+            {'field' => 'description', 'title' => 'Description'}
         ],
         'data' => []
     };
-    foreach my $reservation_request (@{$response}) {
+    foreach my $reservation_request (@{$response->{'items'}}) {
         my $type = 'Other';
         if ( defined($reservation_request->{'type'}) && defined($reservation_request->{'type'}->{'class'}) ) {
             $type = $Type->{$reservation_request->{'type'}->{'class'}};
+        }
+        my $technologies = '';
+        foreach my $technology (@{$reservation_request->{'technologies'}}) {
+            if ( length($technologies) > 0 ) {
+                $technologies .= ', ';
+            }
+            $technologies .= $Shongo::Common::Technology->{$technology};
         }
         push(@{$table->{'data'}}, {
             'id' => $reservation_request->{'id'},
             'user' => [$reservation_request->{'userId'}, $application->format_user($reservation_request->{'userId'})],
             'created' => [$reservation_request->{'created'}, datetime_format($reservation_request->{'created'})],
             'type' => [$reservation_request->{'type'}, $type],
-            'description' => $reservation_request->{'description'},
-            'slot' => [$reservation_request->{'earliestSlot'}, interval_format($reservation_request->{'earliestSlot'})]
+            'technology' => $technologies,
+            'description' => $reservation_request->{'description'}
         });
     }
     console_print_table($table);
@@ -311,7 +315,7 @@ sub get_reservation_for_request()
     if ( !defined($id) ) {
         return;
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservations', {
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Reservation.listReservations', {
         'reservationRequestId' => $id
     });
     if ( !defined($response) ) {
@@ -340,16 +344,16 @@ sub get_reservation_for_request()
 sub list_reservations()
 {
     my ($options) = @_;
-    my $filter = {};
+    my $request = {};
     if ( defined($options->{'technology'}) ) {
-        $filter->{'technology'} = [];
+        $request->{'technologies'} = [];
         foreach my $technology (split(/,/, $options->{'technology'})) {
             $technology =~ s/(^ +)|( +$)//g;
-            push(@{$filter->{'technology'}}, $technology);
+            push(@{$request->{'technologies'}}, $technology);
         }
     }
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Reservation.listReservations', $filter);
+    my $response = $application->secure_hash_request('Reservation.listReservations', $request);
     if ( !defined($response) ) {
         return
     }
@@ -361,7 +365,7 @@ sub list_reservations()
         ],
         'data' => []
     };
-    foreach my $reservation (@{$response}) {
+    foreach my $reservation (@{$response->{'items'}}) {
         push(@{$table->{'data'}}, {
             'id' => $reservation->{'id'},
             'type' => [$reservation->{'class'}, $Shongo::ClientCli::API::Reservation::Type->{$reservation->{'class'}}],

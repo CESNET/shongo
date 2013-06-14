@@ -213,6 +213,32 @@ sub secure_request()
 }
 
 #
+# Send request to Controller XML-RPC server with security token attribute appended to $hash.
+#
+# @param method
+# @param $hash parameter for XML-RPC request
+# @return response
+#
+sub secure_hash_request()
+{
+    my ($self, $method, $hash) = @_;
+    my $security_token = RPC::XML::struct->new();
+    if ( defined($self->{'access-token'}) ) {
+        $hash->{'securityToken'} = RPC::XML::string->new($self->{'access-token'});
+    }
+    else {
+        $self->{'access-token'} = $self->{'on-get-access-token'}();
+        if ( defined($self->{'access-token'}) ) {
+            $hash->{'securityToken'} = RPC::XML::string->new($self->{'access-token'});
+        }
+    }
+    return $self->request(
+        $method,
+        $hash
+    );
+}
+
+#
 # Retrieve user information by $user_id
 #
 # @param $user_id
