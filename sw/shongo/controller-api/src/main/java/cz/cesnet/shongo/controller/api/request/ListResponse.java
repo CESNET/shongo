@@ -72,7 +72,7 @@ public class ListResponse<T> extends AbstractResponse
      */
     public List<T> getItems()
     {
-        return Collections.unmodifiableList(items);
+        return items;
     }
 
     /**

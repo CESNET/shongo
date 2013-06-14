@@ -11,11 +11,12 @@
     <input type="hidden" name="id" value="${reservationRequest['id']}"/>
 
 <c:choose>
-    <c:when test="${reservationRequest.dependencies.size() > 0}">
+    <c:when test="${dependencies.size() > 0}">
         <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${reservationRequestName}"/></p>
         <ul>
-            <c:forEach var="dependency" items="${reservationRequest.dependencies}">
-                <li><a href="${contextPath}/reservation-request/detail?id=${dependency.id}">${dependency.description}</a> (<joda:format value="${dependency.earliestSlot.start}" style="MS"/> - <joda:format value="${dependency.earliestSlot.end}" style="MS"/>)</li>
+            <c:forEach var="dependency" items="${dependencies}">
+                <li><a href="${contextPath}/reservation-request/detail?id=${dependency.id}">${dependency.description}</a>
+                    (<spring:message code="views.reservationRequestDelete.created"/> <joda:format value="${dependency.created}" style="MS"/>)</li>
             </c:forEach>
         </ul>
         <div>

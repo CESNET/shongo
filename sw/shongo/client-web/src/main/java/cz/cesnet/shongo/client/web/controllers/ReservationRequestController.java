@@ -6,6 +6,7 @@ import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.annotations.AccessToken;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
@@ -58,23 +59,33 @@ public class ReservationRequestController
     }
 
     @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
-    public String getDelete(@PathVariable(value = "id") String reservationRequestId, Model model)
+    public String getDelete(
+            @AccessToken String accessToken,
+            @PathVariable(value = "id") String reservationRequestId, Model model)
     {
-        // todo
-        //reservationService.listReservations()
-        Map<String, Object> reservationRequest = new HashMap<String, Object>();
-        reservationRequest.put("id", reservationRequestId);
-        reservationRequest.put("description", "test");
-        if (reservationRequestId.endsWith("0")) {
-            reservationRequest.put("dependencies", new LinkedList<Map>()
-            {{
-                    Map<String, Object> reservationRequest = new HashMap<String, Object>();
-                    reservationRequest.put("id", "shongo:cz.cesnet:req:11");
-                    reservationRequest.put("description", "test");
-                    reservationRequest.put("earliestSlot", new Interval("2013-01-01T12:00/2013-01-01T14:00"));
-                    add(reservationRequest);
-                }});
+        SecurityToken securityToken = new SecurityToken(accessToken);
+
+        // Get reservation request
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+
+        // List allocated reservations
+        ReservationListRequest reservationListRequest = new ReservationListRequest();
+        reservationListRequest.setSecurityToken(securityToken);
+        reservationListRequest.setReservationRequestId(reservationRequestId);
+        ListResponse<Reservation> reservations = reservationService.listReservations(reservationListRequest);
+        if (reservations.getItemCount() > 0) {
+            // List reservation requests which has provided any of allocated reservations
+            ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
+            reservationRequestListRequest.setSecurityToken(securityToken);
+            for (Reservation reservation : reservations.getItems()) {
+                reservationRequestListRequest.addProvidedReservationId(reservation.getId());
+            }
+            ListResponse<ReservationRequestSummary> reservationRequests =
+                    reservationService.listReservationRequests(reservationRequestListRequest);
+            model.addAttribute("dependencies", reservationRequests.getItems());
         }
+
         model.addAttribute("reservationRequest", reservationRequest);
         return "reservationRequestDelete";
     }
