@@ -57,7 +57,6 @@ public class ReservationRequestController
     {
         AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
         model.addAttribute("reservationRequest", reservationRequest);
-        model.addAttribute("permissions", userCache.getPermissions(securityToken, id));
         return "reservationRequestDetail";
     }
 
