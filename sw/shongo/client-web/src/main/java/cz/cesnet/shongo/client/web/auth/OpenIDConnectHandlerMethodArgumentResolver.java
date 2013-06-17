@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import cz.cesnet.shongo.client.web.annotations.AccessToken;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.springframework.core.MethodParameter;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -17,8 +18,7 @@ public class OpenIDConnectHandlerMethodArgumentResolver implements HandlerMethod
     @Override
     public boolean supportsParameter(MethodParameter methodParameter)
     {
-        return methodParameter.getParameterAnnotation(AccessToken.class) != null &&
-                methodParameter.getParameterType().equals(String.class);
+        return methodParameter.getParameterType().equals(SecurityToken.class);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class OpenIDConnectHandlerMethodArgumentResolver implements HandlerMethod
         OpenIDConnectAuthenticationToken authenticationToken =
                 (OpenIDConnectAuthenticationToken) webRequest.getUserPrincipal();
         if (authenticationToken != null) {
-            return authenticationToken.getAccessToken();
+            return authenticationToken.getSecurityToken();
         }
         else {
             return null;

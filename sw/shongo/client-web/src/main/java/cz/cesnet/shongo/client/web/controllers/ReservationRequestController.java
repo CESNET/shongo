@@ -4,7 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
-import cz.cesnet.shongo.client.web.annotations.AccessToken;
+import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -50,23 +51,21 @@ public class ReservationRequestController
 
     @RequestMapping(value = "/detail/{id:.+}", method = RequestMethod.GET)
     public String getDetail(
-            @AccessToken String accessToken,
+            SecurityToken securityToken,
             @PathVariable(value = "id") String id,
             Model model)
     {
-        SecurityToken securityToken = new SecurityToken(accessToken);
         AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
         model.addAttribute("reservationRequest", reservationRequest);
+        model.addAttribute("permissions", userCache.getPermissions(securityToken, id));
         return "reservationRequestDetail";
     }
 
     @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
     public String getDelete(
-            @AccessToken String accessToken,
+            SecurityToken securityToken,
             @PathVariable(value = "id") String reservationRequestId, Model model)
     {
-        SecurityToken securityToken = new SecurityToken(accessToken);
-
         // Get reservation request
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
@@ -94,10 +93,9 @@ public class ReservationRequestController
 
     @RequestMapping(value = "/delete/confirmed", method = RequestMethod.POST)
     public String getDeleteConfirmed(
-            @AccessToken String accessToken,
+            SecurityToken securityToken,
             @RequestParam(value = "id") String reservationRequestId)
     {
-        SecurityToken securityToken = new SecurityToken(accessToken);
         reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:/reservation-request";
     }
@@ -106,12 +104,12 @@ public class ReservationRequestController
     @ResponseBody
     public Map getDataList(
             Locale locale,
-            @AccessToken String accessToken,
+            SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType)
     {
-        SecurityToken securityToken = new SecurityToken(accessToken);
+        // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
         request.setStart(start);
@@ -129,33 +127,56 @@ public class ReservationRequestController
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
+        // Get permissions for reservation requests
+        Map<String, Set<Permission>> permissionsByReservationRequestId = new HashMap<String, Set<Permission>>();
+        Set<String> reservationRequestIds = new HashSet<String>();
+        for (ReservationRequestSummary responseItem : response.getItems()) {
+            String reservationRequestId = responseItem.getId();
+            Set<Permission> permissions = userCache.getPermissionsWithoutFetching(securityToken, reservationRequestId);
+            if ( permissions != null ) {
+                permissionsByReservationRequestId.put(reservationRequestId, permissions);
+            }
+            else {
+                reservationRequestIds.add(reservationRequestId);
+            }
+        }
+        if (reservationRequestIds.size() > 0) {
+            permissionsByReservationRequestId.putAll(userCache.fetchPermissions(securityToken, reservationRequestIds));
+        }
+
+        // Build response
         DateTimeFormatter dateFormatter = DATE_FORMATTER.withLocale(locale);
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
-        for (ReservationRequestSummary responseItem : response.getItems()) {
+        for (ReservationRequestSummary reservationRequest : response.getItems()) {
+            String reservationRequestId = reservationRequest.getId();
+
             Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", responseItem.getId());
-            item.put("description", responseItem.getDescription());
-            item.put("purpose", responseItem.getPurpose());
-            item.put("created", dateFormatter.print(responseItem.getCreated()));
+            item.put("id", reservationRequestId);
+            item.put("description", reservationRequest.getDescription());
+            item.put("purpose", reservationRequest.getPurpose());
+            item.put("created", dateFormatter.print(reservationRequest.getCreated()));
             items.add(item);
 
-            UserInformation userInformation = userCache.getUserInformation(securityToken, responseItem.getUserId());
-            item.put("user", userInformation.getFullName());
+            Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
+            item.put("writable", permissions.contains(Permission.WRITE));
 
-            Interval earliestSlot = responseItem.getEarliestSlot();
+            UserInformation owner = userCache.getUserInformation(securityToken, reservationRequest.getUserId());
+            item.put("owner", owner.getFullName());
+
+            Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
                 item.put("earliestSlotStart", dateTimeFormatter.print(earliestSlot.getStart()));
                 item.put("earliestSlotEnd", dateTimeFormatter.print(earliestSlot.getEnd()));
             }
 
-            Set<Technology> technologies = responseItem.getTechnologies();
+            Set<Technology> technologies = reservationRequest.getTechnologies();
             ReservationRequestModel.Technology technology = ReservationRequestModel.Technology.find(technologies);
             if (technology != null) {
                 item.put("technology", technology.getTitle());
             }
 
-            ReservationRequestSummary.Type type = responseItem.getType();
+            ReservationRequestSummary.Type type = reservationRequest.getType();
             if (type instanceof ReservationRequestSummary.RoomType) {
                 ReservationRequestSummary.RoomType roomType = (ReservationRequestSummary.RoomType) type;
                 item.put("type", messageSource.getMessage("views.reservationRequest.specification.room", null, locale));

@@ -20,7 +20,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutableServiceImpl extends Component
+public class ExecutableServiceImpl extends AbstractServiceImpl
         implements ExecutableService, Component.EntityManagerFactoryAware,
                    Component.AuthorizationAware
 {

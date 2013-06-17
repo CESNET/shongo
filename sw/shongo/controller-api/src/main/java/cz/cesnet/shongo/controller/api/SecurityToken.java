@@ -72,4 +72,26 @@ public class SecurityToken implements AtomicType
     {
         return accessToken;
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        SecurityToken that = (SecurityToken) o;
+        if (!accessToken.equals(that.accessToken)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return accessToken.hashCode();
+    }
 }

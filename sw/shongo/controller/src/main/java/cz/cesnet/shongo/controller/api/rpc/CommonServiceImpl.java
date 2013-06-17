@@ -21,7 +21,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CommonServiceImpl extends Component
+public class CommonServiceImpl extends AbstractServiceImpl
         implements CommonService, Component.EntityManagerFactoryAware,
                    Component.ControllerAgentAware, Component.AuthorizationAware
 {

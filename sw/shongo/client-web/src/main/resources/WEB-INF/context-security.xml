@@ -32,15 +32,22 @@
         <!-- Configure logout -->
         <security:logout logout-url="/logout" invalidate-session="true"/>
 
+        <!-- Configure expression handler to use custom permission evaluator -->
+        <security:expression-handler ref="expressionHandler"/>
+
     </security:http>
 
     <!-- Configure authentication manager for OpenID Connect -->
     <security:authentication-manager alias="authenticationManager">
-
         <!-- Use authentication provider for OpenID Connect -->
         <security:authentication-provider ref="authenticationProvider"/>
-
     </security:authentication-manager>
+
+    <!-- Create expression handler with custom permission evaluator -->
+    <bean id="expressionHandler"
+          class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler">
+        <property name="permissionEvaluator" ref="permissionEvaluator"/>
+    </bean>
 
     <!-- Create authentication entry-point -->
     <bean id="authenticationEntryPoint"

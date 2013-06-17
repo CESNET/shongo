@@ -249,7 +249,10 @@ sub get_user_information()
     my ($self, $user_id) = @_;
     my $user_information = $self->{'user-cache-get'}($user_id);
     if ( !defined($user_information) ) {
-        $user_information = $self->secure_request('Authorization.getUser', RPC::XML::string->new($user_id));
+        my $response = $self->secure_hash_request('Authorization.listUsers', {
+            'userIds' => [RPC::XML::string->new($user_id)]
+        });
+        $user_information = $response->{'items'}->[0];
         if ( defined($user_information) ) {
             $self->{'user-cache-put'}($user_id, $user_information);
         }

@@ -75,7 +75,7 @@ public class ListRequest extends AbstractRequest
      */
     public Integer getCount(Integer defaultCount)
     {
-        return (count != null ? count : count);
+        return (count != null ? count : defaultCount);
     }
 
     /**

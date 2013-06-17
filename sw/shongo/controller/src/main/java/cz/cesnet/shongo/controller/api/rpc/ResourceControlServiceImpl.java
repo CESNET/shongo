@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceControlServiceImpl extends Component
+public class ResourceControlServiceImpl extends AbstractServiceImpl
         implements ResourceControlService, Component.ControllerAgentAware,
                    Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {

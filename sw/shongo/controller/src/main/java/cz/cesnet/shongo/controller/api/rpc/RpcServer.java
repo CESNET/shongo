@@ -267,8 +267,8 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     }
                 }
             }
-            throw new XmlRpcException("No method '" + clazz.getSimpleName() + "." + methods[0].method.getName()
-                    + "' matching arguments: " + Util.getSignature(args));
+            throw new CommonReportSet.MethodNotDefinedException(
+                    clazz.getSimpleName() + "." + methods[0].method.getName() + "(" + Util.getSignature(args) + ")");
         }
 
         private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException

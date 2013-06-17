@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -499,15 +501,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected AclRecord getAclRecord(String userId, String entityId, Role role) throws Exception
     {
-        Collection<AclRecord> aclRecords =
-                getAuthorizationService().listAclRecords(SECURITY_TOKEN_ROOT, userId, entityId, role);
-        if (aclRecords.size() == 0) {
+        ListResponse<AclRecord> aclRecords = getAuthorizationService().listAclRecords(
+                new AclRecordListRequest(SECURITY_TOKEN, userId, entityId, role));
+
+        if (aclRecords.getItemCount() == 0) {
             return null;
         }
-        if (aclRecords.size() > 1) {
+        if (aclRecords.getItemCount() > 1) {
             throw new RuntimeException("Multiple " + new AclRecord(userId, entityId, role).toString() + ".");
         }
-        return aclRecords.iterator().next();
+        return aclRecords.getItem(0);
     }
 
     /**

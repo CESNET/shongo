@@ -31,7 +31,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceServiceImpl extends Component
+public class ResourceServiceImpl extends AbstractServiceImpl
         implements ResourceService, Component.EntityManagerFactoryAware,
                    Component.AuthorizationAware
 {

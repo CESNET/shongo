@@ -5,9 +5,13 @@ import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
+import cz.cesnet.shongo.controller.api.PermissionSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.*;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Interface defining service for accessing Shongo ACL.
@@ -38,53 +42,29 @@ public interface AuthorizationService extends Service
     public void deleteAclRecord(SecurityToken token, String aclRecordId);
 
     /**
-     * Retrieve {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}.
-     *
-     * @param token       token of the user requesting the operation
-     * @param aclRecordId identifier of newly created ACL record
-     * @return {@link cz.cesnet.shongo.controller.api.AclRecord} with given {@code id}
-     */
-    @API
-    public AclRecord getAclRecord(SecurityToken token, String aclRecordId);
-
-    /**
      * Retrieve collection of {@link cz.cesnet.shongo.controller.api.AclRecord} for given parameters.
      *
-     * @param token    token of the user requesting the operation
-     * @param userId   identifier of the Shongo user
-     * @param entityId identifier of the Shongo public entity
-     * @param role     role which the user has for the entity
+     * @param request {@link AclRecordListRequest}
      * @return collection of {@link cz.cesnet.shongo.controller.api.AclRecord} that matches given parameters
      */
     @API
-    public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role);
-
+    public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request);
 
     /**
-     * List permissions of user with given {@code token} for entity with given {@code entityId}.
+     * List permissions of requesting user for entities.
      *
-     * @param token    token of the user
-     * @param entityId identifier of the Shongo public entity
-     * @return collection of permissions
+     * @param request {@link PermissionListRequest}
+     * @return set of permissions for each requested entity
      */
     @API
-    public Collection<Permission> listPermissions(SecurityToken token, String entityId);
+    public Map<String, PermissionSet> listPermissions(PermissionListRequest request);
 
     /**
-     * @param token  token of the user requesting the operation
-     * @param userId of the user
-     * @return {@link UserInformation} for given {@code userId}
-     */
-    @API
-    public UserInformation getUser(SecurityToken token, String userId);
-
-    /**
-     * @param token  token of the user requesting the operation
-     * @param filter for filtering or {@code null}
+     * @param request {@link UserListRequest}
      * @return collection of {@link UserInformation}s that matches given {@code filter}
      */
     @API
-    public Collection<UserInformation> listUsers(SecurityToken token, String filter);
+    public ListResponse<UserInformation> listUsers(UserListRequest request);
 
     /**
      * @param token     token of the user requesting the operation

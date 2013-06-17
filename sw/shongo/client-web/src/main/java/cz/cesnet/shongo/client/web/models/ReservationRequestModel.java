@@ -1,6 +1,5 @@
-package cz.cesnet.shongo.client.web.controllers;
+package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.Technology;
 import org.joda.time.DateTime;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;

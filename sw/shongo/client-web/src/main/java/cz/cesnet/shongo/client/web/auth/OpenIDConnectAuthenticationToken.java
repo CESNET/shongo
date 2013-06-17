@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -13,27 +14,26 @@ import java.util.LinkedList;
  */
 public class OpenIDConnectAuthenticationToken extends AbstractAuthenticationToken
 {
-    private String accessToken;
+    private SecurityToken securityToken;
 
     private UserInfo userInformation;
 
     public OpenIDConnectAuthenticationToken(String accessToken)
     {
         super(new LinkedList<GrantedAuthority>());
-        this.accessToken = accessToken;
+        this.securityToken = new SecurityToken(accessToken);
     }
 
-    public OpenIDConnectAuthenticationToken(String accessToken, UserInfo userInformation,
-            Collection<? extends GrantedAuthority> authorities)
+    public OpenIDConnectAuthenticationToken(SecurityToken securityToken, UserInfo userInformation)
     {
-        super(authorities);
-        this.accessToken = accessToken;
+        super(new LinkedList<GrantedAuthority>());
+        this.securityToken = securityToken;
         this.userInformation = userInformation;
     }
 
-    public String getAccessToken()
+    public SecurityToken getSecurityToken()
     {
-        return accessToken;
+        return securityToken;
     }
 
     @Override

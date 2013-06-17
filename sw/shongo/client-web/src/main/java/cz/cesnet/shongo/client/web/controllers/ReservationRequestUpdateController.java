@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
+import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.springframework.stereotype.Controller;

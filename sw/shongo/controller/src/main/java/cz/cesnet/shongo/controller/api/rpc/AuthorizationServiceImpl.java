@@ -2,33 +2,36 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AclRecord;
+import cz.cesnet.shongo.controller.api.PermissionSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
+import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Implementation of {@link AuthorizationService}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AuthorizationServiceImpl extends Component
+public class AuthorizationServiceImpl extends AbstractServiceImpl
         implements AuthorizationService, Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {
     /**
@@ -70,6 +73,7 @@ public class AuthorizationServiceImpl extends Component
     /**
      * @param entityId of entity which should be checked for existence
      * @throws CommonReportSet.EntityNotFoundException
+     *
      */
     private void checkEntityExistence(EntityIdentifier entityId) throws CommonReportSet.EntityNotFoundException
     {
@@ -146,89 +150,154 @@ public class AuthorizationServiceImpl extends Component
     }
 
     @Override
-    public AclRecord getAclRecord(SecurityToken token, String aclRecordId)
+    public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request)
     {
-        String userId = authorization.validate(token);
+        String requesterUserId = authorization.validate(request.getSecurityToken());
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
-            cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
-                    authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
-            if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.READ)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read ACL for %s", aclRecord.getEntityId());
+            DatabaseFilter filter = new DatabaseFilter("aclRecord");
+            filter.addFilter("aclRecord.deleted = FALSE");
+
+            // List only records which are requested
+            if (request.getAclRecordIds().size() > 0) {
+                filter.addFilter("aclRecord.id IN (:aclRecordIds)");
+                Set<Long> aclRecordIds = new HashSet<Long>();
+                for (String aclRecordId : request.getAclRecordIds()) {
+                    aclRecordIds.add(Long.valueOf(aclRecordId));
+                }
+                filter.addFilterParameter("aclRecordIds", aclRecordIds);
             }
-            return aclRecord.toApi();
+
+            // List only records which are requested
+            if (request.getEntityIds().size() > 0) {
+                boolean isAdmin = authorization.isAdmin(requesterUserId);
+                StringBuilder entityIdsFilterBuilder = new StringBuilder();
+                entityIdsFilterBuilder.append("1=1");
+                for (String entityId : request.getEntityIds()) {
+                    EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
+                    boolean isGroup = entityIdentifier.isGroup();
+
+                    // Check entity existence
+                    if (!isGroup) {
+                        checkEntityExistence(entityIdentifier);
+                    }
+
+                    // Check permission for listing
+                    if (!isAdmin) {
+                        if (isGroup) {
+                            throw new TodoImplementException("List only ACL to which the requester has permission.");
+                        }
+                        else {
+                            if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.READ)) {
+                                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
+                            }
+                        }
+                    }
+
+                    EntityType entityType = entityIdentifier.getEntityType();
+                    Long persistenceId = entityIdentifier.getPersistenceId();
+                    StringBuilder entityIdFilterBuilder = new StringBuilder();
+                    if (entityType != null) {
+                        entityIdFilterBuilder.append("aclRecord.entityId.entityType = ");
+                        entityIdFilterBuilder.append(EntityType.class.getCanonicalName());
+                        entityIdFilterBuilder.append(".");
+                        entityIdFilterBuilder.append(entityType.toString());
+                    }
+                    if (persistenceId != null) {
+                        if (entityIdFilterBuilder.length() > 0) {
+                            entityIdFilterBuilder.append(" AND ");
+                        }
+                        entityIdFilterBuilder.append("aclRecord.entityId.persistenceId = ");
+                        entityIdFilterBuilder.append(persistenceId);
+                    }
+                    if (entityIdFilterBuilder.length() > 0) {
+                        entityIdsFilterBuilder.append(" AND (");
+                        entityIdsFilterBuilder.append(entityIdFilterBuilder);
+                        entityIdsFilterBuilder.append(")");
+                    }
+                }
+                filter.addFilter(entityIdsFilterBuilder.toString());
+            }
+
+            // List only records for requested users
+            if (request.getUserIds().size() > 0) {
+                filter.addFilter("aclRecord.userId IN (:userIds)");
+                filter.addFilterParameter("userIds", request.getUserIds());
+            }
+
+            // List only records for requested roles
+            if (request.getRoles().size() > 0) {
+                filter.addFilter("aclRecord.role IN (:roles)");
+                filter.addFilterParameter("roles", request.getRoles());
+            }
+
+            ListResponse<AclRecord> response = new ListResponse<AclRecord>();
+            List<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = performListRequest(
+                    "aclRecord", "SELECT aclRecord", cz.cesnet.shongo.controller.authorization.AclRecord.class,
+                    "FROM AclRecord aclRecord", filter, request, response, entityManager);
+
+            // Fill reservations to response
+            for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
+                response.addItem(aclRecord.toApi());
+            }
+            return response;
         }
         finally {
             entityManager.close();
+
         }
     }
 
     @Override
-    public Collection<AclRecord> listAclRecords(SecurityToken token, String userId, String entityId, Role role)
+    public Map<String, PermissionSet> listPermissions(PermissionListRequest request)
     {
-        String requesterUserId = authorization.validate(token);
-        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
-
-        if (!requesterUserId.equals(userId)) {
-            if (entityIdentifier != null) {
-                if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.READ)) {
-                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
-                }
-            }
-            else {
-                if (!authorization.isAdmin(requesterUserId)) {
-                    throw new TodoImplementException("List only ACL to which the requester has permission.");
-                }
-            }
-        }
-
-        if (entityIdentifier != null && !entityIdentifier.isGroup()) {
+        String userId = authorization.validate(request.getSecurityToken());
+        Map<String, PermissionSet> response = new HashMap<String, PermissionSet>();
+        for (String entityId : request.getEntityIds()) {
+            EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
             checkEntityExistence(entityIdentifier);
+            response.put(entityId, new PermissionSet(authorization.getPermissions(userId, entityIdentifier)));
         }
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
-        try {
-            List<AclRecord> aclRecordApiList = new LinkedList<AclRecord>();
-            for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
-                    authorizationManager.listAclRecords(userId, entityIdentifier, role)) {
-                aclRecordApiList.add(aclRecord.toApi());
-            }
-            return aclRecordApiList;
-        }
-        finally {
-            entityManager.close();
-        }
+        return response;
     }
 
     @Override
-    public Collection<Permission> listPermissions(SecurityToken token, String entityId)
+    public ListResponse<UserInformation> listUsers(UserListRequest request)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(request.getSecurityToken());
 
-        EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
-        checkEntityExistence(entityIdentifier);
-
-        return authorization.getPermissions(userId, entityIdentifier);
-    }
-
-    @Override
-    public UserInformation getUser(SecurityToken token, String userId)
-    {
-        authorization.validate(token);
-        return authorization.getUserInformation(userId);
-    }
-
-    @Override
-    public Collection<UserInformation> listUsers(SecurityToken token, String filter)
-    {
-        authorization.validate(token);
+        // Get users
+        Set<String> userIds = request.getUserIds();
+        if (userIds.size() == 0) {
+            userIds = null;
+        }
         List<UserInformation> users = new LinkedList<UserInformation>();
-        for (UserInformation userInformation : authorization.listUserInformation()) {
-            StringBuilder filterData = null;
-            if (filter != null) {
-                filterData = new StringBuilder();
+        if (userIds != null && userIds.size() < 3) {
+            for (String userId : userIds) {
+                users.add(authorization.getUserInformation(userId));
+            }
+        }
+        else {
+            for (UserInformation userInformation : authorization.listUserInformation()) {
+                // Filter by user-id
+                if (userIds != null) {
+                    if (!userIds.contains(userInformation.getUserId())) {
+                        continue;
+                    }
+                }
+                users.add(userInformation);
+            }
+        }
+
+        // Filter them
+        String filter = request.getFilter();
+        if (filter != null) {
+            for (Iterator<UserInformation> iterator = users.iterator(); iterator.hasNext(); ) {
+                UserInformation userInformation = iterator.next();
+
+                // Filter by data
+                StringBuilder filterData = new StringBuilder();
                 filterData.append(userInformation.getFirstName());
                 filterData.append(" ");
                 filterData.append(userInformation.getLastName());
@@ -236,12 +305,21 @@ public class AuthorizationServiceImpl extends Component
                     filterData.append(email);
                 }
                 filterData.append(userInformation.getOrganization());
-            }
-            if (filterData == null || StringUtils.containsIgnoreCase(filterData.toString(), filter)) {
-                users.add(userInformation);
+                if (!StringUtils.containsIgnoreCase(filterData.toString(), filter)) {
+                    iterator.remove();
+                }
             }
         }
-        return users;
+
+        int start = request.getStart(0);
+        int end = start + request.getCount(users.size() - start);
+        ListResponse<UserInformation> response = new ListResponse<UserInformation>();
+        response.setStart(start);
+        response.setCount(end - start);
+        for (UserInformation userInformation : users.subList(start, end)) {
+            response.addItem(userInformation);
+        }
+        return response;
     }
 
     @Override

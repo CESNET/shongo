@@ -6,8 +6,8 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AclRecord;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -210,7 +210,8 @@ public class AuthorizationTest extends AbstractControllerTest
      */
     private Set<cz.cesnet.shongo.controller.api.AclRecord> getAclRecords() throws Exception
     {
-        return new HashSet<AclRecord>(getAuthorizationService().listAclRecords(
-                SECURITY_TOKEN, getUserId(SECURITY_TOKEN), null, null));
+        ListResponse<cz.cesnet.shongo.controller.api.AclRecord> aclRecords = getAuthorizationService().listAclRecords(
+                new AclRecordListRequest(SECURITY_TOKEN, getUserId(SECURITY_TOKEN)));
+        return new HashSet<cz.cesnet.shongo.controller.api.AclRecord>(aclRecords.getItems());
     }
 }

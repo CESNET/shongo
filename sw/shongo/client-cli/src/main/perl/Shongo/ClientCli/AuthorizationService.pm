@@ -90,14 +90,17 @@ sub get_user()
         return;
     }
 
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.getUser', RPC::XML::string->new($args[0]));
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listUsers', {
+        'userIds' => [RPC::XML::string->new($args[0])]
+    });
     if ( defined($response) ) {
+        my $user = $response->{'items'}->[0];
         my $object = Shongo::ClientCli::API::Object->new();
         $object->set_object_name('User Information');
-        $object->add_attribute('Id', {}, $response->{'userId'});
-        $object->add_attribute('EPPN', {}, $response->{'originalId'});
-        $object->add_attribute('First Name', {}, $response->{'firstName'});
-        $object->add_attribute('Last Name', {}, $response->{'lastName'});
+        $object->add_attribute('Id', {}, $user->{'userId'});
+        $object->add_attribute('EPPN', {}, $user->{'originalId'});
+        $object->add_attribute('First Name', {}, $user->{'firstName'});
+        $object->add_attribute('Last Name', {}, $user->{'lastName'});
         console_print_text($object);
     }
 }
@@ -177,14 +180,17 @@ sub get_acl()
         return;
     }
 
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.getAclRecord', RPC::XML::string->new($args[0]));
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listAclRecords', {
+        'aclRecordIds' => [RPC::XML::string->new($args[0])]
+    });
     if ( defined($response) ) {
+        my $acl_record = $response->{'items'}->[0];
         my $object = Shongo::ClientCli::API::Object->new();
         $object->set_object_name('ACL Record');
-        $object->add_attribute('Id', {}, $response->{'id'});
-        $object->add_attribute('User-id', {}, $response->{'userId'});
-        $object->add_attribute('Entity', {}, $response->{'entityId'});
-        $object->add_attribute('Role', {}, $response->{'role'});
+        $object->add_attribute('Id', {}, $acl_record->{'id'});
+        $object->add_attribute('User-id', {}, $acl_record->{'userId'});
+        $object->add_attribute('Entity', {}, $acl_record->{'entityId'});
+        $object->add_attribute('Role', {}, $acl_record->{'role'});
         console_print_text($object);
     }
 }
@@ -192,20 +198,18 @@ sub get_acl()
 sub list_acl()
 {
     my ($options) = @_;
-    my $user_id = {};
-    my $entity_id = {};
-    my $role = {};
+    my $request = {};
     if ( defined($options->{'user'}) ) {
-        $user_id = RPC::XML::string->new($options->{'user'});
+        $request->{'userIds'} = [RPC::XML::string->new($options->{'user'})];
     }
     if ( defined($options->{'entity'}) ) {
-        $entity_id = RPC::XML::string->new($options->{'entity'});
+        $request->{'entityIds'} = [RPC::XML::string->new($options->{'entity'})];
     }
     if ( defined($options->{'role'}) ) {
-        $role = RPC::XML::string->new($options->{'role'});
+        $request->{'roles'} = [RPC::XML::string->new($options->{'role'})];
     }
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Authorization.listAclRecords', $user_id, $entity_id, $role);
+    my $response = $application->secure_hash_request('Authorization.listAclRecords', $request);
     if ( !defined($response) ) {
         return;
     }
@@ -218,7 +222,7 @@ sub list_acl()
         ],
         'data' => []
     };
-    foreach my $record (@{$response}) {
+    foreach my $record (@{$response->{'items'}}) {
         push(@{$table->{'data'}}, {
             'id' => $record->{'id'},
             'user' => [$record->{'userId'}, $application->format_user($record->{'userId'})],
@@ -236,16 +240,17 @@ sub list_permissions()
         console_print_error("Arguments '<entity-id>' must be specified.");
         return;
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Authorization.listPermissions',
-        RPC::XML::string->new($args[0]),
-    );
+    my $entityId = $args[0];
+    my $response = Shongo::ClientCli->instance()->secure_hash_request('Authorization.listPermissions', {
+        'entityIds' => [RPC::XML::string->new($entityId)],
+    });
     my $table = {
         'columns' => [
             {'field' => 'permission', 'title' => 'Permission'}
         ],
         'data' => []
     };
-    foreach my $permission (@{$response}) {
+    foreach my $permission (@{$response->{$entityId}->{'permissions'}}) {
         push(@{$table->{'data'}}, {
             'permission' => $permission
         });

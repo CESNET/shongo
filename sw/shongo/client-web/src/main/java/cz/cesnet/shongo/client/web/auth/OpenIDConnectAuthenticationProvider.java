@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.auth;
 
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -53,10 +54,11 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
         }
         else {
             OpenIDConnectAuthenticationToken authenticationToken = (OpenIDConnectAuthenticationToken) authentication;
-            String accessToken = authenticationToken.getAccessToken();
-            if (accessToken == null) {
+            SecurityToken securityToken = authenticationToken.getSecurityToken();
+            if (securityToken == null || securityToken.getAccessToken() == null) {
                 throw new AuthenticationServiceException("Access token is not set.");
             }
+            String accessToken = securityToken.getAccessToken();
 
             logger.debug("Retrieving user information for access token {}...", accessToken);
 
@@ -105,12 +107,9 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             nameBuilder.append(familyName);
             userInfo.setName(nameBuilder.toString());
 
-            List<GrantedAuthority> authorities = new LinkedList<GrantedAuthority>();
-            // TODO: Fetch user authorities
-
             logger.debug("User {} authenticated.", userInfo);
 
-            authentication = new OpenIDConnectAuthenticationToken(accessToken, userInfo, authorities);
+            authentication = new OpenIDConnectAuthenticationToken(securityToken, userInfo);
             authentication.setAuthenticated(true);
             return authentication;
         }

@@ -34,7 +34,7 @@
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
+                    <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
                     <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
@@ -45,7 +45,7 @@
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.created}}</td>
-                    <td>{{reservationRequest.user}}</td>
+                    <td>{{reservationRequest.owner}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
@@ -53,10 +53,12 @@
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
                                 code="views.reservationRequestList.action.detail"/></a>
-                        | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message
-                            code="views.reservationRequestList.action.modify"/></a>
-                        | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message
-                            code="views.reservationRequestList.action.delete"/></a>
+                        <span ng-show="reservationRequest.writable">
+                            | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message
+                                code="views.reservationRequestList.action.modify"/></a>
+                            | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message
+                                code="views.reservationRequestList.action.delete"/></a>
+                        </span>
                     </td>
                 </tr>
                 <tr ng-hide="items.length">
@@ -82,7 +84,7 @@
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
+                    <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
                     <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
@@ -93,7 +95,7 @@
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.created}}</td>
-                    <td>{{reservationRequest.user}}</td>
+                    <td>{{reservationRequest.owner}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
