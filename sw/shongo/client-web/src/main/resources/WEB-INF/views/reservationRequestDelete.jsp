@@ -1,3 +1,7 @@
+<%--
+  -- Page for confirmation of deletion of reservation request or for displaying dependencies because of which
+  -- the reservation request can't be deleted.
+  --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>

@@ -18,6 +18,8 @@
             <add-attribute value="jquery.min.js"/>
             <add-attribute value="bootstrap.min.js"/>
         </put-list-attribute>
+        <put-list-attribute name="i18n">
+        </put-list-attribute>
     </definition>
 
     <definition name="controllerNotAvailable" extends="layout">
@@ -43,7 +45,7 @@
             <add-attribute value="angular.min.js"/>
             <add-attribute value="angular-resource.min.js"/>
             <add-attribute value="angular-cookies.min.js"/>
-            <add-attribute value="pagination.js"/>
+            <add-attribute value="angular-pagination.js"/>
         </put-list-attribute>
     </definition>
 
@@ -57,8 +59,12 @@
             <add-attribute value="bootstrap-datetimepicker.css"/>
         </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
             <add-attribute value="bootstrap-datetimepicker.min.js"/>
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-datetime.js"/>
+        </put-list-attribute>
+        <put-list-attribute name="i18n" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker"/>
         </put-list-attribute>
     </definition>
     <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">

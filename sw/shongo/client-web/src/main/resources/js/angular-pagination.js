@@ -1,9 +1,12 @@
-var module = angular.module('pagination', ['ngResource', 'ngCookies']);
+/**
+ * Pagination module.
+ */
+var paginationModule = angular.module('ngPagination', ['ngResource', 'ngCookies']);
 
 /**
  * Ready controller.
  */
-module.controller('ReadyController', function ($scope) {
+paginationModule.controller('ReadyController', function ($scope) {
     $scope.readyCount = 0;
     $scope.ready = false;
     $scope.$watch('readyCount', function () {
@@ -16,7 +19,7 @@ module.controller('ReadyController', function ($scope) {
 /**
  * Pagination controller.
  */
-module.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
+paginationModule.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
     // Resource used for fetching items
     $scope.resource = null;
     // Current page index
@@ -203,7 +206,7 @@ module.controller('PaginationController', function ($scope, $resource, $window, 
 /**
  * Directive <pagination-page-size> for displaying page size selection.
  */
-module.directive('onError', function () {
+paginationModule.directive('onError', function () {
     return {
         restrict: 'A',
         link: function (scope, element, attr) {
@@ -215,7 +218,7 @@ module.directive('onError', function () {
 /**
  * Directive <pagination-page-size> for displaying page size selection.
  */
-module.directive('paginationPageSize', function () {
+paginationModule.directive('paginationPageSize', function () {
     return {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
@@ -235,7 +238,7 @@ module.directive('paginationPageSize', function () {
 /**
  * Directive <pagination-pages> for displaying page links.
  */
-module.directive('paginationPages', function () {
+paginationModule.directive('paginationPages', function () {
     return {
         restrict: 'E',
         compile: function (element, attrs, transclude) {

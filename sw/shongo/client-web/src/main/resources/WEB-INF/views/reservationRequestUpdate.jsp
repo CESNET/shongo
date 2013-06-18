@@ -1,3 +1,6 @@
+<%--
+  -- Page for creation/modification of a reservation request.
+  --%>
 <%@ page import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -8,76 +11,36 @@
 <tiles:importAttribute/>
 
 <script type="text/javascript">
-    var module = angular.module('app', []);
-    module.directive('dateTimePicker', function() {
-        return {
-            restrict: 'A',
-            link: function postLink(scope, element, attrs, controller) {
-                // Create date/time picker
-                element.datetimepicker({
-                    minuteStep: 2,
-                    autoclose: true,
-                    todayBtn: true,
-                    todayHighlight: true
-                });
+    // Angular application
+    angular.module('ngReservationRequestUpdate', ['ngDateTime']);
 
-                // Create method for initializing "datetime" or "date" format
-                var dateTimePicker = element.data("datetimepicker");
-                dateTimePicker.setFormatDate = function() {
-                    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('month');
-                    dateTimePicker.viewSelect = element.data("datetimepicker").minView;
-                    dateTimePicker.setFormat("yyyy-mm-dd");
-                    if (element.val() != "") {
-                        dateTimePicker.setValue();
-                    }
-                };
-                dateTimePicker.setFormatDateTime = function() {
-                    dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('hour');
-                    dateTimePicker.setFormat("yyyy-mm-dd hh:ii");
-                    if (element.val() != "") {
-                        dateTimePicker.setValue();
-                    }
-                };
-
-                if ( attrs.format == "date") {
-                    dateTimePicker.setFormatDate();
-                }
-                else {
-                    dateTimePicker.setFormatDateTime();
-                }
+    // Form controller
+    function FormController($scope) {
+        $scope.value = function(value, defaultValue) {
+            return ((value == null || value == '') ? defaultValue : value);
+        };
+        $scope.id = $scope.value('${reservationRequest.id}', null);
+        $scope.type = $scope.value('${reservationRequest.type}', 'ALIAS');
+        $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
+        $scope.$watch("type", function () {
+            var dateTimePicker = $('#start').data("datetimepicker");
+            if ( $scope.type == 'ALIAS') {
+                dateTimePicker.setFormatDate();
             }
-        }
-    });
-
+            else {
+                dateTimePicker.setFormatDateTime();
+            }
+        });
+    }
 </script>
 
-<div ng-app="app">
+<div ng-app="ngReservationRequestUpdate">
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
            action="${contextPath}${confirmUrl}"
            method="post"
            ng-controller="FormController">
-
-    <script type="text/javascript">
-        function FormController($scope) {
-            $scope.value = function(value, defaultValue) {
-                return ((value == null || value == '') ? defaultValue : value);
-            };
-            $scope.id = $scope.value('${reservationRequest.id}', null);
-            $scope.type = $scope.value('${reservationRequest.type}', 'ALIAS');
-            $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
-            $scope.$watch("type", function () {
-                var dateTimePicker = $('#start').data("datetimepicker");
-                if ( $scope.type == 'ALIAS') {
-                    dateTimePicker.setFormatDate();
-                }
-                else {
-                    dateTimePicker.setFormatDateTime();
-                }
-            });
-        }
-    </script>
 
     <fieldset>
 
@@ -183,7 +146,7 @@
             </div>
         </div>
 
-        <div class="control-group">
+        <div class="control-group" ng-show="type == 'ROOM'" class="hide">
             <form:label class="control-label" path="periodicityType">
                 <spring:message code="views.reservationRequest.periodicity"/>:
             </form:label>

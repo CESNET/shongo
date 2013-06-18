@@ -1,3 +1,6 @@
+<%--
+  -- Main welcome page.
+  --%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 
 <h1>${title}</h1>

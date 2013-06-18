@@ -1,7 +1,10 @@
+<%--
+  -- Page layout template to which are inserted all other pages into "body" attribute.
+  --%>
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ page import="org.springframework.web.util.UriComponentsBuilder" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="cs" xml:lang="cs">
 
 <%-- Tag Libraries --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -30,6 +33,11 @@
     <c:forEach items="${js}" var="file">
         <script src="${contextPath}/js/${file}"></script>
     </c:forEach>
+    <c:if test="${requestContext.locale.language != 'en'}">
+        <c:forEach items="${i18n}" var="file">
+            <script src="${contextPath}/js/i18n/${file}.${requestContext.locale.language}.js"></script>
+        </c:forEach>
+    </c:if>
 </head>
 
 <body>

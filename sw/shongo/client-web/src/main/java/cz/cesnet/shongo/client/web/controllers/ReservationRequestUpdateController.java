@@ -6,6 +6,9 @@ import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
@@ -14,6 +17,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
 
 /**
  * Controller for managing reservation requests.
@@ -25,6 +30,9 @@ import org.springframework.web.bind.annotation.*;
 @SessionAttributes("reservationRequest")
 public class ReservationRequestUpdateController
 {
+    @Resource
+    private ReservationService reservationService;
+
     @InitBinder
     public void initBinder(WebDataBinder binder)
     {
@@ -55,26 +63,21 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestCreate";
         }
-        reservationRequestModel.setId("shongo:cz.cesnet:req:33");
-        return "reservationRequestDetail";
+
+        // TODO: create reservation request
+        String reservationRequestId = "shongo:cz.cesnet:req:33";
+
+        return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
 
     @RequestMapping(value = "/modify/{id:.+}", method = RequestMethod.GET)
-    public String getModify(@PathVariable(value = "id") String reservationRequestId, Model model)
+    public String getModify(
+            SecurityToken securityToken,
+            @PathVariable(value = "id") String id,
+            Model model)
     {
-        ReservationRequestModel reservationRequest = new ReservationRequestModel();
-        reservationRequest.setId(reservationRequestId);
-        reservationRequest.setDescription("test");
-        reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
-        reservationRequest.setTechnology(ReservationRequestModel.Technology.H323_SIP);
-        reservationRequest.setStart(DateTime.parse("2012-06-01T12:00"));
-        reservationRequest.setEnd(DateTime.parse("2012-06-01T14:00"));
-        reservationRequest.setDurationCount(2);
-        reservationRequest.setDurationType(ReservationRequestModel.DurationType.HOUR);
-        reservationRequest.setType(ReservationRequestModel.Type.ROOM);
-        reservationRequest.setRoomParticipantCount(5);
-        reservationRequest.setRoomPin("1234");
-        model.addAttribute("reservationRequest", reservationRequest);
+        AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
+        model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
         return "reservationRequestModify";
     }
 
@@ -87,7 +90,10 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestModify";
         }
-        reservationRequestModel.setId("shongo:cz.cesnet:req:33");
-        return "reservationRequestDetail";
+
+        // TODO: modify reservation request
+        String reservationRequestId = reservationRequestModel.getId();
+
+        return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
 }

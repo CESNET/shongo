@@ -1,17 +1,20 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.H323RoomSetting;
+import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.ReservationRequest;
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
+import cz.cesnet.shongo.controller.api.*;
+import org.joda.time.*;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -223,12 +226,129 @@ public class ReservationRequestModel implements Validator
         throw new TodoImplementException();
     }
 
-    public void fromApi(AbstractReservationRequest reservationRequest)
+    public void fromApi(AbstractReservationRequest abstractReservationRequest)
     {
-        id = reservationRequest.getId();
-        created = reservationRequest.getCreated();
-        description = reservationRequest.getDescription();
-        purpose = reservationRequest.getPurpose();
+        id = abstractReservationRequest.getId();
+        created = abstractReservationRequest.getCreated();
+        description = abstractReservationRequest.getDescription();
+        purpose = abstractReservationRequest.getPurpose();
+
+        // Specification
+        Specification specification = abstractReservationRequest.getSpecification();
+        if (specification instanceof AliasSpecification) {
+            AliasSpecification aliasSpecification = (AliasSpecification) specification;
+            type = Type.ALIAS;
+            technology = Technology.find(aliasSpecification.getTechnologies());
+            aliasRoomName = aliasSpecification.getValue();
+            Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
+            if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
+                          && technology != null && aliasRoomName != null)) {
+                throw new UnsupportedApiException("Alias specification must be for room name.");
+            }
+        }
+        else if (specification instanceof AliasSetSpecification) {
+            AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
+            List<AliasSpecification> aliasSpecifications = aliasSetSpecification.getAliases();
+            if (aliasSpecifications.size() == 0) {
+                throw new UnsupportedApiException("At least one child alias specifications must be present.");
+            }
+            AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
+            type = Type.ALIAS;
+            technology = Technology.find(roomNameSpecification.getTechnologies());
+            aliasRoomName = roomNameSpecification.getValue();
+            Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
+            if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
+                          && technology != null && aliasRoomName != null)) {
+                throw new UnsupportedApiException("First alias specification must be for room name.");
+            }
+        }
+        else if (specification instanceof RoomSpecification) {
+            RoomSpecification roomSpecification = (RoomSpecification) specification;
+            type = Type.ROOM;
+            technology = Technology.find(roomSpecification.getTechnologies());
+            roomParticipantCount = roomSpecification.getParticipantCount();
+            for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
+                if (roomSetting instanceof H323RoomSetting) {
+                    H323RoomSetting h323RoomSetting = (H323RoomSetting) roomSetting;
+                    roomPin = h323RoomSetting.getPin();
+                }
+            }
+        }
+        else {
+            throw new UnsupportedApiException(specification);
+        }
+
+        // Date/time slot and periodicity
+        Period duration;
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            periodicityType = PeriodicityType.NONE;
+            Interval slot = reservationRequest.getSlot();
+            start = slot.getStart();
+            end = slot.getEnd();
+            duration = slot.toPeriod();
+        }
+        else if (abstractReservationRequest instanceof ReservationRequestSet) {
+            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+            List<Object> slots = reservationRequestSet.getSlots();
+            if (!(slots.size() == 1 && slots.get(0) instanceof PeriodicDateTimeSlot)) {
+                throw new UnsupportedApiException("Only single periodic date/time slot is allowed.");
+            }
+            if (!type.equals(Type.ROOM)) {
+                throw new UnsupportedApiException("Periodicity is allowed only for rooms.");
+            }
+            PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
+            start = slot.getStart();
+            duration = slot.getDuration();
+
+            Period period = slot.getPeriod();
+            if (period.equals(Period.days(1))) {
+                periodicityType = PeriodicityType.DAILY;
+            }
+            else if (period.equals(Period.weeks(1))) {
+                periodicityType = PeriodicityType.WEEKLY;
+            }
+            else {
+                throw new UnsupportedApiException("Periodicity %s.", period);
+            }
+
+            ReadablePartial slotEnd = slot.getEnd();
+            if (slotEnd instanceof LocalDate) {
+                periodicityEnd = (LocalDate) slotEnd;
+            }
+            else {
+                throw new UnsupportedApiException("Slot end %s.", slotEnd);
+            }
+        }
+        else {
+            throw new UnsupportedApiException(abstractReservationRequest);
+        }
+
+        // Room duration
+        if (type.equals(Type.ROOM)) {
+            int minutes = duration.getMinutes();
+            if (Period.minutes(minutes).equals(duration)) {
+                durationCount = minutes;
+                durationType = DurationType.MINUTE;
+            }
+            else {
+                int hours = duration.getHours();
+                if (Period.hours(hours).equals(duration)) {
+                    durationCount = hours;
+                    durationType = DurationType.HOUR;
+                }
+                else {
+                    int days = duration.getDays();
+                    if (Period.days(days).equals(duration)) {
+                        durationCount = days;
+                        durationType = DurationType.MINUTE;
+                    }
+                    else {
+                        throw new UnsupportedApiException("Room duration %s.", duration);
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -262,15 +382,15 @@ public class ReservationRequestModel implements Validator
                     if (end != null && end.getMillisOfDay() == 0) {
                         end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
                     }
-                    if (!start.isBefore(end)) {
+                    if (start != null && end != null && !start.isBefore(end)) {
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "aliasRoomName", "validation.field.required");
                     break;
                 case ROOM:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                    ValidationUtils
-                            .rejectIfEmptyOrWhitespace(errors, "roomParticipantCount", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors,"durationCount", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(
+                            errors, "roomParticipantCount", "validation.field.required");
                     break;
             }
         }
@@ -313,6 +433,9 @@ public class ReservationRequestModel implements Validator
 
         public static Technology find(Set<cz.cesnet.shongo.Technology> technologies)
         {
+            if (technologies.size() == 0) {
+                return null;
+            }
             if (H323_SIP.technologies.containsAll(technologies)) {
                 return H323_SIP;
             }

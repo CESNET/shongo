@@ -1,3 +1,6 @@
+<%--
+  -- Page for listing reservation requests for current user.
+  --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
@@ -5,6 +8,10 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
+    // Angular application
+    angular.module('ngReservationRequestList', ['ngPagination']);
+
+    // On error handler for listing reservation requests
     window.onErrorResolved = false;
     window.onError = function(response) {
         // Handle only first error
@@ -18,7 +25,7 @@
     };
 </script>
 
-<div ng-app="pagination" ng-controller="ReadyController">
+<div ng-app="ngReservationRequestList" ng-controller="ReadyController">
 
     <div class="spinner" ng-hide="ready"></div>
 

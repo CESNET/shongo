@@ -21,6 +21,8 @@ img.language {
     border: solid 1px;
     margin-top: -2px;
     padding: 1px;
+    width: 16px;
+    height: 11px;
 }
 
 /** Table empty row style */

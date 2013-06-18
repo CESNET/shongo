@@ -47,13 +47,16 @@ public class ErrorController
 
         reportError("Error " + statusCode + " in " + requestUri + ": " + message, throwable, request);
 
-        if (message == null) {
-            if (throwable != null) {
-                message = throwable.getMessage();
+        if (throwable != null) {
+            if (message != null) {
+                message = message + ": " + throwable.getMessage();
             }
             else {
-                message = HttpStatus.valueOf(statusCode).getReasonPhrase();
+                message = throwable.getMessage();
             }
+        }
+        else if (message == null) {
+            message = HttpStatus.valueOf(statusCode).getReasonPhrase();
         }
         model.addAttribute("url", requestUri);
         model.addAttribute("code", statusCode);
