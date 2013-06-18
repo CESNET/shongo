@@ -94,3 +94,7 @@ div.not-available {
     font-weight: bold;
 }
 
+
+.radio {
+    padding-top: 0px !important;
+}

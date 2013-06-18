@@ -1,6 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequest;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -16,7 +21,25 @@ import java.util.Set;
  */
 public class ReservationRequestModel implements Validator
 {
+
+    public ReservationRequestModel()
+    {
+    }
+
+    public ReservationRequestModel(AbstractReservationRequest reservationRequest)
+    {
+        fromApi(reservationRequest);
+    }
+
     private String id;
+
+    private DateTime created;
+
+    private String description;
+
+    private ReservationRequestPurpose purpose;
+
+    private Technology technology;
 
     private DateTime start;
 
@@ -26,17 +49,19 @@ public class ReservationRequestModel implements Validator
 
     private DurationType durationType;
 
-    private String description;
+    private PeriodicityType periodicityType;
 
-    private String purpose;
+    private LocalDate periodicityEnd;
 
-    private Technology technology;
+    private Type type;
 
-    private SpecificationType type;
+    private String aliasRoomName;
 
-    private AliasSpecification alias;
+    private String roomAliasReservationId;
 
-    private RoomSpecification room;
+    private Integer roomParticipantCount;
+
+    private String roomPin;
 
     public String getId()
     {
@@ -46,6 +71,41 @@ public class ReservationRequestModel implements Validator
     public void setId(String id)
     {
         this.id = id;
+    }
+
+    public DateTime getCreated()
+    {
+        return created;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
+    public void setDescription(String description)
+    {
+        this.description = description;
+    }
+
+    public ReservationRequestPurpose getPurpose()
+    {
+        return purpose;
+    }
+
+    public void setPurpose(ReservationRequestPurpose purpose)
+    {
+        this.purpose = purpose;
+    }
+
+    public Technology getTechnology()
+    {
+        return technology;
+    }
+
+    public void setTechnology(Technology technology)
+    {
+        this.technology = technology;
     }
 
     public DateTime getStart()
@@ -88,64 +148,87 @@ public class ReservationRequestModel implements Validator
         this.durationType = durationType;
     }
 
-    public String getDescription()
+    public PeriodicityType getPeriodicityType()
     {
-        return description;
+        return periodicityType;
     }
 
-    public void setDescription(String description)
+    public void setPeriodicityType(PeriodicityType periodicityType)
     {
-        this.description = description;
+        this.periodicityType = periodicityType;
     }
 
-    public String getPurpose()
+    public LocalDate getPeriodicityEnd()
     {
-        return purpose;
+        return periodicityEnd;
     }
 
-    public void setPurpose(String purpose)
+    public void setPeriodicityEnd(LocalDate periodicityEnd)
     {
-        this.purpose = purpose;
+        this.periodicityEnd = periodicityEnd;
     }
 
-    public Technology getTechnology()
-    {
-        return technology;
-    }
-
-    public void setTechnology(Technology technology)
-    {
-        this.technology = technology;
-    }
-
-    public SpecificationType getType()
+    public Type getType()
     {
         return type;
     }
 
-    public void setType(SpecificationType type)
+    public void setType(Type type)
     {
         this.type = type;
     }
 
-    public AliasSpecification getAlias()
+    public String getAliasRoomName()
     {
-        return alias;
+        return aliasRoomName;
     }
 
-    public void setAlias(AliasSpecification alias)
+    public void setAliasRoomName(String aliasRoomName)
     {
-        this.alias = alias;
+        this.aliasRoomName = aliasRoomName;
     }
 
-    public RoomSpecification getRoom()
+    public String getRoomAliasReservationId()
     {
-        return room;
+        return roomAliasReservationId;
     }
 
-    public void setRoom(RoomSpecification room)
+    public void setRoomAliasReservationId(String roomAliasReservationId)
     {
-        this.room = room;
+        this.roomAliasReservationId = roomAliasReservationId;
+    }
+
+    public Integer getRoomParticipantCount()
+    {
+        return roomParticipantCount;
+    }
+
+    public void setRoomParticipantCount(Integer roomParticipantCount)
+    {
+        this.roomParticipantCount = roomParticipantCount;
+    }
+
+    public String getRoomPin()
+    {
+        return roomPin;
+    }
+
+    public void setRoomPin(String roomPin)
+    {
+        this.roomPin = roomPin;
+    }
+
+    public AbstractReservationRequest toApi()
+    {
+        throw new TodoImplementException();
+    }
+
+    public void fromApi(AbstractReservationRequest reservationRequest)
+    {
+        id = reservationRequest.getId();
+        created = reservationRequest.getCreated();
+        description = reservationRequest.getDescription();
+        purpose = reservationRequest.getPurpose();
     }
 
     @Override
@@ -161,6 +244,11 @@ public class ReservationRequestModel implements Validator
         reservationRequestModel.validate(errors);
     }
 
+    /**
+     * Validate this {@link ReservationRequestModel}.
+     *
+     * @param errors
+     */
     public void validate(Errors errors)
     {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "purpose", "validation.field.required");
@@ -171,21 +259,27 @@ public class ReservationRequestModel implements Validator
             switch (type) {
                 case ALIAS:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
-                    if (end.getMillisOfDay() == 0) {
+                    if (end != null && end.getMillisOfDay() == 0) {
                         end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
                     }
                     if (!start.isBefore(end)) {
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "alias.roomName", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "aliasRoomName", "validation.field.required");
                     break;
                 case ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     ValidationUtils
-                            .rejectIfEmptyOrWhitespace(errors, "room.participantCount", "validation.field.required");
+                            .rejectIfEmptyOrWhitespace(errors, "roomParticipantCount", "validation.field.required");
                     break;
             }
         }
+    }
+
+    public static enum Type
+    {
+        ALIAS,
+        ROOM
     }
 
     public static enum Technology
@@ -236,63 +330,10 @@ public class ReservationRequestModel implements Validator
         DAY
     }
 
-    public static enum SpecificationType
+    public static enum PeriodicityType
     {
-        ALIAS,
-        ROOM
-    }
-
-    public static class AliasSpecification
-    {
-        private String roomName;
-
-        public String getRoomName()
-        {
-            return roomName;
-        }
-
-        public void setRoomName(String roomName)
-        {
-            this.roomName = roomName;
-        }
-    }
-
-    public static class RoomSpecification
-    {
-        private String alias;
-
-        private Integer participantCount;
-
-        private String pin;
-
-        public String getAlias()
-        {
-            return alias;
-        }
-
-        public void setAlias(String alias)
-        {
-            this.alias = alias;
-        }
-
-        public Integer getParticipantCount()
-        {
-            return participantCount;
-        }
-
-        public void setParticipantCount(Integer participantCount)
-        {
-            this.participantCount = participantCount;
-        }
-
-        public String getPin()
-        {
-            return pin;
-        }
-
-        public void setPin(String pin)
-        {
-            this.pin = pin;
-        }
+        NONE,
+        DAILY,
+        WEEKLY
     }
 }

@@ -27,7 +27,7 @@
         <sender>no-reply@shongo.cz</sender>
         <!--<host></host>-->
         <port>25</port>
-        <subject-prefix></subject-prefix>
+        <subject-prefix xml:space="preserve">[shongo-web] </subject-prefix>
     </smtp>
 
 </configuration>

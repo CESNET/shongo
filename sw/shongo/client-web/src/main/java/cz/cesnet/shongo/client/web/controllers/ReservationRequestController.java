@@ -56,7 +56,7 @@ public class ReservationRequestController
             Model model)
     {
         AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
-        model.addAttribute("reservationRequest", reservationRequest);
+        model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
         return "reservationRequestDetail";
     }
 
@@ -106,7 +106,7 @@ public class ReservationRequestController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType)
+            @RequestParam(value = "type", required = false) ReservationRequestModel.Type specificationType)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();

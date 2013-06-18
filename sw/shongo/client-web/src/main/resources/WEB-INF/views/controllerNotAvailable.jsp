@@ -4,7 +4,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 
 <div class="not-available">
-    <h2><spring:message code="views.errorController.heading"/></h2>
-    <p><spring:message code="views.errorController.text" arguments="${configuration.contactEmail}"/></p>
+    <h2><spring:message code="views.controllerNotAvailable.heading"/></h2>
+    <p><spring:message code="views.controllerNotAvailable.text" arguments="${configuration.contactEmail}"/></p>
 </div>
 

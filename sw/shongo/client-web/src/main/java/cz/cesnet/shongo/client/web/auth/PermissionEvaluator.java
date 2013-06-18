@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.auth;
 
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.client.web.UserCache;
+import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.springframework.security.core.Authentication;
@@ -24,8 +25,8 @@ public class PermissionEvaluator implements org.springframework.security.access.
     {
         SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
         String entityId;
-        if (targetDomainObject instanceof IdentifiedObject) {
-            entityId = ((IdentifiedObject) targetDomainObject).getId();
+        if (targetDomainObject instanceof ReservationRequestModel) {
+            entityId = ((ReservationRequestModel) targetDomainObject).getId();
         }
         else {
             throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");

@@ -248,6 +248,22 @@ public class Temporal
     }
 
     /**
+     * @param dateTime
+     * @param minutes
+     * @return rounded given {@code dateTime} to {@code minutes}
+     */
+    public static DateTime roundDateTimeToMinutes(final DateTime dateTime, final int minutes)
+    {
+        if (minutes < 1 || 60 % minutes != 0) {
+            throw new IllegalArgumentException("Minutes must be a factor of 60.");
+        }
+        final DateTime hour = dateTime.hourOfDay().roundFloorCopy();
+        final long millisSinceHour = new Duration(hour, dateTime).getMillis();
+        final int roundedMinutes = ((int) Math.ceil(millisSinceHour / 60000.0 / minutes)) * minutes;
+        return hour.plusMinutes(roundedMinutes);
+    }
+
+    /**
      * @param dateTime to be formatted
      * @return formatted given {@code dateTime} to {@link String}
      */

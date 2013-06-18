@@ -26,7 +26,10 @@ public class ClientWebConfiguration extends CombinedConfiguration
         try {
             File adminConfigFile = new File(adminConfigFileName);
             if (adminConfigFile.exists()) {
-                addConfiguration(new XMLConfiguration(adminConfigFile));
+                XMLConfiguration xmlConfiguration = new XMLConfiguration();
+                xmlConfiguration.setDelimiterParsingDisabled(true);
+                xmlConfiguration.load(adminConfigFile);
+                addConfiguration(xmlConfiguration);
             }
         }
         catch (Exception exception) {
@@ -103,5 +106,37 @@ public class ClientWebConfiguration extends CombinedConfiguration
     public String getAuthenticationSecret()
     {
         return getString("security.secret");
+    }
+
+    /**
+     * @return SMTP sender email address
+     */
+    public String getSmtpSender()
+    {
+        return getString("smtp.sender");
+    }
+
+    /**
+     * @return SMTP server host
+     */
+    public String getSmtpHost()
+    {
+        return getString("smtp.host");
+    }
+
+    /**
+     * @return SMTP server port
+     */
+    public String getSmtpPort()
+    {
+        return getString("smtp.port");
+    }
+
+    /**
+     * @return subject prefix for all email messages
+     */
+    public String getSmtpSubjectPrefix()
+    {
+        return getString("smtp.subject-prefix");
     }
 }

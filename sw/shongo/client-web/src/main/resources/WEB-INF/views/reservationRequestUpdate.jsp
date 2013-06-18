@@ -20,8 +20,6 @@
                     todayBtn: true,
                     todayHighlight: true
                 });
-                //element.attr("readonly", true);
-                element.data("datetimepicker").setValue();
 
                 // Create method for initializing "datetime" or "date" format
                 var dateTimePicker = element.data("datetimepicker");
@@ -29,12 +27,16 @@
                     dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('month');
                     dateTimePicker.viewSelect = element.data("datetimepicker").minView;
                     dateTimePicker.setFormat("yyyy-mm-dd");
-                    dateTimePicker.setValue();
+                    if (element.val() != "") {
+                        dateTimePicker.setValue();
+                    }
                 };
                 dateTimePicker.setFormatDateTime = function() {
                     dateTimePicker.minView = $.fn.datetimepicker.DPGlobal.convertViewMode('hour');
                     dateTimePicker.setFormat("yyyy-mm-dd hh:ii");
-                    dateTimePicker.setValue();
+                    if (element.val() != "") {
+                        dateTimePicker.setValue();
+                    }
                 };
 
                 if ( attrs.format == "date") {
@@ -115,34 +117,34 @@
         </div>
 
         <div class="control-group" ng-show="type == 'ALIAS'" class="hide">
-            <form:label class="control-label" path="alias.roomName">
+            <form:label class="control-label" path="aliasRoomName">
                 <spring:message code="views.reservationRequest.specification.alias.roomName"/>:
             </form:label>
             <div class="controls">
-                <form:input path="alias.roomName" cssErrorClass="error"/>
-                <form:errors path="alias.roomName" cssClass="error"/>
+                <form:input path="aliasRoomName" cssErrorClass="error"/>
+                <form:errors path="aliasRoomName" cssClass="error"/>
             </div>
         </div>
 
         <div class="control-group" ng-show="type == 'ROOM'" class="hide">
-            <form:label class="control-label" path="room.alias">
+            <form:label class="control-label" path="roomAliasReservationId">
                 <spring:message code="views.reservationRequest.specification.room.alias"/>:
             </form:label>
             <div class="controls">
-                <form:select path="room.alias">
+                <form:select path="roomAliasReservationId">
                     <form:option value="ADHOC">Ad-Hoc</form:option>
                 </form:select>
-                <form:errors path="room.alias" cssClass="error"/>
+                <form:errors path="roomAliasReservationId" cssClass="error"/>
             </div>
         </div>
 
         <div class="control-group" ng-show="type == 'ROOM'" class="hide">
-            <form:label class="control-label" path="room.participantCount">
+            <form:label class="control-label" path="roomParticipantCount">
                 <spring:message code="views.reservationRequest.specification.room.participantCount"/>:
             </form:label>
             <div class="controls">
-                <form:input path="room.participantCount" cssErrorClass="error"/>
-                <form:errors path="room.participantCount" cssClass="error"/>
+                <form:input path="roomParticipantCount" cssErrorClass="error"/>
+                <form:errors path="roomParticipantCount" cssClass="error"/>
             </div>
         </div>
 
@@ -153,6 +155,16 @@
             <div class="controls">
                 <form:input path="start" cssErrorClass="error" date-time-picker="true"/>
                 <form:errors path="start" cssClass="error"/>
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="type == 'ALIAS'" class="hide">
+            <form:label class="control-label" path="end">
+                <spring:message code="views.reservationRequest.end"/>:
+            </form:label>
+            <div class="controls">
+                <form:input path="end" cssErrorClass="error" date-time-picker="true" format="date"/>
+                <form:errors path="end" cssClass="error"/>
             </div>
         </div>
 
@@ -171,13 +183,29 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="type == 'ALIAS'" class="hide">
-            <form:label class="control-label" path="end">
-                <spring:message code="views.reservationRequest.end"/>:
+        <div class="control-group">
+            <form:label class="control-label" path="periodicityType">
+                <spring:message code="views.reservationRequest.periodicity"/>:
             </form:label>
             <div class="controls">
-                <form:input path="end" cssErrorClass="error" date-time-picker="true" format="date"/>
-                <form:errors path="end" cssClass="error"/>
+                <label class="radio inline" for="periodicity-none">
+                    <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE"/>
+                    <spring:message code="views.reservationRequest.periodicity.none"/>
+                </label>
+                <label class="radio inline" for="periodicity-daily">
+                    <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY"/>
+                    <spring:message code="views.reservationRequest.periodicity.daily"/>
+                </label>
+                <label class="radio inline" for="periodicity-weekly">
+                    <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY"/>
+                    <spring:message code="views.reservationRequest.periodicity.weekly"/>
+                </label>
+                &nbsp;
+                <div class="input-prepend">
+                    <span class="add-on"><spring:message code="views.reservationRequest.periodicity.until"/></span>
+                    <form:input path="periodicityEnd" cssErrorClass="error" date-time-picker="true" format="date"/>
+                </div>
+                <form:errors path="periodicityEnd" cssClass="error"/>
             </div>
         </div>
 
@@ -204,12 +232,12 @@
         </div>
 
         <div class="control-group" ng-show="type == 'ROOM' && technology == 'H323_SIP'" class="hide">
-            <form:label class="control-label" path="room.pin">
+            <form:label class="control-label" path="roomPin">
                 <spring:message code="views.reservationRequest.specification.room.pin"/>:
             </form:label>
             <div class="controls">
-                <form:input path="room.pin" cssErrorClass="error"/>
-                <form:errors path="room.pin" cssClass="error"/>
+                <form:input path="roomPin" cssErrorClass="error"/>
+                <form:errors path="roomPin" cssClass="error"/>
             </div>
         </div>
 

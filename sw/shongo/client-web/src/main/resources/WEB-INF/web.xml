@@ -52,7 +52,7 @@
 
     <error-page>
         <exception-type>cz.cesnet.shongo.controller.ControllerConnectException</exception-type>
-        <location>/controller-error</location>
+        <location>/controller-not-available</location>
     </error-page>
 
 </web-app>

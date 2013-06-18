@@ -20,10 +20,10 @@
         </put-list-attribute>
     </definition>
 
-    <definition name="errorController" extends="layout">
-        <put-attribute name="title" value="views.errorController.title"/>
+    <definition name="controllerNotAvailable" extends="layout">
+        <put-attribute name="title" value="views.controllerNotAvailable.title"/>
         <put-attribute name="heading" value=""/>
-        <put-attribute name="body" value="/WEB-INF/views/errorController.jsp" type="template"/>
+        <put-attribute name="body" value="/WEB-INF/views/controllerNotAvailable.jsp" type="template"/>
     </definition>
 
     <definition name="index" extends="layout">
