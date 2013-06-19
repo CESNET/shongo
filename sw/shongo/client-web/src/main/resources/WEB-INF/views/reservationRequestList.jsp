@@ -34,8 +34,9 @@
         <div ng-controller="PaginationController"
              ng-init="init('list_aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')"
              on-error="window.onError">
-            <pagination-page-size class="pull-right"><spring:message
-                    code="views.pagination.records"/></pagination-page-size>
+            <pagination-page-size class="pull-right">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
             <h2><spring:message code="views.reservationRequest.type.aliases"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
@@ -46,7 +47,7 @@
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
-                    <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
+                    <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -73,8 +74,9 @@
                 </tr>
                 </tbody>
             </table>
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ALIAS"><spring:message
-                    code="views.button.create"/></a>
+            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ALIAS">
+                <spring:message code="views.button.create"/>
+            </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
             &nbsp;
         </div>
@@ -84,8 +86,9 @@
         <div ng-controller="PaginationController"
              ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"
              on-error="window.onError">
-            <pagination-page-size class="pull-right"><spring:message
-                    code="views.pagination.records"/></pagination-page-size>
+            <pagination-page-size class="pull-right">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
             <h2><spring:message code="views.reservationRequest.type.rooms"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
@@ -96,7 +99,7 @@
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
-                    <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
+                    <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -121,8 +124,9 @@
                 </tr>
                 </tbody>
             </table>
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ROOM"><spring:message
-                    code="views.button.create"/></a>
+            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ROOM">
+                <spring:message code="views.button.create"/>
+            </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
             &nbsp;
         </div>

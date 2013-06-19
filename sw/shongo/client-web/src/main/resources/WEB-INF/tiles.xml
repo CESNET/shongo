@@ -38,6 +38,12 @@
         <put-attribute name="body" value="/WEB-INF/views/changelog.jsp" type="template"/>
     </definition>
 
+    <definition name="message" extends="layout">
+        <put-attribute name="title" value="views.message.title"/>
+        <put-attribute name="heading" value=""/>
+        <put-attribute name="body" value="/WEB-INF/views/message.jsp" type="template"/>
+    </definition>
+
     <definition name="reservationRequestList" extends="layout">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
@@ -52,6 +58,13 @@
     <definition name="reservationRequestDetail" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDetail.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp" type="template"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-resource.min.js"/>
+            <add-attribute value="angular-cookies.min.js"/>
+            <add-attribute value="angular-pagination.js"/>
+            <add-attribute value="angular-tooltip.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="reservationRequestUpdate" extends="layout">
@@ -94,6 +107,11 @@
     <definition name="reservationRequestDelete" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDelete.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDelete.jsp" type="template"/>
+    </definition>
+
+    <definition name="aclRecordCreate" extends="layout">
+        <put-attribute name="title" value="views.aclRecordCreate.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/aclRecordCreate.jsp" type="template"/>
     </definition>
 
 </tiles-definitions>

@@ -157,6 +157,16 @@ public enum EntityType
     }
 
     /**
+     * @return ordered list of allowed {@link Role}s for the {@link EntityType}.
+     */
+    public List<Role> getOrderedRoles()
+    {
+        List<Role> orderedRoles = new ArrayList<Role>(roles.keySet());
+        Collections.sort(orderedRoles);
+        return orderedRoles;
+    }
+
+    /**
      * @return {@link #permissions}
      */
     public Set<Permission> getPermissions()

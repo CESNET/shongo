@@ -71,11 +71,12 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      *
      * @param name of the controller for storing data to cookies
      * @param url for listing items with ":start" and ":count" parameters
+     * @param urlParameters for the url
      */
-    $scope.init = function (name, url) {
+    $scope.init = function (name, url, urlParameters) {
         // Setup name and resource
         $scope.name = name;
-        $scope.resource = $resource(url, null, {
+        $scope.resource = $resource(url, urlParameters, {
             list: {method: 'GET'}
         });
         // Load configuration

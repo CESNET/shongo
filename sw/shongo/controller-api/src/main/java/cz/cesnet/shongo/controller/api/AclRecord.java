@@ -14,23 +14,23 @@ public class AclRecord implements StructType
     /**
      * Identifier of ACL record.
      */
-    String id;
+    private String id;
 
     /**
      * User-id of user of the {@link AclRecord}.
      */
-    String userId;
+    private String userId;
 
     /**
      * Identifier of entity of some {@link cz.cesnet.shongo.controller.EntityType} for which the user
      * gets granted the {@link #role}.
      */
-    String entityId;
+    private String entityId;
 
     /**
      * {@link cz.cesnet.shongo.controller.Role} which the user gets granted for the entity with {@link #entityId}.
      */
-    Role role;
+    private Role role;
 
     /**
      * Constructor.
