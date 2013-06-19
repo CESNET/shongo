@@ -25,6 +25,21 @@ img.language {
     height: 11px;
 }
 
+/** Navigation nav-pills disabled state */
+.nav-pills.disabled li a {
+    color: #999;
+    cursor: default;
+}
+.nav-pills.disabled li.active a {
+    color: #FFFFFF;
+}
+.nav-pills.disabled li a:hover {
+    background-color: transparent;
+}
+.nav-pills.disabled li.active a:hover {
+    background-color: #08c;
+}
+
 /** Table empty row style */
 td.empty {
     background-color: transparent !important;
@@ -70,6 +85,11 @@ form fieldset legend.select ul {
     vertical-align: bottom;
 }
 
+/** Form radio buttons */
+form .radio {
+    padding-top: 0px !important;
+}
+
 /** Form errors */
 form input.error {
     border: solid 1px red;
@@ -96,7 +116,43 @@ div.not-available {
     font-weight: bold;
 }
 
-
-.radio {
-    padding-top: 0px !important;
+/** Tooltips */
+.tooltip-container {
+    display: inline-block
 }
+.tooltip-label {
+    display: inline-block;
+    margin-left: 5px;
+}
+.tooltip-content {
+    position: absolute;
+    display: none;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #FEFEFE;
+    border: 1px solid #0088cc;
+    border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px;
+    z-index: 1;
+}
+.tooltip-content:before {
+    content: '';
+    display: inline-block;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #ccc;
+    border-bottom-color: #0088cc;
+    position: absolute;
+    top: -7px;
+    left: 6px;
+}
+.tooltip-content:after {
+    content: '';
+    display: inline-block;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #ffffff;
+    position: absolute;
+    top: -6px;
+    left: 7px;
+}
+

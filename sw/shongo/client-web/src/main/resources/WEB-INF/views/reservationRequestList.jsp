@@ -44,7 +44,7 @@
                     <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
-                    <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
+                    <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>
@@ -94,7 +94,7 @@
                     <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
-                    <th width="180px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
+                    <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.reservationRequestList.action"/></th>
                 </tr>

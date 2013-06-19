@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
@@ -24,7 +25,6 @@ import java.util.Set;
  */
 public class ReservationRequestModel implements Validator
 {
-
     public ReservationRequestModel()
     {
     }
@@ -221,11 +221,11 @@ public class ReservationRequestModel implements Validator
         this.roomPin = roomPin;
     }
 
-    public AbstractReservationRequest toApi()
-    {
-        throw new TodoImplementException();
-    }
-
+    /**
+     * Load attributes from given {@code abstractReservationRequest}.
+     *
+     * @param abstractReservationRequest from which the attributes should be loaded
+     */
     public void fromApi(AbstractReservationRequest abstractReservationRequest)
     {
         id = abstractReservationRequest.getId();
@@ -326,42 +326,137 @@ public class ReservationRequestModel implements Validator
 
         // Room duration
         if (type.equals(Type.ROOM)) {
-            int minutes = duration.getMinutes();
-            if (Period.minutes(minutes).equals(duration)) {
-                durationCount = minutes;
-                durationType = DurationType.MINUTE;
+            int minutes = duration.toStandardMinutes().getMinutes();
+            if ((minutes % (60 * 24)) == 0) {
+                durationCount = minutes / (60 * 24);
+                durationType = DurationType.DAY;
+            }
+            else if ((minutes % 60) == 0) {
+                durationCount = minutes / 60;
+                durationType = DurationType.HOUR;
             }
             else {
-                int hours = duration.getHours();
-                if (Period.hours(hours).equals(duration)) {
-                    durationCount = hours;
-                    durationType = DurationType.HOUR;
-                }
-                else {
-                    int days = duration.getDays();
-                    if (Period.days(days).equals(duration)) {
-                        durationCount = days;
-                        durationType = DurationType.MINUTE;
-                    }
-                    else {
-                        throw new UnsupportedApiException("Room duration %s.", duration);
-                    }
-                }
+                durationCount = minutes;
+                durationType = DurationType.MINUTE;
             }
         }
     }
 
-    @Override
-    public boolean supports(Class<?> type)
+    /**
+     * Store all attributes to {@link AbstractReservationRequest}.
+     *
+     * @return {@link AbstractReservationRequest} with stored attributes
+     */
+    public AbstractReservationRequest toApi()
     {
-        return ReservationRequestModel.class.equals(type);
-    }
+        // Determine duration (and end)
+        Period duration;
+        if (end != null) {
+            duration = new Period(start, end);
+        }
+        else {
+            if (durationCount == null || durationType == null) {
+                throw new IllegalStateException("When end is empty the duration should be not empty.");
+            }
+            switch (durationType) {
+                case MINUTE:
+                    duration = Period.minutes(durationCount);
+                    break;
+                case HOUR:
+                    duration = Period.hours(durationCount);
+                    break;
+                case DAY:
+                    duration = Period.days(durationCount);
+                    break;
+                default:
+                    throw new TodoImplementException(durationType.toString());
+            }
+            end = start.plus(duration);
+        }
 
-    @Override
-    public void validate(Object object, Errors errors)
-    {
-        ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
-        reservationRequestModel.validate(errors);
+        // Create reservation request
+        AbstractReservationRequest abstractReservationRequest;
+        if (periodicityType == PeriodicityType.NONE) {
+            // Create single reservation request
+            ReservationRequest reservationRequest = new ReservationRequest();
+            reservationRequest.setSlot(start, end);
+            abstractReservationRequest = reservationRequest;
+        }
+        else {
+            // Determine period
+            Period period;
+            switch (periodicityType) {
+                case DAILY:
+                    period = Period.days(1);
+                    break;
+                case WEEKLY:
+                    period = Period.weeks(1);
+                    break;
+                default:
+                    throw new TodoImplementException(durationType.toString());
+            }
+
+            // Create set of reservation requests
+            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            PeriodicDateTimeSlot periodicDateTimeSlot = new PeriodicDateTimeSlot();
+            periodicDateTimeSlot.setStart(start);
+            periodicDateTimeSlot.setDuration(duration);
+            periodicDateTimeSlot.setPeriod(period);
+            periodicDateTimeSlot.setEnd(periodicityEnd);
+            reservationRequestSet.addSlot(periodicDateTimeSlot);
+            abstractReservationRequest = reservationRequestSet;
+        }
+        if (!Strings.isNullOrEmpty(id)) {
+            abstractReservationRequest.setId(id);
+        }
+        abstractReservationRequest.setPurpose(purpose);
+        abstractReservationRequest.setDescription(description);
+
+        // Create specification
+        Specification specification;
+        switch (type) {
+            case ALIAS:
+                AliasSpecification roomNameSpecification = new AliasSpecification();
+                roomNameSpecification.addTechnologies(technology.getTechnologies());
+                roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
+                roomNameSpecification.setValue(aliasRoomName);
+                switch (technology) {
+                    case H323_SIP:
+                        AliasSpecification numberSpecification = new AliasSpecification();
+                        numberSpecification.addAliasType(AliasType.H323_E164);
+                        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+                        aliasSetSpecification.setSharedExecutable(true);
+                        aliasSetSpecification.addAlias(roomNameSpecification);
+                        aliasSetSpecification.addAlias(numberSpecification);
+                        specification = aliasSetSpecification;
+                        break;
+                    case ADOBE_CONNECT:
+                        specification = roomNameSpecification;
+                        break;
+                    default:
+                        throw new TodoImplementException(technology.toString());
+                }
+                break;
+            case ROOM:
+                RoomSpecification roomSpecification = new RoomSpecification();
+                roomSpecification.setTechnologies(technology.getTechnologies());
+                roomSpecification.setParticipantCount(roomParticipantCount);
+                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
+                    H323RoomSetting h323RoomSetting = new H323RoomSetting();
+                    h323RoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(h323RoomSetting);
+                }
+                if (!Strings.isNullOrEmpty(roomAliasReservationId)) {
+                    throw new TodoImplementException("Provide alias reservation");
+                }
+                specification = roomSpecification;
+                break;
+            default:
+                throw new TodoImplementException(type.toString());
+        }
+        abstractReservationRequest.setSpecification(specification);
+
+        return abstractReservationRequest;
     }
 
     /**
@@ -396,21 +491,66 @@ public class ReservationRequestModel implements Validator
         }
     }
 
+    @Override
+    public boolean supports(Class<?> type)
+    {
+        return ReservationRequestModel.class.equals(type);
+    }
+
+    @Override
+    public void validate(Object object, Errors errors)
+    {
+        ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
+        reservationRequestModel.validate(errors);
+    }
+
+    /**
+     * Type of the reservation request.
+     */
     public static enum Type
     {
+        /**
+         * For alias (or set of aliases).
+         */
         ALIAS,
+
+        /**
+         * For room capacity.
+         */
         ROOM
     }
 
+    /**
+     * Technology of the alias/room reservation request.
+     */
     public static enum Technology
     {
+        /**
+         * {@link cz.cesnet.shongo.Technology#H323} and/or {@link cz.cesnet.shongo.Technology#SIP}
+         */
         H323_SIP("H.323/SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
+
+        /**
+         * {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}
+         */
         ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT);
 
+        /**
+         * Title which can be displayed to user.
+         */
         private final String title;
 
+        /**
+         * Set of {@link cz.cesnet.shongo.Technology}s which it represents.
+         */
         private final Set<cz.cesnet.shongo.Technology> technologies;
 
+        /**
+         * Constructor.
+         *
+         * @param title sets the {@link #title}
+         * @param technologies sets the {@link #technologies}
+         */
         private Technology(String title, cz.cesnet.shongo.Technology... technologies)
         {
             this.title = title;
@@ -421,16 +561,26 @@ public class ReservationRequestModel implements Validator
             this.technologies = Collections.unmodifiableSet(technologySet);
         }
 
+        /**
+         * @return {@link #title}
+         */
         public String getTitle()
         {
             return title;
         }
 
+        /**
+         * @return {@link #technologies}
+         */
         public Set<cz.cesnet.shongo.Technology> getTechnologies()
         {
             return technologies;
         }
 
+        /**
+         * @param technologies which must the returned {@link Technology} contain
+         * @return {@link Technology} which contains all given {@code technologies}
+         */
         public static Technology find(Set<cz.cesnet.shongo.Technology> technologies)
         {
             if (technologies.size() == 0) {
@@ -446,6 +596,9 @@ public class ReservationRequestModel implements Validator
         }
     }
 
+    /**
+     * Type of duration unit.
+     */
     public static enum DurationType
     {
         MINUTE,
@@ -453,6 +606,9 @@ public class ReservationRequestModel implements Validator
         DAY
     }
 
+    /**
+     * Type of periodicity of the reservation request.
+     */
     public static enum PeriodicityType
     {
         NONE,

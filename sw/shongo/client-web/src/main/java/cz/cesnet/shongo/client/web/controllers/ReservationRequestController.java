@@ -32,7 +32,7 @@ import java.util.*;
 public class ReservationRequestController
 {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MM");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
 
     @Resource
     private ReservationService reservationService;

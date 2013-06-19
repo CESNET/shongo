@@ -5,7 +5,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -25,7 +24,6 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -444,8 +442,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // Create parts
-            String querySelect = "SELECT "
-                    + " request.id,"
+            String querySelect = " request.id,"
                     + " request.userId,"
                     + " request.created,"
                     + " request.purpose,"
@@ -453,10 +450,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     + " request.slotStart,"
                     + " request.slotEnd,"
                     + " specification";
-            String queryFrom = " FROM AbstractReservationRequest request"
+            String queryFrom = "AbstractReservationRequest request"
                     + " LEFT JOIN request.specification specification";
+            String queryOrderBy = "request.created DESC";
             ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
-            List<Object[]> results = performListRequest("request", querySelect, Object[].class, queryFrom,
+            List<Object[]> results = performListRequest("request", querySelect, Object[].class, queryFrom, queryOrderBy,
                     filter, request, response, entityManager);
 
             // Fill reservation requests to response
@@ -763,8 +761,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             ListResponse<Reservation> response = new ListResponse<Reservation>();
             List<cz.cesnet.shongo.controller.reservation.Reservation> reservations = performListRequest(
-                    "reservation", "SELECT reservation", cz.cesnet.shongo.controller.reservation.Reservation.class,
-                    "FROM Reservation reservation", filter, request, response, entityManager);
+                    "reservation", "reservation", cz.cesnet.shongo.controller.reservation.Reservation.class,
+                    "Reservation reservation", null, filter, request, response, entityManager);
 
             // Filter reservations by technologies
             Set<Technology> technologies = request.getTechnologies();

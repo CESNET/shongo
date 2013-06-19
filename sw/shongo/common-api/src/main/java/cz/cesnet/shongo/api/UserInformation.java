@@ -168,12 +168,14 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     @Override
+    @Transient
     public String getRootOrganization()
     {
         return getOrganization();
     }
 
     @Override
+    @Transient
     public String getPrimaryEmail()
     {
         if (emails.size() > 0) {

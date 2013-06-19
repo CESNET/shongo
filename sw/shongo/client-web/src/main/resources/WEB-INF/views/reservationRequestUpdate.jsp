@@ -6,22 +6,31 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <tiles:importAttribute/>
 
 <script type="text/javascript">
     // Angular application
-    angular.module('ngReservationRequestUpdate', ['ngDateTime']);
+    angular.module('ngReservationRequestUpdate', ['ngDateTime', 'ngTooltip']);
 
     // Form controller
     function FormController($scope) {
+        // Get value or default value if null
         $scope.value = function(value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
         };
+
+        // Get dynamic reservation request attributes
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.type = $scope.value('${reservationRequest.type}', 'ALIAS');
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
+
+        // Specifies whether we are modifying an existing reservation request
+        $scope.modification = $scope.id != null;
+
+        // Set proper date/time format for start date/time picker
         $scope.$watch("type", function () {
             var dateTimePicker = $('#start').data("datetimepicker");
             if ( $scope.type == 'ALIAS') {
@@ -46,12 +55,12 @@
 
         <legend class="select">
             <input type="hidden" name="type" value="{{type}}"/>
-            <ul class="nav nav-pills" >
+            <ul class="nav nav-pills" ng-class="{disabled: modification}">
                 <li ng-class="{active: type == 'ALIAS'}">
-                    <a href="" ng-click="type = 'ALIAS'"><spring:message code="views.reservationRequest.specification.alias"/></a>
+                    <a href="" ng-click="modification || (type = 'ALIAS')"><spring:message code="views.reservationRequest.specification.alias"/></a>
                 </li>
                 <li ng-class="{active: type == 'ROOM'}">
-                    <a href="" ng-click="type = 'ROOM'"><spring:message code="views.reservationRequest.specification.room"/></a>
+                    <a href="" ng-click="modification || (type = 'ROOM')"><spring:message code="views.reservationRequest.specification.room"/></a>
                 </li>
             </ul>
         </legend>
@@ -95,7 +104,7 @@
             </form:label>
             <div class="controls">
                 <form:select path="roomAliasReservationId">
-                    <form:option value="ADHOC">Ad-Hoc</form:option>
+                    <form:option value="">Ad-Hoc</form:option>
                 </form:select>
                 <form:errors path="roomAliasReservationId" cssClass="error"/>
             </div>
@@ -190,6 +199,7 @@
             </form:label>
             <div class="controls">
                 <form:input path="description" cssErrorClass="error"/>
+                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
                 <form:errors path="description" cssClass="error"/>
             </div>
         </div>

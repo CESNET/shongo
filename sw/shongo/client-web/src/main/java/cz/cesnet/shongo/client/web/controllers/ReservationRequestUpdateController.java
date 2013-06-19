@@ -56,6 +56,7 @@ public class ReservationRequestUpdateController
 
     @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
     public String getCreateConfirmed(
+            SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
@@ -63,10 +64,8 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestCreate";
         }
-
-        // TODO: create reservation request
-        String reservationRequestId = "shongo:cz.cesnet:req:33";
-
+        AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
+        String reservationRequestId = reservationService.createReservationRequest(securityToken, reservationRequest);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
 
@@ -83,6 +82,7 @@ public class ReservationRequestUpdateController
 
     @RequestMapping(value = "/modify/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
     public String getModifyConfirmed(
+            SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
@@ -90,10 +90,8 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestModify";
         }
-
-        // TODO: modify reservation request
-        String reservationRequestId = reservationRequestModel.getId();
-
+        AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
+        String reservationRequestId = reservationService.modifyReservationRequest(securityToken, reservationRequest);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
 }

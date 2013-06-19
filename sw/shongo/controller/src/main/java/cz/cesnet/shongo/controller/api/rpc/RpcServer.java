@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.AbstractRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.report.*;
 import cz.cesnet.shongo.util.Timer;
@@ -284,13 +285,21 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             requestContext.userInformation = null;
 
             // Get user information from the first SecurityToken argument
-            if (pArgs.length > 0 && pArgs[0] instanceof SecurityToken) {
-                SecurityToken securityToken = (SecurityToken) pArgs[0];
-                try {
-                    requestContext.userInformation = Authorization.getInstance().getUserInformation(securityToken);
+            if (pArgs.length > 0) {
+                SecurityToken securityToken = null;
+                if (pArgs[0] instanceof SecurityToken) {
+                    securityToken = (SecurityToken) pArgs[0];
                 }
-                catch (Exception exception) {
-                    logger.warn("Get user information by access token '{}' failed.", securityToken.getAccessToken());
+                else if (pArgs[0] instanceof AbstractRequest) {
+                    securityToken = ((AbstractRequest) pArgs[0]).getSecurityToken();
+                }
+                if (securityToken != null) {
+                    try {
+                        requestContext.userInformation = Authorization.getInstance().getUserInformation(securityToken);
+                    }
+                    catch (Exception exception) {
+                        logger.warn("Get user information by access token '{}' failed.", securityToken.getAccessToken());
+                    }
                 }
             }
 

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -114,6 +115,16 @@ public class AliasSpecification extends Specification
     public void addTechnology(Technology technology)
     {
         getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+    }
+
+    /**
+     * @param technologies to be added to the {@link #TECHNOLOGIES}
+     */
+    public void addTechnologies(Collection<Technology> technologies)
+    {
+        for (Technology technology : technologies) {
+            addTechnology(technology);
+        }
     }
 
     /**

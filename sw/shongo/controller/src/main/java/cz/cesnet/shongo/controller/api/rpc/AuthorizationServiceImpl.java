@@ -234,8 +234,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             ListResponse<AclRecord> response = new ListResponse<AclRecord>();
             List<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = performListRequest(
-                    "aclRecord", "SELECT aclRecord", cz.cesnet.shongo.controller.authorization.AclRecord.class,
-                    "FROM AclRecord aclRecord", filter, request, response, entityManager);
+                    "aclRecord", "aclRecord", cz.cesnet.shongo.controller.authorization.AclRecord.class,
+                    "AclRecord aclRecord", null, filter, request, response, entityManager);
 
             // Fill reservations to response
             for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
