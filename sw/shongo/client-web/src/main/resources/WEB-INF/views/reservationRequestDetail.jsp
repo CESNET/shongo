@@ -52,15 +52,16 @@
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
         <h2><spring:message code="views.reservationRequestDetail.userRoles"/></h2>
-        <table class="table table-striped table-hover">
+        <div class="spinner" ng-hide="ready"></div>
+        <table class="table table-striped table-hover" ng-show="ready">
             <thead>
             <tr>
                 <th><spring:message code="views.aclRecord.user"/></th>
                 <th><spring:message code="views.aclRecord.role"/></th>
                 <th><spring:message code="views.aclRecord.email"/></th>
-                <security:authorize access="hasPermission(#reservationRequest, T(cz.cesnet.shongo.controller.Permission).WRITE)">
+                <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}">
                     <th><spring:message code="views.list.action"/></th>
-                </security:authorize>
+                </security:accesscontrollist>
             </tr>
             </thead>
             <tbody>
@@ -68,24 +69,26 @@
                 <td>{{userRole.user.fullName}}</td>
                 <td>{{userRole.role}}</td>
                 <td>{{userRole.user.primaryEmail}}</td>
-                <security:authorize access="hasPermission(#reservationRequest, T(cz.cesnet.shongo.controller.Permission).WRITE)">
+                <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}">
                     <td>
                         <a href="${contextPath}/reservation-request/${reservationRequest.id}/acl/delete/{{userRole.id}}">
                             <spring:message code="views.reservationRequestList.action.delete"/>
                         </a>
                     </td>
-                </security:authorize>
+                </security:accesscontrollist>
             </tr>
             <tr ng-hide="items.length">
                 <td colspan="7" class="empty">- - - None - - -</td>
             </tr>
             </tbody>
         </table>
-        <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
-            <spring:message code="views.button.create"/>
-        </a>
+        <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}">
+            <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
+                <spring:message code="views.button.create"/>
+            </a>
+        </security:accesscontrollist>
+        <div style="display: inline-block;"></div>
         <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
-        &nbsp;
     </div>
 
 </div>
@@ -99,12 +102,12 @@
     <a class="btn" href="">
         <spring:message code="views.button.refresh"/>
     </a>
-    <security:authorize access="hasPermission(#reservationRequest, T(cz.cesnet.shongo.controller.Permission).WRITE)">
+    <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}">
         <a class="btn" href="${contextPath}/reservation-request/modify/${reservationRequest.id}">
             <spring:message code="views.button.modify"/>
         </a>
         <a class="btn" href="${contextPath}/reservation-request/delete/${reservationRequest.id}">
             <spring:message code="views.button.delete"/>
         </a>
-    </security:authorize>
+    </security:accesscontrollist>
 </div>

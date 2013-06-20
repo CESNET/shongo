@@ -567,6 +567,24 @@
         </template>
 
         <report>
+            <id>user-not-exist</id>
+            <classification severity="error"/>
+            <params>
+                <param name="user" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                User ${user} doesn't exist.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+        </report>
+
+        <report>
             <id>acl-invalid-role</id>
             <classification severity="error"/>
             <params>

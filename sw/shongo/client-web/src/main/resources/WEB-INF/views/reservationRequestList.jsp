@@ -81,7 +81,7 @@
             &nbsp;
         </div>
 
-        <hr>
+        <hr/>
 
         <div ng-controller="PaginationController"
              ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"

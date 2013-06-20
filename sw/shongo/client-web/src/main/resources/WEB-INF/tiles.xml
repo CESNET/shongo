@@ -12,7 +12,7 @@
         <put-list-attribute name="css">
             <add-attribute value="bootstrap.min.css"/>
             <add-attribute value="application.css"/>
-            <add-attribute value="layout.css"/>
+            <add-attribute value="application-layout.css"/>
         </put-list-attribute>
         <put-list-attribute name="js">
             <add-attribute value="jquery.min.js"/>
@@ -112,6 +112,12 @@
     <definition name="aclRecordCreate" extends="layout">
         <put-attribute name="title" value="views.aclRecordCreate.title"/>
         <put-attribute name="body" value="/WEB-INF/views/aclRecordCreate.jsp" type="template"/>
+        <put-list-attribute name="css" inherit="true">
+            <add-attribute value="ui-select2.css"/>
+        </put-list-attribute>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="ui-select2.min.js"/>
+        </put-list-attribute>
     </definition>
 
 </tiles-definitions>

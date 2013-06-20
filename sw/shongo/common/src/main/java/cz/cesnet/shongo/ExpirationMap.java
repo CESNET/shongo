@@ -136,6 +136,23 @@ public class ExpirationMap<K, V> implements Iterable<V>
     }
 
     /**
+     * Remove all expired values.
+     *
+     * @param dateTime which represents "now"
+     */
+    public void clearExpired(DateTime dateTime)
+    {
+        Iterator<Map.Entry<K, Entry<V>>> iterator = entries.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<K, Entry<V>> itemEntry = iterator.next();
+            Entry<V> entry = itemEntry.getValue();
+            if (entry.expirationDateTime != null && !entry.expirationDateTime.isAfter(dateTime)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    /**
      * Entry for {@link ExpirationMap}.
      */
     private static class Entry<V>

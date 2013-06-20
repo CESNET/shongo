@@ -224,12 +224,14 @@ paginationModule.directive('paginationPageSize', function () {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
             var text = element[0].innerText;
-            var html = '<div class="' + attrs.class + '">' + text + '&nbsp;&nbsp;' +
-                '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
-                '  <option value="5" selected="true">5</option>' +
-                '  <option value="10">10</option>' +
-                '  <option value="15">15</option>' +
-                '</select>' +
+            var html = '<div class="' + attrs.class + '">' +
+                '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;&nbsp;' +
+                '  <select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
+                '    <option value="5" selected="true">5</option>' +
+                '    <option value="10">10</option>' +
+                '    <option value="15">15</option>' +
+                '  </select>' +
+                '</span>' +
                 '</div>'
             element.replaceWith(html);
         }
@@ -244,10 +246,12 @@ paginationModule.directive('paginationPages', function () {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
             var text = element[0].innerText;
-            var html = '<div class="' + attrs.class + '">' + text + ' ' +
-                '<span ng-repeat="page in pages">' +
-                '  <a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
-                '  <span ng-show="page.active" class="page">{{$index + 1}}</span>' +
+            var html = '<div class="' + attrs.class + '" style="text-align: right;">' +
+                '<span ng-hide="pages.length == 1">' + text + ' ' +
+                '  <span ng-repeat="page in pages">' +
+                '    <a ng-hide="page.active" class="pagination-page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
+                '    <span ng-show="page.active" class="pagination-page">{{$index + 1}}</span>' +
+                '  </span>' +
                 '</span>' +
                 '</div>';
             element.replaceWith(html);

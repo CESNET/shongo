@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.client.web.auth;
 
-import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
@@ -21,7 +20,7 @@ public class PermissionEvaluator implements org.springframework.security.access.
     private UserCache userCache;
 
     @Override
-    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission)
+    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permissionValue)
     {
         SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
         String entityId;
@@ -31,7 +30,14 @@ public class PermissionEvaluator implements org.springframework.security.access.
         else {
             throw new IllegalArgumentException("Illegal target " + targetDomainObject + ".");
         }
-        return userCache.getPermissions(securityToken, entityId).contains((Permission) permission);
+        Permission permission;
+        if (permissionValue instanceof Permission) {
+            permission = (Permission) permissionValue;
+        }
+        else {
+            permission = Permission.valueOf(permissionValue.toString());
+        }
+        return userCache.getPermissions(securityToken, entityId).contains(permission);
     }
 
     @Override

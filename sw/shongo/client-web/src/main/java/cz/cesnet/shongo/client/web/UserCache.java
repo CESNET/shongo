@@ -9,8 +9,11 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -25,6 +28,13 @@ import java.util.Set;
  */
 public class UserCache
 {
+    private static Logger logger = LoggerFactory.getLogger(UserCache.class);
+
+    /**
+     * Expiration of user information/permissions in minutes.
+     */
+    private static final long USER_EXPIRATION_MINUTES = 5;
+
     @Resource
     private AuthorizationService authorizationService;
 
@@ -55,7 +65,7 @@ public class UserCache
          */
         public UserState()
         {
-            permissionsByEntity.setExpiration(Duration.standardMinutes(5));
+            permissionsByEntity.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         }
     }
 
@@ -64,8 +74,23 @@ public class UserCache
      */
     public UserCache()
     {
-        userInformationByUserId.setExpiration(Duration.standardMinutes(5));
+        userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
+    }
+
+    /**
+     * Method called each 5 minutes to clear expired items.
+     */
+    @Scheduled(fixedDelay = (USER_EXPIRATION_MINUTES * 60 * 1000))
+    public synchronized void clearExpired()
+    {
+        logger.debug("Clearing expired user cache...");
+        DateTime dateTimeNow = DateTime.now();
+        userInformationByUserId.clearExpired(dateTimeNow);
+        userStateByToken.clearExpired(dateTimeNow);
+        for (UserState userState : userStateByToken) {
+            userState.permissionsByEntity.clearExpired(dateTimeNow);
+        }
     }
 
     /**

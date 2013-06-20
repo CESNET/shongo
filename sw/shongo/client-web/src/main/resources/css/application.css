@@ -56,11 +56,22 @@ td.empty {
     margin: 20px;
 }
 
-/** Page links */
-.page {
+/** pagination page links */
+.pagination-page {
     border: solid 1px;
     margin: 2px 4px;
     padding: 2px;
+}
+
+/** Tables */
+.table {
+    margin-bottom: 10px;
+}
+
+/** Horizontal rules */
+hr {
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
 /** Description lists */
@@ -85,11 +96,14 @@ form fieldset legend.select ul {
     vertical-align: bottom;
 }
 
+/** Form double width */
+form .double-width input {
+    width: 350px;
+}
 /** Form radio buttons */
 form .radio {
     padding-top: 0px !important;
 }
-
 /** Form errors */
 form input.error {
     border: solid 1px red;

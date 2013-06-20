@@ -93,6 +93,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
     {
         String requesterUserId = authorization.validate(token);
+        authorization.checkUserExistence(userId);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
         if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.WRITE)) {
@@ -326,6 +327,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     public void setEntityUser(SecurityToken token, String entityId, String newUserId)
     {
         String userId = authorization.validate(token);
+        authorization.checkUserExistence(newUserId);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);

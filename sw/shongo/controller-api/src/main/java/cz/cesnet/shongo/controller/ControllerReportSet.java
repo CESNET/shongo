@@ -9,18 +9,150 @@ import cz.cesnet.shongo.report.*;
  */
 public class ControllerReportSet extends AbstractReportSet
 {
-    public static final int ACL_INVALID_ROLE_REPORT = 100;
-    public static final int SECURITY_MISSING_TOKEN_REPORT = 101;
-    public static final int SECURITY_INVALID_TOKEN_REPORT = 102;
-    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 103;
-    public static final int DEVICE_COMMAND_FAILED_REPORT = 104;
-    public static final int IDENTIFIER_INVALID_REPORT = 105;
-    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 106;
-    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 107;
-    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 108;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 109;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 110;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 111;
+    public static final int USER_NOT_EXIST_REPORT = 100;
+    public static final int ACL_INVALID_ROLE_REPORT = 101;
+    public static final int SECURITY_MISSING_TOKEN_REPORT = 102;
+    public static final int SECURITY_INVALID_TOKEN_REPORT = 103;
+    public static final int SECURITY_NOT_AUTHORIZED_REPORT = 104;
+    public static final int DEVICE_COMMAND_FAILED_REPORT = 105;
+    public static final int IDENTIFIER_INVALID_REPORT = 106;
+    public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 107;
+    public static final int IDENTIFIER_INVALID_TYPE_REPORT = 108;
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 109;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 110;
+    public static final int RESERVATION_REQUEST_DELETED_REPORT = 111;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 112;
+
+    /**
+     * User {@link #user} doesn't exist.
+     */
+    public static class UserNotExistReport extends Report implements ApiFault
+    {
+        protected String user;
+
+        public UserNotExistReport()
+        {
+        }
+
+        public UserNotExistReport(String user)
+        {
+            setUser(user);
+        }
+
+        public String getUser()
+        {
+            return user;
+        }
+
+        public void setUser(String user)
+        {
+            this.user = user;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return USER_NOT_EXIST_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new UserNotExistException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            user = (String) reportSerializer.getParameter("user", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("user", user);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("User ");
+                    message.append((user == null ? "null" : user));
+                    message.append(" doesn't exist.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link UserNotExistReport}.
+     */
+    public static class UserNotExistException extends ReportRuntimeException implements ApiFaultException
+    {
+        public UserNotExistException(UserNotExistReport report)
+        {
+            this.report = report;
+        }
+
+        public UserNotExistException(Throwable throwable, UserNotExistReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public UserNotExistException(String user)
+        {
+            UserNotExistReport report = new UserNotExistReport();
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public UserNotExistException(Throwable throwable, String user)
+        {
+            super(throwable);
+            UserNotExistReport report = new UserNotExistReport();
+            report.setUser(user);
+            this.report = report;
+        }
+
+        public String getUser()
+        {
+            return getReport().getUser();
+        }
+
+        @Override
+        public UserNotExistReport getReport()
+        {
+            return (UserNotExistReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (UserNotExistReport) report;
+        }
+    }
 
     /**
      * ACL Role {@link #role} is invalid for entity {@link #entity}.
@@ -1666,6 +1798,7 @@ public class ControllerReportSet extends AbstractReportSet
     @Override
     protected void fillReportClasses()
     {
+        addReportClass(UserNotExistReport.class);
         addReportClass(AclInvalidRoleReport.class);
         addReportClass(SecurityMissingTokenReport.class);
         addReportClass(SecurityInvalidTokenReport.class);

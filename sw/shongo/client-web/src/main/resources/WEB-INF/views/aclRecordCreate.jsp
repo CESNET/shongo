@@ -11,7 +11,55 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <tiles:importAttribute/>
 
-<div>
+<script type="text/javascript">
+    window.formatUser = function(user) {
+        var text = user.firstName;
+        if ( user.lastName != null ) {
+            text += " " + user.lastName;
+        }
+        //text +=  " (id: " + user.userId + ")";
+        if ( user.originalId != null ) {
+            text += " (" + user.originalId + ")";
+        }
+        /*if ( user.emails != null && user.emails.length > 0) {
+            text += ", " + user.emails[0];
+        }*/
+        return text;
+    };
+    $(function () {
+        $("#userId").select2({
+            placeholder: "Select user by name/email",
+            width: 'resolve',
+            minimumInputLength: 2,
+            ajax: {
+                url: "/user",
+                dataType: 'json',
+                data: function (term, page) {
+                    return {
+                        filter: term
+                    };
+                },
+                results: function (data, page) {
+                    var results = [];
+                    for (var index = 0; index < data.length; index++) {
+                        var dataItem = data[index];
+                        results.push({id: dataItem.userId, text: window.formatUser(dataItem)});
+                    }
+                    return {results: results};
+                }
+            },
+            initSelection: function (element, callback) {
+                var id = $(element).val();
+                callback({id: 0, text: 'Loading...'});
+                $.ajax("/user/" + id, {
+                    dataType: "json"
+                }).done(function (data) {
+                            callback({id: id, text: window.formatUser(data)});
+                        });
+            }
+        });
+    });
+</script>
 
 <form:form class="form-horizontal"
            commandName="aclRecord"
@@ -26,7 +74,7 @@
             <form:label class="control-label" path="entityId">
                 <spring:message code="${entity}"/>:
             </form:label>
-            <div class="controls">
+            <div class="controls double-width">
                 <form:input path="entityId" readonly="true"/>
             </div>
         </div>
@@ -35,7 +83,7 @@
             <form:label class="control-label" path="userId">
                 <spring:message code="views.aclRecord.user"/>:
             </form:label>
-            <div class="controls">
+            <div class="controls double-width">
                 <form:input path="userId" cssErrorClass="error"/>
                 <form:errors path="userId" cssClass="error"/>
             </div>
@@ -66,5 +114,3 @@
     </div>
 
 </form:form>
-
-</div>

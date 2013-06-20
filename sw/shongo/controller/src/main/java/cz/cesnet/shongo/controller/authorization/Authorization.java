@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.authorization;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
@@ -168,6 +169,24 @@ public abstract class Authorization
             userInformation = onGetUserInformationByUserId(userId);
             cache.putUserInformationByUserId(userId, userInformation);
             return userInformation;
+        }
+    }
+
+    /**
+     * Checks whether user with given {@code userId} exists.
+     * @param userId of the user to be checked for existence
+     * @throws ControllerReportSet.UserNotExistException when the user doesn't exist
+     */
+    public void checkUserExistence(String userId) throws ControllerReportSet.UserNotExistException
+    {
+        try {
+            UserInformation userInformation = getUserInformation(userId);
+            if (userInformation == null) {
+                throw new ControllerReportSet.UserNotExistException(userId);
+            }
+        }
+        catch (Exception exception) {
+            throw new ControllerReportSet.UserNotExistException(exception, userId);
         }
     }
 

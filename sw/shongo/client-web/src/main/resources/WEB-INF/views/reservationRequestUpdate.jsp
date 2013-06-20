@@ -70,7 +70,7 @@
                 <form:label class="control-label" path="id">
                     <spring:message code="views.reservationRequest.identifier"/>:
                 </form:label>
-                <div class="controls">
+                <div class="controls double-width">
                     <form:input path="id" readonly="true"/>
                 </div>
             </div>
@@ -197,7 +197,7 @@
             <form:label class="control-label" path="description">
                 <spring:message code="views.reservationRequest.description"/>:
             </form:label>
-            <div class="controls">
+            <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error"/>
                 <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
                 <form:errors path="description" cssClass="error"/>
