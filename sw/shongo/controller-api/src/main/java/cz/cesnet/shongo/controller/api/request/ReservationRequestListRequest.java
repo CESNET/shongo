@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 
@@ -14,6 +15,10 @@ import java.util.Set;
  */
 public class ReservationRequestListRequest extends ListRequest
 {
+    private String reservationRequestId;
+
+    private Set<ReservationRequestType> types = new HashSet<ReservationRequestType>();
+
     private Set<Technology> technologies = new HashSet<Technology>();
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
@@ -35,6 +40,31 @@ public class ReservationRequestListRequest extends ListRequest
         for (Technology technology : technologies) {
             this.technologies.add(technology);
         }
+    }
+
+    public String getReservationRequestId()
+    {
+        return reservationRequestId;
+    }
+
+    public void setReservationRequestId(String reservationRequestId)
+    {
+        this.reservationRequestId = reservationRequestId;
+    }
+
+    public Set<ReservationRequestType> getTypes()
+    {
+        return types;
+    }
+
+    public void setTypes(Set<ReservationRequestType> types)
+    {
+        this.types = types;
+    }
+
+    public void addType(ReservationRequestType type)
+    {
+        types.add(type);
     }
 
     public Set<Technology> getTechnologies()

@@ -41,7 +41,7 @@
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
+                    <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
@@ -52,7 +52,7 @@
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
-                    <td>{{reservationRequest.created}}</td>
+                    <td>{{reservationRequest.dateTime}}</td>
                     <td>{{reservationRequest.owner}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
@@ -60,12 +60,12 @@
                     <td>{{reservationRequest.description}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
-                                code="views.reservationRequestList.action.detail"/></a>
+                                code="views.list.action.show"/></a>
                         <span ng-show="reservationRequest.writable">
                             | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message
-                                code="views.reservationRequestList.action.modify"/></a>
+                                code="views.list.action.modify"/></a>
                             | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message
-                                code="views.reservationRequestList.action.delete"/></a>
+                                code="views.list.action.delete"/></a>
                         </span>
                     </td>
                 </tr>
@@ -93,7 +93,7 @@
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th width="85px"><spring:message code="views.reservationRequest.created"/></th>
+                    <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.owner"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
@@ -104,7 +104,7 @@
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
-                    <td>{{reservationRequest.created}}</td>
+                    <td>{{reservationRequest.dateTime}}</td>
                     <td>{{reservationRequest.owner}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
@@ -112,11 +112,11 @@
                     <td>{{reservationRequest.description}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
-                                code="views.reservationRequestList.action.detail"/></a>
+                                code="views.list.action.show"/></a>
                         | <a href="${contextPath}/reservation-request/modify/{{reservationRequest.id}}"><spring:message
-                            code="views.reservationRequestList.action.modify"/></a>
+                            code="views.list.action.modify"/></a>
                         | <a href="${contextPath}/reservation-request/delete/{{reservationRequest.id}}"><spring:message
-                            code="views.reservationRequestList.action.delete"/></a>
+                            code="views.list.action.delete"/></a>
                     </td>
                 </tr>
                 <tr ng-hide="items.length">

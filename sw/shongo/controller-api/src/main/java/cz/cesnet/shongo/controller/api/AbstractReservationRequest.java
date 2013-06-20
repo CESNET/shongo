@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -20,9 +21,14 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     private String userId;
 
     /**
-     * Date/time when the reservation request was created.
+     * Type of the reservation request.
      */
-    private DateTime created;
+    private ReservationRequestType type;
+
+    /**
+     * Date/time when the reservation request was updated.
+     */
+    private DateTime dateTime;
 
     /**
      * @see cz.cesnet.shongo.controller.ReservationRequestPurpose
@@ -79,19 +85,35 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     }
 
     /**
-     * @return {@link #created}
+     * @return {@link #type}
      */
-    public DateTime getCreated()
+    public ReservationRequestType getType()
     {
-        return created;
+        return type;
     }
 
     /**
-     * @param created sets the {@link #created}
+     * @param type sets the {@link #type}
      */
-    public void setCreated(DateTime created)
+    public void setType(ReservationRequestType type)
     {
-        this.created = created;
+        this.type = type;
+    }
+
+    /**
+     * @return {@link #dateTime}
+     */
+    public DateTime getDateTime()
+    {
+        return dateTime;
+    }
+
+    /**
+     * @param dateTime sets the {@link #dateTime}
+     */
+    public void setDateTime(DateTime dateTime)
+    {
+        this.dateTime = dateTime;
     }
 
     /**

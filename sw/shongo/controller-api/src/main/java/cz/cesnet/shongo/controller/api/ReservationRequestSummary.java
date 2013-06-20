@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -22,9 +23,14 @@ public class ReservationRequestSummary extends IdentifiedObject
     private String userId;
 
     /**
-     * Date/time when the {@link AbstractReservationRequest} was created.
+     * @see ReservationRequestType
      */
-    private DateTime created;
+    private ReservationRequestType type;
+
+    /**
+     * Date/time when the {@link AbstractReservationRequest} was updated.
+     */
+    private DateTime dateTime;
 
     /**
      * @see AbstractReservationRequest#PURPOSE
@@ -42,9 +48,9 @@ public class ReservationRequestSummary extends IdentifiedObject
     private Interval earliestSlot;
 
     /**
-     * @see Type
+     * @see cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification
      */
-    private Type type;
+    private Specification specification;
 
     /**
      * Technologies.
@@ -73,19 +79,35 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * @return {@link #created}
+     * @return {@link #type}
      */
-    public DateTime getCreated()
+    public ReservationRequestType getType()
     {
-        return created;
+        return type;
     }
 
     /**
-     * @param created sets the {@link #created}
+     * @param type sets the {@link #type}
      */
-    public void setCreated(DateTime created)
+    public void setType(ReservationRequestType type)
     {
-        this.created = created;
+        this.type = type;
+    }
+
+    /**
+     * @return {@link #dateTime}
+     */
+    public DateTime getDateTime()
+    {
+        return dateTime;
+    }
+
+    /**
+     * @param dateTime sets the {@link #dateTime}
+     */
+    public void setDateTime(DateTime dateTime)
+    {
+        this.dateTime = dateTime;
     }
 
     /**
@@ -137,19 +159,19 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * @return {@link #type}
+     * @return {@link #specification}
      */
-    public Type getType()
+    public Specification getSpecification()
     {
-        return type;
+        return specification;
     }
 
     /**
-     * @param type sets the {@link #type}
+     * @param specification sets the {@link #specification}
      */
-    public void setType(Type type)
+    public void setSpecification(Specification specification)
     {
-        this.type = type;
+        this.specification = specification;
     }
 
     /**
@@ -203,14 +225,14 @@ public class ReservationRequestSummary extends IdentifiedObject
     /**
      * Type of {@link AbstractReservationRequest}.
      */
-    public abstract static class Type
+    public abstract static class Specification
     {
     }
 
     /**
-     * {@link Type} that represents a reservation request for a resource.
+     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a resource.
      */
-    public static class ResourceType extends Type
+    public static class ResourceSpecification extends Specification
     {
         /**
          * {@link Resource#getId()}
@@ -235,9 +257,9 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * {@link Type} that represents a reservation request for a virtual room.
+     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a virtual room.
      */
-    public static class RoomType extends Type
+    public static class RoomSpecification extends Specification
     {
         /**
          * Requested participant count for the room.
@@ -262,9 +284,9 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * {@link Type} that represents a reservation request for a {@link Alias}.
+     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification} that represents a reservation request for a {@link Alias}.
      */
-    public static class AliasType extends Type
+    public static class AliasSpecification extends Specification
     {
         /**
          * Requested {@link cz.cesnet.shongo.AliasType} for the {@link Alias}.

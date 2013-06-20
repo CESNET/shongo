@@ -64,8 +64,15 @@ td.empty {
 }
 
 /** Tables */
+.table th {
+    padding-top: 0px;
+}
 .table {
+    margin-top: 8px;
     margin-bottom: 10px;
+}
+.table tr.selected td {
+    background-color: #DDF0FF !important;
 }
 
 /** Horizontal rules */
@@ -75,6 +82,10 @@ hr {
 }
 
 /** Description lists */
+dl {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 dt, dd {
     font-size: 1.1em;
     height: 2em;

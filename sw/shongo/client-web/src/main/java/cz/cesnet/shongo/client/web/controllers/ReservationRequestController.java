@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -55,8 +56,19 @@ public class ReservationRequestController
             @PathVariable(value = "id") String id,
             Model model)
     {
-        AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
+        // Get reservation request
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, id);
+
+        // Get history of reservation request
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(securityToken);
+        request.setReservationRequestId(id);
+        request.setTypes(ReservationRequestType.ALL);
+        ListResponse<ReservationRequestSummary> history = reservationService.listReservationRequests(request);
+
         model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
+        model.addAttribute("history", history.getItems());
         return "reservationRequestDetail";
     }
 
@@ -106,7 +118,7 @@ public class ReservationRequestController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "type", required = false) ReservationRequestModel.Type specificationType)
+            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -154,7 +166,7 @@ public class ReservationRequestController
             item.put("id", reservationRequestId);
             item.put("description", reservationRequest.getDescription());
             item.put("purpose", reservationRequest.getPurpose());
-            item.put("created", dateFormatter.print(reservationRequest.getCreated()));
+            item.put("created", dateFormatter.print(reservationRequest.getDateTime()));
             items.add(item);
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
@@ -175,14 +187,14 @@ public class ReservationRequestController
                 item.put("technology", technology.getTitle());
             }
 
-            ReservationRequestSummary.Type type = reservationRequest.getType();
-            if (type instanceof ReservationRequestSummary.RoomType) {
-                ReservationRequestSummary.RoomType roomType = (ReservationRequestSummary.RoomType) type;
+            ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
+            if (specification instanceof ReservationRequestSummary.RoomSpecification) {
+                ReservationRequestSummary.RoomSpecification roomType = (ReservationRequestSummary.RoomSpecification) specification;
                 item.put("type", messageSource.getMessage("views.reservationRequest.specification.room", null, locale));
                 item.put("participantCount", roomType.getParticipantCount());
             }
-            else if (type instanceof ReservationRequestSummary.AliasType) {
-                ReservationRequestSummary.AliasType aliasType = (ReservationRequestSummary.AliasType) type;
+            else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
+                ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
                 item.put("type", messageSource.getMessage("views.reservationRequest.specification.alias", null, locale));
                 if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());

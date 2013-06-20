@@ -26,7 +26,7 @@ RESERVATION:
 <#----------------------------------------------------------------------------->
 <#if reservationRequest??>
 
-  Requested at:     ${template.formatDateTime(reservationRequest.created, "Europe/Prague")}
+  Requested at:     ${template.formatDateTime(reservationRequest.dateTime, "Europe/Prague")}
 </#if>
 
   Start date/time:  ${template.formatDateTime(reservation.slot, "Europe/Prague")}

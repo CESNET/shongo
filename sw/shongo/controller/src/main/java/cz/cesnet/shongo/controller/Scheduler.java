@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
@@ -124,7 +123,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     if (result == 0) {
                         result = reservationRequest1.getPurpose().priorityCompareTo(reservationRequest2.getPurpose());
                         if (result == 0) {
-                            return reservationRequest1.getCreated().compareTo(reservationRequest2.getCreated());
+                            return reservationRequest1.getCreatedAt().compareTo(reservationRequest2.getCreatedAt());
                         }
                     }
                     return result;

@@ -62,11 +62,11 @@ public class ReservationRequestUpdateController
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
     public String getCreate(
-            @RequestParam(value = "type", required = false) ReservationRequestModel.Type type,
+            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType,
             Model model)
     {
         ReservationRequestModel reservationRequest = new ReservationRequestModel();
-        reservationRequest.setType(type);
+        reservationRequest.setSpecificationType(specificationType);
         reservationRequest.setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 5));
         reservationRequest.setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
         model.addAttribute("reservationRequest", reservationRequest);

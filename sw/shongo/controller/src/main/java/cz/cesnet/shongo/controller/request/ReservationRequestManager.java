@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -89,7 +90,7 @@ public class ReservationRequestManager extends AbstractManager
             AbstractReservationRequest newReservationRequest)
     {
         // Set old reservation request as modified
-        oldReservationRequest.setType(AbstractReservationRequest.Type.MODIFIED);
+        oldReservationRequest.setType(ReservationRequestType.MODIFIED);
         oldReservationRequest.validate();
 
         // Set new reservation request to allocation
@@ -118,10 +119,7 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequest.class, reservationRequest.getId());
         }
 
-        List<AbstractReservationRequest> versions = listVersions(reservationRequest);
-        for (AbstractReservationRequest version : versions) {
-            delete(version, authorizationManager, false);
-        }
+        delete(reservationRequest, authorizationManager, false);
 
         transaction.commit();
     }
@@ -196,7 +194,7 @@ public class ReservationRequestManager extends AbstractManager
         }
         // Soft delete
         else {
-            abstractReservationRequest.setType(AbstractReservationRequest.Type.DELETED);
+            abstractReservationRequest.setType(ReservationRequestType.DELETED);
 
             // Clear allocation reports
             if (abstractReservationRequest instanceof ReservationRequest) {
@@ -300,7 +298,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("TYPE(request) != ReservationRequest OR request.parentAllocation IS NULL");
-        filter.addFilter("request.type = :createdType", "createdType", AbstractReservationRequest.Type.CREATED);
+        filter.addFilter("request.type = :createdType", "createdType", ReservationRequestType.CREATED);
         filter.addIds(ids);
         filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {
@@ -354,7 +352,7 @@ public class ReservationRequestManager extends AbstractManager
                         + " SELECT state.reservationRequest FROM PreprocessedState state"
                         + " WHERE state.start <= :from AND state.end >= :to)",
                         ReservationRequestSet.class)
-                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
+                .setParameter("createdType", ReservationRequestType.CREATED)
                 .setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();
@@ -374,7 +372,7 @@ public class ReservationRequestManager extends AbstractManager
                         + " AND reservationRequest.slotStart < :end"
                         + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
-                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
+                .setParameter("createdType", ReservationRequestType.CREATED)
                 .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())

@@ -5,6 +5,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -34,7 +35,12 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
-    private DateTime created;
+    private DateTime createdAt;
+
+    /**
+     * Date/time when the {@link AbstractReservationRequest} was updated.
+     */
+    private DateTime updateAt;
 
     /**
      * {@link Allocation} for this {@link AbstractReservationRequest}.
@@ -43,13 +49,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private Allocation allocation;
 
     /**
-     * Specifies {@link Type} of the {@link AbstractReservationRequest}.
+     * Specifies {@link cz.cesnet.shongo.controller.ReservationRequestType} of the {@link AbstractReservationRequest}.
      */
-    private Type type;
+    private ReservationRequestType type;
 
     /**
      * Previous {@link AbstractReservationRequest} which is modified by this {@link AbstractReservationRequest}
-     * (it's type must be {@link Type#MODIFIED}).
+     * (it's type must be {@link cz.cesnet.shongo.controller.ReservationRequestType#MODIFIED}).
      */
     private AbstractReservationRequest modifiedReservationRequest;
 
@@ -102,14 +108,25 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
-     * @return {@link #created}
+     * @return {@link #createdAt}
      */
-    @Column
+    @Column(nullable = false)
     @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.FIELD)
-    public DateTime getCreated()
+    public DateTime getCreatedAt()
     {
-        return created;
+        return createdAt;
+    }
+
+    /**
+     * @return {@link #updateAt}
+     */
+    @Column(nullable = false)
+    @org.hibernate.annotations.Type(type = "DateTime")
+    @Access(AccessType.FIELD)
+    public DateTime getUpdateAt()
+    {
+        return updateAt;
     }
 
     /**
@@ -135,7 +152,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    public Type getType()
+    public ReservationRequestType getType()
     {
         return type;
     }
@@ -143,7 +160,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @param type sets the {@link #type}
      */
-    public void setType(Type type)
+    public void setType(ReservationRequestType type)
     {
         this.type = type;
     }
@@ -302,7 +319,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     public void validate() throws CommonReportSet.EntityInvalidException
     {
-        if (modifiedReservationRequest != null && !modifiedReservationRequest.getType().equals(Type.MODIFIED)) {
+        if (modifiedReservationRequest != null && !modifiedReservationRequest.getType().equals(ReservationRequestType.MODIFIED)) {
             throw new CommonReportSet.EntityInvalidException(EntityIdentifier.formatId(modifiedReservationRequest),
                     "Modified reservation request isn't of type MODIFIED.");
         }
@@ -367,13 +384,15 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     @PrePersist
+    @PreUpdate
     protected void onCreate()
     {
-        if (created == null) {
-            created = DateTime.now();
+        if (createdAt == null) {
+            createdAt = DateTime.now();
         }
+        updateAt = DateTime.now();
         if (type == null) {
-            type = Type.CREATED;
+            type = ReservationRequestType.CREATED;
         }
         if (priority == null) {
             priority = 0;
@@ -436,7 +455,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     {
         api.setId(EntityIdentifier.formatId(this));
         api.setUserId(getUserId());
-        api.setCreated(getCreated());
+        api.setType(getType());
+        api.setDateTime(getCreatedAt());
         api.setPurpose(getPurpose());
         api.setPriority(getPriority());
         api.setDescription(getDescription());
@@ -501,26 +521,4 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         }
     }
 
-    /**
-     * Enumeration of available types for {@link AbstractReservationRequest}.
-     */
-    public static enum Type
-    {
-        /**
-         * {@link AbstractReservationRequest} is created which means that it is visible to users.
-         */
-        CREATED,
-
-        /**
-         * {@link AbstractReservationRequest} is modified which means that another {@link AbstractReservationRequest}
-         * replaces it and it is preserved only for history purposes.
-         */
-        MODIFIED,
-
-        /**
-         * {@link AbstractReservationRequest} is deleted which means that it is not visible to users and it is
-         * preserved only for history purposes.
-         */
-        DELETED
-    }
 }

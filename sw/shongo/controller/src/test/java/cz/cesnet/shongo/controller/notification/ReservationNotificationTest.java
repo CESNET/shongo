@@ -67,7 +67,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
         ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(5);
-        allocateAndCheck(reservationRequest);
+        reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
@@ -105,7 +106,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         {{
                 add(AliasType.SIP_URI);
             }});
-        allocateAndCheck(reservationRequest);
+        reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();

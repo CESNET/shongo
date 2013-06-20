@@ -2,11 +2,11 @@ package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import org.joda.time.*;
 import org.springframework.validation.Errors;
@@ -36,7 +36,9 @@ public class ReservationRequestModel implements Validator
 
     private String id;
 
-    private DateTime created;
+    private ReservationRequestType type;
+
+    private DateTime dateTime;
 
     private String description;
 
@@ -56,7 +58,7 @@ public class ReservationRequestModel implements Validator
 
     private LocalDate periodicityEnd;
 
-    private Type type;
+    private SpecificationType specificationType;
 
     private String aliasRoomName;
 
@@ -76,9 +78,19 @@ public class ReservationRequestModel implements Validator
         this.id = id;
     }
 
-    public DateTime getCreated()
+    public ReservationRequestType getType()
     {
-        return created;
+        return type;
+    }
+
+    public void setType(ReservationRequestType type)
+    {
+        this.type = type;
+    }
+
+    public DateTime getDateTime()
+    {
+        return dateTime;
     }
 
     public String getDescription()
@@ -171,14 +183,14 @@ public class ReservationRequestModel implements Validator
         this.periodicityEnd = periodicityEnd;
     }
 
-    public Type getType()
+    public SpecificationType getSpecificationType()
     {
-        return type;
+        return specificationType;
     }
 
-    public void setType(Type type)
+    public void setSpecificationType(SpecificationType specificationType)
     {
-        this.type = type;
+        this.specificationType = specificationType;
     }
 
     public String getAliasRoomName()
@@ -229,7 +241,8 @@ public class ReservationRequestModel implements Validator
     public void fromApi(AbstractReservationRequest abstractReservationRequest)
     {
         id = abstractReservationRequest.getId();
-        created = abstractReservationRequest.getCreated();
+        type = abstractReservationRequest.getType();
+        dateTime = abstractReservationRequest.getDateTime();
         description = abstractReservationRequest.getDescription();
         purpose = abstractReservationRequest.getPurpose();
 
@@ -237,7 +250,7 @@ public class ReservationRequestModel implements Validator
         Specification specification = abstractReservationRequest.getSpecification();
         if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
-            type = Type.ALIAS;
+            specificationType = SpecificationType.ALIAS;
             technology = Technology.find(aliasSpecification.getTechnologies());
             aliasRoomName = aliasSpecification.getValue();
             Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
@@ -253,7 +266,7 @@ public class ReservationRequestModel implements Validator
                 throw new UnsupportedApiException("At least one child alias specifications must be present.");
             }
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
-            type = Type.ALIAS;
+            specificationType = SpecificationType.ALIAS;
             technology = Technology.find(roomNameSpecification.getTechnologies());
             aliasRoomName = roomNameSpecification.getValue();
             Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
@@ -264,7 +277,7 @@ public class ReservationRequestModel implements Validator
         }
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
-            type = Type.ROOM;
+            specificationType = SpecificationType.ROOM;
             technology = Technology.find(roomSpecification.getTechnologies());
             roomParticipantCount = roomSpecification.getParticipantCount();
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
@@ -294,7 +307,7 @@ public class ReservationRequestModel implements Validator
             if (!(slots.size() == 1 && slots.get(0) instanceof PeriodicDateTimeSlot)) {
                 throw new UnsupportedApiException("Only single periodic date/time slot is allowed.");
             }
-            if (!type.equals(Type.ROOM)) {
+            if (!specificationType.equals(SpecificationType.ROOM)) {
                 throw new UnsupportedApiException("Periodicity is allowed only for rooms.");
             }
             PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
@@ -325,7 +338,7 @@ public class ReservationRequestModel implements Validator
         }
 
         // Room duration
-        if (type.equals(Type.ROOM)) {
+        if (specificationType.equals(SpecificationType.ROOM)) {
             int minutes = duration.toStandardMinutes().getMinutes();
             if ((minutes % (60 * 24)) == 0) {
                 durationCount = minutes / (60 * 24);
@@ -414,7 +427,7 @@ public class ReservationRequestModel implements Validator
 
         // Create specification
         Specification specification;
-        switch (type) {
+        switch (specificationType) {
             case ALIAS:
                 AliasSpecification roomNameSpecification = new AliasSpecification();
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
@@ -452,7 +465,7 @@ public class ReservationRequestModel implements Validator
                 specification = roomSpecification;
                 break;
             default:
-                throw new TodoImplementException(type.toString());
+                throw new TodoImplementException(specificationType.toString());
         }
         abstractReservationRequest.setSpecification(specification);
 
@@ -470,8 +483,9 @@ public class ReservationRequestModel implements Validator
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
-        if (type != null) {
-            switch (type) {
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
+        if (specificationType != null) {
+            switch (specificationType) {
                 case ALIAS:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
                     if (end != null && end.getMillisOfDay() == 0) {
@@ -507,7 +521,7 @@ public class ReservationRequestModel implements Validator
     /**
      * Type of the reservation request.
      */
-    public static enum Type
+    public static enum SpecificationType
     {
         /**
          * For alias (or set of aliases).

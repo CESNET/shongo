@@ -2,22 +2,19 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 import java.util.*;
 
 /**
@@ -336,7 +333,7 @@ public class ReservationManager extends AbstractManager
                         + " WHERE reservationRequest.type = :createdType"
                         + "   AND :reservation MEMBER OF reservationRequest.providedReservations")
                 .setParameter("reservation", reservation)
-                .setParameter("createdType", AbstractReservationRequest.Type.CREATED)
+                .setParameter("createdType", ReservationRequestType.CREATED)
                 .getResultList();
         if (reservationRequests.size() > 0) {
             return true;
