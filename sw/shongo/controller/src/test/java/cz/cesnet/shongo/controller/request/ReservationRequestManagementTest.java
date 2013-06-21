@@ -13,8 +13,10 @@ import cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
@@ -184,7 +186,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
     }
 
     /**
-     * Test modify {@link CompartmentSpecification} to {@link cz.cesnet.shongo.controller.api.RoomSpecification} and delete the request).
+     * Test modify {@link CompartmentSpecification} to {@link RoomSpecification} and delete the request.
      *
      * @throws Exception
      */
@@ -212,13 +214,67 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         checkAllocated(id);
 
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        cz.cesnet.shongo.controller.api.RoomSpecification roomSpecification = new cz.cesnet.shongo.controller.api.RoomSpecification();
+        RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(5);
         reservationRequest.setSpecification(roomSpecification);
         id = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
+    }
+
+    /**
+     * Test modify {@link ReservationRequest} to {@link ReservationRequestSet} and delete the request.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testReservationRequestModification() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("firstMcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationService service = getReservationService();
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setDescription("description1");
+        reservationRequest.setSlot("2012-01-01T12:00/2012-01-01T13:00");
+        reservationRequest.setSpecification(new RoomSpecification(9, Technology.H323));
+        String id1 = allocate(SECURITY_TOKEN, reservationRequest);
+        checkAllocated(id1);
+
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setId(id1);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
+        reservationRequestSet.setDescription("description2");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSlot("2012-01-01T12:00", "PT1H", "P1W", "2012-01-01"));
+        reservationRequestSet.setSpecification(new RoomSpecification(10, Technology.H323));
+        String id2 = allocate(SECURITY_TOKEN, reservationRequestSet);
+        checkAllocated(id2);
+
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, id1);
+        Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
+        Assert.assertEquals("description1", reservationRequest.getDescription());
+        Assert.assertEquals(Integer.valueOf(9),
+                ((RoomSpecification) reservationRequest.getSpecification()).getParticipantCount());
+
+        reservationRequestSet = (ReservationRequestSet) service.getReservationRequest(SECURITY_TOKEN, id2);
+        Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequestSet.getPurpose());
+        Assert.assertEquals("description2", reservationRequestSet.getDescription());
+        Assert.assertEquals(RoomSpecification.class, reservationRequestSet.getSpecification().getClass());
+        Assert.assertEquals(Integer.valueOf(10),
+                ((RoomSpecification) reservationRequestSet.getSpecification()).getParticipantCount());
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id2);
+
+        ListResponse<ReservationRequestSummary> reservationRequests =
+                getReservationService().listReservationRequests(new ReservationRequestListRequest(SECURITY_TOKEN));
+        Assert.assertEquals("No reservation request should exist.", 0, reservationRequests.getItemCount());
     }
 
     /**
@@ -237,15 +293,18 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
             request.setPurpose(ReservationRequestPurpose.SCIENCE);
             switch (index % 3) {
                 case 0:
-                    request.setSpecification(new cz.cesnet.shongo.controller.api.RoomSpecification(5, Technology.H323));
+                    request.setSpecification(new RoomSpecification(5, Technology.H323));
                     break;
                 case 1:
-                    request.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME).withValue("room " + number));
+                    request.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME)
+                            .withValue("room " + number));
                     break;
                 case 2:
                     AliasSetSpecification specification = new AliasSetSpecification();
-                    specification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_E164).withValue(number));
-                    specification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME).withValue("room " + number));
+                    specification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_E164)
+                            .withValue(number));
+                    specification.addAlias(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME)
+                            .withValue("room " + number));
                     request.setSpecification(specification);
                     break;
             }
@@ -267,11 +326,16 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         request.setCount(null);
         response = getReservationService().listReservationRequests(request);
         Assert.assertEquals(9, response.getItemCount());
-        Assert.assertEquals(ReservationRequestSummary.RoomSpecification.class, response.getItem(0).getSpecification().getClass());
-        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class, response.getItem(1).getSpecification().getClass());
-        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class, response.getItem(2).getSpecification().getClass());
-        ReservationRequestSummary.AliasSpecification a1 = (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
-        ReservationRequestSummary.AliasSpecification a2 = (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
+        Assert.assertEquals(ReservationRequestSummary.RoomSpecification.class,
+                response.getItem(0).getSpecification().getClass());
+        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class,
+                response.getItem(1).getSpecification().getClass());
+        Assert.assertEquals(ReservationRequestSummary.AliasSpecification.class,
+                response.getItem(2).getSpecification().getClass());
+        ReservationRequestSummary.AliasSpecification a1 =
+                (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
+        ReservationRequestSummary.AliasSpecification a2 =
+                (ReservationRequestSummary.AliasSpecification) response.getItem(1).getSpecification();
         Assert.assertEquals(AliasType.ROOM_NAME, a1.getAliasType());
         Assert.assertEquals(AliasType.ROOM_NAME, a2.getAliasType());
     }
@@ -280,7 +344,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
      * Test listing reservation requests based on {@link Technology} of
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification},
      * {@link AliasSetSpecification},
-     * {@link cz.cesnet.shongo.controller.api.RoomSpecification} or
+     * {@link RoomSpecification} or
      * {@link CompartmentSpecification}.
      *
      * @throws Exception
@@ -291,7 +355,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         ReservationRequest reservationRequest1 = new ReservationRequest();
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest1.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_E164).withValue("001"));
+        reservationRequest1.setSpecification(
+                new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.H323_E164).withValue("001"));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
@@ -304,7 +369,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest3.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest3.setSpecification(
-                new cz.cesnet.shongo.controller.api.RoomSpecification(5, new Technology[]{Technology.ADOBE_CONNECT}));
+                new RoomSpecification(5, new Technology[]{Technology.ADOBE_CONNECT}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest3);
 
         ReservationRequestSet reservationRequest4 = new ReservationRequestSet();
@@ -319,14 +384,16 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest5.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest5.setSpecification(
-                new cz.cesnet.shongo.controller.api.RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(5,
+                        new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest5);
 
         ReservationRequestSet reservationRequest6 = new ReservationRequestSet();
         reservationRequest6.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest6.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest6.setSpecification(
-                new cz.cesnet.shongo.controller.api.RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(5,
+                        new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest6);
 
         ListResponse<ReservationRequestSummary> reservationRequests =
@@ -356,7 +423,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
             reservationRequest.setDescription("request");
             reservationRequest.setSlot("2012-01-01T12:00", "PT0S");
             reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequest.setSpecification(new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
+            reservationRequest.setSpecification(
+                    new cz.cesnet.shongo.controller.api.AliasSpecification(AliasType.ROOM_NAME));
             getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
             Assert.fail("Exception of empty duration should has been thrown.");
         }
@@ -444,7 +512,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
 
         try {
             getReservationService().checkSpecificationAvailability(SECURITY_TOKEN,
-                    new cz.cesnet.shongo.controller.api.RoomSpecification(1, Technology.H323), interval);
+                    new RoomSpecification(1, Technology.H323), interval);
             Assert.fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {

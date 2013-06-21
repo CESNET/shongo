@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -240,12 +241,24 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
 
-            // Update old detached reservation request (the changes will not be serialized to database)
-            oldReservationRequest.fromApi(reservationRequestApi, entityManager);
 
-            // Create new reservation request by cloning old reservation request
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest newReservationRequest =
-                    oldReservationRequest.clone();
+
+            // Check if modified reservation request is of the same class
+            AbstractReservationRequest newReservationRequest;
+            Class<? extends AbstractReservationRequest> reservationRequestClass =
+                    AbstractReservationRequest.getClassFromApi(reservationRequestApi.getClass());
+            if (reservationRequestClass.isInstance(oldReservationRequest)) {
+                // Update old detached reservation request (the changes will not be serialized to database)
+                oldReservationRequest.fromApi(reservationRequestApi, entityManager);
+                // Create new reservation request by cloning old reservation request
+                newReservationRequest = oldReservationRequest.clone();
+            }
+            else {
+                // Create new reservation request
+                newReservationRequest = ClassHelper.createInstanceFromClass(reservationRequestClass);
+                newReservationRequest.synchronizeFrom(oldReservationRequest);
+                newReservationRequest.fromApi(reservationRequestApi, entityManager);
+            }
             newReservationRequest.setCreatedBy(userId);
             newReservationRequest.setUpdatedBy(userId);
             oldReservationRequest.setUpdatedBy(userId);

@@ -5,6 +5,8 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +88,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
         reservationRequestSet.checkPersisted();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager, reservationRequestSet);
         try {
@@ -96,6 +99,13 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
             // Get allocation for the reservation request set
             Allocation allocation = reservationRequestSet.getAllocation();
+
+            // Delete all reservations which are allocated in allocation
+            // (it can happen when ReservationRequest was modified to ReservationRequestSet)
+            for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
+                reservation.setAllocation(null);
+                reservationManager.update(reservation);
+            }
 
             // List all child reservation requests for the set
             List<ReservationRequest> childReservationRequests =

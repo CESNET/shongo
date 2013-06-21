@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
@@ -451,16 +452,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     public static AbstractReservationRequest createFromApi(
             cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
     {
-        AbstractReservationRequest reservationRequest;
-        if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
-            reservationRequest = new ReservationRequest();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequestSet) {
-            reservationRequest = new ReservationRequestSet();
-        }
-        else {
-            throw new TodoImplementException(api.getClass().getCanonicalName());
-        }
+        Class<? extends AbstractReservationRequest> requestClass = getClassFromApi(api.getClass());
+        AbstractReservationRequest reservationRequest = ClassHelper.createInstanceFromClass(requestClass);
         reservationRequest.fromApi(api, entityManager);
         return reservationRequest;
     }
@@ -557,9 +550,42 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * {@link Specification} class by {@link cz.cesnet.shongo.controller.api.Specification} class.
+     */
+    private static final Map<
+            Class<? extends cz.cesnet.shongo.controller.api.AbstractReservationRequest>,
+            Class<? extends AbstractReservationRequest>> CLASS_BY_API = new HashMap<
+            Class<? extends cz.cesnet.shongo.controller.api.AbstractReservationRequest>,
+            Class<? extends AbstractReservationRequest>>();
+
+    /**
+     * Initialization for {@link #CLASS_BY_API}.
+     */
+    static {
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ReservationRequest.class,
+                ReservationRequest.class);
+        CLASS_BY_API.put(cz.cesnet.shongo.controller.api.ReservationRequestSet.class,
+                ReservationRequestSet.class);
+    }
+
+    /**
+     * @param requestApiClass
+     * @return {@link AbstractReservationRequest} class for given {@code apiClass}
+     */
+    public static Class<? extends AbstractReservationRequest> getClassFromApi(
+            Class<? extends cz.cesnet.shongo.controller.api.AbstractReservationRequest> requestApiClass)
+    {
+        Class<? extends AbstractReservationRequest> requestClass = CLASS_BY_API.get(requestApiClass);
+        if (requestClass == null) {
+            throw new TodoImplementException(requestApiClass.getCanonicalName());
+        }
+        return requestClass;
+    }
+
+    /**
      * Enumeration of available states for {@link AbstractReservationRequest}.
      */
-    public enum State
+    public static enum State
     {
         /**
          * Reservation request is active which means that it is visible to users.
@@ -578,5 +604,4 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
          */
         DELETED
     }
-
 }

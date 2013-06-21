@@ -299,24 +299,23 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
             case ALLOCATED:
                 Reservation reservation = getAllocation().getCurrentReservation();
-                if (reservation == null) {
-                    throw new IllegalStateException("Allocated reservation request should have a reservation.");
-                }
-                Executable executable = reservation.getExecutable();
-                if (executable != null) {
-                    switch (executable.getState()) {
-                        case STARTED:
-                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
-                        case MODIFIED:
-                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
-                        case STARTING_FAILED:
-                            return cz.cesnet.shongo.controller.api.AllocationState.STARTING_FAILED;
-                        case STOPPED:
-                            return cz.cesnet.shongo.controller.api.AllocationState.FINISHED;
-                        case STOPPING_FAILED:
-                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
-                        default:
-                            return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;
+                if (reservation != null) {
+                    Executable executable = reservation.getExecutable();
+                    if (executable != null) {
+                        switch (executable.getState()) {
+                            case STARTED:
+                                return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
+                            case MODIFIED:
+                                return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
+                            case STARTING_FAILED:
+                                return cz.cesnet.shongo.controller.api.AllocationState.STARTING_FAILED;
+                            case STOPPED:
+                                return cz.cesnet.shongo.controller.api.AllocationState.FINISHED;
+                            case STOPPING_FAILED:
+                                return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
+                            default:
+                                return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;
+                        }
                     }
                 }
                 return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;

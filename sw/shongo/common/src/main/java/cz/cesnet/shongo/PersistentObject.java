@@ -55,7 +55,7 @@ public abstract class PersistentObject
         if (id != null) {
             longId = Long.valueOf(id);
         }
-        return this.id.equals(longId);
+        return this.id != null && this.id.equals(longId);
     }
 
     /**
@@ -68,7 +68,7 @@ public abstract class PersistentObject
         if (this.id == null && id != null) {
             return true;
         }
-        return this.id.equals(id);
+        return this.id != null &&  this.id.equals(id);
     }
 
     /**
