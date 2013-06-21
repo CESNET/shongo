@@ -6,7 +6,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import org.joda.time.*;
 import org.springframework.validation.Errors;
@@ -364,12 +364,15 @@ public class ReservationRequestModel implements Validator
     {
         // Determine duration (and end)
         Period duration;
-        if (end != null) {
+        if (specificationType.equals(SpecificationType.ALIAS)) {
+            if (end == null) {
+                throw new IllegalStateException("Slot end must be not empty for alias.");
+            }
             duration = new Period(start, end);
         }
         else {
             if (durationCount == null || durationType == null) {
-                throw new IllegalStateException("When end is empty the duration should be not empty.");
+                throw new IllegalStateException("Slot duration should be not empty.");
             }
             switch (durationType) {
                 case MINUTE:

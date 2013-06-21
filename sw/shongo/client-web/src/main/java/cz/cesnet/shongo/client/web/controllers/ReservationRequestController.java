@@ -6,7 +6,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -64,11 +64,33 @@ public class ReservationRequestController
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
         request.setReservationRequestId(id);
-        request.setTypes(ReservationRequestType.ALL);
-        ListResponse<ReservationRequestSummary> history = reservationService.listReservationRequests(request);
+        request.setSort(ReservationRequestListRequest.Sort.DATETIME);
+        request.setSortDescending(true);
+
+        String reservationRequestId = reservationRequest.getId();
+        Map<String, Object> currentHistoryItem = null;
+        List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
+        for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            String historyItemId = historyItem.getId();
+            item.put("id", historyItemId);
+            item.put("dateTime", historyItem.getDateTime());
+            UserInformation user = userCache.getUserInformation(securityToken, historyItem.getUserId());
+            item.put("user", user.getFullName());
+            item.put("type", historyItem.getType());
+            if ( historyItemId.equals(reservationRequestId)) {
+                currentHistoryItem = item;
+            }
+            historyItems.add(item);
+        }
+        if (currentHistoryItem == null) {
+            throw new RuntimeException("Reservation request " + reservationRequestId + "should exist in it's history.");
+        }
+        currentHistoryItem.put("selected", true);
 
         model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
-        model.addAttribute("history", history.getItems());
+        model.addAttribute("history", historyItems);
+        model.addAttribute("isWritable", currentHistoryItem == historyItems.get(0));
         return "reservationRequestDetail";
     }
 
@@ -125,6 +147,8 @@ public class ReservationRequestController
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
+        request.setSort(ReservationRequestListRequest.Sort.DATETIME);
+        request.setSortDescending(true);
         if (specificationType != null) {
             switch (specificationType) {
                 case ALIAS:
@@ -166,14 +190,14 @@ public class ReservationRequestController
             item.put("id", reservationRequestId);
             item.put("description", reservationRequest.getDescription());
             item.put("purpose", reservationRequest.getPurpose());
-            item.put("created", dateFormatter.print(reservationRequest.getDateTime()));
+            item.put("dateTime", dateFormatter.print(reservationRequest.getDateTime()));
             items.add(item);
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
             item.put("writable", permissions.contains(Permission.WRITE));
 
-            UserInformation owner = userCache.getUserInformation(securityToken, reservationRequest.getUserId());
-            item.put("owner", owner.getFullName());
+            UserInformation user = userCache.getUserInformation(securityToken, reservationRequest.getUserId());
+            item.put("user", user.getFullName());
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {

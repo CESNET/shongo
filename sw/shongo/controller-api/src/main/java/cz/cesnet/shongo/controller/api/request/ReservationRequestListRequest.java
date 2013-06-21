@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 
@@ -17,13 +17,15 @@ public class ReservationRequestListRequest extends ListRequest
 {
     private String reservationRequestId;
 
-    private Set<ReservationRequestType> types = new HashSet<ReservationRequestType>();
-
     private Set<Technology> technologies = new HashSet<Technology>();
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
 
     private Set<String> providedReservationIds = new HashSet<String>();
+
+    private Sort sort;
+
+    private Boolean sortDescending;
 
     public ReservationRequestListRequest()
     {
@@ -50,21 +52,6 @@ public class ReservationRequestListRequest extends ListRequest
     public void setReservationRequestId(String reservationRequestId)
     {
         this.reservationRequestId = reservationRequestId;
-    }
-
-    public Set<ReservationRequestType> getTypes()
-    {
-        return types;
-    }
-
-    public void setTypes(Set<ReservationRequestType> types)
-    {
-        this.types = types;
-    }
-
-    public void addType(ReservationRequestType type)
-    {
-        types.add(type);
     }
 
     public Set<Technology> getTechnologies()
@@ -110,5 +97,30 @@ public class ReservationRequestListRequest extends ListRequest
     public void addProvidedReservationId(String providedReservationId)
     {
         providedReservationIds.add(providedReservationId);
+    }
+
+    public Sort getSort()
+    {
+        return sort;
+    }
+
+    public void setSort(Sort sort)
+    {
+        this.sort = sort;
+    }
+
+    public Boolean getSortDescending()
+    {
+        return sortDescending;
+    }
+
+    public void setSortDescending(Boolean sortDescending)
+    {
+        this.sortDescending = sortDescending;
+    }
+
+    public static enum Sort
+    {
+        DATETIME
     }
 }

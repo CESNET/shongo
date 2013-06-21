@@ -161,7 +161,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                             reservationRequest.getId());
 
                     // Update reservation request state to failed
-                    reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
+                    reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATION_FAILED);
                     reservationRequest.clearReports();
                     if (exception instanceof SchedulerException) {
                         SchedulerException schedulerException = (SchedulerException) exception;
@@ -345,7 +345,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Update reservation request
-        reservationRequest.setState(ReservationRequest.State.ALLOCATED);
+        reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);
     }

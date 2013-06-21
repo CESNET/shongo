@@ -5,8 +5,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -28,19 +28,24 @@ import java.util.*;
 public abstract class AbstractReservationRequest extends PersistentObject implements Cloneable
 {
     /**
-     * User-id of an user who created the {@link AbstractReservationRequest}.
-     */
-    private String userId;
-
-    /**
      * Date/time when the {@link AbstractReservationRequest} was created.
      */
     private DateTime createdAt;
 
     /**
+     * User-id of an user who created the {@link AbstractReservationRequest}.
+     */
+    private String createdBy;
+
+    /**
      * Date/time when the {@link AbstractReservationRequest} was updated.
      */
-    private DateTime updateAt;
+    private DateTime updatedAt;
+
+    /**
+     * User-id of an user who updated the {@link AbstractReservationRequest} (e.g., who modify or delete it).
+     */
+    private String updatedBy;
 
     /**
      * {@link Allocation} for this {@link AbstractReservationRequest}.
@@ -49,13 +54,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private Allocation allocation;
 
     /**
-     * Specifies {@link cz.cesnet.shongo.controller.ReservationRequestType} of the {@link AbstractReservationRequest}.
+     * Specifies {@link State} of the {@link AbstractReservationRequest}.
      */
-    private ReservationRequestType type;
+    private State state;
 
     /**
      * Previous {@link AbstractReservationRequest} which is modified by this {@link AbstractReservationRequest}
-     * (it's type must be {@link cz.cesnet.shongo.controller.ReservationRequestType#MODIFIED}).
+     * (it's type must be {@link State#MODIFIED}).
      */
     private AbstractReservationRequest modifiedReservationRequest;
 
@@ -91,23 +96,6 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private List<Reservation> providedReservations = new ArrayList<Reservation>();
 
     /**
-     * @return {@link #userId}
-     */
-    @Column(nullable = false)
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
-
-    /**
      * @return {@link #createdAt}
      */
     @Column(nullable = false)
@@ -119,14 +107,48 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
-     * @return {@link #updateAt}
+     * @return {@link #createdBy}
+     */
+    @Column(nullable = false)
+    public String getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    /**
+     * @param createdBy sets the {@link #createdBy}
+     */
+    public void setCreatedBy(String createdBy)
+    {
+        this.createdBy = createdBy;
+    }
+
+    /**
+     * @return {@link #updatedAt}
      */
     @Column(nullable = false)
     @org.hibernate.annotations.Type(type = "DateTime")
     @Access(AccessType.FIELD)
-    public DateTime getUpdateAt()
+    public DateTime getUpdatedAt()
     {
-        return updateAt;
+        return updatedAt;
+    }
+
+    /**
+     * @return {@link #updatedBy}
+     */
+    @Column(nullable = false)
+    public String getUpdatedBy()
+    {
+        return updatedBy;
+    }
+
+    /**
+     * @param updatedBy sets the {@link #updatedBy}
+     */
+    public void setUpdatedBy(String updatedBy)
+    {
+        this.updatedBy = updatedBy;
     }
 
     /**
@@ -148,21 +170,21 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
-     * @return {@link #type}
+     * @return {@link #state}
      */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    public ReservationRequestType getType()
+    public State getState()
     {
-        return type;
+        return state;
     }
 
     /**
-     * @param type sets the {@link #type}
+     * @param state sets the {@link #state}
      */
-    public void setType(ReservationRequestType type)
+    public void setState(State state)
     {
-        this.type = type;
+        this.state = state;
     }
 
     /**
@@ -319,7 +341,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     public void validate() throws CommonReportSet.EntityInvalidException
     {
-        if (modifiedReservationRequest != null && !modifiedReservationRequest.getType().equals(ReservationRequestType.MODIFIED)) {
+        if (modifiedReservationRequest != null && !modifiedReservationRequest.getState().equals(State.MODIFIED)) {
             throw new CommonReportSet.EntityInvalidException(EntityIdentifier.formatId(modifiedReservationRequest),
                     "Modified reservation request isn't of type MODIFIED.");
         }
@@ -354,12 +376,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     public boolean synchronizeFrom(AbstractReservationRequest reservationRequest)
     {
-        boolean modified = !ObjectHelper.isSame(getUserId(), reservationRequest.getUserId())
+        boolean modified = !ObjectHelper.isSame(getCreatedBy(), reservationRequest.getCreatedBy())
                 || !ObjectHelper.isSame(getPurpose(), reservationRequest.getPurpose())
                 || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
                 || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain());
-        setUserId(reservationRequest.getUserId());
+        setCreatedBy(reservationRequest.getCreatedBy());
+        setUpdatedBy(reservationRequest.getUpdatedBy());
         setPurpose(reservationRequest.getPurpose());
         setPriority(reservationRequest.getPriority());
         setDescription(reservationRequest.getDescription());
@@ -390,9 +413,9 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         if (createdAt == null) {
             createdAt = DateTime.now();
         }
-        updateAt = DateTime.now();
-        if (type == null) {
-            type = ReservationRequestType.CREATED;
+        updatedAt = DateTime.now();
+        if (state == null) {
+            state = State.ACTIVE;
         }
         if (priority == null) {
             priority = 0;
@@ -454,8 +477,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Report.MessageType messageType)
     {
         api.setId(EntityIdentifier.formatId(this));
-        api.setUserId(getUserId());
-        api.setType(getType());
+        api.setUserId(getCreatedBy());
         api.setDateTime(getCreatedAt());
         api.setPurpose(getPurpose());
         api.setPriority(getPriority());
@@ -464,6 +486,19 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         api.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
             api.addProvidedReservationId(EntityIdentifier.formatId(providedReservation));
+        }
+
+        // Reservation request is deleted
+        if (state.equals(State.DELETED)) {
+            api.setType(ReservationRequestType.DELETED);
+        }
+        // Reservation request modifies another reservation request
+        else if (modifiedReservationRequest != null) {
+            api.setType(ReservationRequestType.MODIFIED);
+        }
+        // Reservation request is new
+        else {
+            api.setType(ReservationRequestType.NEW);
         }
     }
 
@@ -519,6 +554,29 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                     Reservation.class, providedReservationId);
             removeProvidedReservation(id);
         }
+    }
+
+    /**
+     * Enumeration of available states for {@link AbstractReservationRequest}.
+     */
+    public enum State
+    {
+        /**
+         * Reservation request is active which means that it is visible to users.
+         */
+        ACTIVE,
+
+        /**
+         * Reservation request is modified which means that another reservation request
+         * replaces it and this reservation request is preserved only for history purposes.
+         */
+        MODIFIED,
+
+        /**
+         * Reservation request is deleted which means that it is not visible to users and it is
+         * preserved only for history purposes.
+         */
+        DELETED
     }
 
 }

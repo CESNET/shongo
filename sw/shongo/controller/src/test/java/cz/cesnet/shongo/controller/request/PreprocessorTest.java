@@ -57,7 +57,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setCreatedBy(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setUpdatedBy(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot("2012-06-01T15", "PT1H");
         reservationRequestSet.addSlot(new PeriodicDateTime(
@@ -123,7 +124,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setCreatedBy(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setUpdatedBy(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot("2012-01-01", "PT1H");
         reservationRequestSet.addSlot("2012-01-02", "PT1H");
@@ -173,7 +175,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         try {
             // Create reservation request set
             ReservationRequestSet oldReservationRequest = new ReservationRequestSet();
-            oldReservationRequest.setUserId(Authorization.ROOT_USER_ID);
+            oldReservationRequest.setCreatedBy(Authorization.ROOT_USER_ID);
+            oldReservationRequest.setUpdatedBy(Authorization.ROOT_USER_ID);
             oldReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
             oldReservationRequest.addSlot("2012-01-01", "PT1H");
             oldReservationRequest.setSpecification(new CompartmentSpecification());

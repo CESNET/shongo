@@ -37,12 +37,12 @@
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.reservationRequest.type.aliases"/></h2>
+            <h2><spring:message code="views.reservationRequest.specification.aliases"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
-                    <th><spring:message code="views.reservationRequest.owner"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
@@ -53,7 +53,7 @@
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.dateTime}}</td>
-                    <td>{{reservationRequest.owner}}</td>
+                    <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
@@ -89,12 +89,12 @@
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.reservationRequest.type.rooms"/></h2>
+            <h2><spring:message code="views.reservationRequest.specification.rooms"/></h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
-                    <th><spring:message code="views.reservationRequest.owner"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
@@ -105,7 +105,7 @@
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.dateTime}}</td>
-                    <td>{{reservationRequest.owner}}</td>
+                    <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>

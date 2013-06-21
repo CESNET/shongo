@@ -205,7 +205,7 @@ public class SchedulerContext
         userIds.clear();
         userIds.addAll(authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER));
         if (userIds.size() == 0) {
-            userIds.add(reservationRequest.getUserId());
+            userIds.add(reservationRequest.getCreatedBy());
         }
     }
 

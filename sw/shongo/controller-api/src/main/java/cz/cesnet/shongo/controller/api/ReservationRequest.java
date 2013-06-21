@@ -22,14 +22,14 @@ public class ReservationRequest extends AbstractReservationRequest
     public static final String SLOT = "slot";
 
     /**
-     * State of the request.
+     * {@link AllocationState} of the request.
      */
-    private ReservationRequestState state;
+    private AllocationState allocationState;
 
     /**
-     * Description of state.
+     * Description of the {@link #allocationState}.
      */
-    private String stateReport;
+    private String allocationStateReport;
 
     /**
      * Allocated {@link Reservation}s.
@@ -103,35 +103,35 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #state}
+     * @return {@link #allocationState}
      */
-    public ReservationRequestState getState()
+    public AllocationState getAllocationState()
     {
-        return state;
+        return allocationState;
     }
 
     /**
-     * @param state sets the {@link #state}
+     * @param allocationState sets the {@link #allocationState}
      */
-    public void setState(ReservationRequestState state)
+    public void setAllocationState(AllocationState allocationState)
     {
-        this.state = state;
+        this.allocationState = allocationState;
     }
 
     /**
-     * @return {@link #stateReport}
+     * @return {@link #allocationStateReport}
      */
-    public String getStateReport()
+    public String getAllocationStateReport()
     {
-        return stateReport;
+        return allocationStateReport;
     }
 
     /**
-     * @param stateReport sets the {@link #stateReport}
+     * @param allocationStateReport sets the {@link #allocationStateReport}
      */
-    public void setStateReport(String stateReport)
+    public void setAllocationStateReport(String allocationStateReport)
     {
-        this.stateReport = stateReport;
+        this.allocationStateReport = allocationStateReport;
     }
 
     /**

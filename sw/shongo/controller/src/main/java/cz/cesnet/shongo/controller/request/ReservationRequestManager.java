@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -90,7 +90,7 @@ public class ReservationRequestManager extends AbstractManager
             AbstractReservationRequest newReservationRequest)
     {
         // Set old reservation request as modified
-        oldReservationRequest.setType(ReservationRequestType.MODIFIED);
+        oldReservationRequest.setState(AbstractReservationRequest.State.MODIFIED);
         oldReservationRequest.validate();
 
         // Set new reservation request to allocation
@@ -194,7 +194,7 @@ public class ReservationRequestManager extends AbstractManager
         }
         // Soft delete
         else {
-            abstractReservationRequest.setType(ReservationRequestType.DELETED);
+            abstractReservationRequest.setState(AbstractReservationRequest.State.DELETED);
 
             // Clear allocation reports
             if (abstractReservationRequest instanceof ReservationRequest) {
@@ -286,73 +286,17 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param ids                    requested identifiers
-     * @param userId                 requested user
-     * @param technologies           requested technologies
-     * @param specificationClasses   set of classes for specifications which are allowed
-     * @param providedReservationIds identifier of reservation which must be provided
-     * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
-     */
-    public List<AbstractReservationRequest> list(Set<Long> ids, String userId, Set<Technology> technologies,
-            Set<Class<? extends Specification>> specificationClasses, Set<Long> providedReservationIds)
-    {
-        DatabaseFilter filter = new DatabaseFilter("request");
-        filter.addFilter("TYPE(request) != ReservationRequest OR request.parentAllocation IS NULL");
-        filter.addFilter("request.type = :createdType", "createdType", ReservationRequestType.CREATED);
-        filter.addIds(ids);
-        filter.addUserId(userId);
-        if (technologies != null && technologies.size() > 0) {
-            // List only reservation requests which specifies given technologies
-            filter.addFilter("request IN ("
-                    + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest"
-                    + "  LEFT JOIN reservationRequest.specification specification"
-                    + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE technology IN(:technologies)"
-                    + ")");
-            filter.addFilterParameter("technologies", technologies);
-        }
-        if (specificationClasses != null && specificationClasses.size() > 0) {
-            // List only reservation requests which specifies specification of given classes
-            filter.addFilter("request IN ("
-                    + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest"
-                    + "  LEFT JOIN reservationRequest.specification reservationRequestSpecification"
-                    + "  WHERE TYPE(reservationRequestSpecification) IN(:classes)"
-                    + ")");
-            filter.addFilterParameter("classes", specificationClasses);
-        }
-        if (providedReservationIds != null) {
-            // List only reservation requests which got provided given reservation
-            filter.addFilter("request IN ("
-                    + "  SELECT reservationRequest"
-                    + "  FROM AbstractReservationRequest reservationRequest"
-                    + "  LEFT JOIN reservationRequest.providedReservations providedReservation"
-                    + "  WHERE providedReservation.id IN (:providedReservationId)"
-                    + ")");
-            filter.addFilterParameter("providedReservationId", providedReservationIds);
-        }
-        TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
-                + " FROM AbstractReservationRequest request"
-                + " WHERE " + filter.toQueryWhere(),
-                AbstractReservationRequest.class);
-        filter.fillQueryParameters(query);
-        List<AbstractReservationRequest> reservationRequestList = query.getResultList();
-        return reservationRequestList;
-    }
-
-    /**
      * @return list all {@link ReservationRequestSet} which aren't preprocessed in given interval.
      */
     public List<ReservationRequestSet> listNotPreprocessedReservationRequestSets(Interval interval)
     {
         List<ReservationRequestSet> reservationRequestList = entityManager
                 .createQuery("SELECT reservationRequest FROM ReservationRequestSet reservationRequest"
-                        + " WHERE reservationRequest.type = :createdType AND reservationRequest NOT IN ("
+                        + " WHERE reservationRequest.state = :activeState AND reservationRequest NOT IN ("
                         + " SELECT state.reservationRequest FROM PreprocessedState state"
                         + " WHERE state.start <= :from AND state.end >= :to)",
                         ReservationRequestSet.class)
-                .setParameter("createdType", ReservationRequestType.CREATED)
+                .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
                 .setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();
@@ -361,19 +305,19 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param interval
-     * @return list of existing {@link ReservationRequest}s in {@link ReservationRequest.State#COMPLETE} state and
+     * @return list of existing {@link ReservationRequest}s in {@link cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState#COMPLETE} state and
      *         starting in given interval
      */
     public List<ReservationRequest> listCompletedReservationRequests(Interval interval)
     {
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.type = :createdType AND reservationRequest.state = :state"
+                        + " WHERE reservationRequest.state = :activeState AND reservationRequest.allocationState = :allocationState"
                         + " AND reservationRequest.slotStart < :end"
                         + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
-                .setParameter("createdType", ReservationRequestType.CREATED)
-                .setParameter("state", ReservationRequest.State.COMPLETE)
+                .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
+                .setParameter("allocationState", ReservationRequest.AllocationState.COMPLETE)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();

@@ -31,9 +31,9 @@
         $scope.modification = $scope.id != null;
 
         // Set proper date/time format for start date/time picker
-        $scope.$watch("type", function () {
+        $scope.$watch("specificationType", function () {
             var dateTimePicker = $('#start').data("datetimepicker");
-            if ( $scope.type == 'ALIAS') {
+            if ( $scope.specificationType == 'ALIAS') {
                 dateTimePicker.setFormatDate();
             }
             else {
@@ -162,15 +162,15 @@
             <div class="controls">
                 <label class="radio inline" for="periodicity-none">
                     <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE"/>
-                    <spring:message code="views.reservationRequest.periodicity.none"/>
+                    <spring:message code="views.reservationRequest.periodicity.NONE"/>
                 </label>
                 <label class="radio inline" for="periodicity-daily">
                     <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY"/>
-                    <spring:message code="views.reservationRequest.periodicity.daily"/>
+                    <spring:message code="views.reservationRequest.periodicity.DAILY"/>
                 </label>
                 <label class="radio inline" for="periodicity-weekly">
                     <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY"/>
-                    <spring:message code="views.reservationRequest.periodicity.weekly"/>
+                    <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
                 </label>
                 &nbsp;
                 <div class="input-prepend">
@@ -187,8 +187,8 @@
             </form:label>
             <div class="controls">
                 <form:select path="purpose">
-                    <form:option value="SCIENCE"><spring:message code="views.reservationRequest.purpose.science"/></form:option>
-                    <form:option value="EDUCATION"><spring:message code="views.reservationRequest.purpose.education"/></form:option>
+                    <form:option value="SCIENCE"><spring:message code="views.reservationRequest.purpose.SCIENCE"/></form:option>
+                    <form:option value="EDUCATION"><spring:message code="views.reservationRequest.purpose.EDUCATION"/></form:option>
                 </form:select>
             </div>
         </div>

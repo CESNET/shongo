@@ -355,11 +355,12 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 // Change user to reservation request
                 ReservationRequest reservationRequest = (ReservationRequest) entity;
                 for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
-                        authorizationManager.listAclRecords(reservationRequest.getUserId(),
+                        authorizationManager.listAclRecords(reservationRequest.getCreatedBy(),
                                 entityIdentifier, Role.OWNER)) {
                     authorizationManager.deleteAclRecord(aclRecord);
                 }
-                reservationRequest.setUserId(newUserId);
+                reservationRequest.setCreatedBy(newUserId);
+                reservationRequest.setUpdatedBy(newUserId);
                 authorizationManager.createAclRecord(newUserId, entityIdentifier, Role.OWNER);
 
                 // Change user to child reservation requests
@@ -367,11 +368,11 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 for (ReservationRequest childReservationRequest : allocation.getChildReservationRequests()) {
                     EntityIdentifier reservationRequestId = new EntityIdentifier(childReservationRequest);
                     for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord :
-                            authorizationManager.listAclRecords(childReservationRequest.getUserId(),
+                            authorizationManager.listAclRecords(childReservationRequest.getCreatedBy(),
                                     reservationRequestId, Role.OWNER)) {
                         authorizationManager.deleteAclRecord(aclRecord);
                     }
-                    childReservationRequest.setUserId(newUserId);
+                    childReservationRequest.setCreatedBy(newUserId);
                     authorizationManager.createAclRecord(newUserId, reservationRequestId, Role.OWNER);
                 }
             }

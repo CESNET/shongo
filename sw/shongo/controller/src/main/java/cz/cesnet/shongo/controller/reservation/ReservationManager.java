@@ -2,10 +2,11 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -330,10 +331,10 @@ public class ReservationManager extends AbstractManager
         // Checks whether reservation isn't referenced in existing reservation requests
         List reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest.id FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.type = :createdType"
+                        + " WHERE reservationRequest.state = :activeState"
                         + "   AND :reservation MEMBER OF reservationRequest.providedReservations")
                 .setParameter("reservation", reservation)
-                .setParameter("createdType", ReservationRequestType.CREATED)
+                .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
                 .getResultList();
         if (reservationRequests.size() > 0) {
             return true;

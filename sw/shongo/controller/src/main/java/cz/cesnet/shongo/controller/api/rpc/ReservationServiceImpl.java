@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -134,7 +135,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                             reservationRequestApi, entityManager);
-            reservationRequest.setUserId(userId);
+            reservationRequest.setCreatedBy(userId);
+            reservationRequest.setUpdatedBy(userId);
 
             reservationRequestManager.create(reservationRequest);
 
@@ -225,7 +227,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
             }
-            switch (oldReservationRequest.getType()) {
+            switch (oldReservationRequest.getState()) {
                 case MODIFIED:
                     throw new ControllerReportSet.ReservationRequestAlreadyModifiedException(entityId.toId());
                 case DELETED:
@@ -244,6 +246,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Create new reservation request by cloning old reservation request
             cz.cesnet.shongo.controller.request.AbstractReservationRequest newReservationRequest =
                     oldReservationRequest.clone();
+            newReservationRequest.setCreatedBy(userId);
+            newReservationRequest.setUpdatedBy(userId);
+            oldReservationRequest.setUpdatedBy(userId);
 
             // Revert changes to old reservation request
             entityManager.clear();
@@ -291,7 +296,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
             }
-            switch (reservationRequest.getType()) {
+            switch (reservationRequest.getState()) {
                 case MODIFIED:
                     throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
                 case DELETED:
@@ -303,6 +308,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         EntityIdentifier.formatId(reservationRequest));
             }
 
+            reservationRequest.setUpdatedBy(userId);
             reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
@@ -343,7 +349,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
                 cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
                         (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-                switch (reservationRequest.getState()) {
+                switch (reservationRequest.getAllocationState()) {
                     case ALLOCATION_FAILED: {
                         // Reservation request was modified, so we must clear it's state
                         reservationRequest.clearState();
@@ -356,7 +362,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Update child reservation requests
             for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest :
                     abstractReservationRequest.getAllocation().getChildReservationRequests()) {
-                switch (reservationRequest.getState()) {
+                switch (reservationRequest.getAllocationState()) {
                     case ALLOCATION_FAILED: {
                         // Reservation request was modified, so we must clear it's state
                         reservationRequest.clearState();
@@ -408,17 +414,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         + ")");
                 filter.addFilterParameter("reservationRequestId", persistenceId);
             }
-
-            Set<ReservationRequestType> types = request.getTypes();
-            if (types.size() > 0) {
-                // List only reservation requests which are of specified types
-                filter.addFilter("request.type IN (:types)");
-                filter.addFilterParameter("types", types);
-            }
             else {
-                // List only reservation requests which are CREATED (and which aren't MODIFIED or DELETED)
-                filter.addFilter("request.type = :createdType", "createdType",
-                        ReservationRequestType.CREATED);
+                // List only reservation requests which are ACTIVE
+                filter.addFilter("request.state = :activeState", "activeState",
+                        cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE);
             }
 
             if (request.getTechnologies().size() > 0) {
@@ -467,9 +466,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // Create parts
             String querySelect = " request.id,"
-                    + " request.userId,"
-                    + " request.type,"
-                    + " request.updateAt,"
+                    + " request.state,"
+                    + " request.modifiedReservationRequest.id,"
+                    + " request.createdAt,"
+                    + " request.createdBy,"
+                    + " request.updatedAt,"
+                    + " request.updatedBy,"
                     + " request.purpose,"
                     + " request.description,"
                     + " request.slotStart,"
@@ -477,7 +479,28 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     + " specification";
             String queryFrom = "AbstractReservationRequest request"
                     + " LEFT JOIN request.specification specification";
-            String queryOrderBy = "request.createdAt, request.id DESC";
+
+            // Sort query part
+            String queryOrderBy;
+            ReservationRequestListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                switch (sort) {
+                    case DATETIME:
+                        queryOrderBy = "request.createdAt";
+                        break;
+                    default:
+                        throw new TodoImplementException(sort.toString());
+                }
+            }
+            else {
+                queryOrderBy = "request.id";
+            }
+            Boolean sortDescending = request.getSortDescending();
+            sortDescending = (sortDescending != null ? sortDescending : false);
+            if (sortDescending) {
+                queryOrderBy = queryOrderBy + " DESC";
+            }
+
             ListResponse<ReservationRequestSummary> response = new ListResponse<ReservationRequestSummary>();
             List<Object[]> results = performListRequest("request", querySelect, Object[].class, queryFrom, queryOrderBy,
                     filter, request, response, entityManager);
@@ -489,17 +512,56 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     new HashMap<Long, ReservationRequestSummary>();
             for (Object[] result : results) {
                 Long id = (Long) result[0];
+                AbstractReservationRequest.State state = (AbstractReservationRequest.State) result[1];
+
                 ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
                 reservationRequestSummary.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
-                reservationRequestSummary.setUserId((String) result[1]);
-                reservationRequestSummary.setType((ReservationRequestType) result[2]);
                 reservationRequestSummary.setDateTime((DateTime) result[3]);
-                reservationRequestSummary.setPurpose((ReservationRequestPurpose) result[4]);
-                reservationRequestSummary.setDescription((String) result[5]);
-                response.addItem(reservationRequestSummary);
+                reservationRequestSummary.setUserId((String) result[4]);
+                reservationRequestSummary.setPurpose((ReservationRequestPurpose) result[7]);
+                reservationRequestSummary.setDescription((String) result[8]);
 
-                DateTime slotStart = (DateTime) result[6];
-                DateTime slotEnd = (DateTime) result[7];
+                // Determine reservation request type
+                ReservationRequestType type;
+                // If all versions of reservation request was requested and current reservation request is deleted
+                ReservationRequestSummary deletedReservationRequestSummary = null;
+                if (reservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
+                    // Prepare deleted reservation request summary
+                    deletedReservationRequestSummary = new ReservationRequestSummary();
+                    deletedReservationRequestSummary.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
+                    deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
+                    deletedReservationRequestSummary.setDateTime((DateTime) result[5]);
+                    deletedReservationRequestSummary.setUserId((String) result[6]);
+                    deletedReservationRequestSummary.setPurpose((ReservationRequestPurpose) result[7]);
+                    deletedReservationRequestSummary.setDescription((String) result[8]);
+
+                    // Type is only NEW or MODIFIED
+                    if (result[2] != null) {
+                        type = ReservationRequestType.MODIFIED;
+                    }
+                    else {
+                        type = ReservationRequestType.NEW;
+                    }
+                }
+                else {
+                    // Type can be anything
+                    if (state.equals(AbstractReservationRequest.State.DELETED)) {
+                        type = ReservationRequestType.DELETED;
+                    }
+                    else if (result[2] != null) {
+                        type = ReservationRequestType.MODIFIED;
+                    }
+                    else {
+                        type = ReservationRequestType.NEW;
+                    }
+                }
+
+                // Set reservation request type
+                reservationRequestSummary.setType(type);
+
+                // Date/time slot
+                DateTime slotStart = (DateTime) result[9];
+                DateTime slotEnd = (DateTime) result[10];
                 if (slotStart != null && slotEnd != null) {
                     reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
                 }
@@ -508,7 +570,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
 
                 // Prepare specification
-                Object specification = result[8];
+                Object specification = result[11];
                 if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
                     aliasReservationRequestIds.add(id);
                 }
@@ -524,6 +586,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     reservationRequestSummary.setSpecification(room);
                 }
                 reservationRequestById.put(id, reservationRequestSummary);
+
+                // Append reservation request summary
+                if (deletedReservationRequestSummary != null) {
+                    if (sortDescending) {
+                        response.addItem(deletedReservationRequestSummary);
+                        response.addItem(reservationRequestSummary);
+                    }
+                    else {
+                        response.addItem(reservationRequestSummary);
+                        response.addItem(deletedReservationRequestSummary);
+                    }
+                }
+                else {
+                    response.addItem(reservationRequestSummary);
+                }
             }
 
             // Fill reservation request set earliest slot

@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
@@ -80,7 +79,8 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             entityManager.getTransaction().begin();
 
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-            reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
+            reservationRequestSet.setCreatedBy(Authorization.ROOT_USER_ID);
+            reservationRequestSet.setUpdatedBy(Authorization.ROOT_USER_ID);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
             reservationRequestSet.addSlot("2012-06-22T14:00", "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
@@ -193,7 +193,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             ReservationRequest reservationRequest =
                     reservationRequestManager.getReservationRequest(reservationRequestId);
             Assert.assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+                    ReservationRequest.AllocationState.ALLOCATED, reservationRequest.getAllocationState());
 
             Assert.assertTrue("Reservation should be created for the reservation request",
                     reservationRequest.getAllocation().getReservations().size() > 0);
@@ -230,7 +230,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             ReservationRequest reservationRequest = reservationRequestManager
                     .getReservationRequest(reservationRequestId);
             Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                    ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
+                    ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getAllocationState());
             Reservation reservation = reservationRequest.getAllocation().getCurrentReservation();
             Assert.assertEquals("Old reservation should be kept for the reservation request",
                     reservationId, reservation.getId());
@@ -250,7 +250,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             // Checks allocated
             entityManager.refresh(reservationRequest);
             Assert.assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+                    ReservationRequest.State.ALLOCATED, reservationRequest.getAllocationState());
 
             entityManager.close();
         }*/

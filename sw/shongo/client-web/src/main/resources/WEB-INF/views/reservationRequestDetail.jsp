@@ -7,9 +7,9 @@
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="writable"/>
-<c:if test="${reservationRequest.type != 'CREATED'}">
-    <c:set var="writable" value="false"/>
+
+<c:if test="${isWritable}">
+    <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
 </c:if>
 
 <script type="text/javascript">
@@ -29,24 +29,14 @@
 
         <dt><spring:message code="views.reservationRequest.purpose"/>:</dt>
         <dd>
-            <c:choose>
-                <c:when test="${reservationRequest.purpose == 'SCIENCE'}">
-                    <spring:message code="views.reservationRequest.purpose.science"/>
-                </c:when>
-                <c:when test="${reservationRequest.purpose == 'EDUCATION'}">
-                    <spring:message code="views.reservationRequest.purpose.education"/>
-                </c:when>
-                <c:when test="${reservationRequest.purpose == 'MAINTENANCE'}">
-                    <spring:message code="views.reservationRequest.purpose.maintenance"/>
-                </c:when>
-                <c:when test="${reservationRequest.purpose == 'OWNER'}">
-                    <spring:message code="views.reservationRequest.purpose.owner"/>
-                </c:when>
-            </c:choose>
+            <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
         </dd>
 
         <dt><spring:message code="views.reservationRequest.description"/>:</dt>
         <dd>${reservationRequest.description} </dd>
+
+        <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
+        <dd><spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/> </dd>
 
     </dl>
 
@@ -63,8 +53,8 @@
                 <th><spring:message code="views.aclRecord.user"/></th>
                 <th><spring:message code="views.aclRecord.role"/></th>
                 <th><spring:message code="views.aclRecord.email"/></th>
-                <c:if test="${writable}">
-                    <th><spring:message code="views.list.action"/></th>
+                <c:if test="${isWritable}">
+                    <th width="100px"><spring:message code="views.list.action"/></th>
                 </c:if>
             </tr>
             </thead>
@@ -73,7 +63,7 @@
                 <td>{{userRole.user.fullName}}</td>
                 <td>{{userRole.role}}</td>
                 <td>{{userRole.user.primaryEmail}}</td>
-                <c:if test="${writable}">
+                <c:if test="${isWritable}">
                     <td>
                         <a href="${contextPath}/reservation-request/${reservationRequest.id}/acl/delete/{{userRole.id}}">
                             <spring:message code="views.list.action.delete"/>
@@ -86,7 +76,7 @@
             </tr>
             </tbody>
         </table>
-        <c:if test="${writable}">
+        <c:if test="${isWritable}">
             <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
                 <spring:message code="views.button.create"/>
             </a>
@@ -102,26 +92,27 @@
         <thead>
         <tr>
             <th><spring:message code="views.reservationRequest.dateTime"/></th>
+            <th><spring:message code="views.reservationRequest.user"/></th>
             <th><spring:message code="views.reservationRequest.type"/></th>
-            <th><spring:message code="views.list.action"/></th>
+            <th width="100px"><spring:message code="views.list.action"/></th>
         </tr>
         </thead>
         <tbody>
         <c:forEach items="${history}" var="historyItem">
             <c:set var="rowClass" value=""></c:set>
             <c:choose>
-                <c:when test="${historyItem.id == reservationRequest.id}">
-                    <c:set var="rowClass" value="selected"/>
+                <c:when test="${historyItem.selected}">
+                    <tr class="selected">
                 </c:when>
                 <c:otherwise>
-                    <c:set var="rowClass" value=""/>
+                    <tr>
                 </c:otherwise>
             </c:choose>
-            <tr class="${rowClass}">
                 <td><joda:format value="${historyItem.dateTime}" style="MM"/></td>
-                <td>${historyItem.type}</td>
+                <td>${historyItem.user}</td>
+                <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <td>
-                    <c:if test="${historyItem.id != reservationRequest.id}">
+                    <c:if test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
                         <a href="${contextPath}/reservation-request/detail/${historyItem.id}">
                             <spring:message code="views.list.action.show"/>
                         </a>
@@ -131,7 +122,6 @@
         </c:forEach>
         </tbody>
     </table>
-
 
 </div>
 
@@ -144,7 +134,7 @@
     <a class="btn" href="">
         <spring:message code="views.button.refresh"/>
     </a>
-    <c:if test="${writable}">
+    <c:if test="${isWritable}">
         <a class="btn" href="${contextPath}/reservation-request/modify/${reservationRequest.id}">
             <spring:message code="views.button.modify"/>
         </a>

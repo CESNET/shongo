@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Reporter;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -21,7 +19,6 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents a request created by an user to get allocated some resources for video conference calls.
@@ -47,9 +44,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     private DateTime slotEnd;
 
     /**
-     * State of the compartment request.
+     * {@link cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState} of this {@link ReservationRequest}.
      */
-    private State state;
+    private AllocationState allocationState;
 
     /**
      * List of {@link SchedulerReport}s for this {@link ReservationRequest}.
@@ -61,17 +58,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      */
     public ReservationRequest()
     {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param userId sets the {@link #setUserId(String)}
-     */
-    public ReservationRequest(String userId, ReservationRequestPurpose purpose)
-    {
-        setUserId(userId);
-        setPurpose(purpose);
     }
 
     /**
@@ -171,29 +157,29 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     /**
-     * @return {@link #state}
+     * @return {@link #allocationState}
      */
     @Column
     @Enumerated(EnumType.STRING)
-    public State getState()
+    public AllocationState getAllocationState()
     {
-        return state;
+        return allocationState;
     }
 
     /**
-     * @param state sets the {@link #state}
+     * @param allocationState sets the {@link #allocationState}
      */
-    public void setState(State state)
+    public void setAllocationState(AllocationState allocationState)
     {
-        this.state = state;
+        this.allocationState = allocationState;
     }
 
     /**
-     * Clear {@link #state}, useful for removing {@link State#ALLOCATED} state.
+     * Clear {@link #allocationState}, useful for removing {@link cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState#ALLOCATED} state.
      */
     public void clearState()
     {
-        this.state = null;
+        this.allocationState = null;
     }
 
     /**
@@ -263,29 +249,29 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * <p/>
      * If {@link #specification} is instance of {@link StatefulSpecification} and it's
      * {@link StatefulSpecification#getCurrentState()} is {@link StatefulSpecification.State#NOT_READY}
-     * the state of {@link ReservationRequest} is set to {@link State#NOT_COMPLETE}.
-     * Otherwise the state is not changed or forced to {@link State#COMPLETE} in incorrect cases.
+     * the state of {@link ReservationRequest} is set to {@link cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState#NOT_COMPLETE}.
+     * Otherwise the state is not changed or forced to {@link cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState#COMPLETE} in incorrect cases.
      *
-     * @see State
+     * @see cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState
      */
     public void updateStateBySpecification()
     {
-        State newState = getState();
-        if (newState == null || newState == State.NOT_COMPLETE) {
-            newState = State.COMPLETE;
+        AllocationState newAllocationState = getAllocationState();
+        if (newAllocationState == null || newAllocationState == ReservationRequest.AllocationState.NOT_COMPLETE) {
+            newAllocationState = ReservationRequest.AllocationState.COMPLETE;
         }
         List<SchedulerReport> reports = new ArrayList<SchedulerReport>();
         Specification specification = getSpecification();
         if (specification instanceof StatefulSpecification) {
             StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
             if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
-                newState = State.NOT_COMPLETE;
+                newAllocationState = ReservationRequest.AllocationState.NOT_COMPLETE;
                 reports.add(new SchedulerReportSet.SpecificationNotReadyReport(specification));
             }
         }
 
-        if (newState != getState()) {
-            setState(newState);
+        if (newAllocationState != getAllocationState()) {
+            setAllocationState(newAllocationState);
             setReports(reports);
         }
     }
@@ -295,22 +281,22 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     {
         super.onCreate();
 
-        if (state == null) {
+        if (allocationState == null) {
             updateStateBySpecification();
         }
     }
 
     /**
-     * @return {@link #state} converted to API
+     * @return {@link #allocationState} converted to API
      */
     @Transient
-    public cz.cesnet.shongo.controller.api.ReservationRequestState getStateAsApi()
+    public cz.cesnet.shongo.controller.api.AllocationState getAllocationStateAsApi()
     {
-        switch (getState()) {
+        switch (getAllocationState()) {
             case NOT_COMPLETE:
-                return cz.cesnet.shongo.controller.api.ReservationRequestState.NOT_COMPLETE;
+                return cz.cesnet.shongo.controller.api.AllocationState.NOT_COMPLETE;
             case COMPLETE:
-                return ReservationRequestState.NOT_ALLOCATED;
+                return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
             case ALLOCATED:
                 Reservation reservation = getAllocation().getCurrentReservation();
                 if (reservation == null) {
@@ -320,22 +306,22 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 if (executable != null) {
                     switch (executable.getState()) {
                         case STARTED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
                         case MODIFIED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
                         case STARTING_FAILED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTING_FAILED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.STARTING_FAILED;
                         case STOPPED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.FINISHED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.FINISHED;
                         case STOPPING_FAILED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.STARTED;
                         default:
-                            return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATED;
+                            return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;
                     }
                 }
-                return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATED;
+                return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATED;
             case ALLOCATION_FAILED:
-                return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATION_FAILED;
+                return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATION_FAILED;
             default:
                 throw new TodoImplementException();
         }
@@ -405,8 +391,8 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         reservationRequestApi.setSlot(getSlot());
-        reservationRequestApi.setState(getStateAsApi());
-        reservationRequestApi.setStateReport(getReportText(messageType));
+        reservationRequestApi.setAllocationState(getAllocationStateAsApi());
+        reservationRequestApi.setAllocationStateReport(getReportText(messageType));
         for (Reservation reservation : getAllocation().getReservations()) {
             reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
         }
@@ -425,9 +411,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     /**
-     * Enumeration of {@link ReservationRequest} state.
+     * Enumeration of {@link ReservationRequest} allocation state.
      */
-    public static enum State
+    public static enum AllocationState
     {
         /**
          * Specification is instance of {@link StatefulSpecification} and it's

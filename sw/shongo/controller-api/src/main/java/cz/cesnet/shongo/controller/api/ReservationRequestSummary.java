@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -18,19 +17,19 @@ import java.util.*;
 public class ReservationRequestSummary extends IdentifiedObject
 {
     /**
-     * User-id of the owner user.
-     */
-    private String userId;
-
-    /**
      * @see ReservationRequestType
      */
     private ReservationRequestType type;
 
     /**
-     * Date/time when the {@link AbstractReservationRequest} was updated.
+     * Date/time when the {@link AbstractReservationRequest} was created.
      */
     private DateTime dateTime;
+
+    /**
+     * User-id of the user who created the {@link AbstractReservationRequest}.
+     */
+    private String userId;
 
     /**
      * @see AbstractReservationRequest#PURPOSE
@@ -63,22 +62,6 @@ public class ReservationRequestSummary extends IdentifiedObject
     private List<String> providedReservationIds = new LinkedList<String>();
 
     /**
-     * @return {@link #userId}
-     */
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
-
-    /**
      * @return {@link #type}
      */
     public ReservationRequestType getType()
@@ -108,6 +91,22 @@ public class ReservationRequestSummary extends IdentifiedObject
     public void setDateTime(DateTime dateTime)
     {
         this.dateTime = dateTime;
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
     }
 
     /**

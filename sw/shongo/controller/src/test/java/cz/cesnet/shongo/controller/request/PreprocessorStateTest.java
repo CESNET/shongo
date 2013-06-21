@@ -27,7 +27,8 @@ public class PreprocessorStateTest extends AbstractDatabaseTest
 
         // Create reservation request set and manager that will manage it's states
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setCreatedBy(Authorization.ROOT_USER_ID);
+        reservationRequestSet.setUpdatedBy(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(new CompartmentSpecification());
         reservationRequestManager.create(reservationRequestSet);

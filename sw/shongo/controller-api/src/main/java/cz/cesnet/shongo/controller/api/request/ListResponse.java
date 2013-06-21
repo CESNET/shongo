@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api.request;
 import cz.cesnet.shongo.api.annotation.Transient;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ListResponse<T> extends AbstractResponse
+public class ListResponse<T> extends AbstractResponse implements Iterable<T>
 {
     /**
      * Index of the first item.
@@ -99,5 +100,11 @@ public class ListResponse<T> extends AbstractResponse
     public void addItem(T item)
     {
         items.add(item);
+    }
+
+    @Override
+    public Iterator<T> iterator()
+    {
+        return items.iterator();
     }
 }

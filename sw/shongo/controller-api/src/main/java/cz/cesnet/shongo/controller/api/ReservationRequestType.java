@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.api;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,19 +12,17 @@ import java.util.Set;
 public enum ReservationRequestType
 {
     /**
-     * Reservation request is created which means that it is visible to users.
+     * Reservation request is newly created.
      */
-    CREATED,
+    NEW,
 
     /**
-     * Reservation request is modified which means that another reservation request
-     * replaces it and it is preserved only for history purposes.
+     * Reservation request is modification of another reservation request.
      */
     MODIFIED,
 
     /**
-     * Reservation request is deleted which means that it is not visible to users and it is
-     * preserved only for history purposes.
+     * Reservation request is deleted.
      */
     DELETED;
 

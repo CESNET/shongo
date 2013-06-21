@@ -371,7 +371,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
             Assert.assertEquals("Reservation request should be in NOT_ALLOCATED state.",
-                    ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
+                    AllocationState.NOT_ALLOCATED, reservationRequest.getAllocationState());
         }
     }
 
@@ -386,12 +386,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         Reservation reservation = null;
         for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
-            if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
-                System.err.println(reservationRequest.getStateReport());
+            if (reservationRequest.getAllocationState() != AllocationState.ALLOCATED) {
+                System.err.println(reservationRequest.getAllocationStateReport());
                 Thread.sleep(100);
             }
             Assert.assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequestState.ALLOCATED, reservationRequest.getState());
+                    AllocationState.ALLOCATED, reservationRequest.getAllocationState());
             Assert.assertTrue("Reservation should be allocated.", reservationRequest.getReservationIds().size() > 0);
             for (String reservationId : reservationRequest.getReservationIds()) {
                 reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
@@ -411,7 +411,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         for (ReservationRequest reservationRequest : getReservationRequests(reservationRequestId)) {
             Assert.assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                    ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
+                    AllocationState.ALLOCATION_FAILED, reservationRequest.getAllocationState());
         }
     }
 

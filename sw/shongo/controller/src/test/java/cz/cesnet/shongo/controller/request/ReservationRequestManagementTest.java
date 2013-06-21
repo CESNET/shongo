@@ -64,7 +64,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         Assert.assertEquals(id1, reservationRequests.getItem(0).getId());
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id1);
         Assert.assertEquals("request", reservationRequest.getDescription());
-        Assert.assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
+        Assert.assertEquals(AllocationState.NOT_ALLOCATED, reservationRequest.getAllocationState());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setDescription("requestModified");

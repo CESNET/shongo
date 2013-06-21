@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum ReservationRequestState
+public enum AllocationState
 {
     /**
      * Reservation request is not completely filled.
