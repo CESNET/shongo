@@ -36,7 +36,15 @@
         <dd>${reservationRequest.description} </dd>
 
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
-        <dd><spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/> </dd>
+        <dd>
+            <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
+            <c:if test="${reservationRequest.periodicityType != 'NONE'}">
+                (<spring:message code="views.reservationRequest.periodicity.until"/> <joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
+            </c:if>
+        </dd>
+
+        <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
+        <dd>${reservationRequest.technology.title} </dd>
 
     </dl>
 

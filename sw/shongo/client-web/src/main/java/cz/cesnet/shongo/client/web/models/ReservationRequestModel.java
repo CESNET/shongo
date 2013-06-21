@@ -329,6 +329,17 @@ public class ReservationRequestModel implements Validator
             if (slotEnd instanceof LocalDate) {
                 periodicityEnd = (LocalDate) slotEnd;
             }
+            else if (slotEnd instanceof Partial) {
+                Partial partial = (Partial) slotEnd;
+                DateTimeField[] partialFields = partial.getFields();
+                if (!(partialFields.length == 3
+                        && partial.isSupported(DateTimeFieldType.year())
+                        && partial.isSupported(DateTimeFieldType.monthOfYear())
+                        && partial.isSupported(DateTimeFieldType.dayOfMonth()))) {
+                    throw new UnsupportedApiException("Slot end %s.", slotEnd);
+                }
+                periodicityEnd = new LocalDate(partial.getValue(0), partial.getValue(1), partial.getValue(2));
+            }
             else {
                 throw new UnsupportedApiException("Slot end %s.", slotEnd);
             }

@@ -46,19 +46,19 @@ sub new()
         'required' => 1
     });
     $self->add_attribute('reservationId', {'title' => 'Reservation'});
-    $self->add_attribute('state', {
+    $self->add_attribute('allocationState', {
         'title' =>'Current State',
         'format' => sub {
             my $state = $self->get_state();
             if ( defined($state) ) {
-                if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATED' ) {
+                if ( defined($self->get('allocationState')) && $self->get('allocationState') eq 'ALLOCATED' ) {
                     $state .= sprintf(" (" . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $self->{'reservationId'});
                 }
                 my $color = 'blue';
-                if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATION_FAILED' ) {
+                if ( defined($self->get('allocationState')) && $self->get('allocationState') eq 'ALLOCATION_FAILED' ) {
                     $color = 'red';
                 }
-                my $state_report = $self->{'stateReport'};
+                my $state_report = $self->{'allocationStateReport'};
                 $state_report = format_report($state_report, get_term_width() - 23);
                 $state .= "\n" . colored($state_report, $color);
                 return $state;
@@ -77,11 +77,11 @@ sub new()
 sub get_state
 {
     my ($self) = @_;
-    if ( !defined($self->{'state'}) ) {
+    if ( !defined($self->{'allocationState'}) ) {
         return undef;
     }
-    my $state = $State->{$self->{'state'}}->{'title'};
-    $state = colored($state, $State->{$self->{'state'}}->{'color'});
+    my $state = $State->{$self->{'allocationState'}}->{'title'};
+    $state = colored($state, $State->{$self->{'allocationState'}}->{'color'});
     return '[' . $state . ']';
 }
 

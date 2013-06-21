@@ -81,7 +81,7 @@ sub new()
                     $reservation_request->get_state(),
                     $Shongo::ClientCli::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
                 );
-                if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
+                if ( $reservation_request->{'allocationState'} eq 'ALLOCATED' ) {
                     $item .= sprintf("\n  " . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s", $reservation_request->{'reservationId'});
                 }
                 return $item;

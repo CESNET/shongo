@@ -241,8 +241,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 }
             }
 
-
-
             // Check if modified reservation request is of the same class
             AbstractReservationRequest newReservationRequest;
             Class<? extends AbstractReservationRequest> reservationRequestClass =

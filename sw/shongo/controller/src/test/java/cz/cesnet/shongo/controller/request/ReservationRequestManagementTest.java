@@ -260,15 +260,17 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, id1);
         Assert.assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
         Assert.assertEquals("description1", reservationRequest.getDescription());
-        Assert.assertEquals(Integer.valueOf(9),
-                ((RoomSpecification) reservationRequest.getSpecification()).getParticipantCount());
+        RoomSpecification roomSpecification = ((RoomSpecification) reservationRequest.getSpecification());
+        Assert.assertEquals(Integer.valueOf(9), roomSpecification.getParticipantCount());
+        Assert.assertEquals(1, roomSpecification.getTechnologies().size());
 
         reservationRequestSet = (ReservationRequestSet) service.getReservationRequest(SECURITY_TOKEN, id2);
         Assert.assertEquals(ReservationRequestPurpose.EDUCATION, reservationRequestSet.getPurpose());
         Assert.assertEquals("description2", reservationRequestSet.getDescription());
         Assert.assertEquals(RoomSpecification.class, reservationRequestSet.getSpecification().getClass());
-        Assert.assertEquals(Integer.valueOf(10),
-                ((RoomSpecification) reservationRequestSet.getSpecification()).getParticipantCount());
+        roomSpecification = ((RoomSpecification) reservationRequestSet.getSpecification());
+        Assert.assertEquals(Integer.valueOf(10), roomSpecification.getParticipantCount());
+        Assert.assertEquals(1, roomSpecification.getTechnologies().size());
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id2);
 

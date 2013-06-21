@@ -249,26 +249,26 @@ sub list_reservation_requests()
     if ( !defined($response) ) {
         return
     }
-    my $Type = {
-        'ReservationRequestSummary.ResourceType' => 'Resource',
-        'ReservationRequestSummary.RoomType' => 'Room',
-        'ReservationRequestSummary.AliasType' => 'Alias'
+    my $Specification = {
+        'ReservationRequestSummary.ResourceSpecification' => 'Resource',
+        'ReservationRequestSummary.RoomSpecification' => 'Room',
+        'ReservationRequestSummary.AliasSpecification' => 'Alias'
     };
     my $table = {
         'columns' => [
-            {'field' => 'id',          'title' => 'Identifier'},
-            {'field' => 'user',        'title' => 'User'},
-            {'field' => 'created',     'title' => 'Created'},
-            {'field' => 'type',        'title' => 'Type'},
-            {'field' => 'technology',  'title' => 'Technology'},
-            {'field' => 'description', 'title' => 'Description'}
+            {'field' => 'id',            'title' => 'Identifier'},
+            {'field' => 'dateTime',      'title' => 'Created'},
+            {'field' => 'user',          'title' => 'User'},
+            {'field' => 'specification', 'title' => 'Type'},
+            {'field' => 'technology',    'title' => 'Technology'},
+            {'field' => 'description',   'title' => 'Description'}
         ],
         'data' => []
     };
     foreach my $reservation_request (@{$response->{'items'}}) {
-        my $type = 'Other';
-        if ( defined($reservation_request->{'type'}) && defined($reservation_request->{'type'}->{'class'}) ) {
-            $type = $Type->{$reservation_request->{'type'}->{'class'}};
+        my $specification = 'Other';
+        if ( defined($reservation_request->{'specification'}) && defined($reservation_request->{'specification'}->{'class'}) ) {
+            $specification = $Specification->{$reservation_request->{'specification'}->{'class'}};
         }
         my $technologies = '';
         foreach my $technology (@{$reservation_request->{'technologies'}}) {
@@ -279,9 +279,9 @@ sub list_reservation_requests()
         }
         push(@{$table->{'data'}}, {
             'id' => $reservation_request->{'id'},
+            'dateTime' => [$reservation_request->{'dateTime'}, datetime_format($reservation_request->{'dateTime'})],
             'user' => [$reservation_request->{'userId'}, $application->format_user($reservation_request->{'userId'})],
-            'created' => [$reservation_request->{'created'}, datetime_format($reservation_request->{'created'})],
-            'type' => [$reservation_request->{'type'}, $type],
+            'specification' => [$reservation_request->{'specification'}, $specification],
             'technology' => $technologies,
             'description' => $reservation_request->{'description'}
         });
