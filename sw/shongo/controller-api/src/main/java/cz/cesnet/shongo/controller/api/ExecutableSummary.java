@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
 import org.joda.time.Interval;
 
 /**

@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.api.rpc.TypeConverterFactory;
+import cz.cesnet.shongo.api.rpc.TypeFactory;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -85,8 +86,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
         super(pPort, getHostByName(host));
 
         handlerMapping = new HandlerMapping();
-        handlerMapping.setTypeConverterFactory(
-                new cz.cesnet.shongo.api.rpc.TypeConverterFactory(Options.SERVER));
+        handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 
@@ -100,7 +100,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
     protected XmlRpcStreamServer newXmlRpcStreamServer()
     {
         XmlRpcStreamServer server = new ConnectionServer();
-        server.setTypeFactory(new cz.cesnet.shongo.api.rpc.TypeFactory(server, Options.SERVER));
+        server.setTypeFactory(new TypeFactory(server));
         return server;
     }
 
@@ -198,9 +198,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 method = pMethod;
                 Class[] paramClasses = method.getParameterTypes();
                 typeConverters = new TypeConverter[paramClasses.length];
-                if (pTypeConverterFactory instanceof cz.cesnet.shongo.api.rpc.TypeConverterFactory) {
-                    cz.cesnet.shongo.api.rpc.TypeConverterFactory typeConverterFactory =
-                            (cz.cesnet.shongo.api.rpc.TypeConverterFactory) pTypeConverterFactory;
+                if (pTypeConverterFactory instanceof TypeConverterFactory) {
+                    TypeConverterFactory typeConverterFactory =
+                            (TypeConverterFactory) pTypeConverterFactory;
                     Type[] genericParamTypes = method.getGenericParameterTypes();
                     for (int i = 0; i < paramClasses.length; i++) {
                         typeConverters[i] = typeConverterFactory.getTypeConverter(paramClasses[i],

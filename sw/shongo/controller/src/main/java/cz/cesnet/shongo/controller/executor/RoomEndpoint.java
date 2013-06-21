@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.oldapi.Room;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 
@@ -86,10 +86,10 @@ public abstract class RoomEndpoint extends Endpoint
     public abstract String getRoomId();
 
     /**
-     * @return {@link cz.cesnet.shongo.api.Room} representing the current room for the {@link RoomEndpoint}
+     * @return {@link cz.cesnet.shongo.oldapi.Room} representing the current room for the {@link RoomEndpoint}
      */
     @Transient
-    public abstract cz.cesnet.shongo.api.Room getRoomApi();
+    public abstract cz.cesnet.shongo.oldapi.Room getRoomApi();
 
     /**
      *

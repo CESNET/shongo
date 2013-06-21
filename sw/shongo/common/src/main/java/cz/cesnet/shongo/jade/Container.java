@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.JadeReportSet;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.util.Logging;

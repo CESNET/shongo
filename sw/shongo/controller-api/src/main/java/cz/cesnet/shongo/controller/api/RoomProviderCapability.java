@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 import java.util.Set;
 

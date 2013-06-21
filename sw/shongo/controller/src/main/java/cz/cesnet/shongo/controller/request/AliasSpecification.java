@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
@@ -376,7 +377,10 @@ public class AliasSpecification extends Specification
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
+        if (true) {
+            throw new TodoImplementException("TODO: refactorize API");
+        }
+        /*cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.VALUE)) {
             setValue(aliasSpecificationApi.getValue());
@@ -425,6 +429,6 @@ public class AliasSpecification extends Specification
             removeAliasType(aliasType);
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(specificationApi, entityManager);*/
     }
 }

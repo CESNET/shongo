@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
+import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.controller.FilterType;
 
 import java.util.List;

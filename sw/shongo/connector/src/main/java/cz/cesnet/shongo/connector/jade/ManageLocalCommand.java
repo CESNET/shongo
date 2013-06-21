@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector.jade;
 
-import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.connector.ConnectorAgent;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.ConnectorOptions;

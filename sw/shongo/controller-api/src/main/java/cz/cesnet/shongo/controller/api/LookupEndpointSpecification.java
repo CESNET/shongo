@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * {@link Specification} which searches for available endpoint {@link Resource}.
@@ -13,22 +14,38 @@ public class LookupEndpointSpecification extends ParticipantSpecification
     /**
      * Technology of the resource.
      */
-    public static final String TECHNOLOGY = "technology";
+    private Technology technology;
 
     /**
-     * @return {@link #TECHNOLOGY}
+     * @return {@link #technology}
      */
-    @Required
     public Technology getTechnology()
     {
-        return getPropertyStorage().getValue(TECHNOLOGY);
+        return technology;
     }
 
     /**
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @param technology sets the {@link #technology}
      */
     public void setTechnology(Technology technology)
     {
-        getPropertyStorage().setValue(TECHNOLOGY, technology);
+        this.technology = technology;
+    }
+
+    public static final String TECHNOLOGY = "technology";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TECHNOLOGY, technology);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        technology = dataMap.getEnumRequired(TECHNOLOGY, Technology.class);
     }
 }

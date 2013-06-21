@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.util.ClassHelper;
+import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
@@ -314,6 +314,14 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
+     * Remove all {@link #providedReservations}
+     */
+    public void clearProvidedReservations()
+    {
+        providedReservations.clear();
+    }
+
+    /**
      * @param providedReservation to be added to the {@link #providedReservations}
      */
     public void addProvidedReservation(Reservation providedReservation)
@@ -504,48 +512,28 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      */
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
     {
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PURPOSE)) {
-            setPurpose(api.getPurpose());
-        }
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PRIORITY)) {
-            setPriority(api.getPriority());
-        }
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.DESCRIPTION)) {
-            setDescription(api.getDescription());
-        }
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
-            cz.cesnet.shongo.controller.api.Specification specificationApi = api.getSpecification();
-            if (specificationApi == null) {
-                setSpecification(null);
-            }
-            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
-                getSpecification().fromApi(specificationApi, entityManager);
-            }
-            else {
-                setSpecification(Specification.createFromApi(specificationApi, entityManager));
-            }
-        }
-        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.INTER_DOMAIN)) {
-            setInterDomain(api.getInterDomain());
-        }
+        setPurpose(api.getPurpose());
+        setPriority(api.getPriority());
+        setDescription(api.getDescription());
 
-        // Create/modify provided reservations
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        for (String providedReservationId : api.getProvidedReservationIds()) {
-            if (api.isPropertyItemMarkedAsNew(api.PROVIDED_RESERVATION_IDS, providedReservationId)) {
-                Long id = EntityIdentifier.parseId(
-                        Reservation.class, providedReservationId);
-                Reservation providedReservation = reservationManager.get(id);
-                addProvidedReservation(providedReservation);
-            }
+        cz.cesnet.shongo.controller.api.Specification specificationApi = api.getSpecification();
+        if (specificationApi == null) {
+            throw new IllegalArgumentException("Specification must not be null.");
         }
-        // Delete provided reservations
-        Set<String> apiDeletedProvidedReservationIds =
-                api.getPropertyItemsMarkedAsDeleted(api.PROVIDED_RESERVATION_IDS);
-        for (String providedReservationId : apiDeletedProvidedReservationIds) {
-            Long id = EntityIdentifier.parseId(
-                    Reservation.class, providedReservationId);
-            removeProvidedReservation(id);
+        else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
+            getSpecification().fromApi(specificationApi, entityManager);
+        }
+        else {
+            setSpecification(Specification.createFromApi(specificationApi, entityManager));
+        }
+        setInterDomain(api.getInterDomain());
+
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        clearProvidedReservations();
+        for (String providedReservationId : api.getProvidedReservationIds()) {
+            Long id = EntityIdentifier.parseId(Reservation.class, providedReservationId);
+            Reservation providedReservation = reservationManager.get(id);
+            addProvidedReservation(providedReservation);
         }
     }
 

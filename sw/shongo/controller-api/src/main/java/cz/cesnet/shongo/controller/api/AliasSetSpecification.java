@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.api.DataMap;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -14,12 +16,12 @@ public class AliasSetSpecification extends Specification
     /**
      * {@link AliasSpecification}s for the virtual room.
      */
-    public static final String ALIASES = "aliases";
+    private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
     /**
      * Specifies whether alias reservations should share executable.
      */
-    public static final String SHARED_EXECUTABLE = "sharedExecutable";
+    private Boolean sharedExecutable;
 
     /**
      * Constructor.
@@ -31,7 +33,7 @@ public class AliasSetSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #ALIASES}
+     * @param aliasType for which should be added new {@link AliasSpecification} to the {@link #aliasSpecifications}
      */
     public AliasSetSpecification(AliasType aliasType)
     {
@@ -41,7 +43,7 @@ public class AliasSetSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param aliasTypes for which should be added new {@link AliasSpecification}s to the {@link #ALIASES}
+     * @param aliasTypes for which should be added new {@link AliasSpecification}s to the {@link #aliasSpecifications}
      */
     public AliasSetSpecification(AliasType[] aliasTypes)
     {
@@ -51,51 +53,70 @@ public class AliasSetSpecification extends Specification
     }
 
     /**
-     * @return {@link #ALIASES}
+     * @return {@link #aliasSpecifications}
      */
     public List<AliasSpecification> getAliases()
     {
-        return getPropertyStorage().getCollection(ALIASES, List.class);
+        return aliasSpecifications;
     }
 
     /**
-     * @param aliasSpecifications sets the {@link #ALIASES}
+     * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
     public void setAliases(List<AliasSpecification> aliasSpecifications)
     {
-        getPropertyStorage().setCollection(ALIASES, aliasSpecifications);
+        this.aliasSpecifications = aliasSpecifications;
     }
 
     /**
-     * @param aliasSpecification to be added to the {@link #ALIASES}
+     * @param aliasSpecification to be added to the {@link #aliasSpecifications}
      */
     public void addAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().addCollectionItem(ALIASES, aliasSpecification, List.class);
+        aliasSpecifications.add(aliasSpecification);
     }
 
     /**
-     * @param aliasSpecification to be removed from the {@link #ALIASES}
+     * @param aliasSpecification to be removed from the {@link #aliasSpecifications}
      */
     public void removeAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().removeCollectionItem(ALIASES, aliasSpecification);
+        aliasSpecifications.remove(aliasSpecification);
     }
 
     /**
-     * @return {@link #SHARED_EXECUTABLE}
+     * @return {@link #sharedExecutable}
      */
     public Boolean getSharedExecutable()
     {
-        Boolean sharedExecutable = getPropertyStorage().getValue(SHARED_EXECUTABLE);
         return (sharedExecutable != null ? sharedExecutable : Boolean.FALSE);
     }
 
     /**
-     * @param sharedExecutable sets the {@link #SHARED_EXECUTABLE}
+     * @param sharedExecutable sets the {@link #sharedExecutable}
      */
     public void setSharedExecutable(Boolean sharedExecutable)
     {
-        getPropertyStorage().setValue(SHARED_EXECUTABLE, sharedExecutable);
+        this.sharedExecutable = sharedExecutable;
+    }
+
+    public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
+    public static final String SHARED_EXECUTABLE = "sharedExecutable";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(ALIAS_SPECIFICATIONS, aliasSpecifications);
+        dataMap.set(SHARED_EXECUTABLE, sharedExecutable);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
+        sharedExecutable = dataMap.getBoolean(SHARED_EXECUTABLE);
     }
 }

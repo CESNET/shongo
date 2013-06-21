@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -154,7 +155,10 @@ public class MultiCompartmentSpecification extends Specification
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
+        if (true) {
+            throw new TodoImplementException("TODO: refactorize API");
+        }
+        /*cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) specificationApi;
 
         // Create/modify specifications
@@ -177,6 +181,6 @@ public class MultiCompartmentSpecification extends Specification
             removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(specificationApi, entityManager);*/
     }
 }

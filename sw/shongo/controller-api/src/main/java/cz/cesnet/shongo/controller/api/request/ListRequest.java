@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
@@ -84,5 +85,25 @@ public class ListRequest extends AbstractRequest
     public void setCount(Integer count)
     {
         this.count = count;
+    }
+
+    private static final String START = "start";
+    private static final String COUNT = "count";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(START, start);
+        dataMap.set(COUNT, count);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        start = dataMap.getInteger(START);
+        count = dataMap.getInteger(COUNT);
     }
 }

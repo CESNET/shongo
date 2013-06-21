@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -16,12 +15,13 @@ public class ValueSpecification extends Specification
     /**
      * {@link Resource} with {@link ValueProvider} from which the value(s) should be allocated.
      */
-    public static final String RESOURCE_ID = "resourceId";
+    private String resourceId;
+
 
     /**
      * Restricts {@link cz.cesnet.shongo.AliasType} for allocation of {@link cz.cesnet.shongo.api.Alias}.
      */
-    public static final String VALUES = "values";
+    private Set<String> values = new HashSet<String>();
 
     /**
      * Constructor.
@@ -44,7 +44,7 @@ public class ValueSpecification extends Specification
      * Constructor.
      *
      * @param resourceId sets the {@link #RESOURCE_ID}
-     * @param value to be added to the {@link #VALUES}
+     * @param value      to be added to the {@link #VALUES}
      */
     public ValueSpecification(String resourceId, String value)
     {
@@ -53,51 +53,71 @@ public class ValueSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_ID}
+     * @return {@link #resourceId}
      */
-    @Required
     public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_ID);
+        return resourceId;
     }
 
     /**
-     * @param resourceId sets the {@link #RESOURCE_ID}
+     * @param resourceId sets the {@link #resourceId}
      */
     public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
+        this.resourceId = resourceId;
     }
 
     /**
-     * @return {@link #VALUES}
+     * @return {@link #values}
      */
     public Set<String> getValues()
     {
-        return getPropertyStorage().getCollection(VALUES, Set.class);
+        return values;
     }
 
     /**
-     * @param values sets the {@link #VALUES}
+     * @param values sets the {@link #values}
      */
     public void setValues(Set<String> values)
     {
-        getPropertyStorage().setCollection(VALUES, values);
+        this.values = values;
     }
 
     /**
-     * @param value to be added to the {@link #VALUES}
+     * @param value to be added to the {@link #values}
      */
     public void addValue(String value)
     {
-        getPropertyStorage().addCollectionItem(VALUES, value, Set.class);
+        values.add(value);
     }
 
     /**
-     * @param value to be removed from the {@link #VALUES}
+     * @param value to be removed from the {@link #values}
      */
     public void removeValue(String value)
     {
-        getPropertyStorage().removeCollectionItem(VALUES, value);
+        values.remove(value);
+    }
+
+
+    public static final String RESOURCE_ID = "resourceId";
+    public static final String VALUES = "values";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(VALUES, values);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        resourceId = dataMap.getStringRequired(RESOURCE_ID);
+        values = dataMap.getSet(VALUES, String.class);
     }
 }

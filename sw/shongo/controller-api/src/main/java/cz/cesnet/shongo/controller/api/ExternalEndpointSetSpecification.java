@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,12 +18,13 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * Set of technologies of the external endpoint.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
+
 
     /**
      * Number of same resources.
      */
-    public static final String COUNT = "count";
+    private Integer count;
 
     /**
      * Constructor.
@@ -61,7 +65,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
@@ -69,7 +73,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
@@ -77,7 +81,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
@@ -85,7 +89,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
@@ -94,7 +98,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     @Required
     public Integer getCount()
     {
-        return getPropertyStorage().getValue(COUNT);
+        return count;
     }
 
     /**
@@ -102,6 +106,26 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
      */
     public void setCount(Integer count)
     {
-        getPropertyStorage().setValue(COUNT, count);
+        this.count = count;
+    }
+
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String COUNT = "count";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(COUNT, count);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        count = dataMap.getIntegerRequired(COUNT);
     }
 }

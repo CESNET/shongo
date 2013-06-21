@@ -230,18 +230,18 @@ public class H323RoomSetting extends RoomSetting
     }
 
     @Override
-    protected cz.cesnet.shongo.api.RoomSetting createApi()
+    protected cz.cesnet.shongo.oldapi.RoomSetting createApi()
     {
-        return new cz.cesnet.shongo.api.H323RoomSetting();
+        return new cz.cesnet.shongo.oldapi.H323RoomSetting();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
+    public void toApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
     {
         super.toApi(roomSettingApi);
 
-        cz.cesnet.shongo.api.H323RoomSetting roomSettingH323Api =
-                (cz.cesnet.shongo.api.H323RoomSetting) roomSettingApi;
+        cz.cesnet.shongo.oldapi.H323RoomSetting roomSettingH323Api =
+                (cz.cesnet.shongo.oldapi.H323RoomSetting) roomSettingApi;
         if (pin != null) {
             roomSettingH323Api.setPin(pin);
         }
@@ -275,40 +275,40 @@ public class H323RoomSetting extends RoomSetting
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
+    public void fromApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
     {
         super.fromApi(roomSettingApi);
 
-        cz.cesnet.shongo.api.H323RoomSetting roomSettingH323Api =
-                (cz.cesnet.shongo.api.H323RoomSetting) roomSettingApi;
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.PIN)) {
+        cz.cesnet.shongo.oldapi.H323RoomSetting roomSettingH323Api =
+                (cz.cesnet.shongo.oldapi.H323RoomSetting) roomSettingApi;
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.PIN)) {
             setPin(roomSettingH323Api.getPin());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.LISTED_PUBLICLY)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.LISTED_PUBLICLY)) {
             setListedPublicly(roomSettingH323Api.getListedPublicly());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.ALLOW_CONTENT)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.ALLOW_CONTENT)) {
             setAllowContent(roomSettingH323Api.getAllowContent());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.ALLOW_GUESTS)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.ALLOW_GUESTS)) {
             setAllowGuests(roomSettingH323Api.getAllowGuests());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.JOIN_AUDIO_MUTED)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.JOIN_AUDIO_MUTED)) {
             setJoinAudioMuted(roomSettingH323Api.getJoinAudioMuted());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.JOIN_VIDEO_MUTED)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.JOIN_VIDEO_MUTED)) {
             setJoinVideoMuted(roomSettingH323Api.getJoinVideoMuted());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.REGISTER_WITH_GATEKEEPER)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.REGISTER_WITH_GATEKEEPER)) {
             setRegisterWithGatekeeper(roomSettingH323Api.getRegisterWithGatekeeper());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.REGISTER_WITH_REGISTRAR)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.REGISTER_WITH_REGISTRAR)) {
             setRegisterWithRegistrar(roomSettingH323Api.getRegisterWithRegistrar());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.START_LOCKED)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.START_LOCKED)) {
             setStartLocked(roomSettingH323Api.getStartLocked());
         }
-        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.api.H323RoomSetting.CONFERENCE_ME_ENABLED)) {
+        if (roomSettingH323Api.isPropertyFilled(cz.cesnet.shongo.oldapi.H323RoomSetting.CONFERENCE_ME_ENABLED)) {
             setConferenceMeEnabled(roomSettingH323Api.getConferenceMeEnabled());
         }
     }

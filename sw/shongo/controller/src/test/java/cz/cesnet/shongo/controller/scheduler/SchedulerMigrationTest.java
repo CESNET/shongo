@@ -1,23 +1,15 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.executor.AbstractExecutorTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.ExecutionResult;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.scheduler.AbstractSchedulerTest;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.LinkedList;
+import java.util.Collection;
 import java.util.List;
 
 /**

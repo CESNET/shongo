@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.PingCommand;
 import jade.core.AID;

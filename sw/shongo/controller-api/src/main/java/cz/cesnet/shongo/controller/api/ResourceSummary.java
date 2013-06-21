@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
 
 /**
  * Represents an entity that can be scheduled.

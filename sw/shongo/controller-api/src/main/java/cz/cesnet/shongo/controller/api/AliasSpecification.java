@@ -3,8 +3,10 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.DataMap;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -17,22 +19,23 @@ public class AliasSpecification extends Specification
     /**
      * Restricts {@link AliasType} for allocation of {@link Alias}.
      */
-    public static final String ALIAS_TYPES = "aliasTypes";
+    private Set<AliasType> aliasTypes = new HashSet<AliasType>();
 
     /**
      * Restricts {@link Technology} for allocation of {@link Alias}.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Restricts {@link Alias#value}.
      */
-    public static final String VALUE = "value";
+    private String value;
+
 
     /**
      * {@link Resource} with {@link AliasProviderCapability} from which the {@link Alias} should be allocated.
      */
-    public static final String RESOURCE_ID = "resourceId";
+    private String resourceId;
 
     /**
      * Constructor.
@@ -44,7 +47,7 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param technology to be added to the {@link #TECHNOLOGIES}
+     * @param technology to be added to the {@link #technologies}
      */
     public AliasSpecification(Technology technology)
     {
@@ -54,7 +57,7 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param aliasType to be added to the {@link #ALIAS_TYPES}
+     * @param aliasType to be added to the {@link #aliasTypes}
      */
     public AliasSpecification(AliasType aliasType)
     {
@@ -64,7 +67,7 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param aliasTypes sets the {@link #ALIAS_TYPES}
+     * @param aliasTypes sets the {@link #aliasTypes}
      */
     public AliasSpecification(AliasType[] aliasTypes)
     {
@@ -74,8 +77,8 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @param resourceId sets the {@link #RESOURCE_ID}
-     * @return this {@link AliasSpecification} with {@link #RESOURCE_ID} set to {@code resourceId}
+     * @param resourceId sets the {@link #resourceId}
+     * @return this {@link AliasSpecification} with {@link #resourceId} set to {@code resourceId}
      */
     public AliasSpecification withResourceId(String resourceId)
     {
@@ -84,8 +87,8 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @param value sets the {@link #VALUE}
-     * @return this {@link AliasSpecification} with {@link #VALUE} set to {@code value}
+     * @param value sets the {@link #value}
+     * @return this {@link AliasSpecification} with {@link #value} set to {@code value}
      */
     public AliasSpecification withValue(String value)
     {
@@ -94,31 +97,31 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @return {@link #TECHNOLOGIES}
+     * @return {@link #technologies}
      */
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
-     * @param technologies sets the {@link #TECHNOLOGIES}
+     * @param technologies sets the {@link #technologies}
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
-     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
-     * @param technologies to be added to the {@link #TECHNOLOGIES}
+     * @param technologies to be added to the {@link #technologies}
      */
     public void addTechnologies(Collection<Technology> technologies)
     {
@@ -128,74 +131,100 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     * @param technology technology to be removed from the {@link #technologies}
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
-     * @return {@link #ALIAS_TYPES}
+     * @return {@link #aliasTypes}
      */
     public Set<AliasType> getAliasTypes()
     {
-        return getPropertyStorage().getCollection(ALIAS_TYPES, Set.class);
+        return aliasTypes;
     }
 
     /**
-     * @param aliasTypes sets the {@link #ALIAS_TYPES}
+     * @param aliasTypes sets the {@link #aliasTypes}
      */
     public void setAliasTypes(Set<AliasType> aliasTypes)
     {
-        getPropertyStorage().setCollection(ALIAS_TYPES, aliasTypes);
+        this.aliasTypes = aliasTypes;
     }
 
     /**
-     * @param aliasType to be added to the {@link #ALIAS_TYPES}
+     * @param aliasType to be added to the {@link #aliasTypes}
      */
     public void addAliasType(AliasType aliasType)
     {
-        getPropertyStorage().addCollectionItem(ALIAS_TYPES, aliasType, Set.class);
+        aliasTypes.add(aliasType);
     }
 
     /**
-     * @param aliasType to be removed from the {@link #ALIAS_TYPES}
+     * @param aliasType to be removed from the {@link #aliasTypes}
      */
     public void removeAliasType(AliasType aliasType)
     {
-        getPropertyStorage().removeCollectionItem(ALIAS_TYPES, aliasType);
+        aliasTypes.remove(aliasType);
     }
 
     /**
-     * @return {@link #VALUE}
+     * @return {@link #value}
      */
     public String getValue()
     {
-        return getPropertyStorage().getValue(VALUE);
+        return  value;
     }
 
     /**
-     * @param value sets the {@link #VALUE}
+     * @param value sets the {@link #value}
      */
     public void setValue(String value)
     {
-        getPropertyStorage().setValue(VALUE, value);
+        this.value = value;
     }
 
     /**
-     * @return {@link #RESOURCE_ID}
+     * @return {@link #resourceId}
      */
     public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_ID);
+        return resourceId;
     }
 
     /**
-     * @param resourceId sets the {@link #RESOURCE_ID}
+     * @param resourceId sets the {@link #resourceId}
      */
     public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
+        this.resourceId = resourceId;
+    }
+
+    public static final String ALIAS_TYPES = "aliasTypes";
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String VALUE = "value";
+    public static final String RESOURCE_ID = "resourceId";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(ALIAS_TYPES, aliasTypes);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(VALUE, value);
+        dataMap.set(RESOURCE_ID, resourceId);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        aliasTypes = dataMap.getSet(ALIAS_TYPES, AliasType.class);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        value = dataMap.getString(VALUE);
+        resourceId = dataMap.getString(RESOURCE_ID);
     }
 }

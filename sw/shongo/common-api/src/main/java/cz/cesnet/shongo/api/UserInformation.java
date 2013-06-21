@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.api.annotation.Transient;
+import cz.cesnet.shongo.oldapi.annotation.Transient;
 import jade.content.Concept;
 
 import java.util.LinkedList;

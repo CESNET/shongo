@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.RoomSetting;
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.oldapi.RoomSetting;
+import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -365,7 +365,7 @@ public class Executable extends IdentifiedObject
         private List<Alias> aliases = new ArrayList<Alias>();
 
         /**
-         * List of {@link cz.cesnet.shongo.api.RoomSetting}s for the {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}.
+         * List of {@link cz.cesnet.shongo.oldapi.RoomSetting}s for the {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}.
          */
         private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.oldapi.*;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 

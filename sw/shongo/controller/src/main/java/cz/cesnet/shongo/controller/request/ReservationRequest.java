@@ -403,9 +403,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
-        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
-            setSlot(reservationRequestApi.getSlot());
-        }
+        setSlot(reservationRequestApi.getSlot());
         super.fromApi(api, entityManager);
     }
 

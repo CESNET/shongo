@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
+import jade.content.Concept;
 
 /**
  * Represents a person in Shongo.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Person extends IdentifiedObject
+public abstract class Person extends IdentifiedComplexType implements Concept
 {
 
 }

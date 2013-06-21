@@ -2,9 +2,8 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.JadeReport;
 import cz.cesnet.shongo.JadeReportSet;
-import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.Command;
-import cz.cesnet.shongo.report.Report;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;

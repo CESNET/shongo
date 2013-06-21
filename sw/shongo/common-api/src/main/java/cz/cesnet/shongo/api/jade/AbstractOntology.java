@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.jade;
 
-import cz.cesnet.shongo.api.util.ChangesTracking;
+import cz.cesnet.shongo.oldapi.util.ChangesTracking;
 import jade.content.onto.CustomBeanOntology;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;

@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
@@ -194,28 +196,14 @@ public class ReservationRequestSet extends AbstractReservationRequest
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
 
-        // Create/modify slots
-        for (Object slotApi : reservationRequestSetApi.getSlots()) {
-            if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
-                addSlot(DateTimeSlot.createFromApi(slotApi));
-            }
-            else if (slotApi instanceof cz.cesnet.shongo.api.util.IdentifiedObject) {
-                cz.cesnet.shongo.api.util.IdentifiedObject identifiedApi =
-                        (cz.cesnet.shongo.api.util.IdentifiedObject) slotApi;
-                DateTimeSlot slot = getSlotById(identifiedApi.notNullIdAsLong());
-                slot.fromApi(identifiedApi);
-            }
+        if (slots.size() > 0) {
+            throw new TodoImplementException("TODO: refactorize API");
         }
-        // Delete slots
-        Set<Object> apiDeletedSlots =
-                api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
-        for (Object slotApi : apiDeletedSlots) {
-            for (DateTimeSlot dateTimeSlot : slots) {
-                if (dateTimeSlot.equalsApi(slotApi)) {
-                    removeSlot(dateTimeSlot);
-                    break;
-                }
+        for (Object slotApi : reservationRequestSetApi.getSlots()) {
+            if (slotApi instanceof IdentifiedComplexType && ((IdentifiedComplexType)slotApi).getId() != null) {
+                throw new TodoImplementException("TODO: refactorize API");
             }
+            addSlot(DateTimeSlot.createFromApi(slotApi));
         }
 
         super.fromApi(api, entityManager);

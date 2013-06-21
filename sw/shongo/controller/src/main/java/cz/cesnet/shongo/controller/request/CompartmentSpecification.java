@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.Scheduler;
@@ -25,7 +27,7 @@ public class CompartmentSpecification extends Specification
     /**
      * List of specifications for targets which are requested to participate in compartment.
      */
-    private List<ParticipantSpecification> specifications = new ArrayList<ParticipantSpecification>();
+    private List<ParticipantSpecification> participantSpecifications = new ArrayList<ParticipantSpecification>();
 
     /**
      * Specifies the default option who should initiate the call ({@code null} means
@@ -51,24 +53,24 @@ public class CompartmentSpecification extends Specification
     }
 
     /**
-     * @return {@link #specifications}
+     * @return {@link #participantSpecifications}
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<ParticipantSpecification> getSpecifications()
+    public List<ParticipantSpecification> getParticipantSpecifications()
     {
-        return Collections.unmodifiableList(specifications);
+        return Collections.unmodifiableList(participantSpecifications);
     }
 
     @Override
     @Transient
     public List<? extends Specification> getChildSpecifications()
     {
-        return Collections.unmodifiableList(specifications);
+        return Collections.unmodifiableList(participantSpecifications);
     }
 
     /**
-     * @return all {@link #specifications} which aren't instance of {@link StatefulSpecification} or which are instance
+     * @return all {@link #participantSpecifications} which aren't instance of {@link StatefulSpecification} or which are instance
      *         of {@link StatefulSpecification} and theirs current state is {@link StatefulSpecification.State#READY}.
      * @throws IllegalStateException when specification is instance of {@link StatefulSpecification} and when then it's
      *                               state is {@link StatefulSpecification.State#NOT_READY}
@@ -77,7 +79,7 @@ public class CompartmentSpecification extends Specification
     public List<ParticipantSpecification> getReadySpecifications()
     {
         List<ParticipantSpecification> specifications = new ArrayList<ParticipantSpecification>();
-        for (ParticipantSpecification specification : this.specifications) {
+        for (ParticipantSpecification specification : this.participantSpecifications) {
             if (specification instanceof StatefulSpecification) {
                 StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
                 switch (statefulSpecification.getCurrentState()) {
@@ -105,7 +107,7 @@ public class CompartmentSpecification extends Specification
     @Transient
     private ParticipantSpecification getSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
     {
-        for (ParticipantSpecification specification : specifications) {
+        for (ParticipantSpecification specification : participantSpecifications) {
             if (specification.getId().equals(id)) {
                 return specification;
             }
@@ -121,7 +123,7 @@ public class CompartmentSpecification extends Specification
     public boolean containsSpecification(ParticipantSpecification specification)
     {
         Long specificationId = specification.getId();
-        for (Specification possibleSpecification : specifications) {
+        for (Specification possibleSpecification : participantSpecifications) {
             if (possibleSpecification.getId().equals(specificationId)) {
                 return true;
             }
@@ -130,19 +132,19 @@ public class CompartmentSpecification extends Specification
     }
 
     /**
-     * @param specification to be added to the {@link #specifications}
+     * @param specification to be added to the {@link #participantSpecifications}
      */
     public void addSpecification(ParticipantSpecification specification)
     {
-        specifications.add(specification);
+        participantSpecifications.add(specification);
     }
 
     /**
-     * @param specification to be removed from the {@link #specifications}
+     * @param specification to be removed from the {@link #participantSpecifications}
      */
     public void removeSpecification(ParticipantSpecification specification)
     {
-        specifications.remove(specification);
+        participantSpecifications.remove(specification);
     }
 
     @Override
@@ -179,7 +181,7 @@ public class CompartmentSpecification extends Specification
     public void updateTechnologies()
     {
         clearTechnologies();
-        for (ParticipantSpecification specification : specifications) {
+        for (ParticipantSpecification specification : participantSpecifications) {
             addTechnologies(specification.getTechnologies());
         }
     }
@@ -189,7 +191,7 @@ public class CompartmentSpecification extends Specification
     public State getCurrentState()
     {
         State state = State.READY;
-        for (Specification specification : specifications) {
+        for (Specification specification : participantSpecifications) {
             if (specification instanceof StatefulSpecification) {
                 StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
                 if (statefulSpecification.getCurrentState().equals(State.NOT_READY)) {
@@ -237,7 +239,7 @@ public class CompartmentSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
-        for (ParticipantSpecification specification : getSpecifications()) {
+        for (ParticipantSpecification specification : getParticipantSpecifications()) {
             compartmentSpecificationApi.addSpecification(specification.toApi());
         }
         compartmentSpecificationApi.setCallInitiation(getCallInitiation());
@@ -249,27 +251,16 @@ public class CompartmentSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
-        if (compartmentSpecificationApi.isPropertyFilled(compartmentSpecificationApi.CALL_INITIATION)) {
-            setCallInitiation(compartmentSpecificationApi.getCallInitiation());
-        }
+        setCallInitiation(compartmentSpecificationApi.getCallInitiation());
 
-        // Create/modify specifications
-        for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
-            if (compartmentSpecificationApi.isPropertyItemMarkedAsNew(
-                    compartmentSpecificationApi.SPECIFICATIONS, specApi)) {
-                addChildSpecification(Specification.createFromApi(specApi, entityManager));
-            }
-            else {
-                Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-                specification.fromApi(specApi, entityManager);
-            }
+        if (participantSpecifications.size() > 0) {
+            throw new TodoImplementException("TODO: refactorize API");
         }
-        // Delete specifications
-        Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
-                compartmentSpecificationApi.getPropertyItemsMarkedAsDeleted(
-                        compartmentSpecificationApi.SPECIFICATIONS);
-        for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
-            removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
+        for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
+            if (specApi.getId() != null) {
+                throw new TodoImplementException("TODO: refactorize API");
+            }
+            addChildSpecification(Specification.createFromApi(specApi, entityManager));
         }
 
         super.fromApi(specificationApi, entityManager);

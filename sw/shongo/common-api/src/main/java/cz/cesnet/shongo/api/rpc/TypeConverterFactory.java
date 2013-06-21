@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.map.AbstractObject;
-import cz.cesnet.shongo.map.DataMap;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Converter;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import org.joda.time.DateTime;
@@ -16,22 +13,16 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**
- * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters
+ * TypeConverterFactory that allows {@link cz.cesnet.shongo.oldapi.rpc.AtomicType}, {@link cz.cesnet.shongo.oldapi.rpc.StructType} and enums as method parameters
  * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TypeConverterFactory extends TypeConverterFactoryImpl
 {
-    /**
-     * Option whether store changes for object when it is converted map.
-     */
-    private Options options;
-
     /**
      * Converter for {@link Interval}.
      */
@@ -48,22 +39,6 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     private TypeConverter periodConverter = new PeriodConverter();
 
     /**
-     * Converter for {@link Map}.
-     */
-    private TypeConverter mapTypeConverter;
-
-    /**
-     * Constructor.
-     *
-     * @param options sets the {@link #options}
-     */
-    public TypeConverterFactory(Options options)
-    {
-        this.options = options;
-        mapTypeConverter = new MapTypeConverter(options);
-    }
-
-    /**
      * @param type
      * @param genericType
      * @return {@link TypeConverter} for given {@code type} and {@code genericType}
@@ -75,23 +50,14 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             Class<? extends Enum<?>> enumClass = (Class<? extends Enum<?>>) type;
             return EnumTypeConverter.getInstance(enumClass);
         }
-        else if (AtomicType.class.isAssignableFrom(type)) {
-            return AtomicTypeConverter.getInstance(type);
-        }
-        else if (Interval.class.isAssignableFrom(type)) {
-            return intervalConverter;
-        }
         else if (DateTime.class.isAssignableFrom(type)) {
             return dateTimeConverter;
         }
         else if (Period.class.isAssignableFrom(type)) {
             return periodConverter;
         }
-        else if (StructType.class.isAssignableFrom(type)) {
-            return StructTypeConverter.getInstance(type, options);
-        }
-        else if (Map.class.isAssignableFrom(type)) {
-            return mapTypeConverter;
+        else if (Interval.class.isAssignableFrom(type)) {
+            return intervalConverter;
         }
         else if (Collection.class.isAssignableFrom(type)) {
             Class componentType = Object.class;
@@ -105,10 +71,12 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             }
             return new CollectionTypeConverter(type, componentType);
         }
-        /* TODO: refactorize API
-        else if (AbstractObject.class.isAssignableFrom(type)) {
-            return AbstractObjectTypeConverter.getInstance(type);
-        }*/
+        else if (AtomicType.class.isAssignableFrom(type)) {
+            return AtomicTypeConverter.getInstance(type);
+        }
+        else if (ComplexType.class.isAssignableFrom(type)) {
+            return ComplexTypeConverter.getInstance(type);
+        }
         return super.getTypeConverter(type);
     }
 
@@ -119,31 +87,38 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     }
 
     /**
-     * Converter for enum types.
+     * {@link TypeConverter} for {@link Enum}.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class EnumTypeConverter implements TypeConverter
     {
-        private final Class<? extends Enum> enumType;
+        /**
+         * {@link Enum} class which will be converted.
+         */
+        private final Class<? extends Enum> enumClass;
 
-        private EnumTypeConverter(Class<? extends Enum> enumType)
+        /**
+         * Constructor.
+         *
+         * @param enumClass sets the {@link #enumClass}
+         */
+        private EnumTypeConverter(Class<? extends Enum> enumClass)
         {
-            this.enumType = enumType;
+            this.enumClass = enumClass;
         }
 
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return pObject == null || (pObject instanceof String) || enumType.isAssignableFrom(pObject.getClass());
+            return pObject == null || (pObject instanceof String) || enumClass.isAssignableFrom(pObject.getClass());
         }
 
         @Override
         public Object convert(Object pObject)
         {
             if (pObject instanceof String) {
-                String value = (String) pObject;
-                return Converter.Atomic.convertStringToEnum(value, enumType);
+                return Converter.convertStringToEnum((String) pObject, enumClass);
             }
             return pObject;
         }
@@ -151,7 +126,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            return result.toString();
+            return Converter.convertEnumToString((Enum) result);
         }
 
         /**
@@ -175,39 +150,23 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     }
 
     /**
-     * Converter for atomic types.
+     * {@link TypeConverter} for {@link DateTime}.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class AtomicTypeConverter implements TypeConverter
+    private static class DateTimeConverter implements TypeConverter
     {
-        private final Class clazz;
-
-        private AtomicTypeConverter(Class pClass)
-        {
-            clazz = pClass;
-        }
-
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return pObject == null || (pObject instanceof String) || clazz.isInstance(pObject);
+            return pObject == null || (pObject instanceof String) || pObject instanceof DateTime;
         }
 
         @Override
         public Object convert(Object pObject)
         {
             if (pObject instanceof String) {
-                String value = (String) pObject;
-                AtomicType atomicType = null;
-                try {
-                    atomicType = (AtomicType) clazz.newInstance();
-                }
-                catch (java.lang.Exception exception) {
-                    throw new CommonReportSet.ClassInstantiationErrorException(clazz.getSimpleName());
-                }
-                atomicType.fromString(value);
-                return atomicType;
+                return Converter.convertStringToDateTime((String) pObject);
             }
             return pObject;
         }
@@ -215,7 +174,160 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            return result.toString();
+            return Converter.convertDateTimeToString((DateTime) result);
+        }
+    }
+
+    /**
+     * {@link TypeConverter} for {@link Period}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class PeriodConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof Period;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+                return Converter.convertStringToPeriod((String) pObject);
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return Converter.convertPeriodToString((Period) result);
+        }
+    }
+
+    /**
+     * {@link TypeConverter} for {@link Interval}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class IntervalConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof Interval;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+                return Converter.convertStringToInterval((String) pObject);
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return Converter.convertIntervalToString((Interval) result);
+        }
+    }
+
+    /**
+     * {@link TypeConverter} for {@link Collection}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class CollectionTypeConverter implements TypeConverter
+    {
+        /**
+         * {@link Collection} class.
+         */
+        private final Class<? extends Collection> collectionClass;
+
+        /**
+         * {@link Collection} component class.
+         */
+        private final Class componentClass;
+
+        /**
+         * Constructor.
+         *
+         * @param collectionClass sets the {@link #collectionClass}
+         * @param componentClass  sets the {@link #componentClass}
+         */
+        private CollectionTypeConverter(Class<? extends Collection> collectionClass, Class componentClass)
+        {
+            this.collectionClass = collectionClass;
+            this.componentClass = componentClass;
+        }
+
+        @Override
+        public boolean isConvertable(Object object)
+        {
+            return object == null || object instanceof Object[] || collectionClass.isAssignableFrom(object.getClass());
+        }
+
+        @Override
+        public Object convert(Object object)
+        {
+            if (object != null) {
+                return Converter.convertToCollection(object, collectionClass, componentClass);
+            }
+            return object;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return Converter.convertCollectionToArray((Collection) result);
+        }
+    }
+
+    /**
+     * {@link TypeConverter} for {@link AtomicType}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class AtomicTypeConverter implements TypeConverter
+    {
+        /**
+         * {@link AtomicType} class.
+         */
+        private final Class atomicTypeClass;
+
+        /**
+         * Constructor.
+         *
+         * @param atomicTypeClass sets the {@link #atomicTypeClass}
+         */
+        private AtomicTypeConverter(Class atomicTypeClass)
+        {
+            this.atomicTypeClass = atomicTypeClass;
+        }
+
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || atomicTypeClass.isInstance(pObject);
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+                return Converter.convertStringToAtomicType((String) pObject, atomicTypeClass);
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return Converter.convertAtomicTypeToString((AtomicType) result);
         }
 
         /**
@@ -239,298 +351,38 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     }
 
     /**
-     * Converter for {@link Interval}.
+     * {@link TypeConverter} for {@link ComplexType}.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class IntervalConverter implements TypeConverter
-    {
-        @Override
-        public boolean isConvertable(Object pObject)
-        {
-            return pObject == null || (pObject instanceof String) || pObject instanceof Interval;
-        }
-
-        @Override
-        public Object convert(Object pObject)
-        {
-            if (pObject instanceof String) {
-                return Converter.Atomic.convertStringToInterval((String) pObject);
-            }
-            return pObject;
-        }
-
-        @Override
-        public Object backConvert(Object result)
-        {
-            if (result == null) {
-                return null;
-            }
-            return Converter.Atomic.convertIntervalToString((Interval) result);
-        }
-    }
-
-    /**
-     * Converter for {@link DateTime}.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class DateTimeConverter implements TypeConverter
-    {
-        @Override
-        public boolean isConvertable(Object pObject)
-        {
-            return pObject == null || (pObject instanceof String) || pObject instanceof DateTime;
-        }
-
-        @Override
-        public Object convert(Object pObject)
-        {
-            if (pObject instanceof String) {
-                return Converter.Atomic.convertStringToDateTime((String) pObject);
-            }
-            return pObject;
-        }
-
-        @Override
-        public Object backConvert(Object result)
-        {
-            if (result == null) {
-                return null;
-            }
-            return result.toString();
-        }
-    }
-
-    /**
-     * Converter for {@link DateTime}.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class PeriodConverter implements TypeConverter
-    {
-        @Override
-        public boolean isConvertable(Object pObject)
-        {
-            return pObject == null || (pObject instanceof String) || pObject instanceof Period;
-        }
-
-        @Override
-        public Object convert(Object pObject)
-        {
-            if (pObject instanceof String) {
-                return Converter.Atomic.convertStringToPeriod((String) pObject);
-            }
-            return pObject;
-        }
-
-        @Override
-        public Object backConvert(Object result)
-        {
-            if (result == null) {
-                return null;
-            }
-            return result.toString();
-        }
-    }
-
-    /**
-     * ComplexType converter.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class StructTypeConverter implements TypeConverter
+    private static class ComplexTypeConverter implements TypeConverter
     {
         /**
-         * Option whether store changes for object when it is converted map.
+         * Class of {@link cz.cesnet.shongo.api.ComplexType}.
          */
-        private Options options;
-
-        /**
-         * Type of object.
-         */
-        private final Class type;
+        private final Class<? extends ComplexType> complexTypeClass;
 
         /**
          * Constructor.
          *
-         * @param options sets the {@link #options}
+         * @param complexTypeClass sets the {@link #complexTypeClass}
          */
-        private StructTypeConverter(Class type, Options options)
+        public ComplexTypeConverter(Class<? extends ComplexType> complexTypeClass)
         {
-            this.type = type;
-            this.options = options;
-        }
-
-        @Override
-        public boolean isConvertable(Object pObject)
-        {
-            return pObject == null || type.isAssignableFrom(pObject.getClass()) || pObject instanceof Map;
-        }
-
-        @Override
-        public Object convert(Object pObject)
-        {
-            if (pObject instanceof Map) {
-                return Converter.convertFromBasic(pObject, type, options);
-            }
-            return pObject;
-        }
-
-        @Override
-        public Object backConvert(Object pObject)
-        {
-            return Converter.convertToBasic(pObject, options);
-        }
-
-        /**
-         * Cache for {@link StructTypeConverter}.
-         */
-        private static Map<Options, Map<Class, StructTypeConverter>> cache =
-                new Hashtable<Options, Map<Class, StructTypeConverter>>();
-
-        /**
-         * @param pClass  for which the converter should be returned
-         * @param options for converting
-         * @return {@link StructTypeConverter} for given {@code pClass} and {@code options}
-         */
-        public static StructTypeConverter getInstance(Class pClass, Options options)
-        {
-            Map<Class, StructTypeConverter> cacheByOptions = cache.get(options);
-            if (cacheByOptions == null) {
-                cacheByOptions = new HashMap<Class, StructTypeConverter>();
-                cache.put(options, cacheByOptions);
-            }
-            StructTypeConverter structTypeConverter = cacheByOptions.get(pClass);
-            if (structTypeConverter == null) {
-                structTypeConverter = new StructTypeConverter(pClass, options);
-                cacheByOptions.put(pClass, structTypeConverter);
-            }
-            return structTypeConverter;
-        }
-    }
-
-    /**
-     * Map converter.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class MapTypeConverter implements TypeConverter
-    {
-        /**
-         * Option whether store changes for object when it is converted map.
-         */
-        private Options options;
-
-        /**
-         * Constructor.
-         *
-         * @param options sets the {@link #options}
-         */
-        public MapTypeConverter(Options options)
-        {
-            this.options = options;
-        }
-
-        @Override
-        public boolean isConvertable(Object pObject)
-        {
-            return pObject == null || Map.class.isAssignableFrom(pObject.getClass())
-                    || StructType.class.isAssignableFrom(pObject.getClass());
-        }
-
-        @Override
-        public Object convert(Object pObject)
-        {
-            if (pObject instanceof StructType) {
-                return Converter.convertToBasic(pObject, options);
-            }
-            return pObject;
-        }
-
-        @Override
-        public Object backConvert(Object pObject)
-        {
-            return pObject;
-        }
-    }
-
-    /**
-     * Converter for {@link Collection} types.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class CollectionTypeConverter implements TypeConverter
-    {
-        private final Class<? extends Collection> collectionType;
-        private final Class componentType;
-
-        private CollectionTypeConverter(Class<? extends Collection> collectionType, Class componentType)
-        {
-            this.collectionType = collectionType;
-            this.componentType = componentType;
+            this.complexTypeClass = complexTypeClass;
         }
 
         @Override
         public boolean isConvertable(Object object)
         {
-            return object == null || object instanceof Object[]
-                    || collectionType.isAssignableFrom(object.getClass());
-        }
-
-        @Override
-        public Object convert(Object object)
-        {
-            if (object != null) {
-                return Converter.convert(object, collectionType, new Class[]{componentType});
-            }
-            return object;
-        }
-
-        @Override
-        public Object backConvert(Object result)
-        {
-            return ((Collection) result).toArray();
-        }
-    }
-
-    /**
-     * Converter for {@link AbstractObject}.
-     *
-     * TODO: refactorize API
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    /*private static class AbstractObjectTypeConverter implements TypeConverter
-    {*/
-        /**
-         * Class of {@link AbstractObject}.
-         */
-        //private final Class<? extends AbstractObject> abstractObjectClass;
-
-        /**
-         * Constructor.
-         *
-         * @param abstractObjectClass sets the {@link #abstractObjectClass}
-         */
-        /*public AbstractObjectTypeConverter(Class<? extends AbstractObject> abstractObjectClass)
-        {
-            this.abstractObjectClass = abstractObjectClass;
-        }
-
-        @Override
-        public boolean isConvertable(Object object)
-        {
-            return object == null || object instanceof AbstractObject || object instanceof Map;
+            return object == null || object instanceof ComplexType || object instanceof Map;
         }
 
         @Override
         public Object convert(Object object)
         {
             if (object instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> map = (Map<String, Object>) object;
-                object = DataMap.Converter.convert(map, abstractObjectClass);
+                object = Converter.convertMapToComplexType((Map) object, complexTypeClass);
             }
             return object;
         }
@@ -538,27 +390,27 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            return result;
-        }*/
-
-        /**
-         * Cache for {@link AbstractObjectTypeConverter}s.
-         */
-        /*private static Map<Class<? extends AbstractObject>, AbstractObjectTypeConverter> cache =
-                new HashMap<Class<? extends AbstractObject>, AbstractObjectTypeConverter>();*/
-
-        /**
-         * @param abstractObjectClass for which the converter should be returned
-         * @return {@link AbstractObjectTypeConverter} for given {@code abstractObjectClass}
-         */
-        /*public static AbstractObjectTypeConverter getInstance(Class<? extends AbstractObject> abstractObjectClass)
-        {
-            AbstractObjectTypeConverter abstractObjectTypeConverter = cache.get(abstractObjectClass);
-            if (abstractObjectTypeConverter == null) {
-                abstractObjectTypeConverter = new AbstractObjectTypeConverter(abstractObjectClass);
-                cache.put(abstractObjectClass, abstractObjectTypeConverter);
-            }
-            return abstractObjectTypeConverter;
+            return Converter.convertComplexTypeToMap((ComplexType) result);
         }
-    }*/
+
+        /**
+         * Cache for {@link ComplexTypeConverter}s.
+         */
+        private static Map<Class<? extends ComplexType>, ComplexTypeConverter> cache =
+                new HashMap<Class<? extends ComplexType>, ComplexTypeConverter>();
+
+        /**
+         * @param complexClass for which the converter should be returned
+         * @return {@link ComplexTypeConverter} for given {@code complexTypeClass}
+         */
+        public static ComplexTypeConverter getInstance(Class<? extends ComplexType> complexClass)
+        {
+            ComplexTypeConverter complexTypeConverter = cache.get(complexClass);
+            if (complexTypeConverter == null) {
+                complexTypeConverter = new ComplexTypeConverter(complexClass);
+                cache.put(complexClass, complexTypeConverter);
+            }
+            return complexTypeConverter;
+        }
+    }
 }

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -105,7 +106,10 @@ public class ResourceSpecification extends Specification implements ReservationT
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
+        if (true) {
+            throw new TodoImplementException("TODO: refactorize API");
+        }
+        /*cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
         if (resourceSpecificationApi.isPropertyFilled(resourceSpecificationApi.RESOURCE_ID)) {
             if (resourceSpecificationApi.getResourceId() == null) {
@@ -119,6 +123,6 @@ public class ResourceSpecification extends Specification implements ReservationT
             }
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(specificationApi, entityManager);*/
     }
 }

@@ -1,86 +1,71 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import org.joda.time.DateTime;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Request for reservation of resources.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractReservationRequest extends IdentifiedChangeableObject
+public abstract class AbstractReservationRequest extends IdentifiedComplexType
 {
-    /**
-     * User-id of the owner user.
-     */
-    private String userId;
-
     /**
      * Type of the reservation request.
      */
     private ReservationRequestType type;
 
     /**
-     * Date/time when the reservation request was updated.
+     * Date/time when the reservation request was created.
      */
     private DateTime dateTime;
 
     /**
-     * @see cz.cesnet.shongo.controller.ReservationRequestPurpose
+     * User-id of the user who created the reservation request.
      */
-    public static final String PURPOSE = "purpose";
+    private String userId;
+
+    /**
+     * @see ReservationRequestPurpose
+     */
+    private ReservationRequestPurpose purpose;
 
     /**
      * Priority of the reservation request.
      */
-    public static final String PRIORITY = "priority";
+    private Integer priority;
 
     /**
      * Description of the reservation request.
      */
-    public static final String DESCRIPTION = "description";
+    private String description;
 
     /**
      * {@link Specification} which is requested for the reservation.
      */
-    public static final String SPECIFICATION = "specification";
+    private Specification specification;
 
     /**
      * Specifies whether the scheduler should try allocate resources from other domains.
      */
-    public static final String INTER_DOMAIN = "interDomain";
+    private boolean interDomain;
 
     /**
      * Collection of shongo-ids for {@link cz.cesnet.shongo.controller.api.Reservation}s which are provided
      * to the {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}.
      */
-    public static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+    private Set<String> providedReservationIds = new HashSet<String>();
 
     /**
      * Constructor.
      */
     public AbstractReservationRequest()
     {
-    }
-
-    /**
-     * @return {@link #userId}
-     */
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
     }
 
     /**
@@ -116,118 +101,172 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     }
 
     /**
-     * @return {@link #PURPOSE}
+     * @return {@link #userId}
      */
-    @Required
-    public ReservationRequestPurpose getPurpose()
+    public String getUserId()
     {
-        return getPropertyStorage().getValue(PURPOSE);
+        return userId;
     }
 
     /**
-     * @param purpose sets the {@link #PURPOSE}
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
+     * @return {@link #purpose}
+     */
+    public ReservationRequestPurpose getPurpose()
+    {
+        return purpose;
+    }
+
+    /**
+     * @param purpose sets the {@link #purpose}
      */
     public void setPurpose(ReservationRequestPurpose purpose)
     {
-        getPropertyStorage().setValue(PURPOSE, purpose);
+        this.purpose = purpose;
     }
 
     /**
-     * @return {@link #PRIORITY}
+     * @return {@link #priority}
      */
     public Integer getPriority()
     {
-        return getPropertyStorage().getValue(PRIORITY);
+        return priority;
     }
 
     /**
-     * @param priority sets the {@link #PRIORITY}
+     * @param priority sets the {@link #priority}
      */
     public void setPriority(Integer priority)
     {
-        getPropertyStorage().setValue(PRIORITY, priority);
+        this.priority = priority;
     }
 
     /**
-     * @return {@link #DESCRIPTION}
+     * @return {@link #description}
      */
     public String getDescription()
     {
-        return getPropertyStorage().getValue(DESCRIPTION);
+        return description;
     }
 
     /**
-     * @param description sets the {@link #DESCRIPTION}
+     * @param description sets the {@link #description}
      */
     public void setDescription(String description)
     {
-        getPropertyStorage().setValue(DESCRIPTION, description);
+        this.description = description;
     }
 
     /**
-     * @return {@link #SPECIFICATION}
+     * @return {@link #specification}
      */
-    @Required
     public Specification getSpecification()
     {
-        return getPropertyStorage().getValue(SPECIFICATION);
-    }
-
-    /**
-     * @param specification sets the {@link #SPECIFICATION}
-     */
-    public <T extends Specification> T setSpecification(T specification)
-    {
-        getPropertyStorage().setValue(SPECIFICATION, specification);
         return specification;
     }
 
     /**
-     * @return {@link #INTER_DOMAIN}
+     * @param specification sets the {@link #specification}
+     */
+    public <T extends Specification> T setSpecification(T specification)
+    {
+        this.specification = specification;
+        return specification;
+    }
+
+    /**
+     * @return {@link #interDomain}
      */
     public Boolean getInterDomain()
     {
-        return getPropertyStorage().getValue(INTER_DOMAIN);
+        return interDomain;
     }
 
     /**
-     * @param interDomain sets the {@link #INTER_DOMAIN}
+     * @param interDomain sets the {@link #interDomain}
      */
     public void setInterDomain(Boolean interDomain)
     {
-        getPropertyStorage().setValue(INTER_DOMAIN, interDomain);
+        this.interDomain = interDomain;
     }
 
     /**
-     * @return {@link #PROVIDED_RESERVATION_IDS}
+     * @return {@link #providedReservationIds}
      */
-    public List<String> getProvidedReservationIds()
+    public Set<String> getProvidedReservationIds()
     {
-        return getPropertyStorage().getCollection(PROVIDED_RESERVATION_IDS, List.class);
+        return providedReservationIds;
     }
 
     /**
-     * @param providedReservationIds sets the {@link #PROVIDED_RESERVATION_IDS}
+     * @param providedReservationIds sets the {@link #providedReservationIds}
      */
-    public void setProvidedReservationIds(List<String> providedReservationIds)
+    public void setProvidedReservationIds(Set<String> providedReservationIds)
     {
-        getPropertyStorage().setCollection(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        this.providedReservationIds = providedReservationIds;
     }
 
     /**
-     * @param providedReservationId to be added to the {@link #PROVIDED_RESERVATION_IDS}
+     * @param providedReservationId to be added to the {@link #providedReservationIds}
      */
     public void addProvidedReservationId(String providedReservationId)
     {
-        getPropertyStorage().addCollectionItem(PROVIDED_RESERVATION_IDS, providedReservationId,
-                List.class);
+        providedReservationIds.add(providedReservationId);
     }
 
     /**
-     * @param providedReservationId to be removed from the {@link #PROVIDED_RESERVATION_IDS}
+     * @param providedReservationId to be removed from the {@link #providedReservationIds}
      */
     public void removeProvidedReservationId(String providedReservationId)
     {
-        getPropertyStorage().removeCollectionItem(PROVIDED_RESERVATION_IDS, providedReservationId);
+        providedReservationIds.remove(providedReservationId);
+    }
+
+    private static final String TYPE = "type";
+    private static final String DATETIME = "dateTime";
+    private static final String USER_ID = "userId";
+    private static final String PURPOSE = "purpose";
+    private static final String PRIORITY = "priority";
+    private static final String DESCRIPTION = "description";
+    private static final String SPECIFICATION = "specification";
+    private static final String INTER_DOMAIN = "interDomain";
+    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TYPE, type);
+        dataMap.set(DATETIME, dateTime);
+        dataMap.set(USER_ID, userId);
+        dataMap.set(PURPOSE, purpose);
+        dataMap.set(PRIORITY, priority);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(SPECIFICATION, specification);
+        dataMap.set(INTER_DOMAIN, interDomain);
+        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        type = dataMap.getEnum(TYPE, ReservationRequestType.class);
+        dateTime = dataMap.getDateTime(DATETIME);
+        userId = dataMap.getString(USER_ID);
+        purpose = dataMap.getEnumRequired(PURPOSE, ReservationRequestPurpose.class);
+        priority = dataMap.getInteger(PRIORITY);
+        description = dataMap.getString(DESCRIPTION);
+        specification = dataMap.getComplexTypeRequired(SPECIFICATION, Specification.class);
+        interDomain = dataMap.getBoolean(INTER_DOMAIN);
+        providedReservationIds = dataMap.getSet(PROVIDED_RESERVATION_IDS, String.class);
     }
 }

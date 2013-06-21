@@ -1,14 +1,12 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import org.joda.time.Interval;
-
-import java.util.Collection;
 
 /**
  * Interface to the service handling operations on reservations.

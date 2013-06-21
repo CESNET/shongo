@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+
 /**
  * {@link Person} which is known to Shongo by user-id.
  *
@@ -26,5 +28,22 @@ public class UserPerson extends Person
     public void setUserId(String userId)
     {
         this.userId = userId;
+    }
+
+    public static final String USER_ID = "userId";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        userId = dataMap.getStringRequired(USER_ID);
     }
 }

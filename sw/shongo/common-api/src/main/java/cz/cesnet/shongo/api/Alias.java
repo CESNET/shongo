@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.api.rpc.StructType;
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.oldapi.rpc.StructType;
 import jade.content.Concept;
 
 /**
- * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Alias extends IdentifiedObject implements StructType, Concept
+public class Alias extends IdentifiedComplexType implements StructType, Concept
 {
     /**
      * Type of alias.
@@ -105,5 +104,25 @@ public class Alias extends IdentifiedObject implements StructType, Concept
         int result = type.hashCode();
         result = 31 * result + value.hashCode();
         return result;
+    }
+
+    private static final String TYPE = "type";
+    private static final String VALUE = "value";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TYPE, type);
+        dataMap.set(VALUE, value);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        type = dataMap.getEnum(TYPE, AliasType.class);
+        value = dataMap.getString(VALUE);
     }
 }

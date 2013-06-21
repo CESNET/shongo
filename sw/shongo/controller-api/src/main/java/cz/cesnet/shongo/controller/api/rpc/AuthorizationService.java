@@ -2,16 +2,13 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.PermissionSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.*;
 
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Interface defining service for accessing Shongo ACL.

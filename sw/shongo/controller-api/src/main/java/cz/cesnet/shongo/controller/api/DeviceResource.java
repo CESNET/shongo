@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 import java.util.Set;
 

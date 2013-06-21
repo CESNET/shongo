@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import cz.cesnet.shongo.api.annotation.Transient;
+import cz.cesnet.shongo.oldapi.annotation.Transient;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;

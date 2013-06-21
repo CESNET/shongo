@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.api.rpc.AtomicType;
 
 /**
  * Represents a security token by which the user tells his identity.

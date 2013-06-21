@@ -2,7 +2,10 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -97,7 +100,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param address  device address to connect to
      * @param username username for authentication on the device
      * @param password password for authentication on the device
-     * @throws CommandException
+     * @throws cz.cesnet.shongo.api.jade.CommandException
      */
     @Override
     public synchronized void connect(Address address, String username, String password) throws CommandException

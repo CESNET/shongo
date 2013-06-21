@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.DeviceLoadInfo;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public interface CommonService
      * @param address  device address to connect to
      * @param username username for authentication on the device
      * @param password password for authentication on the device
-     * @throws cz.cesnet.shongo.api.CommandException
+     * @throws cz.cesnet.shongo.api.jade.CommandException
      *
      */
     void connect(Address address, String username, final String password) throws CommandException;

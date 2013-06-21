@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.oldapi.util.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;

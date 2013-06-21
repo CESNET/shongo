@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
 
 /**
  * Represents a capability of a resource.

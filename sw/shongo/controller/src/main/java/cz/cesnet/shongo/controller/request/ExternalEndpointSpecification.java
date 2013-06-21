@@ -150,7 +150,10 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+        if (true) {
+            throw new TodoImplementException("TODO: refactorize API");
+        }
+        /*cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
         // Create technologies
         for (Technology technology : externalEndpointSpecificationApi.getTechnologies()) {
@@ -172,6 +175,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
             addAlias(alias);
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(specificationApi, entityManager);*/
     }
 }

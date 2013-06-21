@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceAllocation;

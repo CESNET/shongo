@@ -131,7 +131,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             Assert.assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
 
             CompartmentSpecification specification = (CompartmentSpecification) reservationRequest.getSpecification();
-            for (ParticipantSpecification childSpecification : specification.getSpecifications()) {
+            for (ParticipantSpecification childSpecification : specification.getParticipantSpecifications()) {
                 if (childSpecification instanceof PersonSpecification) {
                     PersonSpecification personSpecification = (PersonSpecification) childSpecification;
                     if (personSpecification.getEndpointSpecification() != null) {

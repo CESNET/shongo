@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 
 /**
  * {@link Person} which is not known to Shongo.
@@ -46,7 +46,6 @@ public class OtherPerson extends Person
     /**
      * @return {@link #name}
      */
-    @Required
     public String getName()
     {
         return name;
@@ -79,7 +78,6 @@ public class OtherPerson extends Person
     /**
      * @return {@link #email}
      */
-    @Required
     public String getEmail()
     {
         return email;
@@ -91,5 +89,28 @@ public class OtherPerson extends Person
     public void setEmail(String email)
     {
         this.email = email;
+    }
+
+    public static final String NAME = "name";
+    public static final String ORGANIZATION = "organization";
+    public static final String EMAIL = "email";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(ORGANIZATION, name);
+        dataMap.set(EMAIL, email);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getStringRequired(NAME);
+        organization = dataMap.getString(ORGANIZATION);
+        email = dataMap.getStringRequired(EMAIL);
     }
 }

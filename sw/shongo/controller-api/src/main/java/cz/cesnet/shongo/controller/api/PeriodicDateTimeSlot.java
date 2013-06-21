@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.ReadablePartial;
@@ -12,7 +12,7 @@ import org.joda.time.ReadablePartial;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PeriodicDateTimeSlot extends IdentifiedObject
+public class PeriodicDateTimeSlot extends IdentifiedComplexType
 {
     /**
      * Starting date/time for the first date/time slot.
@@ -97,13 +97,12 @@ public class PeriodicDateTimeSlot extends IdentifiedObject
         setStart(DateTime.parse(start));
         setDuration(Period.parse(duration));
         setPeriod(Period.parse(period));
-        setEnd(Converter.Atomic.convertStringToReadablePartial(end));
+        setEnd(Converter.convertStringToReadablePartial(end));
     }
 
     /**
      * @return {@link #start}
      */
-    @Required
     public DateTime getStart()
     {
         return start;
@@ -137,7 +136,6 @@ public class PeriodicDateTimeSlot extends IdentifiedObject
     /**
      * @return {@link #period}
      */
-    @Required
     public Period getPeriod()
     {
         return period;
@@ -165,5 +163,31 @@ public class PeriodicDateTimeSlot extends IdentifiedObject
     public void setEnd(ReadablePartial end)
     {
         this.end = end;
+    }
+
+    public static final String START = "start";
+    public static final String DURATION = "duration";
+    public static final String PERIOD = "period";
+    public static final String END = "end";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(START, start);
+        dataMap.set(DURATION, duration);
+        dataMap.set(PERIOD, period);
+        dataMap.set(END, end);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        start = dataMap.getDateTimeRequired(START);
+        duration = dataMap.getPeriod(DURATION);
+        period = dataMap.getPeriodRequired(PERIOD);
+        end = dataMap.getReadablePartial(END);
     }
 }

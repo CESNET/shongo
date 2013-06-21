@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.api.Converter;
+import cz.cesnet.shongo.api.DataMap;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -19,7 +19,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * Date/time slot for which the reservation is requested.
      */
-    public static final String SLOT = "slot";
+    private Interval slot;
 
     /**
      * {@link AllocationState} of the request.
@@ -46,10 +46,9 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #SLOT}
      */
-    @Required
     public Interval getSlot()
     {
-        return getPropertyStorage().getValue(SLOT);
+        return slot;
     }
 
     /**
@@ -57,7 +56,7 @@ public class ReservationRequest extends AbstractReservationRequest
      */
     public void setSlot(Interval slot)
     {
-        getPropertyStorage().setValue(SLOT, slot);
+        this.slot = slot;
     }
 
     /**
@@ -65,7 +64,7 @@ public class ReservationRequest extends AbstractReservationRequest
      */
     public void setSlot(String slot)
     {
-        getPropertyStorage().setValue(SLOT, Converter.Atomic.convertStringToInterval(slot));
+        this.slot = Converter.convertStringToInterval(slot);
     }
 
     /**
@@ -156,5 +155,31 @@ public class ReservationRequest extends AbstractReservationRequest
     public void addReservationId(String reservationId)
     {
         this.reservationIds.add(reservationId);
+    }
+
+    public static final String SLOT = "slot";
+    public static final String ALLOCATION_STATE = "allocationState";
+    public static final String ALLOCATION_STATE_REPORT = "allocationStateReport";
+    public static final String RESERVATION_IDS = "reservationIds";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(SLOT, slot);
+        dataMap.set(ALLOCATION_STATE, allocationState);
+        dataMap.set(ALLOCATION_STATE_REPORT, allocationStateReport);
+        dataMap.set(RESERVATION_IDS, reservationIds);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        slot = dataMap.getIntervalRequired(SLOT);
+        allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
+        allocationStateReport = dataMap.getString(ALLOCATION_STATE_REPORT);
+        reservationIds = dataMap.getList(RESERVATION_IDS, String.class);
     }
 }

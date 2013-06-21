@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.Interval;
@@ -168,7 +169,10 @@ public class AliasSetSpecification extends Specification
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
+        if (true) {
+            throw new TodoImplementException("TODO: refactorize API");
+        }
+        /*cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
 
         // Create/update alias specifications
@@ -195,6 +199,6 @@ public class AliasSetSpecification extends Specification
             setSharedExecutable(aliasSetSpecificationApi.getSharedExecutable());
         }
 
-        super.fromApi(specificationApi, entityManager);
+        super.fromApi(specificationApi, entityManager);*/
     }
 }

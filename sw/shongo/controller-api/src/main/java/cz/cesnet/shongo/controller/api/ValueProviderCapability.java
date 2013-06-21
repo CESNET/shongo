@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * Capability tells that the resource can allocate unique values from given patterns.

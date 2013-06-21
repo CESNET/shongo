@@ -1,13 +1,16 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.ReadOnly;
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
+import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,7 +23,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * Collection of date/time slots for which the reservation is requested.
      */
-    public static final String SLOTS = "slots";
+    private List<Object> slots = new LinkedList<Object>();
 
     /**
      * List of {@link ReservationRequest} which have been already created for the {@link ReservationRequestSet}.
@@ -41,7 +44,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     @AllowedTypes({Interval.class, PeriodicDateTimeSlot.class})
     public List<Object> getSlots()
     {
-        return getPropertyStorage().getCollection(SLOTS, List.class);
+        return slots;
     }
 
     /**
@@ -49,7 +52,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void setSlots(List<Object> slots)
     {
-        getPropertyStorage().setCollection(SLOTS, slots);
+        this.slots = slots;
     }
 
     /**
@@ -59,7 +62,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void addSlot(Object slot)
     {
-        getPropertyStorage().addCollectionItem(SLOTS, slot, List.class);
+        slots.add(slot);
     }
 
     /**
@@ -96,7 +99,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removeSlot(Object dateTimeSlot)
     {
-        getPropertyStorage().removeCollectionItem(SLOTS, dateTimeSlot);
+        slots.remove(dateTimeSlot);
     }
 
     /**
@@ -114,5 +117,25 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public void addReservationRequest(ReservationRequest request)
     {
         reservationRequests.add(request);
+    }
+
+    public static final String SLOTS = "slots";
+    public static final String RESERVATION_REQUESTS = "reservationRequests";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(SLOTS, slots);
+        dataMap.set(RESERVATION_REQUESTS, reservationRequests);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        slots = dataMap.getList(SLOTS, Interval.class, PeriodicDateTimeSlot.class);
+        reservationRequests = dataMap.getList(RESERVATION_REQUESTS, ReservationRequest.class);
     }
 }

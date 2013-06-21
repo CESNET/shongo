@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.oldapi.Room;
 
 /**
  * Represents a {@link ResourceReservation} for a {@link Room}.

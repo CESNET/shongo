@@ -177,19 +177,19 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
     {
         cz.cesnet.shongo.controller.api.PersonSpecification personSpecificationApi =
                 (cz.cesnet.shongo.controller.api.PersonSpecification) specificationApi;
-        if (personSpecificationApi.isPropertyFilled(personSpecificationApi.PERSON)) {
-            cz.cesnet.shongo.controller.api.Person personApi = personSpecificationApi.getPerson();
-            if (personApi == null) {
-                setPerson(null);
-            }
-            else if (getPerson() != null && getPerson().getId().equals(personApi.notNullIdAsLong())) {
-                getPerson().fromApi(personApi);
-            }
-            else {
-                Person person = Person.createFromApi(personApi);
-                setPerson(person);
-            }
+
+        cz.cesnet.shongo.controller.api.Person personApi = personSpecificationApi.getPerson();
+        if (personApi == null) {
+            throw new IllegalArgumentException("Person must not be null.");
         }
+        else if (getPerson() != null && getPerson().getId().equals(personApi.notNullIdAsLong())) {
+            getPerson().fromApi(personApi);
+        }
+        else {
+            Person person = Person.createFromApi(personApi);
+            setPerson(person);
+        }
+
         if (invitationState == null) {
             invitationState = InvitationState.NOT_SENT;
         }

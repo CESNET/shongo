@@ -2,7 +2,7 @@ package cz.cesnet.shongo.report;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.util.ClassHelper;
+import cz.cesnet.shongo.api.ClassHelper;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 

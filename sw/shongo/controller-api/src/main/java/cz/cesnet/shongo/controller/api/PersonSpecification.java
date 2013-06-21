@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * {@link Specification} for {@link Person}.
@@ -12,7 +13,7 @@ public class PersonSpecification extends ParticipantSpecification
     /**
      * The requested person.
      */
-    public static final String PERSON = "person";
+    private Person person;
 
     /**
      * Constructor.
@@ -35,10 +36,9 @@ public class PersonSpecification extends ParticipantSpecification
     /**
      * @return {@link #PERSON}
      */
-    @Required
     public Person getPerson()
     {
-        return getPropertyStorage().getValue(PERSON);
+        return person;
     }
 
     /**
@@ -46,6 +46,23 @@ public class PersonSpecification extends ParticipantSpecification
      */
     public void setPerson(Person person)
     {
-        getPropertyStorage().setValue(PERSON, person);
+        this.person = person;
+    }
+
+    public static final String PERSON = "person";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(PERSON, person);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        person = dataMap.getComplexTypeRequired(PERSON, Person.class);
     }
 }

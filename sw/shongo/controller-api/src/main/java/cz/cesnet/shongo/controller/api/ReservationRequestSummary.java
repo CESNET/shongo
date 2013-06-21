@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.util.IdentifiedObject;
+import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

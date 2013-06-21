@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * {@link Specification} for existing resource {@link Resource}.
@@ -12,7 +13,7 @@ public class ResourceSpecification extends Specification
     /**
      * The resource shongo-id.
      */
-    public static final String RESOURCE_ID = "resourceId";
+    private String resourceId;
 
     /**
      * Constructor.
@@ -24,7 +25,7 @@ public class ResourceSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param resourceId sets the {@link #RESOURCE_ID}
+     * @param resourceId sets the {@link #resourceId}
      */
     public ResourceSpecification(String resourceId)
     {
@@ -32,19 +33,35 @@ public class ResourceSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_ID}
+     * @return {@link #resourceId}
      */
-    @Required
     public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_ID);
+        return resourceId;
     }
 
     /**
-     * @param resourceId sets the {@link #RESOURCE_ID}
+     * @param resourceId sets the {@link #resourceId}
      */
     public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
+        this.resourceId = resourceId;
+    }
+
+    public static final String RESOURCE_ID = "resourceId";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESOURCE_ID, resourceId);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        resourceId = dataMap.getStringRequired(RESOURCE_ID);
     }
 }

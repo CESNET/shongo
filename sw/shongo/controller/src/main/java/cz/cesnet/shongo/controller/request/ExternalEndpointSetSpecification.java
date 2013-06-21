@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpointSet;
@@ -115,22 +116,10 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;
-        // Create technologies
-        for (Technology technology : externalEndpointSetSpecificationApi.getTechnologies()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(
-                    cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
-                addTechnology(technology);
-            }
-        }
-        // Delete technologies
-        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
-                cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
-        for (Technology technology : technologies) {
-            removeTechnology(technology);
-        }
-        if (externalEndpointSetSpecificationApi.isPropertyFilled(externalEndpointSetSpecificationApi.COUNT)) {
-            setCount(externalEndpointSetSpecificationApi.getCount());
-        }
+        setCount(externalEndpointSetSpecificationApi.getCount());
+
+        clearTechnologies();
+        addTechnologies(externalEndpointSetSpecificationApi.getTechnologies());
 
         super.fromApi(specificationApi, entityManager);
     }

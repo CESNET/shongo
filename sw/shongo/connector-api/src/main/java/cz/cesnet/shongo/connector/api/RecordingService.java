@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.RoomLayout;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.RoomLayout;
 
 import java.util.Collection;
 

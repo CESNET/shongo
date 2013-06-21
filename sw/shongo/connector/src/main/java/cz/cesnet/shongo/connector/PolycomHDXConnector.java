@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.DeviceLoadInfo;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.slf4j.Logger;

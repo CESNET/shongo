@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.annotation.Required;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -16,12 +17,12 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
     /**
      * Set of technologies of the external endpoint.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Number of same resources.
      */
-    public static final String ALIAS = "alias";
+    private Alias alias;
 
     /**
      * Constructor.
@@ -69,10 +70,9 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
     /**
      * @return {@link #TECHNOLOGIES}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
@@ -80,7 +80,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
@@ -88,7 +88,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
@@ -96,7 +96,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
@@ -104,7 +104,7 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      */
     public Alias getAlias()
     {
-        return getPropertyStorage().getValue(ALIAS);
+        return alias;
     }
 
     /**
@@ -112,6 +112,26 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      */
     public void setAlias(Alias alias)
     {
-        getPropertyStorage().setValue(ALIAS, alias);
+        this.alias = alias;
+    }
+
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String ALIAS = "alias";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(ALIAS, alias);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        alias = dataMap.getComplexType(ALIAS, Alias.class);
     }
 }

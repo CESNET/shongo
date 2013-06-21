@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.oldapi.*;
 import cz.cesnet.shongo.connector.api.jade.ConnectorCommand;
 import cz.cesnet.shongo.connector.api.jade.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.connector.api.jade.common.GetSupportedMethods;

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import cz.cesnet.shongo.api.rpc.StructType;
+import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
@@ -8,7 +9,7 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractRequest implements StructType
+public abstract class AbstractRequest extends AbstractComplexType
 {
     /**
      * {@link SecurityToken} of user who is requesting this request.
@@ -54,5 +55,22 @@ public abstract class AbstractRequest implements StructType
     public void setSecurityToken(String accessToken)
     {
         this.securityToken = new SecurityToken(accessToken);
+    }
+
+    private static final String SECURITY_TOKEN = "securityToken";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(SECURITY_TOKEN, securityToken);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        securityToken = dataMap.getAtomicType(SECURITY_TOKEN, SecurityToken.class);
     }
 }

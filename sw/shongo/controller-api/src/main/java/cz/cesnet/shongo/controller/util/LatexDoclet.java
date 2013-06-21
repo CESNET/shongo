@@ -4,12 +4,12 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doclet;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.RootDoc;
-import cz.cesnet.shongo.api.annotation.ReadOnly;
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
-import cz.cesnet.shongo.api.util.Property;
-import cz.cesnet.shongo.api.util.TypeFlags;
+import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
+import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.api.ClassHelper;
+import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.oldapi.util.Property;
+import cz.cesnet.shongo.oldapi.util.TypeFlags;
 
 import java.io.File;
 import java.io.FileWriter;

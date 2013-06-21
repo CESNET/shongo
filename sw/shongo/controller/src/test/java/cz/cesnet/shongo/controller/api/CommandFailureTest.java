@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.JadeReportSet;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;

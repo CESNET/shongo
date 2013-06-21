@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -85,7 +86,7 @@ public class Controller
     /**
      * List of services of the domain controller.
      */
-    private List<cz.cesnet.shongo.api.rpc.Service> rpcServices = new ArrayList<cz.cesnet.shongo.api.rpc.Service>();
+    private List<Service> rpcServices = new ArrayList<Service>();
 
     /**
      * Jade container.
@@ -303,7 +304,7 @@ public class Controller
     /**
      * @param rpcServices sets the {@link #rpcServices}
      */
-    public void setRpcServices(List<cz.cesnet.shongo.api.rpc.Service> rpcServices)
+    public void setRpcServices(List<Service> rpcServices)
     {
         this.rpcServices = rpcServices;
     }
@@ -311,7 +312,7 @@ public class Controller
     /**
      * @param rpcService service to be added the {@link #rpcServices}
      */
-    public synchronized void addRpcService(cz.cesnet.shongo.api.rpc.Service rpcService)
+    public synchronized void addRpcService(Service rpcService)
     {
         if (!rpcServices.contains(rpcService)) {
             rpcServices.add(rpcService);
@@ -344,8 +345,8 @@ public class Controller
     {
         if (!components.contains(component)) {
             components.add(component);
-            if (component instanceof cz.cesnet.shongo.api.rpc.Service) {
-                addRpcService((cz.cesnet.shongo.api.rpc.Service) component);
+            if (component instanceof Service) {
+                addRpcService((Service) component);
             }
         }
     }
@@ -468,7 +469,7 @@ public class Controller
                 getRpcPort());
 
         rpcServer = new RpcServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
-        for (cz.cesnet.shongo.api.rpc.Service rpcService : rpcServices) {
+        for (Service rpcService : rpcServices) {
             logger.debug("Adding XML-RPC service '" + rpcService.getServiceName() + "'...");
             rpcServer.addHandler(rpcService.getServiceName(), rpcService);
         }

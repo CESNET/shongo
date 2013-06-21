@@ -2,9 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
-import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.Command;
 
 /**

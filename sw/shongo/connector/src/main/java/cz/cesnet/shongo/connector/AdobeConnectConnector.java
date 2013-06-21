@@ -3,7 +3,11 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.oldapi.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.TodoImplementException;
@@ -202,7 +206,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     /**
      * This method is not supported, cause the AC XML API (secret one) is not working
      *
-     * @throws CommandUnsupportedException
+     * @throws cz.cesnet.shongo.api.jade.CommandUnsupportedException
      */
     @java.lang.Override
     public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException

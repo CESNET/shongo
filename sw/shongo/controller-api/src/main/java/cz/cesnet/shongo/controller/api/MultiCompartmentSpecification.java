@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -12,29 +15,46 @@ public class MultiCompartmentSpecification extends Specification
     /**
      * Collection of {@link cz.cesnet.shongo.controller.api.CompartmentSpecification}s.
      */
-    public static final String SPECIFICATIONS = "specifications";
+    private List<CompartmentSpecification> compartmentSpecifications = new LinkedList<CompartmentSpecification>();
 
     /**
-     * @return {@link #SPECIFICATIONS}
+     * @return {@link #compartmentSpecifications}
      */
     public List<CompartmentSpecification> getSpecifications()
     {
-        return getPropertyStorage().getCollection(SPECIFICATIONS, List.class);
+        return compartmentSpecifications;
     }
 
     /**
-     * @param specifications {@link #SPECIFICATIONS}
+     * @param specifications {@link #compartmentSpecifications}
      */
     public void setSpecifications(List<CompartmentSpecification> specifications)
     {
-        getPropertyStorage().setCollection(SPECIFICATIONS, specifications);
+        this.compartmentSpecifications = compartmentSpecifications;
     }
 
     /**
-     * @param specification to be added to the {@link #SPECIFICATIONS}
+     * @param compartmentSpecification to be added to the {@link #compartmentSpecifications}
      */
-    public void addSpecification(CompartmentSpecification specification)
+    public void addSpecification(CompartmentSpecification compartmentSpecification)
     {
-        getPropertyStorage().addCollectionItem(SPECIFICATIONS, specification, List.class);
+        compartmentSpecifications.add(compartmentSpecification);
+    }
+
+    public static final String COMPARTMENT_SPECIFICATIONS = "compartmentSpecifications";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(COMPARTMENT_SPECIFICATIONS, compartmentSpecifications);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        compartmentSpecifications = dataMap.getListRequired(COMPARTMENT_SPECIFICATIONS, CompartmentSpecification.class);
     }
 }

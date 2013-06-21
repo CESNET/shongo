@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
@@ -134,5 +135,31 @@ public class AclRecordListRequest extends ListRequest
     public void addRole(Role role)
     {
         roles.add(role);
+    }
+
+    private static final String ACL_RECORD_IDS = "aclRecordIds";
+    private static final String USER_IDS = "userIds";
+    private static final String ENTITY_IDS = "entityIds";
+    private static final String ROLES = "roles";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(ACL_RECORD_IDS, aclRecordIds);
+        dataMap.set(USER_IDS, userIds);
+        dataMap.set(ENTITY_IDS, entityIds);
+        dataMap.set(ROLES, roles);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        aclRecordIds = dataMap.getSet(ACL_RECORD_IDS, String.class);
+        userIds = dataMap.getSet(USER_IDS, String.class);
+        entityIds = dataMap.getSet(ENTITY_IDS, String.class);
+        roles = dataMap.getSet(ROLES, Role.class);
     }
 }

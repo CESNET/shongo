@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.oldapi.util.Converter;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.authorization.Authorization;

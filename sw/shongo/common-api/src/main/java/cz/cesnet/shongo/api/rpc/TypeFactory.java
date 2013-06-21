@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.api.rpc;
 
-import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.util.TypeFlags;
-import cz.cesnet.shongo.map.AbstractObject;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Converter;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;
@@ -12,10 +11,16 @@ import org.apache.xmlrpc.common.XmlRpcStreamConfig;
 import org.apache.xmlrpc.parser.MapParser;
 import org.apache.xmlrpc.parser.TypeParser;
 import org.apache.xmlrpc.serializer.MapSerializer;
+import org.apache.xmlrpc.serializer.ObjectArraySerializer;
+import org.apache.xmlrpc.serializer.StringSerializer;
 import org.apache.xmlrpc.serializer.TypeSerializer;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,21 +32,13 @@ import java.util.Map;
 public class TypeFactory extends TypeFactoryImpl
 {
     /**
-     * @see Options
-     */
-    private Options options;
-
-    /**
      * Constructor.
      *
      * @param pController
-     * @param options     sets the {@link #options}
      */
-    public TypeFactory(XmlRpcController pController, Options options)
+    public TypeFactory(XmlRpcController pController)
     {
         super(pController);
-
-        this.options = options;
     }
 
     @Override
@@ -68,10 +65,9 @@ public class TypeFactory extends TypeFactoryImpl
                     if (map == null || map.size() == 0) {
                         setResult(null);
                     }
-                    // If the class key is present convert the map to object
-                    else {
-                        // Convert map to object of the class
-                        setResult(Converter.convertFromBasic(map, options));
+                    // If the class key is present convert the map to complex type
+                    else if (map.containsKey(ComplexType.CLASS_PROPERTY)) {
+                        setResult(Converter.convertMapToComplexType(map, ComplexType.class));
                     }
                 }
             };
@@ -98,48 +94,91 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     /**
-     * {@link TypeSerializer} for values to be converted by {@link Converter} to {@link TypeFlags#BASIC} types.
+     * {@link TypeSerializer} for {@link Enum}.
      */
-    public class ConverterTypeSerializer implements TypeSerializer
+    public static class EnumSerializer extends StringSerializer
     {
-        /**
-         * @see XmlRpcStreamConfig
-         */
-        XmlRpcStreamConfig config;
-
-        /**
-         * Constructor.
-         *
-         * @param config sets the {@link #config}
-         */
-        public ConverterTypeSerializer(XmlRpcStreamConfig config)
-        {
-            this.config = config;
-        }
-
         @Override
         public void write(ContentHandler handler, Object object) throws SAXException
         {
-            object = Converter.convertToBasic(object, options);
-            TypeSerializer serializer = null;
-            if (object == null) {
-                serializer = getNullSerializer(config);
-            }
-            else {
-                serializer = getSerializer(config, object);
-            }
-            serializer.write(handler, object);
+            super.write(handler, Converter.convertEnumToString((Enum) object));
         }
     }
 
     /**
-     * {@link TypeSerializer} for {@link AbstractObject}.
-     *
-     * TODO: refactorize API
+     * {@link TypeSerializer} for {@link DateTime}.
      */
-    /*public static class ObjectTypeSerializer extends MapSerializer
+    public static class DateTimeSerializer extends StringSerializer
     {
-        public ObjectTypeSerializer(org.apache.xmlrpc.common.TypeFactory pTypeFactory, XmlRpcStreamConfig pConfig)
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertDateTimeToString((DateTime) object));
+        }
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link Period}.
+     */
+    public static class PeriodSerializer extends StringSerializer
+    {
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertPeriodToString((Period) object));
+        }
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link Interval}.
+     */
+    public static class IntervalSerializer extends StringSerializer
+    {
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertIntervalToString((Interval) object));
+        }
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link java.util.Collection}.
+     */
+    public class CollectionSerializer extends ObjectArraySerializer
+    {
+        /**
+         * Constructor.
+         *
+         * @param pTypeFactory
+         * @param pConfig
+         */
+        public CollectionSerializer(org.apache.xmlrpc.common.TypeFactory pTypeFactory, XmlRpcStreamConfig pConfig)
+        {
+            super(pTypeFactory, pConfig);
+        }
+
+        @Override
+        protected void writeData(ContentHandler pHandler, Object pObject) throws SAXException
+        {
+            Collection collection = (Collection) pObject;
+            for (Object item : collection) {
+                writeObject(pHandler, item);
+            }
+        }
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link ComplexType}.
+     */
+    public static class ComplexTypeSerializer extends MapSerializer
+    {
+        /**
+         * Constructor.
+         *
+         * @param pTypeFactory
+         * @param pConfig
+         */
+        public ComplexTypeSerializer(org.apache.xmlrpc.common.TypeFactory pTypeFactory, XmlRpcStreamConfig pConfig)
         {
             super(pTypeFactory, pConfig);
         }
@@ -147,29 +186,55 @@ public class TypeFactory extends TypeFactoryImpl
         @Override
         public void write(ContentHandler handler, Object object) throws SAXException
         {
-            AbstractObject abstractObject = (AbstractObject) object;
-            super.write(handler, abstractObject.toData().getData());
+            super.write(handler, Converter.convertComplexTypeToMap((ComplexType) object));
         }
-    }*/
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link AtomicType}.
+     */
+    public static class AtomicTypeSerializer extends StringSerializer
+    {
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertAtomicTypeToString((AtomicType) object));
+        }
+    }
+
+    private static final TypeSerializer ENUM_SERIALIZER = new EnumSerializer();
+    private static final TypeSerializer DATETIME_SERIALIZER = new DateTimeSerializer();
+    private static final TypeSerializer PERIOD_SERIALIZER = new PeriodSerializer();
+    private static final TypeSerializer INTERVAL_SERIALIZER = new IntervalSerializer();
+    private static final TypeSerializer ATOMIC_TYPE_SERIALIZER = new AtomicTypeSerializer();
 
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
-
-        /* TODO: refactorize API
-        if (pObject instanceof AbstractObject) {
-            return new ObjectTypeSerializer(this, pConfig);
-        }*/
-        int typeFlags = TypeFlags.get(pObject);
-        // Null values are serialized as empty maps
         if (pObject == null) {
             return getNullSerializer(pConfig);
         }
-        // Basic values are serialized by default
-        else if (TypeFlags.isBasic(typeFlags)) {
-            return super.getSerializer(pConfig, pObject);
+        else if (pObject instanceof Enum) {
+            return ENUM_SERIALIZER;
         }
-        // Other values must be converted to basic and serialized by default
-        return new ConverterTypeSerializer(pConfig);
+        else if (pObject instanceof DateTime) {
+            return DATETIME_SERIALIZER;
+        }
+        else if (pObject instanceof Period) {
+            return PERIOD_SERIALIZER;
+        }
+        else if (pObject instanceof Interval) {
+            return INTERVAL_SERIALIZER;
+        }
+        else if (pObject instanceof Collection) {
+            return new CollectionSerializer(this, pConfig);
+        }
+        else if (pObject instanceof AtomicType) {
+            return ATOMIC_TYPE_SERIALIZER;
+        }
+        else if (pObject instanceof ComplexType) {
+            return new ComplexTypeSerializer(this, pConfig);
+        }
+        return super.getSerializer(pConfig, pObject);
     }
 }

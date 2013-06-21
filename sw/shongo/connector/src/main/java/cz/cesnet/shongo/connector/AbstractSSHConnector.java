@@ -4,7 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.DeviceInfo;

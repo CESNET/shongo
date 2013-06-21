@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.rpc.RpcClient;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.api.rpc.StructType;
-import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.oldapi.rpc.StructType;
+import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.controller.api.rpc.RpcServer;
 import org.junit.After;
 import org.junit.Assert;

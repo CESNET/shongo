@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.api.rpc;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.report.AbstractReportSet;
 import cz.cesnet.shongo.report.ApiFault;
 import cz.cesnet.shongo.report.ApiFaultString;
 import cz.cesnet.shongo.report.Report;
-import org.apache.xmlrpc.XmlRpcConfig;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -119,10 +117,10 @@ public class RpcClient
         config.setServerURL(new URL(String.format("http://%s:%d", host, port)));
         client = new XmlRpcClient();
         client.setConfig(config);
-        client.setTypeFactory(new TypeFactory(client, Options.CLIENT));
+        client.setTypeFactory(new TypeFactory(client));
 
         // Connect to reservation service
-        clientFactory = new ClientFactory(client, new TypeConverterFactory(Options.CLIENT));
+        clientFactory = new ClientFactory(client, new TypeConverterFactory());
     }
 
     /**
@@ -196,7 +194,12 @@ public class RpcClient
 
         // Create exception for fault
         Exception exception = fault.getException();
-        exception.setStackTrace(xmlRpcException.getStackTrace());
+        if (xmlRpcException.linkedException != null) {
+            exception.setStackTrace(xmlRpcException.linkedException.getStackTrace());
+        }
+        else {
+            exception.setStackTrace(xmlRpcException.getStackTrace());
+        }
         return exception;
     }
 

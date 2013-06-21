@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import org.joda.time.DateTime;
@@ -14,7 +13,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Tests for reallocation of reservations.

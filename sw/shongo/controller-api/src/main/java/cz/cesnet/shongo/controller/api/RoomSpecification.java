@@ -2,10 +2,12 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.RoomSetting;
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.annotation.Transient;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.oldapi.RoomSetting;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,27 +21,27 @@ public class RoomSpecification extends Specification
     /**
      * Preferred {@link Resource} shongo-id with {@link AliasProviderCapability}.
      */
-    public static final String RESOURCE_ID = "resourceId";
+    private String resourceId;
 
     /**
      * Set of technologies which the virtual rooms must support.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Number of ports which must be allocated for the virtual room.
      */
-    public static final String PARTICIPANT_COUNT = "participantCount";
+    private Integer participantCount;
 
     /**
-     * {@link cz.cesnet.shongo.api.RoomSetting}s for the virtual room.
+     * {@link cz.cesnet.shongo.oldapi.RoomSetting}s for the virtual room.
      */
-    public static final String ROOM_SETTINGS = "roomSettings";
+    private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
      * {@link cz.cesnet.shongo.controller.api.AliasSpecification}s for the virtual room.
      */
-    public static final String ALIASES = "aliases";
+    private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
     /**
      * Constructor.
@@ -51,8 +53,8 @@ public class RoomSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
-     * @param technology       to be added to the {@link #TECHNOLOGIES}
+     * @param participantCount sets the {@link #participantCount}
+     * @param technology       to be added to the {@link #technologies}
      */
     public RoomSpecification(int participantCount, Technology technology)
     {
@@ -63,9 +65,9 @@ public class RoomSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
-     * @param technology       to be added to the {@link #TECHNOLOGIES}
-     * @param resourceId       sets the {@link #RESOURCE_ID}
+     * @param participantCount sets the {@link #participantCount}
+     * @param technology       to be added to the {@link #technologies}
+     * @param resourceId       sets the {@link #resourceId}
      */
     public RoomSpecification(int participantCount, Technology technology, String resourceId)
     {
@@ -77,8 +79,8 @@ public class RoomSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
-     * @param technologies     to be added to the {@link #TECHNOLOGIES}
+     * @param participantCount sets the {@link #participantCount}
+     * @param technologies     to be added to the {@link #technologies}
      */
     public RoomSpecification(int participantCount, Technology[] technologies)
     {
@@ -93,7 +95,6 @@ public class RoomSpecification extends Specification
      * @param value     for the new {@link AliasSpecification}
      * @return this {@link RoomSpecification}
      */
-    @Transient
     public RoomSpecification withAlias(AliasType aliasType, String value)
     {
         addAlias(new AliasSpecification(aliasType).withValue(value));
@@ -101,132 +102,159 @@ public class RoomSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_ID}
+     * @return {@link #resourceId}
      */
     public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_ID);
+        return resourceId;
     }
 
     /**
-     * @param resourceId sets the {@link #RESOURCE_ID}
+     * @param resourceId sets the {@link #resourceId}
      */
     public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
+        this.resourceId = resourceId;
     }
 
     /**
-     * @return {@link #TECHNOLOGIES}
+     * @return {@link #technologies}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
-     * @param technologies sets the {@link #TECHNOLOGIES}
+     * @param technologies sets the {@link #technologies}
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
-     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
-     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     * @param technology technology to be removed from the {@link #technologies}
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
-     * @return {@link #RESOURCE_ID}
+     * @return {@link #participantCount}
      */
-    @Required
     public Integer getParticipantCount()
     {
-        return getPropertyStorage().getValue(PARTICIPANT_COUNT);
+        return participantCount;
     }
 
     /**
-     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
+     * @param participantCount sets the {@link #participantCount}
      */
     public void setParticipantCount(Integer participantCount)
     {
-        getPropertyStorage().setValue(PARTICIPANT_COUNT, participantCount);
+        this.participantCount = participantCount;
     }
 
     /**
-     * @return {@link #ROOM_SETTINGS}
+     * @return {@link #roomSettings}
      */
     public List<RoomSetting> getRoomSettings()
     {
-        return getPropertyStorage().getCollection(ROOM_SETTINGS, List.class);
+        return roomSettings;
     }
 
     /**
-     * @param roomSettings sets the {@link #ROOM_SETTINGS}
+     * @param roomSettings sets the {@link #roomSettings}
      */
     public void setRoomSettings(List<RoomSetting> roomSettings)
     {
-        getPropertyStorage().setCollection(ROOM_SETTINGS, roomSettings);
+        this.roomSettings = roomSettings;
     }
 
     /**
-     * @param roomSetting to be added to the {@link #ROOM_SETTINGS}
+     * @param roomSetting to be added to the {@link #roomSettings}
      */
     public void addRoomSetting(RoomSetting roomSetting)
     {
-        getPropertyStorage().addCollectionItem(ROOM_SETTINGS, roomSetting, List.class);
+        roomSettings.add(roomSetting);
     }
 
     /**
-     * @param roomSetting to be removed from the {@link #ROOM_SETTINGS}
+     * @param roomSetting to be removed from the {@link #roomSettings}
      */
     public void removeRoomSetting(RoomSetting roomSetting)
     {
-        getPropertyStorage().removeCollectionItem(ROOM_SETTINGS, roomSetting);
+        roomSettings.remove(roomSetting);
     }
 
     /**
-     * @return {@link #ALIASES}
+     * @return {@link #aliasSpecifications}
      */
-    public List<AliasSpecification> getAliases()
+    public List<AliasSpecification> getAliasSpecifications()
     {
-        return getPropertyStorage().getCollection(ALIASES, List.class);
+        return aliasSpecifications;
     }
 
     /**
-     * @param aliasSpecifications sets the {@link #ALIASES}
+     * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
     public void setAliases(List<AliasSpecification> aliasSpecifications)
     {
-        getPropertyStorage().setCollection(ALIASES, aliasSpecifications);
+        this.aliasSpecifications = aliasSpecifications;
     }
 
     /**
-     * @param aliasSpecification to be added to the {@link #ALIASES}
+     * @param aliasSpecification to be added to the {@link #aliasSpecifications}
      */
     public void addAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().addCollectionItem(ALIASES, aliasSpecification, List.class);
+        aliasSpecifications.add(aliasSpecification);
     }
 
     /**
-     * @param aliasSpecification to be removed from the {@link #ALIASES}
+     * @param aliasSpecification to be removed from the {@link #aliasSpecifications}
      */
     public void removeAlias(AliasSpecification aliasSpecification)
     {
-        getPropertyStorage().removeCollectionItem(ALIASES, aliasSpecification);
+        aliasSpecifications.remove(aliasSpecification);
+    }
+
+    public static final String RESOURCE_ID = "resourceId";
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String PARTICIPANT_COUNT = "participantCount";
+    public static final String ROOM_SETTINGS = "roomSettings";
+    public static final String ALIAS_SPECIFICATIONS = "aliasSpecifications";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(PARTICIPANT_COUNT, participantCount);
+        dataMap.set(ROOM_SETTINGS, roomSettings);
+        dataMap.set(ALIAS_SPECIFICATIONS, aliasSpecifications);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        resourceId = dataMap.getString(resourceId);
+        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
+        participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
+        roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
+        aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
     }
 }

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.util.ClassHelper;
+import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -88,7 +88,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
-            specificationApi.setupNewEntity();
+            if (true) {
+                throw new TodoImplementException("TODO: refactorize API");
+            }
+            //specificationApi.setupNewEntity();
+
             cz.cesnet.shongo.controller.request.Specification specification =
                     cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
             Throwable cause = null;
@@ -118,8 +122,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
         String userId = authorization.validate(token);
-
-        reservationRequestApi.setupNewEntity();
 
         // Change user id (only root can do that)
         if (reservationRequestApi.getUserId() != null && authorization.isAdmin(userId)) {
@@ -236,9 +238,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             ReservationManager reservationManager = new ReservationManager(entityManager);
             if (!isModifiableReservationRequest(oldReservationRequest, reservationManager)) {
-                if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
-                    throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
+                if (true) {
+                    throw new TodoImplementException();
                 }
+                /*if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
+                    throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
+                }*/
             }
 
             // Check if modified reservation request is of the same class

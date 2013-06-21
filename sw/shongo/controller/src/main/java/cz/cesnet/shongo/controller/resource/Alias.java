@@ -5,7 +5,6 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 
 import javax.persistence.*;
-import java.util.Map;
 
 /**
  * Represents a specific technology alias.
