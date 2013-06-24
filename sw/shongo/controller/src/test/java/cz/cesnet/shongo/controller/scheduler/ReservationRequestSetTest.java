@@ -238,7 +238,7 @@ public class ReservationRequestSetTest extends AbstractSchedulerTest
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
             ExternalEndpointSetSpecification externalEndpointSpecification =
-                    (ExternalEndpointSetSpecification) compartmentSpecification.getSpecifications().get(3);
+                    (ExternalEndpointSetSpecification) compartmentSpecification.getCompartmentSpecifications().get(3);
             externalEndpointSpecification.setCount(96);
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();

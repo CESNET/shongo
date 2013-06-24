@@ -157,9 +157,11 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         Synchronization.synchronizeCollection(technologies, externalEndpointSpecificationApi.getTechnologies());
 
         aliases.clear();
-        Alias alias = new Alias();
-        alias.fromApi(externalEndpointSpecificationApi.getAlias());
-        addAlias(alias);
+        if (externalEndpointSpecificationApi.getAlias() != null) {
+            Alias alias = new Alias();
+            alias.fromApi(externalEndpointSpecificationApi.getAlias());
+            addAlias(alias);
+        }
 
         super.fromApi(specificationApi, entityManager);
     }

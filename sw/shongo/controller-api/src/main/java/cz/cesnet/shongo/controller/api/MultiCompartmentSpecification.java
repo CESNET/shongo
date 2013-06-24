@@ -17,18 +17,23 @@ public class MultiCompartmentSpecification extends Specification
      */
     private List<CompartmentSpecification> compartmentSpecifications = new LinkedList<CompartmentSpecification>();
 
+    public MultiCompartmentSpecification()
+    {
+
+    }
+
     /**
      * @return {@link #compartmentSpecifications}
      */
-    public List<CompartmentSpecification> getSpecifications()
+    public List<CompartmentSpecification> getCompartmentSpecifications()
     {
         return compartmentSpecifications;
     }
 
     /**
-     * @param specifications {@link #compartmentSpecifications}
+     * @param compartmentSpecifications {@link #compartmentSpecifications}
      */
-    public void setSpecifications(List<CompartmentSpecification> specifications)
+    public void setSpecifications(List<CompartmentSpecification> compartmentSpecifications)
     {
         this.compartmentSpecifications = compartmentSpecifications;
     }

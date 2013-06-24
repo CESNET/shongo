@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+
 /**
  * {@link Reservation} for existing {@link Reservation}.
  *
@@ -26,5 +28,22 @@ public class ExistingReservation extends Reservation
     public void setReservation(Reservation reservation)
     {
         this.reservation = reservation;
+    }
+
+    private static final String RESERVATION = "reservation";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESERVATION, reservation);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        reservation = dataMap.getComplexType(RESERVATION, Reservation.class);
     }
 }

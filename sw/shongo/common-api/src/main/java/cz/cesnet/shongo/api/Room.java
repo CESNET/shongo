@@ -191,6 +191,14 @@ public class Room extends IdentifiedComplexType implements Concept
     }
 
     /**
+     * @param roomSettings sets the {@link #roomSettings}
+     */
+    public void setRoomSettings(List<RoomSetting> roomSettings)
+    {
+        this.roomSettings = roomSettings;
+    }
+
+    /**
      * @param roomSettingType
      * @return {@link RoomSetting} of given {@code roomSettingType} or null if doesn't exist
      */
@@ -224,6 +232,14 @@ public class Room extends IdentifiedComplexType implements Concept
     public List<UserInformation> getParticipants()
     {
         return participants;
+    }
+
+    /**
+     * @param participants sets the {@link #participants}
+     */
+    public void setParticipants(List<UserInformation> participants)
+    {
+        this.participants = participants;
     }
 
     /**

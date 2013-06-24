@@ -317,6 +317,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
+        mcu.addTechnology(Technology.SIP);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);

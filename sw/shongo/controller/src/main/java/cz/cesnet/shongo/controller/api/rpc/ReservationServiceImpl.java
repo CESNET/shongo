@@ -195,17 +195,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         return true;
     }
 
-    /**
-     * Properties which can be filled to allow modification of reservation request whose reservation is provided to
-     * another reservation request.
-     */
-    private final static Set<String> MODIFIABLE_FILLED_PROPERTIES = new HashSet<String>()
-    {{
-            add("id");
-            add(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT);
-            add(cz.cesnet.shongo.controller.api.ReservationRequestSet.SLOTS);
-        }};
-
     @Override
     public String modifyReservationRequest(SecurityToken token,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
@@ -233,12 +222,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             ReservationManager reservationManager = new ReservationManager(entityManager);
             if (!isModifiableReservationRequest(oldReservationRequest, reservationManager)) {
-                if (true) {
-                    throw new TodoImplementException();
-                }
-                /*if (!MODIFIABLE_FILLED_PROPERTIES.containsAll(reservationRequestApi.getFilledProperties())) {
-                    throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
-                }*/
+                throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
             }
 
             // Check if modified reservation request is of the same class

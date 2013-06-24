@@ -10,10 +10,7 @@ import org.apache.xmlrpc.common.XmlRpcController;
 import org.apache.xmlrpc.common.XmlRpcStreamConfig;
 import org.apache.xmlrpc.parser.MapParser;
 import org.apache.xmlrpc.parser.TypeParser;
-import org.apache.xmlrpc.serializer.MapSerializer;
-import org.apache.xmlrpc.serializer.ObjectArraySerializer;
-import org.apache.xmlrpc.serializer.StringSerializer;
-import org.apache.xmlrpc.serializer.TypeSerializer;
+import org.apache.xmlrpc.serializer.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -78,19 +75,29 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     /**
-     * @param pConfig
-     * @return {@link TypeSerializer} for {@code null} value
+     * {@link TypeSerializer} for {@link AtomicType}.
      */
-    private TypeSerializer getNullSerializer(XmlRpcStreamConfig pConfig)
+    public static class NullSerializer extends TypeSerializerImpl
     {
-        return new MapSerializer(this, pConfig)
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
         {
-            @Override
-            public void write(ContentHandler pHandler, Object pObject) throws SAXException
-            {
-                super.write(pHandler, new HashMap());
-            }
-        };
+            write(handler);
+        }
+
+        /**
+         * Write null to given {@code handler}.
+         *
+         * @param handler
+         * @throws SAXException
+         */
+        public static void write(ContentHandler handler) throws SAXException
+        {
+            handler.startElement("", VALUE_TAG, VALUE_TAG, ZERO_ATTRIBUTES);
+            handler.startElement("", "struct", "struct", ZERO_ATTRIBUTES);
+            handler.endElement("", "struct", "struct");
+            handler.endElement("", VALUE_TAG, VALUE_TAG);
+        }
     }
 
     /**
@@ -198,10 +205,17 @@ public class TypeFactory extends TypeFactoryImpl
         @Override
         public void write(ContentHandler handler, Object object) throws SAXException
         {
-            super.write(handler, Converter.convertAtomicTypeToString((AtomicType) object));
+            String value = Converter.convertAtomicTypeToString((AtomicType) object);
+            if (value != null) {
+                super.write(handler, value);
+            }
+            else {
+                NullSerializer.write(handler);
+            }
         }
     }
 
+    private static final TypeSerializer NULL_SERIALIZER = new NullSerializer();
     private static final TypeSerializer ENUM_SERIALIZER = new EnumSerializer();
     private static final TypeSerializer DATETIME_SERIALIZER = new DateTimeSerializer();
     private static final TypeSerializer PERIOD_SERIALIZER = new PeriodSerializer();
@@ -212,7 +226,7 @@ public class TypeFactory extends TypeFactoryImpl
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
         if (pObject == null) {
-            return getNullSerializer(pConfig);
+            return NULL_SERIALIZER;
         }
         else if (pObject instanceof Enum) {
             return ENUM_SERIALIZER;

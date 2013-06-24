@@ -39,6 +39,9 @@ public class Converter
         else if (value instanceof String) {
             return (String) value;
         }
+        else if (value.getClass().isPrimitive()) {
+            return value.toString();
+        }
         else {
             throw new TodoImplementException(value.toString());
         }
@@ -420,6 +423,9 @@ public class Converter
             Object[] array = (Object[]) value;
             Collection<Object> collection = ClassHelper.createCollection(collectionClass, 0);
             for (Object arrayItem : array) {
+                if (arrayItem == null) {
+                    throw new CommonReportSet.CollectionItemNullException((String) null);
+                }
                 collection.add(convert(arrayItem, componentClasses));
             }
             return collectionClass.cast(collection);
@@ -507,7 +513,7 @@ public class Converter
      * @param value
      * @return converted {@link String} value
      */
-    public static Object convertAtomicTypeToString(AtomicType value)
+    public static String convertAtomicTypeToString(AtomicType value)
     {
         if (value == null) {
             return null;
@@ -655,7 +661,8 @@ public class Converter
                         value.getClass().getCanonicalName(), targetClasses[index].getCanonicalName()),
                         exceptionList.get(index));
             }
-            throw new IllegalArgumentException();
+            throw new CommonReportSet.ClassAttributeTypeMismatchException(
+                    null, null, null, ClassHelper.getClassShortName(value.getClass()));
         }
         else {
             throw new IllegalArgumentException("Required classes must not be empty.");

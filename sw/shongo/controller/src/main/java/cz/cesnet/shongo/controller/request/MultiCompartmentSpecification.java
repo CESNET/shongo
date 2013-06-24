@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -98,7 +96,7 @@ public class MultiCompartmentSpecification extends Specification
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
-        return false;
+        return super.synchronizeFrom(specification);
     }
 
     @Override
@@ -144,7 +142,7 @@ public class MultiCompartmentSpecification extends Specification
                 (cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) specificationApi;
 
         Synchronization.synchronizeCollection(
-                compartmentSpecifications, multiCompartmentSpecificationApi.getSpecifications(),
+                compartmentSpecifications, multiCompartmentSpecificationApi.getCompartmentSpecifications(),
                 new Synchronization.Handler<CompartmentSpecification,
                         cz.cesnet.shongo.controller.api.CompartmentSpecification>(CompartmentSpecification.class)
                 {

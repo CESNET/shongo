@@ -96,7 +96,7 @@ public class XmlRpcTest extends AbstractControllerTest
         attributes.put("specification", new HashMap<String, Object>()
         {{
                 put("class", "CompartmentSpecification");
-                put("specifications", new ArrayList<Object>()
+                put("participantSpecifications", new ArrayList<Object>()
                 {{
                         add(new HashMap<String, Object>()
                         {{
@@ -213,6 +213,12 @@ public class XmlRpcTest extends AbstractControllerTest
 
         reservationRequest = new HashMap<String, Object>();
         reservationRequest.put("class", "ReservationRequestSet");
+        reservationRequest.put("purpose", "SCIENCE");
+        reservationRequest.put("specification", new HashMap<String, Object>()
+        {{
+                put("class", "AliasSpecification");
+                put("value", "1");
+            }});
         reservationRequest.put("slots", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>());
@@ -228,6 +234,12 @@ public class XmlRpcTest extends AbstractControllerTest
 
         reservationRequest = new HashMap<String, Object>();
         reservationRequest.put("class", "ReservationRequestSet");
+        reservationRequest.put("purpose", "SCIENCE");
+        reservationRequest.put("specification", new HashMap<String, Object>()
+        {{
+                put("class", "AliasSpecification");
+                put("value", "1");
+            }});
         reservationRequest.put("slots", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>()
@@ -242,18 +254,6 @@ public class XmlRpcTest extends AbstractControllerTest
         }
         catch (XmlRpcException exception) {
             Assert.assertEquals(CommonReportSet.CLASS_ATTRIBUTE_TYPE_MISMATCH_REPORT, exception.code);
-        }
-
-        reservationRequest = new HashMap<String, Object>();
-        reservationRequest.put("class", "ReservationRequestSet");
-        reservationRequest.put("reservationRequests", new ArrayList<Object>());
-        try {
-            getControllerClient().execute("Reservation.createReservationRequest",
-                    new Object[]{SECURITY_TOKEN.getAccessToken(), reservationRequest});
-            Assert.fail("Exception that attribute is read only should be thrown.");
-        }
-        catch (XmlRpcException exception) {
-            Assert.assertEquals(CommonReportSet.CLASS_ATTRIBUTE_READONLY_REPORT, exception.code);
         }
     }
 }
