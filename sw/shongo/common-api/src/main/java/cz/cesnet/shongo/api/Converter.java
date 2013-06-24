@@ -42,6 +42,9 @@ public class Converter
         else if (value.getClass().isPrimitive()) {
             return value.toString();
         }
+        else if (value instanceof Integer) {
+            return value.toString();
+        }
         else {
             throw new TodoImplementException(value.toString());
         }
@@ -61,6 +64,9 @@ public class Converter
         else if (value instanceof Boolean) {
             return (Boolean) value;
         }
+        else if (value instanceof Integer) {
+            return ((Integer) value) != 0;
+        }
         throw new TodoImplementException(value.getClass().getCanonicalName());
     }
 
@@ -79,6 +85,45 @@ public class Converter
             return (Integer) value;
         }
         throw new TodoImplementException(value.getClass().getCanonicalName());
+    }
+
+    /**
+     * Convert given {@link Class} {@code value} to {@link String}.
+     *
+     * @param value
+     * @return converted {@link String} value
+     */
+    public static String convertClassToString(Class value)
+    {
+        if (value == null) {
+            return null;
+        }
+        return ClassHelper.getClassShortName(value);
+    }
+
+    /**
+     * Convert given {@code value} to {@link Class}.
+     *
+     * @param value
+     * @return converted {@link Enum} value
+     */
+    public static Class convertToClass(Object value)
+    {
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof String) {
+            String className = (String) value;
+            try {
+                return ClassHelper.getClassFromShortName(className);
+            }
+            catch (ClassNotFoundException e) {
+                throw new CommonReportSet.ClassUndefinedException(className);
+            }
+        }
+        else {
+            throw new TodoImplementException(value.getClass().getCanonicalName());
+        }
     }
 
     /**
@@ -628,6 +673,9 @@ public class Converter
                 Map<String, Object> map = (Map<String, Object>) value;
                 return (T) convertMapToComplexType(map, abstractObjectClass);
             }
+        }
+        else if (Class.class.equals(targetClass)) {
+            return (T) convertToClass(value);
         }
         String from = (value != null ? value.getClass().getName() : "null");
         String to = (targetClass != null ? targetClass.getName() : "null");

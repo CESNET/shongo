@@ -13,10 +13,9 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys ordered_hash_merge
-    array_value_exists array_remove_value
     get_enum_value
-    get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
-    get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
+    array_value_exists array_remove_value
+    get_collection_size get_map_size get_map_item_key get_map_item_value
     iso8601_datetime_parse iso8601_datetime_format iso8601_period_parse iso8601_period_format
     datetime_add_duration datetime_get_timezone datetime_fill_timezone datetime_format datetime_format_date
     datetime_partial_format
@@ -171,7 +170,7 @@ sub get_enum_value
 }
 
 #
-# Get number of items in collection. Collection can be stored as hash('new' => [], 'modified' => [], 'deleted' => []).
+# Get number of items in collection.
 #
 # @param $collection  collection reference
 # @return collection size
@@ -179,187 +178,13 @@ sub get_enum_value
 sub get_collection_size
 {
     my ($collection) = @_;
-    my $items = get_collection_items($collection);
-    return scalar(@{$items});
-}
-
-#
-# Get collection items as array. Collection can be stored as hash('new' => [], 'modified' => [], 'deleted' => []).
-#
-# @param $collection  collection reference
-# @return array of items
-#
-sub get_collection_items
-{
-    my ($collection) = @_;
-    if ( ref($collection) eq 'ARRAY' ) {
-        return $collection;
-    }
-    elsif ( ref($collection) eq 'HASH' ) {
-        my $array = [];
-        if ( defined($collection->{'__array'}) ) {
-            push(@{$array}, @{$collection->{'__array'}});
-        }
-        if ( defined($collection->{'modified'}) ) {
-            push(@{$array}, @{$collection->{'modified'}});
-        }
-        if ( defined($collection->{'new'}) ) {
-            push(@{$array}, @{$collection->{'new'}});
-        }
-        return $array;
+    my $items = $collection;
+    if ( defined($items) ) {
+        return scalar(@{$items});
     }
     else {
-        return [];
+        return 0;
     }
-}
-
-#
-# Get item from collection by index
-#
-# @param $collection  collection reference
-# @param $item_index  item index
-#
-sub get_collection_item
-{
-    my ($collection, $item_index) = @_;
-    my $items = get_collection_items($collection);
-    return $items->[$item_index];
-}
-
-#
-# Set item item collection by index
-#
-# @param $collection  reference to collection reference
-# @param $item_index  item index
-# @param $item  item
-#
-sub set_collection_item
-{
-    my ($collection, $item_index, $item) = @_;
-    convert_collection_to_hash($collection);
-
-    #var_dump($collection);
-    #var_dump($item_index);
-    #var_dump($item);
-
-    if ( $item_index < scalar(@{${$collection}->{'__array'}}) ) {
-        splice(@{${$collection}->{'__array'}}, $item_index, 1);
-        if ( !defined(${$collection}->{'modified'}) ) {
-            ${$collection}->{'modified'} = [];
-        }
-        push(@{${$collection}->{'modified'}}, $item);
-    }
-    else {
-        $item_index -= scalar(@{${$collection}->{'__array'}});
-
-        if ( defined(${$collection}->{'modified'}) ) {
-            if ( $item_index < scalar(@{${$collection}->{'modified'}}) ) {
-                @{${$collection}->{'modified'}}[$item_index] = $item;
-                return;
-            }
-            $item_index -= scalar(@{${$collection}->{'modified'}});
-        }
-        @{${$collection}->{'new'}}[$item_index] = $item;
-    }
-}
-
-#
-# Convert collection to hash
-#
-# @param \$collection  reference to collection reference
-# @param $is_new       specifies whether collection items should be marked as new
-#
-sub convert_collection_to_hash
-{
-    my ($collection, $is_new) = @_;
-    if ( !defined($is_new) ) {
-        $is_new = 0;
-    }
-    if ( ref(${$collection}) eq 'HASH' ) {
-        # Do nothing
-        if ( $is_new ) {
-            die("Collection already contains changes so the items can't be marked as new.");
-        }
-    }
-    elsif ( ref(${$collection}) eq 'ARRAY' ) {
-        if ( $is_new ) {
-            ${$collection} = {'new' => ${$collection}};
-        }
-        else {
-            ${$collection} = {'__array' => ${$collection}};
-        }
-    }
-    else {
-        ${$collection} = {};
-    };
-}
-
-#
-# Add item to collection
-#
-# @param \$collection  reference to collection reference
-# @param $item         new item
-#
-sub add_collection_item
-{
-    my ($collection, $item) = @_;
-    convert_collection_to_hash($collection);
-    if ( !defined(${$collection}->{'new'}) ) {
-        ${$collection}->{'new'} = [];
-    }
-    push(@{${$collection}->{'new'}}, $item);
-}
-
-#
-# Remove item from collection
-#
-# @param \$collection  reference to collection reference
-# @param $item_index   existing item index
-#
-sub remove_collection_item
-{
-    my ($collection, $item_index) = @_;
-    convert_collection_to_hash($collection);
-    my $item = undef;
-    # Remove item from original array
-    if ( defined(${$collection}->{'__array'}) ) {
-        my $array_count = scalar(@{${$collection}->{'__array'}});
-        if ( $item_index < $array_count ) {
-            $item = ${$collection}->{'__array'}[$item_index];
-            splice(@{${$collection}->{'__array'}}, $item_index, 1);
-            $item_index = undef;
-        } else {
-            $item_index -= $array_count;
-        }
-    }
-    # Remove item from modified array
-    if ( defined($item_index) && defined(${$collection}->{'modified'}) ) {
-        my $modified_count = scalar(@{${$collection}->{'modified'}});
-        if ( $item_index < $modified_count ) {
-            $item = ${$collection}->{'modified'}[$item_index];
-            splice(@{${$collection}->{'modified'}}, $item_index, 1);
-            $item_index = undef;
-        } else {
-            $item_index -= $modified_count;
-        }
-    }
-    # Remove item from new array
-    if ( defined($item_index) && defined(${$collection}->{'new'}) ) {
-        my $new_count = scalar(@{${$collection}->{'new'}});
-        if ( $item_index < $new_count ) {
-            splice(@{${$collection}->{'new'}}, $item_index, 1);
-            return;
-        }
-    }
-    # If item was original or modified, add it to deleted
-    if ( defined($item) ) {
-        if ( !defined(${$collection}->{'deleted'}) ) {
-            ${$collection}->{'deleted'} = [];
-        }
-        push(@{${$collection}->{'deleted'}}, $item);
-        return;
-    }
-    console_print_error("Cannot delete item with index '%d' in collection '%s'.", $item_index, $collection);
 }
 
 #
@@ -371,30 +196,7 @@ sub remove_collection_item
 sub get_map_size
 {
     my ($map) = @_;
-    my $items = get_map_items($map);
-    return scalar(keys %{$items});
-}
-
-#
-# Get map items as hash.
-#
-# @param $map  map reference
-# @return hash of items
-#
-sub get_map_items
-{
-    my ($map) = @_;
-    if ( ref($map) eq 'HASH' ) {
-        if ( defined($map->{'__map'}) ) {
-            return $map->{'__map'};
-        }
-        else {
-            return $map;
-        }
-    }
-    else {
-        return {};
-    }
+    return scalar(keys %{$map});
 }
 
 #
@@ -406,8 +208,7 @@ sub get_map_items
 sub get_map_item_key
 {
     my ($map, $item_index) = @_;
-    my $items = get_map_items($map);
-    my @item_keys = keys %{$items};
+    my @item_keys = keys %{$map};
     return $item_keys[$item_index];
 }
 
@@ -420,130 +221,7 @@ sub get_map_item_key
 sub get_map_item_value
 {
     my ($map, $item_key) = @_;
-    my $items = get_map_items($map);
-    return $items->{$item_key};
-}
-
-#
-# Convert map to hash with changes.
-#
-# @param \$map    reference to map reference
-# @param $is_new  specifies whether map items should be marked as new)
-#
-sub convert_map_to_hash
-{
-    my ($map, $is_new) = @_;
-    if ( !defined($is_new) ) {
-        $is_new = 0;
-    }
-    if ( ref(${$map}) eq 'HASH' ) {
-        if ( defined(${$map}->{'__map'}) ) {
-            # Do nothing
-            if ( $is_new ) {
-                die("Map already contains changes so the items can't be marked as new.");
-            }
-        }
-        else {
-            ${$map} = {'__map' => ${$map}};
-            ${$map}->{'new'} = [];
-            foreach my $item_key (keys %{${$map}->{'__map'}}) {
-                push(@{${$map}->{'new'}}, $item_key);
-            }
-        }
-    }
-    else {
-        ${$map} = {};
-    };
-}
-
-#
-# Set item value to map
-#
-# @param $map       reference to map reference
-# @param $item_key  item key
-#
-sub set_map_item
-{
-    my ($map, $item_key, $item_value) = @_;
-    convert_map_to_hash($map);
-    # If item is not new, mark it as "modified"
-    if ( !array_value_exists($item_key, @{${$map}->{'new'}}) ) {
-        if ( !defined(${$map}->{'modified'}) ) {
-            ${$map}->{'modified'} = [];
-        }
-        array_remove_value($item_key, ${$map}->{'modified'});
-        push(@{${$map}->{'modified'}}, $item_key);
-    }
-    ${$map}->{'__map'}->{$item_key} = $item_value;
-}
-
-#
-# Add new item to map
-#
-# @param $map         reference to map reference
-# @param $item_key    new item key
-# @param $item_value  new item value
-#
-sub add_map_item
-{
-    my ($map, $item_key, $item_value) = @_;
-    convert_map_to_hash($map);
-
-    # If item is deleted, mark it as "modified"
-    if ( array_value_exists($item_key, @{${$map}->{'deleted'}}) ) {
-        array_remove_value($item_key, ${$map}->{'deleted'});
-        if ( !defined(${$map}->{'modified'}) ) {
-            ${$map}->{'modified'} = [];
-        }
-        array_remove_value($item_key, ${$map}->{'modified'});
-        push(@{${$map}->{'modified'}}, $item_key);
-    }
-    # If item is already defined, mark it as "modified"
-    elsif ( defined(${$map}->{'__map'}->{$item_key}) ) {
-        if ( !defined(${$map}->{'modified'}) ) {
-            ${$map}->{'modified'} = [];
-        }
-        array_remove_value($item_key, ${$map}->{'modified'});
-        push(@{${$map}->{'modified'}}, $item_key);
-    }
-    # If item is not defined, mark it as "new"
-    else {
-        if ( !defined(${$map}->{'new'}) ) {
-            ${$map}->{'new'} = [];
-        }
-        array_remove_value($item_key, ${$map}->{'new'});
-        push(@{${$map}->{'new'}}, $item_key);
-    }
-
-    ${$map}->{'__map'}->{$item_key} = $item_value;
-}
-
-#
-# Remove item from map by key
-#
-# @param $map         reference to map reference
-# @param $item_key    item key
-#
-sub remove_map_item
-{
-    my ($map, $item_key) = @_;
-    convert_map_to_hash($map);
-    # Remove item mark as "modified"
-    if ( defined(${$map}->{'modified'}) ) {
-        array_remove_value($item_key, ${$map}->{'modified'});
-    }
-    # Remove item mark as "new"
-    if ( defined(${$map}->{'new'}) && array_value_exists($item_key, @{${$map}->{'new'}})) {
-        array_remove_value($item_key, ${$map}->{'new'});
-    }
-    # If item was not new, mark it as "deleted"
-    else {
-        if ( !defined(${$map}->{'deleted'}) ) {
-            ${$map}->{'deleted'} = [];
-        }
-        push(@{${$map}->{'deleted'}}, $item_key);
-    }
-    delete ${$map}->{'__map'}->{$item_key};
+    return $map->{$item_key};
 }
 
 #

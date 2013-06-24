@@ -274,7 +274,11 @@ sub add_attribute
             # Generate callbacks for given class
             $attribute->{'item'}->{'add'} = sub {
                 my $available_values = [];
-                my %values_hash = map { $_ => 1 } @{get_collection_items($self->get($attribute_name))};
+                my $attribute_value = $self->get($attribute_name);
+                my %values_hash = ();
+                if ( defined($attribute_value) ) {
+                    %values_hash = map { $_ => 1 } @{$attribute_value};
+                }
                 my $count = 0;
                 foreach my $key (ordered_hash_keys($attribute->{'item'}->{'enum'})) {
                     if ( !exists($values_hash{$key}) ) {
@@ -641,7 +645,7 @@ sub modify_attribute_items_add_actions
                         if ( !defined($self->{$attribute_name}) ) {
                             $self->{$attribute_name} = [];
                         }
-                        add_collection_item(\$self->{$attribute_name}, $item);
+                        push(@{$self->{$attribute_name}}, $item);
                     }
                 }
                 # Add item to map
@@ -651,7 +655,7 @@ sub modify_attribute_items_add_actions
                         if ( !defined($self->{$attribute_name}) ) {
                             $self->{$attribute_name} = {};
                         }
-                        add_map_item(\$self->{$attribute_name}, $itemKey, $itemValue);
+                        $self->{$attribute_name}->{$itemKey} = $itemValue;
                     }
                 }
                 return undef;
@@ -674,16 +678,16 @@ sub modify_attribute_items_add_actions
                 if ( defined($index) ) {
                     # Modify item in collection
                     if ( $attribute->{'type'} eq 'collection' ) {
-                        my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                        my $item = $self->{$attribute_name}->[$index - 1];
                         $item = $attribute->{'item'}->{'modify'}($item);
-                        set_collection_item(\$self->{$attribute_name}, $index - 1, $item);
+                        $self->{$attribute_name}->[$index - 1] = $item;
                     }
-                    # Remove item in map
+                    # Modify item in map
                     else {
                         my $item_key = get_map_item_key($self->{$attribute_name}, $index - 1);
                         my $item_value = get_map_item_value($self->{$attribute_name}, $item_key);
                         $item_value = $attribute->{'item'}->{'modify'}($item_key, $item_value);
-                        set_map_item(\$self->{$attribute_name}, $item_key, $item_value);
+                        $self->{$attribute_name}->{$item_key} = $item_value;
                     }
                 }
                 return undef;
@@ -696,11 +700,11 @@ sub modify_attribute_items_add_actions
                 if ( defined($index) ) {
                     # Remove item from collection
                     if ( $attribute->{'type'} eq 'collection' ) {
-                        my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                        my $item = $self->{$attribute_name}->[$index - 1];
                         if ( defined($attribute->{'item'}->{'delete'}) ) {
                             $attribute->{'item'}->{'delete'}($item);
                         }
-                        remove_collection_item(\$self->{$attribute_name}, $index - 1);
+                        splice(@{$self->{$attribute_name}}, $index - 1);
                     }
                     # Remove item from map
                     else {
@@ -708,7 +712,7 @@ sub modify_attribute_items_add_actions
                         if ( defined($attribute->{'item'}->{'delete'}) ) {
                             $attribute->{'item'}->{'delete'}($item_key);
                         }
-                        remove_map_item(\$self->{$attribute_name}, $item_key);
+                        delete $self->{$attribute_name}->{$item_key};
                     }
                 }
                 return undef;
@@ -938,20 +942,15 @@ sub format_value
         # get array items
         if( ref($value) eq 'ARRAY' ) {
             my ($item) = @_;
-            $items = get_collection_items($value);
+            $items = $value;
         }
-        # get array with changes items
+        # get map items
         elsif( ref($value) eq 'HASH' ) {
-            if ( (defined($value->{'modified'}) || defined($value->{'new'}) || defined($value->{'deleted'})) && !defined($value->{'__map'})) {
-                $items = get_collection_items($value);
-            }
-            else {
-                my $map_items = get_map_items($value);
-                $items = [];
-                foreach my $itemKey (keys %{$map_items}) {
-                    my $itemValue = $map_items->{$itemKey};
-                    push(@{$items}, {'__key' => $itemKey, '__value' => $itemValue});
-                }
+            my $map_items = $value;
+            $items = [];
+            foreach my $itemKey (keys %{$map_items}) {
+                my $itemValue = $map_items->{$itemKey};
+                push(@{$items}, {'__key' => $itemKey, '__value' => $itemValue});
             }
         }
         if ( defined($items) ) {
@@ -1243,24 +1242,6 @@ sub to_hash()
         if ( $attribute->{'read-only'} == 0 ) {
             if ( defined($self->{$attribute_name}) ) {
                 my $attribute_value = $self->get($attribute_name);
-                # Collection must be always converted to changes map
-                if ( $attribute->{'type'} eq 'collection' ) {
-                    if ( $options->{'changes'} ) {
-                        Shongo::Common::convert_collection_to_hash(\$attribute_value);
-                    }
-                    else {
-                        $attribute_value = Shongo::Common::get_collection_items($attribute_value);
-                    }
-                }
-                # Map must be also always converted to changes map
-                if ( $attribute->{'type'} eq 'map' ) {
-                    if ( $options->{'changes'} ) {
-                        Shongo::Common::convert_map_to_hash(\$attribute_value);
-                    }
-                    else {
-                        $attribute_value = Shongo::Common::get_map_items($attribute_value);
-                    }
-                }
                 # Store attribute to xml
                 $hash->{$attribute_name} = $self->to_hash_value($attribute_value, $options);
             }
@@ -1367,11 +1348,10 @@ sub create_instance
 #
 # @param $value
 # @param $attribute_name
-# @param $is_new          specifies whether value is set to new entity (map or collection items should be marked as new)
 #
 sub from_hash_value
 {
-    my ($self, $value, $attribute_name, $is_new) = @_;
+    my ($self, $value, $attribute_name) = @_;
 
     if ( ref($value) eq 'HASH' ) {
         my $attribute = undef;
@@ -1388,27 +1368,21 @@ sub from_hash_value
         if ( defined($class) ) {
             my $object = create_instance($class, $attribute);
             if ( defined($object) ) {
-                $object->from_hash($value, $is_new);
+                $object->from_hash($value);
                 return $object;
             }
         }
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            $hash->{$item_name} = $self->from_hash_value($item_value, $item_name, $is_new);
-        }
-        if ( defined($attribute) && $attribute->{'type'} eq 'map' && $is_new ) {
-            Shongo::Common::convert_map_to_hash(\$hash, $is_new);
+            $hash->{$item_name} = $self->from_hash_value($item_value, $item_name);
         }
         return $hash;
     }
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push(@{$array}, $self->from_hash_value($item, $attribute_name, $is_new));
-        }
-        if ( $is_new ) {
-            Shongo::Common::convert_collection_to_hash(\$array, 1);
+            push(@{$array}, $self->from_hash_value($item, $attribute_name));
         }
         return $array;
     }
@@ -1421,15 +1395,10 @@ sub from_hash_value
 # Convert object from xml
 #
 # @param $hash    to fill from
-# @param $is_new  specifies the object is new entity (map or collection items should be marked as new)
 #
 sub from_hash()
 {
-    my ($self, $hash, $is_new) = @_;
-
-    if ( !defined($is_new) ) {
-        $is_new = 0;
-    }
+    my ($self, $hash) = @_;
 
     # Get hash from xml
     if ( ref($hash) eq "RPC::XML::struct" ) {
@@ -1461,7 +1430,7 @@ sub from_hash()
     # Convert hash to object
     foreach my $attribute_name (keys %{$hash}) {
         my $attribute_value = $hash->{$attribute_name};
-        $attribute_value = $self->from_hash_value($attribute_value, $attribute_name, $is_new);
+        $attribute_value = $self->from_hash_value($attribute_value, $attribute_name);
         if ( $self->has_attribute($attribute_name) ) {
             $self->set($attribute_name, $attribute_value);
         }

@@ -58,7 +58,7 @@ sub new()
         'complex' => 1,
         'format' => sub() {
             my ($room_settings) = @_;
-            Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, get_collection_items($self->get('technologies')));
+            Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, $self->get('technologies'));
         },
         'modify' => sub() {
             my ($room_settings) = @_;

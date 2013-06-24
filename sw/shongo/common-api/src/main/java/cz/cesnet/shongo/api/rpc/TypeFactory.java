@@ -103,6 +103,18 @@ public class TypeFactory extends TypeFactoryImpl
     /**
      * {@link TypeSerializer} for {@link Enum}.
      */
+    public static class ClassSerializer extends StringSerializer
+    {
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            super.write(handler, Converter.convertClassToString((Class) object));
+        }
+    }
+
+    /**
+     * {@link TypeSerializer} for {@link Enum}.
+     */
     public static class EnumSerializer extends StringSerializer
     {
         @Override
@@ -216,6 +228,7 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     private static final TypeSerializer NULL_SERIALIZER = new NullSerializer();
+    private static final TypeSerializer CLASS_SERIALIZER = new ClassSerializer();
     private static final TypeSerializer ENUM_SERIALIZER = new EnumSerializer();
     private static final TypeSerializer DATETIME_SERIALIZER = new DateTimeSerializer();
     private static final TypeSerializer PERIOD_SERIALIZER = new PeriodSerializer();
@@ -227,6 +240,9 @@ public class TypeFactory extends TypeFactoryImpl
     {
         if (pObject == null) {
             return NULL_SERIALIZER;
+        }
+        else if (pObject instanceof Class) {
+            return CLASS_SERIALIZER;
         }
         else if (pObject instanceof Enum) {
             return ENUM_SERIALIZER;

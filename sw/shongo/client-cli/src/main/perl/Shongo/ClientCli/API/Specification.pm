@@ -109,7 +109,7 @@ sub on_init()
 
     switch ($class) {
         case 'MultiCompartmentSpecification' {
-            $self->add_attribute('specifications', {
+            $self->add_attribute('compartmentSpecifications', {
                 'type' => 'collection',
                 'item' => {
                     'title' => 'compartment',
@@ -125,7 +125,7 @@ sub on_init()
                 'type' => 'enum',
                 'enum' => $Shongo::ClientCli::API::Specification::CallInitiation
             }, NULL());
-            $self->add_attribute('specifications', {
+            $self->add_attribute('participantSpecifications', {
                 'type' => 'collection',
                 'item' => {
                     'title' => 'specification',
@@ -248,7 +248,7 @@ sub on_init()
                 'type' => 'bool',
                 'required' => 1
             });
-            $self->add_attribute('aliases', {
+            $self->add_attribute('aliasSpecifications', {
                 'title' => 'Aliases',
                 'type' => 'collection',
                 'item' => {
@@ -278,7 +278,7 @@ sub on_init()
                 'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
             });
-            $self->add_attribute('aliases', {
+            $self->add_attribute('aliasSpecifications', {
                 'title' => 'Aliases',
                 'type' => 'collection',
                 'item' => {
@@ -293,7 +293,7 @@ sub on_init()
                 'complex' => 1,
                 'format' => sub() {
                     my ($room_settings) = @_;
-                    Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, get_collection_items($self->get('technologies')));
+                    Shongo::ClientCli::API::RoomSettings::format_room_settings($room_settings, $self->get('technologies'));
                 },
                 'modify' => sub() {
                     my ($room_settings) = @_;
