@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.Interval;
 
 /**
@@ -8,7 +9,7 @@ import org.joda.time.Interval;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutableSummary extends IdentifiedObject
+public class ExecutableSummary extends IdentifiedComplexType
 {
     /**
      * Type of {@link Executable}.
@@ -73,6 +74,29 @@ public class ExecutableSummary extends IdentifiedObject
         this.state = state;
     }
 
+    private static final String TYPE = "type";
+    private static final String SLOT = "slot";
+    private static final String STATE = "state";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TYPE, type);
+        dataMap.set(SLOT, slot);
+        dataMap.set(STATE, state);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        type = dataMap.getEnum(TYPE, Type.class);
+        slot = dataMap.getInterval(SLOT);
+        state = dataMap.getEnum(STATE, Executable.State.class);
+    }
+
     /**
      * Type of {@link Executable}.
      */
@@ -84,8 +108,8 @@ public class ExecutableSummary extends IdentifiedObject
         COMPARTMENT,
 
         /**
-         * Represents {@link cz.cesnet.shongo.controller.api.Executable.Room}
+         * Represents {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}
          */
-        VIRTUAL_ROOM
+        ROOM
     }
 }

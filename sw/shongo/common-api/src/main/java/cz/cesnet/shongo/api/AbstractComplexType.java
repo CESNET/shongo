@@ -26,7 +26,7 @@ public abstract class AbstractComplexType implements ComplexType
     {
         String className = getClassName();
         String newClassName = dataMap.getString(CLASS_PROPERTY);
-        if (!newClassName.equals(className)) {
+        if (newClassName != null && !newClassName.equals(className)) {
             throw new IllegalArgumentException("Invalid class " + newClassName + ". " + className + " is required.");
         }
     }

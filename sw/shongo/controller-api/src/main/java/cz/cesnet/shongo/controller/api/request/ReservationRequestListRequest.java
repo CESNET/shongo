@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
@@ -122,5 +123,37 @@ public class ReservationRequestListRequest extends ListRequest
     public static enum Sort
     {
         DATETIME
+    }
+
+    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
+    private static final String TECHNOLOGIES = "technologies";
+    private static final String SPECIFICATION_CLASSES = "specificationClasses";
+    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+    private static final String SORT = "sort";
+    private static final String SORT_DESCENDING = "sortDescending";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
+        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        dataMap.set(SORT, sort);
+        dataMap.set(SORT_DESCENDING, sortDescending);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
+        providedReservationIds = dataMap.getSet(PROVIDED_RESERVATION_IDS, String.class);
+        sort = dataMap.getEnum(SORT, Sort.class);
+        sortDescending = dataMap.getBool(SORT_DESCENDING);
     }
 }

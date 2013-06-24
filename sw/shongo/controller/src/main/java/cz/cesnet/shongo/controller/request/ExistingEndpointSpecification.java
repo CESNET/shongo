@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -122,23 +121,19 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
+        cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        if (existingEndpointSpecificationApi.isPropertyFilled(existingEndpointSpecificationApi.RESOURCE_ID)) {
-            if (existingEndpointSpecificationApi.getResourceId() == null) {
-                setResource(null);
-            }
-            else {
-                Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
-                        existingEndpointSpecificationApi.getResourceId());
-                ResourceManager resourceManager = new ResourceManager(entityManager);
-                setResource(resourceManager.get(resourceId));
-            }
+
+        if (existingEndpointSpecificationApi.getResourceId() == null) {
+            setResource(null);
+        }
+        else {
+            Long resourceId = EntityIdentifier.parseId(cz.cesnet.shongo.controller.resource.Resource.class,
+                    existingEndpointSpecificationApi.getResourceId());
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            setResource(resourceManager.get(resourceId));
         }
 
-        super.fromApi(specificationApi, entityManager);*/
+        super.fromApi(specificationApi, entityManager);
     }
 }

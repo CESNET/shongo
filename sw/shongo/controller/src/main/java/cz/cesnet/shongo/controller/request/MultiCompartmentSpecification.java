@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
@@ -24,7 +24,7 @@ public class MultiCompartmentSpecification extends Specification
     /**
      * List of {@link CompartmentSpecification}s.
      */
-    private List<CompartmentSpecification> specifications = new ArrayList<CompartmentSpecification>();
+    private List<CompartmentSpecification> compartmentSpecifications = new LinkedList<CompartmentSpecification>();
 
     /**
      * Constructor.
@@ -34,52 +34,36 @@ public class MultiCompartmentSpecification extends Specification
     }
 
     /**
-     * @return {@link #specifications}
+     * @return {@link #compartmentSpecifications}
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<CompartmentSpecification> getSpecifications()
+    public List<CompartmentSpecification> getCompartmentSpecifications()
     {
-        return Collections.unmodifiableList(specifications);
+        return Collections.unmodifiableList(compartmentSpecifications);
     }
 
     @Override
     @Transient
     public List<? extends Specification> getChildSpecifications()
     {
-        return Collections.unmodifiableList(specifications);
+        return Collections.unmodifiableList(compartmentSpecifications);
     }
 
     /**
-     * @param id of the requested {@link cz.cesnet.shongo.controller.request.CompartmentSpecification}
-     * @return {@link cz.cesnet.shongo.controller.request.CompartmentSpecification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link Specification} doesn't exist
-     */
-    @Transient
-    private CompartmentSpecification getSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (CompartmentSpecification compartmentSpecification : specifications) {
-            if (compartmentSpecification.getId().equals(id)) {
-                return compartmentSpecification;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(CompartmentSpecification.class, id);
-    }
-
-    /**
-     * @param specification to be added to the {@link #specifications}
+     * @param specification to be added to the {@link #compartmentSpecifications}
      */
     public void addSpecification(CompartmentSpecification specification)
     {
-        specifications.add(specification);
+        compartmentSpecifications.add(specification);
     }
 
     /**
-     * @param specification to be removed from the {@link #specifications}
+     * @param specification to be removed from the {@link #compartmentSpecifications}
      */
     public void removeSpecification(CompartmentSpecification specification)
     {
-        specifications.remove(specification);
+        compartmentSpecifications.remove(specification);
     }
 
     @Override
@@ -99,7 +83,7 @@ public class MultiCompartmentSpecification extends Specification
     public State getCurrentState()
     {
         State state = State.READY;
-        for (Specification specification : specifications) {
+        for (Specification specification : compartmentSpecifications) {
             if (specification instanceof StatefulSpecification) {
                 StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
                 if (statefulSpecification.getCurrentState().equals(State.NOT_READY)) {
@@ -127,7 +111,7 @@ public class MultiCompartmentSpecification extends Specification
             {
                 Reservation multiCompartmentReservation = new Reservation();
                 multiCompartmentReservation.setSlot(getInterval());
-                for (CompartmentSpecification compartmentSpecification : getSpecifications()) {
+                for (CompartmentSpecification compartmentSpecification : getCompartmentSpecifications()) {
                     multiCompartmentReservation.addChildReservation(addChildReservation(compartmentSpecification));
                 }
                 return multiCompartmentReservation;
@@ -146,41 +130,41 @@ public class MultiCompartmentSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) specificationApi;
-        for (CompartmentSpecification specification : getSpecifications()) {
+        for (CompartmentSpecification specification : getCompartmentSpecifications()) {
             multiCompartmentSpecificationApi.addSpecification(specification.toApi());
         }
         super.toApi(specificationApi);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
+            final EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
+        cz.cesnet.shongo.controller.api.MultiCompartmentSpecification multiCompartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) specificationApi;
 
-        // Create/modify specifications
-        for (cz.cesnet.shongo.controller.api.CompartmentSpecification specApi :
-                multiCompartmentSpecificationApi.getSpecifications()) {
-            if (multiCompartmentSpecificationApi.isPropertyItemMarkedAsNew(
-                    multiCompartmentSpecificationApi.SPECIFICATIONS, specApi)) {
-                addChildSpecification(Specification.createFromApi(specApi, entityManager));
-            }
-            else {
-                Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-                specification.fromApi(specApi, entityManager);
-            }
-        }
-        // Delete specifications
-        Set<cz.cesnet.shongo.controller.api.CompartmentSpecification> apiDeletedSpecifications =
-                multiCompartmentSpecificationApi.getPropertyItemsMarkedAsDeleted(
-                        multiCompartmentSpecificationApi.SPECIFICATIONS);
-        for (cz.cesnet.shongo.controller.api.CompartmentSpecification specApi : apiDeletedSpecifications) {
-            removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
-        }
+        Synchronization.synchronizeCollection(
+                compartmentSpecifications, multiCompartmentSpecificationApi.getSpecifications(),
+                new Synchronization.Handler<CompartmentSpecification,
+                        cz.cesnet.shongo.controller.api.CompartmentSpecification>(CompartmentSpecification.class)
+                {
+                    @Override
+                    public CompartmentSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.CompartmentSpecification objectApi)
+                    {
+                        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+                        compartmentSpecification.fromApi(objectApi, entityManager);
+                        return compartmentSpecification;
+                    }
 
-        super.fromApi(specificationApi, entityManager);*/
+                    @Override
+                    public void updateFromApi(CompartmentSpecification object,
+                            cz.cesnet.shongo.controller.api.CompartmentSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+
+        super.fromApi(specificationApi, entityManager);
     }
 }

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.common;
 
-import cz.cesnet.shongo.oldapi.util.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -8,6 +7,7 @@ import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import cz.cesnet.shongo.api.Converter;
 
 import java.util.List;
 
@@ -149,7 +149,7 @@ public class PeriodicDateTimeTest
         PeriodicDateTime periodicDateTime = new PeriodicDateTime();
         periodicDateTime.setStart(DateTime.parse("2012-03-01T12:00"));
         periodicDateTime.setPeriod(Period.parse("P1W"));
-        periodicDateTime.setEnd(Converter.Atomic.convertStringToReadablePartial("2012-03"));
+        periodicDateTime.setEnd(Converter.convertStringToReadablePartial("2012-03"));
         Assert.assertEquals(5, periodicDateTime.enumerate().size());
     }
 }

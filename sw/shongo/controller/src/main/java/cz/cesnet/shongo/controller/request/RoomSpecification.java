@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -270,7 +270,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
+            final EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
@@ -286,77 +287,62 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             setDeviceResource(resourceManager.getDevice(resourceId));
         }
 
-        // Create technologies
-        clearTechnologies();
-        for (Technology technology : roomSpecificationApi.getTechnologies()) {
-            addTechnology(technology);
-        }
-
-        // Create/update room settings
-        if (roomSpecificationApi.getRoomSettings().size() > 0) {
-            if (true) {
-                throw new TodoImplementException("TODO: refactorize API");
-            }
-            /*
-            for (cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi : roomSpecificationApi.getRoomSettings()) {
-                if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.ROOM_SETTINGS, roomSettingApi)) {
-                    addRoomSetting(RoomSetting.createFromApi(roomSettingApi));
-                }
-                else {
-                    RoomSetting roomSetting = getRoomSettingById(roomSettingApi.notNullIdAsLong());
-                    roomSetting.fromApi(roomSettingApi);
-                }
-            }
-            // Delete room settings
-            Set<cz.cesnet.shongo.oldapi.RoomSetting> roomSettingsToDelete =
-                    specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.ROOM_SETTINGS);
-            for (cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi : roomSettingsToDelete) {
-                removeRoomSetting(getRoomSettingById(roomSettingApi.notNullIdAsLong()));
-            }
-            */
-        }
-
-
-        if (roomSpecificationApi.getAliasSpecifications().size() > 0) {
-            if (true) {
-                throw new TodoImplementException("TODO: refactorize API");
-            }
-            /*
-            // Create/update alias specifications
-            Set<Technology> technologies = getTechnologies();
-            for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
-                    roomSpecificationApi.getAliasSpecifications()) {
-                Set<Technology> requestedTechnologies = new HashSet<Technology>();
-                for (Technology technology : aliasApi.getTechnologies()) {
-                    requestedTechnologies.add(technology);
-                }
-                for (AliasType aliasType : aliasApi.getAliasTypes()) {
-                    requestedTechnologies.add(aliasType.getTechnology());
-                }
-                for (Technology requestedTechnology : requestedTechnologies) {
-                    if (!requestedTechnology.isCompatibleWith(technologies)) {
-                        throw new RuntimeException(
-                                "Cannot request alias in technology which the room doesn't support.");
+        Synchronization.synchronizeCollection(technologies, roomSpecificationApi.getTechnologies());
+        Synchronization.synchronizeCollection(roomSettings, roomSpecificationApi.getRoomSettings(),
+                new Synchronization.Handler<RoomSetting, cz.cesnet.shongo.api.RoomSetting>(
+                        RoomSetting.class)
+                {
+                    @Override
+                    public RoomSetting createFromApi(
+                            cz.cesnet.shongo.api.RoomSetting objectApi)
+                    {
+                        return RoomSetting.createFromApi(objectApi);
                     }
-                }
-                if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.ALIASES, aliasApi)) {
-                    AliasSpecification aliasSpecification = new AliasSpecification();
-                    aliasSpecification.fromApi(aliasApi, entityManager);
-                    addAliasSpecification(aliasSpecification);
-                }
-                else {
-                    AliasSpecification aliasSpecification = getAliasSpecificationById(aliasApi.notNullIdAsLong());
-                    aliasSpecification.fromApi(aliasApi, entityManager);
+
+                    @Override
+                    public void updateFromApi(RoomSetting object,
+                            cz.cesnet.shongo.api.RoomSetting objectApi)
+                    {
+                        object.fromApi(objectApi);
+                    }
+                });
+        Synchronization.synchronizeCollection(aliasSpecifications, roomSpecificationApi.getAliasSpecifications(),
+                new Synchronization.Handler<AliasSpecification, cz.cesnet.shongo.controller.api.AliasSpecification>(
+                        AliasSpecification.class)
+                {
+                    @Override
+                    public AliasSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.AliasSpecification objectApi)
+                    {
+                        AliasSpecification aliasSpecification = new AliasSpecification();
+                        aliasSpecification.fromApi(objectApi, entityManager);
+                        return aliasSpecification;
+                    }
+
+                    @Override
+                    public void updateFromApi(AliasSpecification object,
+                            cz.cesnet.shongo.controller.api.AliasSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+
+        // Check alias specifications
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            Set<Technology> requestedTechnologies = new HashSet<Technology>();
+            for (Technology technology : aliasSpecification.getTechnologies()) {
+                requestedTechnologies.add(technology);
+            }
+            for (AliasType aliasType : aliasSpecification.getAliasTypes()) {
+                requestedTechnologies.add(aliasType.getTechnology());
+            }
+            for (Technology requestedTechnology : requestedTechnologies) {
+                if (!requestedTechnology.isCompatibleWith(technologies)) {
+                    throw new RuntimeException("Cannot request alias in technology which the room doesn't support.");
                 }
             }
-            // Delete alias specifications
-            Set<cz.cesnet.shongo.controller.api.AliasSpecification> aliasSpecificationsToDelete =
-                    specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.ALIASES);
-            for (cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi : aliasSpecificationsToDelete) {
-                removeAliasSpecification(getAliasSpecificationById(aliasSpecificationApi.notNullIdAsLong()));
-            }
-            */
         }
+
         super.fromApi(specificationApi, entityManager);
     }
 }

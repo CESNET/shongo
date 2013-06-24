@@ -50,11 +50,6 @@ public class ResourceManagementTest extends AbstractControllerTest
 
         // Modify resource by retrieved instance of Resource
         resource.setName("resourceModified");
-        getResourceService().modifyResource(SECURITY_TOKEN, resource);
-
-        // Modify resource by new instance of Resource
-        resource = new cz.cesnet.shongo.controller.api.Resource();
-        resource.setId(resourceId);
         resource.setAllocatable(true);
         getResourceService().modifyResource(SECURITY_TOKEN, resource);
 

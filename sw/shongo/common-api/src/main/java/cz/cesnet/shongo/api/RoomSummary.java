@@ -1,18 +1,14 @@
-package cz.cesnet.shongo.oldapi;
+package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.oldapi.rpc.StructType;
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
 import jade.content.Concept;
 import org.joda.time.DateTime;
 
 /**
  * A brief info about a virtual room at a server.
- * <p/>
- * TODO: synchronize with Room
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomSummary extends IdentifiedObject implements StructType, Concept
+public class RoomSummary extends IdentifiedComplexType implements Concept
 {
     /**
      * User readable name of the room.
@@ -103,6 +99,32 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     public void setStartDateTime(DateTime startDateTime)
     {
         this.startDateTime = startDateTime;
+    }
+
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
+    public static final String ALIAS = "alias";
+    public static final String START_DATETIME = "startDateTime";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(ALIAS, alias);
+        dataMap.set(START_DATETIME, startDateTime);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getString(NAME);
+        description = dataMap.getString(DESCRIPTION);
+        alias = dataMap.getString(ALIAS);
+        startDateTime = dataMap.getDateTime(START_DATETIME);
     }
 
     @Override

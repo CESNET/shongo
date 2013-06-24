@@ -1,14 +1,12 @@
-package cz.cesnet.shongo.oldapi;
+package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.oldapi.rpc.StructType;
-import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.TodoImplementException;
 import jade.content.Concept;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -17,42 +15,42 @@ import java.util.Set;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room extends IdentifiedChangeableObject implements StructType, Concept
+public class Room extends IdentifiedComplexType implements Concept
 {
     /**
      * Room name - set by users. Type: String
      */
-    public static final String NAME = "name";
+    private String name;
 
     /**
      * Room description - set by users. Type: String
      */
-    public static final String DESCRIPTION = "description";
+    private String description;
 
     /**
      * Set of {@link cz.cesnet.shongo.Technology}s for the room.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Number of licenses to use for the room. Type: int
      */
-    public static final String LICENSE_COUNT = "licenseCount";
+    private int licenseCount;
 
     /**
      * Aliases of the room. Type: List<Alias>
      */
-    public static final String ALIASES = "aliases";
+    private List<Alias> aliases = new LinkedList<Alias>();
 
     /**
      * Settings of the room. Type: List<RoomSetting>
      */
-    public static final String ROOM_SETTINGS = "roomSettings";
+    private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 
     /**
      * Allowed participants of the room. Type: List<UserInformation>
      */
-    public static final String PARTICIPANTS = "participants";
+    List<UserInformation> participants = new LinkedList<UserInformation>();
 
     /**
      * Constructor.
@@ -66,7 +64,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public String getName()
     {
-        return getPropertyStorage().getValue(NAME);
+        return name;
     }
 
     /**
@@ -74,55 +72,55 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public void setName(String name)
     {
-        getPropertyStorage().setValue(NAME, name);
+        this.name = name;
     }
 
     /**
-     * @return {@link #DESCRIPTION}
+     * @return {@link #description}
      */
     public String getDescription()
     {
-        return getPropertyStorage().getValue(DESCRIPTION);
+        return description;
     }
 
     /**
-     * @param description sets the {@link #DESCRIPTION}
+     * @param description sets the {@link #description}
      */
     public void setDescription(String description)
     {
-        getPropertyStorage().setValue(DESCRIPTION, description);
+        this.description = description;
     }
 
     /**
-     * @return {@link #TECHNOLOGIES}
+     * @return {@link #technologies}
      */
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
-     * @param technologies sets the {@link #TECHNOLOGIES}
+     * @param technologies sets the {@link #technologies}
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
-     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
-     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     * @param technology technology to be removed from the {@link #technologies}
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
@@ -130,7 +128,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public int getLicenseCount()
     {
-        return getPropertyStorage().getValueAsInt(LICENSE_COUNT);
+        return licenseCount;
     }
 
     /**
@@ -142,7 +140,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
             throw new IllegalArgumentException("License count must be non-negative");
         }
 
-        getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
+        this.licenseCount = licenseCount;
     }
 
     /**
@@ -150,7 +148,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public List<Alias> getAliases()
     {
-        return getPropertyStorage().getCollection(ALIASES, List.class);
+        return aliases;
     }
 
     /**
@@ -171,7 +169,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public void setAliases(List<Alias> aliases)
     {
-        getPropertyStorage().setCollection(ALIASES, aliases);
+        this.aliases = aliases;
     }
 
     /**
@@ -181,23 +179,15 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public void addAlias(Alias alias)
     {
-        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
+        aliases.add(alias);
     }
 
     /**
-     * @return {@link #ROOM_SETTINGS}
+     * @return {@link #roomSettings}
      */
     public List<RoomSetting> getRoomSettings()
     {
-        return getPropertyStorage().getCollection(ROOM_SETTINGS, List.class);
-    }
-
-    /**
-     * @param roomSettings sets the {@link #ROOM_SETTINGS}
-     */
-    public void setRoomSettings(List<RoomSetting> roomSettings)
-    {
-        getPropertyStorage().setCollection(ROOM_SETTINGS, roomSettings);
+        return roomSettings;
     }
 
     /**
@@ -215,7 +205,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     }
 
     /**
-     * @param roomSetting to be added to the {@link #ROOM_SETTINGS}
+     * @param roomSetting to be added to the {@link #roomSettings}
      */
     public void addRoomSetting(RoomSetting roomSetting)
     {
@@ -224,28 +214,20 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
             throw new TodoImplementException("Merge same room setting");
         }
         else {
-            getPropertyStorage().addCollectionItem(ROOM_SETTINGS, roomSetting, List.class);
+            roomSettings.add(roomSetting);
         }
     }
 
     /**
-     * @return {@link #PARTICIPANTS}
+     * @return {@link #participants}
      */
     public List<UserInformation> getParticipants()
     {
-        return getPropertyStorage().getCollection(PARTICIPANTS, List.class);
+        return participants;
     }
 
     /**
-     * @param participants sets the {@link #PARTICIPANTS}
-     */
-    public void setParticipants(List<UserInformation> participants)
-    {
-        getPropertyStorage().setCollection(PARTICIPANTS, participants);
-    }
-
-    /**
-     * @param participant to be added to the {@link #PARTICIPANTS}
+     * @param participant to be added to the {@link #participants}
      */
     public void addParticipant(UserInformation participant)
     {
@@ -256,15 +238,50 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
                 return;
             }
         }
-        getPropertyStorage().addCollectionItem(PARTICIPANTS, participant, List.class);
+        this.participants.add(participant);
     }
 
     /**
-     * @param participant to be removed from the {@link #PARTICIPANTS}
+     * @param participant to be removed from the {@link #participants}
      */
     public void removeParticipant(UserInformation participant)
     {
-        getPropertyStorage().removeCollectionItem(PARTICIPANTS, participant);
+        participants.remove(participant);
+    }
+
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String LICENSE_COUNT = "licenseCount";
+    public static final String ALIASES = "aliases";
+    public static final String ROOM_SETTINGS = "roomSettings";
+    public static final String PARTICIPANTS = "participants";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(LICENSE_COUNT, licenseCount);
+        dataMap.set(ALIASES, aliases);
+        dataMap.set(ROOM_SETTINGS, roomSettings);
+        dataMap.set(PARTICIPANTS, participants);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getString(NAME);
+        description = dataMap.getString(DESCRIPTION);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        licenseCount = dataMap.getInt(LICENSE_COUNT);
+        aliases = dataMap.getList(ALIASES, Alias.class);
+        roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
+        participants = dataMap.getList(PARTICIPANTS, UserInformation.class);
     }
 
     @Override

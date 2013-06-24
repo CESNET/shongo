@@ -1,6 +1,6 @@
 package cz.cesnet.shongo;
 
-import cz.cesnet.shongo.oldapi.util.Converter;
+import cz.cesnet.shongo.api.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
@@ -37,14 +37,14 @@ public class DateTimeTest
         // Converter.Atomic.convertStringToDateTime parses to default timezone (Java runtime timezone)
         DateTimeZone.setDefault(DateTimeZone.forID("+00:00"));
         DateTime dateTimeByConverter =
-                Converter.Atomic.convertStringToDateTime("2012-01-01T06:00+05:00");
+                Converter.convertStringToDateTime("2012-01-01T06:00+05:00");
         Assert.assertEquals("2012-01-01T01:00:00.000Z", dateTimeByConverter.toString());
         DateTimeZone.setDefault(defaultZone);
 
         // Converter.Atomic.convertStringToInterval parses to default timezone (Java runtime timezone)
         DateTimeZone.setDefault(DateTimeZone.forID("+00:00"));
         Interval intervalByConverter =
-                Converter.Atomic.convertStringToInterval("2012-01-01T06:00+05:00/2012-01-01T08:00+06:00");
+                Converter.convertStringToInterval("2012-01-01T06:00+05:00/2012-01-01T08:00+06:00");
         Assert.assertEquals("2012-01-01T01:00:00.000Z", intervalByConverter.getStart().toString());
         Assert.assertEquals("2012-01-01T02:00:00.000Z", intervalByConverter.getEnd().toString());
         DateTimeZone.setDefault(defaultZone);

@@ -19,26 +19,26 @@ public class AdobeConnectRoomSetting extends RoomSetting
     }
 
     @Override
-    protected cz.cesnet.shongo.oldapi.RoomSetting createApi()
+    protected cz.cesnet.shongo.api.RoomSetting createApi()
     {
-        return new cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting();
+        return new cz.cesnet.shongo.api.AdobeConnectRoomSetting();
     }
 
     @Override
-    public void toApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
+    public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
         super.toApi(roomSettingApi);
 
-        cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
-                (cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting) roomSettingApi;
+        cz.cesnet.shongo.api.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
+                (cz.cesnet.shongo.api.AdobeConnectRoomSetting) roomSettingApi;
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
+    public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
         super.fromApi(roomSettingApi);
 
-        cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
-                (cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting) roomSettingApi;
+        cz.cesnet.shongo.api.AdobeConnectRoomSetting roomSettingAdobeConnectApi =
+                (cz.cesnet.shongo.api.AdobeConnectRoomSetting) roomSettingApi;
     }
 }

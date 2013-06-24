@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+
 /**
  * Represents a {@link Reservation} for a {@link Resource}.
  *
@@ -47,5 +49,25 @@ public class ResourceReservation extends Reservation
     public void setResourceName(String resourceName)
     {
         this.resourceName = resourceName;
+    }
+
+    private static final String RESOURCE_ID = "resourceId";
+    private static final String RESOURCE_NAME = "resourceName";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(RESOURCE_NAME, resourceName);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        resourceId = dataMap.getString(RESOURCE_ID);
+        resourceName = dataMap.getString(RESOURCE_NAME);
     }
 }

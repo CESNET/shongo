@@ -115,7 +115,7 @@ sub list_executables()
         if ( $executable->{'type'} eq 'COMPARTMENT' ) {
             $type = 'Compartment';
         }
-        elsif ( $executable->{'type'} eq 'VIRTUAL_ROOM' ) {
+        elsif ( $executable->{'type'} eq 'ROOM' ) {
             $type = 'Virtual Room';
         }
         push(@{$table->{'data'}}, {

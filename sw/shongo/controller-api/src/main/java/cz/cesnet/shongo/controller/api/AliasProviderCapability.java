@@ -1,12 +1,13 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -20,29 +21,29 @@ public class AliasProviderCapability extends Capability
      * Identifier of resource with {@link ValueProviderCapability} or instance of the {@link ValueProvider}.
      * The value provider will be used for allocation of alias values.
      */
-    public static final String VALUE_PROVIDER = "valueProvider";
+    private Object valueProvider;
 
     /**
      * Type of aliases.
      */
-    public static final String ALIASES = "aliases";
+    private List<Alias> aliases = new LinkedList<Alias>();
 
     /**
      * Specifies the maximum future for which the {@link AliasProviderCapability} can be scheduled.
      */
-    public static final String MAXIMUM_FUTURE = "maximumFuture";
+    private Object maximumFuture;
 
     /**
      * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
      * the owner resource or for all {@link Resource}s in the resource database.
      */
-    public static final String RESTRICTED_TO_RESOURCE = "restrictedToResource";
+    private Boolean restrictedToResource;
 
     /**
      * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
      * permanent rooms (should get allocated {@link Executable.ResourceRoom}).
      */
-    public static final String PERMANENT_ROOM = "permanentRoom";
+    private Boolean permanentRoom;
 
     /**
      * Constructor.
@@ -65,7 +66,7 @@ public class AliasProviderCapability extends Capability
      * Constructor.
      *
      * @param pattern for construction of {@link ValueProvider}
-     * @param type    to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
+     * @param type    to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #aliases}
      */
     public AliasProviderCapability(String pattern, AliasType type)
     {
@@ -78,7 +79,7 @@ public class AliasProviderCapability extends Capability
      * Constructor.
      *
      * @param pattern for construction of {@link ValueProvider}
-     * @param type    to be added as {@link Alias} to {@link #ALIASES}
+     * @param type    to be added as {@link Alias} to {@link #aliases}
      */
     public AliasProviderCapability(String pattern, AliasType type, String value)
     {
@@ -88,7 +89,7 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return this {@link AliasProviderCapability} with {@link #VALUE_PROVIDER} which has
+     * @return this {@link AliasProviderCapability} with {@link #valueProvider} which has
      *         {@link ValueProvider.Pattern#ALLOW_ANY_REQUESTED_VALUE} set to true
      */
     public AliasProviderCapability withAllowedAnyRequestedValue()
@@ -98,7 +99,7 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return this {@link AliasProviderCapability} with {@link #RESTRICTED_TO_RESOURCE} set to {@code true}
+     * @return this {@link AliasProviderCapability} with {@link #restrictedToResource} set to {@code true}
      */
     public AliasProviderCapability withRestrictedToResource()
     {
@@ -107,7 +108,7 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return this {@link AliasProviderCapability} with {@link #PERMANENT_ROOM} set to {@code true}
+     * @return this {@link AliasProviderCapability} with {@link #permanentRoom} set to {@code true}
      */
     public AliasProviderCapability withPermanentRoom()
     {
@@ -116,102 +117,146 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #VALUE_PROVIDER}
+     * @return {@link #valueProvider}
      */
-    @Required
-    @AllowedTypes({String.class, ValueProvider.class})
     public Object getValueProvider()
     {
-        return getPropertyStorage().getValue(VALUE_PROVIDER);
+        return valueProvider;
     }
 
     /**
-     * @param valueProvider sets the {@link #VALUE_PROVIDER}
+     * @param valueProvider sets the {@link #valueProvider}
      */
     public void setValueProvider(Object valueProvider)
     {
-        getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
+        if (valueProvider instanceof ValueProvider || valueProvider instanceof String) {
+            this.valueProvider = valueProvider;
+        }
+        else {
+            throw new TodoImplementException(valueProvider.getClass().getCanonicalName());
+        }
     }
 
     /**
-     * @return {@link #ALIASES}
+     * @return {@link #aliases}
      */
-    @Required
     public List<Alias> getAliases()
     {
-        return getPropertyStorage().getCollection(ALIASES, List.class);
+        return aliases;
     }
 
     /**
-     * @param aliases sets the {@link #ALIASES}
-     */
-    public void setAliases(List<Alias> aliases)
-    {
-        getPropertyStorage().setValue(ALIASES, aliases);
-    }
-
-    /**
-     * @param alias to be added to the {@link #ALIASES}
+     * @param alias to be added to the {@link #aliases}
      */
     public void addAlias(Alias alias)
     {
-        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
+        aliases.add(alias);
     }
 
     /**
-     * @param alias to be removed from the {@link #ALIASES}
+     * @param alias to be removed from the {@link #aliases}
      */
     public void removeAlias(Alias alias)
     {
-        getPropertyStorage().removeCollectionItem(ALIASES, alias);
+        aliases.remove(alias);
     }
 
     /**
-     * @return {@link #MAXIMUM_FUTURE}
+     * @return {@link #maximumFuture}
      */
-    @AllowedTypes({DateTime.class, Period.class})
     public Object getMaximumFuture()
     {
-        return getPropertyStorage().getValue(MAXIMUM_FUTURE);
+        return maximumFuture;
     }
 
     /**
-     * @param maximumFuture sets the {@link #MAXIMUM_FUTURE}
+     * @param maximumFuture sets the {@link #maximumFuture}
      */
     public void setMaximumFuture(Object maximumFuture)
     {
-        getPropertyStorage().setValue(MAXIMUM_FUTURE, maximumFuture);
+        if (maximumFuture instanceof Period || maximumFuture instanceof DateTime || maximumFuture instanceof String) {
+            this.maximumFuture = maximumFuture;
+        }
+        else {
+            throw new TodoImplementException(maximumFuture.getClass().getCanonicalName());
+        }
     }
 
     /**
-     * @return {@link #RESTRICTED_TO_RESOURCE}
+     * @return {@link #restrictedToResource}
      */
     public Boolean getRestrictedToResource()
     {
-        return getPropertyStorage().getValueAsBoolean(RESTRICTED_TO_RESOURCE, false);
+        return restrictedToResource;
     }
 
     /**
-     * @param restrictedToResource sets the {@link #RESTRICTED_TO_RESOURCE}
+     * @param restrictedToResource sets the {@link #restrictedToResource}
      */
     public void setRestrictedToResource(Boolean restrictedToResource)
     {
-        getPropertyStorage().setValue(RESTRICTED_TO_RESOURCE, restrictedToResource);
+        this.restrictedToResource = restrictedToResource;
     }
 
     /**
-     * @return {@link #PERMANENT_ROOM}
+     * @return {@link #permanentRoom}
      */
     public Boolean getPermanentRoom()
     {
-        return getPropertyStorage().getValueAsBoolean(PERMANENT_ROOM, false);
+        return permanentRoom;
     }
 
     /**
-     * @param permanentRoom sets the {@link #PERMANENT_ROOM}
+     * @param permanentRoom sets the {@link #permanentRoom}
      */
     public void setPermanentRoom(Boolean permanentRoom)
     {
-        getPropertyStorage().setValue(PERMANENT_ROOM, permanentRoom);
+        this.permanentRoom = permanentRoom;
+    }
+
+    public static final String VALUE_PROVIDER = "valueProvider";
+    public static final String ALIASES = "aliases";
+    public static final String MAXIMUM_FUTURE = "maximumFuture";
+    public static final String RESTRICTED_TO_RESOURCE = "restrictedToResource";
+    public static final String PERMANENT_ROOM = "permanentRoom";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+
+        dataMap.set(ALIASES, aliases);
+        dataMap.set(RESTRICTED_TO_RESOURCE, restrictedToResource);
+        dataMap.set(PERMANENT_ROOM, permanentRoom);
+
+        if (valueProvider instanceof String) {
+            dataMap.set(VALUE_PROVIDER, (String) valueProvider);
+        }
+        else if (valueProvider instanceof ValueProvider) {
+            dataMap.set(VALUE_PROVIDER, (ValueProvider) valueProvider);
+        }
+
+        if (maximumFuture instanceof DateTime) {
+            dataMap.set(MAXIMUM_FUTURE, (DateTime) maximumFuture);
+        }
+        else if (maximumFuture instanceof Period) {
+            dataMap.set(MAXIMUM_FUTURE, (Period) maximumFuture);
+        }
+        else if (maximumFuture instanceof String) {
+            dataMap.set(MAXIMUM_FUTURE, (String) maximumFuture);
+        }
+
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        valueProvider = dataMap.getVariantRequired(VALUE_PROVIDER, ValueProvider.class, String.class);
+        aliases = dataMap.getListRequired(ALIASES, Alias.class);
+        maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
+        restrictedToResource = dataMap.getBool(RESTRICTED_TO_RESOURCE);
+        permanentRoom = dataMap.getBool(PERMANENT_ROOM);
     }
 }

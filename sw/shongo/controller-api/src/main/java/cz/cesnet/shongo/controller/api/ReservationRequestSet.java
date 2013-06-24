@@ -1,10 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
-import cz.cesnet.shongo.oldapi.annotation.Required;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -40,8 +36,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @return {@link #SLOTS}
      */
-    @Required
-    @AllowedTypes({Interval.class, PeriodicDateTimeSlot.class})
     public List<Object> getSlots()
     {
         return slots;
@@ -105,7 +99,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @return {@link #reservationRequests}
      */
-    @ReadOnly
     public List<ReservationRequest> getReservationRequests()
     {
         return reservationRequests;
@@ -135,7 +128,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        slots = dataMap.getList(SLOTS, Interval.class, PeriodicDateTimeSlot.class);
+        slots = dataMap.getListRequired(SLOTS, Interval.class, PeriodicDateTimeSlot.class);
         reservationRequests = dataMap.getList(RESERVATION_REQUESTS, ReservationRequest.class);
     }
 }

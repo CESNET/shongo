@@ -45,6 +45,40 @@ public class Converter
     }
 
     /**
+     * Convert given {@code value} to {@link Boolean}.
+     *
+     * @param value
+     * @return converted {@link Boolean} value
+     */
+    public static Boolean convertToBoolean(Object value)
+    {
+        if (value == null) {
+            return  null;
+        }
+        else if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        throw new TodoImplementException(value.getClass().getCanonicalName());
+    }
+
+    /**
+     * Convert given {@code value} to {@link Integer}.
+     *
+     * @param value
+     * @return converted {@link Integer} value
+     */
+    public static Integer convertToInteger(Object value)
+    {
+        if (value == null) {
+            return  null;
+        }
+        else if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        throw new TodoImplementException(value.getClass().getCanonicalName());
+    }
+
+    /**
      * Convert given {@link Enum} {@code value} to {@link String}.
      *
      * @param value
@@ -380,7 +414,7 @@ public class Converter
             Class... componentClasses)
     {
         if (value == null) {
-            return null;
+            return collectionClass.cast(ClassHelper.createCollection(collectionClass, 0));
         }
         else if (value instanceof Object[]) {
             Object[] array = (Object[]) value;
@@ -390,7 +424,9 @@ public class Converter
             }
             return collectionClass.cast(collection);
         }
-        throw new TodoImplementException();
+        else {
+            throw new TodoImplementException(value.getClass().getCanonicalName());
+        }
     }
 
     /**
@@ -433,6 +469,36 @@ public class Converter
         @SuppressWarnings("unchecked")
         List<Object> list = (List<Object>) convertToCollection(value, List.class, componentClasses);
         return list;
+    }
+
+    /**
+     * Convert given {@code value} to {@link Map} value with keys of given {@code keyClass} and values
+     * of given {@code valueClass}.
+     *
+     * @param value
+     * @param keyClass
+     * @param valueClass
+     * @return converted {@link Interval} value
+     */
+    public static <K, V> Map<K, V> convertToMap(Object value, Class<K> keyClass, Class<V> valueClass)
+    {
+        if (value == null) {
+            return new HashMap<K, V>();
+        }
+        else if (value instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> mapValue = (Map<Object, Object>) value;
+            Map<K, V> map = new HashMap<K, V>();
+            for (Map.Entry entry : mapValue.entrySet()) {
+                K entryKey = convert(entry.getKey(), keyClass);
+                V entryValue = convert(entry.getValue(), valueClass);
+                map.put(entryKey, entryValue);
+            }
+            return map;
+        }
+        else {
+            throw new TodoImplementException(value.getClass().getCanonicalName());
+        }
     }
 
     /**
@@ -517,7 +583,11 @@ public class Converter
     }
 
     /**
-     * TODO: refactorize API
+     * Convert given {@code value} to given {@code targetClass}.
+     *
+     * @param value
+     * @param targetClass
+     * @return converted {@code value} to {@code targetClass}
      */
     @SuppressWarnings("unchecked")
     public static <T> T convert(Object value, Class<T> targetClass)
@@ -558,7 +628,14 @@ public class Converter
         throw new TodoImplementException(from + " -> " + to);
     }
 
-    private static Object convert(Object value, Class... targetClasses)
+    /**
+     * Convert given {@code value} to any of given {@code targetClasses}.
+     *
+     * @param value
+     * @param targetClasses
+     * @return converted {@code value} any of {@code targetClasses}
+     */
+    public static Object convert(Object value, Class... targetClasses)
     {
         if (targetClasses.length == 1) {
             return convert(value, targetClasses[0]);
@@ -583,27 +660,5 @@ public class Converter
         else {
             throw new IllegalArgumentException("Required classes must not be empty.");
         }
-    }
-
-    public static Boolean convertToBoolean(Object value)
-    {
-        if (value == null) {
-            return  null;
-        }
-        else if (value instanceof Boolean) {
-            return (Boolean) value;
-        }
-        throw new TodoImplementException(value.getClass().getCanonicalName());
-    }
-
-    public static Integer convertToInteger(Object value)
-    {
-        if (value == null) {
-            return  null;
-        }
-        else if (value instanceof Integer) {
-            return (Integer) value;
-        }
-        throw new TodoImplementException(value.getClass().getCanonicalName());
     }
 }

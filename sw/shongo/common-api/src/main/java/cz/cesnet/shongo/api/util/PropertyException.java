@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.oldapi.util;
+package cz.cesnet.shongo.api.util;
 
 /**
  * {@link RuntimeException} thrown from {@link Property}.

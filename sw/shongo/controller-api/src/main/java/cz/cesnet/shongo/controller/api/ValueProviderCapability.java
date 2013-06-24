@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 
 /**
  * Capability tells that the resource can allocate unique values from given patterns.
@@ -12,7 +12,7 @@ public class ValueProviderCapability extends Capability
     /**
      * Instance of the {@link ValueProvider}.
      */
-    public static final String VALUE_PROVIDER = "valueProvider";
+    private ValueProvider valueProvider;
 
     /**
      * Constructor.
@@ -32,7 +32,7 @@ public class ValueProviderCapability extends Capability
     }
 
     /**
-     * @return this {@link ValueProviderCapability} with {@link #VALUE_PROVIDER} which has
+     * @return this {@link ValueProviderCapability} with {@link #valueProvider} which has
      *         {@link ValueProvider.Pattern#ALLOW_ANY_REQUESTED_VALUE} set to true
      */
     public ValueProviderCapability withAllowedAnyRequestedValue()
@@ -42,19 +42,35 @@ public class ValueProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #VALUE_PROVIDER}
+     * @return {@link #valueProvider}
      */
-    @Required
     public ValueProvider getValueProvider()
     {
-        return getPropertyStorage().getValue(VALUE_PROVIDER);
+        return valueProvider;
     }
 
     /**
-     * @param valueProvider sets the {@link #VALUE_PROVIDER}
+     * @param valueProvider sets the {@link #valueProvider}
      */
     public void setValueProvider(ValueProvider valueProvider)
     {
-        getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
+        this.valueProvider = valueProvider;
+    }
+
+    public static final String VALUE_PROVIDER = "valueProvider";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(VALUE_PROVIDER, valueProvider);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        valueProvider = dataMap.getComplexTypeRequired(VALUE_PROVIDER, ValueProvider.class);
     }
 }

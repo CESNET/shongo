@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.PersonInformation;
-import cz.cesnet.shongo.oldapi.annotation.Transient;
 import jade.content.Concept;
 
 import java.util.LinkedList;
@@ -12,7 +11,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class UserInformation implements PersonInformation, Concept
+public class UserInformation extends AbstractComplexType implements PersonInformation, Concept
 {
     /**
      * Shongo user-id.
@@ -148,7 +147,6 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     @Override
-    @Transient
     public String getFullName()
     {
         StringBuilder fullName = new StringBuilder();
@@ -168,14 +166,12 @@ public class UserInformation implements PersonInformation, Concept
     }
 
     @Override
-    @Transient
     public String getRootOrganization()
     {
         return getOrganization();
     }
 
     @Override
-    @Transient
     public String getPrimaryEmail()
     {
         if (emails.size() > 0) {
@@ -188,5 +184,37 @@ public class UserInformation implements PersonInformation, Concept
     public String toString()
     {
         return String.format("User (id: %s, name: %s)", getUserId(), getFullName());
+    }
+
+    public static final String USER_ID = "userId";
+    public static final String ORIGINAL_ID = "originalId";
+    public static final String FIRST_NAME = "firstName";
+    public static final String LAST_NAME = "lastName";
+    public static final String ORGANIZATION = "organization";
+    public static final String EMAILS = "emails";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
+        dataMap.set(ORIGINAL_ID, originalId);
+        dataMap.set(FIRST_NAME, firstName);
+        dataMap.set(LAST_NAME, lastName);
+        dataMap.set(ORGANIZATION, organization);
+        dataMap.set(EMAILS, emails);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        userId = dataMap.getString(USER_ID);
+        originalId = dataMap.getString(ORIGINAL_ID);
+        firstName = dataMap.getString(FIRST_NAME);
+        lastName = dataMap.getString(LAST_NAME);
+        organization = dataMap.getString(ORGANIZATION);
+        emails = dataMap.getList(EMAILS, String.class);
     }
 }

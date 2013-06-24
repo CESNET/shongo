@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.oldapi.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -31,7 +30,7 @@ public interface ReservationService extends Service
      * The user with the given {@code token} will be the request owner.
      *
      * @param token              token of the user requesting the operation
-     * @param reservationRequest reservation request; should contains all attributes marked as {@link Required}
+     * @param reservationRequest reservation request; should contains all required attributes
      * @return the created reservation request shongo-id
      */
     @API

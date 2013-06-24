@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.Required;
-import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.FilterType;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ValueProvider extends IdentifiedChangeableObject
+public abstract class ValueProvider extends IdentifiedComplexType
 {
     /**
      * Object which can allocate unique values from given patterns.
@@ -26,13 +27,13 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
          * 1) "95{digit:3}"           will generate 95001, 95002, 95003, ...
          * 2) "95{digit:2}2{digit:2}" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
          */
-        public static final String PATTERNS = "patterns";
+        private List<String> patterns = new LinkedList<String>();
 
         /**
          * Option specifying whether any requested values are allowed event those which doesn't
-         * match the {@link #PATTERNS}.
+         * match the {@link #patterns}.
          */
-        public static final String ALLOW_ANY_REQUESTED_VALUE = "allowAnyRequestedValue";
+        private Boolean allowAnyRequestedValue;
 
         /**
          * Constructor.
@@ -44,7 +45,7 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         /**
          * Constructor.
          *
-         * @param pattern to be added to the {@link #PATTERNS}
+         * @param pattern to be added to the {@link #patterns}
          */
         public Pattern(String pattern)
         {
@@ -52,52 +53,63 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         }
 
         /**
-         * @return {@link #PATTERNS}
+         * @return {@link #patterns}
          */
-        @Required
         public List<String> getPatterns()
         {
-            return getPropertyStorage().getCollection(PATTERNS, List.class);
+            return patterns;
         }
 
         /**
-         * @param patterns sets the {@link #PATTERNS}
-         */
-        public void setPatterns(List<String> patterns)
-        {
-            getPropertyStorage().setValue(PATTERNS, patterns);
-        }
-
-        /**
-         * @param pattern to be added to the {@link #PATTERNS}
+         * @param pattern to be added to the {@link #patterns}
          */
         public void addPattern(String pattern)
         {
-            getPropertyStorage().addCollectionItem(PATTERNS, pattern, List.class);
+            patterns.add(pattern);
         }
 
         /**
-         * @param pattern to be removed from the {@link #PATTERNS}
+         * @param pattern to be removed from the {@link #patterns}
          */
         public void removePattern(String pattern)
         {
-            getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
+            patterns.remove(pattern);
         }
 
         /**
-         * @return {@link #ALLOW_ANY_REQUESTED_VALUE}
+         * @return {@link #allowAnyRequestedValue}
          */
         public Boolean getAllowAnyRequestedValue()
         {
-            return getPropertyStorage().getValueAsBoolean(ALLOW_ANY_REQUESTED_VALUE, false);
+            return allowAnyRequestedValue;
         }
 
         /**
-         * @param allowAnyRequestedValue sets the {@link #ALLOW_ANY_REQUESTED_VALUE}
+         * @param allowAnyRequestedValue sets the {@link #allowAnyRequestedValue}
          */
         public void setAllowAnyRequestedValue(Boolean allowAnyRequestedValue)
         {
-            getPropertyStorage().setValue(ALLOW_ANY_REQUESTED_VALUE, allowAnyRequestedValue);
+            this.allowAnyRequestedValue = allowAnyRequestedValue;
+        }
+
+        public static final String PATTERNS = "patterns";
+        public static final String ALLOW_ANY_REQUESTED_VALUE = "allowAnyRequestedValue";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(PATTERNS, patterns);
+            dataMap.set(ALLOW_ANY_REQUESTED_VALUE, allowAnyRequestedValue);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            patterns = dataMap.getListRequired(PATTERNS, String.class);
+            allowAnyRequestedValue = dataMap.getBool(ALLOW_ANY_REQUESTED_VALUE);
         }
     }
 
@@ -110,12 +122,12 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
          * Identifier of resource with {@link ValueProviderCapability} or instance of the {@link ValueProvider}.
          * {@link ValueProvider} from which the values are allocated.
          */
-        public static final String VALUE_PROVIDER = "valueProvider";
+        private Object valueProvider;
 
         /**
          * Filtration type.
          */
-        public static final String TYPE = "type";
+        private FilterType filterType;
 
         /**
          * Constructor.
@@ -127,60 +139,89 @@ public abstract class ValueProvider extends IdentifiedChangeableObject
         /**
          * Constructor.
          *
-         * @param type       sets the {@link #TYPE}
-         * @param resourceId sets the {@link #VALUE_PROVIDER}
+         * @param filterType       sets the {@link #filterType}
+         * @param resourceId sets the {@link #valueProvider}
          */
-        public Filtered(FilterType type, String resourceId)
+        public Filtered(FilterType filterType, String resourceId)
         {
-            setType(type);
+            setFilterType(filterType);
             setValueProvider(resourceId);
         }
 
         /**
          * Constructor.
          *
-         * @param type          sets the {@link #TYPE}
-         * @param valueProvider sets the {@link #VALUE_PROVIDER}
+         * @param filterType          sets the {@link #filterType}
+         * @param valueProvider sets the {@link #valueProvider}
          */
-        public Filtered(FilterType type, ValueProvider valueProvider)
+        public Filtered(FilterType filterType, ValueProvider valueProvider)
         {
-            setType(type);
+            setFilterType(filterType);
             setValueProvider(valueProvider);
         }
 
         /**
-         * @return {@link #VALUE_PROVIDER}
+         * @return {@link #valueProvider}
          */
-        @Required
-        @AllowedTypes({String.class, ValueProvider.class})
         public Object getValueProvider()
         {
-            return getPropertyStorage().getValue(VALUE_PROVIDER);
+            return valueProvider;
         }
 
         /**
-         * @param valueProvider sets the {@link #VALUE_PROVIDER}
+         * @param valueProvider sets the {@link #valueProvider}
          */
         public void setValueProvider(Object valueProvider)
         {
-            getPropertyStorage().setValue(VALUE_PROVIDER, valueProvider);
+            if (valueProvider instanceof ValueProvider || valueProvider instanceof String) {
+                this.valueProvider = valueProvider;
+            }
+            else {
+                throw new TodoImplementException(valueProvider.getClass().getCanonicalName());
+            }
         }
 
         /**
-         * @return {@link #TYPE}
+         * @return {@link #filterType}
          */
-        @Required
-        public FilterType getType()
+        public FilterType getFilterType()
         {
-            return getPropertyStorage().getValue(TYPE);
+            return filterType;
         }
 
         /**
-         * @param type sets the {@link #TYPE}
+         * @param filterType sets the {@link #filterType}
          */
-        public void setType(FilterType type)
+        public void setFilterType(FilterType filterType)
         {
-            getPropertyStorage().setValue(TYPE, type);
+            this.filterType = filterType;
+        }
+
+        public static final String VALUE_PROVIDER = "valueProvider";
+        public static final String FILTER_TYPE = "filterType";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(FILTER_TYPE, filterType);
+
+            if (valueProvider instanceof String) {
+                dataMap.set(VALUE_PROVIDER, (String) valueProvider);
+            }
+            else if (valueProvider instanceof ValueProvider) {
+                dataMap.set(VALUE_PROVIDER, (ValueProvider) valueProvider);
+            }
+
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            valueProvider = dataMap.getVariantRequired(VALUE_PROVIDER, ValueProvider.class, String.class);
+            filterType = dataMap.getEnumRequired(FILTER_TYPE, FilterType.class);
         }
     }
 }

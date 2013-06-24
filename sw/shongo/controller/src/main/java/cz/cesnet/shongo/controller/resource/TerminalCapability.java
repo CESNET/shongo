@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -82,27 +83,27 @@ public class TerminalCapability extends DeviceCapability
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
     {
+        super.fromApi(api, entityManager);
+
         cz.cesnet.shongo.controller.api.TerminalCapability apiTerminalCapability =
                 (cz.cesnet.shongo.controller.api.TerminalCapability) api;
-        // Create/modify aliases
-        for (cz.cesnet.shongo.api.Alias apiAlias : apiTerminalCapability.getAliases()) {
-            Alias alias;
-            if (api.isPropertyItemMarkedAsNew(apiTerminalCapability.ALIASES, apiAlias)) {
-                alias = new Alias();
-                addAlias(alias);
-            }
-            else {
-                alias = getAliasById(apiAlias.notNullIdAsLong());
-            }
-            alias.fromApi(apiAlias);
-        }
-        // Delete aliases
-        Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases = api
-                .getPropertyItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
-        for (cz.cesnet.shongo.api.Alias aliasApi : apiDeletedAliases) {
-            Alias alias = getAliasById(aliasApi.notNullIdAsLong());
-            removeAlias(alias);
-        }
-        super.fromApi(api, entityManager);
+
+        Synchronization.synchronizeCollection(aliases, apiTerminalCapability.getAliases(),
+                new Synchronization.Handler<Alias, cz.cesnet.shongo.api.Alias>(Alias.class)
+                {
+                    @Override
+                    public Alias createFromApi(cz.cesnet.shongo.api.Alias objectApi)
+                    {
+                        Alias alias = new Alias();
+                        alias.fromApi(objectApi);
+                        return alias;
+                    }
+
+                    @Override
+                    public void updateFromApi(Alias object, cz.cesnet.shongo.api.Alias objectApi)
+                    {
+                        object.fromApi(objectApi);
+                    }
+                });
     }
 }

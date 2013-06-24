@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceAllocation extends IdentifiedObject
+public class ResourceAllocation extends IdentifiedComplexType
 {
     /**
      * Name of the resource.
@@ -82,5 +83,28 @@ public class ResourceAllocation extends IdentifiedObject
     public void addReservation(ResourceReservation reservation)
     {
         reservations.add(reservation);
+    }
+
+    private static final String NAME = "name";
+    private static final String INTERVAL = "interval";
+    private static final String RESERVATIONS = "reservations";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(INTERVAL, interval);
+        dataMap.set(RESERVATIONS, reservations);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getString(NAME);
+        interval = dataMap.getInterval(INTERVAL);
+        reservations = dataMap.getList(RESERVATIONS, ResourceReservation.class);
     }
 }

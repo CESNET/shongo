@@ -4,7 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
@@ -226,9 +226,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
     @Override
     @Transient
-    public cz.cesnet.shongo.oldapi.Room getRoomApi()
+    public Room getRoomApi()
     {
-        cz.cesnet.shongo.oldapi.Room roomApi = new cz.cesnet.shongo.oldapi.Room();
+        Room roomApi = new Room();
         roomApi.setId(roomId);
         roomApi.setTechnologies(getTechnologies());
         roomApi.setLicenseCount(getLicenseCount());
@@ -291,7 +291,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executor.getControllerAgent();
 
-            cz.cesnet.shongo.oldapi.Room roomApi = getRoomApi();
+            Room roomApi = getRoomApi();
 
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new CreateRoom(roomApi));
             if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
@@ -312,7 +312,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onUpdate(Executor executor, ExecutableManager executableManager)
     {
-        cz.cesnet.shongo.oldapi.Room roomApi;
+        Room roomApi;
         UsedRoomEndpoint usedRoomEndpoint = executableManager.getStartedUsedRoomEndpoint(this);
         if (usedRoomEndpoint != null) {
             roomApi = usedRoomEndpoint.getRoomApi();

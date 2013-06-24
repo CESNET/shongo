@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
@@ -74,5 +75,25 @@ public class UserListRequest extends ListRequest
     public void setFilter(String filter)
     {
         this.filter = filter;
+    }
+
+    private static final String USER_IDS = "userIds";
+    private static final String FILTER = "filter";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(USER_IDS, userIds);
+        dataMap.set(FILTER, filter);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        userIds = dataMap.getSet(USER_IDS, String.class);
+        filter = dataMap.getString(FILTER);
     }
 }

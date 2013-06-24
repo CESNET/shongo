@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TypeConverterFactory that allows {@link cz.cesnet.shongo.oldapi.rpc.AtomicType}, {@link cz.cesnet.shongo.oldapi.rpc.StructType} and enums as method parameters
+ * TypeConverterFactory that allows {@link AtomicType}, {@link ComplexType} and enums as method parameters
  * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>

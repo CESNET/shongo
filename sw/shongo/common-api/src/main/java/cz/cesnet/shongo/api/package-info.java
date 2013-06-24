@@ -3,4 +3,4 @@
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-package cz.cesnet.shongo.oldapi;
+package cz.cesnet.shongo.api;

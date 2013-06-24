@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.oldapi;
+package cz.cesnet.shongo.api;
 
 import jade.content.Concept;
 

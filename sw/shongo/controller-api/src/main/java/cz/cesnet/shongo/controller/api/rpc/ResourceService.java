@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.oldapi.annotation.Required;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Resource;
 import cz.cesnet.shongo.controller.api.ResourceAllocation;
@@ -24,7 +23,7 @@ public interface ResourceService extends Service
      * The user with the given token will be the resource owner.
      *
      * @param token    token of the user requesting the operation
-     * @param resource resource; should contains all attributes marked as {@link Required}
+     * @param resource resource; should contains all required attributes
      *                 in {@link cz.cesnet.shongo.controller.api.ReservationRequest}
      * @return the created resource shongo-id
      */

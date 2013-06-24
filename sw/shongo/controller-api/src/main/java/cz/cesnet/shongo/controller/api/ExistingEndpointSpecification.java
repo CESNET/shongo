@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * {@link Specification} for existing endpoint {@link Resource}.

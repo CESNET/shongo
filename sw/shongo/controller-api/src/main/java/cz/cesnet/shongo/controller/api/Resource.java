@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
-import cz.cesnet.shongo.oldapi.annotation.Required;
-import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Resource extends IdentifiedChangeableObject
+public class Resource extends IdentifiedComplexType
 {
     /**
      * User-id of the owner user.
@@ -25,38 +25,38 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * Parent resource shongo-id for the resource.
      */
-    public static final String PARENT_RESOURCE_ID = "parentResourceId";
+    private String parentResourceId;
 
     /**
      * Name of the resource.
      */
-    public static final String NAME = "name";
+    private String name;
 
     /**
      * Description of the resource.
      */
-    public static final String DESCRIPTION = "description";
+    private String description;
 
     /**
      * List of capabilities which the resource has.
      */
-    public static final String CAPABILITIES = "capabilities";
+    private List<Capability> capabilities = new LinkedList<Capability>();
 
     /**
      * Specifies whether resource can be scheduled by a scheduler.
      */
-    public static final String ALLOCATABLE = "allocatable";
+    private Boolean allocatable;
 
     /**
      * Specifies the maximum future for which the resource can be scheduled.
      */
-    public static final String MAXIMUM_FUTURE = "maximumFuture";
+    private Object maximumFuture;
 
     /**
      * List of persons that are notified when the {@link Resource} is allocated or when are
      * encountered any technical issues.
      */
-    public static final String ADMINISTRATORS = "administrators";
+    private List<Person> administrators = new LinkedList<Person>();
 
     /**
      * Child resources shongo-ids.
@@ -80,156 +80,141 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #PARENT_RESOURCE_ID}
+     * @return {@link #parentResourceId}
      */
     public String getParentResourceId()
     {
-        return getPropertyStorage().getValue(PARENT_RESOURCE_ID);
+        return parentResourceId;
     }
 
     /**
-     * @param parentResourceId sets the {@link #PARENT_RESOURCE_ID}
+     * @param parentResourceId sets the {@link #parentResourceId}
      */
     public void setParentResourceId(String parentResourceId)
     {
-        getPropertyStorage().setValue(PARENT_RESOURCE_ID, parentResourceId);
+        this.parentResourceId = parentResourceId;
     }
 
     /**
-     * @return {@link #NAME}
+     * @return {@link #name}
      */
-    @Required
     public String getName()
     {
-        return getPropertyStorage().getValue(NAME);
+        return name;
     }
 
     /**
-     * @param name sets the {@link #NAME}
+     * @param name sets the {@link #name}
      */
     public void setName(String name)
     {
-        getPropertyStorage().setValue(NAME, name);
+        this.name = name;
     }
 
     /**
-     * @return {@link #DESCRIPTION}
+     * @return {@link #description}
      */
     public String getDescription()
     {
-        return getPropertyStorage().getValue(DESCRIPTION);
+        return description;
     }
 
     /**
-     * @param description sets the {@link #DESCRIPTION}
+     * @param description sets the {@link #description}
      */
     public void setDescription(String description)
     {
-        getPropertyStorage().setValue(DESCRIPTION, description);
+        this.description = description;
     }
 
     /**
-     * @return {@link #CAPABILITIES}
+     * @return {@link #capabilities}
      */
     public List<Capability> getCapabilities()
     {
-        return getPropertyStorage().getCollection(CAPABILITIES, List.class);
+        return capabilities;
     }
 
     /**
-     * @param capabilities sets the {@link #CAPABILITIES}
-     */
-    public void setCapabilities(List<Capability> capabilities)
-    {
-        getPropertyStorage().setCollection(CAPABILITIES, capabilities);
-    }
-
-    /**
-     * @param capability capability to be added to the {@link #CAPABILITIES}
+     * @param capability capability to be added to the {@link #capabilities}
      */
     public void addCapability(Capability capability)
     {
-        getPropertyStorage().addCollectionItem(CAPABILITIES, capability, List.class);
+        capabilities.add(capability);
     }
 
     /**
-     * @param capability capability to be removed from the {@link #CAPABILITIES}
+     * @param capability capability to be removed from the {@link #capabilities}
      */
     public void removeCapability(Capability capability)
     {
-        getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
+        capabilities.remove(capability);
     }
 
     /**
-     * @return {@link #ALLOCATABLE}
+     * @return {@link #allocatable}
      */
     public Boolean getAllocatable()
     {
-        Boolean allocatable = getPropertyStorage().getValue(ALLOCATABLE);
         return (allocatable != null ? allocatable : Boolean.FALSE);
     }
 
     /**
-     * @param allocatable sets the {@link #ALLOCATABLE}
+     * @param allocatable sets the {@link #allocatable}
      */
     public void setAllocatable(Boolean allocatable)
     {
-        getPropertyStorage().setValue(ALLOCATABLE, allocatable);
+        this.allocatable = allocatable;
     }
 
     /**
-     * @return {@link #MAXIMUM_FUTURE}
+     * @return {@link #maximumFuture}
      */
-    @AllowedTypes({DateTime.class, Period.class})
     public Object getMaximumFuture()
     {
-        return getPropertyStorage().getValue(MAXIMUM_FUTURE);
+        return maximumFuture;
     }
 
     /**
-     * @param maximumFuture sets the {@link #MAXIMUM_FUTURE}
+     * @param maximumFuture sets the {@link #maximumFuture}
      */
     public void setMaximumFuture(Object maximumFuture)
     {
-        getPropertyStorage().setValue(MAXIMUM_FUTURE, maximumFuture);
+        if (maximumFuture instanceof Period || maximumFuture instanceof DateTime || maximumFuture instanceof String) {
+            this.maximumFuture = maximumFuture;
+        }
+        else {
+            throw new TodoImplementException(maximumFuture.getClass().getCanonicalName());
+        }
     }
 
     /**
-     * @return {@link #ADMINISTRATORS}
+     * @return {@link #administrators}
      */
     public List<Person> getAdministrators()
     {
-        return getPropertyStorage().getCollection(ADMINISTRATORS, List.class);
+        return administrators;
     }
 
     /**
-     * @param administrators sets the {@link #ADMINISTRATORS}
-     */
-    public void setAdministrators(List<Person> administrators)
-    {
-        getPropertyStorage().setCollection(ADMINISTRATORS, administrators);
-    }
-
-    /**
-     * @param person to be added to the {@link #ADMINISTRATORS}
+     * @param person to be added to the {@link #administrators}
      */
     public void addAdministrator(Person person)
     {
-        getPropertyStorage().addCollectionItem(ADMINISTRATORS, person, List.class);
+        administrators.add(person);
     }
 
     /**
-     * @param person to be removed from the {@link #ADMINISTRATORS}
+     * @param person to be removed from the {@link #administrators}
      */
     public void removeAdministrator(Person person)
     {
-        getPropertyStorage().removeCollectionItem(ADMINISTRATORS, person);
+        administrators.remove(person);
     }
 
     /**
      * @return {@link #childResourceIds}
      */
-    @ReadOnly
     public List<String> getChildResourceIds()
     {
         return childResourceIds;
@@ -241,5 +226,56 @@ public class Resource extends IdentifiedChangeableObject
     public void addChildResourceId(String childResourceId)
     {
         childResourceIds.add(childResourceId);
+    }
+
+    public static final String USER_ID = "userId";
+    public static final String PARENT_RESOURCE_ID = "parentResourceId";
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
+    public static final String CAPABILITIES = "capabilities";
+    public static final String ALLOCATABLE = "allocatable";
+    public static final String MAXIMUM_FUTURE = "maximumFuture";
+    public static final String ADMINISTRATORS = "administrators";
+    public static final String CHILD_RESOURCE_IDS = "childResourceIds";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
+        dataMap.set(PARENT_RESOURCE_ID, parentResourceId);
+        dataMap.set(NAME, name);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(CAPABILITIES, capabilities);
+        dataMap.set(ALLOCATABLE, allocatable);
+        dataMap.set(ADMINISTRATORS, administrators);
+        dataMap.set(CHILD_RESOURCE_IDS, childResourceIds);
+
+        if (maximumFuture instanceof DateTime) {
+            dataMap.set(MAXIMUM_FUTURE, (DateTime) maximumFuture);
+        }
+        else if (maximumFuture instanceof Period) {
+            dataMap.set(MAXIMUM_FUTURE, (Period) maximumFuture);
+        }
+        else if (maximumFuture instanceof String) {
+            dataMap.set(MAXIMUM_FUTURE, (String) maximumFuture);
+        }
+
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        userId = dataMap.getString(USER_ID);
+        parentResourceId = dataMap.getString(PARENT_RESOURCE_ID);
+        name = dataMap.getStringRequired(NAME);
+        description = dataMap.getString(DESCRIPTION);
+        capabilities = dataMap.getList(CAPABILITIES, Capability.class);
+        allocatable = dataMap.getBool(ALLOCATABLE);
+        maximumFuture = dataMap.getVariant(MAXIMUM_FUTURE, DateTime.class, Period.class);
+        administrators = dataMap.getList(ADMINISTRATORS, Person.class);
+        childResourceIds = dataMap.getList(CHILD_RESOURCE_IDS, String.class);
     }
 }

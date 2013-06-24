@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.resource.value;
 
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.TodoImplementException;
 
@@ -145,21 +146,10 @@ public class PatternValueProvider extends ValueProvider
 
         cz.cesnet.shongo.controller.api.ValueProvider.Pattern patternValueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProvider.Pattern) valueProviderApi;
-        // Create patterns
-        for (String pattern : patternValueProviderApi.getPatterns()) {
-            if (valueProviderApi.isPropertyItemMarkedAsNew(patternValueProviderApi.PATTERNS, pattern)) {
-                addPattern(pattern);
-            }
-        }
-        // Delete patterns
-        Set<String> patternsToDelete =
-                valueProviderApi.getPropertyItemsMarkedAsDeleted(patternValueProviderApi.PATTERNS);
-        for (String pattern : patternsToDelete) {
-            removePattern(pattern);
-        }
-        if (patternValueProviderApi.isPropertyFilled(patternValueProviderApi.ALLOW_ANY_REQUESTED_VALUE)) {
-            setAllowAnyRequestedValue(patternValueProviderApi.getAllowAnyRequestedValue());
-        }
+
+        setAllowAnyRequestedValue(patternValueProviderApi.getAllowAnyRequestedValue());
+
+        Synchronization.synchronizeCollection(patterns, patternValueProviderApi.getPatterns());
     }
 
     /**

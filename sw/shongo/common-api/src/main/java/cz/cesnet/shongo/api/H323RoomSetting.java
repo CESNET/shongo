@@ -1,18 +1,14 @@
-package cz.cesnet.shongo.controller.common;
-
-import javax.persistence.Entity;
+package cz.cesnet.shongo.api;
 
 /**
- * Represents a {@link RoomSetting} for a {@link RoomConfiguration} which
- * supports {@link cz.cesnet.shongo.Technology#H323}.
+ * Represents a {@link RoomSetting} for a {@link cz.cesnet.shongo.Technology#H323}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-@Entity
 public class H323RoomSetting extends RoomSetting
 {
     /**
-     * The PIN which must be entered by participant to join to the room.
+     * The PIN that must be entered to get to the room.
      */
     private String pin;
 
@@ -41,6 +37,7 @@ public class H323RoomSetting extends RoomSetting
      */
     private Boolean joinVideoMuted;
 
+
     /**
      * A boolean option whether to register the aliases with the gatekeeper. Defaults to false.
      */
@@ -60,6 +57,16 @@ public class H323RoomSetting extends RoomSetting
      * A boolean option whether the ConferenceMe should be enabled for the room. Defaults to false.
      */
     private Boolean conferenceMeEnabled;
+
+    /**
+     * @param pin sets the {@link #pin}
+     * @return this {@link H323RoomSetting}
+     */
+    public H323RoomSetting withPin(String pin)
+    {
+        setPin(pin);
+        return this;
+    }
 
     /**
      * @return {@link #pin}
@@ -221,75 +228,47 @@ public class H323RoomSetting extends RoomSetting
         this.conferenceMeEnabled = conferenceMeEnabled;
     }
 
+    public static final String PIN = "pin";
+    public static final String LISTED_PUBLICLY = "listedPublicly";
+    public static final String ALLOW_CONTENT = "allowContent";
+    public static final String ALLOW_GUESTS = "allowGuests";
+    public static final String JOIN_AUDIO_MUTED = "joinAudioMuted";
+    public static final String JOIN_VIDEO_MUTED = "joinVideoMuted";
+    public static final String REGISTER_WITH_GATEKEEPER = "registerWithGatekeeper";
+    public static final String REGISTER_WITH_REGISTRAR = "registerWithRegistrar";
+    public static final String START_LOCKED = "startLocked";
+    public static final String CONFERENCE_ME_ENABLED = "conferenceMeEnabled";
+
     @Override
-    public RoomSetting clone()
+    public DataMap toData()
     {
-        H323RoomSetting roomSetting = new H323RoomSetting();
-        roomSetting.setPin(getPin());
-        return roomSetting;
+        DataMap dataMap = super.toData();
+        dataMap.set(PIN, pin);
+        dataMap.set(LISTED_PUBLICLY, listedPublicly);
+        dataMap.set(ALLOW_CONTENT, allowContent);
+        dataMap.set(ALLOW_GUESTS, allowGuests);
+        dataMap.set(JOIN_AUDIO_MUTED, joinAudioMuted);
+        dataMap.set(JOIN_VIDEO_MUTED, joinVideoMuted);
+        dataMap.set(REGISTER_WITH_GATEKEEPER, registerWithGatekeeper);
+        dataMap.set(REGISTER_WITH_REGISTRAR, registerWithRegistrar);
+        dataMap.set(START_LOCKED, startLocked);
+        dataMap.set(CONFERENCE_ME_ENABLED, conferenceMeEnabled);
+        return dataMap;
     }
 
     @Override
-    protected cz.cesnet.shongo.api.RoomSetting createApi()
+    public void fromData(DataMap dataMap)
     {
-        return new cz.cesnet.shongo.api.H323RoomSetting();
-    }
-
-    @Override
-    public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
-    {
-        super.toApi(roomSettingApi);
-
-        cz.cesnet.shongo.api.H323RoomSetting roomSettingH323Api =
-                (cz.cesnet.shongo.api.H323RoomSetting) roomSettingApi;
-        if (pin != null) {
-            roomSettingH323Api.setPin(pin);
-        }
-        if (listedPublicly != null) {
-            roomSettingH323Api.setListedPublicly(listedPublicly);
-        }
-        if (allowContent != null) {
-            roomSettingH323Api.setAllowContent(allowContent);
-        }
-        if (allowGuests != null) {
-            roomSettingH323Api.setAllowGuests(allowGuests);
-        }
-        if (joinAudioMuted != null) {
-            roomSettingH323Api.setJoinAudioMuted(joinAudioMuted);
-        }
-        if (joinVideoMuted != null) {
-            roomSettingH323Api.setJoinVideoMuted(joinVideoMuted);
-        }
-        if (registerWithGatekeeper != null) {
-            roomSettingH323Api.setRegisterWithGatekeeper(registerWithGatekeeper);
-        }
-        if (registerWithRegistrar != null) {
-            roomSettingH323Api.setRegisterWithRegistrar(registerWithRegistrar);
-        }
-        if (startLocked != null) {
-            roomSettingH323Api.setStartLocked(startLocked);
-        }
-        if (conferenceMeEnabled != null) {
-            roomSettingH323Api.setConferenceMeEnabled(conferenceMeEnabled);
-        }
-    }
-
-    @Override
-    public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
-    {
-        super.fromApi(roomSettingApi);
-
-        cz.cesnet.shongo.api.H323RoomSetting roomSettingH323Api =
-                (cz.cesnet.shongo.api.H323RoomSetting) roomSettingApi;
-        setPin(roomSettingH323Api.getPin());
-        setListedPublicly(roomSettingH323Api.getListedPublicly());
-        setAllowContent(roomSettingH323Api.getAllowContent());
-        setAllowGuests(roomSettingH323Api.getAllowGuests());
-        setJoinAudioMuted(roomSettingH323Api.getJoinAudioMuted());
-        setJoinVideoMuted(roomSettingH323Api.getJoinVideoMuted());
-        setRegisterWithGatekeeper(roomSettingH323Api.getRegisterWithGatekeeper());
-        setRegisterWithRegistrar(roomSettingH323Api.getRegisterWithRegistrar());
-        setStartLocked(roomSettingH323Api.getStartLocked());
-        setConferenceMeEnabled(roomSettingH323Api.getConferenceMeEnabled());
+        super.fromData(dataMap);
+        pin = dataMap.getString(PIN);
+        listedPublicly = dataMap.getBoolean(LISTED_PUBLICLY);
+        allowContent = dataMap.getBoolean(ALLOW_CONTENT);
+        allowGuests = dataMap.getBoolean(ALLOW_GUESTS);
+        joinAudioMuted = dataMap.getBoolean(JOIN_AUDIO_MUTED);
+        joinVideoMuted = dataMap.getBoolean(JOIN_VIDEO_MUTED);
+        registerWithGatekeeper = dataMap.getBoolean(REGISTER_WITH_GATEKEEPER);
+        registerWithRegistrar = dataMap.getBoolean(REGISTER_WITH_REGISTRAR);
+        startLocked = dataMap.getBoolean(START_LOCKED);
+        conferenceMeEnabled = dataMap.getBoolean(CONFERENCE_ME_ENABLED);
     }
 }

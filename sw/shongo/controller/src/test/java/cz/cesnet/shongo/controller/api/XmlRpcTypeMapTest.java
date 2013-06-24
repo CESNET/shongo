@@ -1,15 +1,16 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.api.rpc.RpcClient;
 import cz.cesnet.shongo.api.rpc.Service;
-import cz.cesnet.shongo.oldapi.rpc.StructType;
-import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.controller.api.rpc.RpcServer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -66,13 +67,11 @@ public class XmlRpcTypeMapTest
         PIN
     }
 
-    public static class TestingRoom extends IdentifiedChangeableObject implements StructType
+    public static class TestingRoom extends IdentifiedComplexType
     {
-        public static final String NAME = "name";
-
-        public static final String LICENSE_COUNT = "licenseCount";
-
-        public static final String OPTIONS = "options";
+        private String name;
+        private Integer licenseCount;
+        private Map<TestingRoomOption, Object> options = new HashMap<TestingRoomOption, Object>();
 
         public TestingRoom()
         {
@@ -80,37 +79,32 @@ public class XmlRpcTypeMapTest
 
         public String getName()
         {
-            return getPropertyStorage().getValue(NAME);
+            return name;
         }
 
         public void setName(String name)
         {
-            getPropertyStorage().setValue(NAME, name);
+            this.name = name;
         }
 
         public int getLicenseCount()
         {
-            return getPropertyStorage().getValueAsInt(LICENSE_COUNT);
+            return licenseCount;
         }
 
         public void setLicenseCount(int licenseCount)
         {
-            getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
+            this.licenseCount = licenseCount;
         }
 
         public Map<TestingRoomOption, Object> getOptions()
         {
-            return getPropertyStorage().getMap(OPTIONS);
-        }
-
-        public void setOptions(Map<TestingRoomOption, Object> options)
-        {
-            getPropertyStorage().setMap(OPTIONS, options);
+            return options;
         }
 
         public Object getOption(TestingRoomOption option)
         {
-            return getPropertyStorage().getMap(OPTIONS).get(option);
+            return options.get(option);
         }
 
         public void setOption(TestingRoomOption option, Object value)
@@ -119,13 +113,36 @@ public class XmlRpcTypeMapTest
                 removeOption(option);
             }
             else {
-                getPropertyStorage().addMapItem(OPTIONS, option, value);
+                options.put(option, value);
             }
         }
 
         public void removeOption(TestingRoomOption option)
         {
-            getPropertyStorage().removeMapItem(OPTIONS, option);
+            options.remove(option);
+        }
+
+        public static final String NAME = "name";
+        public static final String LICENSE_COUNT = "licenseCount";
+        public static final String OPTIONS = "options";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(NAME, name);
+            dataMap.set(LICENSE_COUNT, licenseCount);
+            dataMap.set(OPTIONS, options);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            name = dataMap.getString(NAME);
+            licenseCount = dataMap.getInteger(LICENSE_COUNT);
+            options = dataMap.getMap(OPTIONS, TestingRoomOption.class, Object.class);
         }
     }
 
@@ -163,7 +180,7 @@ public class XmlRpcTypeMapTest
         {
             Assert.assertEquals("1", room.getId());
             Assert.assertEquals(10, room.getLicenseCount());
-            Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.OPTIONS, TestingRoomOption.PIN));
+            Assert.assertEquals("100", room.getOption(TestingRoomOption.PIN));
         }
     }
 }

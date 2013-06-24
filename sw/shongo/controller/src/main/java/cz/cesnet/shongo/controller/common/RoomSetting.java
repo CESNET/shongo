@@ -17,11 +17,11 @@ import javax.persistence.InheritanceType;
 public abstract class RoomSetting extends PersistentObject
 {
     /**
-     * @return {@link RoomSetting} converted to {@link cz.cesnet.shongo.oldapi.RoomSetting}
+     * @return {@link RoomSetting} converted to {@link cz.cesnet.shongo.api.RoomSetting}
      */
-    public cz.cesnet.shongo.oldapi.RoomSetting toApi()
+    public cz.cesnet.shongo.api.RoomSetting toApi()
     {
-        cz.cesnet.shongo.oldapi.RoomSetting api = createApi();
+        cz.cesnet.shongo.api.RoomSetting api = createApi();
         toApi(api);
         return api;
     }
@@ -30,13 +30,13 @@ public abstract class RoomSetting extends PersistentObject
      * @param api from which {@link RoomSetting} should be created
      * @return new instance of {@link RoomSetting} for given {@code api}
      */
-    public static RoomSetting createFromApi(cz.cesnet.shongo.oldapi.RoomSetting api)
+    public static RoomSetting createFromApi(cz.cesnet.shongo.api.RoomSetting api)
     {
         RoomSetting roomSetting = null;
-        if (api instanceof cz.cesnet.shongo.oldapi.H323RoomSetting) {
+        if (api instanceof cz.cesnet.shongo.api.H323RoomSetting) {
             roomSetting = new H323RoomSetting();
         }
-        else if (api instanceof cz.cesnet.shongo.oldapi.AdobeConnectRoomSetting) {
+        else if (api instanceof cz.cesnet.shongo.api.AdobeConnectRoomSetting) {
             roomSetting = new cz.cesnet.shongo.controller.common.AdobeConnectRoomSetting();
         }
         else {
@@ -47,26 +47,26 @@ public abstract class RoomSetting extends PersistentObject
     }
 
     /**
-     * @return new instance of {@link cz.cesnet.shongo.oldapi.RoomSetting}
+     * @return new instance of {@link cz.cesnet.shongo.api.RoomSetting}
      */
-    protected abstract cz.cesnet.shongo.oldapi.RoomSetting createApi();
+    protected abstract cz.cesnet.shongo.api.RoomSetting createApi();
 
     /**
-     * Synchronize to {@link cz.cesnet.shongo.oldapi.RoomSetting}.
+     * Synchronize to {@link cz.cesnet.shongo.api.RoomSetting}.
      *
      * @param roomSettingApi which should be filled from this {@link RoomSetting}
      */
-    public void toApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
+    public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
         roomSettingApi.setId(getId());
     }
 
     /**
-     * Synchronize from {@link cz.cesnet.shongo.oldapi.RoomSetting}.
+     * Synchronize from {@link cz.cesnet.shongo.api.RoomSetting}.
      *
      * @param roomSettingApi from which this {@link RoomSetting} should be filled
      */
-    public void fromApi(cz.cesnet.shongo.oldapi.RoomSetting roomSettingApi)
+    public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
     }
 

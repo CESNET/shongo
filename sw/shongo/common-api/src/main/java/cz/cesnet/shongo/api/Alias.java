@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.oldapi.rpc.StructType;
 import jade.content.Concept;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Alias extends IdentifiedComplexType implements StructType, Concept
+public class Alias extends IdentifiedComplexType implements Concept
 {
     /**
      * Type of alias.

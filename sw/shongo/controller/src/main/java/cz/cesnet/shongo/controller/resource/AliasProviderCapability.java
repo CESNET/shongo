@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -132,7 +133,8 @@ public class AliasProviderCapability extends Capability
     /**
      * @param id
      * @return alias with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when alias doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when alias doesn't exist
      */
     public Alias getAliasById(Long id) throws CommonReportSet.EntityNotFoundException
     {
@@ -350,50 +352,42 @@ public class AliasProviderCapability extends Capability
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability capabilityApi, EntityManager entityManager)
     {
+        super.fromApi(capabilityApi, entityManager);
+
         cz.cesnet.shongo.controller.api.AliasProviderCapability aliasProviderApi =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) capabilityApi;
 
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.VALUE_PROVIDER)) {
-            Object valueProviderApi = aliasProviderApi.getValueProvider();
-            setValueProvider(ValueProvider.modifyFromApi(valueProviderApi, this.valueProvider, this, entityManager));
+        Object valueProviderApi = aliasProviderApi.getValueProvider();
+        setValueProvider(ValueProvider.modifyFromApi(valueProviderApi, this.valueProvider, this, entityManager));
+
+        Object maximumFuture = aliasProviderApi.getMaximumFuture();
+        if (maximumFuture == null) {
+            setMaximumFuture(null);
+        }
+        else {
+            setMaximumFuture(DateTimeSpecification.fromApi(maximumFuture, getMaximumFuture()));
         }
 
-        // Create/modify aliases
-        for (cz.cesnet.shongo.api.Alias apiAlias : aliasProviderApi.getAliases()) {
-            if (capabilityApi.isPropertyItemMarkedAsNew(aliasProviderApi.ALIASES, apiAlias)) {
-                Alias alias = new Alias();
-                alias.fromApi(apiAlias);
-                addAlias(alias);
-            }
-            else {
-                Alias alias = getAliasById(apiAlias.notNullIdAsLong());
-                alias.fromApi(apiAlias);
-            }
-        }
-        // Delete aliases
-        Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases =
-                capabilityApi.getPropertyItemsMarkedAsDeleted(aliasProviderApi.ALIASES);
-        for (cz.cesnet.shongo.api.Alias apiAlias : apiDeletedAliases) {
-            removeAlias(getAliasById(apiAlias.notNullIdAsLong()));
-        }
+        setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
+        setPermanentRoom(aliasProviderApi.getPermanentRoom());
 
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.MAXIMUM_FUTURE)) {
-            Object maximumFuture = aliasProviderApi.getMaximumFuture();
-            if (maximumFuture == null) {
-                setMaximumFuture(null);
-            }
-            else {
-                setMaximumFuture(DateTimeSpecification.fromApi(maximumFuture, getMaximumFuture()));
-            }
-        }
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.RESTRICTED_TO_RESOURCE)) {
-            setRestrictedToResource(aliasProviderApi.getRestrictedToResource());
-        }
-        if (aliasProviderApi.isPropertyFilled(aliasProviderApi.PERMANENT_ROOM)) {
-            setPermanentRoom(aliasProviderApi.getPermanentRoom());
-        }
+        Synchronization.synchronizeCollection(aliases, aliasProviderApi.getAliases(),
+                new Synchronization.Handler<Alias, cz.cesnet.shongo.api.Alias>(Alias.class)
+                {
+                    @Override
+                    public Alias createFromApi(cz.cesnet.shongo.api.Alias objectApi)
+                    {
+                        Alias alias = new Alias();
+                        alias.fromApi(objectApi);
+                        return alias;
+                    }
 
-        super.fromApi(capabilityApi, entityManager);
+                    @Override
+                    public void updateFromApi(Alias object, cz.cesnet.shongo.api.Alias objectApi)
+                    {
+                        object.fromApi(objectApi);
+                    }
+                });
     }
 
     public String parseValue(String value)

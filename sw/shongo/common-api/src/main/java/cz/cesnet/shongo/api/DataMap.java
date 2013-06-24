@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -37,69 +36,82 @@ public class DataMap
         return data;
     }
 
+    private void setNotNull(String property, Object value)
+    {
+        if (value == null) {
+            return;
+        }
+        data.put(property, value);
+    }
+
     public void set(String property, String value)
     {
-        data.put(property, value);
+        setNotNull(property, value);
     }
 
     public void set(String property, boolean value)
     {
-        data.put(property, value);
+        setNotNull(property, value);
     }
 
     public void set(String property, Boolean value)
     {
-        data.put(property, value);
+        setNotNull(property, value);
     }
 
     public void set(String property, int value)
     {
-        data.put(property, value);
+        setNotNull(property, value);
     }
 
     public void set(String property, Integer value)
     {
-        data.put(property, value);
+        setNotNull(property, value);
     }
 
     public <E extends Enum> void set(String property, E enumValue)
     {
-        data.put(property, Converter.convertEnumToString(enumValue));
+        setNotNull(property, Converter.convertEnumToString(enumValue));
     }
 
     public void set(String property, DateTime dateTime)
     {
-        data.put(property, Converter.convertDateTimeToString(dateTime));
+        setNotNull(property, Converter.convertDateTimeToString(dateTime));
     }
 
     public void set(String property, Period period)
     {
-        data.put(property, Converter.convertPeriodToString(period));
+        setNotNull(property, Converter.convertPeriodToString(period));
     }
 
     public void set(String property, Interval interval)
     {
-        data.put(property, Converter.convertIntervalToString(interval));
+        setNotNull(property, Converter.convertIntervalToString(interval));
     }
 
     public void set(String property, ReadablePartial readablePartial)
     {
-        data.put(property, Converter.convertReadablePartialToString(readablePartial));
+        setNotNull(property, Converter.convertReadablePartialToString(readablePartial));
     }
 
     public void set(String property, Collection collection)
     {
-        data.put(property, collection);
+        setNotNull(property, collection);
+    }
+
+    public void set(String property, Map map)
+    {
+        setNotNull(property, map);
     }
 
     public void set(String property, ComplexType complexType)
     {
-        data.put(property, Converter.convertComplexTypeToMap(complexType));
+        setNotNull(property, Converter.convertComplexTypeToMap(complexType));
     }
 
     public void set(String property, AtomicType atomicType)
     {
-        data.put(property, Converter.convertAtomicTypeToString(atomicType));
+        setNotNull(property, Converter.convertAtomicTypeToString(atomicType));
     }
 
     private Object getRequired(String property)
@@ -123,7 +135,11 @@ public class DataMap
 
     public boolean getBool(String property)
     {
-        return Converter.convertToBoolean(getRequired(property));
+        Object value = data.get(property);
+        if (value == null) {
+            return false;
+        }
+        return Converter.convertToBoolean(value);
     }
 
     public Boolean getBoolean(String property)
@@ -210,6 +226,15 @@ public class DataMap
         return Converter.convertToList(data.get(property), componentClasses);
     }
 
+    public List<Object> getListRequired(String property, Class... componentClasses)
+    {
+        List<Object> value = Converter.convertToList(getRequired(property), componentClasses);
+        if (value.size() == 0) {
+            throw new CommonReportSet.ClassCollectionRequiredException(complexType.getClassName(), property);
+        }
+        return value;
+    }
+
     public <T> Set<T> getSet(String property, Class<T> componentClass)
     {
         return Converter.convertToSet(data.get(property), componentClass);
@@ -224,15 +249,9 @@ public class DataMap
         return value;
     }
 
-
-
-    public Map getMap(String property)
+    public <K, V> Map<K, V> getMap(String property, Class<K> keyClass, Class<V> valueClass)
     {
-        return (Map) data.get(property);
-    }
-    public Map getMapRequired(String property)
-    {
-        return (Map) getRequired(property);
+        return Converter.convertToMap(data.get(property), keyClass, valueClass);
     }
 
     public <T extends AtomicType> T getAtomicType(String property, Class<T> atomicTypeClass)
@@ -272,5 +291,15 @@ public class DataMap
             throw new CommonReportSet.ClassAttributeTypeMismatchException(complexType.getClassName(), property,
                     ClassHelper.getClassShortName(complexTypeClass), ClassHelper.getClassShortName(value.getClass()));
         }
+    }
+
+    public Object getVariant(String property, Class... requiredClasses)
+    {
+        return Converter.convert(data.get(property), requiredClasses);
+    }
+
+    public Object getVariantRequired(String property, Class... requiredClasses)
+    {
+        return Converter.convert(getRequired(property), requiredClasses);
     }
 }

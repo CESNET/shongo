@@ -1,7 +1,6 @@
-package cz.cesnet.shongo.oldapi.util;
+package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,10 +48,8 @@ public class PropertyTest
 
         public List<SecurityToken> field4;
 
-        @AllowedTypes({String.class, DateTime.class})
         public List<Object> field5;
 
-        @AllowedTypes({String.class, DateTime.class})
         public Object field6;
 
         public SecurityToken[] field7;
@@ -115,11 +112,7 @@ public class PropertyTest
         Assert.assertEquals(List.class, Property.getPropertyType(Foo.class, "field4"));
         Assert.assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyValueAllowedTypes(Foo.class, "field4"));
         Assert.assertEquals(List.class, Property.getPropertyType(Foo.class, "field5"));
-        Assert.assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyValueAllowedTypes(Foo.class, "field5"));
         Assert.assertEquals(Object.class, Property.getPropertyType(Foo.class, "field6"));
-        Assert.assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyValueAllowedTypes(Foo.class, "field6"));
         Assert.assertEquals(SecurityToken[].class, Property.getPropertyType(Foo.class, "field7"));
         Assert.assertArrayEquals(new Class[]{SecurityToken.class},
                 Property.getPropertyValueAllowedTypes(Foo.class, "field7"));

@@ -1,23 +1,6 @@
 package cz.cesnet.shongo.controller.util;
 
-import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doclet;
-import com.sun.javadoc.FieldDoc;
-import com.sun.javadoc.RootDoc;
-import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
-import cz.cesnet.shongo.oldapi.annotation.Required;
-import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.oldapi.util.IdentifiedChangeableObject;
-import cz.cesnet.shongo.oldapi.util.Property;
-import cz.cesnet.shongo.oldapi.util.TypeFlags;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Class for generating API documentation to LaTeX.
@@ -28,10 +11,9 @@ import java.util.regex.Pattern;
  */
 public class LatexDoclet extends Doclet
 {
-    private static final List<String> SUPERCLASSES = new ArrayList<String>()
+    /*private static final List<String> SUPERCLASSES = new ArrayList<String>()
     {{
-            add("IdentifiedChangeableObject");
-            add("IdentifiedObject");
+            add("IdentifiedComplexType");
         }};
 
     private Map<String, ClassDoc> classDocByName = new HashMap<String, ClassDoc>();
@@ -376,5 +358,5 @@ public class LatexDoclet extends Doclet
                         "ResourceAllocation", "RoomProviderResourceAllocation"
                 });
 
-    }
+    }*/
 }

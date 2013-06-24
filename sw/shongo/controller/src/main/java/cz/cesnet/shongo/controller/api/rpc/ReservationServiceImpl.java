@@ -88,11 +88,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
-            if (true) {
-                throw new TodoImplementException("TODO: refactorize API");
-            }
-            //specificationApi.setupNewEntity();
-
             cz.cesnet.shongo.controller.request.Specification specification =
                     cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
             Throwable cause = null;

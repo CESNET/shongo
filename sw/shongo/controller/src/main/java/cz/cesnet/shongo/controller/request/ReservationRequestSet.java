@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
@@ -38,22 +38,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public List<DateTimeSlot> getSlots()
     {
         return Collections.unmodifiableList(slots);
-    }
-
-    /**
-     * @param id of the requested {@link cz.cesnet.shongo.controller.common.DateTimeSlot}
-     * @return {@link cz.cesnet.shongo.controller.common.DateTimeSlot} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link DateTimeSlot} doesn't exist
-     */
-    @Transient
-    private DateTimeSlot getSlotById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (DateTimeSlot dateTimeSlot : slots) {
-            if (dateTimeSlot.getId().equals(id)) {
-                return dateTimeSlot;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(DateTimeSlot.class, id);
     }
 
     /**
@@ -193,19 +177,25 @@ public class ReservationRequestSet extends AbstractReservationRequest
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager)
     {
+        super.fromApi(api, entityManager);
+
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
 
-        if (slots.size() > 0) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        for (Object slotApi : reservationRequestSetApi.getSlots()) {
-            if (slotApi instanceof IdentifiedComplexType && ((IdentifiedComplexType)slotApi).getId() != null) {
-                throw new TodoImplementException("TODO: refactorize API");
-            }
-            addSlot(DateTimeSlot.createFromApi(slotApi));
-        }
+        Synchronization.synchronizeCollectionPartial(slots, reservationRequestSetApi.getSlots(),
+                new Synchronization.Handler<DateTimeSlot, Object>(DateTimeSlot.class)
+                {
+                    @Override
+                    public DateTimeSlot createFromApi(Object objectApi)
+                    {
+                        return DateTimeSlot.createFromApi(objectApi);
+                    }
 
-        super.fromApi(api, entityManager);
+                    @Override
+                    public void updateFromApi(DateTimeSlot object, Object objectApi)
+                    {
+                        object.fromApi(objectApi);
+                    }
+                });
     }
 }

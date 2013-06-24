@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,15 +16,15 @@ public class RoomProviderCapability extends Capability
     /**
      * Number of available licenses.
      */
-    public static final String LICENSE_COUNT = "licenseCount";
+    private int licenseCount;
 
     /**
-     * List of {@link AliasType} which are required for each created room.
+     * Set of {@link AliasType} which are required for each created room.
      * If multiple technologies are supported by the owner {@link DeviceResource} and the room is created only
      * for a subset of the technologies, only alias {@link AliasType}s which are compatible with this technology subset
      * are required.
      */
-    public static final String REQUIRED_ALIAS_TYPES = "requiredAliasTypes";
+    private Set<AliasType> requiredAliasTypes = new HashSet<AliasType>();
 
     /**
      * Constructor.
@@ -35,7 +36,7 @@ public class RoomProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param licenseCount sets the {@link #LICENSE_COUNT}
+     * @param licenseCount sets the {@link #licenseCount}
      */
     public RoomProviderCapability(Integer licenseCount)
     {
@@ -45,8 +46,8 @@ public class RoomProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param licenseCount       sets the {@link #LICENSE_COUNT}
-     * @param requiredAliasTypes sets the {@link #REQUIRED_ALIAS_TYPES}
+     * @param licenseCount       sets the {@link #licenseCount}
+     * @param requiredAliasTypes sets the {@link #requiredAliasTypes}
      */
     public RoomProviderCapability(Integer licenseCount, AliasType[] requiredAliasTypes)
     {
@@ -57,51 +58,62 @@ public class RoomProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #LICENSE_COUNT}
+     * @return {@link #licenseCount}
      */
-    @Required
-    public Integer getLicenseCount()
+    public int getLicenseCount()
     {
-        return getPropertyStorage().getValue(LICENSE_COUNT);
+        return licenseCount;
     }
 
     /**
-     * @param licenseCount sets the {@link #LICENSE_COUNT}
+     * @param licenseCount sets the {@link #licenseCount}
      */
-    public void setLicenseCount(Integer licenseCount)
+    public void setLicenseCount(int licenseCount)
     {
-        getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
+        this.licenseCount = licenseCount;
     }
 
     /**
-     * @return {@link #REQUIRED_ALIAS_TYPES}
+     * @return {@link #requiredAliasTypes}
      */
     public Set<AliasType> getRequiredAliasTypes()
     {
-        return getPropertyStorage().getCollection(REQUIRED_ALIAS_TYPES, Set.class);
+        return requiredAliasTypes;
     }
 
     /**
-     * @param requiredAliasTypes sets the {@link #REQUIRED_ALIAS_TYPES}
-     */
-    public void setRequiredAliasTypes(Set<AliasType> requiredAliasTypes)
-    {
-        getPropertyStorage().setCollection(REQUIRED_ALIAS_TYPES, requiredAliasTypes);
-    }
-
-    /**
-     * @param requiredAliasType to be added to the {@link #REQUIRED_ALIAS_TYPES}
+     * @param requiredAliasType to be added to the {@link #requiredAliasTypes}
      */
     public void addRequiredAliasType(AliasType requiredAliasType)
     {
-        getPropertyStorage().addCollectionItem(REQUIRED_ALIAS_TYPES, requiredAliasType, Set.class);
+        requiredAliasTypes.add(requiredAliasType);
     }
 
     /**
-     * @param requiredAliasTypes to be removed from the {@link #REQUIRED_ALIAS_TYPES}
+     * @param requiredAliasType to be removed from the {@link #requiredAliasTypes}
      */
-    public void removeRequiredAliasType(AliasType requiredAliasTypes)
+    public void removeRequiredAliasType(AliasType requiredAliasType)
     {
-        getPropertyStorage().removeCollectionItem(REQUIRED_ALIAS_TYPES, requiredAliasTypes);
+        requiredAliasTypes.remove(requiredAliasType);
+    }
+
+    public static final String LICENSE_COUNT = "licenseCount";
+    public static final String REQUIRED_ALIAS_TYPES = "requiredAliasTypes";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(LICENSE_COUNT, licenseCount);
+        dataMap.set(REQUIRED_ALIAS_TYPES, requiredAliasTypes);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        licenseCount = dataMap.getInt(LICENSE_COUNT);
+        requiredAliasTypes = dataMap.getSet(REQUIRED_ALIAS_TYPES, AliasType.class);
     }
 }

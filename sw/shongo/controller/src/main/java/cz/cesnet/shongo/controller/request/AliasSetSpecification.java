@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.scheduler.*;
 import org.joda.time.Interval;
 
@@ -21,7 +21,7 @@ public class AliasSetSpecification extends Specification
     /**
      * List of {@link AliasSpecification} for {@link cz.cesnet.shongo.controller.resource.Alias}es which should be allocated for the room.
      */
-    private List<AliasSpecification> aliasSpecifications = new ArrayList<AliasSpecification>();
+    private List<AliasSpecification> aliasSpecifications = new LinkedList<AliasSpecification>();
 
     /**
      * Share created executable.
@@ -43,22 +43,6 @@ public class AliasSetSpecification extends Specification
     public List<AliasSpecification> getAliasSpecifications()
     {
         return Collections.unmodifiableList(aliasSpecifications);
-    }
-
-    /**
-     * @param id of the requested {@link AliasSpecification}
-     * @return {@link AliasSpecification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when the {@link AliasSpecification} doesn't exist
-     */
-    @Transient
-    private AliasSpecification getAliasSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            if (aliasSpecification.getId().equals(id)) {
-                return aliasSpecification;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(AliasSpecification.class, id);
     }
 
     /**
@@ -167,38 +151,35 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
+            final EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
+        cz.cesnet.shongo.controller.api.AliasSetSpecification aliasSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSetSpecification) specificationApi;
 
-        // Create/update alias specifications
-        for (cz.cesnet.shongo.controller.api.AliasSpecification aliasApi :
-                aliasSetSpecificationApi.getAliases()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(aliasSetSpecificationApi.ALIASES, aliasApi)) {
-                AliasSpecification aliasSpecification = new AliasSpecification();
-                aliasSpecification.fromApi(aliasApi, entityManager);
-                addAliasSpecification(aliasSpecification);
-            }
-            else {
-                AliasSpecification aliasSpecification = getAliasSpecificationById(aliasApi.notNullIdAsLong());
-                aliasSpecification.fromApi(aliasApi, entityManager);
-            }
-        }
-        // Delete room settings
-        Set<cz.cesnet.shongo.controller.api.AliasSpecification> aliasSpecificationsToDelete =
-                specificationApi.getPropertyItemsMarkedAsDeleted(aliasSetSpecificationApi.ALIASES);
-        for (cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi : aliasSpecificationsToDelete) {
-            removeAliasSpecification(getAliasSpecificationById(aliasSpecificationApi.notNullIdAsLong()));
-        }
+        setSharedExecutable(aliasSetSpecificationApi.getSharedExecutable());
 
-        if (aliasSetSpecificationApi.isPropertyFilled(aliasSetSpecificationApi.SHARED_EXECUTABLE)) {
-            setSharedExecutable(aliasSetSpecificationApi.getSharedExecutable());
-        }
+        Synchronization.synchronizeCollection(aliasSpecifications, aliasSetSpecificationApi.getAliases(),
+                new Synchronization.Handler<AliasSpecification, cz.cesnet.shongo.controller.api.AliasSpecification>(
+                        AliasSpecification.class)
+                {
+                    @Override
+                    public AliasSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.AliasSpecification objectApi)
+                    {
+                        AliasSpecification aliasSpecification = new AliasSpecification();
+                        aliasSpecification.fromApi(objectApi, entityManager);
+                        return aliasSpecification;
+                    }
 
-        super.fromApi(specificationApi, entityManager);*/
+                    @Override
+                    public void updateFromApi(AliasSpecification object,
+                            cz.cesnet.shongo.controller.api.AliasSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+
+        super.fromApi(specificationApi, entityManager);
     }
 }

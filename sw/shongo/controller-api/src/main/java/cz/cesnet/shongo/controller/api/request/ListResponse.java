@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
-import cz.cesnet.shongo.oldapi.annotation.Transient;
+import cz.cesnet.shongo.api.DataMap;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -87,7 +87,6 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
     /**
      * @return size of {@link #items}
      */
-    @Transient
     public int getItemCount()
     {
         return items.size();
@@ -105,5 +104,28 @@ public class ListResponse<T> extends AbstractResponse implements Iterable<T>
     public Iterator<T> iterator()
     {
         return items.iterator();
+    }
+
+    private static final String START = "start";
+    private static final String COUNT = "count";
+    private static final String ITEMS = "items";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(START, start);
+        dataMap.set(COUNT, count);
+        dataMap.set(ITEMS, items);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        start = dataMap.getInt(START);
+        count = dataMap.getInt(COUNT);
+        items = (List<T>) dataMap.getList(ITEMS, Object.class);
     }
 }

@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.oldapi.annotation.Required;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -62,7 +60,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * @return {@link #TECHNOLOGIES}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
         return technologies;
@@ -95,7 +92,6 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * @return {@link #COUNT}
      */
-    @Required
     public Integer getCount()
     {
         return count;
@@ -125,7 +121,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
         count = dataMap.getIntegerRequired(COUNT);
     }
 }

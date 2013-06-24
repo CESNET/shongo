@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.request;
 
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.HashSet;
@@ -71,5 +72,22 @@ public class PermissionListRequest extends AbstractRequest
     public void addEntityId(String entityId)
     {
         entityIds.add(entityId);
+    }
+
+    private static final String ENTITY_IDS = "entityIds";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(ENTITY_IDS, entityIds);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        entityIds = dataMap.getSet(ENTITY_IDS, String.class);
     }
 }

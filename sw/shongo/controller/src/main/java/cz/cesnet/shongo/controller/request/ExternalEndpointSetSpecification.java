@@ -116,6 +116,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;
+
         setCount(externalEndpointSetSpecificationApi.getCount());
 
         clearTechnologies();

@@ -25,7 +25,7 @@ public abstract class Specification extends PersistentObject implements Reportab
     /**
      * Set of {@link Technology}s which are required/supported by this {@link Specification}.
      */
-    private Set<Technology> technologies = new HashSet<Technology>();
+    protected Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * @return {@link #technologies}

@@ -89,9 +89,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
         Assert.assertEquals("requestModified", reservationRequest.getDescription());
 
-        // Modify reservation request by new instance of reservation request
-        reservationRequest = new ReservationRequest();
-        reservationRequest.setId(id2);
+        // Modify reservation request again
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
         String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:3", id3);
@@ -163,9 +162,8 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
         Assert.assertEquals("requestModified", reservationRequest.getDescription());
 
-        // Modify reservation request by new instance of reservation request
-        reservationRequest = new ReservationRequestSet();
-        reservationRequest.setId(id2);
+        // Modify reservation request again
+        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id2);
         reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
         String id3 = getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         Assert.assertEquals("shongo:cz.cesnet:req:3", id3);

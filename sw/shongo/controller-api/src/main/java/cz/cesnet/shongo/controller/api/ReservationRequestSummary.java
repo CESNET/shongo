@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -14,7 +16,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSummary extends IdentifiedObject
+public class ReservationRequestSummary extends IdentifiedComplexType
 {
     /**
      * @see ReservationRequestType
@@ -221,10 +223,51 @@ public class ReservationRequestSummary extends IdentifiedObject
         providedReservationIds.add(providedReservationId);
     }
 
+    private static final String TYPE = "type";
+    private static final String DATETIME = "dateTime";
+    private static final String USER_ID = "userId";
+    private static final String PURPOSE = "purpose";
+    private static final String DESCRIPTION = "description";
+    private static final String EARLIEST_SLOT = "earliestSlot";
+    private static final String SPECIFICATION = "specification";
+    private static final String TECHNOLOGIES = "technologies";
+    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(TYPE, type);
+        dataMap.set(DATETIME, dateTime);
+        dataMap.set(USER_ID, userId);
+        dataMap.set(PURPOSE, purpose);
+        dataMap.set(DESCRIPTION, description);
+        dataMap.set(EARLIEST_SLOT, earliestSlot);
+        dataMap.set(SPECIFICATION, specification);
+        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        type = dataMap.getEnum(TYPE, ReservationRequestType.class);
+        dateTime = dataMap.getDateTime(DATETIME);
+        userId = dataMap.getString(USER_ID);
+        purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
+        description = dataMap.getString(DESCRIPTION);
+        earliestSlot = dataMap.getInterval(EARLIEST_SLOT);
+        specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        providedReservationIds = dataMap.getList(PROVIDED_RESERVATION_IDS, String.class);
+    }
+
     /**
      * Type of {@link AbstractReservationRequest}.
      */
-    public abstract static class Specification
+    public abstract static class Specification extends IdentifiedComplexType
     {
     }
 
@@ -253,6 +296,23 @@ public class ReservationRequestSummary extends IdentifiedObject
         {
             this.resourceId = resourceId;
         }
+
+        private static final String RESOURCE_ID = "resourceId";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(RESOURCE_ID, resourceId);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            resourceId = dataMap.getString(RESOURCE_ID);
+        }
     }
 
     /**
@@ -280,6 +340,23 @@ public class ReservationRequestSummary extends IdentifiedObject
         {
             this.participantCount = participantCount;
         }
+
+        private static final String PARTICIPANT_COUNT = "participantCount";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(PARTICIPANT_COUNT, participantCount);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            participantCount = dataMap.getInteger(PARTICIPANT_COUNT);
+        }
     }
 
     /**
@@ -300,7 +377,7 @@ public class ReservationRequestSummary extends IdentifiedObject
         /**
          * @return {@link #aliasType}
          */
-        public cz.cesnet.shongo.AliasType getAliasType()
+        public AliasType getAliasType()
         {
             return aliasType;
         }
@@ -308,7 +385,7 @@ public class ReservationRequestSummary extends IdentifiedObject
         /**
          * @param aliasType sets the {@link #aliasType}
          */
-        public void setAliasType(cz.cesnet.shongo.AliasType aliasType)
+        public void setAliasType(AliasType aliasType)
         {
             this.aliasType = aliasType;
         }
@@ -328,6 +405,25 @@ public class ReservationRequestSummary extends IdentifiedObject
         {
             this.value = value;
         }
-    }
 
+        private static final String ALIAS_TYPE = "aliasType";
+        private static final String VALUE = "value";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(ALIAS_TYPE, aliasType);
+            dataMap.set(VALUE, value);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            aliasType = dataMap.getEnum(ALIAS_TYPE, AliasType.class);
+            value = dataMap.getString(VALUE);
+        }
+    }
 }

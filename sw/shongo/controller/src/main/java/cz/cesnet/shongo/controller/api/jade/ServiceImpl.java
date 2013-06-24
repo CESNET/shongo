@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.api.jade;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;

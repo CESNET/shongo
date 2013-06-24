@@ -1,14 +1,15 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 import org.joda.time.DateTime;
-import cz.cesnet.shongo.CommonReportSet;
 
 import javax.persistence.*;
 import java.util.*;
@@ -141,7 +142,8 @@ public class Resource extends PersistentObject implements Reportable
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when capability doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when capability doesn't exist
      */
     public Capability getCapabilityById(Long id) throws CommonReportSet.EntityNotFoundException
     {
@@ -298,7 +300,8 @@ public class Resource extends PersistentObject implements Reportable
     /**
      * @param id
      * @return administrator with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException when administrator doesn't exist
+     * @throws CommonReportSet.EntityNotFoundException
+     *          when administrator doesn't exist
      */
     public Person getAdministratorById(Long id) throws CommonReportSet.EntityNotFoundException
     {
@@ -472,82 +475,75 @@ public class Resource extends PersistentObject implements Reportable
      * @param resourceApi
      * @param entityManager
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, final EntityManager entityManager)
     {
-        // Modify attributes
-        if (resourceApi.isPropertyFilled(resourceApi.NAME)) {
-            setName(resourceApi.getName());
+        setName(resourceApi.getName());
+        setDescription(resourceApi.getDescription());
+        setAllocatable(resourceApi.getAllocatable());
+        Long newParentResourceId = null;
+        if (resourceApi.getParentResourceId() != null) {
+            newParentResourceId = EntityIdentifier.parseId(
+                    cz.cesnet.shongo.controller.resource.Resource.class, resourceApi.getParentResourceId());
         }
-        if (resourceApi.isPropertyFilled(resourceApi.DESCRIPTION)) {
-            setDescription(resourceApi.getDescription());
+        Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
+        if ((newParentResourceId == null && oldParentResourceId != null)
+                || (newParentResourceId != null && !newParentResourceId.equals(oldParentResourceId))) {
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            Resource parentResource =
+                    (newParentResourceId != null ? resourceManager.get(newParentResourceId) : null);
+            setParentResource(parentResource);
         }
-        if (resourceApi.isPropertyFilled(resourceApi.ALLOCATABLE)) {
-            setAllocatable(resourceApi.getAllocatable());
+        Object maximumFuture = resourceApi.getMaximumFuture();
+        if (maximumFuture == null) {
+            setMaximumFuture(null);
         }
-        if (resourceApi.isPropertyFilled(resourceApi.PARENT_RESOURCE_ID)) {
-            Long newParentResourceId = null;
-            if (resourceApi.getParentResourceId() != null) {
-                newParentResourceId = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.resource.Resource.class, resourceApi.getParentResourceId());
-            }
-            Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
-            if ((newParentResourceId == null && oldParentResourceId != null)
-                    || (newParentResourceId != null && !newParentResourceId.equals(oldParentResourceId))) {
-                ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource parentResource =
-                        (newParentResourceId != null ? resourceManager.get(newParentResourceId) : null);
-                setParentResource(parentResource);
-            }
-        }
-        if (resourceApi.isPropertyFilled(resourceApi.MAXIMUM_FUTURE)) {
-            Object maximumFuture = resourceApi.getMaximumFuture();
-            if (maximumFuture == null) {
-                setMaximumFuture(null);
-            }
-            else {
-                setMaximumFuture(DateTimeSpecification.fromApi(maximumFuture, getMaximumFuture()));
-            }
+        else {
+            setMaximumFuture(DateTimeSpecification.fromApi(maximumFuture, getMaximumFuture()));
         }
 
-        // Create/modify capabilities
-        for (cz.cesnet.shongo.controller.api.Capability apiCapability : resourceApi.getCapabilities()) {
-            if (resourceApi.isPropertyItemMarkedAsNew(resourceApi.CAPABILITIES, apiCapability)) {
-                addCapability(Capability.createFromApi(apiCapability, entityManager));
-            }
-            else {
-                Capability capability = getCapabilityById(apiCapability.notNullIdAsLong());
-                capability.fromApi(apiCapability, entityManager);
-            }
-        }
-        // Delete capabilities
-        Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
-                resourceApi.getPropertyItemsMarkedAsDeleted(resourceApi.CAPABILITIES);
-        for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
-            removeCapability(getCapabilityById(apiCapability.notNullIdAsLong()));
-        }
+        Synchronization.synchronizeCollection(capabilities, resourceApi.getCapabilities(),
+                new Synchronization.Handler<Capability, cz.cesnet.shongo.controller.api.Capability>(Capability.class)
+                {
+                    @Override
+                    public void addToCollection(Collection<Capability> objects, Capability object)
+                    {
+                        addCapability(object);
+                    }
 
-        // Create/modify administrators
-        for (cz.cesnet.shongo.controller.api.Person personApi : resourceApi.getAdministrators()) {
-            if (resourceApi.isPropertyItemMarkedAsNew(resourceApi.ADMINISTRATORS, personApi)) {
-                addAdministrator(Person.createFromApi(personApi));
-            }
-            else {
-                Person person = getAdministratorById(personApi.notNullIdAsLong());
-                person.fromApi(personApi);
-            }
-        }
-        // Delete administrators
-        Set<cz.cesnet.shongo.controller.api.Person> deletedAdministrators =
-                resourceApi.getPropertyItemsMarkedAsDeleted(resourceApi.ADMINISTRATORS);
-        for (cz.cesnet.shongo.controller.api.Person personApi : deletedAdministrators) {
-            removeAdministrator(getAdministratorById(personApi.notNullIdAsLong()));
-        }
+                    @Override
+                    public Capability createFromApi(cz.cesnet.shongo.controller.api.Capability objectApi)
+                    {
+                        return Capability.createFromApi(objectApi, entityManager);
+                    }
+
+                    @Override
+                    public void updateFromApi(Capability object, cz.cesnet.shongo.controller.api.Capability objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
+        Synchronization.synchronizeCollection(administrators, resourceApi.getAdministrators(),
+                new Synchronization.Handler<Person, cz.cesnet.shongo.controller.api.Person>(Person.class)
+                {
+                    @Override
+                    public Person createFromApi(cz.cesnet.shongo.controller.api.Person objectApi)
+                    {
+                        return Person.createFromApi(objectApi);
+                    }
+
+                    @Override
+                    public void updateFromApi(Person object, cz.cesnet.shongo.controller.api.Person objectApi)
+                    {
+                        object.fromApi(objectApi);
+                    }
+                });
     }
 
     /**
      * Validate resource.
      *
      * @throws CommonReportSet.EntityInvalidException
+     *
      */
     public void validate() throws CommonReportSet.EntityInvalidException
     {

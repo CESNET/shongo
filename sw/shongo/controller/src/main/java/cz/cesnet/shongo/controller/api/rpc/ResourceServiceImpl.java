@@ -94,8 +94,6 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     {
         String userId = authorization.validate(token);
 
-        resourceApi.setupNewEntity();
-
         // Change user id (only root can do that)
         if (resourceApi.getUserId() != null && authorization.isAdmin(userId)) {
             userId = resourceApi.getUserId();

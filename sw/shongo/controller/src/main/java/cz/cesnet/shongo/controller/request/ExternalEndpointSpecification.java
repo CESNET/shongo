@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.executor.ExternalEndpoint;
@@ -150,31 +151,16 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
-        // Create technologies
-        for (Technology technology : externalEndpointSpecificationApi.getTechnologies()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(
-                    cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
-                addTechnology(technology);
-            }
-        }
-        // Delete technologies
-        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
-                cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
-        for (Technology technology : technologies) {
-            removeTechnology(technology);
-        }
-        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.ALIAS)) {
-            aliases.clear();
-            Alias alias = new Alias();
-            alias.fromApi(externalEndpointSpecificationApi.getAlias());
-            addAlias(alias);
-        }
 
-        super.fromApi(specificationApi, entityManager);*/
+        Synchronization.synchronizeCollection(technologies, externalEndpointSpecificationApi.getTechnologies());
+
+        aliases.clear();
+        Alias alias = new Alias();
+        alias.fromApi(externalEndpointSpecificationApi.getAlias());
+        addAlias(alias);
+
+        super.fromApi(specificationApi, entityManager);
     }
 }

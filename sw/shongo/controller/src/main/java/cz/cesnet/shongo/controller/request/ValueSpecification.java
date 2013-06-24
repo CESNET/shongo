@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -190,21 +191,7 @@ public class ValueSpecification extends Specification
         }
         setValueProvider(valueProviderCapability.getValueProvider());
 
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        // Create values
-        /*for (String value : valueSpecificationApi.getValues()) {
-            if (valueSpecificationApi.isPropertyItemMarkedAsNew(valueSpecificationApi.VALUES, value)) {
-                addValue(value);
-            }
-        }
-        // Delete values
-        Set<String> valuesToDelete =
-                valueSpecificationApi.getPropertyItemsMarkedAsDeleted(valueSpecificationApi.VALUES);
-        for (String value : valuesToDelete) {
-            removeValue(value);
-        }*/
+        Synchronization.synchronizeCollection(values, valueSpecificationApi.getValues());
 
         super.fromApi(specificationApi, entityManager);
     }

@@ -5,7 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.connector.api.jade.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
@@ -135,10 +135,9 @@ public class JadeSerializationTest extends AbstractControllerTest
             if (command instanceof CreateRoom) {
                 CreateRoom createRoom = (CreateRoom) command;
                 Room room = createRoom.getRoom();
-                room.setupNewEntity();
-                Assert.assertTrue(room.isPropertyFilled(room.NAME));
-                Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));
-                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(0)));
+                Assert.assertTrue(room.getName() != null);
+                Assert.assertFalse(room.getDescription() != null);
+                Assert.assertTrue(room.getAliases().size() == 1);
                 Assert.assertEquals("test", room.getAliases().get(0).getValue());
             }
             else if (command instanceof ModifyRoom) {
@@ -146,9 +145,9 @@ public class JadeSerializationTest extends AbstractControllerTest
                 Room room = modifyRoom.getRoom();
                 Assert.assertEquals("1", room.getId());
                 Assert.assertEquals("room", room.getName());
-                Assert.assertTrue(room.isPropertyFilled(room.NAME));
-                Assert.assertFalse(room.isPropertyFilled(room.DESCRIPTION));
-                Assert.assertTrue(room.isPropertyItemMarkedAsNew(room.ALIASES, room.getAliases().get(1)));
+                Assert.assertTrue(room.getName() != null);
+                Assert.assertFalse(room.getDescription() != null);
+                Assert.assertTrue(room.getAliases().size() == 2);
                 Assert.assertEquals("test", room.getAliases().get(1).getValue());
             }
             else {

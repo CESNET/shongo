@@ -3,7 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.oldapi.DeviceLoadInfo;
+import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceInfo;

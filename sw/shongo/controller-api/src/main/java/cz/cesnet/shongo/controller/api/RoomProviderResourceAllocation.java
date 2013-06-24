@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.DataMap;
+
 /**
  * Represents an information about allocations of a resource.
  *
@@ -10,17 +12,17 @@ public class RoomProviderResourceAllocation extends ResourceAllocation
     /**
      * Maximum number of used ports.
      */
-    private Integer maximumLicenseCount;
+    private int maximumLicenseCount;
 
     /**
      * Number of available ports.
      */
-    private Integer availableLicenseCount;
+    private int availableLicenseCount;
 
     /**
      * @return {@link #maximumLicenseCount}
      */
-    public Integer getMaximumLicenseCount()
+    public int getMaximumLicenseCount()
     {
         return maximumLicenseCount;
     }
@@ -28,7 +30,7 @@ public class RoomProviderResourceAllocation extends ResourceAllocation
     /**
      * @param maximumLicenseCount sets the {@link #maximumLicenseCount}
      */
-    public void setMaximumLicenseCount(Integer maximumLicenseCount)
+    public void setMaximumLicenseCount(int maximumLicenseCount)
     {
         this.maximumLicenseCount = maximumLicenseCount;
     }
@@ -36,7 +38,7 @@ public class RoomProviderResourceAllocation extends ResourceAllocation
     /**
      * @return {@link #availableLicenseCount}
      */
-    public Integer getAvailableLicenseCount()
+    public int getAvailableLicenseCount()
     {
         return availableLicenseCount;
     }
@@ -44,8 +46,28 @@ public class RoomProviderResourceAllocation extends ResourceAllocation
     /**
      * @param availableLicenseCount sets the {@link #availableLicenseCount}
      */
-    public void setAvailableLicenseCount(Integer availableLicenseCount)
+    public void setAvailableLicenseCount(int availableLicenseCount)
     {
         this.availableLicenseCount = availableLicenseCount;
+    }
+
+    private static final String MAXIMUM_LICENSE_COUNT = "maximumLicenseCount";
+    private static final String AVAILABLE_LICENSE_COUNT = "availableLicenseCount";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(MAXIMUM_LICENSE_COUNT, maximumLicenseCount);
+        dataMap.set(AVAILABLE_LICENSE_COUNT, availableLicenseCount);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        maximumLicenseCount = dataMap.getInt(MAXIMUM_LICENSE_COUNT);
+        availableLicenseCount = dataMap.getInt(AVAILABLE_LICENSE_COUNT);
     }
 }

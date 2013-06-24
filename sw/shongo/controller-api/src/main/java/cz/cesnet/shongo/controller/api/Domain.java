@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.DataMap;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,7 +11,7 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Domain
+public class Domain extends AbstractComplexType
 {
     /**
      * Represents an unique domain name (e.g., "cz.cesnet")
@@ -89,5 +92,28 @@ public class Domain
         }
         throw new IllegalArgumentException(String.format("The identifier '%s' isn't valid global identifier!",
                 globalId));
+    }
+
+    private static final String NAME = "name";
+    private static final String ORGANIZATION = "organization";
+    private static final String STATUS = "status";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(ORGANIZATION, organization);
+        dataMap.set(STATUS, status);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getString(NAME);
+        organization = dataMap.getString(ORGANIZATION);
+        status = dataMap.getEnum(STATUS, Status.class);
     }
 }

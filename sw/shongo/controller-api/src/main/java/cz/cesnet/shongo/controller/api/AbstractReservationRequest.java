@@ -266,7 +266,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         priority = dataMap.getInteger(PRIORITY);
         description = dataMap.getString(DESCRIPTION);
         specification = dataMap.getComplexTypeRequired(SPECIFICATION, Specification.class);
-        interDomain = dataMap.getBoolean(INTER_DOMAIN);
+        interDomain = dataMap.getBool(INTER_DOMAIN);
         providedReservationIds = dataMap.getSet(PROVIDED_RESERVATION_IDS, String.class);
     }
 }

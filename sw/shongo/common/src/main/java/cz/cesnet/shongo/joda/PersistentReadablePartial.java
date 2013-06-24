@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.joda;
 
-import cz.cesnet.shongo.oldapi.util.Converter;
+import cz.cesnet.shongo.api.Converter;
 import org.hibernate.HibernateException;
 import org.joda.time.ReadablePartial;
 
@@ -23,7 +23,7 @@ public class PersistentReadablePartial extends PersistentStringType
     protected Object fromNonNullString(String string) throws HibernateException
     {
         try {
-            return Converter.Atomic.convertStringToReadablePartial(string);
+            return Converter.convertStringToReadablePartial(string);
         }
         catch (Exception exception) {
             throw new HibernateException("Failed to load " + ReadablePartial.class.getName() + " from '" +

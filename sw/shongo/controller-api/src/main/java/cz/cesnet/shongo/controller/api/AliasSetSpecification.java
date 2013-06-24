@@ -117,6 +117,6 @@ public class AliasSetSpecification extends Specification
     {
         super.fromData(dataMap);
         aliasSpecifications = dataMap.getList(ALIAS_SPECIFICATIONS, AliasSpecification.class);
-        sharedExecutable = dataMap.getBoolean(SHARED_EXECUTABLE);
+        sharedExecutable = dataMap.getBool(SHARED_EXECUTABLE);
     }
 }

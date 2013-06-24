@@ -1,21 +1,17 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.rpc.StructType;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.Role;
 
 /**
- * Represents a record in Shongo ACL which means that user with specified {@link #user} has role
+ * Represents a record in Shongo ACL which means that user with specified {@link #userId} has role
  * with specified {@link #role} for resource with specified {@link #entityId}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AclRecord implements StructType
+public class AclRecord extends IdentifiedComplexType
 {
-    /**
-     * Identifier of ACL record.
-     */
-    private String id;
-
     /**
      * User-id of user of the {@link AclRecord}.
      */
@@ -51,22 +47,6 @@ public class AclRecord implements StructType
         this.userId = userId;
         this.entityId = entityId;
         this.role = role;
-    }
-
-    /**
-     * @return {@link #id}
-     */
-    public String getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id sets the {@link #id}
-     */
-    public void setId(String id)
-    {
-        this.id = id;
     }
 
     /**
@@ -155,5 +135,28 @@ public class AclRecord implements StructType
         result = 31 * result + (entityId != null ? entityId.hashCode() : 0);
         result = 31 * result + (role != null ? role.hashCode() : 0);
         return result;
+    }
+
+    private static final String USER_ID = "userId";
+    private static final String ENTITY_ID = "entityId";
+    private static final String ROLE = "role";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(USER_ID, userId);
+        dataMap.set(ENTITY_ID, entityId);
+        dataMap.set(ROLE, role);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        userId = dataMap.getString(USER_ID);
+        entityId = dataMap.getString(ENTITY_ID);
+        role = dataMap.getEnum(ROLE, Role.class);
     }
 }

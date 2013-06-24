@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
@@ -96,23 +97,6 @@ public class CompartmentSpecification extends Specification
             specifications.add(specification);
         }
         return specifications;
-    }
-
-    /**
-     * @param id of the requested {@link Specification}
-     * @return {@link Specification} with given {@code id}
-     * @throws CommonReportSet.EntityNotFoundException
-     *          when the {@link Specification} doesn't exist
-     */
-    @Transient
-    private ParticipantSpecification getSpecificationById(Long id) throws CommonReportSet.EntityNotFoundException
-    {
-        for (ParticipantSpecification specification : participantSpecifications) {
-            if (specification.getId().equals(id)) {
-                return specification;
-            }
-        }
-        return ControllerReportSetHelper.throwEntityNotFoundFault(ParticipantSpecification.class, id);
     }
 
     /**
@@ -247,21 +231,33 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi,
+            final EntityManager entityManager)
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
+
         setCallInitiation(compartmentSpecificationApi.getCallInitiation());
 
-        if (participantSpecifications.size() > 0) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
-            if (specApi.getId() != null) {
-                throw new TodoImplementException("TODO: refactorize API");
-            }
-            addChildSpecification(Specification.createFromApi(specApi, entityManager));
-        }
+        Synchronization.synchronizeCollection(
+                participantSpecifications, compartmentSpecificationApi.getSpecifications(),
+                new Synchronization.Handler<ParticipantSpecification,
+                        cz.cesnet.shongo.controller.api.ParticipantSpecification>(ParticipantSpecification.class)
+                {
+                    @Override
+                    public ParticipantSpecification createFromApi(
+                            cz.cesnet.shongo.controller.api.ParticipantSpecification objectApi)
+                    {
+                        return (ParticipantSpecification) Specification.createFromApi(objectApi, entityManager);
+                    }
+
+                    @Override
+                    public void updateFromApi(ParticipantSpecification object,
+                            cz.cesnet.shongo.controller.api.ParticipantSpecification objectApi)
+                    {
+                        object.fromApi(objectApi, entityManager);
+                    }
+                });
 
         super.fromApi(specificationApi, entityManager);
     }

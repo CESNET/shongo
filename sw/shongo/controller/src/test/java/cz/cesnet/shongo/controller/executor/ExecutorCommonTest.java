@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.oldapi.H323RoomSetting;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.H323RoomSetting;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;

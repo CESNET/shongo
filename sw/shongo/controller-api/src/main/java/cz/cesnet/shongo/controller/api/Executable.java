@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.oldapi.RoomSetting;
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
+import cz.cesnet.shongo.api.RoomSetting;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Executable extends IdentifiedObject
+public class Executable extends IdentifiedComplexType
 {
     /**
      * Reservation for which the {@link Executable} is allocated.
@@ -121,6 +122,35 @@ public class Executable extends IdentifiedObject
     public void setMigratedExecutable(Executable migratedExecutable)
     {
         this.migratedExecutable = migratedExecutable;
+    }
+
+    private static final String RESERVATION_ID = "reservationId";
+    private static final String SLOT = "slot";
+    private static final String STATE = "state";
+    private static final String STATE_REPORT = "stateReport";
+    private static final String MIGRATED_EXECUTABLE = "migratedExecutable";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESERVATION_ID, reservationId);
+        dataMap.set(SLOT, slot);
+        dataMap.set(STATE, state);
+        dataMap.set(STATE_REPORT, stateReport);
+        dataMap.set(MIGRATED_EXECUTABLE, migratedExecutable);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        reservationId = dataMap.getString(RESERVATION_ID);
+        slot = dataMap.getInterval(SLOT);
+        state = dataMap.getEnum(STATE, State.class);
+        stateReport = dataMap.getString(STATE_REPORT);
+        migratedExecutable = dataMap.getComplexType(MIGRATED_EXECUTABLE, Executable.class);
     }
 
     /**
@@ -248,6 +278,28 @@ public class Executable extends IdentifiedObject
             connections.add(connection);
         }
 
+        private static final String ENDPOINTS = "endpoints";
+        private static final String ROOMS = "rooms";
+        private static final String CONNECTIONS = "connections";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(ENDPOINTS, endpoints);
+            dataMap.set(ROOMS, rooms);
+            dataMap.set(CONNECTIONS, connections);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            endpoints = dataMap.getList(ENDPOINTS, Endpoint.class);
+            rooms = dataMap.getList(ROOMS, ResourceRoom.class);
+            connections = dataMap.getList(CONNECTIONS, Connection.class);
+        }
     }
 
     /**
@@ -255,11 +307,6 @@ public class Executable extends IdentifiedObject
      */
     public static class Endpoint extends Executable
     {
-        /**
-         * Id of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
-         */
-        private String id;
-
         /**
          * Description of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
          */
@@ -269,22 +316,6 @@ public class Executable extends IdentifiedObject
          * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
          */
         private List<Alias> aliases = new ArrayList<Alias>();
-
-        /**
-         * @return {@link #id}
-         */
-        public String getId()
-        {
-            return id;
-        }
-
-        /**
-         * @param id sets the {@link #id}
-         */
-        public void setId(String id)
-        {
-            this.id = id;
-        }
 
         /**
          * @return {@link #description}
@@ -325,6 +356,26 @@ public class Executable extends IdentifiedObject
         {
             aliases.add(alias);
         }
+
+        private static final String DESCRIPTION = "description";
+        private static final String ALIASES = "aliases";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(DESCRIPTION, description);
+            dataMap.set(ALIASES, aliases);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            description = dataMap.getString(DESCRIPTION);
+            aliases = dataMap.getList(ALIASES, Alias.class);
+        }
     }
 
     /**
@@ -334,11 +385,6 @@ public class Executable extends IdentifiedObject
      */
     public static class ResourceRoom extends Executable
     {
-        /**
-         * Id of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
-         */
-        private String id;
-
         /**
          * Id of the {@link cz.cesnet.shongo.controller.api.Resource}.
          */
@@ -365,25 +411,9 @@ public class Executable extends IdentifiedObject
         private List<Alias> aliases = new ArrayList<Alias>();
 
         /**
-         * List of {@link cz.cesnet.shongo.oldapi.RoomSetting}s for the {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}.
+         * List of {@link cz.cesnet.shongo.api.RoomSetting}s for the {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}.
          */
         private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
-
-        /**
-         * @return {@link #id}
-         */
-        public String getId()
-        {
-            return id;
-        }
-
-        /**
-         * @param id sets the {@link #id}
-         */
-        public void setId(String id)
-        {
-            this.id = id;
-        }
 
         /**
          * @return {@link #resourceId}
@@ -528,6 +558,38 @@ public class Executable extends IdentifiedObject
         {
             roomSettings.add(roomSetting);
         }
+
+        private static final String RESOURCE_ID = "resourceId";
+        private static final String ROOM_ID = "roomId";
+        private static final String TECHNOLOGIES = "technologies";
+        private static final String LICENSE_COUNT = "licenseCount";
+        private static final String ALIASES = "aliases";
+        private static final String ROOM_SETTINGS = "roomSettings";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(RESOURCE_ID, resourceId);
+            dataMap.set(ROOM_ID, roomId);
+            dataMap.set(TECHNOLOGIES, technologies);
+            dataMap.set(LICENSE_COUNT, licenseCount);
+            dataMap.set(ALIASES, aliases);
+            dataMap.set(ROOM_SETTINGS, roomSettings);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            resourceId = dataMap.getString(RESOURCE_ID);
+            roomId = dataMap.getString(ROOM_ID);
+            technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+            licenseCount = dataMap.getInt(LICENSE_COUNT);
+            aliases = dataMap.getList(ALIASES, Alias.class);
+            roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);
+        }
     }
 
     /**
@@ -596,6 +658,29 @@ public class Executable extends IdentifiedObject
         public void setAlias(Alias alias)
         {
             this.alias = alias;
+        }
+
+        private static final String ENDPOINT_FROM_ID = "endpointFromId";
+        private static final String ENDPOINT_TO_ID = "endpointToId";
+        private static final String ALIAS = "alias";
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set(ENDPOINT_FROM_ID, endpointFromId);
+            dataMap.set(ENDPOINT_TO_ID, endpointToId);
+            dataMap.set(ALIAS, alias);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            endpointFromId = dataMap.getString(ENDPOINT_FROM_ID);
+            endpointToId = dataMap.getString(ENDPOINT_TO_ID);
+            alias = dataMap.getComplexType(ALIAS, Alias.class);
         }
     }
 }

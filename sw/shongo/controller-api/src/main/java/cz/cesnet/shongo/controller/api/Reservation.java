@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.rpc.StructType;
-import cz.cesnet.shongo.oldapi.util.IdentifiedObject;
+import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.Interval;
 
 import java.util.Collections;
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Reservation extends IdentifiedObject implements StructType
+public class Reservation extends IdentifiedComplexType
 {
     /**
      * Reservation request for which is {@link Reservation} allocated.
@@ -134,5 +134,34 @@ public class Reservation extends IdentifiedObject implements StructType
     public void setExecutable(Executable executable)
     {
         this.executable = executable;
+    }
+
+    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
+    private static final String SLOT = "slot";
+    private static final String PARENT_RESERVATION_ID = "parentReservationId";
+    private static final String CHILD_RESERVATION_IDS = "childReservationIds";
+    private static final String EXECUTABLE = "executable";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
+        dataMap.set(SLOT, slot);
+        dataMap.set(PARENT_RESERVATION_ID, parentReservationId);
+        dataMap.set(CHILD_RESERVATION_IDS, childReservationIds);
+        dataMap.set(EXECUTABLE, executable);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
+        slot = dataMap.getInterval(SLOT);
+        parentReservationId = dataMap.getString(PARENT_RESERVATION_ID);
+        childReservationIds = dataMap.getList(CHILD_RESERVATION_IDS, String.class);
+        executable = dataMap.getComplexType(EXECUTABLE, Executable.class);
     }
 }

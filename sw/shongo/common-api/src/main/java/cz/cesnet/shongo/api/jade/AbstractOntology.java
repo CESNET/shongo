@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api.jade;
 
-import cz.cesnet.shongo.oldapi.util.ChangesTracking;
 import jade.content.onto.CustomBeanOntology;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
@@ -37,7 +36,6 @@ public abstract class AbstractOntology extends CustomBeanOntology
             SerializableOntology.getInstance().add(serializableSchema, java.util.HashMap.class);
             SerializableOntology.getInstance().add(serializableSchema, Period.class);
             SerializableOntology.getInstance().add(serializableSchema, DateTime.class);
-            SerializableOntology.getInstance().add(serializableSchema, ChangesTracking.class);
         }
         catch (OntologyException exception) {
             throw new RuntimeException("Creating the ontology failed.", exception);

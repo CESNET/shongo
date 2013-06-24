@@ -2,10 +2,9 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.oldapi.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -101,6 +100,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param username username for authentication on the device
      * @param password password for authentication on the device
      * @throws cz.cesnet.shongo.api.jade.CommandException
+     *
      */
     @Override
     public synchronized void connect(Address address, String username, String password) throws CommandException
@@ -690,8 +690,6 @@ ParamsLoop:
     @Override
     public String createRoom(Room room) throws CommandException
     {
-        room.setupNewEntity();
-
         Command cmd = new Command("conference.create");
 
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
@@ -729,139 +727,118 @@ ParamsLoop:
         cmd.setParameter("durationSeconds", 0);
 
         // Set the license count
-        if (room.isPropertyFilled(Room.LICENSE_COUNT)) {
-            cmd.setParameter("maximumVideoPorts", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
-        }
+        cmd.setParameter("maximumVideoPorts", (room.getLicenseCount() > 0 ? room.getLicenseCount() : 0));
 
         // Set the description
-        if (room.isPropertyFilled(Room.DESCRIPTION)) {
+        if (room.getDescription() != null) {
             cmd.setParameter("description", truncateString(room.getDescription()));
         }
 
         // Create/Update aliases
         if (room.getAliases() != null) {
             for (Alias alias : room.getAliases()) {
-                // Create new alias
-                if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
-                    // Derive number/name of the room
-                    String roomNumber = null;
-                    String roomName = null;
-                    Matcher m;
+                // Derive number/name of the room
+                String roomNumber = null;
+                String roomName = null;
+                Matcher m;
 
-                    switch (alias.getType()) {
-                        case ROOM_NAME:
-                            roomName = alias.getValue();
-                            break;
-                        case H323_E164:
-                            if (roomNumberFromH323Number == null) {
-                                throw new CommandException(String.format(
-                                        "Cannot set H.323 E164 number - missing connector device option '%s'",
-                                        ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
-                            }
-                            m = roomNumberFromH323Number.matcher(alias.getValue());
-                            if (!m.find()) {
-                                throw new CommandException("Invalid E164 number: " + alias.getValue());
-                            }
+                switch (alias.getType()) {
+                    case ROOM_NAME:
+                        roomName = alias.getValue();
+                        break;
+                    case H323_E164:
+                        if (roomNumberFromH323Number == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
+                        }
+                        m = roomNumberFromH323Number.matcher(alias.getValue());
+                        if (!m.find()) {
+                            throw new CommandException("Invalid E164 number: " + alias.getValue());
+                        }
+                        roomNumber = m.group(1);
+                        break;
+                    case SIP_URI:
+                        if (roomNumberFromSIPURI == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set SIP URI to room - missing connector device option '%s'",
+                                    ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
+                        }
+                        m = roomNumberFromSIPURI.matcher(alias.getValue());
+                        if (m.find()) {
+                            // SIP URI contains number
                             roomNumber = m.group(1);
-                            break;
-                        case SIP_URI:
-                            if (roomNumberFromSIPURI == null) {
-                                throw new CommandException(String.format(
-                                        "Cannot set SIP URI to room - missing connector device option '%s'",
-                                        ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
-                            }
-                            m = roomNumberFromSIPURI.matcher(alias.getValue());
-                            if (m.find()) {
-                                // SIP URI contains number
-                                roomNumber = m.group(1);
-                            }
-                            else {
-                                // SIP URI contains name
-                                String value = alias.getValue();
-                                int atSign = value.indexOf('@');
-                                assert atSign > 0;
-                                roomName = value.substring(0, atSign);
-                            }
-                            break;
-                        case H323_URI:
-                        case H323_IP:
-                        case SIP_IP:
-                            // TODO: Check the alias value
-                            break;
-                        default:
-                            throw new CommandException("Unrecognized alias: " + alias.toString());
-                    }
-
-                    if (roomNumber != null) {
-                        // Check we are not already assigning a different number to the room
-                        final Object oldRoomNumber = cmd.getParameterValue("numericId");
-                        if (oldRoomNumber != null && !oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
-                            // multiple number aliases
-                            throw new CommandException(String.format(
-                                    "The connector supports only one number for a room, requested another: %s", alias));
                         }
-                        cmd.setParameter("numericId", truncateString(roomNumber));
-                    }
-
-                    if (roomName != null) {
-                        // Check that more aliases do not request different room name
-                        final Object oldRoomName = cmd.getParameterValue("conferenceName");
-                        if (oldRoomName != null && !oldRoomName.equals("") && !oldRoomName.equals(roomName)) {
-                            throw new CommandException(String.format(
-                                    "The connector supports only one room name, requested another: %s", alias));
+                        else {
+                            // SIP URI contains name
+                            String value = alias.getValue();
+                            int atSign = value.indexOf('@');
+                            assert atSign > 0;
+                            roomName = value.substring(0, atSign);
                         }
-                        cmd.setParameter("conferenceName", truncateString(roomName));
-                    }
+                        break;
+                    case H323_URI:
+                    case H323_IP:
+                    case SIP_IP:
+                        // TODO: Check the alias value
+                        break;
+                    default:
+                        throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
-                // Modify existing alias
-                else {
-                    switch (alias.getType()) {
-                        case H323_E164:
-                            cmd.setParameter("numericId", truncateString(alias.getValue()));
-                            break;
-                        default:
-                            throw new RuntimeException("TODO: Implement modification of "
-                                    + alias.getType().toString() + " alias.");
+
+                if (roomNumber != null) {
+                    // Check we are not already assigning a different number to the room
+                    final Object oldRoomNumber = cmd.getParameterValue("numericId");
+                    if (oldRoomNumber != null && !oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
+                        // multiple number aliases
+                        throw new CommandException(String.format(
+                                "The connector supports only one number for a room, requested another: %s", alias));
                     }
+                    cmd.setParameter("numericId", truncateString(roomNumber));
+                }
+
+                if (roomName != null) {
+                    // Check that more aliases do not request different room name
+                    final Object oldRoomName = cmd.getParameterValue("conferenceName");
+                    if (oldRoomName != null && !oldRoomName.equals("") && !oldRoomName.equals(roomName)) {
+                        throw new CommandException(String.format(
+                                "The connector supports only one room name, requested another: %s", alias));
+                    }
+                    cmd.setParameter("conferenceName", truncateString(roomName));
                 }
             }
-        }
-        // Delete aliases
-        Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
-        for (Alias alias : aliasesToDelete) {
-            throw new RuntimeException("TODO: Implement room alias deletion.");
         }
 
         H323RoomSetting h323RoomSetting = room.getRoomSetting(H323RoomSetting.class);
         if (h323RoomSetting != null) {
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.PIN)) {
+            if (h323RoomSetting.getPin() != null) {
                 cmd.setParameter("pin", h323RoomSetting.getPin());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.LISTED_PUBLICLY)) {
+            if (h323RoomSetting.getListedPublicly() != null) {
                 cmd.setParameter("private", !h323RoomSetting.getListedPublicly());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.ALLOW_CONTENT)) {
+            if (h323RoomSetting.getAllowContent() != null) {
                 cmd.setParameter("contentContribution", h323RoomSetting.getAllowContent());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.JOIN_AUDIO_MUTED)) {
+            if (h323RoomSetting.getJoinAudioMuted() != null) {
                 cmd.setParameter("joinAudioMuted", h323RoomSetting.getJoinAudioMuted());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.JOIN_VIDEO_MUTED)) {
+            if (h323RoomSetting.getJoinVideoMuted() != null) {
                 cmd.setParameter("joinVideoMuted", h323RoomSetting.getJoinVideoMuted());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.REGISTER_WITH_GATEKEEPER)) {
+            if (h323RoomSetting.getRegisterWithGatekeeper() != null) {
                 cmd.setParameter("registerWithGatekeeper", h323RoomSetting.getRegisterWithGatekeeper());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.REGISTER_WITH_REGISTRAR)) {
+            if (h323RoomSetting.getRegisterWithRegistrar() != null) {
                 cmd.setParameter("registerWithSIPRegistrar", h323RoomSetting.getRegisterWithRegistrar());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.START_LOCKED)) {
+            if (h323RoomSetting.getStartLocked() != null) {
                 cmd.setParameter("startLocked", h323RoomSetting.getStartLocked());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.CONFERENCE_ME_ENABLED)) {
+            if (h323RoomSetting.getConferenceMeEnabled() != null) {
                 cmd.setParameter("conferenceMeEnabled", h323RoomSetting.getConferenceMeEnabled());
             }
-            if (h323RoomSetting.isPropertyFilled(H323RoomSetting.ALLOW_GUESTS)) {
+            if (h323RoomSetting.getAllowGuests() != null) {
                 throw new CommandException("Room Setting " + H323RoomSetting.ALLOW_GUESTS + "is not implemented yet.");
             }
         }
@@ -1097,9 +1074,6 @@ ParamsLoop:
             else if (attName.equals(RoomUser.MICROPHONE_LEVEL)) {
                 cmd.setParameter("audioRxGainMillidB", attValue);
                 cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
-            }
-            else if (attName.equals(RoomUser.PLAYBACK_LEVEL)) {
-                logger.info("Ignoring request to set PLAYBACK_LEVEL - Cisco MCU does not support it.");
             }
             else if (attName.equals(RoomUser.LAYOUT)) {
                 RoomLayout layout = (RoomLayout) attValue;

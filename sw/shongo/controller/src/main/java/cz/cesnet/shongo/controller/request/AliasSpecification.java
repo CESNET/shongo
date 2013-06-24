@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
@@ -377,58 +377,30 @@ public class AliasSpecification extends Specification
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
+        cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
-        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.VALUE)) {
-            setValue(aliasSpecificationApi.getValue());
+
+        setValue(aliasSpecificationApi.getValue());
+
+        if (aliasSpecificationApi.getResourceId() == null) {
+            setAliasProviderCapability(null);
         }
-        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_ID)) {
-            if (aliasSpecificationApi.getResourceId() == null) {
-                setAliasProviderCapability(null);
+        else {
+            Long resourceId = EntityIdentifier.parseId(
+                    cz.cesnet.shongo.controller.resource.Resource.class, aliasSpecificationApi.getResourceId());
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            Resource resource = resourceManager.get(resourceId);
+            AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
+            if (aliasProviderCapability == null) {
+                throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
+                        AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId()));
             }
-            else {
-                Long resourceId = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.resource.Resource.class, aliasSpecificationApi.getResourceId());
-                ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource resource = resourceManager.get(resourceId);
-                AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
-                if (aliasProviderCapability == null) {
-                    throw new RuntimeException(String.format("Resource '%s' doesn't have %s.",
-                            AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId()));
-                }
-                setAliasProviderCapability(aliasProviderCapability);
-            }
+            setAliasProviderCapability(aliasProviderCapability);
         }
 
-        // Create technologies
-        for (Technology technology : aliasSpecificationApi.getTechnologies()) {
-            if (aliasSpecificationApi.isPropertyItemMarkedAsNew(aliasSpecificationApi.TECHNOLOGIES, technology)) {
-                addAliasTechnology(technology);
-            }
-        }
-        // Delete technologies
-        Set<Technology> technologiesToDelete =
-                aliasSpecificationApi.getPropertyItemsMarkedAsDeleted(aliasSpecificationApi.TECHNOLOGIES);
-        for (Technology technology : technologiesToDelete) {
-            removeAliasTechnology(technology);
-        }
+        Synchronization.synchronizeCollection(aliasTechnologies, aliasSpecificationApi.getTechnologies());
+        Synchronization.synchronizeCollection(aliasTypes, aliasSpecificationApi.getAliasTypes());
 
-        // Create alias types
-        for (AliasType aliasType : aliasSpecificationApi.getAliasTypes()) {
-            if (aliasSpecificationApi.isPropertyItemMarkedAsNew(aliasSpecificationApi.ALIAS_TYPES, aliasType)) {
-                addAliasType(aliasType);
-            }
-        }
-        // Delete alias types
-        Set<AliasType> aliasTypesToDelete =
-                aliasSpecificationApi.getPropertyItemsMarkedAsDeleted(aliasSpecificationApi.ALIAS_TYPES);
-        for (AliasType aliasType : aliasTypesToDelete) {
-            removeAliasType(aliasType);
-        }
-
-        super.fromApi(specificationApi, entityManager);*/
+        super.fromApi(specificationApi, entityManager);
     }
 }

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
@@ -215,11 +215,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint, R
 
     @Override
     @Transient
-    public cz.cesnet.shongo.oldapi.Room getRoomApi()
+    public Room getRoomApi()
     {
         RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
 
-        cz.cesnet.shongo.oldapi.Room roomApi = roomEndpoint.getRoomApi();
+        Room roomApi = roomEndpoint.getRoomApi();
         roomApi.setDescription(getRoomDescriptionApi());
         roomApi.setLicenseCount(roomConfiguration.getLicenseCount());
         for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {

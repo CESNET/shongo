@@ -2,9 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.oldapi.RoomSetting;
+import cz.cesnet.shongo.api.RoomSetting;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -34,7 +33,7 @@ public class RoomSpecification extends Specification
     private Integer participantCount;
 
     /**
-     * {@link cz.cesnet.shongo.oldapi.RoomSetting}s for the virtual room.
+     * {@link cz.cesnet.shongo.api.RoomSetting}s for the virtual room.
      */
     private List<RoomSetting> roomSettings = new LinkedList<RoomSetting>();
 

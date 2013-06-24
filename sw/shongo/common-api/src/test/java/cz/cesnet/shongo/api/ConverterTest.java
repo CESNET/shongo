@@ -1,7 +1,7 @@
-package cz.cesnet.shongo.oldapi.util;
+package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.api.ClassHelper;
-import cz.cesnet.shongo.oldapi.rpc.AtomicType;
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.util.Property;
 import org.joda.time.*;
 import org.joda.time.chrono.ISOChronology;
 import org.junit.Assert;
@@ -11,14 +11,12 @@ import org.junit.Test;
 import java.util.*;
 
 /**
- * Tests for {@link Converter}.
+ * Tests for {@link cz.cesnet.shongo.api.Converter}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ConverterTest
 {
-    private static final Options OPTIONS = Options.SERVER;
-
     /**
      * Register {@link Entity} and {@link SubEntity} for {@link Converter}.
      */
@@ -61,7 +59,7 @@ public class ConverterTest
     public void testConvertToBasic() throws Exception
     {
         Object entityBasic = createEntityBasic();
-        Object convertedEntityBasic = Converter.convertToBasic(createEntity(), OPTIONS);
+        Object convertedEntityBasic = Converter.convertComplexTypeToMap(createEntity());
         assertBasicEquals(entityBasic, convertedEntityBasic);
     }
 
@@ -74,7 +72,7 @@ public class ConverterTest
     public void testConvertFromBasic() throws Exception
     {
         Object entity = createEntity();
-        Object convertedEntity = Converter.convertFromBasic(createEntityBasic(), OPTIONS);
+        Object convertedEntity = Converter.convertMapToComplexType(createEntityBasic(), Entity.class);
         assertEntityEquals(entity, convertedEntity);
     }
 
@@ -88,12 +86,12 @@ public class ConverterTest
     {
         String[] values = new String[]{"2012", "2012-12", "2012-12-01", "2012-12-01T12", "2012-12-01T12:34"};
         for (String value : values) {
-            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(value);
+            ReadablePartial readablePartial = Converter.convertStringToReadablePartial(value);
             Assert.assertEquals(value, readablePartial.toString());
         }
 
         ReadablePartial readablePartial;
-        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012");
+        readablePartial = Converter.convertStringToReadablePartial("2012");
         Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
         try {
             readablePartial.get(DateTimeFieldType.monthOfYear());
@@ -101,7 +99,7 @@ public class ConverterTest
         }
         catch (IllegalArgumentException exception) {
         }
-        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012-01-01T12");
+        readablePartial = Converter.convertStringToReadablePartial("2012-01-01T12");
         Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
         Assert.assertEquals(1, readablePartial.get(DateTimeFieldType.monthOfYear()));
         Assert.assertEquals(1, readablePartial.get(DateTimeFieldType.dayOfMonth()));
@@ -257,7 +255,7 @@ public class ConverterTest
     /**
      * Testing entity.
      */
-    public static class Entity
+    public static class Entity extends AbstractComplexType
     {
         private String string;
 
@@ -457,6 +455,25 @@ public class ConverterTest
         public void addSubEntityByType(Type type, SubEntity subEntity)
         {
             subEntityByType.put(type, subEntity);
+        }
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            if (true) {
+                throw new TodoImplementException();
+            }
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            if (true) {
+                throw new TodoImplementException();
+            }
         }
 
         public static enum Type

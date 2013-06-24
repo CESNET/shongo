@@ -115,16 +115,12 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException("TODO: refactorize API");
-        }
-        /*cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
+        cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
-        if (lookupEndpointSpecificationApi.isPropertyFilled(lookupEndpointSpecificationApi.TECHNOLOGY)) {
-            clearTechnologies();
-            addTechnology(lookupEndpointSpecificationApi.getTechnology());
-        }
 
-        super.fromApi(specificationApi, entityManager);*/
+        clearTechnologies();
+        addTechnology(lookupEndpointSpecificationApi.getTechnology());
+
+        super.fromApi(specificationApi, entityManager);
     }
 }

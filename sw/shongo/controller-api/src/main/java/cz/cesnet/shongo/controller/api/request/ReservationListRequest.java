@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.SecurityToken;
-import cz.cesnet.shongo.controller.api.Specification;
 
 import java.util.*;
 
@@ -90,5 +90,31 @@ public class ReservationListRequest extends ListRequest
     public void addTechnology(Technology technology)
     {
         technologies.add(technology);
+    }
+
+    private static final String RESERVATION_IDS = "reservationIds";
+    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
+    private static final String RESERVATION_CLASSES = "reservationClasses";
+    private static final String TECHNOLOGIES = "technologies";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(RESERVATION_IDS, reservationIds);
+        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
+        dataMap.set(RESERVATION_CLASSES, reservationClasses);
+        dataMap.set(TECHNOLOGIES, technologies);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        reservationIds = dataMap.getSet(RESERVATION_IDS, String.class);
+        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
+        reservationClasses = (Set) dataMap.getSet(RESERVATION_CLASSES, Class.class);
+        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
     }
 }

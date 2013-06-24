@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
-import cz.cesnet.shongo.oldapi.Room;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.api.jade.PingCommand;

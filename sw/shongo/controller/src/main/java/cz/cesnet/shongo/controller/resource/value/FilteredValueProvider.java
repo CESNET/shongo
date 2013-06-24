@@ -100,7 +100,7 @@ public class FilteredValueProvider extends ValueProvider
         cz.cesnet.shongo.controller.api.ValueProvider.Filtered filteredValueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProvider.Filtered) valueProviderApi;
 
-        filteredValueProviderApi.setType(getType());
+        filteredValueProviderApi.setFilterType(getType());
 
         Resource valueProviderResource = valueProvider.getCapabilityResource();
         if (valueProviderResource != getCapability().getResource()) {
@@ -119,14 +119,11 @@ public class FilteredValueProvider extends ValueProvider
         cz.cesnet.shongo.controller.api.ValueProvider.Filtered filteredValueProviderApi =
                 (cz.cesnet.shongo.controller.api.ValueProvider.Filtered) valueProviderApi;
 
-        if (filteredValueProviderApi.isPropertyFilled(filteredValueProviderApi.TYPE)) {
-            setType(filteredValueProviderApi.getType());
-        }
-        if (valueProviderApi.isPropertyFilled(filteredValueProviderApi.VALUE_PROVIDER)) {
-            Object valueProvider = filteredValueProviderApi.getValueProvider();
-            setValueProvider(ValueProvider.modifyFromApi(
-                    valueProvider, this.valueProvider, getCapability(), entityManager));
-        }
+        setType(filteredValueProviderApi.getFilterType());
+
+        Object valueProvider = filteredValueProviderApi.getValueProvider();
+        setValueProvider(ValueProvider.modifyFromApi(
+                valueProvider, this.valueProvider, getCapability(), entityManager));
     }
 
     @Override

@@ -123,7 +123,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 summary.setType(ExecutableSummary.Type.COMPARTMENT);
             }
             else if (executable instanceof RoomEndpoint) {
-                summary.setType(ExecutableSummary.Type.VIRTUAL_ROOM);
+                summary.setType(ExecutableSummary.Type.ROOM);
             }
             summaryList.add(summary);
         }

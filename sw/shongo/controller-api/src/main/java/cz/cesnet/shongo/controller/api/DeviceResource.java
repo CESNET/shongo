@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.Required;
+import cz.cesnet.shongo.api.DataMap;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -21,81 +21,108 @@ public class DeviceResource extends Resource
     /**
      * Address on which the device is running (IP address or URL).
      */
-    public static final String ADDRESS = "address";
+    private String address;
 
     /**
      * Set of technologies which the resource supports.
      */
-    public static final String TECHNOLOGIES = "technologies";
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Specifies the mode of the resource.
      */
-    public static final String MODE = "mode";
+    private Object mode;
 
     /**
-     * @return {@link #ADDRESS}
+     * @return {@link #address}
      */
     public String getAddress()
     {
-        return getPropertyStorage().getValue(ADDRESS);
+        return address;
     }
 
     /**
-     * @param address sets the {@link #ADDRESS}
+     * @param address sets the {@link #address}
      */
     public void setAddress(String address)
     {
-        getPropertyStorage().setValue(ADDRESS, address);
+        this.address = address;
     }
 
     /**
-     * @return {@link #TECHNOLOGIES}
+     * @return {@link #technologies}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+        return technologies;
     }
 
     /**
-     * @param technologies sets the {@link #TECHNOLOGIES}
+     * @param technologies sets the {@link #technologies}
      */
     public void setTechnologies(Set<Technology> technologies)
     {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+        this.technologies = technologies;
     }
 
     /**
-     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+        technologies.add(technology);
     }
 
     /**
-     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     * @param technology technology to be removed from the {@link #technologies}
      */
     public void removeTechnology(Technology technology)
     {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+        technologies.remove(technology);
     }
 
     /**
-     * @return {@link #MODE}
+     * @return {@link #mode}
      */
-    @AllowedTypes({String.class, ManagedMode.class})
     public Object getMode()
     {
-        return getPropertyStorage().getValue(MODE);
+        return mode;
     }
 
     /**
-     * @param mode sets the {@link #MODE}
+     * @param mode sets the {@link #mode}
      */
     public void setMode(Object mode)
     {
-        getPropertyStorage().setValue(MODE, mode);
+        this.mode = mode;
     }
+
+    public static final String ADDRESS = "address";
+    public static final String TECHNOLOGIES = "technologies";
+    public static final String MODE = "mode";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(ADDRESS, address);
+        dataMap.set(TECHNOLOGIES, technologies);
+        if (UNMANAGED_MODE.equals(mode)) {
+            dataMap.set(MODE, UNMANAGED_MODE);
+        }
+        else if (mode instanceof ManagedMode) {
+            dataMap.set(MODE, (ManagedMode) mode);
+        }
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        address = dataMap.getString(ADDRESS);
+        technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
+        mode = dataMap.getVariant(MODE, ManagedMode.class, String.class);
+    }
+
 }

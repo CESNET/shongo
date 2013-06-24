@@ -1,10 +1,6 @@
-package cz.cesnet.shongo.oldapi.util;
+package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.oldapi.annotation.AllowedTypes;
-import cz.cesnet.shongo.oldapi.annotation.ReadOnly;
-import cz.cesnet.shongo.oldapi.annotation.Required;
-import cz.cesnet.shongo.oldapi.annotation.Transient;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -67,19 +63,6 @@ public class Property
      * Setter for the property.
      */
     private Method writeMethod;
-
-    /**
-     * True if {@link ReadOnly} annotation is present for the property, false otherwise.
-     */
-    private boolean readOnly;
-
-    /**
-     * @return {@link #readOnly}
-     */
-    public boolean isReadOnly()
-    {
-        return readOnly;
-    }
 
     /**
      * Set value for the property to given object.
@@ -191,15 +174,6 @@ public class Property
     public Class getKeyAllowedType()
     {
         return keyAllowedType;
-    }
-
-    /**
-     * @return true if property is annotated with {@link Required},
-     *         false otherwise
-     */
-    public boolean isRequired()
-    {
-        return getAnnotation(Required.class) != null;
     }
 
     /**
@@ -477,21 +451,6 @@ public class Property
             property.setType(property.field.getType(), property.field.getGenericType());
         }
 
-        // Determine allowed types
-        AllowedTypes allowedTypes = property.getAnnotation(AllowedTypes.class);
-        // Explicitly by annotation
-        if (allowedTypes != null) {
-            if (allowedTypes.value().length > 0) {
-                property.valueAllowedTypes = allowedTypes.value();
-            }
-        }
-
-        // Determine read-only
-        ReadOnly readOnly = property.getAnnotation(ReadOnly.class);
-        if (readOnly != null) {
-            property.readOnly = true;
-        }
-
         // Put new property to cache
         typeCache.put(name, property);
 
@@ -531,9 +490,6 @@ public class Property
             Field[] declaredFields = type.getDeclaredFields();
             for (Field field : declaredFields) {
                 if (Modifier.isPublic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
-                    if (field.getAnnotation(Transient.class) != null) {
-                        continue;
-                    }
                     propertyNames.add(field.getName());
                 }
             }
@@ -542,17 +498,11 @@ public class Property
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
                 if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
-                    if (method.getAnnotation(Transient.class) != null) {
-                        continue;
-                    }
                     String name = methodName.substring(3);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);
                 }
                 if (methodName.startsWith("is") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
-                    if (method.getAnnotation(Transient.class) != null) {
-                        continue;
-                    }
                     String name = methodName.substring(2);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);
@@ -694,5 +644,4 @@ public class Property
         Property property = getPropertyNotNull(type, name);
         return property.getAnnotation(annotationClass);
     }
-
 }

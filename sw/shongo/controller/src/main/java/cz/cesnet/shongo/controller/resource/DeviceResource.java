@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.report.Report;
@@ -296,61 +297,51 @@ public class DeviceResource extends Resource
     @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Resource resourceApi, EntityManager entityManager)
     {
-        cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
-        if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
-            if (apiDevice.getAddress() == null) {
-                setAddress(null);
-            }
-            else {
-                setAddress(new Address(apiDevice.getAddress()));
-            }
+        super.fromApi(resourceApi, entityManager);
+
+        cz.cesnet.shongo.controller.api.DeviceResource apiDevice =
+                (cz.cesnet.shongo.controller.api.DeviceResource) resourceApi;
+
+        if (apiDevice.getAddress() == null) {
+            setAddress(null);
+        }
+        else {
+            setAddress(new Address(apiDevice.getAddress()));
         }
 
         // Create technologies
-        for (Technology technology : apiDevice.getTechnologies()) {
-            if (resourceApi.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
-                    technology)) {
-                addTechnology(technology);
-            }
-        }
-        // Delete technologies
-        Set<Technology> technologiesToDelete =
-                resourceApi
-                        .getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
-        for (Technology technology : technologiesToDelete) {
-            removeTechnology(technology);
-        }
+        Synchronization.synchronizeCollection(technologies, apiDevice.getTechnologies());
 
-        if (resourceApi.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.MODE)) {
-            Object mode = apiDevice.getMode();
-            if (mode instanceof String) {
-                if (mode.equals(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE)) {
-                    setMode(null);
-                }
-                else {
-                    throw new CommonReportSet.TypeIllegalValueException("Mode", (String) mode);
-                }
-            }
-            else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
-                ManagedMode managedMode;
-                if (isManaged()) {
-                    managedMode = (ManagedMode) getMode();
-                }
-                else {
-                    managedMode = new ManagedMode();
-                    setMode(managedMode);
-                }
-                managedMode.setConnectorAgentName(
-                        ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
+        Object mode = apiDevice.getMode();
+        if (mode == null) {
+            setMode(null);
+        }
+        else if (mode instanceof String) {
+            if (mode.equals(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE)) {
+                setMode(null);
             }
             else {
-                throw new CommonReportSet.ClassAttributeTypeMismatchException(DeviceResource.class.getSimpleName(),
-                        cz.cesnet.shongo.controller.api.DeviceResource.MODE,
-                        cz.cesnet.shongo.controller.api.ManagedMode.class.getSimpleName() + "|String",
-                        mode.getClass().getSimpleName());
+                throw new CommonReportSet.TypeIllegalValueException("Mode", (String) mode);
             }
         }
-        super.fromApi(resourceApi, entityManager);
+        else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
+            ManagedMode managedMode;
+            if (isManaged()) {
+                managedMode = (ManagedMode) getMode();
+            }
+            else {
+                managedMode = new ManagedMode();
+                setMode(managedMode);
+            }
+            managedMode.setConnectorAgentName(
+                    ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
+        }
+        else {
+            throw new CommonReportSet.ClassAttributeTypeMismatchException(DeviceResource.class.getSimpleName(),
+                    cz.cesnet.shongo.controller.api.DeviceResource.MODE,
+                    cz.cesnet.shongo.controller.api.ManagedMode.class.getSimpleName() + "|String",
+                    mode.getClass().getSimpleName());
+        }
     }
 
     /**

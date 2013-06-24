@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.util;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.oldapi.util.Converter;
+import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -164,8 +164,7 @@ public class DatabaseFilter
                 value = new Object[]{value};
             }
             @SuppressWarnings("unchecked")
-            Set<Technology> technologies = (Set<Technology>) Converter.convert(value, Set.class,
-                    new Class[]{Technology.class});
+            Set<Technology> technologies = (Set<Technology>) Converter.convertToSet(value, Technology.class);
             return technologies;
         }
         return null;
@@ -180,7 +179,7 @@ public class DatabaseFilter
                 value = new Object[]{value};
             }
             @SuppressWarnings("unchecked")
-            Set<String> classNames = (Set<String>) Converter.convert(value, Set.class, new Class[]{String.class});
+            Set<String> classNames = (Set<String>) Converter.convertToSet(value, String.class);
             if (classNames.size() > 0) {
                 Set<Class<? extends T>> classes = new HashSet<Class<? extends T>>();
                 for (String className : classNames) {

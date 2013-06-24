@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.oldapi.annotation.Required;
-import cz.cesnet.shongo.oldapi.rpc.StructType;
+import cz.cesnet.shongo.api.AbstractComplexType;
+import cz.cesnet.shongo.api.DataMap;
 
 /**
  * Represents a managed mode for a device resource.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ManagedMode implements StructType
+public class ManagedMode extends AbstractComplexType
 {
     /**
      * Connector Jade agent name.
@@ -35,7 +35,6 @@ public class ManagedMode implements StructType
     /**
      * @return {@link #connectorAgentName}
      */
-    @Required
     public String getConnectorAgentName()
     {
         return connectorAgentName;
@@ -47,5 +46,22 @@ public class ManagedMode implements StructType
     public void setConnectorAgentName(String connectorAgentName)
     {
         this.connectorAgentName = connectorAgentName;
+    }
+
+    private static final String CONNECTOR_AGENT_NAME = "connectorAgentName";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(CONNECTOR_AGENT_NAME, connectorAgentName);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        connectorAgentName = dataMap.getStringRequired(CONNECTOR_AGENT_NAME);
     }
 }

@@ -23,6 +23,15 @@ public abstract class IdentifiedComplexType extends AbstractComplexType
     }
 
     /**
+     * @return true if the {@link #id} is not null,
+     *         false otherwise
+     */
+    public boolean hasId()
+    {
+        return id != null;
+    }
+
+    /**
      * @param id sets the {@link #id}
      */
     public void setId(String id)
