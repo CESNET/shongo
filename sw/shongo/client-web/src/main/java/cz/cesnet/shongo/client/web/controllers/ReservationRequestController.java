@@ -49,50 +49,6 @@ public class ReservationRequestController
         return "reservationRequestList";
     }
 
-    @RequestMapping(value = "/detail/{id:.+}", method = RequestMethod.GET)
-    public String getDetail(
-            SecurityToken securityToken,
-            @PathVariable(value = "id") String id,
-            Model model)
-    {
-        // Get reservation request
-        AbstractReservationRequest reservationRequest =
-                reservationService.getReservationRequest(securityToken, id);
-
-        // Get history of reservation request
-        ReservationRequestListRequest request = new ReservationRequestListRequest();
-        request.setSecurityToken(securityToken);
-        request.setReservationRequestId(id);
-        request.setSort(ReservationRequestListRequest.Sort.DATETIME);
-        request.setSortDescending(true);
-
-        String reservationRequestId = reservationRequest.getId();
-        Map<String, Object> currentHistoryItem = null;
-        List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
-        for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
-            Map<String, Object> item = new HashMap<String, Object>();
-            String historyItemId = historyItem.getId();
-            item.put("id", historyItemId);
-            item.put("dateTime", historyItem.getDateTime());
-            UserInformation user = userCache.getUserInformation(securityToken, historyItem.getUserId());
-            item.put("user", user.getFullName());
-            item.put("type", historyItem.getType());
-            if ( historyItemId.equals(reservationRequestId)) {
-                currentHistoryItem = item;
-            }
-            historyItems.add(item);
-        }
-        if (currentHistoryItem == null) {
-            throw new RuntimeException("Reservation request " + reservationRequestId + "should exist in it's history.");
-        }
-        currentHistoryItem.put("selected", true);
-
-        model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
-        model.addAttribute("history", historyItems);
-        model.addAttribute("isWritable", currentHistoryItem == historyItems.get(0));
-        return "reservationRequestDetail";
-    }
-
     @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
     public String getDelete(
             SecurityToken securityToken,
@@ -213,12 +169,12 @@ public class ReservationRequestController
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
                 ReservationRequestSummary.RoomSpecification roomType = (ReservationRequestSummary.RoomSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.room", null, locale));
+                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ROOM", null, locale));
                 item.put("participantCount", roomType.getParticipantCount());
             }
             else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
                 ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.alias", null, locale));
+                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ALIAS", null, locale));
                 if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());
                 }

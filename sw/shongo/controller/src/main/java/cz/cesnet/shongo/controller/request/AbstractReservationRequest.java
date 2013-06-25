@@ -386,6 +386,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     public boolean synchronizeFrom(AbstractReservationRequest reservationRequest)
     {
         boolean modified = !ObjectHelper.isSame(getCreatedBy(), reservationRequest.getCreatedBy())
+                || !ObjectHelper.isSame(getUpdatedBy(), reservationRequest.getUpdatedBy())
                 || !ObjectHelper.isSame(getPurpose(), reservationRequest.getPurpose())
                 || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())

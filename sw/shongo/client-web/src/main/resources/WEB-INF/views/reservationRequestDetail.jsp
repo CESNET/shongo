@@ -5,24 +5,71 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
-<c:if test="${isWritable}">
+<c:if test="${isActive}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
 </c:if>
 
 <script type="text/javascript">
     // Angular application
-    angular.module('ngReservationRequestDetail', ['ngPagination']);
+    angular.module('ngReservationRequestDetail', ['ngPagination', 'ngTooltip']);
 </script>
+
+<%-- History --%>
+<div class="pull-right bordered">
+    <h2><spring:message code="views.reservationRequestDetail.history"/></h2>
+    <table class="table table-striped table-hover">
+        <thead>
+        <tr>
+            <th><spring:message code="views.reservationRequest.dateTime"/></th>
+            <th><spring:message code="views.reservationRequest.user"/></th>
+            <th><spring:message code="views.reservationRequest.type"/></th>
+            <th><spring:message code="views.list.action"/></th>
+        </tr>
+        </thead>
+        <tbody>
+        <c:forEach items="${history}" var="historyItem">
+            <c:set var="rowClass" value=""></c:set>
+            <c:choose>
+                <c:when test="${historyItem.selected}">
+                    <tr class="selected">
+                </c:when>
+                <c:otherwise>
+                    <tr>
+                </c:otherwise>
+            </c:choose>
+            <td><joda:format value="${historyItem.dateTime}" style="MM"/></td>
+            <td>${historyItem.user}</td>
+            <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
+            <td>
+                <c:choose>
+                    <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
+                        <a href="${contextPath}/reservation-request/detail/${historyItem.id}">
+                            <spring:message code="views.list.action.show"/>
+                        </a>
+                    </c:when>
+                    <c:otherwise>(<spring:message code="views.list.selected"/>)</c:otherwise>
+                </c:choose>
+            </td>
+            </tr>
+        </c:forEach>
+        </tbody>
+    </table>
+</div>
+
+<%-- Page title --%>
+<h1><spring:message code="views.reservationRequestDetail.title"/></h1>
 
 <div ng-app="ngReservationRequestDetail">
 
+    <%-- Detail of request --%>
     <dl class="dl-horizontal">
 
         <dt><spring:message code="views.reservationRequest.identifier"/>:</dt>
-        <dd>${reservationRequest.id} </dd>
+        <dd>${reservationRequest.id}</dd>
 
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
         <dd><joda:format value="${reservationRequest.dateTime}" style="MM"/></dd>
@@ -33,27 +80,68 @@
         </dd>
 
         <dt><spring:message code="views.reservationRequest.description"/>:</dt>
-        <dd>${reservationRequest.description} </dd>
+        <dd>${reservationRequest.description}</dd>
+
+        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+        <dd>
+            <joda:format value="${reservationRequest.start}" style="MM"/>
+            <br/>
+            <joda:format value="${reservationRequest.end}" style="MM"/>
+        </dd>
 
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
             <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
-            <c:if test="${reservationRequest.periodicityType != 'NONE'}">
-                (<spring:message code="views.reservationRequest.periodicity.until"/> <joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
+            <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
+                (<spring:message code="views.reservationRequest.periodicity.until"/> <joda:format
+                    value="${reservationRequest.periodicityEnd}" style="M-"/>)
             </c:if>
         </dd>
 
+        <dt><spring:message code="views.reservationRequest.type"/>:</dt>
+        <dd>
+            <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}"/>
+            <app:help><spring:message
+                    code="views.help.reservationRequest.specification.${reservationRequest.specificationType}"/></app:help>
+        </dd>
+
         <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
-        <dd>${reservationRequest.technology.title} </dd>
+        <dd>${reservationRequest.technology.title}</dd>
+
+        <c:if test="${reservationRequest.specificationType == 'ALIAS'}">
+            <dt><spring:message code="views.reservationRequest.specification.aliasRoomName"/>:</dt>
+            <dd>${reservationRequest.aliasRoomName}</dd>
+        </c:if>
+
+        <c:if test="${reservationRequest.specificationType == 'ROOM'}">
+            <dt><spring:message code="views.reservationRequest.specification.roomAlias"/>:</dt>
+            <dd>
+                <c:choose>
+                    <c:when test="${reservationRequest.roomAliasReservationId}">
+                        ${reservationRequest.roomAliasReservationId}
+                    </c:when>
+                    <c:otherwise><spring:message
+                            code="views.reservationRequest.specification.roomAlias.adhoc"/></c:otherwise>
+                </c:choose>
+            </dd>
+
+            <dt><spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:</dt>
+            <dd>${reservationRequest.roomParticipantCount}</dd>
+
+            <dt><spring:message code="views.reservationRequest.specification.roomPin"/>:</dt>
+            <dd>${reservationRequest.roomPin}</dd>
+        </c:if>
 
     </dl>
 
+    <%-- List of user roles --%>
     <div ng-controller="PaginationController"
-         ng-init="init('list_acls', '${contextPath}/reservation-request/:id/acl?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+         ng-init="init('reservationRequestDetail.acl', '${contextPath}/reservation-request/:id/acl?start=:start&count=:count', {id: '${reservationRequest.id}'})">
         <pagination-page-size class="pull-right">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
         <h2><spring:message code="views.reservationRequestDetail.userRoles"/></h2>
+
         <div class="spinner" ng-hide="ready"></div>
         <table class="table table-striped table-hover" ng-show="ready">
             <thead>
@@ -84,56 +172,91 @@
             </tr>
             </tbody>
         </table>
-        <c:if test="${isWritable}">
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
-                <spring:message code="views.button.create"/>
-            </a>
-        </c:if>
-        <div style="display: inline-block;"></div>
-        <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
+        <c:choose>
+            <c:when test="${isWritable}">
+                <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
+                    <spring:message code="views.button.create"/>
+                </a>
+                <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
+            </c:when>
+            <c:otherwise>
+                <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
+            </c:otherwise>
+        </c:choose>
     </div>
 
-    <hr/>
-
-    <h2 ><spring:message code="views.reservationRequestDetail.history"/></h2>
-    <table class="table table-striped table-hover">
-        <thead>
-        <tr>
-            <th><spring:message code="views.reservationRequest.dateTime"/></th>
-            <th><spring:message code="views.reservationRequest.user"/></th>
-            <th><spring:message code="views.reservationRequest.type"/></th>
-            <th width="100px"><spring:message code="views.list.action"/></th>
-        </tr>
-        </thead>
-        <tbody>
-        <c:forEach items="${history}" var="historyItem">
-            <c:set var="rowClass" value=""></c:set>
-            <c:choose>
-                <c:when test="${historyItem.selected}">
-                    <tr class="selected">
-                </c:when>
-                <c:otherwise>
+    <%-- List of reservations --%>
+    <c:if test="${isActive}">
+        <hr/>
+        <c:choose>
+            <c:when test="${reservationRequest.periodicityType == 'NONE'}">
+                <h2><spring:message code="views.reservationRequestDetail.reservations"/></h2>
+                <table class="table table-striped table-hover">
+                    <thead>
                     <tr>
-                </c:otherwise>
-            </c:choose>
-                <td><joda:format value="${historyItem.dateTime}" style="MM"/></td>
-                <td>${historyItem.user}</td>
-                <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
-                <td>
-                    <c:if test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                        <a href="${contextPath}/reservation-request/detail/${historyItem.id}">
-                            <spring:message code="views.list.action.show"/>
-                        </a>
-                    </c:if>
-                </td>
-            </tr>
-        </c:forEach>
-        </tbody>
-    </table>
+                        <th width="350px"><spring:message code="views.reservationRequest.slot"/></th>
+                        <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                        <th width="100px"><spring:message code="views.list.action"/></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <joda:format value="${reservationRequest.start}" style="MS"/> -
+                            <joda:format value="${reservationRequest.end}" style="MS"/>
+                        </td>
+                        <td>
+                            <div class="tooltip-container">
+                                <span tooltip="reservation-tooltip" class="tooltip-label">${reservationRequest.allocationState}</span>
+                                <div id="reservation-tooltip" class="tooltip-content">
+                                    <pre>${reservationRequest.allocationStateReport}</pre>
+                                </div>
+                            </div>
+                        </td>
+                        <td>TODO: action</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </c:when>
+
+            <c:otherwise>
+                <div ng-controller="PaginationController"
+                     ng-init="init('reservationRequestDetail.children', '${contextPath}/reservation-request/:id/children?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+                    <pagination-page-size class="pull-right">
+                        <spring:message code="views.pagination.records"/>
+                    </pagination-page-size>
+                    <h2><spring:message code="views.reservationRequestDetail.reservations"/></h2>
+                    <div class="spinner" ng-hide="ready"></div>
+                    <table class="table table-striped table-hover" ng-show="ready">
+                        <thead>
+                        <tr>
+                            <th width="350px"><spring:message code="views.reservationRequest.slot"/></th>
+                            <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                            <th width="100px"><spring:message code="views.list.action"/></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="childReservationRequest in items">
+                            <td>{{childReservationRequest.slot}}</td>
+                            <td>
+                                <div class="tooltip-container">
+                                    <span tooltip="reservation-{{$index}}" class="tooltip-label">{{childReservationRequest.allocationState}}</span>
+                                    <div id="reservation-{{$index}}" class="tooltip-content">
+                                        <pre>{{childReservationRequest.allocationStateReport}}</pre>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>TODO: action</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </c:if>
 
 </div>
-
-<hr/>
 
 <div class="pull-right">
     <a class="btn btn-primary" href="${contextPath}/reservation-request">

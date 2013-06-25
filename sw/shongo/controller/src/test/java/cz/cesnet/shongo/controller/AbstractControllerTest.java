@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
+import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -351,9 +352,10 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         AbstractReservationRequest abstractReservationRequest =
                 getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            Assert.assertTrue(reservationRequestSet.getReservationRequests().size() > 0);
-            reservationRequests.addAll(reservationRequestSet.getReservationRequests());
+            List<ReservationRequest> childReservationRequests = getReservationService().listChildReservationRequests(
+                    new ChildReservationRequestListRequest(SECURITY_TOKEN_ROOT, reservationRequestId)).getItems();
+            Assert.assertTrue(childReservationRequests.size() > 0);
+            reservationRequests.addAll(childReservationRequests);
         }
         else {
             reservationRequests.add((ReservationRequest) abstractReservationRequest);

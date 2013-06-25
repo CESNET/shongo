@@ -7,7 +7,10 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
+import org.joda.time.ReadablePartial;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +65,14 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
      */
     public synchronized void run(Interval interval, EntityManager entityManager)
     {
+        // Round interval start to whole hours (otherwise the reservation requests with future date/time slots
+        // would be always processed, because the interval would keep changing all the time)
+        DateTime intervalStart = interval.getStart();
+        intervalStart = intervalStart.withField(DateTimeFieldType.minuteOfHour(), 0);
+        intervalStart = intervalStart.withField(DateTimeFieldType.secondOfMinute(), 0);
+        intervalStart = intervalStart.withField(DateTimeFieldType.millisOfSecond(), 0);
+        interval = new Interval(intervalStart, interval.toPeriod());
+
         logger.debug("Running preprocessor for interval '{}'...", Temporal.formatInterval(interval));
 
         try {
@@ -139,20 +150,22 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
 
                 // Modify existing reservation request
                 if (childReservationRequest != null) {
-                    // Update child reservation request
-                    boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet);
+                    // When the parent reservation request is not preprocessed in the slot
+                    if (stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
+                        // Update child reservation request
+                        boolean modified = childReservationRequest.synchronizeFrom(reservationRequestSet);
 
-                    // Update child reservation request date/time slot
-                    if (!slot.equals(childReservationRequest.getSlot())) {
-                        childReservationRequest.setSlot(slot);
-                        modified = true;
-                    }
+                        // Update child reservation request date/time slot
+                        if (!slot.equals(childReservationRequest.getSlot())) {
+                            childReservationRequest.setSlot(slot);
+                            modified = true;
+                        }
 
-                    // When the child reservation request was modified or when the parent reservation request
-                    // was modified (ie., it is not preprocessed in the slot), the child should be (re)allocated
-                    if (modified || stateManager.getState(slot).equals(PreprocessorState.NOT_PREPROCESSED)) {
-                        // We must reallocate child reservation request, so clear it's state
-                        childReservationRequest.clearState();
+                        // When the child reservation request was modified it should be (re)allocated
+                        if (modified ) {
+                            // We must reallocate child reservation request, so clear it's state
+                            childReservationRequest.clearState();
+                        }
                     }
 
                     // Remove the child reservation request from the list to not be deleted

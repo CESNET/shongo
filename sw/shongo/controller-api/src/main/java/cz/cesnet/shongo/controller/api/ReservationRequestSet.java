@@ -22,11 +22,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
     private List<Object> slots = new LinkedList<Object>();
 
     /**
-     * List of {@link ReservationRequest} which have been already created for the {@link ReservationRequestSet}.
-     */
-    private List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
-
-    /**
      * Constructor.
      */
     public ReservationRequestSet()
@@ -96,31 +91,13 @@ public class ReservationRequestSet extends AbstractReservationRequest
         slots.remove(dateTimeSlot);
     }
 
-    /**
-     * @return {@link #reservationRequests}
-     */
-    public List<ReservationRequest> getReservationRequests()
-    {
-        return reservationRequests;
-    }
-
-    /**
-     * @param request slot to be added to the {@link #reservationRequests}
-     */
-    public void addReservationRequest(ReservationRequest request)
-    {
-        reservationRequests.add(request);
-    }
-
     public static final String SLOTS = "slots";
-    public static final String RESERVATION_REQUESTS = "reservationRequests";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(SLOTS, slots);
-        dataMap.set(RESERVATION_REQUESTS, reservationRequests);
         return dataMap;
     }
 
@@ -129,6 +106,5 @@ public class ReservationRequestSet extends AbstractReservationRequest
     {
         super.fromData(dataMap);
         slots = dataMap.getListRequired(SLOTS, Interval.class, PeriodicDateTimeSlot.class);
-        reservationRequests = dataMap.getList(RESERVATION_REQUESTS, ReservationRequest.class);
     }
 }

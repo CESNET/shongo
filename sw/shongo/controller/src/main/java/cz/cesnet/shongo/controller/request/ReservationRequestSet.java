@@ -167,10 +167,6 @@ public class ReservationRequestSet extends AbstractReservationRequest
         for (DateTimeSlot slot : getSlots()) {
             reservationRequestSetApi.addSlot(slot.toApi());
         }
-        Allocation allocation = getAllocation();
-        for (ReservationRequest reservationRequest : allocation.getChildReservationRequests()) {
-            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(messageType));
-        }
         super.toApi(api, messageType);
     }
 

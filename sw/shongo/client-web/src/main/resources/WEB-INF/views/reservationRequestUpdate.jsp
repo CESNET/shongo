@@ -57,12 +57,18 @@
             <input type="hidden" name="specificationType" value="{{specificationType}}"/>
             <ul class="nav nav-pills" ng-class="{disabled: modification}">
                 <li ng-class="{active: specificationType == 'ALIAS'}">
-                    <a href="" ng-click="modification || (specificationType = 'ALIAS')"><spring:message code="views.reservationRequest.specification.alias"/></a>
+                    <a href="" ng-click="modification || (specificationType = 'ALIAS')"><spring:message code="views.reservationRequest.specification.ALIAS"/></a>
                 </li>
                 <li ng-class="{active: specificationType == 'ROOM'}">
-                    <a href="" ng-click="modification || (specificationType = 'ROOM')"><spring:message code="views.reservationRequest.specification.room"/></a>
+                    <a href="" ng-click="modification || (specificationType = 'ROOM')"><spring:message code="views.reservationRequest.specification.ROOM"/></a>
                 </li>
             </ul>
+            <app:help>
+                <strong><spring:message code="views.reservationRequest.specification.ALIAS"/></strong>
+                <p><spring:message code="views.help.reservationRequest.specification.ALIAS"/></p>
+                <strong><spring:message code="views.reservationRequest.specification.ROOM"/></strong>
+                <p><spring:message code="views.help.reservationRequest.specification.ROOM"/></p>
+            </app:help>
         </legend>
 
         <c:if test="${reservationRequest.id != null}">
@@ -90,7 +96,7 @@
 
         <div class="control-group" ng-show="specificationType == 'ALIAS'" class="hide">
             <form:label class="control-label" path="aliasRoomName">
-                <spring:message code="views.reservationRequest.specification.alias.roomName"/>:
+                <spring:message code="views.reservationRequest.specification.aliasRoomName"/>:
             </form:label>
             <div class="controls">
                 <form:input path="aliasRoomName" cssErrorClass="error"/>
@@ -100,11 +106,11 @@
 
         <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
             <form:label class="control-label" path="roomAliasReservationId">
-                <spring:message code="views.reservationRequest.specification.room.alias"/>:
+                <spring:message code="views.reservationRequest.specification.roomAlias"/>:
             </form:label>
-            <div class="controls">
+            <div class="controls double-width">
                 <form:select path="roomAliasReservationId">
-                    <form:option value="">Ad-Hoc</form:option>
+                    <form:option value=""><spring:message code="views.reservationRequest.specification.roomAlias.adhoc"/></form:option>
                 </form:select>
                 <form:errors path="roomAliasReservationId" cssClass="error"/>
             </div>
@@ -112,7 +118,7 @@
 
         <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
             <form:label class="control-label" path="roomParticipantCount">
-                <spring:message code="views.reservationRequest.specification.room.participantCount"/>:
+                <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
             </form:label>
             <div class="controls">
                 <form:input path="roomParticipantCount" cssErrorClass="error"/>
@@ -206,7 +212,7 @@
 
         <div class="control-group" ng-show="specificationType == 'ROOM' && technology == 'H323_SIP'" class="hide">
             <form:label class="control-label" path="roomPin">
-                <spring:message code="views.reservationRequest.specification.room.pin"/>:
+                <spring:message code="views.reservationRequest.specification.roomPin"/>:
             </form:label>
             <div class="controls">
                 <form:input path="roomPin" cssErrorClass="error"/>

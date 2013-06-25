@@ -68,6 +68,10 @@ public class ReservationRequestModel implements Validator
 
     private String roomPin;
 
+    private AllocationState allocationState;
+
+    private String allocationStateReport;
+
     public String getId()
     {
         return id;
@@ -233,6 +237,16 @@ public class ReservationRequestModel implements Validator
         this.roomPin = roomPin;
     }
 
+    public AllocationState getAllocationState()
+    {
+        return allocationState;
+    }
+
+    public String getAllocationStateReport()
+    {
+        return allocationStateReport;
+    }
+
     /**
      * Load attributes from given {@code abstractReservationRequest}.
      *
@@ -313,6 +327,7 @@ public class ReservationRequestModel implements Validator
             PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
             start = slot.getStart();
             duration = slot.getDuration();
+            end = start.plus(duration);
 
             Period period = slot.getPeriod();
             if (period.equals(Period.days(1))) {
@@ -326,7 +341,10 @@ public class ReservationRequestModel implements Validator
             }
 
             ReadablePartial slotEnd = slot.getEnd();
-            if (slotEnd instanceof LocalDate) {
+            if (slotEnd == null) {
+                periodicityEnd = null;
+            }
+            else if (slotEnd instanceof LocalDate) {
                 periodicityEnd = (LocalDate) slotEnd;
             }
             else if (slotEnd instanceof Partial) {
@@ -364,6 +382,13 @@ public class ReservationRequestModel implements Validator
                 durationType = DurationType.MINUTE;
             }
         }
+
+        // Allocation
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            allocationState = reservationRequest.getAllocationState();
+            allocationStateReport = reservationRequest.getAllocationStateReport();
+        }
     }
 
     /**
@@ -374,14 +399,14 @@ public class ReservationRequestModel implements Validator
     public AbstractReservationRequest toApi()
     {
         // Determine duration (and end)
-        Period duration;
+        Period duration = null;
         if (specificationType.equals(SpecificationType.ALIAS)) {
             if (end == null) {
                 throw new IllegalStateException("Slot end must be not empty for alias.");
             }
             duration = new Period(start, end);
         }
-        else {
+        if (specificationType.equals(SpecificationType.ROOM)) {
             if (durationCount == null || durationType == null) {
                 throw new IllegalStateException("Slot duration should be not empty.");
             }

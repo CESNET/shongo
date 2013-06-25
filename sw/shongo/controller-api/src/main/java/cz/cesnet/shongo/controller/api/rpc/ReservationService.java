@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -68,7 +69,7 @@ public interface ReservationService extends Service
      * List reservation requests which is the requesting user entitled to see.
      *
      * @param request {@link ReservationRequestListRequest}
-     * @return {@link ListResponse} of {@link ReservationRequestSummary}
+     * @return {@link ListResponse} of {@link ReservationRequestSummary}s
      */
     @API
     public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request);
@@ -81,6 +82,15 @@ public interface ReservationService extends Service
      */
     @API
     public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId);
+
+    /**
+     * List child reservation requests for reservation request specified in the {@code request}.
+     *
+     * @param request {@link ChildReservationRequestListRequest}
+     * @return {@link ListResponse} of {@link ReservationRequest}s
+     */
+    @API
+    public ListResponse<ReservationRequest> listChildReservationRequests(ChildReservationRequestListRequest request);
 
     /**
      * @param token

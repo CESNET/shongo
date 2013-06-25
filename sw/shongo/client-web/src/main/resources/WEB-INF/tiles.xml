@@ -52,11 +52,13 @@
             <add-attribute value="angular-resource.min.js"/>
             <add-attribute value="angular-cookies.min.js"/>
             <add-attribute value="angular-pagination.js"/>
+            <add-attribute value="angular-tooltip.js"/>
         </put-list-attribute>
     </definition>
 
     <definition name="reservationRequestDetail" extends="layout">
         <put-attribute name="title" value="views.reservationRequestDetail.title"/>
+        <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp" type="template"/>
         <put-list-attribute name="js" inherit="true">
             <add-attribute value="angular.min.js"/>

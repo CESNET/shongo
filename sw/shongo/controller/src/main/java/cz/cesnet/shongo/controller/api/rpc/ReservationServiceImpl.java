@@ -6,6 +6,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -754,6 +755,48 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             return reservationRequest.toApi(authorization.isAdmin(userId));
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public ListResponse<ReservationRequest> listChildReservationRequests(ChildReservationRequestListRequest request)
+    {
+        String userId = authorization.validate(request.getSecurityToken());
+
+        EntityIdentifier reservationRequestId =
+                EntityIdentifier.parse(request.getReservationRequestId(), EntityType.RESERVATION_REQUEST);
+        if (!authorization.hasPermission(userId, reservationRequestId, Permission.READ)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", reservationRequestId);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            DatabaseFilter filter = new DatabaseFilter("reservationRequest");
+
+            // List only child reservation requests which are ACTIVE
+            filter.addFilter("childReservationRequest.state = :activeState", "activeState",
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE);
+
+            // List only child reservation requests for specified parent reservation request
+            filter.addFilter("reservationRequest.id = :reservationRequestId", "reservationRequestId",
+                    reservationRequestId.getPersistenceId());
+
+            String queryFrom = "AbstractReservationRequest reservationRequest"
+                    + " LEFT JOIN reservationRequest.allocation.childReservationRequests childReservationRequest";
+            ListResponse<ReservationRequest> response = new ListResponse<ReservationRequest>();
+            List<cz.cesnet.shongo.controller.request.ReservationRequest> reservationRequests = performListRequest(
+                    "childReservationRequest", "childReservationRequest",
+                    cz.cesnet.shongo.controller.request.ReservationRequest.class, queryFrom,
+                    "childReservationRequest.slotStart DESC", filter, request, response, entityManager);
+
+            // Fill reservation requests to response
+            for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : reservationRequests) {
+                response.addItem(reservationRequest.toApi(authorization.isAdmin(userId)));
+            }
+            return response;
         }
         finally {
             entityManager.close();

@@ -4,12 +4,13 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
     // Angular application
-    angular.module('ngReservationRequestList', ['ngPagination']);
+    angular.module('ngReservationRequestList', ['ngPagination', 'ngTooltip']);
 
     // On error handler for listing reservation requests
     window.onErrorResolved = false;
@@ -32,19 +33,22 @@
     <div ng-show="ready">
 
         <div ng-controller="PaginationController"
-             ng-init="init('list_aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')"
+             ng-init="init('reservationRequestList.aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')"
              on-error="window.onError">
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.reservationRequest.specification.aliases"/></h2>
+            <h2>
+                <spring:message code="views.reservationRequest.specification.aliases"/>
+                <app:help><spring:message code="views.help.reservationRequest.specification.ALIAS"/></app:help>
+            </h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
-                    <th><spring:message code="views.reservationRequest.specification.alias.roomName"/></th>
+                    <th><spring:message code="views.reservationRequest.specification.aliasRoomName"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
@@ -84,19 +88,22 @@
         <hr/>
 
         <div ng-controller="PaginationController"
-             ng-init="init('list_rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"
+             ng-init="init('reservationRequestList.rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"
              on-error="window.onError">
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
-            <h2><spring:message code="views.reservationRequest.specification.rooms"/></h2>
+            <h2>
+                <spring:message code="views.reservationRequest.specification.rooms"/>
+                <app:help><spring:message code="views.help.reservationRequest.specification.ROOM"/></app:help>
+            </h2>
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
-                    <th><spring:message code="views.reservationRequest.specification.room.participantCount"/></th>
+                    <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
