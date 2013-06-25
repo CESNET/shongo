@@ -76,7 +76,7 @@ sub on_init()
             });
         }
         case 'ValueProvider.Filtered' {
-            $self->add_attribute('type', {
+            $self->add_attribute('filterType', {
                 'required' => 1,
                 'type' => 'enum',
                 'enum' =>  $FilterType

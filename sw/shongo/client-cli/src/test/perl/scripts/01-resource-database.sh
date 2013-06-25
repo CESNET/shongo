@@ -107,7 +107,7 @@ bin/client-cli.sh --connect $CONTROLLER --root --scripting <<EOF
             class: 'AliasProviderCapability',
             valueProvider: {
                 class: 'ValueProvider.Filtered',
-                type: 'CONVERT_TO_URL',
+                filterType: 'CONVERT_TO_URL',
                 valueProvider: '1',
             },
             aliases: [

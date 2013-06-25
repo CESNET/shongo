@@ -189,10 +189,9 @@ $RUN_CLIENT_CLI <<EOF
         },
         capabilities: [{
             class: 'StandaloneTerminalCapability',
-            aliases: [{
-                type: 'H323_E164',
-                value: '950081038'
-            }]
+            aliases: [
+                { type: 'H323_E164', value: '950081038' }
+            ]
         }]
     }
 
@@ -234,7 +233,7 @@ $RUN_CLIENT_CLI <<EOF
         slot: '*/*',
         specification: {
             class: 'AliasSetSpecification',
-            aliases: [
+            aliasSpecifications: [
 `cat rooms/mcu-cesnet.txt | sed -e "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/H323/g"`
 `cat rooms/connect-cesnet.txt | sed "s/$PATTERN/$REPLACE/g" | sed "s/<TECHNOLOGY>/ADOBE_CONNECT/g"`
             ]
