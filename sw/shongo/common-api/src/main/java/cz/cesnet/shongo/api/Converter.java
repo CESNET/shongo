@@ -39,11 +39,20 @@ public class Converter
         else if (value instanceof String) {
             return (String) value;
         }
-        else if (value.getClass().isPrimitive()) {
+        else if (value.getClass().isPrimitive() || value instanceof Integer || value instanceof Long ) {
             return value.toString();
         }
-        else if (value instanceof Integer) {
-            return value.toString();
+        else if (value instanceof Enum ) {
+            return convertEnumToString((Enum) value);
+        }
+        else if (value instanceof DateTime ) {
+            return convertDateTimeToString((DateTime) value);
+        }
+        else if (value instanceof Period ) {
+            return convertPeriodToString((Period) value);
+        }
+        else if (value instanceof Interval ) {
+            return convertIntervalToString((Interval) value);
         }
         else {
             throw new TodoImplementException(value.toString());
@@ -83,6 +92,23 @@ public class Converter
         }
         else if (value instanceof Integer) {
             return (Integer) value;
+        }
+        throw new TodoImplementException(value.getClass().getCanonicalName());
+    }
+
+    /**
+     * Convert given {@code value} to {@link Long}.
+     *
+     * @param value
+     * @return converted {@link Long} value
+     */
+    public static Long convertToLong(Object value)
+    {
+        if (value == null) {
+            return  null;
+        }
+        else if (value instanceof Long) {
+            return (Long) value;
         }
         throw new TodoImplementException(value.getClass().getCanonicalName());
     }
@@ -463,6 +489,16 @@ public class Converter
     {
         if (value == null) {
             return collectionClass.cast(ClassHelper.createCollection(collectionClass, 0));
+        }
+        else if (value instanceof Collection) {
+            Collection<Object> collection = ClassHelper.createCollection(collectionClass, 0);
+            for (Object collectionItem : (Collection) value) {
+                if (collectionItem == null) {
+                    throw new CommonReportSet.CollectionItemNullException((String) null);
+                }
+                collection.add(convert(collectionItem, componentClasses));
+            }
+            return collectionClass.cast(collection);
         }
         else if (value instanceof Object[]) {
             Object[] array = (Object[]) value;

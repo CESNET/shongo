@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.util.Property;
 import org.joda.time.*;
 import org.joda.time.chrono.ISOChronology;
@@ -56,11 +55,11 @@ public class ConverterTest
      * @throws Exception
      */
     @Test
-    public void testConvertToBasic() throws Exception
+    public void testConvertToMap() throws Exception
     {
-        Object entityBasic = createEntityBasic();
-        Object convertedEntityBasic = Converter.convertComplexTypeToMap(createEntity());
-        assertBasicEquals(entityBasic, convertedEntityBasic);
+        Object entityMap = createEntityMap();
+        Object convertedEntityMap = Converter.convertComplexTypeToMap(createEntity());
+        assertMapEquals(entityMap, convertedEntityMap);
     }
 
     /**
@@ -69,10 +68,10 @@ public class ConverterTest
      * @throws Exception
      */
     @Test
-    public void testConvertFromBasic() throws Exception
+    public void testConvertFromMap() throws Exception
     {
         Object entity = createEntity();
-        Object convertedEntity = Converter.convertMapToComplexType(createEntityBasic(), Entity.class);
+        Object convertedEntity = Converter.convertMapToComplexType(createEntityMap(), Entity.class);
         assertEntityEquals(entity, convertedEntity);
     }
 
@@ -144,7 +143,7 @@ public class ConverterTest
      * @param string sets the {@link SubEntity#string}
      * @return new sub entity as {@link Map}
      */
-    private Map createSubEntityBasic(String string)
+    private Map createSubEntityMap(String string)
     {
         Map<String, Object> subEntityMap = new HashMap<String, Object>();
         subEntityMap.put("class", ClassHelper.getClassShortName(SubEntity.class));
@@ -155,7 +154,7 @@ public class ConverterTest
     /**
      * @return {@link Map} which corresponds to the result of {@link #createEntity()}
      */
-    private Map createEntityBasic()
+    private Map createEntityMap()
     {
         Map<String, Object> entityMap = new HashMap<String, Object>();
         entityMap.put("class", ClassHelper.getClassShortName(Entity.class));
@@ -169,36 +168,36 @@ public class ConverterTest
         entityMap.put("interval", "2012-01-01T00:00:00.000+03:00/2012-01-01T23:59:59.000+03:00");
         entityMap.put("customType", "customType");
         entityMap.put("type", "TYPE1");
-        entityMap.put("types", new HashSet<String>()
+        entityMap.put("types", new HashSet<Entity.Type>()
         {{
-                add("TYPE1");
-                add("TYPE2");
+                add(Entity.Type.TYPE1);
+                add(Entity.Type.TYPE2);
             }});
         entityMap.put("subEntities", new Object[]{
-                createSubEntityBasic("subEntity1"),
-                createSubEntityBasic("subEntity2")
+                createSubEntityMap("subEntity1"),
+                createSubEntityMap("subEntity2")
         });
-        entityMap.put("descriptionByType", new HashMap<String, String>()
+        entityMap.put("descriptionByType", new HashMap<Entity.Type, String>()
         {{
-                put("TYPE1", "type1");
-                put("TYPE2", "type2");
+                put(Entity.Type.TYPE1, "type1");
+                put(Entity.Type.TYPE2, "type2");
             }});
-        entityMap.put("subEntityByType", new HashMap<String, Map>()
+        entityMap.put("subEntityByType", new HashMap<Entity.Type, Map>()
         {{
-                put("TYPE1", createSubEntityBasic("subEntity3"));
-                put("TYPE2", createSubEntityBasic("subEntity4"));
+                put(Entity.Type.TYPE1, createSubEntityMap("subEntity3"));
+                put(Entity.Type.TYPE2, createSubEntityMap("subEntity4"));
             }});
         return entityMap;
     }
 
     /**
-     * Test equality of two basic objects.
+     * Test equality of two map objects.
      *
      * @param expected
      * @param object
      * @throws Exception
      */
-    private void assertBasicEquals(Object expected, Object object) throws Exception
+    private void assertMapEquals(Object expected, Object object) throws Exception
     {
         if (expected instanceof Map && object instanceof Map) {
             Map expectedMap = (Map) expected;
@@ -208,17 +207,56 @@ public class ConverterTest
                 Object expectedValue = expectedMap.get(key);
                 Object objectValue = objectMap.get(key);
                 if (expectedValue instanceof Object[] && objectValue instanceof Object[]) {
-                    Assert.assertArrayEquals((Object[]) expectedValue, (Object[]) objectValue);
+                    Collection<Object> expectedCollection = new LinkedList<Object>();
+                    Collections.addAll(expectedCollection, (Object[]) expectedValue);
+                    Collection<Object> objectCollection = new LinkedList<Object>();
+                    Collections.addAll(objectCollection, (Object[]) objectValue);
+                    assertMapEquals(expectedCollection, objectCollection);
                 }
                 else if (expectedValue instanceof Set && objectValue instanceof Object[]) {
+                    Collection<Object> expectedSet = new LinkedList<Object>();
+                    for (Object expectedValueItem : (Set) expectedValue) {
+                        if (expectedValueItem instanceof ComplexType) {
+                            expectedSet.add(Converter.convertComplexTypeToMap((ComplexType) expectedValueItem));
+                        }
+                    }
                     Set<Object> objectSet = new HashSet<Object>();
                     Collections.addAll(objectSet, (Object[]) objectValue);
-                    Assert.assertEquals(expectedValue, objectSet);
+                    Assert.assertEquals(expectedSet, objectSet);
+                }
+                else if (expectedValue instanceof Collection && objectValue instanceof Object[]) {
+                    Collection<Object> objectCollection = new LinkedList<Object>();
+                    Collections.addAll(objectCollection, (Object[]) objectValue);
+                    assertMapEquals(expectedValue, objectCollection);
+                }
+                else if (expectedValue instanceof Object[] && objectValue instanceof Collection) {
+                    Collection<Object> expectedCollection = new LinkedList<Object>();
+                    Collections.addAll(expectedCollection, (Object[]) expectedValue);
+                    assertMapEquals(expectedCollection, objectValue);
                 }
                 else {
-                    Assert.assertEquals(expectedValue, objectValue);
+                    assertMapEquals(expectedValue, objectValue);
                 }
             }
+        }
+        else if (expected instanceof Map && object instanceof ComplexType) {
+            ComplexType objectComplexType = (ComplexType) object;
+            Assert.assertEquals(expected, Converter.convertComplexTypeToMap(objectComplexType));
+        }
+        else if (expected instanceof Collection && object instanceof Collection) {
+            Collection<Object> expectedCollection = (Collection<Object>) expected;
+            Collection<Object> objectCollection = (Collection<Object>) object;
+            Assert.assertEquals(expectedCollection.size(), objectCollection.size());
+            Iterator<Object> iteratorExpected = expectedCollection.iterator();
+            Iterator<Object> iteratorObject = objectCollection.iterator();
+            while (iteratorExpected.hasNext() && iteratorObject.hasNext()) {
+                Object expectedValue = iteratorExpected.next();
+                Object objectValue = iteratorObject.next();
+                assertMapEquals(expectedValue, objectValue);
+            }
+        }
+        else {
+            Assert.assertEquals(expected, object);
         }
     }
 
@@ -461,9 +499,21 @@ public class ConverterTest
         public DataMap toData()
         {
             DataMap dataMap = super.toData();
-            if (true) {
-                throw new TodoImplementException();
-            }
+            dataMap.set("string", string);
+            dataMap.set("intPrimitive", intPrimitive);
+            dataMap.set("intObject", intObject);
+            dataMap.set("longPrimitive", longPrimitive);
+            dataMap.set("longObject", longObject);
+            dataMap.set("dateTime", dateTime);
+            dataMap.set("period", period);
+            dataMap.set("interval", interval);
+            dataMap.set("readablePartial", readablePartial);
+            dataMap.set("customType", customType);
+            dataMap.set("type", type);
+            dataMap.set("subEntities", subEntities);
+            dataMap.set("types", types);
+            dataMap.set("descriptionByType", descriptionByType);
+            dataMap.set("subEntityByType", subEntityByType);
             return dataMap;
         }
 
@@ -471,9 +521,21 @@ public class ConverterTest
         public void fromData(DataMap dataMap)
         {
             super.fromData(dataMap);
-            if (true) {
-                throw new TodoImplementException();
-            }
+            string = dataMap.getString("string");
+            intPrimitive = dataMap.getInt("intPrimitive");
+            intObject = dataMap.getInteger("intObject");
+            longPrimitive = dataMap.getLongPrimitive("longPrimitive");
+            longObject = dataMap.getLong("longObject");
+            dateTime = dataMap.getDateTime("dateTime");
+            period = dataMap.getPeriod("period");
+            interval = dataMap.getInterval("interval");
+            readablePartial = dataMap.getReadablePartial("readablePartial");
+            customType = dataMap.getAtomicType("customType", CustomType.class);
+            type = dataMap.getEnum("type", Type.class);
+            subEntities = dataMap.getList("subEntities", SubEntity.class);
+            types = dataMap.getSet("types", Type.class);
+            descriptionByType = dataMap.getMap("descriptionByType", Type.class, String.class);
+            subEntityByType = dataMap.getMap("subEntityByType", Type.class, SubEntity.class);
         }
 
         public static enum Type
@@ -486,7 +548,7 @@ public class ConverterTest
     /**
      * Testing entity used as child.
      */
-    public static class SubEntity
+    public static class SubEntity extends AbstractComplexType
     {
         private String string;
 
@@ -518,6 +580,22 @@ public class ConverterTest
             SubEntity subEntity = (SubEntity) obj;
             return string.equals(subEntity.string);
         }
+
+        @Override
+        public DataMap toData()
+        {
+            DataMap dataMap = super.toData();
+            dataMap.set("string", string);
+            return dataMap;
+        }
+
+        @Override
+        public void fromData(DataMap dataMap)
+        {
+            super.fromData(dataMap);
+            string = dataMap.getString("string");
+        }
+
     }
 
     /**

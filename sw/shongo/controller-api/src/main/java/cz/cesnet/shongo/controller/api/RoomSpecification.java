@@ -250,7 +250,7 @@ public class RoomSpecification extends Specification
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        resourceId = dataMap.getString(resourceId);
+        resourceId = dataMap.getString(RESOURCE_ID);
         technologies = dataMap.getSetRequired(TECHNOLOGIES, Technology.class);
         participantCount = dataMap.getIntegerRequired(PARTICIPANT_COUNT);
         roomSettings = dataMap.getList(ROOM_SETTINGS, RoomSetting.class);

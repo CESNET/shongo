@@ -154,8 +154,14 @@ public abstract class Executable extends PersistentObject implements Reportable,
     {
         this.state = state;
 
+        // Apply resetting state to all children (recursively)
+        if (state == null || state == State.NOT_ALLOCATED) {
+            for (Executable childExecutable : childExecutables) {
+                childExecutable.setState(state);
+            }
+        }
         // Apply NOT_STARTED state to all children (recursively)
-        if (state == State.NOT_STARTED) {
+        else if (state == State.NOT_STARTED) {
             for (Executable childExecutable : childExecutables) {
                 State childExecutableState = childExecutable.getState();
                 if (childExecutableState == null || childExecutableState == State.NOT_ALLOCATED) {

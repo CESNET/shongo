@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.oldapi.annotation.Required;
 
 /**
  * {@link Specification} which searches for available endpoint {@link Resource}.

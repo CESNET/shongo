@@ -320,8 +320,20 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
         mcu.addTechnology(Technology.SIP);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
+        AliasProviderCapability aliasProviderCapability = new AliasProviderCapability("{digit:1}");
+        aliasProviderCapability.addAlias(new Alias(AliasType.H323_E164, "{value}"));
+        aliasProviderCapability.addAlias(new Alias(AliasType.SIP_URI, "{value}@cesnet.cz"));
+        mcu.addCapability(aliasProviderCapability);
         mcu.setAllocatable(true);
         getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        DeviceResource connect = new DeviceResource();
+        connect.setName("connect");
+        connect.addTechnology(Technology.ADOBE_CONNECT);
+        connect.addCapability(new RoomProviderCapability(10));
+        connect.addCapability(new AliasProviderCapability("{hash}", AliasType.ADOBE_CONNECT_URI));
+        connect.setAllocatable(true);
+        getResourceService().createResource(SECURITY_TOKEN, connect);
 
         // Create reservation request
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();

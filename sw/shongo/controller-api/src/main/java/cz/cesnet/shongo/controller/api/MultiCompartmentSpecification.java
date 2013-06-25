@@ -19,7 +19,6 @@ public class MultiCompartmentSpecification extends Specification
 
     public MultiCompartmentSpecification()
     {
-
     }
 
     /**

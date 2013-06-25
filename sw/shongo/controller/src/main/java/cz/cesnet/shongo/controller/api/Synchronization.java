@@ -54,16 +54,19 @@ public class Synchronization
         }
         objects.clear();
         for (A apiObject : apiObjects) {
+            T object = null;
             if (apiObject.hasId()) {
                 Long objectId = apiObject.notNullIdAsLong();
-                T object = existingObjects.get(objectId);
+                object = existingObjects.get(objectId);
                 if (object == null) {
                     ControllerReportSetHelper.throwEntityNotFoundFault(handler.getObjectClass(), objectId);
                     return;
                 }
                 handler.updateFromApi(object, apiObject);
             }
-            T object = handler.createFromApi(apiObject);
+            if (object == null) {
+                object = handler.createFromApi(apiObject);
+            }
             handler.addToCollection(objects, object);
         }
     }
@@ -77,11 +80,12 @@ public class Synchronization
         }
         objects.clear();
         for (Object apiObject : apiObjects) {
+            T object = null;
             if (apiObject instanceof IdentifiedComplexType) {
                 IdentifiedComplexType identifiedObjectApi = (IdentifiedComplexType) apiObject;
                 if (identifiedObjectApi.hasId()) {
                     Long objectId = identifiedObjectApi.notNullIdAsLong();
-                    T object = existingObjects.get(objectId);
+                    object = existingObjects.get(objectId);
                     if (object == null) {
                         ControllerReportSetHelper.throwEntityNotFoundFault(handler.getObjectClass(), objectId);
                         return;
@@ -89,7 +93,9 @@ public class Synchronization
                     handler.updateFromApi(object, apiObject);
                 }
             }
-            T object = handler.createFromApi(apiObject);
+            if (object == null) {
+                object = handler.createFromApi(apiObject);
+            }
             handler.addToCollection(objects, object);
         }
     }

@@ -69,6 +69,16 @@ public class DataMap
         setNotNull(property, value);
     }
 
+    public void set(String property, long value)
+    {
+        setNotNull(property, value);
+    }
+
+    public void set(String property, Long value)
+    {
+        setNotNull(property, value);
+    }
+
     public <E extends Enum> void set(String property, E enumValue)
     {
         setNotNull(property, Converter.convertEnumToString(enumValue));
@@ -155,6 +165,16 @@ public class DataMap
     public Integer getInteger(String property)
     {
         return Converter.convertToInteger(data.get(property));
+    }
+
+    public long getLongPrimitive(String property)
+    {
+        return Converter.convertToLong(getRequired(property));
+    }
+
+    public Long getLong(String property)
+    {
+        return Converter.convertToLong(data.get(property));
     }
 
     public Integer getIntegerRequired(String property)

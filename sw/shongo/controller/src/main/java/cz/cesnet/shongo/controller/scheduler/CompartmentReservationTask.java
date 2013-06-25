@@ -253,10 +253,12 @@ public class CompartmentReservationTask extends ReservationTask
         }
         catch (SchedulerException firstException) {
             schedulerContextSavepoint.revert();
+            addReport(firstException.getReport());
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
             catch (SchedulerException secondException) {
+                addReport(secondException.getReport());
                 throw new SchedulerException(getCurrentReport());
             }
         }
@@ -555,6 +557,9 @@ public class CompartmentReservationTask extends ReservationTask
                 createSingleRoomReservation();
             }
             catch (SchedulerException exception) {
+                // Reset state for all allocated executables
+                compartment.setState(null);
+
                 // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
                 throw exception;
             }
