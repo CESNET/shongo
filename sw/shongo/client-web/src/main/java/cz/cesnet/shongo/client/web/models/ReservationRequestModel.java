@@ -3,7 +3,6 @@ package cz.cesnet.shongo.client.web.models;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -58,9 +57,9 @@ public class ReservationRequestModel implements Validator
 
     private SpecificationType specificationType;
 
-    private String aliasRoomName;
+    private String permanentRoomName;
 
-    private String roomAliasReservationId;
+    private String permanentRoomCapacityReservationId;
 
     private Integer roomParticipantCount;
 
@@ -191,24 +190,24 @@ public class ReservationRequestModel implements Validator
         this.specificationType = specificationType;
     }
 
-    public String getAliasRoomName()
+    public String getPermanentRoomName()
     {
-        return aliasRoomName;
+        return permanentRoomName;
     }
 
-    public void setAliasRoomName(String aliasRoomName)
+    public void setPermanentRoomName(String permanentRoomName)
     {
-        this.aliasRoomName = aliasRoomName;
+        this.permanentRoomName = permanentRoomName;
     }
 
-    public String getRoomAliasReservationId()
+    public String getPermanentRoomCapacityReservationId()
     {
-        return roomAliasReservationId;
+        return permanentRoomCapacityReservationId;
     }
 
-    public void setRoomAliasReservationId(String roomAliasReservationId)
+    public void setPermanentRoomCapacityReservationId(String permanentRoomCapacityReservationId)
     {
-        this.roomAliasReservationId = roomAliasReservationId;
+        this.permanentRoomCapacityReservationId = permanentRoomCapacityReservationId;
     }
 
     public Integer getRoomParticipantCount()
@@ -248,12 +247,12 @@ public class ReservationRequestModel implements Validator
         Specification specification = abstractReservationRequest.getSpecification();
         if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
-            specificationType = SpecificationType.ALIAS;
+            specificationType = SpecificationType.PERMANENT_ROOM;
             technology = Technology.find(aliasSpecification.getTechnologies());
-            aliasRoomName = aliasSpecification.getValue();
+            permanentRoomName = aliasSpecification.getValue();
             Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
-                          && technology != null && aliasRoomName != null)) {
+                          && technology != null && permanentRoomName != null)) {
                 throw new UnsupportedApiException("Alias specification must be for room name.");
             }
         }
@@ -264,18 +263,18 @@ public class ReservationRequestModel implements Validator
                 throw new UnsupportedApiException("At least one child alias specifications must be present.");
             }
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
-            specificationType = SpecificationType.ALIAS;
+            specificationType = SpecificationType.PERMANENT_ROOM;
             technology = Technology.find(roomNameSpecification.getTechnologies());
-            aliasRoomName = roomNameSpecification.getValue();
+            permanentRoomName = roomNameSpecification.getValue();
             Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
-                          && technology != null && aliasRoomName != null)) {
+                          && technology != null && permanentRoomName != null)) {
                 throw new UnsupportedApiException("First alias specification must be for room name.");
             }
         }
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
-            specificationType = SpecificationType.ROOM;
+            specificationType = SpecificationType.ADHOC_ROOM;
             technology = Technology.find(roomSpecification.getTechnologies());
             roomParticipantCount = roomSpecification.getParticipantCount();
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
@@ -305,7 +304,7 @@ public class ReservationRequestModel implements Validator
             if (!(slots.size() == 1 && slots.get(0) instanceof PeriodicDateTimeSlot)) {
                 throw new UnsupportedApiException("Only single periodic date/time slot is allowed.");
             }
-            if (!specificationType.equals(SpecificationType.ROOM)) {
+            if (!specificationType.equals(SpecificationType.ADHOC_ROOM)) {
                 throw new UnsupportedApiException("Periodicity is allowed only for rooms.");
             }
             PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
@@ -351,7 +350,7 @@ public class ReservationRequestModel implements Validator
         }
 
         // Room duration
-        if (specificationType.equals(SpecificationType.ROOM)) {
+        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             int minutes = duration.toStandardMinutes().getMinutes();
             if ((minutes % (60 * 24)) == 0) {
                 durationCount = minutes / (60 * 24);
@@ -377,13 +376,13 @@ public class ReservationRequestModel implements Validator
     {
         // Determine duration (and end)
         Period duration = null;
-        if (specificationType.equals(SpecificationType.ALIAS)) {
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             if (end == null) {
                 throw new IllegalStateException("Slot end must be not empty for alias.");
             }
             duration = new Period(start, end);
         }
-        if (specificationType.equals(SpecificationType.ROOM)) {
+        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             if (durationCount == null || durationType == null) {
                 throw new IllegalStateException("Slot duration should be not empty.");
             }
@@ -444,11 +443,11 @@ public class ReservationRequestModel implements Validator
         // Create specification
         Specification specification;
         switch (specificationType) {
-            case ALIAS:
+            case PERMANENT_ROOM:
                 AliasSpecification roomNameSpecification = new AliasSpecification();
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
-                roomNameSpecification.setValue(aliasRoomName);
+                roomNameSpecification.setValue(permanentRoomName);
                 switch (technology) {
                     case H323_SIP:
                         AliasSpecification numberSpecification = new AliasSpecification();
@@ -466,7 +465,7 @@ public class ReservationRequestModel implements Validator
                         throw new TodoImplementException(technology.toString());
                 }
                 break;
-            case ROOM:
+            case ADHOC_ROOM:
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
@@ -475,7 +474,7 @@ public class ReservationRequestModel implements Validator
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                if (!Strings.isNullOrEmpty(roomAliasReservationId)) {
+                if (!Strings.isNullOrEmpty(permanentRoomCapacityReservationId)) {
                     throw new TodoImplementException("Provide alias reservation");
                 }
                 specification = roomSpecification;
@@ -502,7 +501,7 @@ public class ReservationRequestModel implements Validator
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
         if (specificationType != null) {
             switch (specificationType) {
-                case ALIAS:
+                case PERMANENT_ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
                     if (end != null && end.getMillisOfDay() == 0) {
                         end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
@@ -510,12 +509,16 @@ public class ReservationRequestModel implements Validator
                     if (start != null && end != null && !start.isBefore(end)) {
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "aliasRoomName", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "permanentRoomName", "validation.field.required");
                     break;
-                case ROOM:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors,"durationCount", "validation.field.required");
+                case ADHOC_ROOM:
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(
                             errors, "roomParticipantCount", "validation.field.required");
+                    break;
+                case PERMANENT_ROOM_CAPACITY:
+                    ValidationUtils.rejectIfEmptyOrWhitespace(
+                            errors, "permanentRoomCapacityReservationId", "validation.field.required");
                     break;
             }
         }
@@ -540,14 +543,19 @@ public class ReservationRequestModel implements Validator
     public static enum SpecificationType
     {
         /**
-         * For alias (or set of aliases).
+         * For ad-hoc room.
          */
-        ALIAS,
+        ADHOC_ROOM,
 
         /**
-         * For room capacity.
+         * For permanent room.
          */
-        ROOM
+        PERMANENT_ROOM,
+
+        /**
+         * For permanent room capacity.
+         */
+        PERMANENT_ROOM_CAPACITY
     }
 
     /**

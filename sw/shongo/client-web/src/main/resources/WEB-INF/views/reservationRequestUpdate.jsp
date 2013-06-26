@@ -24,7 +24,7 @@
 
         // Get dynamic reservation request attributes
         $scope.id = $scope.value('${reservationRequest.id}', null);
-        $scope.specificationType = $scope.value('${reservationRequest.specificationType}', 'ALIAS');
+        $scope.specificationType = $scope.value('${reservationRequest.specificationType}', 'ADHOC_ROOM');
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
 
         // Specifies whether we are modifying an existing reservation request
@@ -33,7 +33,7 @@
         // Set proper date/time format for start date/time picker
         $scope.$watch("specificationType", function () {
             var dateTimePicker = $('#start').data("datetimepicker");
-            if ( $scope.specificationType == 'ALIAS') {
+            if ( $scope.specificationType == 'PERMANENT_ROOM') {
                 dateTimePicker.setFormatDate();
             }
             else {
@@ -56,18 +56,29 @@
         <legend class="select">
             <input type="hidden" name="specificationType" value="{{specificationType}}"/>
             <ul class="nav nav-pills" ng-class="{disabled: modification}">
-                <li ng-class="{active: specificationType == 'ALIAS'}">
-                    <a href="" ng-click="modification || (specificationType = 'ALIAS')"><spring:message code="views.reservationRequest.specification.ALIAS"/></a>
+                <li ng-class="{active: specificationType == 'ADHOC_ROOM'}">
+                    <a href="" ng-click="modification || (specificationType = 'ADHOC_ROOM')">
+                        <spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/>
+                    </a>
                 </li>
-                <li ng-class="{active: specificationType == 'ROOM'}">
-                    <a href="" ng-click="modification || (specificationType = 'ROOM')"><spring:message code="views.reservationRequest.specification.ROOM"/></a>
+                <li ng-class="{active: specificationType == 'PERMANENT_ROOM'}">
+                    <a href="" ng-click="modification || (specificationType = 'PERMANENT_ROOM')">
+                        <spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/>
+                    </a>
+                </li>
+                <li ng-class="{active: specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+                    <a href="" ng-click="modification || (specificationType = 'PERMANENT_ROOM_CAPACITY')">
+                        <spring:message code="views.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/>
+                    </a>
                 </li>
             </ul>
             <app:help>
-                <strong><spring:message code="views.reservationRequest.specification.ALIAS"/></strong>
-                <p><spring:message code="views.help.reservationRequest.specification.ALIAS"/></p>
-                <strong><spring:message code="views.reservationRequest.specification.ROOM"/></strong>
-                <p><spring:message code="views.help.reservationRequest.specification.ROOM"/></p>
+                <strong><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></strong>
+                <p><spring:message code="views.help.reservationRequest.specification.ADHOC_ROOM"/></p>
+                <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></strong>
+                <p><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM"/></p>
+                <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/></strong>
+                <p><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/></p>
             </app:help>
         </legend>
 
@@ -83,6 +94,29 @@
         </c:if>
 
         <div class="control-group">
+            <form:label class="control-label" path="purpose">
+                <spring:message code="views.reservationRequest.purpose"/>:
+            </form:label>
+            <div class="controls">
+                <form:select path="purpose">
+                    <form:option value="SCIENCE"><spring:message code="views.reservationRequest.purpose.SCIENCE"/></form:option>
+                    <form:option value="EDUCATION"><spring:message code="views.reservationRequest.purpose.EDUCATION"/></form:option>
+                </form:select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="description">
+                <spring:message code="views.reservationRequest.description"/>:
+            </form:label>
+            <div class="controls double-width">
+                <form:input path="description" cssErrorClass="error"/>
+                <form:errors path="description" cssClass="error"/>
+                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
+            </div>
+        </div>
+
+        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM' || specificationType == 'ADHOC_ROOM'" class="hide">
             <form:label class="control-label" path="technology">
                 <spring:message code="views.reservationRequest.technology"/>:
             </form:label>
@@ -94,29 +128,29 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ALIAS'" class="hide">
-            <form:label class="control-label" path="aliasRoomName">
-                <spring:message code="views.reservationRequest.specification.aliasRoomName"/>:
+        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM'" class="hide">
+            <form:label class="control-label" path="permanentRoomName">
+                <spring:message code="views.reservationRequest.specification.permanentRoomName"/>:
             </form:label>
             <div class="controls">
-                <form:input path="aliasRoomName" cssErrorClass="error"/>
-                <form:errors path="aliasRoomName" cssClass="error"/>
+                <form:input path="permanentRoomName" cssErrorClass="error"/>
+                <form:errors path="permanentRoomName" cssClass="error"/>
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
-            <form:label class="control-label" path="roomAliasReservationId">
-                <spring:message code="views.reservationRequest.specification.roomAlias"/>:
+        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
+            <form:label class="control-label" path="permanentRoomCapacityReservationId">
+                <spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationId"/>:
             </form:label>
             <div class="controls double-width">
-                <form:select path="roomAliasReservationId">
-                    <form:option value=""><spring:message code="views.reservationRequest.specification.roomAlias.adhoc"/></form:option>
+                <form:select path="permanentRoomCapacityReservationId" cssErrorClass="error">
+                    <form:option value="">TODO:</form:option>
                 </form:select>
-                <form:errors path="roomAliasReservationId" cssClass="error"/>
+                <form:errors path="permanentRoomCapacityReservationId" cssClass="error"/>
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
+        <div class="control-group" ng-show="specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
             <form:label class="control-label" path="roomParticipantCount">
                 <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
             </form:label>
@@ -136,7 +170,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ALIAS'" class="hide">
+        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM'" class="hide">
             <form:label class="control-label" path="end">
                 <spring:message code="views.reservationRequest.end"/>:
             </form:label>
@@ -146,7 +180,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
+        <div class="control-group" ng-show="specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
             <form:label class="control-label" path="durationCount">
                 <spring:message code="views.reservationRequest.duration"/>:
             </form:label>
@@ -161,7 +195,7 @@
             </div>
         </div>
 
-        <div class="control-group" ng-show="specificationType == 'ROOM'" class="hide">
+        <div class="control-group" ng-show="specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
             <form:label class="control-label" path="periodicityType">
                 <spring:message code="views.reservationRequest.periodicity"/>:
             </form:label>
@@ -187,30 +221,7 @@
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="purpose">
-                <spring:message code="views.reservationRequest.purpose"/>:
-            </form:label>
-            <div class="controls">
-                <form:select path="purpose">
-                    <form:option value="SCIENCE"><spring:message code="views.reservationRequest.purpose.SCIENCE"/></form:option>
-                    <form:option value="EDUCATION"><spring:message code="views.reservationRequest.purpose.EDUCATION"/></form:option>
-                </form:select>
-            </div>
-        </div>
-
-        <div class="control-group">
-            <form:label class="control-label" path="description">
-                <spring:message code="views.reservationRequest.description"/>:
-            </form:label>
-            <div class="controls double-width">
-                <form:input path="description" cssErrorClass="error"/>
-                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
-                <form:errors path="description" cssClass="error"/>
-            </div>
-        </div>
-
-        <div class="control-group" ng-show="specificationType == 'ROOM' && technology == 'H323_SIP'" class="hide">
+        <div class="control-group" ng-show="(specificationType == 'ADHOC_ROOM' || specificationType == 'PERMANENT_ROOM_CAPACITY') && technology == 'H323_SIP'" class="hide">
             <form:label class="control-label" path="roomPin">
                 <spring:message code="views.reservationRequest.specification.roomPin"/>:
             </form:label>

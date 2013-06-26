@@ -108,17 +108,17 @@
         <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
         <dd>${reservationRequest.technology.title}</dd>
 
-        <c:if test="${reservationRequest.specificationType == 'ALIAS'}">
-            <dt><spring:message code="views.reservationRequest.specification.aliasRoomName"/>:</dt>
-            <dd>${reservationRequest.aliasRoomName}</dd>
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+            <dt><spring:message code="views.reservationRequest.specification.permanentRoomName"/>:</dt>
+            <dd>${reservationRequest.permanentRoomName}</dd>
         </c:if>
 
-        <c:if test="${reservationRequest.specificationType == 'ROOM'}">
-            <dt><spring:message code="views.reservationRequest.specification.roomAlias"/>:</dt>
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+            <dt><spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationId"/>:</dt>
             <dd>
                 <c:choose>
-                    <c:when test="${reservationRequest.roomAliasReservationId}">
-                        ${reservationRequest.roomAliasReservationId}
+                    <c:when test="${reservationRequest.permanentRoomCapacityReservationId}">
+                        ${reservationRequest.permanentRoomCapacityReservationId}
                     </c:when>
                     <c:otherwise><spring:message
                             code="views.reservationRequest.specification.roomAlias.adhoc"/></c:otherwise>

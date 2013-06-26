@@ -33,14 +33,14 @@
     <div ng-show="ready">
 
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestList.aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ALIAS')"
+             ng-init="init('reservationRequestList.aliases', '${contextPath}/reservation-request/data?start=:start&count=:count&type=PERMANENT_ROOM')"
              on-error="window.onError">
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
             <h2>
-                <spring:message code="views.reservationRequest.specification.aliases"/>
-                <app:help><spring:message code="views.help.reservationRequest.specification.ALIAS"/></app:help>
+                <spring:message code="views.reservationRequestList.permanentRooms"/>
+                <app:help><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM"/></app:help>
             </h2>
             <table class="table table-striped table-hover">
                 <thead>
@@ -48,7 +48,7 @@
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
-                    <th><spring:message code="views.reservationRequest.specification.aliasRoomName"/></th>
+                    <th><spring:message code="views.reservationRequest.specification.permanentRoomName"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.allocationState"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
@@ -84,7 +84,7 @@
                 </tr>
                 </tbody>
             </table>
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ALIAS">
+            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=PERMANENT_ROOM">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
@@ -94,14 +94,18 @@
         <hr/>
 
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestList.rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ROOM')"
+             ng-init="init('reservationRequestList.rooms', '${contextPath}/reservation-request/data?start=:start&count=:count&type=ADHOC_ROOM')"
              on-error="window.onError">
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
             <h2>
-                <spring:message code="views.reservationRequest.specification.rooms"/>
-                <app:help><spring:message code="views.help.reservationRequest.specification.ROOM"/></app:help>
+                <spring:message code="views.reservationRequestList.rooms"/>
+                <app:help>
+                    <spring:message code="views.help.reservationRequest.specification.ADHOC_ROOM"/>
+                    <br/>
+                    <spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/>
+                </app:help>
             </h2>
             <table class="table table-striped table-hover">
                 <thead>
@@ -143,7 +147,7 @@
                 </tr>
                 </tbody>
             </table>
-            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ROOM">
+            <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=ADHOC_ROOM">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>

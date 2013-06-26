@@ -106,11 +106,11 @@ public class ReservationRequestController
         request.setSortDescending(true);
         if (specificationType != null) {
             switch (specificationType) {
-                case ALIAS:
+                case PERMANENT_ROOM:
                     request.addSpecificationClass(AliasSpecification.class);
                     request.addSpecificationClass(AliasSetSpecification.class);
                     break;
-                case ROOM:
+                case ADHOC_ROOM:
                     request.addSpecificationClass(RoomSpecification.class);
                     break;
             }
@@ -175,12 +175,12 @@ public class ReservationRequestController
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
                 ReservationRequestSummary.RoomSpecification roomType = (ReservationRequestSummary.RoomSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ROOM", null, locale));
+                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ADHOC_ROOM", null, locale));
                 item.put("participantCount", roomType.getParticipantCount());
             }
             else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
                 ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ALIAS", null, locale));
+                item.put("type", messageSource.getMessage("views.reservationRequest.specification.PERMANENT_ROOM", null, locale));
                 if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());
                 }

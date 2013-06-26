@@ -125,7 +125,7 @@ form fieldset legend.select ul {
 
 /** Form double width */
 form .double-width input {
-    width: 350px;
+    width: 336px;
 }
 form .double-width select {
     width: 350px;
@@ -136,6 +136,11 @@ form .radio {
 }
 /** Form errors */
 form input.error {
+    border: solid 1px red;
+    background-color: #FFF0F0;
+}
+/** Form errors */
+form select.error {
     border: solid 1px red;
     background-color: #FFF0F0;
 }
@@ -229,6 +234,9 @@ div.bordered table {
     background: none;
     margin: 0px;
     padding: 5px;
+}
+.tooltip-content p {
+    font-size: 13px;
 }
 
 /** Allocation states */

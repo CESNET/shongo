@@ -53,7 +53,7 @@ public class ReservationRequestUpdateController
         return "reservationRequestCreate";
     }
 
-    @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST})
+    @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
     public String getCreateConfirmed(
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
@@ -79,7 +79,7 @@ public class ReservationRequestUpdateController
         return "reservationRequestModify";
     }
 
-    @RequestMapping(value = "/modify/confirmed", method = {RequestMethod.POST})
+    @RequestMapping(value = "/modify/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
     public String getModifyConfirmed(
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
