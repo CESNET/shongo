@@ -1,44 +1,24 @@
 package cz.cesnet.shongo.controller.api;
 
 /**
- * State of reservation request.
+ * Allocation state of reservation request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public enum AllocationState
 {
     /**
-     * Reservation request is not completely filled.
-     */
-    NOT_COMPLETE,
-
-    /**
-     * None reservation has been allocated for the request (but the request is complete).
+     * None reservation has been allocated for the earliest requested slot.
      */
     NOT_ALLOCATED,
 
     /**
-     * The earliest reservation has been allocated for the request.
+     * The reservation has been allocated for the earliest requested slot.
      */
     ALLOCATED,
 
     /**
-     * The earliest reservation has failed to be allocated for the request.
+     * The reservation has failed to be allocated for the earliest requested slot.
      */
-    ALLOCATION_FAILED,
-
-    /**
-     * The earliest reservation has been started.
-     */
-    STARTED,
-
-    /**
-     * The earliest reservation failed to start.
-     */
-    STARTING_FAILED,
-
-    /**
-     * The earliest reservation has been finished.
-     */
-    FINISHED
+    ALLOCATION_FAILED
 }

@@ -34,12 +34,12 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private String userId;
 
     /**
-     * @see AbstractReservationRequest#PURPOSE
+     * @see AbstractReservationRequest#purpose
      */
     private ReservationRequestPurpose purpose;
 
     /**
-     * @see AbstractReservationRequest#DESCRIPTION
+     * @see AbstractReservationRequest#description
      */
     private String description;
 
@@ -47,6 +47,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * The earliest requested date/time slot.
      */
     private Interval earliestSlot;
+
+    /**
+     * {@link AllocationState} of the reservation request for the earliest requested date/time slot.
+     */
+    private AllocationState allocationState;
 
     /**
      * @see cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification
@@ -160,6 +165,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #allocationState}
+     */
+    public AllocationState getAllocationState()
+    {
+        return allocationState;
+    }
+
+    /**
+     * @param allocationState sets the {@link #allocationState}
+     */
+    public void setAllocationState(AllocationState allocationState)
+    {
+        this.allocationState = allocationState;
+    }
+
+    /**
      * @return {@link #specification}
      */
     public Specification getSpecification()
@@ -229,6 +250,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String PURPOSE = "purpose";
     private static final String DESCRIPTION = "description";
     private static final String EARLIEST_SLOT = "earliestSlot";
+    private static final String ALLOCATION_STATE = "allocationState";
     private static final String SPECIFICATION = "specification";
     private static final String TECHNOLOGIES = "technologies";
     private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
@@ -243,6 +265,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(PURPOSE, purpose);
         dataMap.set(DESCRIPTION, description);
         dataMap.set(EARLIEST_SLOT, earliestSlot);
+        dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
@@ -259,6 +282,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
         description = dataMap.getString(DESCRIPTION);
         earliestSlot = dataMap.getInterval(EARLIEST_SLOT);
+        allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         providedReservationIds = dataMap.getList(PROVIDED_RESERVATION_IDS, String.class);

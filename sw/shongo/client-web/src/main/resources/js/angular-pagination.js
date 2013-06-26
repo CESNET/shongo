@@ -43,6 +43,16 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     ];
 
     /**
+     * Test if given value is empty.
+     *
+     * @param value
+     * @returns {boolean}
+     */
+    $scope.isEmpty = function(value) {
+        return value == null || value == '';
+    };
+
+    /**
      * Set fetched data.
      *
      * @param data to be set

@@ -52,10 +52,10 @@ esac
 
 # Print configuration
 echo "Configuration:"
-echo "  controller:     $CONTROLLER"
+echo "  Controller:     $CONTROLLER"
 echo "  MCU CESNET:     $MCU_CESNET_LICENSE_COUNT licenses, $MCU_CESNET_NUMBER_PREFIX$MCU_CESNET_NUMBER_RANGE"
 echo "  Connect:        $CONNECT_CESNET, $CONNECT_CESNET_LICENSE_COUNT licenses"
-echo "  resource admin: $RESOURCE_ADMIN_EMAIL"
+echo "  Resource admin: $RESOURCE_ADMIN_EMAIL"
 echo -n "Presse enter to continue..."; read line
 
 RUN_CLIENT_CLI="cat"
@@ -163,7 +163,7 @@ $RUN_CLIENT_CLI <<EOF
             class: 'AliasProviderCapability',
             valueProvider: {
                 class: 'ValueProvider.Filtered',
-                type: 'CONVERT_TO_URL',
+                filterType: 'CONVERT_TO_URL',
                 valueProvider: '1',
             },
             aliases: [

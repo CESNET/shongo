@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.models;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -13,10 +14,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * TODO:
@@ -67,10 +65,6 @@ public class ReservationRequestModel implements Validator
     private Integer roomParticipantCount;
 
     private String roomPin;
-
-    private AllocationState allocationState;
-
-    private String allocationStateReport;
 
     public String getId()
     {
@@ -237,16 +231,6 @@ public class ReservationRequestModel implements Validator
         this.roomPin = roomPin;
     }
 
-    public AllocationState getAllocationState()
-    {
-        return allocationState;
-    }
-
-    public String getAllocationStateReport()
-    {
-        return allocationStateReport;
-    }
-
     /**
      * Load attributes from given {@code abstractReservationRequest}.
      *
@@ -381,13 +365,6 @@ public class ReservationRequestModel implements Validator
                 durationCount = minutes;
                 durationType = DurationType.MINUTE;
             }
-        }
-
-        // Allocation
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            allocationState = reservationRequest.getAllocationState();
-            allocationStateReport = reservationRequest.getAllocationStateReport();
         }
     }
 

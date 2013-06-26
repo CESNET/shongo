@@ -7,10 +7,7 @@ import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
-import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
@@ -57,7 +54,7 @@ public class ReservationRequestDetailController
             Model model)
     {
         // Get reservation request
-        AbstractReservationRequest reservationRequest =
+        AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, id);
 
         // Get history of reservation request
@@ -66,8 +63,7 @@ public class ReservationRequestDetailController
         request.setReservationRequestId(id);
         request.setSort(ReservationRequestListRequest.Sort.DATETIME);
         request.setSortDescending(true);
-
-        String reservationRequestId = reservationRequest.getId();
+        String reservationRequestId = abstractReservationRequest.getId();
         Map<String, Object> currentHistoryItem = null;
         List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
@@ -88,7 +84,18 @@ public class ReservationRequestDetailController
         }
         currentHistoryItem.put("selected", true);
 
-        model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
+        // Get reservation request as child
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            String reservationId = reservationRequest.getLastReservationId();
+            Reservation reservation = null;
+            if (reservationId != null) {
+                reservation = reservationService.getReservation(securityToken, reservationId);
+            }
+            model.addAttribute("childReservationRequest", getChild(reservationRequest, reservation));
+        }
+
+        model.addAttribute("reservationRequest", new ReservationRequestModel(abstractReservationRequest));
         model.addAttribute("history", historyItems);
         model.addAttribute("isActive", currentHistoryItem == historyItems.get(0));
         return "reservationRequestDetail";
@@ -111,24 +118,68 @@ public class ReservationRequestDetailController
         request.setReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequest> response = reservationService.listChildReservationRequests(request);
 
+
+        ReservationListRequest reservationListRequest = new ReservationListRequest();
+        reservationListRequest.setSecurityToken(securityToken);
+        for (ReservationRequest reservationRequest : response.getItems()) {
+            String reservationId = reservationRequest.getLastReservationId();
+            if (reservationId != null) {
+                reservationListRequest.addReservationId(reservationId);
+            }
+        }
+        Map<String, Reservation> reservationById = new HashMap<String, Reservation>();
+        if (reservationListRequest.getReservationIds().size() > 0) {
+            ListResponse<Reservation> reservations = reservationService.listReservations(reservationListRequest);
+            for (Reservation reservation : reservations) {
+                reservationById.put(reservation.getId(), reservation);
+            }
+        }
+
         // Build response
         DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.withLocale(locale);
-        List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequest reservationRequest : response.getItems()) {
-
-            Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", reservationRequest.getId());
-            Interval slot = reservationRequest.getSlot();
-            item.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " + dateTimeFormatter.print(slot.getStart()));
-            item.put("allocationState", reservationRequest.getAllocationState());
-            item.put("allocationStateReport", reservationRequest.getAllocationStateReport());
-            items.add(item);
+            String reservationId = reservationRequest.getLastReservationId();
+            Map<String, Object> child = getChild(reservationRequest, reservationById.get(reservationId));
+            Interval slot = (Interval) child.get("slot");
+            child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " + dateTimeFormatter.print(slot.getEnd()));
+            AllocationState allocationState = (AllocationState) child.get("allocationState");
+            String allocationStateMessage =  messageSource.getMessage(
+                    "views.reservationRequest.allocationState." + allocationState, null, locale);
+            String allocationStateHelp =  messageSource.getMessage(
+                    "views.help.reservationRequest.allocationState." + allocationState, null, locale);
+            child.put("allocationStateMessage", allocationStateMessage);
+            child.put("allocationStateHelp", allocationStateHelp);
+            children.add(child);
         }
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
         data.put("count", response.getCount());
-        data.put("items", items);
+        data.put("items", children);
         return data;
+    }
+
+    private Map<String, Object> getChild(ReservationRequest reservationRequest, Reservation reservation)
+    {
+        Map<String, Object> child = new HashMap<String, Object>();
+        child.put("id", reservationRequest.getId());
+        child.put("slot", reservationRequest.getSlot());
+
+        AllocationState allocationState = reservationRequest.getAllocationState();
+        child.put("allocationState", allocationState);
+
+        String allocationStateReport = null;
+        switch (allocationState) {
+            case ALLOCATION_FAILED:
+                allocationStateReport = reservationRequest.getAllocationStateReport();
+        }
+        child.put("allocationStateReport", allocationStateReport);
+
+        if (reservation != null) {
+            child.put("aliases", reservation.getExecutable().getState());
+        }
+
+        return child;
     }
 
     @RequestMapping(value = "/{reservationRequestId:.+}/acl", method = RequestMethod.GET)
@@ -225,4 +276,6 @@ public class ReservationRequestDetailController
         authorizationService.deleteAclRecord(securityToken, aclRecordId);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
+
+
 }

@@ -231,3 +231,23 @@ div.bordered table {
     padding: 5px;
 }
 
+/** Allocation states */
+.allocation-state .NOT_ALLOCATED {
+    color: #b8860b;
+}
+.allocation-state .ALLOCATED {
+    color: green;
+}
+.allocation-state .ALLOCATION_FAILED {
+    color: red;
+}
+.allocation-state .STARTED {
+    color: green;
+}
+.allocation-state .STARTING_FAILED {
+    color: red;
+}
+.allocation-state .FINISHED {
+    color: blue;
+}
+

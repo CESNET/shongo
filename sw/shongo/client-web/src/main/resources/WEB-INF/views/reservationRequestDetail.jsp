@@ -189,36 +189,46 @@
     <c:if test="${isActive}">
         <hr/>
         <c:choose>
+            <%-- Single reservation --%>
             <c:when test="${reservationRequest.periodicityType == 'NONE'}">
                 <h2><spring:message code="views.reservationRequestDetail.reservations"/></h2>
                 <table class="table table-striped table-hover">
                     <thead>
                     <tr>
-                        <th width="350px"><spring:message code="views.reservationRequest.slot"/></th>
+                        <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
                         <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                        <th width="100px"><spring:message code="views.list.action"/></th>
+                        <th><spring:message code="views.reservationRequestDetail.reservations.aliases"/></th>
+                        <th width="120px"><spring:message code="views.list.action"/></th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
                         <td>
-                            <joda:format value="${reservationRequest.start}" style="MS"/> -
-                            <joda:format value="${reservationRequest.end}" style="MS"/>
+                            <joda:format value="${childReservationRequest.slot.start}" style="MS"/> -
+                            <joda:format value="${childReservationRequest.slot.end}" style="MS"/>
+                        </td>
+                        <td class="allocation-state">
+                            <span id="reservationState" class="${childReservationRequest.allocationState}"><spring:message code="views.reservationRequest.allocationState.${childReservationRequest.allocationState}"/></span>
+                            <app:help label="reservationState">
+                                <span><spring:message code="views.help.reservationRequest.allocationState.${childReservationRequest.allocationState}"/></span>
+                                <c:if test="${childReservationRequest.allocationStateReport != null}">
+                                    <pre>${childReservationRequest.allocationStateReport}</pre>
+                                </c:if>
+                            </app:help>
                         </td>
                         <td>
-                            <div class="tooltip-container">
-                                <span tooltip="reservation-tooltip" class="tooltip-label">${reservationRequest.allocationState}</span>
-                                <div id="reservation-tooltip" class="tooltip-content">
-                                    <pre>${reservationRequest.allocationStateReport}</pre>
-                                </div>
-                            </div>
+                            <span id="reservationAliases">${childReservationRequest.aliases}</span>
+                            <c:if test="${childReservationRequest.aliasesDescription != null}">
+                                <app:help label="reservationAliases">${childReservationRequest.aliasesDescription}</app:help>
+                            </c:if>
                         </td>
-                        <td>TODO: action</td>
+                        <td><span><spring:message code="views.reservationRequestDetail.reservations.action.room"/></span></td>
                     </tr>
                     </tbody>
                 </table>
             </c:when>
 
+            <%-- Multiple reservations dynamically --%>
             <c:otherwise>
                 <div ng-controller="PaginationController"
                      ng-init="init('reservationRequestDetail.children', '${contextPath}/reservation-request/:id/children?start=:start&count=:count', {id: '${reservationRequest.id}'})">
@@ -230,23 +240,35 @@
                     <table class="table table-striped table-hover" ng-show="ready">
                         <thead>
                         <tr>
-                            <th width="350px"><spring:message code="views.reservationRequest.slot"/></th>
+                            <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
                             <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                            <th width="100px"><spring:message code="views.list.action"/></th>
+                            <th><spring:message code="views.reservationRequestDetail.reservations.aliases"/></th>
+                            <th width="120px"><spring:message code="views.list.action"/></th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr ng-repeat="childReservationRequest in items">
                             <td>{{childReservationRequest.slot}}</td>
+                            <td class="allocation-state">
+                                <span id="reservationState-{{$index}}" class="{{childReservationRequest.allocationState}}">{{childReservationRequest.allocationStateMessage}}</span>
+                                <app:help label="reservationState-{{$index}}" tooltipId="reservationState-tooltip-{{$index}}">
+                                    <span>{{childReservationRequest.allocationStateHelp}}</span>
+                                    <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
+                                        <div ng-switch-when="false">
+                                            <pre>{{childReservationRequest.allocationStateReport}}</pre>
+                                        </div>
+                                    </div>
+                                </app:help>
+                            </td>
                             <td>
-                                <div class="tooltip-container">
-                                    <span tooltip="reservation-{{$index}}" class="tooltip-label">{{childReservationRequest.allocationState}}</span>
-                                    <div id="reservation-{{$index}}" class="tooltip-content">
-                                        <pre>{{childReservationRequest.allocationStateReport}}</pre>
+                                <span id="reservationAliases-{{$index}}">{{childReservationRequest.aliases}}</span>
+                                <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
+                                    <div ng-switch-when="false">
+                                        <app:help label="reservationAliases-{{$index}}">{{childReservationRequest.aliasesDescription}}</app:help>
                                     </div>
                                 </div>
                             </td>
-                            <td>TODO: action</td>
+                            <td><span><spring:message code="views.reservationRequestDetail.reservations.action.room"/></span></td>
                         </tr>
                         </tbody>
                     </table>

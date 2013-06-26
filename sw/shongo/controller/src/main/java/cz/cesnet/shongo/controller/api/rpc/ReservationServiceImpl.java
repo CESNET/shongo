@@ -472,6 +472,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     + " request.description,"
                     + " request.slotStart,"
                     + " request.slotEnd,"
+                    + " request.allocationState,"
                     + " specification";
             String queryFrom = "AbstractReservationRequest request"
                     + " LEFT JOIN request.specification specification";
@@ -524,7 +525,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (reservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
                     // Prepare deleted reservation request summary
                     deletedReservationRequestSummary = new ReservationRequestSummary();
-                    deletedReservationRequestSummary.setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
+                    deletedReservationRequestSummary
+                            .setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
                     deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
                     deletedReservationRequestSummary.setDateTime((DateTime) result[5]);
                     deletedReservationRequestSummary.setUserId((String) result[6]);
@@ -560,13 +562,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 DateTime slotEnd = (DateTime) result[10];
                 if (slotStart != null && slotEnd != null) {
                     reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
+                    reservationRequestSummary.setAllocationState(
+                            cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
+                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[11]));
                 }
                 else {
                     reservationRequestSetIds.add(id);
                 }
 
                 // Prepare specification
-                Object specification = result[11];
+                Object specification = result[12];
                 if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
                     aliasReservationRequestIds.add(id);
                 }
@@ -603,7 +608,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (reservationRequestSetIds.size() > 0) {
                 // Get list of requested slots in future
                 List<Object[]> requestedSlots = entityManager.createQuery(""
-                        + "SELECT reservationRequestSet.id, reservationRequest.slotStart, reservationRequest.slotEnd"
+                        + "SELECT "
+                        + " reservationRequestSet.id,"
+                        + " reservationRequest.slotStart,"
+                        + " reservationRequest.slotEnd,"
+                        + " reservationRequest.allocationState"
                         + " FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.allocation.childReservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id IN(:reservationRequestIds)"
@@ -640,6 +649,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     DateTime slotEnd = (DateTime) requestedSlot[2];
                     ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
                     reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
+                    reservationRequestSummary.setAllocationState(
+                            cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
+                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) requestedSlot[3]));
                 }
             }
 
@@ -769,7 +781,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityIdentifier reservationRequestId =
                 EntityIdentifier.parse(request.getReservationRequestId(), EntityType.RESERVATION_REQUEST);
         if (!authorization.hasPermission(userId, reservationRequestId, Permission.READ)) {
-            ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", reservationRequestId);
+            ControllerReportSetHelper
+                    .throwSecurityNotAuthorizedFault("read reservation request %s", reservationRequestId);
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

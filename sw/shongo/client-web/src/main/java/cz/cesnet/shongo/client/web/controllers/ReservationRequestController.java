@@ -148,6 +148,12 @@ public class ReservationRequestController
             item.put("dateTime", dateFormatter.print(reservationRequest.getDateTime()));
             items.add(item);
 
+            AllocationState allocationState = reservationRequest.getAllocationState();
+            String allocationStateMessage = messageSource.getMessage(
+                    "views.reservationRequest.allocationState." + allocationState, null, locale);
+            item.put("allocationState", allocationState);
+            item.put("allocationStateMessage", allocationStateMessage);
+
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
             item.put("writable", permissions.contains(Permission.WRITE));
 

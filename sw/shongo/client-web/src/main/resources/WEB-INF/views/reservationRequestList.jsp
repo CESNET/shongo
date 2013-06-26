@@ -50,6 +50,7 @@
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.aliasRoomName"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
+                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
@@ -61,6 +62,11 @@
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
+                    <td class="allocation-state">
+                        <span class="{{reservationRequest.allocationState}}">
+                            {{reservationRequest.allocationStateMessage}}
+                        </span>
+                    </td>
                     <td>{{reservationRequest.description}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message
@@ -105,6 +111,7 @@
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
+                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
@@ -116,6 +123,11 @@
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
+                    <td class="allocation-state">
+                        <span class="{{reservationRequest.allocationState}}">
+                            {{reservationRequest.allocationStateMessage}}
+                        </span>
+                    </td>
                     <td>{{reservationRequest.description}}</td>
                     <td>
                         <a href="${contextPath}/reservation-request/detail/{{reservationRequest.id}}"><spring:message

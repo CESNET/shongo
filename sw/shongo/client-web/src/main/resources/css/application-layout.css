@@ -5,6 +5,9 @@ html, body, .container, .content {
 .container, .content {
     position: relative;
 }
+.container {
+    width: 1000px;
+}
 .proper-content {
     padding-top: 45px; /* >= navbar height */
     padding-bottom: 10px;

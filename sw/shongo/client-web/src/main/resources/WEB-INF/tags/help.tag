@@ -1,24 +1,39 @@
 <%@ tag trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%@attribute name="label" required="false"%>
+<%@attribute name="tooltipId" required="false"%>
+
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <c:set var="test" value="${pageContext}"/>
 
 <%
-    Integer tagHelpId = (Integer) request.getAttribute("SHONGO_APP_TAG_HELP_ID");
-    if (tagHelpId == null) {
-        tagHelpId = 0;
+    if (tooltipId == null) {
+        // Generate new tooltipId
+        Integer tagHelpId = (Integer) request.getAttribute("SHONGO_APP_TAG_HELP_ID");
+        if (tagHelpId == null) {
+            tagHelpId = 0;
+        }
+        tagHelpId += 1;
+        request.setAttribute("SHONGO_APP_TAG_HELP_ID", tagHelpId);
+        jspContext.setAttribute("tooltipId", "tooltip-" + tagHelpId);
     }
-    tagHelpId += 1;
-    request.setAttribute("SHONGO_APP_TAG_HELP_ID", tagHelpId);
-    jspContext.setAttribute("tooltipId", "tooltip-" + tagHelpId);
 %>
 
-
 <div class="tooltip-container">
-    <img tooltip="${tooltipId}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
-    <div id="${tooltipId}" class="tooltip-content">
-        <jsp:doBody/>
-    </div>
+    <c:choose>
+        <c:when test="${label != null}">
+            <img tooltip="${tooltipId}" label="${label}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
+        </c:when>
+        <c:otherwise>
+            <img tooltip="${tooltipId}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
+        </c:otherwise>
+    </c:choose>
+    <jsp:doBody var="body"/>
+    <c:if test="${body != null && body != ''}">
+        <div id="${tooltipId}" class="tooltip-content">
+            <span>${body}</span>
+        </div>
+    </c:if>
 </div>

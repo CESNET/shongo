@@ -142,6 +142,17 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * @return last {@link #reservationIds} or null
+     */
+    public String getLastReservationId()
+    {
+        if (reservationIds.size() == 0) {
+            return null;
+        }
+        return reservationIds.get(reservationIds.size() - 1);
+    }
+
+    /**
      * @param reservationIds sets the {@link #reservationIds}
      */
     public void setReservationIds(List<String> reservationIds)
