@@ -911,10 +911,31 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         request.getReservationRequestId()));
             }
 
+            // Sort query part
+            String queryOrderBy;
+            ReservationListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                switch (sort) {
+                    case SLOT:
+                        queryOrderBy = "reservation.slotStart";
+                        break;
+                    default:
+                        throw new TodoImplementException(sort.toString());
+                }
+            }
+            else {
+                queryOrderBy = "reservation.id";
+            }
+            Boolean sortDescending = request.getSortDescending();
+            sortDescending = (sortDescending != null ? sortDescending : false);
+            if (sortDescending) {
+                queryOrderBy = queryOrderBy + " DESC";
+            }
+
             ListResponse<Reservation> response = new ListResponse<Reservation>();
             List<cz.cesnet.shongo.controller.reservation.Reservation> reservations = performListRequest(
                     "reservation", "reservation", cz.cesnet.shongo.controller.reservation.Reservation.class,
-                    "Reservation reservation", null, filter, request, response, entityManager);
+                    "Reservation reservation", queryOrderBy, filter, request, response, entityManager);
 
             // Filter reservations by technologies
             Set<Technology> technologies = request.getTechnologies();

@@ -227,17 +227,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach items="${reservations}" var="reservation">
+                    <c:forEach items="${reservations}" var="reservation" varStatus="status">
                         <tr>
                             <td>
                                 <joda:format value="${reservation.slot.start}" style="MS"/> -
                                 <joda:format value="${reservation.slot.end}" style="MS"/>
                             </td>
                             <td class="allocation-state">
-                                <span id="reservationState" class="${reservation.allocationState}">
+                                <span id="reservationState-${status.index}" class="${reservation.allocationState}">
                                     <spring:message code="views.reservationRequest.allocationState.${reservation.allocationState}"/>
                                 </span>
-                                <app:help label="reservationState">
+                                <app:help label="reservationState-${status.index}">
                                     <span>
                                         <spring:message code="views.help.reservationRequest.allocationState.${reservation.allocationState}"/>
                                     </span>
@@ -248,10 +248,10 @@
                             </td>
                             <td class="executable-state">
                                 <c:if test="${reservation.roomState != null}">
-                                    <span id="executableState" class="${reservation.roomState}">
+                                    <span id="executableState-${status.index}" class="${reservation.roomState}">
                                         <spring:message code="views.reservationRequest.executableState.${reservation.roomState}"/>
                                     </span>
-                                    <app:help label="executableState">
+                                    <app:help label="executableState-${status.index}">
                                         <span>
                                             <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
                                         </span>
@@ -262,9 +262,9 @@
                                 </c:if>
                             </td>
                             <td>
-                                <span id="executableAliases">${reservation.roomAliases}</span>
+                                <span id="executableAliases-${status.index}">${reservation.roomAliases}</span>
                                 <c:if test="${reservation.roomAliasesDescription != null}">
-                                    <app:help label="executableAliases">${reservation.roomAliasesDescription}</app:help>
+                                    <app:help label="executableAliases-${status.index}">${reservation.roomAliasesDescription}</app:help>
                                 </c:if>
                             </td>
                             <td>
@@ -330,7 +330,9 @@
                                 <span id="executableAliases-{{$index}}">{{childReservationRequest.roomAliases}}</span>
                                 <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
                                     <div ng-switch-when="false">
-                                        <app:help label="executableAliases-{{$index}}">{{childReservationRequest.roomAliasesDescription}}</app:help>
+                                        <app:help label="executableAliases-{{$index}}" tooltipId="executableAliases-tooltip-{{$index}}">
+                                            {{childReservationRequest.roomAliasesDescription}}
+                                        </app:help>
                                     </div>
                                 </div>
                             </td>

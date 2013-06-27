@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
@@ -52,6 +52,7 @@ public class ReservationRequestDetailController
 
     @RequestMapping(value = "/detail/{id:.+}", method = RequestMethod.GET)
     public String getDetail(
+            Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "id") String id,
             Model model)
@@ -69,6 +70,7 @@ public class ReservationRequestDetailController
         }
 
         // Get history of reservation request if it has no parent reservation request
+        boolean isActive = false;
         if (parentReservationRequestId == null) {
             ReservationRequestListRequest request = new ReservationRequestListRequest();
             request.setSecurityToken(securityToken);
@@ -97,27 +99,47 @@ public class ReservationRequestDetailController
             currentHistoryItem.put("selected", true);
 
             model.addAttribute("history", historyItems);
-            model.addAttribute("isActive", currentHistoryItem == historyItems.get(0));
+            isActive = currentHistoryItem == historyItems.get(0);
         }
         else {
             // Reservation request with parent doesn't have history so they are automatically active
-            model.addAttribute("isActive", true);
+            isActive = true;
         }
 
         // Get reservations for single reservation request
-        if (reservationRequest != null) {
-            String reservationId = reservationRequest.getLastReservationId();
-            Reservation reservation = null;
-            if (reservationId != null) {
-                reservation = reservationService.getReservation(securityToken, reservationId);
-            }
+        if (reservationRequest != null && isActive) {
             List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
-            reservations.add(getChild(reservationRequest, reservation));
+
+            // Add fake not allocated reservation
+            AllocationState allocationState = reservationRequest.getAllocationState();
+            if (!allocationState.equals(AllocationState.ALLOCATED)) {
+                Map<String, Object> reservation = new HashMap<String, Object>();
+                reservation.put("slot", reservationRequest.getSlot());
+                reservation.put("allocationState", allocationState);
+                reservation.put("allocationStateReport", getAllocationStateReport(reservationRequest));
+                reservations.add(reservation);
+            }
+
+            // Add existing reservations
+            List<String> reservationIds = reservationRequest.getReservationIds();
+            if (reservationIds.size() > 0) {
+                ReservationListRequest reservationListRequest = new ReservationListRequest();
+                reservationListRequest.setSecurityToken(securityToken);
+                reservationListRequest.setReservationIds(reservationIds);
+                reservationListRequest.setSort(ReservationListRequest.Sort.SLOT);
+                reservationListRequest.setSortDescending(true);
+                ListResponse<Reservation> response = reservationService.listReservations(reservationListRequest);
+                for (Reservation reservation : response) {
+                    reservations.add(getReservation(reservation, locale));
+                }
+            }
+
             model.addAttribute("reservations", reservations);
         }
 
         model.addAttribute("parentReservationRequestId", parentReservationRequestId);
         model.addAttribute("reservationRequest", new ReservationRequestModel(abstractReservationRequest));
+        model.addAttribute("isActive", isActive);
         return "reservationRequestDetail";
     }
 
@@ -160,17 +182,22 @@ public class ReservationRequestDetailController
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequest reservationRequest : response.getItems()) {
             String reservationId = reservationRequest.getLastReservationId();
-            Map<String, Object> child = getChild(reservationRequest, reservationById.get(reservationId));
-            Interval slot = (Interval) child.get("slot");
-            child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " + dateTimeFormatter.print(slot.getEnd()));
+            Map<String, Object> child = getReservation(reservationById.get(reservationId), locale);
+            child.put("id", reservationRequest.getId());
 
-            AllocationState allocationState = (AllocationState) child.get("allocationState");
+            Interval slot = reservationRequest.getSlot();
+            child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
+                    dateTimeFormatter.print(slot.getEnd()));
+
+            AllocationState allocationState = reservationRequest.getAllocationState();
             String allocationStateMessage =  messageSource.getMessage(
                     "views.reservationRequest.allocationState." + allocationState, null, locale);
             String allocationStateHelp =  messageSource.getMessage(
                     "views.help.reservationRequest.allocationState." + allocationState, null, locale);
+            child.put("allocationState", allocationState);
             child.put("allocationStateMessage", allocationStateMessage);
             child.put("allocationStateHelp", allocationStateHelp);
+            child.put("allocationStateReport", getAllocationStateReport(reservationRequest));
 
             Executable.State roomState = (Executable.State) child.get("roomState");
             if (roomState != null) {
@@ -190,52 +217,180 @@ public class ReservationRequestDetailController
         return data;
     }
 
-    private Map<String, Object> getChild(ReservationRequest reservationRequest, Reservation reservation)
+    /**
+     * @param reservationRequest
+     * @return allocation state report for given {@code reservationRequest}
+     */
+    private Object getAllocationStateReport(ReservationRequest reservationRequest)
+    {
+        switch (reservationRequest.getAllocationState()) {
+            case ALLOCATION_FAILED:
+                return reservationRequest.getAllocationStateReport();
+        }
+        return null;
+    }
+
+    /**
+     * @param reservation
+     * @return reservation attributes
+     */
+    private Map<String, Object> getReservation(Reservation reservation, Locale locale)
     {
         Map<String, Object> child = new HashMap<String, Object>();
-        child.put("id", reservationRequest.getId());
-        child.put("slot", reservationRequest.getSlot());
-
-        AllocationState allocationState = reservationRequest.getAllocationState();
-        child.put("allocationState", allocationState);
-        switch (allocationState) {
-            case ALLOCATION_FAILED:
-                child.put("allocationStateReport", reservationRequest.getAllocationStateReport());
-                break;
-        }
 
         if (reservation != null) {
+            // If reservation is not null it means that the reservation is allocated
+            child.put("allocationState", AllocationState.ALLOCATED);
+
+            // Get reservation date/time slot
+            child.put("slot", reservation.getSlot());
+
+            // Reservation should contain allocated room
             Executable.ResourceRoom room = (Executable.ResourceRoom) reservation.getExecutable();
-            if (room == null) {
-                throw new UnsupportedApiException("Reservation should contain room.");
-            }
-            child.put("roomId", room.getId());
+            if (room != null) {
+                child.put("roomId", room.getId());
 
-            Executable.State roomState = room.getState();
-            child.put("roomState", roomState);
-            switch (roomState) {
-                case STARTING_FAILED:
-                case STOPPING_FAILED:
-                    child.put("roomStateReport", room.getStateReport());
-                    break;
-            }
+                // Set room state and report
+                Executable.State roomState = room.getState();
+                child.put("roomState", roomState);
+                switch (roomState) {
+                    case STARTING_FAILED:
+                    case STOPPING_FAILED:
+                        child.put("roomStateReport", room.getStateReport());
+                        break;
+                }
 
-            List<Alias> aliases = room.getAliases();
-            child.put("roomAliases", formatAliases(aliases));
-            child.put("roomAliasesDescription", formatAliasesDescription(aliases));
+                // Set room aliases
+                List<Alias> aliases = room.getAliases();
+                child.put("roomAliases", formatAliases(aliases, roomState));
+                child.put("roomAliasesDescription", formatAliasesDescription(aliases, roomState, locale));
+            }
         }
 
         return child;
     }
 
-    private String formatAliases(List<Alias> aliases)
+    /**
+     * @param text
+     * @return formatted given {@code text} to be better selectable by triple click
+     */
+    private String formatSelectable(String text)
     {
-        return "aliases label";
+        return "<span style=\"float:left\">" + text + "</span>";
     }
 
-    private String formatAliasesDescription(List<Alias> aliases)
+    /**
+     * @param aliases
+     * @param executableState
+     * @return formatted aliases
+     */
+    private String formatAliases(List<Alias> aliases, Executable.State executableState)
     {
-        return "aliases description";
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<span class=\"aliases");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        int index = 0;
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            String aliasValue = null;
+            switch (aliasType) {
+                case H323_E164:
+                    aliasValue = alias.getValue();
+                    break;
+                case ADOBE_CONNECT_URI:
+                    aliasValue = alias.getValue();
+                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
+                    if (executableState.isAvailable()) {
+                        StringBuilder aliasValueBuilder = new StringBuilder();
+                        aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
+                        aliasValueBuilder.append(aliasValue);
+                        aliasValueBuilder.append("\" target=\"_blank\">");
+                        aliasValueBuilder.append(alias.getValue());
+                        aliasValueBuilder.append("</a>");
+                        aliasValue = aliasValueBuilder.toString();
+                    }
+                    break;
+            }
+            if (aliasValue == null) {
+                continue;
+            }
+            if (index > 0) {
+                stringBuilder.append(",&nbsp;");
+            }
+            stringBuilder.append(aliasValue);
+            index++;
+        }
+        stringBuilder.append("</span>");
+        return stringBuilder.toString();
+    }
+
+    /**
+     * @param aliases
+     * @param executableState
+     * @param locale
+     * @return formatted description of aliases
+     */
+    private String formatAliasesDescription(List<Alias> aliases, Executable.State executableState, Locale locale)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<table class=\"aliases");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            switch (aliasType) {
+                case H323_E164:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164", null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164_GDS", null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case H323_URI:
+                case H323_IP:
+                case SIP_URI:
+                case SIP_IP:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case ADOBE_CONNECT_URI:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(":</td><td>");
+                    if (executableState.isAvailable()) {
+                        stringBuilder.append("<a class=\"nowrap\" href=\"");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("\" target=\"_blank\">");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("</a>");
+                    }
+                    else {
+                        stringBuilder.append(alias.getValue());
+                    }
+                    stringBuilder.append("</td></tr>");
+                    break;
+            }
+        }
+        stringBuilder.append("</table>");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append("<span class=\"aliases not-available\">");
+            stringBuilder.append(messageSource.getMessage("views.room.notAvailable", null, locale));
+            stringBuilder.append("</span>");
+        }
+        return stringBuilder.toString();
     }
 
     @RequestMapping(value = "/{reservationRequestId:.+}/acl", method = RequestMethod.GET)
@@ -332,6 +487,4 @@ public class ReservationRequestDetailController
         authorizationService.deleteAclRecord(securityToken, aclRecordId);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
-
-
 }

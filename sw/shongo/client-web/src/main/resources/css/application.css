@@ -239,6 +239,36 @@ div.bordered table {
     font-size: 13px;
 }
 
+/** Aliases table */
+span.aliases.not-available {
+    color: #808080;
+}
+.tooltip-content span.aliases.not-available {
+    color: red;
+    font-weight: bold;
+    text-align: center;
+    display: block;
+}
+table.aliases * {
+    background: none;
+    background-color: transparent !important;
+    border: none;
+    border-top: none;
+    word-break: keep-all;
+}
+table.aliases td {
+    display: inline-block;
+    white-space:nowrap;
+    padding: 3px 5px;
+}
+table.aliases td.label {
+    display: table-cell;
+    font-weight: bold;
+    color: black;
+    text-shadow: none;
+    text-align: right;
+}
+
 /** Allocation states */
 .allocation-state .NOT_ALLOCATED {
     color: #b8860b;

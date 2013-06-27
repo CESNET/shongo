@@ -161,27 +161,50 @@ public class Executable extends IdentifiedComplexType
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} has not been started yet.
          */
-        NOT_STARTED,
+        NOT_STARTED(false),
 
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} is already started.
          */
-        STARTED,
+        STARTED(true),
 
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} failed to start.
          */
-        STARTING_FAILED,
+        STARTING_FAILED(false),
 
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} has been already stopped.
          */
-        STOPPED,
+        STOPPED(false),
 
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} failed to stop.
          */
-        STOPPING_FAILED
+        STOPPING_FAILED(true);
+
+        /**
+         * Specifies whether the executable is available (e.g., it is started).
+         */
+        private final boolean available;
+
+        /**
+         * Constructor.
+         *
+         * @param available sets the {@link #available}
+         */
+        private State(boolean available)
+        {
+            this.available = available;
+        }
+
+        /**
+         * @return {@link #available}
+         */
+        public boolean isAvailable()
+        {
+            return available;
+        }
     }
 
     /**
