@@ -368,19 +368,60 @@ public class ReservationRequestModel implements Validator
     }
 
     /**
-     * Store all attributes to {@link AbstractReservationRequest}.
+     * Store attributes to {@link Specification}.
      *
-     * @return {@link AbstractReservationRequest} with stored attributes
+     * @return {@link Specification} with stored attributes
      */
-    public AbstractReservationRequest toApi()
+    public Specification toSpecificationApi()
     {
-        // Determine duration (and end)
-        Period duration = null;
+        switch (specificationType) {
+            case PERMANENT_ROOM:
+                AliasSpecification roomNameSpecification = new AliasSpecification();
+                roomNameSpecification.addTechnologies(technology.getTechnologies());
+                roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
+                roomNameSpecification.setValue(permanentRoomName);
+                switch (technology) {
+                    case H323_SIP:
+                        AliasSpecification numberSpecification = new AliasSpecification();
+                        numberSpecification.addAliasType(AliasType.H323_E164);
+                        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+                        aliasSetSpecification.setSharedExecutable(true);
+                        aliasSetSpecification.addAlias(roomNameSpecification);
+                        aliasSetSpecification.addAlias(numberSpecification);
+                        return aliasSetSpecification;
+                    case ADOBE_CONNECT:
+                        return roomNameSpecification;
+                    default:
+                        throw new TodoImplementException(technology.toString());
+                }
+            case ADHOC_ROOM:
+                RoomSpecification roomSpecification = new RoomSpecification();
+                roomSpecification.setTechnologies(technology.getTechnologies());
+                roomSpecification.setParticipantCount(roomParticipantCount);
+                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
+                    H323RoomSetting h323RoomSetting = new H323RoomSetting();
+                    h323RoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(h323RoomSetting);
+                }
+                if (!Strings.isNullOrEmpty(permanentRoomCapacityReservationId)) {
+                    throw new TodoImplementException("Provide alias reservation");
+                }
+                return roomSpecification;
+            default:
+                throw new TodoImplementException(specificationType.toString());
+        }
+    }
+
+    /**
+     * @return requested reservation duration as {@link Period}
+     */
+    public Period getDuration()
+    {
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             if (end == null) {
                 throw new IllegalStateException("Slot end must be not empty for alias.");
             }
-            duration = new Period(start, end);
+            return new Period(start, end);
         }
         if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
             if (durationCount == null || durationType == null) {
@@ -388,19 +429,36 @@ public class ReservationRequestModel implements Validator
             }
             switch (durationType) {
                 case MINUTE:
-                    duration = Period.minutes(durationCount);
-                    break;
+                    return Period.minutes(durationCount);
                 case HOUR:
-                    duration = Period.hours(durationCount);
-                    break;
+                    return Period.hours(durationCount);
                 case DAY:
-                    duration = Period.days(durationCount);
-                    break;
+                    return Period.days(durationCount);
                 default:
                     throw new TodoImplementException(durationType.toString());
             }
-            end = start.plus(duration);
         }
+        throw new TodoImplementException("Reservation request duration.");
+    }
+
+    /**
+     * @return requested reservation date/time slot as {@link Interval}
+     */
+    public Interval getSlot()
+    {
+        return new Interval(start, getDuration());
+    }
+
+    /**
+     * Store all attributes to {@link AbstractReservationRequest}.
+     *
+     * @return {@link AbstractReservationRequest} with stored attributes
+     */
+    public AbstractReservationRequest toApi()
+    {
+        // Determine duration (and end)
+        Period duration = getDuration();
+        end = start.plus(duration);
 
         // Create reservation request
         AbstractReservationRequest abstractReservationRequest;
@@ -441,48 +499,7 @@ public class ReservationRequestModel implements Validator
         abstractReservationRequest.setDescription(description);
 
         // Create specification
-        Specification specification;
-        switch (specificationType) {
-            case PERMANENT_ROOM:
-                AliasSpecification roomNameSpecification = new AliasSpecification();
-                roomNameSpecification.addTechnologies(technology.getTechnologies());
-                roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
-                roomNameSpecification.setValue(permanentRoomName);
-                switch (technology) {
-                    case H323_SIP:
-                        AliasSpecification numberSpecification = new AliasSpecification();
-                        numberSpecification.addAliasType(AliasType.H323_E164);
-                        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
-                        aliasSetSpecification.setSharedExecutable(true);
-                        aliasSetSpecification.addAlias(roomNameSpecification);
-                        aliasSetSpecification.addAlias(numberSpecification);
-                        specification = aliasSetSpecification;
-                        break;
-                    case ADOBE_CONNECT:
-                        specification = roomNameSpecification;
-                        break;
-                    default:
-                        throw new TodoImplementException(technology.toString());
-                }
-                break;
-            case ADHOC_ROOM:
-                RoomSpecification roomSpecification = new RoomSpecification();
-                roomSpecification.setTechnologies(technology.getTechnologies());
-                roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
-                    H323RoomSetting h323RoomSetting = new H323RoomSetting();
-                    h323RoomSetting.setPin(roomPin);
-                    roomSpecification.addRoomSetting(h323RoomSetting);
-                }
-                if (!Strings.isNullOrEmpty(permanentRoomCapacityReservationId)) {
-                    throw new TodoImplementException("Provide alias reservation");
-                }
-                specification = roomSpecification;
-                break;
-            default:
-                throw new TodoImplementException(specificationType.toString());
-        }
-        abstractReservationRequest.setSpecification(specification);
+        abstractReservationRequest.setSpecification(toSpecificationApi());
 
         return abstractReservationRequest;
     }

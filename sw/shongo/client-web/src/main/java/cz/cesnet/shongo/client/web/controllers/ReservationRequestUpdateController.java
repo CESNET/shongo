@@ -63,6 +63,15 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestCreate";
         }
+        ReservationRequestModel.SpecificationType specificationType = reservationRequestModel.getSpecificationType();
+        if (specificationType.equals(ReservationRequestModel.SpecificationType.PERMANENT_ROOM)) {
+            Object isSpecificationAvailable = reservationService.checkSpecificationAvailability(securityToken,
+                    reservationRequestModel.toSpecificationApi(), reservationRequestModel.getSlot());
+            if (!isSpecificationAvailable.equals(Boolean.TRUE)) {
+                result.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
+                return "reservationRequestCreate";
+            }
+        }
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
         String reservationRequestId = reservationService.createReservationRequest(securityToken, reservationRequest);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
