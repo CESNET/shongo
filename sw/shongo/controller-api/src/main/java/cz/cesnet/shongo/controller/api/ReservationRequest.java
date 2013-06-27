@@ -17,6 +17,11 @@ import java.util.List;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
+     * Shongo-id of reservation request for which is this reservation request created.
+     */
+    private String parentReservationRequestId;
+
+    /**
      * Date/time slot for which the reservation is requested.
      */
     private Interval slot;
@@ -41,6 +46,22 @@ public class ReservationRequest extends AbstractReservationRequest
      */
     public ReservationRequest()
     {
+    }
+
+    /**
+     * @return {@link #parentReservationRequestId}
+     */
+    public String getParentReservationRequestId()
+    {
+        return parentReservationRequestId;
+    }
+
+    /**
+     * @param parentReservationRequestId sets the {@link #parentReservationRequestId}
+     */
+    public void setParentReservationRequestId(String parentReservationRequestId)
+    {
+        this.parentReservationRequestId = parentReservationRequestId;
     }
 
     /**
@@ -168,6 +189,7 @@ public class ReservationRequest extends AbstractReservationRequest
         this.reservationIds.add(reservationId);
     }
 
+    public static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     public static final String SLOT = "slot";
     public static final String ALLOCATION_STATE = "allocationState";
     public static final String ALLOCATION_STATE_REPORT = "allocationStateReport";
@@ -177,6 +199,7 @@ public class ReservationRequest extends AbstractReservationRequest
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
+        dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(SLOT, slot);
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(ALLOCATION_STATE_REPORT, allocationStateReport);
@@ -188,6 +211,7 @@ public class ReservationRequest extends AbstractReservationRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
+        parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         slot = dataMap.getIntervalRequired(SLOT);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         allocationStateReport = dataMap.getString(ALLOCATION_STATE_REPORT);

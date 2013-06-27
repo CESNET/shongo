@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -101,12 +102,15 @@ public class AliasSetSpecification extends Specification
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
-        AliasSetSpecification roomSpecification = (AliasSetSpecification) specification;
+        AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectHelper.isSame(isSharedExecutable(), aliasSetSpecification.isSharedExecutable());
 
-        if (!aliasSpecifications.equals(roomSpecification.getAliasSpecifications())) {
-            setAliasSpecifications(roomSpecification.getAliasSpecifications());
+        setSharedExecutable(aliasSetSpecification.isSharedExecutable());
+
+        if (!aliasSpecifications.equals(aliasSetSpecification.getAliasSpecifications())) {
+            setAliasSpecifications(aliasSetSpecification.getAliasSpecifications());
             modified = true;
         }
 

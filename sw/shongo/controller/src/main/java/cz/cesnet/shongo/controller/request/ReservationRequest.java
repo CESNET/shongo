@@ -356,6 +356,10 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
+        if (parentAllocation != null) {
+            reservationRequestApi.setParentReservationRequestId(
+                    EntityIdentifier.formatId(parentAllocation.getReservationRequest()));
+        }
         reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setAllocationState(AllocationState.getApi(allocationState));
         reservationRequestApi.setAllocationStateReport(getReportText(messageType));

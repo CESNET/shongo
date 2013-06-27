@@ -75,7 +75,7 @@ public class ErrorController
         return "errorLogin";
     }
 
-    @RequestMapping(value = "/controller-not-available", method = RequestMethod.GET)
+    @RequestMapping(value = "/controller-not-available")
     public String getControllerNotAvailable()
     {
         return "controllerNotAvailable";

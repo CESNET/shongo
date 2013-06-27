@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.UserCache;
 import cz.cesnet.shongo.client.web.models.AclRecordValidator;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
@@ -57,47 +60,64 @@ public class ReservationRequestDetailController
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, id);
 
-        // Get history of reservation request
-        ReservationRequestListRequest request = new ReservationRequestListRequest();
-        request.setSecurityToken(securityToken);
-        request.setReservationRequestId(id);
-        request.setSort(ReservationRequestListRequest.Sort.DATETIME);
-        request.setSortDescending(true);
-        String reservationRequestId = abstractReservationRequest.getId();
-        Map<String, Object> currentHistoryItem = null;
-        List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
-        for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
-            Map<String, Object> item = new HashMap<String, Object>();
-            String historyItemId = historyItem.getId();
-            item.put("id", historyItemId);
-            item.put("dateTime", historyItem.getDateTime());
-            UserInformation user = userCache.getUserInformation(securityToken, historyItem.getUserId());
-            item.put("user", user.getFullName());
-            item.put("type", historyItem.getType());
-            if ( historyItemId.equals(reservationRequestId)) {
-                currentHistoryItem = item;
-            }
-            historyItems.add(item);
-        }
-        if (currentHistoryItem == null) {
-            throw new RuntimeException("Reservation request " + reservationRequestId + "should exist in it's history.");
-        }
-        currentHistoryItem.put("selected", true);
-
-        // Get reservation request as child
+        // Get single reservation request
+        ReservationRequest reservationRequest = null;
+        String parentReservationRequestId = null;
         if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            reservationRequest = (ReservationRequest) abstractReservationRequest;
+            parentReservationRequestId = reservationRequest.getParentReservationRequestId();
+        }
+
+        // Get history of reservation request if it has no parent reservation request
+        if (parentReservationRequestId == null) {
+            ReservationRequestListRequest request = new ReservationRequestListRequest();
+            request.setSecurityToken(securityToken);
+            request.setReservationRequestId(id);
+            request.setSort(ReservationRequestListRequest.Sort.DATETIME);
+            request.setSortDescending(true);
+            String reservationRequestId = abstractReservationRequest.getId();
+            Map<String, Object> currentHistoryItem = null;
+            List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
+            for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
+                Map<String, Object> item = new HashMap<String, Object>();
+                String historyItemId = historyItem.getId();
+                item.put("id", historyItemId);
+                item.put("dateTime", historyItem.getDateTime());
+                UserInformation user = userCache.getUserInformation(securityToken, historyItem.getUserId());
+                item.put("user", user.getFullName());
+                item.put("type", historyItem.getType());
+                if ( historyItemId.equals(reservationRequestId)) {
+                    currentHistoryItem = item;
+                }
+                historyItems.add(item);
+            }
+            if (currentHistoryItem == null) {
+                throw new RuntimeException("Reservation request " + reservationRequestId + " should exist in it's history.");
+            }
+            currentHistoryItem.put("selected", true);
+
+            model.addAttribute("history", historyItems);
+            model.addAttribute("isActive", currentHistoryItem == historyItems.get(0));
+        }
+        else {
+            // Reservation request with parent doesn't have history so they are automatically active
+            model.addAttribute("isActive", true);
+        }
+
+        // Get reservations for single reservation request
+        if (reservationRequest != null) {
             String reservationId = reservationRequest.getLastReservationId();
             Reservation reservation = null;
             if (reservationId != null) {
                 reservation = reservationService.getReservation(securityToken, reservationId);
             }
-            model.addAttribute("childReservationRequest", getChild(reservationRequest, reservation));
+            List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
+            reservations.add(getChild(reservationRequest, reservation));
+            model.addAttribute("reservations", reservations);
         }
 
+        model.addAttribute("parentReservationRequestId", parentReservationRequestId);
         model.addAttribute("reservationRequest", new ReservationRequestModel(abstractReservationRequest));
-        model.addAttribute("history", historyItems);
-        model.addAttribute("isActive", currentHistoryItem == historyItems.get(0));
         return "reservationRequestDetail";
     }
 
@@ -143,6 +163,7 @@ public class ReservationRequestDetailController
             Map<String, Object> child = getChild(reservationRequest, reservationById.get(reservationId));
             Interval slot = (Interval) child.get("slot");
             child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " + dateTimeFormatter.print(slot.getEnd()));
+
             AllocationState allocationState = (AllocationState) child.get("allocationState");
             String allocationStateMessage =  messageSource.getMessage(
                     "views.reservationRequest.allocationState." + allocationState, null, locale);
@@ -150,6 +171,16 @@ public class ReservationRequestDetailController
                     "views.help.reservationRequest.allocationState." + allocationState, null, locale);
             child.put("allocationStateMessage", allocationStateMessage);
             child.put("allocationStateHelp", allocationStateHelp);
+
+            Executable.State roomState = (Executable.State) child.get("roomState");
+            if (roomState != null) {
+                String roomStateMessage =  messageSource.getMessage(
+                        "views.reservationRequest.executableState." + roomState, null, locale);
+                String roomStateHelp =  messageSource.getMessage(
+                        "views.help.reservationRequest.executableState." + roomState, null, locale);
+                child.put("roomStateMessage", roomStateMessage);
+                child.put("roomStateHelp", roomStateHelp);
+            }
             children.add(child);
         }
         Map<String, Object> data = new HashMap<String, Object>();
@@ -167,19 +198,44 @@ public class ReservationRequestDetailController
 
         AllocationState allocationState = reservationRequest.getAllocationState();
         child.put("allocationState", allocationState);
-
-        String allocationStateReport = null;
         switch (allocationState) {
             case ALLOCATION_FAILED:
-                allocationStateReport = reservationRequest.getAllocationStateReport();
+                child.put("allocationStateReport", reservationRequest.getAllocationStateReport());
+                break;
         }
-        child.put("allocationStateReport", allocationStateReport);
 
         if (reservation != null) {
-            child.put("aliases", reservation.getExecutable().getState());
+            Executable.ResourceRoom room = (Executable.ResourceRoom) reservation.getExecutable();
+            if (room == null) {
+                throw new UnsupportedApiException("Reservation should contain room.");
+            }
+            child.put("roomId", room.getId());
+
+            Executable.State roomState = room.getState();
+            child.put("roomState", roomState);
+            switch (roomState) {
+                case STARTING_FAILED:
+                case STOPPING_FAILED:
+                    child.put("roomStateReport", room.getStateReport());
+                    break;
+            }
+
+            List<Alias> aliases = room.getAliases();
+            child.put("roomAliases", formatAliases(aliases));
+            child.put("roomAliasesDescription", formatAliasesDescription(aliases));
         }
 
         return child;
+    }
+
+    private String formatAliases(List<Alias> aliases)
+    {
+        return "aliases label";
+    }
+
+    private String formatAliasesDescription(List<Alias> aliases)
+    {
+        return "aliases description";
     }
 
     @RequestMapping(value = "/{reservationRequestId:.+}/acl", method = RequestMethod.GET)

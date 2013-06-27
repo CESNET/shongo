@@ -181,8 +181,8 @@ div.bordered table {
 
 /** Help icon */
 .help-icon {
-    margin-left: 3px;
-    margin-bottom: 3px;
+    padding-left: 3px;
+    padding-bottom: 3px;
 }
 /** Tooltips */
 .tooltip-container {
@@ -249,13 +249,20 @@ div.bordered table {
 .allocation-state .ALLOCATION_FAILED {
     color: red;
 }
-.allocation-state .STARTED {
+/** Executable states */
+.executable-state .NOT_STARTED {
+    color: #b8860b;
+}
+.executable-state .STARTED {
     color: green;
 }
-.allocation-state .STARTING_FAILED {
+.executable-state .STARTING_FAILED {
     color: red;
 }
-.allocation-state .FINISHED {
+.executable-state .STOPPED {
     color: blue;
+}
+.executable-state .STOPPING_FAILED {
+    color: red;
 }
 
