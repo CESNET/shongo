@@ -2,21 +2,16 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -114,7 +109,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        if (!deleteAllocation(reservationRequest.getAllocation(), authorizationManager)) {
+        String userId = reservationRequest.getUpdatedBy();
+        if (!deleteAllocation(reservationRequest.getAllocation(), userId, authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
@@ -134,7 +130,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        if (!deleteAllocation(reservationRequest.getAllocation(), authorizationManager)) {
+        String userId = reservationRequest.getUpdatedBy();
+        if (!deleteAllocation(reservationRequest.getAllocation(), userId, authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
@@ -149,9 +146,10 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param allocation           for which the {@link Allocation#reservations} should be deleted
+     * @param userId               who deleted the allocation
      * @param authorizationManager to be used for deleting ACL records
      */
-    private boolean deleteAllocation(Allocation allocation, AuthorizationManager authorizationManager)
+    private boolean deleteAllocation(Allocation allocation, String userId, AuthorizationManager authorizationManager)
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
@@ -161,6 +159,7 @@ public class ReservationRequestManager extends AbstractManager
             if (reservationManager.isProvided(reservation)) {
                 return false;
             }
+            reservation.setUserId(userId);
             reservation.setAllocation(null);
             reservationManager.update(reservation);
         }

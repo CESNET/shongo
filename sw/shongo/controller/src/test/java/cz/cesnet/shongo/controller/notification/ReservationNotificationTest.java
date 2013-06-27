@@ -68,7 +68,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         runScheduler();
 
         Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted

@@ -114,6 +114,7 @@ public class Preprocessor extends Component implements Component.AuthorizationAw
             // Delete all reservations which are allocated in allocation
             // (it can happen when ReservationRequest was modified to ReservationRequestSet)
             for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
+                reservation.setUserId(reservationRequestSet.getUpdatedBy());
                 reservation.setAllocation(null);
                 reservationManager.update(reservation);
             }

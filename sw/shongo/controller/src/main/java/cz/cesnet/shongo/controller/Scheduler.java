@@ -79,7 +79,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      * Allocate reservation requests which intersects given {@code interval}. Reservations are allocated in given
      * {@code interval} or more in future (and thus not before given {@code interval}).
      *
-     * @param interval only reservation requests which intersects this interval should be allocated
+     * @param interval      only reservation requests which intersects this interval should be allocated
      * @param entityManager to be used
      */
     public void run(Interval interval, EntityManager entityManager)
@@ -272,24 +272,20 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
         // Allocate reservation
         Reservation allocatedReservation = reservationTask.perform();
-        if (!allocatedReservation.isPersisted()) {
+        allocatedReservation.setUserId(reservationRequest.getUpdatedBy());
+
+        // Create allocated reservation
+        boolean isNew = !allocatedReservation.isPersisted();
+        if (isNew) {
             // Persist reservation
             reservationManager.create(allocatedReservation);
 
             // Create ACL records for new reservation
             authorizationManager.createAclRecordsForChildEntity(reservationRequest, allocatedReservation);
-
-            // Create notification
-            notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.NEW, allocatedReservation, authorizationManager));
         }
         else {
             // Update ACL records for modified reservation
             authorizationManager.updateAclRecordsForChildEntities(allocatedReservation);
-
-            // Create notification
-            notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.MODIFIED, allocatedReservation, authorizationManager));
         }
 
         // Get set of all new reservations
@@ -336,6 +332,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Delete the old reservation
             reservationManager.delete(oldReservation, authorizationManager);
         }
+
         // Add new allocated reservation
         allocation.addReservation(allocatedReservation);
 
@@ -343,6 +340,11 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         if (precedingReservation != null && precedingReservation.getClass().equals(allocatedReservation.getClass())) {
             reservationTask.migrateReservation(precedingReservation, allocatedReservation);
         }
+
+        // Create notification
+        notifications.add(new ReservationNotification(
+                (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
+                allocatedReservation, authorizationManager));
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);

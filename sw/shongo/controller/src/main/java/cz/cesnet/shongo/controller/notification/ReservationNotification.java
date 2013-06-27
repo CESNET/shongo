@@ -29,7 +29,7 @@ public class ReservationNotification extends Notification
     /**
      * Parameters.
      */
-    List<String> ownerUserIds = new LinkedList<String>();
+    String userId = null;
     cz.cesnet.shongo.controller.api.Reservation reservation = null;
     cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
     List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
@@ -44,11 +44,11 @@ public class ReservationNotification extends Notification
     public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager)
     {
         this.type = type;
+        this.userId = reservation.getUserId();
 
         // Add recipients
         for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
             addUserRecipient(userId);
-            ownerUserIds.add(userId);
         }
         addRecipientByReservation(reservation);
 
@@ -120,7 +120,7 @@ public class ReservationNotification extends Notification
     {
         Map<String, Object> parameters = new HashMap<String, Object>();
         parameters.put("type", type);
-        parameters.put("owners", ownerUserIds);
+        parameters.put("userId", userId);
         parameters.put("reservation", reservation);
         parameters.put("reservationRequest", reservationRequest);
         parameters.put("aliasReservations", aliasReservations);
