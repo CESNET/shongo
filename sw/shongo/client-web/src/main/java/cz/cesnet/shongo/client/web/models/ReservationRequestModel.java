@@ -59,7 +59,7 @@ public class ReservationRequestModel implements Validator
 
     private String permanentRoomName;
 
-    private String permanentRoomCapacityReservationId;
+    private String permanentRoomCapacityReservationRequestId;
 
     private Integer roomParticipantCount;
 
@@ -200,14 +200,14 @@ public class ReservationRequestModel implements Validator
         this.permanentRoomName = permanentRoomName;
     }
 
-    public String getPermanentRoomCapacityReservationId()
+    public String getPermanentRoomCapacityReservationRequestId()
     {
-        return permanentRoomCapacityReservationId;
+        return permanentRoomCapacityReservationRequestId;
     }
 
-    public void setPermanentRoomCapacityReservationId(String permanentRoomCapacityReservationId)
+    public void setPermanentRoomCapacityReservationRequestId(String permanentRoomCapacityReservationRequestId)
     {
-        this.permanentRoomCapacityReservationId = permanentRoomCapacityReservationId;
+        this.permanentRoomCapacityReservationRequestId = permanentRoomCapacityReservationRequestId;
     }
 
     public Integer getRoomParticipantCount()
@@ -231,20 +231,13 @@ public class ReservationRequestModel implements Validator
     }
 
     /**
-     * Load attributes from given {@code abstractReservationRequest}.
+     * Load attributes from given {@code specification}.
      *
-     * @param abstractReservationRequest from which the attributes should be loaded
+     * @param specification
+     * @param providedReservationRequestId
      */
-    public void fromApi(AbstractReservationRequest abstractReservationRequest)
+    public void fromSpecificationApi(Specification specification, String providedReservationRequestId)
     {
-        id = abstractReservationRequest.getId();
-        type = abstractReservationRequest.getType();
-        dateTime = abstractReservationRequest.getDateTime();
-        description = abstractReservationRequest.getDescription();
-        purpose = abstractReservationRequest.getPurpose();
-
-        // Specification
-        Specification specification = abstractReservationRequest.getSpecification();
         if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
             specificationType = SpecificationType.PERMANENT_ROOM;
@@ -274,7 +267,13 @@ public class ReservationRequestModel implements Validator
         }
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
-            specificationType = SpecificationType.ADHOC_ROOM;
+            if (providedReservationRequestId != null) {
+                permanentRoomCapacityReservationRequestId = providedReservationRequestId;
+                specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
+            }
+            else {
+                specificationType = SpecificationType.ADHOC_ROOM;
+            }
             technology = Technology.find(roomSpecification.getTechnologies());
             roomParticipantCount = roomSpecification.getParticipantCount();
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
@@ -287,6 +286,24 @@ public class ReservationRequestModel implements Validator
         else {
             throw new UnsupportedApiException(specification);
         }
+    }
+
+    /**
+     * Load attributes from given {@code abstractReservationRequest}.
+     *
+     * @param abstractReservationRequest from which the attributes should be loaded
+     */
+    public void fromApi(AbstractReservationRequest abstractReservationRequest)
+    {
+        id = abstractReservationRequest.getId();
+        type = abstractReservationRequest.getType();
+        dateTime = abstractReservationRequest.getDateTime();
+        description = abstractReservationRequest.getDescription();
+        purpose = abstractReservationRequest.getPurpose();
+
+        // Specification
+        Specification specification = abstractReservationRequest.getSpecification();
+        fromSpecificationApi(specification, abstractReservationRequest.getProvidedReservationRequestId());
 
         // Date/time slot and periodicity
         Period duration;
@@ -334,9 +351,9 @@ public class ReservationRequestModel implements Validator
                 Partial partial = (Partial) slotEnd;
                 DateTimeField[] partialFields = partial.getFields();
                 if (!(partialFields.length == 3
-                        && partial.isSupported(DateTimeFieldType.year())
-                        && partial.isSupported(DateTimeFieldType.monthOfYear())
-                        && partial.isSupported(DateTimeFieldType.dayOfMonth()))) {
+                              && partial.isSupported(DateTimeFieldType.year())
+                              && partial.isSupported(DateTimeFieldType.monthOfYear())
+                              && partial.isSupported(DateTimeFieldType.dayOfMonth()))) {
                     throw new UnsupportedApiException("Slot end %s.", slotEnd);
                 }
                 periodicityEnd = new LocalDate(partial.getValue(0), partial.getValue(1), partial.getValue(2));
@@ -375,7 +392,18 @@ public class ReservationRequestModel implements Validator
     public Specification toSpecificationApi()
     {
         switch (specificationType) {
-            case PERMANENT_ROOM:
+            case ADHOC_ROOM: {
+                RoomSpecification roomSpecification = new RoomSpecification();
+                roomSpecification.setTechnologies(technology.getTechnologies());
+                roomSpecification.setParticipantCount(roomParticipantCount);
+                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
+                    H323RoomSetting h323RoomSetting = new H323RoomSetting();
+                    h323RoomSetting.setPin(roomPin);
+                    roomSpecification.addRoomSetting(h323RoomSetting);
+                }
+                return roomSpecification;
+            }
+            case PERMANENT_ROOM: {
                 AliasSpecification roomNameSpecification = new AliasSpecification();
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
@@ -394,7 +422,8 @@ public class ReservationRequestModel implements Validator
                     default:
                         throw new TodoImplementException(technology.toString());
                 }
-            case ADHOC_ROOM:
+            }
+            case PERMANENT_ROOM_CAPACITY: {
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
@@ -403,10 +432,8 @@ public class ReservationRequestModel implements Validator
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
                 }
-                if (!Strings.isNullOrEmpty(permanentRoomCapacityReservationId)) {
-                    throw new TodoImplementException("Provide alias reservation");
-                }
                 return roomSpecification;
+            }
             default:
                 throw new TodoImplementException(specificationType.toString());
         }
@@ -417,28 +444,30 @@ public class ReservationRequestModel implements Validator
      */
     public Period getDuration()
     {
-        if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
-            if (end == null) {
-                throw new IllegalStateException("Slot end must be not empty for alias.");
-            }
-            return new Period(start, end);
+        switch (specificationType) {
+            case PERMANENT_ROOM:
+                if (end == null) {
+                    throw new IllegalStateException("Slot end must be not empty for alias.");
+                }
+                return new Period(start, end);
+            case ADHOC_ROOM:
+            case PERMANENT_ROOM_CAPACITY:
+                if (durationCount == null || durationType == null) {
+                    throw new IllegalStateException("Slot duration should be not empty.");
+                }
+                switch (durationType) {
+                    case MINUTE:
+                        return Period.minutes(durationCount);
+                    case HOUR:
+                        return Period.hours(durationCount);
+                    case DAY:
+                        return Period.days(durationCount);
+                    default:
+                        throw new TodoImplementException(durationType.toString());
+                }
+            default:
+                throw new TodoImplementException("Reservation request duration.");
         }
-        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
-            if (durationCount == null || durationType == null) {
-                throw new IllegalStateException("Slot duration should be not empty.");
-            }
-            switch (durationType) {
-                case MINUTE:
-                    return Period.minutes(durationCount);
-                case HOUR:
-                    return Period.hours(durationCount);
-                case DAY:
-                    return Period.days(durationCount);
-                default:
-                    throw new TodoImplementException(durationType.toString());
-            }
-        }
-        throw new TodoImplementException("Reservation request duration.");
     }
 
     /**
@@ -497,6 +526,9 @@ public class ReservationRequestModel implements Validator
         }
         abstractReservationRequest.setPurpose(purpose);
         abstractReservationRequest.setDescription(description);
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            abstractReservationRequest.setProvidedReservationRequestId(permanentRoomCapacityReservationRequestId);
+        }
 
         // Create specification
         abstractReservationRequest.setSpecification(toSpecificationApi());
@@ -518,6 +550,14 @@ public class ReservationRequestModel implements Validator
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
         if (specificationType != null) {
             switch (specificationType) {
+                case ADHOC_ROOM:
+                case PERMANENT_ROOM_CAPACITY:
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(
+                            errors, "roomParticipantCount", "validation.field.required");
+                    break;
+            }
+            switch (specificationType) {
                 case PERMANENT_ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
                     if (end != null && end.getMillisOfDay() == 0) {
@@ -528,14 +568,9 @@ public class ReservationRequestModel implements Validator
                     }
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "permanentRoomName", "validation.field.required");
                     break;
-                case ADHOC_ROOM:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "roomParticipantCount", "validation.field.required");
-                    break;
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "permanentRoomCapacityReservationId", "validation.field.required");
+                            errors, "permanentRoomCapacityReservationRequestId", "validation.field.required");
                     break;
             }
         }
@@ -603,7 +638,7 @@ public class ReservationRequestModel implements Validator
         /**
          * Constructor.
          *
-         * @param title sets the {@link #title}
+         * @param title        sets the {@link #title}
          * @param technologies sets the {@link #technologies}
          */
         private Technology(String title, cz.cesnet.shongo.Technology... technologies)

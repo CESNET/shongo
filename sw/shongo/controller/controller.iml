@@ -4,12 +4,14 @@
     <facet type="jpa" name="JPA">
       <configuration>
         <setting name="validation-enabled" value="true" />
-        <setting name="provider-name" value="" />
+        <setting name="provider-name" value="Hibernate" />
         <datasource-mapping>
+          <factory-entry name="controller" value="ce9b3ea1-51f1-47e9-a418-a0d3d99c4b82" />
           <factory-entry name="entityManagerFactory" />
+          <factory-entry name="persistence-test" />
           <factory-entry name="production" />
         </datasource-mapping>
-        <deploymentDescriptor name="persistence.xml" url="file://$MODULE_DIR$/src/main/java/cz/cesnet/shongo/controller/resource/Resource.java" />
+        <deploymentDescriptor name="persistence.xml" url="file://$MODULE_DIR$/src/main/resources/META-INF/persistence.xml" />
       </configuration>
     </facet>
     <facet type="Spring" name="Spring">
@@ -33,6 +35,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.hibernate:hibernate-core:4.1.12.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.hibernate:hibernate-entitymanager:4.1.12.Final" level="project" />
     <orderEntry type="module" module-name="common" />
     <orderEntry type="module" module-name="common-api" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.1" level="project" />
@@ -79,6 +83,7 @@
     <orderEntry type="library" name="Maven: javax.mail:mail:1.4.5" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:activation:1.1" level="project" />
     <orderEntry type="library" name="Maven: org.freemarker:freemarker:2.3.19" level="project" />
+    <orderEntry type="library" name="Maven: org.hibernate:hibernate-core:4.1.12.Final" level="project" />
   </component>
 </module>
 

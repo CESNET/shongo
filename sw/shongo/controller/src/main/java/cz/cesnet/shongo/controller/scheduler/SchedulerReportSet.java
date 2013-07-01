@@ -1047,6 +1047,109 @@ public class SchedulerReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Provided reservation request {@link #reservationRequest} has no usable allocated reservation.
+     */
+    @javax.persistence.Entity
+    @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
+    public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
+    {
+        protected cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest;
+
+        public ReservationRequestNotUsableReport()
+        {
+        }
+
+        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        {
+            setReservationRequest(reservationRequest);
+        }
+
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "reservationrequest_id")
+        public cz.cesnet.shongo.controller.request.ReservationRequest getReservationRequest()
+        {
+            return reservationRequest;
+        }
+
+        public void setReservationRequest(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        {
+            this.reservationRequest = reservationRequest;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @javax.persistence.Transient
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Provided reservation request ");
+                    message.append((reservationRequest == null ? "null" : reservationRequest.getReportDescription(messageType)));
+                    message.append(" has no usable allocated reservation.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationRequestNotUsableReport}.
+     */
+    public static class ReservationRequestNotUsableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
+    {
+        public ReservationRequestNotUsableException(ReservationRequestNotUsableReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationRequestNotUsableException(Throwable throwable, ReservationRequestNotUsableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        {
+            ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
+            report.setReservationRequest(reservationRequest);
+            this.report = report;
+        }
+
+        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        {
+            super(throwable);
+            ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
+            report.setReservationRequest(reservationRequest);
+            this.report = report;
+        }
+
+        public cz.cesnet.shongo.controller.request.ReservationRequest getReservationRequest()
+        {
+            return getReport().getReservationRequest();
+        }
+
+        @Override
+        public ReservationRequestNotUsableReport getReport()
+        {
+            return (ReservationRequestNotUsableReport) report;
+        }
+    }
+
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationReport")
     public static abstract class ReservationReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
@@ -1156,90 +1259,6 @@ public class SchedulerReportSet extends AbstractReportSet
         public ReservationNotAvailableReport getReport()
         {
             return (ReservationNotAvailableReport) report;
-        }
-    }
-
-    /**
-     * Provided reservation {@link #reservation} is not usable, because provided date/time slot doesn't contain the requested.
-     */
-    @javax.persistence.Entity
-    @javax.persistence.DiscriminatorValue("ReservationNotUsableReport")
-    public static class ReservationNotUsableReport extends ReservationReport
-    {
-        public ReservationNotUsableReport()
-        {
-        }
-
-        public ReservationNotUsableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
-        {
-            setReservation(reservation);
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public Type getType()
-        {
-            return Report.Type.ERROR;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        protected int getVisibleFlags()
-        {
-            return VISIBLE_TO_USER;
-        }
-
-        @javax.persistence.Transient
-        @Override
-        public String getMessage(MessageType messageType)
-        {
-            StringBuilder message = new StringBuilder();
-            switch (messageType) {
-                default:
-                    message.append("Provided reservation ");
-                    message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(" is not usable, because provided date/time slot doesn't contain the requested.");
-                    break;
-            }
-            return message.toString();
-        }
-    }
-
-    /**
-     * Exception for {@link ReservationNotUsableReport}.
-     */
-    public static class ReservationNotUsableException extends cz.cesnet.shongo.controller.scheduler.SchedulerException
-    {
-        public ReservationNotUsableException(ReservationNotUsableReport report)
-        {
-            this.report = report;
-        }
-
-        public ReservationNotUsableException(Throwable throwable, ReservationNotUsableReport report)
-        {
-            super(throwable);
-            this.report = report;
-        }
-
-        public ReservationNotUsableException(cz.cesnet.shongo.controller.reservation.Reservation reservation)
-        {
-            ReservationNotUsableReport report = new ReservationNotUsableReport();
-            report.setReservation(reservation);
-            this.report = report;
-        }
-
-        public ReservationNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation)
-        {
-            super(throwable);
-            ReservationNotUsableReport report = new ReservationNotUsableReport();
-            report.setReservation(reservation);
-            this.report = report;
-        }
-
-        @Override
-        public ReservationNotUsableReport getReport()
-        {
-            return (ReservationNotUsableReport) report;
         }
     }
 
@@ -2411,9 +2430,9 @@ public class SchedulerReportSet extends AbstractReportSet
         addReportClass(ConnectionBetweenReport.class);
         addReportClass(ConnectionFromToReport.class);
         addReportClass(ConnectionToMultipleReport.class);
+        addReportClass(ReservationRequestNotUsableReport.class);
         addReportClass(ReservationReport.class);
         addReportClass(ReservationNotAvailableReport.class);
-        addReportClass(ReservationNotUsableReport.class);
         addReportClass(ReservationReallocatingReport.class);
         addReportClass(ReservationReusingReport.class);
         addReportClass(ValueAlreadyAllocatedReport.class);

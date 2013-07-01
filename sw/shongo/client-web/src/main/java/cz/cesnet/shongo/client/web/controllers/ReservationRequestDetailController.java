@@ -33,7 +33,7 @@ import java.util.*;
  */
 @Controller
 @RequestMapping("/reservation-request")
-@SessionAttributes({"reservationRequest", "aclRecord"})
+@SessionAttributes({"aclRecord"})
 public class ReservationRequestDetailController
 {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
@@ -137,8 +137,21 @@ public class ReservationRequestDetailController
             model.addAttribute("reservations", reservations);
         }
 
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(abstractReservationRequest);
+        switch (reservationRequestModel.getSpecificationType()) {
+            case PERMANENT_ROOM_CAPACITY:
+                String permanentRoomReservationRequestId =
+                        reservationRequestModel.getPermanentRoomCapacityReservationRequestId();
+                if (permanentRoomReservationRequestId == null) {
+                    throw new UnsupportedApiException("Room capacity should have provided permanent room.");
+                }
+                model.addAttribute("permanentRoomReservationRequest",
+                        reservationService.getReservationRequest(securityToken, permanentRoomReservationRequestId));
+                break;
+        }
+
         model.addAttribute("parentReservationRequestId", parentReservationRequestId);
-        model.addAttribute("reservationRequest", new ReservationRequestModel(abstractReservationRequest));
+        model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
         return "reservationRequestDetail";
     }

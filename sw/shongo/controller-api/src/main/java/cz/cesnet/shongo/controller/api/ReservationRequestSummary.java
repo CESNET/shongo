@@ -64,9 +64,9 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
-     * List of provided reservation identifiers.
+     * Provided reservation request identifier.
      */
-    private List<String> providedReservationIds = new LinkedList<String>();
+    private String providedReservationRequestId;
 
     /**
      * @return {@link #type}
@@ -221,27 +221,19 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #providedReservationIds}
+     * @return {@link #providedReservationRequestId}
      */
-    public List<String> getProvidedReservationIds()
+    public String getProvidedReservationRequestId()
     {
-        return providedReservationIds;
+        return providedReservationRequestId;
     }
 
     /**
-     * @param providedReservationIds sets the {@link #providedReservationIds}
+     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
      */
-    public void setProvidedReservationIds(List<String> providedReservationIds)
+    public void setProvidedReservationRequestId(String providedReservationRequestId)
     {
-        this.providedReservationIds = providedReservationIds;
-    }
-
-    /**
-     * @param providedReservationId to be added to the {@link #providedReservationIds}
-     */
-    public void addProvidedReservationId(String providedReservationId)
-    {
-        providedReservationIds.add(providedReservationId);
+        this.providedReservationRequestId = providedReservationRequestId;
     }
 
     private static final String TYPE = "type";
@@ -253,7 +245,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String ALLOCATION_STATE = "allocationState";
     private static final String SPECIFICATION = "specification";
     private static final String TECHNOLOGIES = "technologies";
-    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -268,7 +260,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(TECHNOLOGIES, technologies);
-        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
         return dataMap;
     }
 
@@ -285,7 +277,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
-        providedReservationIds = dataMap.getList(PROVIDED_RESERVATION_IDS, String.class);
+        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
     }
 
     /**

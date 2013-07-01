@@ -6,6 +6,7 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
@@ -13,7 +14,7 @@
 
 <script type="text/javascript">
     // Angular application
-    angular.module('ngReservationRequestUpdate', ['ngDateTime', 'ngTooltip']);
+    var app = angular.module('ngReservationRequestUpdate', ['ngDateTime', 'ngTooltip']);
 
     // Form controller
     function FormController($scope) {
@@ -40,6 +41,63 @@
                 dateTimePicker.setFormatDateTime();
             }
         });
+
+        // Permanent rooms
+        var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status">
+            "${permanentRoom.id}": {
+                id: "${permanentRoom.id}",
+                name: "${permanentRoom.specification.value}",
+                formattedSlot: "<joda:format value="${permanentRoom.earliestSlot.start}" style="M-"/> - <joda:format value="${permanentRoom.earliestSlot.end}" style="M-"/>",
+                slot: "${permanentRoom.earliestSlot}"
+            }<c:if test="${!status.last}">,</c:if></c:forEach>
+        };
+        $scope.permanentRooms = {};
+        for (var permanentRoom in permanentRooms) {
+            $scope.permanentRooms[permanentRoom] = permanentRooms[permanentRoom];
+        }
+        $scope.permanentRoom = $scope.permanentRooms["${reservationRequest.permanentRoomCapacityReservationRequestId}"];
+        $scope.updatePermanentRooms = function(performApply) {
+            // Determine requested slot
+            var requestedStart = moment($("#start").val());
+            var requestedDuration = parseInt($("#durationCount").val());
+            var requestedEnd = (requestedStart != null && requestedDuration > 0) ? requestedStart.add($("#durationType").val().toLowerCase(), requestedDuration) : null;
+            requestedStart = requestedStart != null ? requestedStart.unix() : null;
+            requestedEnd = requestedEnd != null ? requestedEnd.unix() : null;
+
+            // Delete old permanent rooms
+            for (var permanentRoom in $scope.permanentRooms) {
+                delete $scope.permanentRooms[permanentRoom];
+            }
+
+            // Add matching permanent rooms
+            for ( var permanentRoomId in permanentRooms) {
+                var permanentRoom = permanentRooms[permanentRoomId];
+                var permanentRoomSlot = permanentRoom.slot.split("/");
+                if ( requestedStart != null || requestedEnd != null ) {
+                    var permanentRoomStart = moment(permanentRoomSlot[0]).unix();
+                    var permanentRoomEnd = moment(permanentRoomSlot[1]).unix();
+                    if ( (requestedStart != null && (requestedStart < permanentRoomStart || requestedStart >= permanentRoomEnd)) ||
+                            (requestedEnd != null && (requestedEnd <= permanentRoomStart || requestedEnd > permanentRoomEnd)) ) {
+                        // Remove current permanent room
+                        if (permanentRoom == $scope.permanentRoom) {
+                            $scope.permanentRoom = null;
+                        }
+                        // Skip this permanent room because it doesn't match the requested slot
+                        continue;
+                    }
+                }
+                $scope.permanentRooms[permanentRoomId] = permanentRoom;
+            }
+
+            // Update
+            if ( performApply !== false ) {
+                $scope.$apply();
+            }
+        };
+        $("#start,#durationCount").change(function() {
+            $scope.updatePermanentRooms();
+        });
+        $scope.updatePermanentRooms(false);
     }
 </script>
 
@@ -105,17 +163,6 @@
             </div>
         </div>
 
-        <div class="control-group">
-            <form:label class="control-label" path="description">
-                <spring:message code="views.reservationRequest.description"/>:
-            </form:label>
-            <div class="controls double-width">
-                <form:input path="description" cssErrorClass="error"/>
-                <form:errors path="description" cssClass="error"/>
-                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
-            </div>
-        </div>
-
         <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM' || specificationType == 'ADHOC_ROOM'" class="hide">
             <form:label class="control-label" path="technology">
                 <spring:message code="views.reservationRequest.technology"/>:
@@ -128,6 +175,32 @@
             </div>
         </div>
 
+        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
+            <form:label class="control-label" path="permanentRoomCapacityReservationRequestId">
+                <spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationRequestId"/>:
+            </form:label>
+            <div class="controls">
+                <form:select path="permanentRoomCapacityReservationRequestId" cssErrorClass="error"
+                             ng-model="permanentRoom" ng-options="option.name for (value, option) in permanentRooms">
+                    <form:option value="">-- <spring:message code="views.select.choose"/> --</form:option>
+                    {{option}}
+                </form:select>
+                <form:errors path="permanentRoomCapacityReservationRequestId" cssClass="error"/>
+                <div ng-show="permanentRoom" class="description"><b><spring:message code="views.reservationRequest.validity"/>: </b>{{permanentRoom.formattedSlot}}</div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <form:label class="control-label" path="description">
+                <spring:message code="views.reservationRequest.description"/>:
+            </form:label>
+            <div class="controls double-width">
+                <form:input path="description" cssErrorClass="error"/>
+                <form:errors path="description" cssClass="error"/>
+                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
+            </div>
+        </div>
+
         <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM'" class="hide">
             <form:label class="control-label" path="permanentRoomName">
                 <spring:message code="views.reservationRequest.specification.permanentRoomName"/>:
@@ -135,18 +208,6 @@
             <div class="controls">
                 <form:input path="permanentRoomName" cssErrorClass="error"/>
                 <form:errors path="permanentRoomName" cssClass="error"/>
-            </div>
-        </div>
-
-        <div class="control-group" ng-show="specificationType == 'PERMANENT_ROOM_CAPACITY'" class="hide">
-            <form:label class="control-label" path="permanentRoomCapacityReservationId">
-                <spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationId"/>:
-            </form:label>
-            <div class="controls double-width">
-                <form:select path="permanentRoomCapacityReservationId" cssErrorClass="error">
-                    <form:option value="">TODO:</form:option>
-                </form:select>
-                <form:errors path="permanentRoomCapacityReservationId" cssClass="error"/>
             </div>
         </div>
 

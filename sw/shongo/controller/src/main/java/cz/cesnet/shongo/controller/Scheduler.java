@@ -239,13 +239,23 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
 
-        // Fill provided reservations as reusable
-        for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
+        // Fill allocated reservations from provided reservation request as reusable
+        ReservationRequest providedReservationRequest = reservationRequest.getProvidedReservationRequest();
+        if (providedReservationRequest != null) {
+            // Find provided reservation
+            Reservation providedReservation = null;
+            for (Reservation reservation : providedReservationRequest.getAllocation().getReservations()) {
+                if (reservation.getSlot().contains(requestedSlot)) {
+                    providedReservation = reservation;
+                    break;
+                }
+            }
+            if (providedReservation == null) {
+                throw new SchedulerReportSet.ReservationRequestNotUsableException(providedReservationRequest);
+            }
+            // Check the provided reservation and use it
             if (!schedulerContext.isReservationAvailable(providedReservation)) {
                 throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
-            }
-            if (!providedReservation.getSlot().contains(requestedSlot)) {
-                throw new SchedulerReportSet.ReservationNotUsableException(providedReservation);
             }
             schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
         }

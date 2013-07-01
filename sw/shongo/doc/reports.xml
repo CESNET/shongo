@@ -1013,6 +1013,21 @@
           - RESERVATION
           -->
 
+        <report>
+            <id>reservation-request-not-usable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="reservationRequest" type="ReservationRequest"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Provided reservation request ${reservationRequest} has no usable allocated reservation.
+            </message>
+            <user visible="true"/>
+        </report>
+
         <report abstract="true">
             <id>reservation</id>
             <params>
@@ -1028,19 +1043,6 @@
             </description>
             <message>
                 Provided reservation ${reservation} is not available.
-            </message>
-            <user visible="true"/>
-        </report>
-
-        <report extends="reservation">
-            <id>reservation-not-usable</id>
-            <classification severity="error"/>
-            <description>
-                TODO:
-            </description>
-            <message>
-                Provided reservation ${reservation} is not usable,
-                because provided date/time slot doesn't contain the requested.
             </message>
             <user visible="true"/>
         </report>

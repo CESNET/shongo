@@ -22,7 +22,7 @@ public class ReservationRequestListRequest extends ListRequest
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
 
-    private Set<String> providedReservationIds = new HashSet<String>();
+    private String providedReservationRequestId;
 
     private Sort sort;
 
@@ -85,19 +85,14 @@ public class ReservationRequestListRequest extends ListRequest
         specificationClasses.add(specificationClass);
     }
 
-    public Set<String> getProvidedReservationIds()
+    public String getProvidedReservationRequestId()
     {
-        return providedReservationIds;
+        return providedReservationRequestId;
     }
 
-    public void setProvidedReservationIds(Set<String> providedReservationIds)
+    public void setProvidedReservationRequestId(String providedReservationRequestId)
     {
-        this.providedReservationIds = providedReservationIds;
-    }
-
-    public void addProvidedReservationId(String providedReservationId)
-    {
-        providedReservationIds.add(providedReservationId);
+        this.providedReservationRequestId = providedReservationRequestId;
     }
 
     public Sort getSort()
@@ -128,7 +123,7 @@ public class ReservationRequestListRequest extends ListRequest
     private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
-    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
     private static final String SORT = "sort";
     private static final String SORT_DESCENDING = "sortDescending";
 
@@ -139,7 +134,7 @@ public class ReservationRequestListRequest extends ListRequest
         dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
-        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
         dataMap.set(SORT, sort);
         dataMap.set(SORT_DESCENDING, sortDescending);
         return dataMap;
@@ -152,7 +147,7 @@ public class ReservationRequestListRequest extends ListRequest
         reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
-        providedReservationIds = dataMap.getSet(PROVIDED_RESERVATION_IDS, String.class);
+        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
         sort = dataMap.getEnum(SORT, Sort.class);
         sortDescending = dataMap.getBool(SORT_DESCENDING);
     }

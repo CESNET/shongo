@@ -399,9 +399,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             String reservationRequestId = request.getReservationRequestId();
             if (reservationRequestId != null) {
-                Long persistenceId = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.request.ReservationRequest.class, reservationRequestId);
                 // List only reservation requests which shares the same allocation as specified reservation request
+                Long persistenceId = EntityIdentifier.parseId(
+                        cz.cesnet.shongo.controller.request.AbstractReservationRequest.class, reservationRequestId);
                 filter.addFilter("request.allocation IN ("
                         + "  SELECT allocation"
                         + "  FROM AbstractReservationRequest reservationRequest"
@@ -444,20 +444,13 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 filter.addFilterParameter("classes", specificationClasses);
             }
 
-            if (request.getProvidedReservationIds().size() > 0) {
-                // List only reservation requests which got provided given reservation
-                filter.addFilter("request IN ("
-                        + "  SELECT reservationRequest"
-                        + "  FROM AbstractReservationRequest reservationRequest"
-                        + "  LEFT JOIN reservationRequest.providedReservations providedReservation"
-                        + "  WHERE providedReservation.id IN (:providedReservationIds)"
-                        + ")");
-                Set<Long> providedReservationIds = new HashSet<Long>();
-                for (String providedReservationId : request.getProvidedReservationIds()) {
-                    providedReservationIds.add(EntityIdentifier.parseId(
-                            cz.cesnet.shongo.controller.reservation.Reservation.class, providedReservationId));
-                }
-                filter.addFilterParameter("providedReservationIds", providedReservationIds);
+            String providedReservationRequestId = request.getProvidedReservationRequestId();
+            if (providedReservationRequestId != null) {
+                // List only reservation requests which got provided given reservation request
+                Long persistenceId = EntityIdentifier.parseId(
+                        cz.cesnet.shongo.controller.request.ReservationRequest.class, providedReservationRequestId);
+                filter.addFilter("request.providedReservationRequest.id = :providedReservationRequestId");
+                filter.addFilterParameter("providedReservationRequestId", persistenceId);
             }
 
             // Create parts
@@ -472,6 +465,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     + " request.description,"
                     + " request.slotStart,"
                     + " request.slotEnd,"
+                    + " request.providedReservationRequest.id,"
                     + " request.allocationState,"
                     + " specification";
             String queryFrom = "AbstractReservationRequest request"
@@ -525,8 +519,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 if (reservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
                     // Prepare deleted reservation request summary
                     deletedReservationRequestSummary = new ReservationRequestSummary();
-                    deletedReservationRequestSummary
-                            .setId(EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
+                    deletedReservationRequestSummary.setId(
+                            EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
                     deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
                     deletedReservationRequestSummary.setDateTime((DateTime) result[5]);
                     deletedReservationRequestSummary.setUserId((String) result[6]);
@@ -564,14 +558,20 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
                     reservationRequestSummary.setAllocationState(
                             cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
-                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[11]));
+                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[12]));
                 }
                 else {
                     reservationRequestSetIds.add(id);
                 }
 
+                // Provided reservation request
+                if (result[11] != null) {
+                    reservationRequestSummary.setProvidedReservationRequestId(
+                            EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, (Long) result[11]));
+                }
+
                 // Prepare specification
-                Object specification = result[12];
+                Object specification = result[13];
                 if (specification instanceof cz.cesnet.shongo.controller.request.AliasSpecification) {
                     aliasReservationRequestIds.add(id);
                 }
@@ -672,23 +672,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     Technology technology = (Technology) providedReservation[1];
                     ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
                     reservationRequestSummary.addTechnology(technology);
-                }
-
-                // Fill provided reservations
-                List<Object[]> providedReservations = entityManager.createQuery(""
-                        + "SELECT reservationRequest.id, providedReservation.id"
-                        + " FROM AbstractReservationRequest reservationRequest"
-                        + " LEFT JOIN reservationRequest.providedReservations providedReservation"
-                        + " WHERE reservationRequest.id IN(:reservationRequestIds) AND providedReservation != null",
-                        Object[].class)
-                        .setParameter("reservationRequestIds", reservationRequestIds)
-                        .getResultList();
-                for (Object[] providedReservation : providedReservations) {
-                    Long id = (Long) providedReservation[0];
-                    Long providedReservationId = (Long) providedReservation[1];
-                    ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
-                    reservationRequestSummary.addProvidedReservationId(
-                            EntityIdentifier.formatId(EntityType.RESERVATION, providedReservationId));
                 }
             }
 

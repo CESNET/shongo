@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.report.Report;
+import cz.cesnet.shongo.report.Reportable;
 import cz.cesnet.shongo.util.ObjectHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -26,7 +27,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class AbstractReservationRequest extends PersistentObject implements Cloneable
+public abstract class AbstractReservationRequest extends PersistentObject implements Cloneable, Reportable
 {
     /**
      * Date/time when the {@link AbstractReservationRequest} was created.
@@ -91,10 +92,10 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private boolean interDomain;
 
     /**
-     * List of {@link Reservation}s of allocated resources which can be used by {@link Scheduler} for allocation of
-     * this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
+     * {@link ReservationRequest} whose allocated {@link Reservation}s can be used by {@link Scheduler} for allocation
+     * of this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
      */
-    private List<Reservation> providedReservations = new ArrayList<Reservation>();
+    private ReservationRequest providedReservationRequest;
 
     /**
      * @return {@link #createdAt}
@@ -293,53 +294,21 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
-     * @return {@link #providedReservations}
+     * @return {@link #providedReservationRequest}
      */
-    @ManyToMany
+    @ManyToOne
     @Access(AccessType.FIELD)
-    public List<Reservation> getProvidedReservations()
+    public ReservationRequest getProvidedReservationRequest()
     {
-        return Collections.unmodifiableList(providedReservations);
+        return providedReservationRequest;
     }
 
     /**
-     * @param providedReservations sets the {@link #providedReservations}
+     * @param providedReservationRequest sets the {@link #providedReservationRequest}
      */
-    public void setProvidedReservations(List<Reservation> providedReservations)
+    public void setProvidedReservationRequest(ReservationRequest providedReservationRequest)
     {
-        this.providedReservations.clear();
-        for (Reservation providedReservation : providedReservations) {
-            this.providedReservations.add(providedReservation);
-        }
-    }
-
-    /**
-     * Remove all {@link #providedReservations}
-     */
-    public void clearProvidedReservations()
-    {
-        providedReservations.clear();
-    }
-
-    /**
-     * @param providedReservation to be added to the {@link #providedReservations}
-     */
-    public void addProvidedReservation(Reservation providedReservation)
-    {
-        providedReservations.add(providedReservation);
-    }
-
-    /**
-     * @param providedReservationId for {@link Reservation} to be removed from {@link #providedReservations}
-     */
-    public void removeProvidedReservation(Long providedReservationId)
-    {
-        for (int index = 0; index < providedReservations.size(); index++) {
-            if (providedReservations.get(index).getId().equals(providedReservationId)) {
-                providedReservations.remove(index);
-                break;
-            }
-        }
+        this.providedReservationRequest = providedReservationRequest;
     }
 
     /**
@@ -390,13 +359,15 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                 || !ObjectHelper.isSame(getPurpose(), reservationRequest.getPurpose())
                 || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
-                || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain());
+                || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain())
+                || !ObjectHelper.isSame(getProvidedReservationRequest(), reservationRequest.getProvidedReservationRequest());
         setCreatedBy(reservationRequest.getCreatedBy());
         setUpdatedBy(reservationRequest.getUpdatedBy());
         setPurpose(reservationRequest.getPurpose());
         setPriority(reservationRequest.getPriority());
         setDescription(reservationRequest.getDescription());
         setInterDomain(reservationRequest.isInterDomain());
+        setProvidedReservationRequest(reservationRequest.getProvidedReservationRequest());
 
         Specification specification = reservationRequest.getSpecification();
         if (this.specification == null || this.specification.getClass() != specification.getClass()) {
@@ -409,10 +380,6 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
             modified |= this.specification.synchronizeFrom(specification);
         }
 
-        if (!ObjectHelper.isSame(getProvidedReservations(), reservationRequest.getProvidedReservations())) {
-            setProvidedReservations(reservationRequest.getProvidedReservations());
-            modified = true;
-        }
         return modified;
     }
 
@@ -430,6 +397,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         if (priority == null) {
             priority = 0;
         }
+    }
+
+    @Override
+    @Transient
+    public String getReportDescription(Report.MessageType messageType)
+    {
+        return String.format("reservation request '%s'", EntityIdentifier.formatId(this));
     }
 
     /**
@@ -486,8 +460,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         api.setDescription(getDescription());
         api.setSpecification(getSpecification().toApi());
         api.setInterDomain(isInterDomain());
-        for (Reservation providedReservation : getProvidedReservations()) {
-            api.addProvidedReservationId(EntityIdentifier.formatId(providedReservation));
+        if (providedReservationRequest != null) {
+            api.setProvidedReservationRequestId(EntityIdentifier.formatId(providedReservationRequest));
         }
 
         // Reservation request is deleted
@@ -529,12 +503,13 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         }
         setInterDomain(api.getInterDomain());
 
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        clearProvidedReservations();
-        for (String providedReservationId : api.getProvidedReservationIds()) {
-            Long id = EntityIdentifier.parseId(Reservation.class, providedReservationId);
-            Reservation providedReservation = reservationManager.get(id);
-            addProvidedReservation(providedReservation);
+        if (api.getProvidedReservationRequestId() != null) {
+            Long providedReservationRequestId =
+                    EntityIdentifier.parseId(ReservationRequest.class, api.getProvidedReservationRequestId());
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            ReservationRequest providedReservationRequest =
+                    reservationRequestManager.getReservationRequest(providedReservationRequestId);
+            setProvidedReservationRequest(providedReservationRequest);
         }
     }
 

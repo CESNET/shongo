@@ -2,11 +2,9 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.*;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -84,34 +82,18 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * Get all reservations recursive and remove the child reservations from it's parents.
-     * <p/>
-     * This operation is required because value reservations should be deleted in the end
-     * and not automatically by cascade.
-     *
-     * @param reservation  current reservation
-     * @param reservations collection of all {@link Reservation}s with children
-     */
-    private void getChildReservations(Reservation reservation, Collection<Reservation> reservations)
-    {
-        reservations.add(reservation);
-
-        List<Reservation> childReservations = reservation.getChildReservations();
-        while (childReservations.size() > 0) {
-            Reservation childReservation = childReservations.get(0);
-            getChildReservations(childReservation, reservations);
-            childReservation.setParentReservation(null);
-        }
-    }
-
-    /**
      * @param reservation to be deleted in the database
      */
     public synchronized void delete(Reservation reservation, AuthorizationManager authorizationManager)
     {
-        // Get all reservations and disconnect them from parents
+        // Get all reservations
         Collection<Reservation> reservations = new LinkedList<Reservation>();
-        getChildReservations(reservation, reservations);
+        getAllReservations(reservation, reservations);
+        // Disconnect reservations from parents (this operation is required because value reservations should be
+        // deleted in the end and not automatically by cascade)
+        for (Reservation reservationItem : reservations) {
+            reservationItem.setParentReservation(null);
+        }
 
         // Get ACL records for deletion
         for (Reservation reservationToDelete : reservations) {
@@ -319,26 +301,33 @@ public class ReservationManager extends AbstractManager
      */
     public boolean isProvided(Reservation reservation)
     {
+        Collection<Reservation> reservations = new LinkedList<Reservation>();
+        getAllReservations(reservation, reservations);
+
         // Checks whether reservation isn't referenced in existing reservations
-        List reservations = entityManager.createQuery(
+        List existingReservations = entityManager.createQuery(
                 "SELECT reservation.id FROM ExistingReservation reservation"
-                        + " WHERE reservation.reservation = :reservation")
-                .setParameter("reservation", reservation)
+                        + " WHERE reservation.reservation IN(:reservations)")
+                .setParameter("reservations", reservations)
                 .getResultList();
-        if (reservations.size() > 0) {
-            return true;
-        }
-        // Checks whether reservation isn't referenced in existing reservation requests
-        List reservationRequests = entityManager.createQuery(
-                "SELECT reservationRequest.id FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.state = :activeState"
-                        + "   AND :reservation MEMBER OF reservationRequest.providedReservations")
-                .setParameter("reservation", reservation)
-                .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
-                .getResultList();
-        if (reservationRequests.size() > 0) {
+        if (existingReservations.size() > 0) {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Get all reservations recursive.
+     *
+     * @param reservation  current reservation
+     * @param reservations collection of all {@link Reservation}s with children
+     */
+    private static void getAllReservations(Reservation reservation, Collection<Reservation> reservations)
+    {
+        reservations.add(reservation);
+
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            getAllReservations(childReservation, reservations);
+        }
     }
 }

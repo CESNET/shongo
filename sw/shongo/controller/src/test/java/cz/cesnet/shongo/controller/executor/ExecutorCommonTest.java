@@ -292,7 +292,8 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
                 new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
-        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         Assert.assertEquals("Alias should not be allocated from the fake connect server.",
                 "test", aliasReservation.getValue());
 
@@ -300,7 +301,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.addProvidedReservationId(aliasReservation.getId());
+        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Start virtual rooms
@@ -357,7 +358,8 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
-        String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        String roomReservationId = checkAllocated(roomReservationRequestId).getId();
 
         // Start virtual room
         ExecutionResult result = runExecutor(dateTime);
@@ -372,7 +374,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationId(roomReservationId);
+        reservationRequest.setProvidedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Start compartment
@@ -424,7 +426,8 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
-        String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
+        String roomReservationRequestId = allocate(roomReservationRequest);
+        String roomReservationId = checkAllocated(roomReservationRequestId).getId();
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -433,7 +436,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationId(roomReservationId);
+        reservationRequest.setProvidedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
@@ -572,7 +575,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.addProvidedReservationId(aliasReservation.getId());
+        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

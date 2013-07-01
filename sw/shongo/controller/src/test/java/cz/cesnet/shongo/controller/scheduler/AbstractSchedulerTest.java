@@ -18,7 +18,7 @@ import javax.persistence.EntityManager;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AbstractSchedulerTest extends AbstractDatabaseTest
+public abstract class AbstractSchedulerTest extends AbstractDatabaseTest
 {
     private Cache cache;
     private EntityManager entityManager;

@@ -122,6 +122,11 @@ form fieldset legend.select ul {
     padding-bottom: 3px;
     vertical-align: bottom;
 }
+form .controls .description {
+    margin-left: 5px;
+    margin-top: 5px;
+    margin-bottom: -8px;
+}
 
 /** Form double width */
 form .double-width input {

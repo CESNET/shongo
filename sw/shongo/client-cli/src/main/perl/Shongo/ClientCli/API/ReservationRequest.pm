@@ -52,7 +52,14 @@ sub new()
             my $state = $self->get_state();
             if ( defined($state) ) {
                 if ( defined($self->get('allocationState')) && $self->get('allocationState') eq 'ALLOCATED' ) {
-                    $state .= sprintf(" (" . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $self->{'reservationId'});
+                    my $reservations = '';
+                    foreach my $reservation_id (@{$self->{'reservationIds'}}) {
+                        if ( length($reservations) > 0 ) {
+                            $reservations .= ', ';
+                        }
+                        $reservations .= $reservation_id;
+                    }
+                    $state .= sprintf(" (" . colored("reservations", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $reservations);
                 }
                 my $color = 'blue';
                 if ( defined($self->get('allocationState')) && $self->get('allocationState') eq 'ALLOCATION_FAILED' ) {

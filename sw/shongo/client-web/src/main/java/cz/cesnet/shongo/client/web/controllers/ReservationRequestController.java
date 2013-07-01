@@ -58,23 +58,14 @@ public class ReservationRequestController
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
 
-        // List allocated reservations
-        ReservationListRequest reservationListRequest = new ReservationListRequest();
-        reservationListRequest.setSecurityToken(securityToken);
-        reservationListRequest.setReservationRequestId(reservationRequestId);
-        ListResponse<Reservation> reservations = reservationService.listReservations(reservationListRequest);
-        if (reservations.getItemCount() > 0) {
-            // List reservation requests which has provided any of allocated reservations
-            ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
-            reservationRequestListRequest.setSecurityToken(securityToken);
-            for (Reservation reservation : reservations.getItems()) {
-                reservationRequestListRequest.addProvidedReservationId(reservation.getId());
-            }
-            ListResponse<ReservationRequestSummary> reservationRequests =
-                    reservationService.listReservationRequests(reservationRequestListRequest);
-            model.addAttribute("dependencies", reservationRequests.getItems());
-        }
+        // List reservation requests which got provided the reservation request to be deleted
+        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
+        reservationRequestListRequest.setSecurityToken(securityToken);
+        reservationRequestListRequest.setProvidedReservationRequestId(reservationRequestId);
+        ListResponse<ReservationRequestSummary> reservationRequests =
+                reservationService.listReservationRequests(reservationRequestListRequest);
 
+        model.addAttribute("dependencies", reservationRequests.getItems());
         model.addAttribute("reservationRequest", reservationRequest);
         return "reservationRequestDelete";
     }
@@ -123,7 +114,7 @@ public class ReservationRequestController
         for (ReservationRequestSummary responseItem : response.getItems()) {
             String reservationRequestId = responseItem.getId();
             Set<Permission> permissions = userCache.getPermissionsWithoutFetching(securityToken, reservationRequestId);
-            if ( permissions != null ) {
+            if (permissions != null) {
                 permissionsByReservationRequestId.put(reservationRequestId, permissions);
             }
             else {
@@ -175,12 +166,14 @@ public class ReservationRequestController
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
                 ReservationRequestSummary.RoomSpecification roomType = (ReservationRequestSummary.RoomSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.ADHOC_ROOM", null, locale));
+                item.put("type",
+                        messageSource.getMessage("views.reservationRequest.specification.ADHOC_ROOM", null, locale));
                 item.put("participantCount", roomType.getParticipantCount());
             }
             else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
                 ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource.getMessage("views.reservationRequest.specification.PERMANENT_ROOM", null, locale));
+                item.put("type", messageSource
+                        .getMessage("views.reservationRequest.specification.PERMANENT_ROOM", null, locale));
                 if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());
                 }

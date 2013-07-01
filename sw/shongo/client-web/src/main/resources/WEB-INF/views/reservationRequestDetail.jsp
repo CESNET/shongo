@@ -127,8 +127,10 @@
                     code="views.help.reservationRequest.specification.${reservationRequest.specificationType}"/></app:help>
         </dd>
 
-        <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
-        <dd>${reservationRequest.technology.title}</dd>
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'ADHOC_ROOM'}">
+            <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
+            <dd>${reservationRequest.technology.title}</dd>
+        </c:if>
 
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <dt><spring:message code="views.reservationRequest.specification.permanentRoomName"/>:</dt>
@@ -136,14 +138,17 @@
         </c:if>
 
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
-            <dt><spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationId"/>:</dt>
+            <dt><spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationRequestId"/>:</dt>
             <dd>
                 <c:choose>
-                    <c:when test="${reservationRequest.permanentRoomCapacityReservationId}">
-                        ${reservationRequest.permanentRoomCapacityReservationId}
+                    <c:when test="${reservationRequest.permanentRoomCapacityReservationRequestId != null}">
+                        <a href="${contextPath}/reservation-request/detail/${reservationRequest.permanentRoomCapacityReservationRequestId}">
+                            ${permanentRoomReservationRequest.specification.value}
+                        </a>
                     </c:when>
-                    <c:otherwise><spring:message
-                            code="views.reservationRequest.specification.roomAlias.adhoc"/></c:otherwise>
+                    <c:otherwise>
+                        <spring:message code="views.reservationRequest.specification.roomAlias.adhoc"/>
+                    </c:otherwise>
                 </c:choose>
             </dd>
         </c:if>

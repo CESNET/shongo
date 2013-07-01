@@ -22,6 +22,7 @@ import java.util.jar.Manifest;
  */
 public class ClientWeb
 {
+
     public static void main(final String[] arguments) throws Exception
     {
         // Setup class-path for JAR file

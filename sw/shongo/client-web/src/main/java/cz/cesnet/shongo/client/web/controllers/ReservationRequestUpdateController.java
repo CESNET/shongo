@@ -5,8 +5,9 @@ import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Controller for managing reservation requests.
@@ -26,7 +29,7 @@ import javax.annotation.Resource;
  */
 @Controller
 @RequestMapping("/reservation-request")
-@SessionAttributes({"reservationRequest", "aclRecord"})
+@SessionAttributes({"reservationRequest", "permanentRooms"})
 public class ReservationRequestUpdateController
 {
     @Resource
@@ -42,6 +45,7 @@ public class ReservationRequestUpdateController
 
     @RequestMapping(value = "/create", method = RequestMethod.GET)
     public String getCreate(
+            SecurityToken securityToken,
             @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType,
             Model model)
     {
@@ -50,6 +54,7 @@ public class ReservationRequestUpdateController
         reservationRequest.setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 5));
         reservationRequest.setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
         model.addAttribute("reservationRequest", reservationRequest);
+        model.addAttribute("permanentRooms", getPermanentRooms(securityToken));
         return "reservationRequestCreate";
     }
 
@@ -63,14 +68,26 @@ public class ReservationRequestUpdateController
         if (result.hasErrors()) {
             return "reservationRequestCreate";
         }
-        ReservationRequestModel.SpecificationType specificationType = reservationRequestModel.getSpecificationType();
-        if (specificationType.equals(ReservationRequestModel.SpecificationType.PERMANENT_ROOM)) {
-            Object isSpecificationAvailable = reservationService.checkSpecificationAvailability(securityToken,
-                    reservationRequestModel.toSpecificationApi(), reservationRequestModel.getSlot());
-            if (!isSpecificationAvailable.equals(Boolean.TRUE)) {
-                result.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
-                return "reservationRequestCreate";
-            }
+        switch (reservationRequestModel.getSpecificationType()) {
+            case PERMANENT_ROOM:
+                Object isSpecificationAvailable = reservationService.checkSpecificationAvailability(securityToken,
+                        reservationRequestModel.toSpecificationApi(), reservationRequestModel.getSlot());
+                if (!isSpecificationAvailable.equals(Boolean.TRUE)) {
+                    result.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
+                    return "reservationRequestCreate";
+                }
+                break;
+            case PERMANENT_ROOM_CAPACITY:
+                // Set technology from permanent room reservation request
+                String permanentRoomReservationRequestId =
+                        reservationRequestModel.getPermanentRoomCapacityReservationRequestId();
+                AbstractReservationRequest permanentRoomReservationRequest =
+                        reservationService.getReservationRequest(securityToken, permanentRoomReservationRequestId);
+                ReservationRequestModel permanentRoomReservationRequestModel = new ReservationRequestModel();
+                permanentRoomReservationRequestModel.fromSpecificationApi(
+                        permanentRoomReservationRequest.getSpecification(), permanentRoomReservationRequestId);
+                reservationRequestModel.setTechnology(permanentRoomReservationRequestModel.getTechnology());
+                break;
         }
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
         String reservationRequestId = reservationService.createReservationRequest(securityToken, reservationRequest);
@@ -84,7 +101,12 @@ public class ReservationRequestUpdateController
             Model model)
     {
         AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
-        model.addAttribute("reservationRequest", new ReservationRequestModel(reservationRequest));
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
+        model.addAttribute("reservationRequest", reservationRequestModel);
+        if (reservationRequestModel.getSpecificationType().equals(
+                ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            model.addAttribute("permanentRooms", getPermanentRooms(securityToken));
+        }
         return "reservationRequestModify";
     }
 
@@ -101,5 +123,25 @@ public class ReservationRequestUpdateController
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
         String reservationRequestId = reservationService.modifyReservationRequest(securityToken, reservationRequest);
         return "redirect:/reservation-request/detail/" + reservationRequestId;
+    }
+
+    /**
+     * @param securityToken
+     * @return list of reservation requests for permanent rooms
+     */
+    private List<ReservationRequestSummary> getPermanentRooms(SecurityToken securityToken)
+    {
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(securityToken);
+        request.addSpecificationClass(AliasSpecification.class);
+        request.addSpecificationClass(AliasSetSpecification.class);
+        List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
+        for (ReservationRequestSummary reservationRequestSummary : reservationService.listReservationRequests(request)) {
+            if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getAllocationState())) {
+                continue;
+            }
+            reservationRequests.add(reservationRequestSummary);
+        }
+        return reservationRequests;
     }
 }

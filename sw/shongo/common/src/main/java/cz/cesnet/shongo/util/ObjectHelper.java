@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.util;
 
+import cz.cesnet.shongo.PersistentObject;
+
 import java.util.Collection;
 
 /**
@@ -24,6 +26,23 @@ public class ObjectHelper
             return false;
         }
         return object1.equals(object2);
+    }
+
+    /**
+     * @param object1
+     * @param object2
+     * @return true if both objects are same,
+     *         false otherwise
+     */
+    public static boolean isSame(PersistentObject object1, PersistentObject object2)
+    {
+        if (object1 == object2) {
+            return true;
+        }
+        if ((object1 == null) || (object2 == null)) {
+            return false;
+        }
+        return isSame(object1.getId(), object2.getId());
     }
 
     /**

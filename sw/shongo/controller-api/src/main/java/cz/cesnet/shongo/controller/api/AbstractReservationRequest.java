@@ -56,10 +56,10 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private boolean interDomain;
 
     /**
-     * Collection of shongo-ids for {@link cz.cesnet.shongo.controller.api.Reservation}s which are provided
-     * to the {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}.
+     * Shongo-id for {@link ReservationRequest} whose allocated {@link Reservation}s are provided
+     * to the {@link AbstractReservationRequest}.
      */
-    private Set<String> providedReservationIds = new HashSet<String>();
+    private String providedReservationRequestId;
 
     /**
      * Constructor.
@@ -198,35 +198,19 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #providedReservationIds}
+     * @return {@link #providedReservationRequestId}
      */
-    public Set<String> getProvidedReservationIds()
+    public String getProvidedReservationRequestId()
     {
-        return providedReservationIds;
+        return providedReservationRequestId;
     }
 
     /**
-     * @param providedReservationIds sets the {@link #providedReservationIds}
+     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
      */
-    public void setProvidedReservationIds(Set<String> providedReservationIds)
+    public void setProvidedReservationRequestId(String providedReservationRequestId)
     {
-        this.providedReservationIds = providedReservationIds;
-    }
-
-    /**
-     * @param providedReservationId to be added to the {@link #providedReservationIds}
-     */
-    public void addProvidedReservationId(String providedReservationId)
-    {
-        providedReservationIds.add(providedReservationId);
-    }
-
-    /**
-     * @param providedReservationId to be removed from the {@link #providedReservationIds}
-     */
-    public void removeProvidedReservationId(String providedReservationId)
-    {
-        providedReservationIds.remove(providedReservationId);
+        this.providedReservationRequestId = providedReservationRequestId;
     }
 
     private static final String TYPE = "type";
@@ -237,7 +221,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private static final String DESCRIPTION = "description";
     private static final String SPECIFICATION = "specification";
     private static final String INTER_DOMAIN = "interDomain";
-    private static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
+    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -251,7 +235,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         dataMap.set(DESCRIPTION, description);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(INTER_DOMAIN, interDomain);
-        dataMap.set(PROVIDED_RESERVATION_IDS, providedReservationIds);
+        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
         return dataMap;
     }
 
@@ -267,6 +251,6 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         description = dataMap.getString(DESCRIPTION);
         specification = dataMap.getComplexTypeRequired(SPECIFICATION, Specification.class);
         interDomain = dataMap.getBool(INTER_DOMAIN);
-        providedReservationIds = dataMap.getSet(PROVIDED_RESERVATION_IDS, String.class);
+        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
     }
 }

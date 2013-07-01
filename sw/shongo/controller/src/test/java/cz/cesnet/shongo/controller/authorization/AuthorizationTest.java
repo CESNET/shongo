@@ -165,7 +165,7 @@ public class AuthorizationTest extends AbstractControllerTest
         reservationRequest1.setSlot("2013-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        reservationRequest1.addProvidedReservationId(aliasReservation.getId());
+        reservationRequest1.setProvidedReservationRequestId(aliasReservationRequestId);
         String reservationRequest1Id = allocate(SECURITY_TOKEN_USER1, reservationRequest1);
         ExistingReservation reservation1 = (ExistingReservation) checkAllocated(reservationRequest1Id);
 
@@ -173,7 +173,7 @@ public class AuthorizationTest extends AbstractControllerTest
         reservationRequest2.setSlot("2013-01-01T14:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        reservationRequest2.addProvidedReservationId(aliasReservation.getId());
+        reservationRequest2.setProvidedReservationRequestId(aliasReservationRequestId);
         String reservationRequest2Id = allocate(SECURITY_TOKEN_USER1, reservationRequest2);
         ExistingReservation reservation2 = (ExistingReservation) checkAllocated(reservationRequest2Id);
 
