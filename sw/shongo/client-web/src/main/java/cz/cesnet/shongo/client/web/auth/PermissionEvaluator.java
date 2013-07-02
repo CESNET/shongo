@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.auth;
 
-import cz.cesnet.shongo.client.web.UserCache;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -17,7 +17,7 @@ import java.io.Serializable;
 public class PermissionEvaluator implements org.springframework.security.access.PermissionEvaluator
 {
     @Resource
-    private UserCache userCache;
+    private Cache cache;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permissionValue)
@@ -37,7 +37,7 @@ public class PermissionEvaluator implements org.springframework.security.access.
         else {
             permission = Permission.valueOf(permissionValue.toString());
         }
-        return userCache.getPermissions(securityToken, entityId).contains(permission);
+        return cache.getPermissions(securityToken, entityId).contains(permission);
     }
 
     @Override

@@ -112,8 +112,8 @@
                 <tr>
                     <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
-                    <th><spring:message code="views.reservationRequest.technology"/></th>
-                    <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
+                    <th><spring:message code="views.reservationRequestList.rooms.room"/></th>
+                    <th width="100px"><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.earliestSlot"/></th>
                     <th><spring:message code="views.reservationRequest.allocationState"/></th>
                     <th><spring:message code="views.reservationRequest.description"/></th>
@@ -124,7 +124,12 @@
                 <tr ng-repeat="reservationRequest in items">
                     <td>{{reservationRequest.dateTime}}</td>
                     <td>{{reservationRequest.user}}</td>
-                    <td>{{reservationRequest.technology}}</td>
+                    <td ng-switch on="isEmpty(reservationRequest.roomReservationRequestId)">
+                        <span ng-switch-when="true">{{reservationRequest.room}}</span>
+                        <a ng-switch-when="false" href="${contextPath}/reservation-request/detail/{{reservationRequest.roomReservationRequestId}}">
+                            {{reservationRequest.room}}
+                        </a>
+                    </td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td class="allocation-state">

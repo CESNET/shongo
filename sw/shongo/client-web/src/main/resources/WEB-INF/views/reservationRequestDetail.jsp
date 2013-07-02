@@ -239,17 +239,19 @@
                                 <joda:format value="${reservation.slot.end}" style="MS"/>
                             </td>
                             <td class="allocation-state">
-                                <span id="reservationState-${status.index}" class="${reservation.allocationState}">
-                                    <spring:message code="views.reservationRequest.allocationState.${reservation.allocationState}"/>
-                                </span>
-                                <app:help label="reservationState-${status.index}">
-                                    <span>
-                                        <spring:message code="views.help.reservationRequest.allocationState.${reservation.allocationState}"/>
+                                <c:if test="${reservation.allocationState != null}">
+                                    <span id="reservationState-${status.index}" class="${reservation.allocationState}">
+                                        <spring:message code="views.reservationRequest.allocationState.${reservation.allocationState}"/>
                                     </span>
-                                    <c:if test="${reservation.allocationStateReport != null}">
-                                        <pre>${reservation.allocationStateReport}</pre>
-                                    </c:if>
-                                </app:help>
+                                    <app:help label="reservationState-${status.index}">
+                                        <span>
+                                            <spring:message code="views.help.reservationRequest.allocationState.${reservation.allocationState}"/>
+                                        </span>
+                                        <c:if test="${reservation.allocationStateReport != null}">
+                                            <pre>${reservation.allocationStateReport}</pre>
+                                        </c:if>
+                                    </app:help>
+                                </c:if>
                             </td>
                             <td class="executable-state">
                                 <c:if test="${reservation.roomState != null}">

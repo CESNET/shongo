@@ -4,11 +4,14 @@ import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.PermissionSet;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
@@ -16,27 +19,32 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Cache of {@link UserInformation}s.
+ * Cache of {@link UserInformation}s, {@link Permission}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class UserCache
+public class Cache
 {
-    private static Logger logger = LoggerFactory.getLogger(UserCache.class);
+    private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
      * Expiration of user information/permissions in minutes.
      */
     private static final long USER_EXPIRATION_MINUTES = 5;
 
+    /**
+     * Expiration of reservation requests.
+     */
+    private static final long RESERVATION_REQUEST_EXPIRATION_MINUTES = 5;
+
     @Resource
     private AuthorizationService authorizationService;
+
+    @Resource
+    private ReservationService reservationService;
 
     /**
      * {@link UserInformation}s by user-ids.
@@ -48,6 +56,12 @@ public class UserCache
      * {@link UserState}s by {@link SecurityToken}.
      */
     private ExpirationMap<SecurityToken, UserState> userStateByToken = new ExpirationMap<SecurityToken, UserState>();
+
+    /**
+     * {@link ReservationRequestSummary} by identifier.
+     */
+    private ExpirationMap<String, ReservationRequestSummary> reservationRequestById =
+            new ExpirationMap<String, ReservationRequestSummary>();
 
     /**
      * Cached information for single user.
@@ -72,10 +86,11 @@ public class UserCache
     /**
      * Constructor.
      */
-    public UserCache()
+    public Cache()
     {
         userInformationByUserId.setExpiration(Duration.standardMinutes(USER_EXPIRATION_MINUTES));
         userStateByToken.setExpiration(Duration.standardHours(1));
+        reservationRequestById.setExpiration(Duration.standardMinutes(RESERVATION_REQUEST_EXPIRATION_MINUTES));
     }
 
     /**
@@ -184,5 +199,55 @@ public class UserCache
             result.put(entityId, permissions);
         }
         return result;
+    }
+
+    /**
+     * Load {@link ReservationRequestSummary}s for given {@code reservationRequestIds} to the {@link Cache}.
+     *
+     * @param securityToken
+     * @param reservationRequestIds
+     */
+    public synchronized void loadReservationRequests(SecurityToken securityToken, Set<String> reservationRequestIds)
+    {
+        Set<String> missingReservationRequestIds = null;
+        for (String reservationRequestId : reservationRequestIds) {
+            if (!reservationRequestById.contains(reservationRequestId)) {
+                if (missingReservationRequestIds == null) {
+                    missingReservationRequestIds = new HashSet<String>();
+                }
+                missingReservationRequestIds.add(reservationRequestId);
+            }
+        }
+        if (missingReservationRequestIds != null) {
+            ReservationRequestListRequest request = new ReservationRequestListRequest();
+            request.setSecurityToken(securityToken);
+            request.setReservationRequestIds(missingReservationRequestIds);
+            ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
+            for (ReservationRequestSummary reservationRequest : response) {
+                reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+            }
+        }
+    }
+
+    /**
+     * @param securityToken
+     * @param reservationRequestId
+     * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
+     */
+    public synchronized ReservationRequestSummary getReservationRequest(SecurityToken securityToken,
+            String reservationRequestId)
+    {
+        ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);
+        if (reservationRequest == null) {
+            ReservationRequestListRequest request = new ReservationRequestListRequest();
+            request.setSecurityToken(securityToken);
+            request.addReservationRequestId(reservationRequestId);
+            ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
+            if (response.getItemCount() > 0) {
+                reservationRequest = response.getItem(0);
+                reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+            }
+        }
+        return reservationRequest;
     }
 }

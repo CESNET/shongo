@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.Specification;
 
@@ -16,13 +15,15 @@ import java.util.Set;
  */
 public class ReservationRequestListRequest extends ListRequest
 {
-    private String reservationRequestId;
+    private Set<String> reservationRequestIds = new HashSet<String>();
 
     private Set<Technology> technologies = new HashSet<Technology>();
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
 
     private String providedReservationRequestId;
+
+    private String historyReservationRequestId;
 
     private Sort sort;
 
@@ -45,14 +46,19 @@ public class ReservationRequestListRequest extends ListRequest
         }
     }
 
-    public String getReservationRequestId()
+    public Set<String> getReservationRequestIds()
     {
-        return reservationRequestId;
+        return reservationRequestIds;
     }
 
-    public void setReservationRequestId(String reservationRequestId)
+    public void setReservationRequestIds(Set<String> reservationRequestIds)
     {
-        this.reservationRequestId = reservationRequestId;
+        this.reservationRequestIds = reservationRequestIds;
+    }
+
+    public void addReservationRequestId(String reservationRequestId)
+    {
+        reservationRequestIds.add(reservationRequestId);
     }
 
     public Set<Technology> getTechnologies()
@@ -95,6 +101,16 @@ public class ReservationRequestListRequest extends ListRequest
         this.providedReservationRequestId = providedReservationRequestId;
     }
 
+    public String getHistoryReservationRequestId()
+    {
+        return historyReservationRequestId;
+    }
+
+    public void setHistoryReservationRequestId(String historyReservationRequestId)
+    {
+        this.historyReservationRequestId = historyReservationRequestId;
+    }
+
     public Sort getSort()
     {
         return sort;
@@ -131,7 +147,7 @@ public class ReservationRequestListRequest extends ListRequest
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(RESERVATION_REQUEST_ID, reservationRequestId);
+        dataMap.set(RESERVATION_REQUEST_ID, historyReservationRequestId);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
@@ -144,7 +160,7 @@ public class ReservationRequestListRequest extends ListRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        reservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
+        historyReservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);

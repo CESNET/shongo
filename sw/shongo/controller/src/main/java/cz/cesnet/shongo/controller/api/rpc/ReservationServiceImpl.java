@@ -27,6 +27,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -397,18 +398,30 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // List only reservation requests which is current user permitted to read
             filter.addIds(authorization, userId, EntityType.RESERVATION_REQUEST, Permission.READ);
 
-            String reservationRequestId = request.getReservationRequestId();
-            if (reservationRequestId != null) {
+            // List only reservation requests which are requested
+            if (request.getReservationRequestIds().size() > 0) {
+                filter.addFilter("request.id IN (:reservationRequestIds)");
+                Set<Long> reservationRequestIds = new HashSet<Long>();
+                for (String reservationRequestId : request.getReservationRequestIds()) {
+                    reservationRequestIds.add(EntityIdentifier.parseId(
+                            cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
+                            reservationRequestId));
+                }
+                filter.addFilterParameter("reservationRequestIds", reservationRequestIds);
+            }
+
+            String historyReservationRequestId = request.getHistoryReservationRequestId();
+            if (historyReservationRequestId != null) {
                 // List only reservation requests which shares the same allocation as specified reservation request
-                Long persistenceId = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.request.AbstractReservationRequest.class, reservationRequestId);
+                Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
+                        historyReservationRequestId);
                 filter.addFilter("request.allocation IN ("
                         + "  SELECT allocation"
                         + "  FROM AbstractReservationRequest reservationRequest"
                         + "  LEFT JOIN reservationRequest.allocation allocation"
                         + "  WHERE reservationRequest.id = :reservationRequestId"
                         + ")");
-                filter.addFilterParameter("reservationRequestId", persistenceId);
+                filter.addFilterParameter("reservationRequestId", id);
             }
             else {
                 // List only reservation requests which are ACTIVE
@@ -514,10 +527,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
                 // Determine reservation request type
                 ReservationRequestType type;
-                // If all versions of reservation request was requested and current reservation request is deleted
+                // If history of reservation request was requested and current reservation request is deleted
                 ReservationRequestSummary deletedReservationRequestSummary = null;
-                if (reservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
-                    // Prepare deleted reservation request summary
+                if (historyReservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
+                    // Prepare fake deleted reservation request summary
                     deletedReservationRequestSummary = new ReservationRequestSummary();
                     deletedReservationRequestSummary.setId(
                             EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
@@ -606,52 +619,75 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // Fill reservation request set earliest slot
             if (reservationRequestSetIds.size() > 0) {
-                // Get list of requested slots in future
-                List<Object[]> requestedSlots = entityManager.createQuery(""
-                        + "SELECT "
-                        + " reservationRequestSet.id,"
-                        + " reservationRequest.slotStart,"
-                        + " reservationRequest.slotEnd,"
-                        + " reservationRequest.allocationState"
-                        + " FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.allocation.childReservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id IN(:reservationRequestIds)"
-                        + " AND reservationRequest != null"
-                        + " AND (reservationRequest.slotStart > :now OR reservationRequest.slotEnd > :now)",
-                        Object[].class)
-                        .setParameter("reservationRequestIds", reservationRequestSetIds)
-                        .setParameter("now", DateTime.now())
+                // Select reservation request id of the last reservation request or
+                // the first reservation request in the future
+                List resultList = entityManager.createNativeQuery("SELECT reservation_request.id"
+                        + " FROM reservation_request"
+                        + " INNER JOIN ("
+                        + "    SELECT"
+                        + "      abstract_reservation_request.allocation_id AS id,"
+                        + "      MAX(reservation_request.slot_end) AS slot_end_max,"
+                        + "      MIN(CASE WHEN reservation_request.slot_end > now() THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min"
+                        + "    FROM reservation_request_set"
+                        + "      LEFT OUTER JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request_set.id"
+                        + "      LEFT OUTER JOIN allocation ON allocation.id = abstract_reservation_request.allocation_id"
+                        + "      LEFT OUTER JOIN reservation_request ON reservation_request.allocation_id = allocation.id"
+                        + "    WHERE reservation_request_set.id IN (:reservationRequestSetIds)"
+                        + "    GROUP BY abstract_reservation_request.allocation_id"
+                        + " ) AS allocation ON allocation.id = reservation_request.allocation_id AND ("
+                        + "                    allocation.slot_end_max = reservation_request.slot_end OR"
+                        + "                    allocation.slot_end_future_min = reservation_request.slot_end)")
+                        .setParameter("reservationRequestSetIds", reservationRequestSetIds)
                         .getResultList();
+                if (resultList.size() > 0) {
+                    Set<Long> reservationRequestIds = new HashSet<Long>();
+                    for (Object result : resultList) {
+                        reservationRequestIds.add(((BigInteger) result).longValue());
+                    }
 
-                // Sort requested slots for each reservation request
-                Collections.sort(requestedSlots, new Comparator<Object[]>()
-                {
-                    @Override
-                    public int compare(Object[] object1, Object[] object2)
+                    // Get list of requested slots
+                    List<Object[]> requestedSlots = entityManager.createQuery(""
+                            + "SELECT "
+                            + " reservationRequest.parentAllocation.reservationRequest.id,"
+                            + " reservationRequest.slotStart,"
+                            + " reservationRequest.slotEnd,"
+                            + " reservationRequest.allocationState"
+                            + " FROM ReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.id IN(:reservationRequestIds)",
+                            Object[].class)
+                            .setParameter("reservationRequestIds", reservationRequestIds)
+                            .getResultList();
+
+                    // Sort requested slots for each reservation request
+                    Collections.sort(requestedSlots, new Comparator<Object[]>()
                     {
-                        if (!object1[0].equals(object2[0])) {
-                            // Skip different reservation requests
-                            return 0;
+                        @Override
+                        public int compare(Object[] object1, Object[] object2)
+                        {
+                            if (!object1[0].equals(object2[0])) {
+                                // Skip different reservation requests
+                                return 0;
+                            }
+                            return ((DateTime) object1[1]).compareTo((DateTime) object2[1]);
                         }
-                        return ((DateTime) object1[1]).compareTo((DateTime) object2[1]);
-                    }
-                });
+                    });
 
-                // Fill first requested slot for each reservation request
-                for (Object[] requestedSlot : requestedSlots) {
-                    Long id = (Long) requestedSlot[0];
-                    if (!reservationRequestSetIds.contains(id)) {
-                        continue;
-                    }
-                    reservationRequestSetIds.remove(id);
+                    // Fill first requested slot for each reservation request
+                    for (Object[] requestedSlot : requestedSlots) {
+                        Long id = (Long) requestedSlot[0];
+                        if (!reservationRequestSetIds.contains(id)) {
+                            continue;
+                        }
+                        reservationRequestSetIds.remove(id);
 
-                    DateTime slotStart = (DateTime) requestedSlot[1];
-                    DateTime slotEnd = (DateTime) requestedSlot[2];
-                    ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
-                    reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
-                    reservationRequestSummary.setAllocationState(
-                            cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
-                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) requestedSlot[3]));
+                        DateTime slotStart = (DateTime) requestedSlot[1];
+                        DateTime slotEnd = (DateTime) requestedSlot[2];
+                        ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
+                        reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
+                        reservationRequestSummary.setAllocationState(
+                                cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
+                                        (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) requestedSlot[3]));
+                    }
                 }
             }
 

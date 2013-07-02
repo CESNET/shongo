@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.UserCache;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
@@ -25,7 +25,7 @@ public class UserController
     private AuthorizationService authorizationService;
 
     @Resource
-    private UserCache userCache;
+    private Cache cache;
 
     @RequestMapping(value = {"", "list"}, method = RequestMethod.GET)
     @ResponseBody
@@ -47,6 +47,6 @@ public class UserController
             SecurityToken securityToken,
             @PathVariable(value = "userId") String userId)
     {
-        return userCache.getUserInformation(securityToken, userId);
+        return cache.getUserInformation(securityToken, userId);
     }
 }

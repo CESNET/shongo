@@ -3,7 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.UserCache;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.AclRecordValidator;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
@@ -45,7 +45,7 @@ public class ReservationRequestDetailController
     private AuthorizationService authorizationService;
 
     @Resource
-    private UserCache userCache;
+    private Cache cache;
 
     @Resource
     private MessageSource messageSource;
@@ -61,7 +61,7 @@ public class ReservationRequestDetailController
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, id);
 
-        // Get single reservation request
+        // Check if it is single reservation request
         ReservationRequest reservationRequest = null;
         String parentReservationRequestId = null;
         if (abstractReservationRequest instanceof ReservationRequest) {
@@ -69,12 +69,12 @@ public class ReservationRequestDetailController
             parentReservationRequestId = reservationRequest.getParentReservationRequestId();
         }
 
-        // Get history of reservation request if it has no parent reservation request
-        boolean isActive = false;
+        // Get history of reservation request (only if it is not child reservation request)
+        boolean isActive;
         if (parentReservationRequestId == null) {
             ReservationRequestListRequest request = new ReservationRequestListRequest();
             request.setSecurityToken(securityToken);
-            request.setReservationRequestId(id);
+            request.setHistoryReservationRequestId(id);
             request.setSort(ReservationRequestListRequest.Sort.DATETIME);
             request.setSortDescending(true);
             String reservationRequestId = abstractReservationRequest.getId();
@@ -85,7 +85,7 @@ public class ReservationRequestDetailController
                 String historyItemId = historyItem.getId();
                 item.put("id", historyItemId);
                 item.put("dateTime", historyItem.getDateTime());
-                UserInformation user = userCache.getUserInformation(securityToken, historyItem.getUserId());
+                UserInformation user = cache.getUserInformation(securityToken, historyItem.getUserId());
                 item.put("user", user.getFullName());
                 item.put("type", historyItem.getType());
                 if ( historyItemId.equals(reservationRequestId)) {
@@ -102,14 +102,13 @@ public class ReservationRequestDetailController
             isActive = currentHistoryItem == historyItems.get(0);
         }
         else {
-            // Reservation request with parent doesn't have history so they are automatically active
+            // Child reservation requests don't have history and thus they are automatically active
             isActive = true;
         }
 
         // Get reservations for single reservation request
         if (reservationRequest != null && isActive) {
             List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
-
             // Add fake not allocated reservation
             AllocationState allocationState = reservationRequest.getAllocationState();
             if (!allocationState.equals(AllocationState.ALLOCATED)) {
@@ -119,7 +118,6 @@ public class ReservationRequestDetailController
                 reservation.put("allocationStateReport", getAllocationStateReport(reservationRequest));
                 reservations.add(reservation);
             }
-
             // Add existing reservations
             List<String> reservationIds = reservationRequest.getReservationIds();
             if (reservationIds.size() > 0) {
@@ -133,7 +131,6 @@ public class ReservationRequestDetailController
                     reservations.add(getReservation(reservation, locale));
                 }
             }
-
             model.addAttribute("reservations", reservations);
         }
 
@@ -146,7 +143,7 @@ public class ReservationRequestDetailController
                     throw new UnsupportedApiException("Room capacity should have provided permanent room.");
                 }
                 model.addAttribute("permanentRoomReservationRequest",
-                        reservationService.getReservationRequest(securityToken, permanentRoomReservationRequestId));
+                        cache.getReservationRequest(securityToken, permanentRoomReservationRequestId));
                 break;
         }
 
@@ -203,14 +200,16 @@ public class ReservationRequestDetailController
                     dateTimeFormatter.print(slot.getEnd()));
 
             AllocationState allocationState = reservationRequest.getAllocationState();
-            String allocationStateMessage =  messageSource.getMessage(
-                    "views.reservationRequest.allocationState." + allocationState, null, locale);
-            String allocationStateHelp =  messageSource.getMessage(
-                    "views.help.reservationRequest.allocationState." + allocationState, null, locale);
-            child.put("allocationState", allocationState);
-            child.put("allocationStateMessage", allocationStateMessage);
-            child.put("allocationStateHelp", allocationStateHelp);
-            child.put("allocationStateReport", getAllocationStateReport(reservationRequest));
+            if (allocationState != null) {
+                String allocationStateMessage =  messageSource.getMessage(
+                        "views.reservationRequest.allocationState." + allocationState, null, locale);
+                String allocationStateHelp =  messageSource.getMessage(
+                        "views.help.reservationRequest.allocationState." + allocationState, null, locale);
+                child.put("allocationState", allocationState);
+                child.put("allocationStateMessage", allocationStateMessage);
+                child.put("allocationStateHelp", allocationStateHelp);
+                child.put("allocationStateReport", getAllocationStateReport(reservationRequest));
+            }
 
             Executable.State roomState = (Executable.State) child.get("roomState");
             if (roomState != null) {
@@ -429,7 +428,7 @@ public class ReservationRequestDetailController
 
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", aclRecord.getId());
-            item.put("user", userCache.getUserInformation(securityToken, aclRecord.getUserId()));
+            item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
             String role = aclRecord.getRole().toString();
             item.put("role", messageSource.getMessage("views.aclRecord.role." + role, null, locale));
             items.add(item);

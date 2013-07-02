@@ -3,12 +3,12 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.UserCache;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
@@ -31,6 +31,9 @@ import java.util.*;
 @RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
+    private static final String MESSAGE_ADHOC_ROOM = "views.reservationRequest.specification.ADHOC_ROOM";
+    private static final String MESSAGE_PERMANENT_ROOM = "views.reservationRequest.specification.PERMANENT_ROOM";
+    private static final String MESSAGE_ROOMS_ROOM_ADHOC = "views.reservationRequestList.rooms.room.adhoc";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
 
@@ -38,7 +41,7 @@ public class ReservationRequestController
     private ReservationService reservationService;
 
     @Resource
-    private UserCache userCache;
+    private Cache cache;
 
     @Resource
     private MessageSource messageSource;
@@ -113,7 +116,7 @@ public class ReservationRequestController
         Set<String> reservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary responseItem : response.getItems()) {
             String reservationRequestId = responseItem.getId();
-            Set<Permission> permissions = userCache.getPermissionsWithoutFetching(securityToken, reservationRequestId);
+            Set<Permission> permissions = cache.getPermissionsWithoutFetching(securityToken, reservationRequestId);
             if (permissions != null) {
                 permissionsByReservationRequestId.put(reservationRequestId, permissions);
             }
@@ -122,8 +125,17 @@ public class ReservationRequestController
             }
         }
         if (reservationRequestIds.size() > 0) {
-            permissionsByReservationRequestId.putAll(userCache.fetchPermissions(securityToken, reservationRequestIds));
+            permissionsByReservationRequestId.putAll(cache.fetchPermissions(securityToken, reservationRequestIds));
         }
+
+        Set<String> providedReservationRequestIds = new HashSet<String>();
+        for (ReservationRequestSummary reservationRequest : response.getItems()) {
+            String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
+            if (providedReservationRequestId != null) {
+                providedReservationRequestIds.add(providedReservationRequestId);
+            }
+        }
+        cache.loadReservationRequests(securityToken, providedReservationRequestIds);
 
         // Build response
         DateTimeFormatter dateFormatter = DATE_FORMATTER.withLocale(locale);
@@ -140,15 +152,18 @@ public class ReservationRequestController
             items.add(item);
 
             AllocationState allocationState = reservationRequest.getAllocationState();
-            String allocationStateMessage = messageSource.getMessage(
-                    "views.reservationRequest.allocationState." + allocationState, null, locale);
-            item.put("allocationState", allocationState);
-            item.put("allocationStateMessage", allocationStateMessage);
+
+            if (allocationState != null) {
+                String allocationStateMessage = messageSource.getMessage(
+                        "views.reservationRequest.allocationState." + allocationState, null, locale);
+                item.put("allocationState", allocationState);
+                item.put("allocationStateMessage", allocationStateMessage);
+            }
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
             item.put("writable", permissions.contains(Permission.WRITE));
 
-            UserInformation user = userCache.getUserInformation(securityToken, reservationRequest.getUserId());
+            UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
             item.put("user", user.getFullName());
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
@@ -159,21 +174,43 @@ public class ReservationRequestController
 
             Set<Technology> technologies = reservationRequest.getTechnologies();
             ReservationRequestModel.Technology technology = ReservationRequestModel.Technology.find(technologies);
-            if (technology != null) {
-                item.put("technology", technology.getTitle());
-            }
-
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
-                ReservationRequestSummary.RoomSpecification roomType = (ReservationRequestSummary.RoomSpecification) specification;
-                item.put("type",
-                        messageSource.getMessage("views.reservationRequest.specification.ADHOC_ROOM", null, locale));
-                item.put("participantCount", roomType.getParticipantCount());
+                ReservationRequestSummary.RoomSpecification roomSpecification =
+                        (ReservationRequestSummary.RoomSpecification) specification;
+                item.put("type", messageSource.getMessage(MESSAGE_ADHOC_ROOM, null, locale));
+                String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
+                if (providedReservationRequestId != null) {
+                    ReservationRequestSummary providedReservationRequest =
+                            cache.getReservationRequest(securityToken, providedReservationRequestId);
+                    ReservationRequestSummary.AliasSpecification aliasSpecification =
+                            (ReservationRequestSummary.AliasSpecification) providedReservationRequest.getSpecification();
+                    if (aliasSpecification != null && AliasType.ROOM_NAME.equals(aliasSpecification.getAliasType())) {
+                        item.put("room", aliasSpecification.getValue());
+                        item.put("roomReservationRequestId", providedReservationRequestId);
+                    }
+                    else {
+                        throw new UnsupportedApiException(aliasSpecification);
+                    }
+                }
+                else {
+                    StringBuilder roomBuilder = new StringBuilder();
+                    roomBuilder.append(messageSource.getMessage(MESSAGE_ROOMS_ROOM_ADHOC, null, locale));
+                    if (technology != null) {
+                        roomBuilder.append(" (");
+                        roomBuilder.append(technology.getTitle());
+                        roomBuilder.append(")");
+                    }
+                    item.put("room", roomBuilder.toString());
+                }
+                item.put("participantCount", roomSpecification.getParticipantCount());
             }
             else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
                 ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource
-                        .getMessage("views.reservationRequest.specification.PERMANENT_ROOM", null, locale));
+                item.put("type", messageSource.getMessage(MESSAGE_PERMANENT_ROOM, null, locale));
+                if (technology != null) {
+                    item.put("technology", technology.getTitle());
+                }
                 if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
                     item.put("roomName", aliasType.getValue());
                 }
