@@ -7,6 +7,6 @@ import jade.content.Concept;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class RoomSetting extends IdentifiedComplexType implements Concept
+public abstract class RoomSetting extends IdentifiedComplexType
 {
 }

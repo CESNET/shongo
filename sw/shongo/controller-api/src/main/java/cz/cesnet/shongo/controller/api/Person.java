@@ -8,7 +8,7 @@ import jade.content.Concept;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Person extends IdentifiedComplexType implements Concept
+public abstract class Person extends IdentifiedComplexType
 {
 
 }

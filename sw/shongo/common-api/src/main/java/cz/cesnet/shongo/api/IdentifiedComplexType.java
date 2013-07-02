@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api;
 
+import jade.content.Concept;
 import jade.content.onto.annotations.SuppressSlot;
 
 /**
@@ -7,7 +8,7 @@ import jade.content.onto.annotations.SuppressSlot;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class IdentifiedComplexType extends AbstractComplexType
+public abstract class IdentifiedComplexType extends AbstractComplexType implements Concept
 {
     /**
      * Identifier.
@@ -26,6 +27,7 @@ public abstract class IdentifiedComplexType extends AbstractComplexType
      * @return true if the {@link #id} is not null,
      *         false otherwise
      */
+    @SuppressSlot
     public boolean hasId()
     {
         return id != null;

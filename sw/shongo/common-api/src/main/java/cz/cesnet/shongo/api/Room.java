@@ -15,7 +15,7 @@ import java.util.Set;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room extends IdentifiedComplexType implements Concept
+public class Room extends IdentifiedComplexType
 {
     /**
      * Room name - set by users. Type: String

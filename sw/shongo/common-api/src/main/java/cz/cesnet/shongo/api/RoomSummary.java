@@ -8,7 +8,7 @@ import org.joda.time.DateTime;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomSummary extends IdentifiedComplexType implements Concept
+public class RoomSummary extends IdentifiedComplexType
 {
     /**
      * User readable name of the room.

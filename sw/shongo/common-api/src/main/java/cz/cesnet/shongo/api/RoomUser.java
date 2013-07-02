@@ -8,7 +8,7 @@ import org.joda.time.DateTime;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomUser extends IdentifiedComplexType implements Concept
+public class RoomUser extends IdentifiedComplexType
 {
     private String roomId;
     private String userId;

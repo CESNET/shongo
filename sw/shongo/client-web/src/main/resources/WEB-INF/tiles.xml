@@ -123,4 +123,13 @@
         </put-list-attribute>
     </definition>
 
+    <definition name="room" extends="layout">
+        <put-attribute name="title" value="views.room.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-tooltip.js"/>
+        </put-list-attribute>
+    </definition>
+
 </tiles-definitions>

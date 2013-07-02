@@ -318,9 +318,9 @@ public class ReservationRequestDetailController
                     if (executableState.isAvailable()) {
                         StringBuilder aliasValueBuilder = new StringBuilder();
                         aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
-                        aliasValueBuilder.append(aliasValue);
-                        aliasValueBuilder.append("\" target=\"_blank\">");
                         aliasValueBuilder.append(alias.getValue());
+                        aliasValueBuilder.append("\" target=\"_blank\">");
+                        aliasValueBuilder.append(aliasValue);
                         aliasValueBuilder.append("</a>");
                         aliasValue = aliasValueBuilder.toString();
                     }

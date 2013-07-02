@@ -6,7 +6,7 @@ import jade.content.Concept;
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Alias extends IdentifiedComplexType implements Concept
+public class Alias extends IdentifiedComplexType
 {
     /**
      * Type of alias.
