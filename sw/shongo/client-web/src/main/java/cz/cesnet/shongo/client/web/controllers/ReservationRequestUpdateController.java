@@ -146,22 +146,26 @@ public class ReservationRequestUpdateController
         request.addSpecificationClass(AliasSetSpecification.class);
         List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
 
-        Set<String> reservationRequestIds = new HashSet<String>();
-        for (ReservationRequestSummary reservationRequestSummary : reservationService.listReservationRequests(request)) {
-            reservationRequestIds.add(reservationRequestSummary.getId());
-        }
-        cache.fetchPermissions(securityToken, reservationRequestIds);
+        ListResponse<ReservationRequestSummary> response =  reservationService.listReservationRequests(request);
+        if (response.getItemCount() > 0) {
+            Set<String> reservationRequestIds = new HashSet<String>();
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                reservationRequestIds.add(reservationRequestSummary.getId());
+            }
+            cache.fetchPermissions(securityToken, reservationRequestIds);
 
-        for (ReservationRequestSummary reservationRequestSummary : reservationService.listReservationRequests(request)) {
-            if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getAllocationState())) {
-                continue;
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getAllocationState())) {
+                    continue;
+                }
+                Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
+                if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
+                    continue;
+                }
+                reservationRequests.add(reservationRequestSummary);
             }
-            Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
-            if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
-                continue;
-            }
-            reservationRequests.add(reservationRequestSummary);
         }
+
 
 
         return reservationRequests;

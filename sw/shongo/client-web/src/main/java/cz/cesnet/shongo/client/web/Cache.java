@@ -181,10 +181,13 @@ public class Cache
     public synchronized Map<String, Set<Permission>> fetchPermissions(SecurityToken securityToken,
             Set<String> entityIds)
     {
+        Map<String, Set<Permission>> result = new HashMap<String, Set<Permission>>();
+        if (entityIds.isEmpty()) {
+            return result;
+        }
         UserState userState = getUserState(securityToken);
         Map<String, PermissionSet> permissionsByEntity =
                 authorizationService.listPermissions(new PermissionListRequest(securityToken, entityIds));
-        Map<String, Set<Permission>> result = new HashMap<String, Set<Permission>>();
         for (Map.Entry<String, PermissionSet> entry : permissionsByEntity.entrySet()) {
             String entityId = entry.getKey();
             Set<Permission> permissions = userState.permissionsByEntity.get(entityId);
