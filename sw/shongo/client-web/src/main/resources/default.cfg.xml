@@ -4,7 +4,7 @@
 <configuration>
 
     <!-- Controller url -->
-    <controller>http://127.0.0.1:8181</controller>
+    <controller>127.0.0.1:8181</controller>
 
     <!-- Application title suffix -->
     <title-suffix>(BETA)</title-suffix>
