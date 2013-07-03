@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -19,8 +21,10 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Controller for managing reservation requests.
@@ -32,6 +36,9 @@ import java.util.List;
 @SessionAttributes({"reservationRequest", "permanentRooms"})
 public class ReservationRequestUpdateController
 {
+    @Resource
+    private Cache cache;
+
     @Resource
     private ReservationService reservationService;
 
@@ -47,12 +54,14 @@ public class ReservationRequestUpdateController
     public String getCreate(
             SecurityToken securityToken,
             @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType,
+            @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
             Model model)
     {
         ReservationRequestModel reservationRequest = new ReservationRequestModel();
-        reservationRequest.setSpecificationType(specificationType);
         reservationRequest.setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 5));
         reservationRequest.setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+        reservationRequest.setSpecificationType(specificationType);
+        reservationRequest.setPermanentRoomCapacityReservationRequestId(permanentRoom);
         model.addAttribute("reservationRequest", reservationRequest);
         model.addAttribute("permanentRooms", getPermanentRooms(securityToken));
         return "reservationRequestCreate";
@@ -136,12 +145,25 @@ public class ReservationRequestUpdateController
         request.addSpecificationClass(AliasSpecification.class);
         request.addSpecificationClass(AliasSetSpecification.class);
         List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
+
+        Set<String> reservationRequestIds = new HashSet<String>();
+        for (ReservationRequestSummary reservationRequestSummary : reservationService.listReservationRequests(request)) {
+            reservationRequestIds.add(reservationRequestSummary.getId());
+        }
+        cache.fetchPermissions(securityToken, reservationRequestIds);
+
         for (ReservationRequestSummary reservationRequestSummary : reservationService.listReservationRequests(request)) {
             if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getAllocationState())) {
                 continue;
             }
+            Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
+            if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
+                continue;
+            }
             reservationRequests.add(reservationRequestSummary);
         }
+
+
         return reservationRequests;
     }
 }

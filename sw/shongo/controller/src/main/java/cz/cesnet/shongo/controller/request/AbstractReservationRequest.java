@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;

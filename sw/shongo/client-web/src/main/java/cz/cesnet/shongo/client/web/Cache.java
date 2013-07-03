@@ -3,9 +3,7 @@ package cz.cesnet.shongo.client.web;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.api.PermissionSet;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
@@ -207,7 +205,7 @@ public class Cache
      * @param securityToken
      * @param reservationRequestIds
      */
-    public synchronized void loadReservationRequests(SecurityToken securityToken, Set<String> reservationRequestIds)
+    public synchronized void fetchReservationRequests(SecurityToken securityToken, Set<String> reservationRequestIds)
     {
         Set<String> missingReservationRequestIds = null;
         for (String reservationRequestId : reservationRequestIds) {
@@ -249,5 +247,17 @@ public class Cache
             }
         }
         return reservationRequest;
+    }
+
+    /**
+     * @param securityToken
+     * @param executable
+     * @return reservation request id for given {@code reservationId}
+     */
+    public String getReservationRequestIdByReservation(SecurityToken securityToken, Executable executable)
+    {
+        Reservation reservation = reservationService.getReservation(securityToken, executable.getReservationId());
+        String reservationRequestId = reservation.getReservationRequestId();
+        return reservationRequestId;
     }
 }

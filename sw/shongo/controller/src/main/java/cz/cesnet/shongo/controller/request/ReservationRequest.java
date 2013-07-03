@@ -5,6 +5,7 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.api.AllocationState;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -64,7 +65,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     /**
      * @return {@link #parentAllocation}
      */
-    @OneToOne
+    @ManyToOne
     @Access(AccessType.FIELD)
     public Allocation getParentAllocation()
     {

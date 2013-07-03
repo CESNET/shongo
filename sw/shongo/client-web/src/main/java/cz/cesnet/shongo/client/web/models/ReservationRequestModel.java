@@ -3,12 +3,16 @@ package cz.cesnet.shongo.client.web.models;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import org.joda.time.*;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.springframework.context.MessageSource;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -704,5 +708,135 @@ public class ReservationRequestModel implements Validator
         NONE,
         DAILY,
         WEEKLY
+    }
+
+    /**
+     * Date/time formatters.
+     */
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
+
+    /**
+     * @param text
+     * @return formatted given {@code text} to be better selectable by triple click
+     */
+    private static String formatSelectable(String text)
+    {
+        return "<span style=\"float:left\">" + text + "</span>";
+    }
+
+    /**
+     * @param aliases
+     * @param executableState
+     * @return formatted aliases
+     */
+    public static String formatAliases(List<Alias> aliases, Executable.State executableState)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<span class=\"aliases");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        int index = 0;
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            String aliasValue = null;
+            switch (aliasType) {
+                case H323_E164:
+                    aliasValue = alias.getValue();
+                    break;
+                case ADOBE_CONNECT_URI:
+                    aliasValue = alias.getValue();
+                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
+                    if (executableState.isAvailable()) {
+                        StringBuilder aliasValueBuilder = new StringBuilder();
+                        aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
+                        aliasValueBuilder.append(alias.getValue());
+                        aliasValueBuilder.append("\" target=\"_blank\">");
+                        aliasValueBuilder.append(aliasValue);
+                        aliasValueBuilder.append("</a>");
+                        aliasValue = aliasValueBuilder.toString();
+                    }
+                    break;
+            }
+            if (aliasValue == null) {
+                continue;
+            }
+            if (index > 0) {
+                stringBuilder.append(",&nbsp;");
+            }
+            stringBuilder.append(aliasValue);
+            index++;
+        }
+        stringBuilder.append("</span>");
+        return stringBuilder.toString();
+    }
+
+    /**
+     * @param aliases
+     * @param executableState
+     * @param locale
+     * @return formatted description of aliases
+     */
+    public static String formatAliasesDescription(List<Alias> aliases, Executable.State executableState, Locale locale,
+            MessageSource messageSource)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<table class=\"aliases");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            switch (aliasType) {
+                case H323_E164:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164", null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164_GDS", null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case H323_URI:
+                case H323_IP:
+                case SIP_URI:
+                case SIP_IP:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case ADOBE_CONNECT_URI:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(":</td><td>");
+                    if (executableState.isAvailable()) {
+                        stringBuilder.append("<a class=\"nowrap\" href=\"");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("\" target=\"_blank\">");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("</a>");
+                    }
+                    else {
+                        stringBuilder.append(alias.getValue());
+                    }
+                    stringBuilder.append("</td></tr>");
+                    break;
+            }
+        }
+        stringBuilder.append("</table>");
+        if (!executableState.isAvailable()) {
+            stringBuilder.append("<span class=\"aliases not-available\">");
+            stringBuilder.append(messageSource.getMessage("views.room.notAvailable", null, locale));
+            stringBuilder.append("</span>");
+        }
+        return stringBuilder.toString();
     }
 }

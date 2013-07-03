@@ -19,7 +19,7 @@
         <p><spring:message code="views.reservationRequestDelete.referenced" arguments="${reservationRequestName}"/></p>
         <ul>
             <c:forEach var="dependency" items="${dependencies}">
-                <li><a href="${contextPath}/reservation-request/detail?id=${dependency.id}">${dependency.description}</a>
+                <li><a href="${contextPath}/reservation-request/detail/${dependency.id}">${dependency.description}</a>
                     (<spring:message code="views.reservationRequestDelete.dateTime"/> <joda:format value="${dependency.dateTime}" style="MS"/>)</li>
             </c:forEach>
         </ul>

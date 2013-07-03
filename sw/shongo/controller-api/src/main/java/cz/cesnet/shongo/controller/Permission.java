@@ -19,12 +19,10 @@ public enum Permission
     WRITE("write"),
 
     /**
-     * This permission allows the user to provide a reservation to a new reservation request.
-     * This permission can be set only for reservation and reservation request entities.
-     * If this permission is set for a reservation request, all reservations allocated for the request
-     * can be provided to a new reservation request.
+     * This permission allows the user to provide a reservation request to a new reservation request.
+     * This permission can be set only for reservation request entities.
      */
-    PROVIDE_RESERVATION("provide-reservation"),
+    PROVIDE_RESERVATION_REQUEST("provide-reservation-request"),
 
     /**
      * Control device resource.

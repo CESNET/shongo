@@ -11,6 +11,7 @@
 
 <c:if test="${isActive && parentReservationRequestId == null}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
+    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST" domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
 
 <script type="text/javascript">
@@ -157,8 +158,10 @@
             <dt><spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:</dt>
             <dd>${reservationRequest.roomParticipantCount}</dd>
 
-            <dt><spring:message code="views.reservationRequest.specification.roomPin"/>:</dt>
-            <dd>${reservationRequest.roomPin}</dd>
+            <c:if test="${reservationRequest.roomPin != null}">
+                <dt><spring:message code="views.reservationRequest.specification.roomPin"/>:</dt>
+                <dd>${reservationRequest.roomPin}</dd>
+            </c:if>
         </c:if>
 
     </dl>
@@ -185,7 +188,7 @@
             </thead>
             <tbody>
             <tr ng-repeat="userRole in items">
-                <td>{{userRole.user.fullName}}</td>
+                <td>{{userRole.user.fullName}} ({{userRole.user.originalId}})</td>
                 <td>{{userRole.role}}</td>
                 <td>{{userRole.user.primaryEmail}}</td>
                 <c:if test="${isWritable}">
@@ -218,7 +221,7 @@
     <c:if test="${isActive}">
         <hr/>
         <c:choose>
-            <%-- Single reservation request --%>
+            <%-- List of reservations --%>
             <c:when test="${reservationRequest.periodicityType == 'NONE'}">
                 <h2><spring:message code="views.reservationRequestDetail.reservations"/></h2>
                 <table class="table table-striped table-hover">
@@ -275,7 +278,7 @@
                                 </c:if>
                             </td>
                             <td>
-                                <c:if test="${reservation.roomState == 'STARTED'}">
+                                <c:if test="${reservation.roomState.available}">
                                     <a href="${contextPath}/room/${reservation.roomId}">
                                         <spring:message code="views.list.action.manage"/>
                                     </a>
@@ -334,11 +337,11 @@
                                 </div>
                             </td>
                             <td>
-                                <span id="executableAliases-{{$index}}">{{childReservationRequest.roomAliases}}</span>
+                                <span id="executableAliases-{{$index}}" ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
                                 <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
                                     <div ng-switch-when="false">
                                         <app:help label="executableAliases-{{$index}}" tooltipId="executableAliases-tooltip-{{$index}}">
-                                            {{childReservationRequest.roomAliasesDescription}}
+                                            <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
                                         </app:help>
                                     </div>
                                 </div>
@@ -347,7 +350,7 @@
                                 <a href="${contextPath}/reservation-request/detail/{{childReservationRequest.id}}">
                                     <spring:message code="views.list.action.show"/>
                                 </a>
-                                <span ng-show="childReservationRequest.roomState == 'started'">
+                                <span ng-show="childReservationRequest.roomStateAvailable">
                                     | <a href="${contextPath}/room/{{childReservationRequest.roomId}}">
                                         <spring:message code="views.list.action.manage"/>
                                     </a>
@@ -362,13 +365,67 @@
         </c:choose>
     </c:if>
 
+    <%-- Permanent room capacities --%>
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+        <hr/>
+        <div ng-controller="PaginationController"
+             ng-init="init('reservationRequestDetail.permanentRoomCapacities', '${contextPath}/reservation-request/:id/usages?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+            <pagination-page-size class="pull-right">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
+            <h2><spring:message code="views.reservationRequestDetail.permanentRoomCapacities"/></h2>
+            <div class="spinner" ng-hide="ready"></div>
+            <table class="table table-striped table-hover" ng-show="ready">
+                <thead>
+                <tr>
+                    <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
+                    <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
+                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                    <th width="120px"><spring:message code="views.list.action"/></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="permanentRoomCapacity in items">
+                    <td>{{permanentRoomCapacity.slot}}</td>
+                    <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
+                    <td class="allocation-state">
+                        <span id="permanentRoomCapacityState-{{$index}}" class="{{permanentRoomCapacity.allocationState}}">{{permanentRoomCapacity.allocationStateMessage}}</span>
+                        <app:help label="permanentRoomCapacityState-{{$index}}" tooltipId="reservationState-tooltip-{{$index}}">
+                            <span>{{permanentRoomCapacity.allocationStateHelp}}</span>
+                        </app:help>
+                    </td>
+                    <td>
+                        <a href="${contextPath}/reservation-request/detail/{{permanentRoomCapacity.id}}">
+                            <spring:message code="views.list.action.show"/>
+                        </a>
+                    </td>
+                </tr>
+                <tr ng-hide="items.length">
+                    <td colspan="3" class="empty">- - - None - - -</td>
+                </tr>
+                </tbody>
+            </table>
+            <c:choose>
+                <c:when test="${isProvidable && reservationRequest.slot.containsNow()}">
+                    <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequest.id}">
+                        <spring:message code="views.button.create"/>
+                    </a>
+                    <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
+                </c:when>
+                <c:otherwise>
+                    <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </c:if>
+
 </div>
 
 <div class="pull-right">
     <a class="btn btn-primary" href="${contextPath}/reservation-request">
         <spring:message code="views.button.back"/>
     </a>
-    <a class="btn" href="">
+    <a class="btn" href="javascript: location.reload();">
         <spring:message code="views.button.refresh"/>
     </a>
     <c:if test="${isWritable}">

@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -34,8 +33,6 @@ public class ReservationRequestController
     private static final String MESSAGE_ADHOC_ROOM = "views.reservationRequest.specification.ADHOC_ROOM";
     private static final String MESSAGE_PERMANENT_ROOM = "views.reservationRequest.specification.PERMANENT_ROOM";
     private static final String MESSAGE_ROOMS_ROOM_ADHOC = "views.reservationRequestList.rooms.room.adhoc";
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
 
     @Resource
     private ReservationService reservationService;
@@ -135,11 +132,11 @@ public class ReservationRequestController
                 providedReservationRequestIds.add(providedReservationRequestId);
             }
         }
-        cache.loadReservationRequests(securityToken, providedReservationRequestIds);
+        cache.fetchReservationRequests(securityToken, providedReservationRequestIds);
 
         // Build response
-        DateTimeFormatter dateFormatter = DATE_FORMATTER.withLocale(locale);
-        DateTimeFormatter dateTimeFormatter = DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateFormatter = ReservationRequestModel.DATE_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reservationRequestId = reservationRequest.getId();

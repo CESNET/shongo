@@ -39,14 +39,14 @@ public enum EntityType
                     put(Role.OWNER, new Permission[]{
                             Permission.READ,
                             Permission.WRITE,
-                            Permission.PROVIDE_RESERVATION
+                            Permission.PROVIDE_RESERVATION_REQUEST
                     });
                     put(Role.READER, new Permission[]{
                             Permission.READ
                     });
-                    put(Role.RESERVATION_USER, new Permission[]{
+                    put(Role.RESERVATION_REQUEST_USER, new Permission[]{
                             Permission.READ,
-                            Permission.PROVIDE_RESERVATION
+                            Permission.PROVIDE_RESERVATION_REQUEST
                     });
                 }},
             new HashSet<Role>()
@@ -64,14 +64,10 @@ public enum EntityType
                     put(Role.OWNER, new Permission[]{
                             Permission.READ,
                             Permission.WRITE,
-                            Permission.PROVIDE_RESERVATION
+                            Permission.PROVIDE_RESERVATION_REQUEST
                     });
                     put(Role.READER, new Permission[]{
                             Permission.READ
-                    });
-                    put(Role.RESERVATION_USER, new Permission[]{
-                            Permission.READ,
-                            Permission.PROVIDE_RESERVATION
                     });
                 }},
             null),

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -112,10 +113,20 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequest.setSpecification(new AliasSpecification(Technology.H323));
         reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
 
-        Reservation reservation = allocateAndCheck(reservationRequest);
+        String reservationRequestId = allocate(reservationRequest);
+        Reservation reservation = checkAllocated(reservationRequestId);
         Assert.assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
         Assert.assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
+
+        ReservationService service = getReservationService();
+        reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        reservationRequestId = allocate(reservationRequest);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
+        runScheduler();
     }
 
     @Test

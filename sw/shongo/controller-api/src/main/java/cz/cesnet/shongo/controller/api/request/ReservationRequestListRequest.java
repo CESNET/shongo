@@ -136,10 +136,12 @@ public class ReservationRequestListRequest extends ListRequest
         DATETIME
     }
 
-    private static final String RESERVATION_REQUEST_ID = "reservationRequestId";
+    private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";
+
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
+    private static final String HISTORY_RESERVATION_REQUEST_ID = "historyReservationRequestId";
     private static final String SORT = "sort";
     private static final String SORT_DESCENDING = "sortDescending";
 
@@ -147,10 +149,11 @@ public class ReservationRequestListRequest extends ListRequest
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(RESERVATION_REQUEST_ID, historyReservationRequestId);
+        dataMap.set(RESERVATION_REQUEST_IDS, reservationRequestIds);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
+        dataMap.set(HISTORY_RESERVATION_REQUEST_ID, historyReservationRequestId);
         dataMap.set(SORT, sort);
         dataMap.set(SORT_DESCENDING, sortDescending);
         return dataMap;
@@ -160,10 +163,11 @@ public class ReservationRequestListRequest extends ListRequest
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        historyReservationRequestId = dataMap.getString(RESERVATION_REQUEST_ID);
+        reservationRequestIds = dataMap.getSet(RESERVATION_REQUEST_IDS, String.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
+        historyReservationRequestId = dataMap.getString(HISTORY_RESERVATION_REQUEST_ID);
         sort = dataMap.getEnum(SORT, Sort.class);
         sortDescending = dataMap.getBool(SORT_DESCENDING);
     }

@@ -114,6 +114,17 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
     }
 
+    private void checkProvidedReservationRequest(String userId, String providedReservationRequestId)
+    {
+        if (providedReservationRequestId != null) {
+            EntityIdentifier entityId = EntityIdentifier.parse(providedReservationRequestId);
+            if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "provide reservation request %s", entityId);
+            }
+        }
+    }
+
     @Override
     public String createReservationRequest(SecurityToken token,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
@@ -124,6 +135,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (reservationRequestApi.getUserId() != null && authorization.isAdmin(userId)) {
             userId = reservationRequestApi.getUserId();
         }
+
+        // Check permission for provided reservation request
+        checkProvidedReservationRequest(userId, reservationRequestApi.getProvidedReservationRequestId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -227,6 +241,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
             }
 
+            // Check permission for provided reservation request
+            checkProvidedReservationRequest(userId, reservationRequestApi.getProvidedReservationRequestId());
+
             // Check if modified reservation request is of the same class
             AbstractReservationRequest newReservationRequest;
             Class<? extends AbstractReservationRequest> reservationRequestClass =
@@ -267,6 +284,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             return EntityIdentifier.formatId(newReservationRequest);
         }
         finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
@@ -278,6 +298,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     public void deleteReservationRequest(SecurityToken token, String reservationRequestId)
     {
         String userId = authorization.validate(token);
+        if (reservationRequestId == null) {
+            throw new IllegalArgumentException();
+        }
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

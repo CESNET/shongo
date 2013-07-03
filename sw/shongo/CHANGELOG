@@ -1,3 +1,14 @@
+0.5.3 (2013-07-03)
+
+    * Web client rewritten from scratch to Java.
+
+    * Added history for reservation requests in detail page and reservation requests can be modified.
+
+    * Added language selection for English or Czech.
+
+    * Show only actions which logged user can perform (e.g., user who isn't owner of a reservation request
+      cannot modify or delete the request so the actions aren't visible)
+
 0.5.2 (2013-04-25)
 
     * Added new error reporting system to controller. Domain and resource administrators are informed by email when

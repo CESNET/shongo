@@ -18,6 +18,9 @@
 
     <dl class="dl-horizontal">
 
+        <dt><spring:message code="views.reservationRequest"/>:</dt>
+        <dd><a href="${contextPath}/reservation-request/detail/${reservationRequestId}">${reservationRequestId}</a></dd>
+
         <dt><spring:message code="views.room.identifier"/>:</dt>
         <dd>${executable.id}</dd>
 
@@ -43,7 +46,33 @@
             </app:help>
         </dd>
 
+        <c:if test="${room != null}">
+            <dt><spring:message code="views.room.licenseCount"/>:</dt>
+            <dd>
+                    ${room.licenseCount}
+                <c:if test="${room.licenseCount == 0}">
+                    <c:set var="createUrl">${contextPath}/reservation-request/create?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequestId}</c:set>
+                    (<spring:message code="views.room.licenseCount.none" arguments="${createUrl}"/>)
+                </c:if>
+            </dd>
+        </c:if>
+
+        <dt><spring:message code="views.room.aliases"/>:</dt>
+        <dd>
+            <span id="roomAliases">${roomAliases}</span>
+            <c:if test="${roomAliasesDescription != null}">
+                <app:help label="roomAliases">${roomAliasesDescription}</app:help>
+            </c:if>
+        </dd>
+
     </dl>
+
+    <c:if test="${notAvailable}">
+        <div class="not-available">
+            <h2><spring:message code="views.room.notAvailable.heading"/></h2>
+            <p><spring:message code="views.room.notAvailable.text" arguments="${configuration.contactEmail}"/></p>
+        </div>
+    </c:if>
 
     <c:if test="${participants != null}">
         <h2><spring:message code="views.room.participants"/></h2>
@@ -94,4 +123,13 @@
             </tbody>
         </table>
     </c:if>
+</div>
+
+<div class="pull-right">
+    <a class="btn btn-primary" href="${contextPath}/reservation-request">
+        <spring:message code="views.button.back"/>
+    </a>
+    <a class="btn" href="javascript: location.reload();">
+        <spring:message code="views.button.refresh"/>
+    </a>
 </div>

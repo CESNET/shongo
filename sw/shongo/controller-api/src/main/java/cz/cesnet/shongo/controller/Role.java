@@ -16,11 +16,11 @@ public enum Role
     OWNER("1"),
 
     /**
-     * This role allows the user to provide a reservation to a new reservation request.
+     * This role allows the user to provide a reservation request to a new reservation request.
      *
-     * @see {@link Permission#PROVIDE_RESERVATION}
+     * @see {@link Permission#PROVIDE_RESERVATION_REQUEST}
      */
-    RESERVATION_USER("2"),
+    RESERVATION_REQUEST_USER("2"),
 
     /**
      * This role allows the user to read/view entity.

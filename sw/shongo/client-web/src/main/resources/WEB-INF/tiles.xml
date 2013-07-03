@@ -64,6 +64,7 @@
             <add-attribute value="angular.min.js"/>
             <add-attribute value="angular-resource.min.js"/>
             <add-attribute value="angular-cookies.min.js"/>
+            <add-attribute value="angular-sanitize.min.js"/>
             <add-attribute value="angular-pagination.js"/>
             <add-attribute value="angular-tooltip.js"/>
         </put-list-attribute>

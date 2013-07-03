@@ -115,6 +115,15 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequest.class, reservationRequest.getId());
         }
 
+        // Clear allocation reports for all reservation request versions
+        for (AbstractReservationRequest version : listVersions(reservationRequest)) {
+            if (version instanceof ReservationRequest) {
+                ReservationRequest reservationRequestVersion = (ReservationRequest) version;
+                reservationRequestVersion.clearReports();
+            }
+        }
+
+        // Soft delete the reservation request
         delete(reservationRequest, authorizationManager, false);
 
         transaction.commit();
@@ -194,12 +203,6 @@ public class ReservationRequestManager extends AbstractManager
         // Soft delete
         else {
             abstractReservationRequest.setState(AbstractReservationRequest.State.DELETED);
-
-            // Clear allocation reports
-            if (abstractReservationRequest instanceof ReservationRequest) {
-                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                reservationRequest.clearReports();
-            }
 
             super.update(abstractReservationRequest);
         }

@@ -529,6 +529,11 @@ public class AuthorizationManager extends AbstractManager
                     createChildAclRecord(aclRecord, userId, reservation, role, AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
+            else if (role.equals(Role.RESERVATION_REQUEST_USER)) {
+                for (Reservation reservation : allocation.getReservations()) {
+                    createChildAclRecord(aclRecord, userId, reservation, Role.READER, AclRecordDependency.Type.DELETE_DETACH);
+                }
+            }
         }
         else if (entity instanceof Reservation) {
             Reservation reservation = (Reservation) entity;
@@ -546,10 +551,6 @@ public class AuthorizationManager extends AbstractManager
             if (reservation.getExecutable() != null) {
                 if (EntityType.EXECUTABLE.allowsRole(role)) {
                     createChildAclRecord(aclRecord, userId, executable, role, AclRecordDependency.Type.DELETE_DETACH);
-                }
-                else if (role.equals(Role.RESERVATION_USER)) {
-                    createChildAclRecord(aclRecord, userId, executable, Role.READER,
-                            AclRecordDependency.Type.DELETE_DETACH);
                 }
             }
 

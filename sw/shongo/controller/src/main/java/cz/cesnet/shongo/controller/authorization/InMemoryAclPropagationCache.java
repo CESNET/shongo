@@ -137,7 +137,7 @@ public class InMemoryAclPropagationCache
                         @Override
                         public void addAclRecord(EntityState targetEntityState, String userId, Role role)
                         {
-                            if (role.equals(Role.OWNER) || role.equals(Role.RESERVATION_USER)) {
+                            if (role.equals(Role.OWNER) || role.equals(Role.RESERVATION_REQUEST_USER)) {
                                 role = Role.READER;
                             }
                             super.addAclRecord(targetEntityState, userId, role);

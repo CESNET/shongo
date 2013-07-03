@@ -4,6 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
+import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.PeriodicDateTime;
