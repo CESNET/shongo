@@ -14,11 +14,6 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.maven:maven-artifact:3.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.plexus:plexus-utils:2.0.4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-exec:1.1" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.maven:maven-plugin-api:2.2.1" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.maven.plugin-tools:maven-plugin-annotations:3.2" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.maven:maven-artifact:3.0" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.codehaus.plexus:plexus-utils:2.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.commons:commons-exec:1.1" level="project" />
   </component>
 </module>
 
