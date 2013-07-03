@@ -13,8 +13,7 @@
     <task:annotation-driven/>
 
     <!-- Application configuration -->
-    <bean id="configuration" class="cz.cesnet.shongo.client.web.ClientWebConfiguration">
-        <constructor-arg value="client-web.cfg.xml"/>
+    <bean id="configuration" class="cz.cesnet.shongo.client.web.ClientWebConfiguration" factory-method="getInstance">
     </bean>
 
     <bean id="controllerClient" class="cz.cesnet.shongo.controller.ControllerClient">

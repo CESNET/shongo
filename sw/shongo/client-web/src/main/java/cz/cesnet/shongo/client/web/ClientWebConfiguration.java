@@ -14,11 +14,27 @@ import java.io.File;
 public class ClientWebConfiguration extends CombinedConfiguration
 {
     /**
+     * Single instance of {@link ClientWebConfiguration}.
+     */
+    private static ClientWebConfiguration clientWebConfiguration;
+
+    /**
+     * @return {@link #clientWebConfiguration}
+     */
+    public static ClientWebConfiguration getInstance()
+    {
+        if (clientWebConfiguration == null) {
+            clientWebConfiguration = new ClientWebConfiguration("client-web.cfg.xml");
+        }
+        return clientWebConfiguration;
+    }
+
+    /**
      * Constructor.
      *
      * @param adminConfigFileName filename of administrator configuration file
      */
-    public ClientWebConfiguration(String adminConfigFileName)
+    private ClientWebConfiguration(String adminConfigFileName)
     {
         // System properties has the highest priority
         addConfiguration(new SystemConfiguration());
@@ -42,6 +58,42 @@ public class ClientWebConfiguration extends CombinedConfiguration
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default configuration.", exception);
         }
+    }
+
+    /**
+     * @return server port
+     */
+    public int getServerPort()
+    {
+        return getInt("server.port");
+    }
+
+    /**
+     * @return server port
+     */
+    public int getServerSslPort()
+    {
+        return getInt("server.ssl-port");
+    }
+
+    /**
+     * @return ssl key store
+     */
+    public String getServerSslKeyStore()
+    {
+        String sslKeyStore = getString("server.ssl-key-store");
+        if (sslKeyStore == null || sslKeyStore.trim().isEmpty()) {
+            return null;
+        }
+        return sslKeyStore;
+    }
+
+    /**
+     * @return password for ssl key store
+     */
+    public String getServerSslKeyStorePassword()
+    {
+        return getString("server.ssl-key-store-password");
     }
 
     /**

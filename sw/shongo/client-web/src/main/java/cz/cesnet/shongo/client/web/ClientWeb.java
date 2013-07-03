@@ -1,7 +1,15 @@
 package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.eclipse.jetty.security.ConstraintMapping;
+import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
@@ -70,7 +78,36 @@ public class ClientWeb
             webAppContext.setResourceBase(resourceBase);
         }
 
-        final Server server = new Server(8182);
+        final ClientWebConfiguration clientWebConfiguration = ClientWebConfiguration.getInstance();
+        final Server server = new Server();
+
+        // Configure HTTP connector
+        final SelectChannelConnector httpConnector = new SelectChannelConnector();
+        httpConnector.setPort(clientWebConfiguration.getServerPort());
+        server.addConnector(httpConnector);
+
+        final String sslKeyStore = clientWebConfiguration.getServerSslKeyStore();
+        if (sslKeyStore != null) {
+            // Redirect HTTP to HTTPS
+            httpConnector.setConfidentialPort(clientWebConfiguration.getServerSslPort());
+            // Require confidential (forces the HTTP to HTTPS redirection)
+            Constraint constraint = new Constraint();
+            constraint.setDataConstraint(Constraint.DC_CONFIDENTIAL);
+            ConstraintMapping constraintMapping = new ConstraintMapping();
+            constraintMapping.setConstraint(constraint);
+            constraintMapping.setPathSpec("/*");
+            ConstraintSecurityHandler constraintSecurityHandler = new ConstraintSecurityHandler();
+            constraintSecurityHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
+            webAppContext.setSecurityHandler(constraintSecurityHandler);
+
+            // Configure HTTPS connector
+            final SslContextFactory sslContextFactory = new SslContextFactory(sslKeyStore);
+            sslContextFactory.setKeyStorePassword(clientWebConfiguration.getServerSslKeyStorePassword());
+            final SslSocketConnector httpsConnector = new SslSocketConnector(sslContextFactory);
+            httpsConnector.setPort(clientWebConfiguration.getServerSslPort());
+            server.addConnector(httpsConnector);
+        }
+
         server.setHandler(webAppContext);
         server.start();
     }

@@ -14,3 +14,10 @@ from the source folder ("client-web/src/main/resources") and you can apply, e.g.
 Otherwise it uses the resources from "client-web/target/classes" and you won't be able to apply runtime modifications
 and you have to restart application every time you make a change.
 
+
+CONVERT KEY/CERT PAIR TO JAVE KEY STORE
+
+openssl pkcs12 -export -in server.crt -inkey server.key -out server.p12
+keytool -importkeystore -srckeystore server.p12 -srcstoretype PKCS12 -destkeystore server.keystore
+
+

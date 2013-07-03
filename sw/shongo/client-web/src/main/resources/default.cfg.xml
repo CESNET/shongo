@@ -3,6 +3,14 @@
 <!-- Default Configuration of Domain Controller -->
 <configuration>
 
+    <!-- Web server configuration -->
+    <server>
+        <port>80</port>
+        <ssl-port>443</ssl-port>
+        <ssl-key-store></ssl-key-store>
+        <ssl-key-store-password></ssl-key-store-password>
+    </server>
+
     <!-- Controller url -->
     <controller>127.0.0.1:8181</controller>
 
