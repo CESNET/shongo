@@ -78,7 +78,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     private volatile boolean capacityChecking = false;
 
-    private final int CAPACITY_CHECK_TIMEOUT = 3*1000;
+    /**
+     * Timeout for checking room capacity, default value is 5 minutes
+     */
+    private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
 
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
