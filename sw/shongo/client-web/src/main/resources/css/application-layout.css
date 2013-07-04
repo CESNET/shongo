@@ -1,35 +1,28 @@
 /** Layout */
-html, body, .container, .content {
+html, body   {
     height: 100%;
+    padding: 0px;
 }
-.container, .content {
-    position: relative;
+body {
 }
-.container {
-    width: 1000px;
+.content {
+    display: table;
+    height: 100%;
+    width: 100%;
 }
-.proper-content {
-    padding-top: 45px; /* >= navbar height */
+.block {
+    display: table-row;
+    height: 1px;
+}
+.block .container {
     padding-bottom: 10px;
-}
-.wrapper {
-    min-height: 100%;
-    height: auto !important;
-    height: 100%;
-    margin: 0 auto -103px; /* same as the footer */
+    padding-left: 10px;
+    padding-right: 10px;
 }
 .push {
-    height: 103px; /* same as the footer */
+    height: auto;
 }
 .footer {
     background-color: #f5f5f5;
-    position: relative;
-    height: 103px;
     text-align: center;
-}
-
-@media screen and (max-width: 920px) {
-    .proper-content {
-        padding-top: 85px; /* when the screen is small, move the body down */
-    }
 }

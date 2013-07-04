@@ -1,0 +1,3 @@
+[submodule "sw/shongo/client-web/src/lib/bootstrap"]
+	path = sw/shongo/client-web/src/lib/bootstrap
+	url = https://github.com/twitter/bootstrap.git

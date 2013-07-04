@@ -11,6 +11,7 @@
         <put-attribute name="body" value=""/>
         <put-list-attribute name="css">
             <add-attribute value="bootstrap.min.css"/>
+            <add-attribute value="bootstrap-responsive.min.css"/>
             <add-attribute value="application.css"/>
             <add-attribute value="application-layout.css"/>
         </put-list-attribute>

@@ -42,74 +42,92 @@
 
 <body>
 
+<div class="content">
+
 <%-- Page navigation header --%>
-<div class="navbar navbar-fixed-top">
+<div class="navbar navbar-static-top block">
     <div class="navbar-inner">
 
-        <div class="container">
+        <div class="main">
             <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
-
-            <div class="nav-collapse collapse">
-                <ul class="nav">
+            <div class="nav-collapse collapse pull-left">
+                <ul class="nav" role="navigation">
                     <li><a href="${contextPath}/"><spring:message code="views.layout.link.home"/></a></li>
                     <li><a href="${contextPath}/reservation-request"><spring:message code="views.layout.link.reservationRequests"/></a></li>
                 </ul>
             </div>
         </div>
 
-        <div style="margin-top: -40px; position: relative;">
-            <div class="navbar-text pull-right">
-                <spring:message code="views.layout.timezone" var="timezone"/>
-                <span id="timezone" title="${timezone}">${sessionScope.dateTimeZone}</span>
-                &nbsp;
-                <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
-                <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
-            </div>
-            <div class="navbar-text pull-right">
-                <security:authorize access="!isAuthenticated()">
+        <ul class="nav pull-right">
+            <li>
+                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+            </li>
+            <security:authorize access="!isAuthenticated()">
+                <li>
                     <a href="${contextPath}/login"><spring:message code="views.layout.login"/></a>
-                </security:authorize>
-                <security:authorize access="isAuthenticated()">
-                    <c:set var="userName"><b><security:authentication property="principal"/></b></c:set>
-                    <spring:message code="views.layout.logged" arguments="${userName}"/>
-                    <a href="${contextPath}/logout"><spring:message code="views.layout.logout"/></a>
-                </security:authorize>
-            </div>
-        </div>
+                </li>
+            </security:authorize>
+            <security:authorize access="isAuthenticated()">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <b><security:authentication property="principal"/></b>
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a class="menuitem" href="${contextPath}/logout"><spring:message code="views.layout.logout"/></a>
+                        </li>
+                    </ul>
+                </li>
+            </security:authorize>
+            <li>
+                <spring:message code="views.layout.timezone" var="timezone"/>
+                <span class="navbar-text" id="timezone" title="${timezone}">${sessionScope.dateTimeZone}</span>
+            </li>
+            <li>
+                <span class="navbar-text">
+                    <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
+                    <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                </span>
+            </li>
+
+
+        </ul>
 
     </div>
 </div>
 
-<div class="content">
-    <%-- Page content --%>
-    <div class="wrapper">
-        <div class="proper-content">
-            <div class="container">
-                <c:choose>
-                    <c:when test="${heading == 'title'}">
-                        <h1>${title}</h1>
-                    </c:when>
-                    <c:when test="${heading != ''}">
-                        <h1>${heading}</h1>
-                    </c:when>
-                </c:choose>
-                <tiles:insertAttribute name="body"/>
-            </div>
+<%-- Page content --%>
+<div class="block push">
+    <div class="container">
+    <c:choose>
+        <c:when test="${heading == 'title'}">
+            <h1>${title}</h1>
+        </c:when>
+        <c:when test="${heading != ''}">
+            <h1>${heading}</h1>
+        </c:when>
+    </c:choose>
+    <tiles:insertAttribute name="body"/>
         </div>
-        <div class="push"></div>
-    </div>
+</div>
 
-    <%-- Page footer --%>
-    <div class="footer">
-        <p class="muted">
-            <a href="${contextPath}/changelog"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
-                    code="shongo.version"/></a>
-            &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
-            <a title="CESNET" href="http://www.cesnet.cz/">
-                <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
-            </a>
-        </p>
-    </div>
+<%-- Page footer --%>
+<div class="footer block">
+    <p class="muted">
+        <a href="${contextPath}/changelog"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
+                code="shongo.version"/></a>
+        &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
+        <a title="CESNET" href="http://www.cesnet.cz/">
+            <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
+        </a>
+    </p>
+</div>
+
 </div>
 
 </body>
