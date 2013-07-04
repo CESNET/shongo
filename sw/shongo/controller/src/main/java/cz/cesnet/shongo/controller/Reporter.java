@@ -77,7 +77,7 @@ public class Reporter
             logger.debug(name + ": " + domainAdminMessage, throwable);
         }
 
-        if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN | Report.VISIBLE_TO_RESOURCE_ADMIN)) {
+        if (report.isVisible(Report.VISIBLE_TO_DOMAIN_ADMIN) || report.isVisible(Report.VISIBLE_TO_RESOURCE_ADMIN)) {
             // Get resource which is referenced by report
             Resource resource = null;
             EntityManager entityManager = null;
