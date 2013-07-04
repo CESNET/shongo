@@ -7,6 +7,7 @@
 
     <!-- Resources/Views without security (if a JSP match then <security:authorize/> won't be available) -->
     <security:http pattern="/favicon.ico" security="none"/>
+    <security:http pattern="/apple-touch-icon*.png" security="none"/>
     <security:http pattern="/css/**" security="none"/>
     <security:http pattern="/img/**" security="none"/>
     <security:http pattern="/js/**" security="none"/>

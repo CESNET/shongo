@@ -17,6 +17,18 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 public class MainController
 {
+    @RequestMapping("**/favicon.ico")
+    public String getShongoIcon()
+    {
+        return "forward:/img/shongo.ico";
+    }
+
+    @RequestMapping("**/apple-touch-icon*.png")
+    public String getShongoPng()
+    {
+        return "forward:/img/shongo.png";
+    }
+
     @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
     public String getIndex(HttpServletRequest request, RedirectAttributes redirectAttributes)
     {
