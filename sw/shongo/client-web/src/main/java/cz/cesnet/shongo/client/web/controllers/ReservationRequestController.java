@@ -178,16 +178,18 @@ public class ReservationRequestController
                 item.put("type", messageSource.getMessage(MESSAGE_ADHOC_ROOM, null, locale));
                 String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
                 if (providedReservationRequestId != null) {
+                    item.put("roomReservationRequestId", providedReservationRequestId);
                     ReservationRequestSummary providedReservationRequest =
                             cache.getReservationRequest(securityToken, providedReservationRequestId);
-                    ReservationRequestSummary.AliasSpecification aliasSpecification =
-                            (ReservationRequestSummary.AliasSpecification) providedReservationRequest.getSpecification();
-                    if (aliasSpecification != null && AliasType.ROOM_NAME.equals(aliasSpecification.getAliasType())) {
-                        item.put("room", aliasSpecification.getValue());
-                        item.put("roomReservationRequestId", providedReservationRequestId);
-                    }
-                    else {
-                        throw new UnsupportedApiException(aliasSpecification);
+                    if (providedReservationRequest != null) {
+                        ReservationRequestSummary.AliasSpecification aliasSpecification =
+                                (ReservationRequestSummary.AliasSpecification) providedReservationRequest.getSpecification();
+                        if (aliasSpecification != null && AliasType.ROOM_NAME.equals(aliasSpecification.getAliasType())) {
+                            item.put("room", aliasSpecification.getValue());
+                        }
+                        else {
+                            throw new UnsupportedApiException(aliasSpecification);
+                        }
                     }
                 }
                 else {

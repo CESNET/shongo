@@ -81,7 +81,7 @@ public class ReservationRequestUpdateController
             case PERMANENT_ROOM:
                 Object isSpecificationAvailable = reservationService.checkSpecificationAvailability(securityToken,
                         reservationRequestModel.toSpecificationApi(), reservationRequestModel.getSlot());
-                if (!isSpecificationAvailable.equals(Boolean.TRUE)) {
+                if (!Boolean.TRUE.equals(isSpecificationAvailable)) {
                     result.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
                     return "reservationRequestCreate";
                 }

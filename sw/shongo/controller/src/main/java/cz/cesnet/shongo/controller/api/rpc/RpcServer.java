@@ -408,12 +408,14 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
             reportDetail.append(requestId);
             reportDetail.append("\n");
 
-            reportDetail.append("    User: ");
-            reportDetail.append(userInformation.getFullName());
-            reportDetail.append("(id: ");
-            reportDetail.append(userInformation.getUserId());
-            reportDetail.append(")");
-            reportDetail.append("\n");
+            if (userInformation != null) {
+                reportDetail.append("    User: ");
+                reportDetail.append(userInformation.getFullName());
+                reportDetail.append("(id: ");
+                reportDetail.append(userInformation.getUserId());
+                reportDetail.append(")");
+                reportDetail.append("\n");
+            }
 
             reportDetail.append("  Method: ");
             reportDetail.append(methodName);
