@@ -86,8 +86,10 @@
             <tbody>
             <c:forEach items="${participants}" var="participant" varStatus="status">
                 <tr>
-                    <td>${participant.fullName}</td>
-                    <td>${participant.primaryEmail}</td>
+                    <td>${participant.name}</td>
+                    <td>
+                        ${participant.user.primaryEmail}
+                    </td>
                 </tr>
             </c:forEach>
             <c:if test="${participants.isEmpty()}">

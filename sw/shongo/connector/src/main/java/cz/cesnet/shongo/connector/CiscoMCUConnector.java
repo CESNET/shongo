@@ -1015,7 +1015,7 @@ ParamsLoop:
     {
         RoomUser ru = new RoomUser();
 
-        ru.setUserId((String) participant.get("participantName"));
+        ru.setId((String) participant.get("participantName"));
         ru.setRoomId((String) participant.get("conferenceName"));
 
         @SuppressWarnings("unchecked")

@@ -77,9 +77,18 @@ public class RoomController
 
             try {
                 Room room = resourceControlService.getRoom(securityToken, resourceId, roomId);
-                Collection<UserInformation> participants = new LinkedList<UserInformation>();
+                Collection<Map> participants = new LinkedList<Map>();
                 for (RoomUser roomUser : resourceControlService.listParticipants(securityToken, resourceId, roomId)) {
-                    participants.add(cache.getUserInformation(securityToken, roomUser.getUserId()));
+                    UserInformation userInformation = null;
+                    String userId = roomUser.getUserId();
+                    if (userId != null) {
+                        userInformation = cache.getUserInformation(securityToken, userId);
+                    }
+                    Map<String, Object> participant = new HashMap<String, Object>();
+                    participant.put("user", userInformation);
+                    participant.put("name",
+                            (userInformation != null ? userInformation.getFullName() : roomUser.getDisplayName()));
+                    participants.add(participant);
                 }
                 Collection<String> recordings = null;
                 if (technologies.size() == 1 && technologies.contains(Technology.ADOBE_CONNECT)) {
