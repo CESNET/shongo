@@ -996,6 +996,9 @@ ParamsLoop:
 
         List<RoomUser> result = new ArrayList<RoomUser>();
         for (Map<String, Object> part : participants) {
+            if (part == null) {
+                continue;
+            }
             if (!roomId.equals(part.get("conferenceName"))) {
                 continue; // not from this room
             }
