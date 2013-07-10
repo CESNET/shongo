@@ -89,9 +89,24 @@ public class Migration extends PersistentObject
     @Transient
     public boolean isReplacement()
     {
-        ResourceRoomEndpoint sourceRoom = (ResourceRoomEndpoint) sourceExecutable;
-        ResourceRoomEndpoint targetRoom = (ResourceRoomEndpoint) targetExecutable;
-        return sourceRoom.getResource().equals(targetRoom.getResource());
+        RoomEndpoint sourceRoom = (RoomEndpoint) sourceExecutable;
+        RoomEndpoint targetRoom = (RoomEndpoint) targetExecutable;
+
+        if (sourceRoom instanceof ResourceRoomEndpoint && targetRoom instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint sourceResourceRoom = (ResourceRoomEndpoint) sourceRoom;
+            ResourceRoomEndpoint targetResourceRoom = (ResourceRoomEndpoint) targetRoom;
+            if (sourceResourceRoom.getResource().equals(targetResourceRoom.getResource())) {
+                return true;
+            }
+        }
+        if (sourceRoom instanceof UsedRoomEndpoint && targetRoom instanceof UsedRoomEndpoint) {
+            UsedRoomEndpoint sourceUsedRoom = (UsedRoomEndpoint) sourceRoom;
+            UsedRoomEndpoint targetUsedRoom = (UsedRoomEndpoint) targetRoom;
+            if (sourceUsedRoom.getRoomEndpoint().equals(targetUsedRoom.getRoomEndpoint())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

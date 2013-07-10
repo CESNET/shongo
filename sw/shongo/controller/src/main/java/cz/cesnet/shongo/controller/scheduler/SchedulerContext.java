@@ -511,7 +511,7 @@ public class SchedulerContext
             AvailableReservation<? extends Reservation> availableReservation =
                     availableReservationByOriginalReservation.get(originalReservation);
             if (!availableReservation.isType(type)) {
-                throw new IllegalArgumentException("Reservation is already addded with different type.");
+                throw new IllegalArgumentException("Reservation is already added with different type.");
             }
             return availableReservation;
         }
@@ -536,11 +536,13 @@ public class SchedulerContext
         availableReservationByOriginalReservation.put(originalReservation, availableReservation);
         onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.ADDED);
 
-        Executable executable = targetReservation.getExecutable();
-        if (executable != null) {
-            if (!availableExecutables.containsKey(executable)) {
-                availableExecutables.put(executable,
-                        new AvailableExecutable<Executable>(executable, availableReservation));
+        if (availableReservation.isType(AvailableReservation.Type.REUSABLE)) {
+            Executable executable = targetReservation.getExecutable();
+            if (executable != null) {
+                if (!availableExecutables.containsKey(executable)) {
+                    availableExecutables.put(executable,
+                            new AvailableExecutable<Executable>(executable, availableReservation));
+                }
             }
         }
 
