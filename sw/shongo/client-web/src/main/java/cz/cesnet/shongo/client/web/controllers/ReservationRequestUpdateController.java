@@ -86,17 +86,6 @@ public class ReservationRequestUpdateController
                     return "reservationRequestCreate";
                 }
                 break;
-            case PERMANENT_ROOM_CAPACITY:
-                // Set technology from permanent room reservation request
-                String permanentRoomReservationRequestId =
-                        reservationRequestModel.getPermanentRoomCapacityReservationRequestId();
-                AbstractReservationRequest permanentRoomReservationRequest =
-                        reservationService.getReservationRequest(securityToken, permanentRoomReservationRequestId);
-                ReservationRequestModel permanentRoomReservationRequestModel = new ReservationRequestModel();
-                permanentRoomReservationRequestModel.fromSpecificationApi(
-                        permanentRoomReservationRequest.getSpecification(), permanentRoomReservationRequestId);
-                reservationRequestModel.setTechnology(permanentRoomReservationRequestModel.getTechnology());
-                break;
         }
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
         String reservationRequestId = reservationService.createReservationRequest(securityToken, reservationRequest);
@@ -165,9 +154,6 @@ public class ReservationRequestUpdateController
                 reservationRequests.add(reservationRequestSummary);
             }
         }
-
-
-
         return reservationRequests;
     }
 }
