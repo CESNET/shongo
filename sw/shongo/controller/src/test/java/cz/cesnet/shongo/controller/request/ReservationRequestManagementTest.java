@@ -498,7 +498,7 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         aliasSpecification.addAliasType(AliasType.ROOM_NAME);
         aliasSpecification.setValue("test");
 
-        result = getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, aliasSpecification, interval);
+        result = getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval, aliasSpecification);
         Assert.assertEquals(Boolean.TRUE, result);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -507,12 +507,12 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest.setSpecification(aliasSpecification);
         allocateAndCheck(reservationRequest);
 
-        result = getReservationService().checkSpecificationAvailability(SECURITY_TOKEN, aliasSpecification, interval);
+        result = getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval, aliasSpecification);
         Assert.assertEquals(String.class, result.getClass());
 
         try {
-            getReservationService().checkSpecificationAvailability(SECURITY_TOKEN,
-                    new RoomSpecification(1, Technology.H323), interval);
+            getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval,
+                    new RoomSpecification(1, Technology.H323));
             Assert.fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {

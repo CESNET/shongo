@@ -17,13 +17,24 @@ public interface ReservationService extends Service
 {
     /**
      * @param token         token of the user requesting the operation
-     * @param specification to checked
      * @param slot          in which the given {@code specification} should be checked
+     * @param specification to be checked
      * @return {@link Boolean#TRUE} when given {@code specification} can be allocated for given date/time {@code slot},
      *         otherwise {@link String} report describing the reason why the specification is not available
      */
     @API
-    public Object checkSpecificationAvailability(SecurityToken token, Specification specification, Interval slot);
+    public Object checkAvailableSpecification(SecurityToken token, Interval slot, Specification specification);
+
+    /**
+     * @param token                        token of the user requesting the operation
+     * @param slot                         for which the given {@code providedReservationRequestId} should be checked
+     * @param providedReservationRequestId to be checked
+     * @return {@link Boolean#TRUE} when given {@code providedReservationRequestId} can be provided for given
+     *         date/time {@code slot}, otherwise {@link String} report describing the reason why it is not available
+     */
+    @API
+    public Object checkAvailableProvidedReservationRequest(SecurityToken token, Interval slot,
+            String providedReservationRequestId);
 
     /**
      * Creates a new reservation request.
@@ -59,7 +70,7 @@ public interface ReservationService extends Service
     /**
      * Try to allocate reservation for given {@link ReservationRequest} (e.g., if it is in allocation failed state).
      *
-     * @param token        token of the user requesting the operation
+     * @param token                token of the user requesting the operation
      * @param reservationRequestId shongo-id of the {@link ReservationRequest}
      */
     @API

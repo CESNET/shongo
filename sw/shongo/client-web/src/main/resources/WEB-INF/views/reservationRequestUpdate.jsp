@@ -31,30 +31,22 @@
         // Specifies whether we are modifying an existing reservation request
         $scope.modification = $scope.id != null;
 
-        // Set proper date/time format for start date/time picker
-        $scope.$watch("specificationType", function () {
-            var dateTimePicker = $('#start').data("datetimepicker");
-            if ( $scope.specificationType == 'PERMANENT_ROOM') {
-                dateTimePicker.setFormatDate();
-            }
-            else {
-                dateTimePicker.setFormatDateTime();
-            }
-        });
-
-        // Permanent rooms
-        var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status">
+        // Get permanent rooms
+        var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
                 id: "${permanentRoom.id}",
                 name: "${permanentRoom.specification.value}",
                 formattedSlot: "<joda:format value="${permanentRoom.earliestSlot.start}" style="M-"/> - <joda:format value="${permanentRoom.earliestSlot.end}" style="M-"/>",
-                slot: "${permanentRoom.earliestSlot}"
+                slot: "${permanentRoom.earliestSlot}",
+                technology: "${technology}"
             }<c:if test="${!status.last}">,</c:if></c:forEach>
         };
+        // Add all permanent rooms to the model
         $scope.permanentRooms = {};
         for (var permanentRoom in permanentRooms) {
             $scope.permanentRooms[permanentRoom] = permanentRooms[permanentRoom];
         }
+        // Set current permanent rooms
         $scope.permanentRoom = $scope.permanentRooms["${reservationRequest.permanentRoomCapacityReservationRequestId}"];
         $scope.updatePermanentRooms = function(performApply) {
             // Determine requested slot
@@ -94,9 +86,30 @@
                 $scope.$apply();
             }
         };
+        // Update permanent rooms model when start or duration changes
         $("#start,#durationCount").change(function() {
             $scope.updatePermanentRooms();
         });
+
+        // Set proper date/time format for start date/time picker
+        $scope.$watch("specificationType", function () {
+            var dateTimePicker = $('#start').data("datetimepicker");
+            if ( $scope.specificationType == 'PERMANENT_ROOM') {
+                dateTimePicker.setFormatDate();
+            }
+            else {
+                dateTimePicker.setFormatDateTime();
+            }
+        });
+
+        // Set proper technology for selected permanent room
+        $scope.$watch("permanentRoom", function () {
+            if ( $scope.permanentRoom != null) {
+                $scope.technology = $scope.permanentRoom.technology;
+            }
+        });
+
+        // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
     }
 </script>

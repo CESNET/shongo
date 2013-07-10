@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.*;
 import org.joda.time.DateTime;
@@ -11,10 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created

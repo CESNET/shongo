@@ -325,8 +325,8 @@ public class ReservationRequestModel implements Validator
             if (!(slots.size() == 1 && slots.get(0) instanceof PeriodicDateTimeSlot)) {
                 throw new UnsupportedApiException("Only single periodic date/time slot is allowed.");
             }
-            if (!specificationType.equals(SpecificationType.ADHOC_ROOM)) {
-                throw new UnsupportedApiException("Periodicity is allowed only for rooms.");
+            if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
+                throw new UnsupportedApiException("Periodicity is not allowed for permanent rooms.");
             }
             PeriodicDateTimeSlot slot = (PeriodicDateTimeSlot) slots.get(0);
             start = slot.getStart();
@@ -371,7 +371,7 @@ public class ReservationRequestModel implements Validator
         }
 
         // Room duration
-        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
+        if (!specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             int minutes = duration.toStandardMinutes().getMinutes();
             if ((minutes % (60 * 24)) == 0) {
                 durationCount = minutes / (60 * 24);

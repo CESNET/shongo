@@ -343,34 +343,19 @@ public class SchedulerContext
     }
 
     /**
-     * @return {@link #availableReservations}
+     * Remove {@link #availableReservations} from given {@code reservations}.
+     *
+     * @param reservations
      */
-    /*public Set<AvailableReservation> getParentAvailableReservations()
+    public void applyAvailableReservations(Collection<ExistingReservation> reservations)
     {
-        Set<AvailableReservation> parentAvailableReservations = new HashSet<AvailableReservation>();
-        for (AvailableReservation availableReservation : availableReservations) {
-            Reservation originalReservation = availableReservation.getOriginalReservation();
-            Reservation parentReservation = originalReservation.getParentReservation();
-            if (parentReservation != null) {
-                AvailableReservation parentAvailableReservation = getAvailableReservation(parentReservation);
-                if (parentAvailableReservation == null) {
-                    throw new IllegalArgumentException("Parent allocated reservation is not available.");
-                }
-                continue;
+        for (AvailableReservation<? extends Reservation> availableReservation : availableReservations) {
+            Reservation reservation = availableReservation.getOriginalReservation();
+            if (reservation instanceof ExistingReservation) {
+                reservations.remove(reservation);
             }
-            parentAvailableReservations.add(availableReservation);
         }
-        return parentAvailableReservations;
-    }*/
-
-    /**
-     * @param originalReservation for which the {@link AvailableReservation} should be returned
-     * @return {@link AvailableReservation} for given {@code originalReservation}
-     */
-    /*public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
-    {
-        return availableReservationByOriginalReservation.get(originalReservation);
-    }*/
+    }
 
     /**
      * @param executableType
@@ -526,7 +511,7 @@ public class SchedulerContext
             AvailableReservation<? extends Reservation> availableReservation =
                     availableReservationByOriginalReservation.get(originalReservation);
             if (!availableReservation.isType(type)) {
-                throw new IllegalArgumentException("Reservation is already addded with different type.");
+                throw new IllegalArgumentException("Reservation is already added with different type.");
             }
             return availableReservation;
         }
@@ -551,11 +536,13 @@ public class SchedulerContext
         availableReservationByOriginalReservation.put(originalReservation, availableReservation);
         onChange(ObjectType.AVAILABLE_RESERVATION, availableReservation, ObjectState.ADDED);
 
-        Executable executable = targetReservation.getExecutable();
-        if (executable != null) {
-            if (!availableExecutables.containsKey(executable)) {
-                availableExecutables.put(executable,
-                        new AvailableExecutable<Executable>(executable, availableReservation));
+        if (availableReservation.isType(AvailableReservation.Type.REUSABLE)) {
+            Executable executable = targetReservation.getExecutable();
+            if (executable != null) {
+                if (!availableExecutables.containsKey(executable)) {
+                    availableExecutables.put(executable,
+                            new AvailableExecutable<Executable>(executable, availableReservation));
+                }
             }
         }
 
@@ -755,20 +742,6 @@ public class SchedulerContext
     public void applyValueReservations(Long valueProviderId, List<ValueReservation> valueReservations)
     {
         valueReservationTransaction.applyReservations(valueProviderId, valueReservations);
-    }
-
-    /**
-     * @param reservation
-     * @return true whether given {@code reservation} is available in given {@code interval} (it means it is not
-     *         referenced by any {@link ExistingReservation}),
-     *         false otherwise
-     */
-    public boolean isReservationAvailable(Reservation reservation)
-    {
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(reservation, requestedSlot);
-        return existingReservations.size() == 0;
     }
 
     /**

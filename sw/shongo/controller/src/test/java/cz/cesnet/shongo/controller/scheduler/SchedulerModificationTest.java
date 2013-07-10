@@ -2,13 +2,11 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -258,6 +256,51 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Assert.assertEquals(1, reservationIds.size());
         Reservation reservation = service.getReservation(SECURITY_TOKEN, reservationIds.get(0));
         Assert.assertEquals(Interval.parse("2012-01-01/2012-02-01"), reservation.getSlot());
+    }
+
+    @Test
+    public void testModificationWithProvidedReservation() throws Exception
+    {
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAllocatable(true);
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10,
+                new AliasType[]{AliasType.ROOM_NAME, AliasType.ADOBE_CONNECT_URI}));
+        connectServer.addCapability(new AliasProviderCapability(
+                "test", AliasType.ADOBE_CONNECT_URI, "{device.address}/{value}").withPermanentRoom());
+        connectServer.addCapability(new AliasProviderCapability(
+                "test", AliasType.ROOM_NAME).withPermanentRoom());
+        getResourceService().createResource(SECURITY_TOKEN, connectServer);
+
+        // Allocate a new alias reservation
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
+        aliasSetSpecification.setSharedExecutable(true);
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
+        aliasReservationRequest.setSpecification(aliasSetSpecification);
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        checkAllocated(aliasReservationRequestId);
+
+        // Allocate a room capacity
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(
+                new RoomSpecification(5, Technology.ADOBE_CONNECT));
+        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        // Increase room capacity
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                SECURITY_TOKEN, reservationRequestId);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(10);
+        allocateAndCheck(reservationRequest);
     }
 
     /*@Test

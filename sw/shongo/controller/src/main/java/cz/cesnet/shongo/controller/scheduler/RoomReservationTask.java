@@ -144,7 +144,7 @@ public class RoomReservationTask extends ReservationTask
     {
         Executable oldExecutable = oldReservation.getExecutable();
         Executable newExecutable = newReservation.getExecutable();
-        if (oldExecutable instanceof ResourceRoomEndpoint && newExecutable instanceof ResourceRoomEndpoint) {
+        if (oldExecutable instanceof RoomEndpoint && newExecutable instanceof RoomEndpoint) {
             Migration migration = new Migration();
             migration.setSourceExecutable(oldExecutable);
             migration.setTargetExecutable(newExecutable);

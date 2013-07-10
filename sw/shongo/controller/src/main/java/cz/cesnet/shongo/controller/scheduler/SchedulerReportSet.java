@@ -10,7 +10,7 @@ import cz.cesnet.shongo.report.*;
 public class SchedulerReportSet extends AbstractReportSet
 {
     /**
-     * Resource {@link #resource}.
+     * The {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceReport")
@@ -53,7 +53,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(".");
                     break;
@@ -63,7 +63,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Resource {@link #resource} is not allocatable.
+     * The {@link #resource} is not allocatable.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAllocatableReport")
@@ -99,7 +99,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(" is not allocatable.");
                     break;
@@ -147,7 +147,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Resource {@link #resource} is already allocated.
+     * The {@link #resource} is already allocated.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceAlreadyAllocatedReport")
@@ -183,7 +183,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(" is already allocated.");
                     break;
@@ -231,7 +231,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Resource {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
+     * The {@link #resource} is not available for the requested time slot. The maximum date/time for which the resource can be allocated is {@link #maxDateTime}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotAvailableReport")
@@ -282,7 +282,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(" is not available for the requested time slot. The maximum date/time for which the resource can be allocated is ");
                     message.append((maxDateTime == null ? "null" : maxDateTime.toString()));
@@ -339,7 +339,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Resource {@link #resource} is not endpoint.
+     * The {@link #resource} is not endpoint.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceNotEndpointReport")
@@ -375,7 +375,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(" is not endpoint.");
                     break;
@@ -423,7 +423,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Resource {@link #resource} is requested multiple times.
+     * The {@link #resource} is requested multiple times.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ResourceMultipleRequestedReport")
@@ -459,7 +459,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Resource ");
+                    message.append("The ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(" is requested multiple times.");
                     break;
@@ -1048,31 +1048,31 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Provided reservation request {@link #reservationRequest} has no usable allocated reservation.
+     * No reservation is allocated for provided {@link #reservationRequest} which can be used in requested time slot.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
     public static class ReservationRequestNotUsableReport extends cz.cesnet.shongo.controller.scheduler.SchedulerReport
     {
-        protected cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest;
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest;
 
         public ReservationRequestNotUsableReport()
         {
         }
 
-        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        public ReservationRequestNotUsableReport(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
             setReservationRequest(reservationRequest);
         }
 
         @javax.persistence.OneToOne
         @javax.persistence.JoinColumn(name = "reservationrequest_id")
-        public cz.cesnet.shongo.controller.request.ReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
             return reservationRequest;
         }
 
-        public void setReservationRequest(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        public void setReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
             this.reservationRequest = reservationRequest;
         }
@@ -1098,9 +1098,9 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Provided reservation request ");
+                    message.append("No reservation is allocated for provided ");
                     message.append((reservationRequest == null ? "null" : reservationRequest.getReportDescription(messageType)));
-                    message.append(" has no usable allocated reservation.");
+                    message.append(" which can be used in requested time slot.");
                     break;
             }
             return message.toString();
@@ -1123,14 +1123,14 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
             report.setReservationRequest(reservationRequest);
             this.report = report;
         }
 
-        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest)
+        public ReservationRequestNotUsableException(Throwable throwable, cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest)
         {
             super(throwable);
             ReservationRequestNotUsableReport report = new ReservationRequestNotUsableReport();
@@ -1138,7 +1138,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.ReservationRequest getReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReservationRequest()
         {
             return getReport().getReservationRequest();
         }
@@ -1179,19 +1179,34 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Provided reservation {@link #reservation} is not available.
+     * The {@link #reservation} from provided {@link #providedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
     public static class ReservationNotAvailableReport extends ReservationReport
     {
+        protected cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest;
+
         public ReservationNotAvailableReport()
         {
         }
 
-        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
         {
             setReservation(reservation);
+            setProvidedReservationRequest(providedReservationRequest);
+        }
+
+        @javax.persistence.OneToOne
+        @javax.persistence.JoinColumn(name = "providedreservationrequest_id")
+        public cz.cesnet.shongo.controller.request.ReservationRequest getProvidedReservationRequest()
+        {
+            return providedReservationRequest;
+        }
+
+        public void setProvidedReservationRequest(cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
+        {
+            this.providedReservationRequest = providedReservationRequest;
         }
 
         @javax.persistence.Transient
@@ -1215,9 +1230,11 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Provided reservation ");
+                    message.append("The ");
                     message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(" is not available.");
+                    message.append(" from provided ");
+                    message.append((providedReservationRequest == null ? "null" : providedReservationRequest.getReportDescription(messageType)));
+                    message.append(" is not available because it is already allocated for another reservation request in requested time slot.");
                     break;
             }
             return message.toString();
@@ -1240,19 +1257,26 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
         {
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
             report.setReservation(reservation);
+            report.setProvidedReservationRequest(providedReservationRequest);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation)
+        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
         {
             super(throwable);
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
             report.setReservation(reservation);
+            report.setProvidedReservationRequest(providedReservationRequest);
             this.report = report;
+        }
+
+        public cz.cesnet.shongo.controller.request.ReservationRequest getProvidedReservationRequest()
+        {
+            return getReport().getProvidedReservationRequest();
         }
 
         @Override
@@ -1263,7 +1287,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Reusing reservation {@link #reservation}.
+     * Reusing {@link #reservation}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationReusingReport")
@@ -1292,7 +1316,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Reusing reservation ");
+                    message.append("Reusing ");
                     message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
                     message.append(".");
                     break;
@@ -1581,7 +1605,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating resource {@link #resource}.
+     * Allocating the {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingResourceReport")
@@ -1610,7 +1634,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Allocating resource ");
+                    message.append("Allocating the ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(".");
                     break;
@@ -1713,7 +1737,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * Allocating value in resource {@link #resource}.
+     * Allocating value in the {@link #resource}.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("AllocatingValueReport")
@@ -1742,7 +1766,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("Allocating value in resource ");
+                    message.append("Allocating value in the ");
                     message.append((resource == null ? "null" : resource.getReportDescription(messageType)));
                     message.append(".");
                     break;

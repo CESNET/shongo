@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.util.StringHelper;
 
 import java.text.Normalizer;
 
@@ -25,10 +26,9 @@ public enum FilterType
     {
         switch (filterType) {
             case CONVERT_TO_URL:
-                String filteredValue = Normalizer.normalize(value, Normalizer.Form.NFD);
+                String filteredValue = StringHelper.removeAccents(value);
                 filteredValue = filteredValue.toLowerCase();
                 filteredValue = filteredValue.replaceAll(" ", "-");
-                filteredValue = filteredValue.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
                 filteredValue = filteredValue.replaceAll("[^a-z0-9_-]", "");
                 return filteredValue;
             default:
