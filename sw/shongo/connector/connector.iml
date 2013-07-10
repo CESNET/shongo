@@ -12,6 +12,7 @@
     </content>
     <orderEntry type="jdk" jdkName="1.6" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.hibernate:hibernate-core:4.1.12.Final" level="project" />
     <orderEntry type="module" module-name="connector-api" />
     <orderEntry type="module" module-name="common-api" />
     <orderEntry type="library" name="Maven: joda-time:joda-time:2.1" level="project" />

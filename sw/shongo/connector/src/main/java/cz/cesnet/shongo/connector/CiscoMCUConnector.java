@@ -996,7 +996,10 @@ ParamsLoop:
 
         List<RoomUser> result = new ArrayList<RoomUser>();
         for (Map<String, Object> part : participants) {
-            if (!part.get("conferenceName").equals(roomId)) {
+            if (part == null) {
+                continue;
+            }
+            if (!roomId.equals(part.get("conferenceName"))) {
                 continue; // not from this room
             }
             result.add(extractRoomUser(part));
@@ -1015,7 +1018,7 @@ ParamsLoop:
     {
         RoomUser ru = new RoomUser();
 
-        ru.setUserId((String) participant.get("participantName"));
+        ru.setId((String) participant.get("participantName"));
         ru.setRoomId((String) participant.get("conferenceName"));
 
         @SuppressWarnings("unchecked")

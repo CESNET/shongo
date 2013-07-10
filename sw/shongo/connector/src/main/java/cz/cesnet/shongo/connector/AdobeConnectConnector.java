@@ -3,7 +3,6 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.ExpirationMap;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.jade.CommandException;
 import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
@@ -461,8 +460,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (dateCreated != null) {
                 roomSummary.setStartDateTime(DateTime.parse(dateCreated));
             }
-
-            //TODO: element URL
 
             meetings.add(roomSummary);
         }
@@ -1059,6 +1056,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             if (participants > roomCapacity) {
                 logger.warn("Capacity has been exceeded in room " + scoId);
                 // TODO: notify
+                /*
+                   String roomId = scoId;
+                   String notificationTitle = "Exceeded capacity";
+                   String notificationMessage = "Capacity for room " + scoId + "exceeded.";
+                   performControllerAction(new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId, notificationTitle, notificationMessage));
+                 */
             }
         }
     }
@@ -1082,7 +1085,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * Returns room capacity stored in sco-tag (in sco-info).
      *
      * @param roomId sco-id of the room
-     * @return room capacity
+     * @return room capacity, value -1 for unlimited or not set
      */
     protected int getRoomCapacity(String roomId) throws CommandException
     {
@@ -1092,7 +1095,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element response = request("sco-info", scoInfoAttributes);
         if (response.getChild("sco").getChildText("sco-tag") == null) {
             logger.error("Capacity is not set for room: sco-id=" + roomId + ", skipping capacity check.");
-            return 999;
+            return -1;
         }
 
         return Integer.parseInt(response.getChild("sco").getChildText("sco-tag"));
