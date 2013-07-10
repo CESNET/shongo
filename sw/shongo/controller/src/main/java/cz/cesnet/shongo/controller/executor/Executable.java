@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
@@ -379,7 +380,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
                 stringBuilder.append(" more");
                 break;
             }
-            String dateTime = cz.cesnet.shongo.Temporal.formatDateTime(report.getDateTime());
+            String dateTime = Temporal.formatDateTime(report.getDateTime());
             stringBuilder.append("[");
             stringBuilder.append(dateTime);
             stringBuilder.append("] ");

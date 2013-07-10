@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
@@ -292,7 +293,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         }
 
         // Filter them
-        String filter = request.getFilter();
+        String filter = StringHelper.removeAccents(request.getFilter());
         if (filter != null) {
             for (Iterator<UserInformation> iterator = users.iterator(); iterator.hasNext(); ) {
                 UserInformation userInformation = iterator.next();
@@ -306,7 +307,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     filterData.append(email);
                 }
                 filterData.append(userInformation.getOrganization());
-                if (!StringUtils.containsIgnoreCase(filterData.toString(), filter)) {
+                if (!StringUtils.containsIgnoreCase(StringHelper.removeAccents(filterData.toString()), filter)) {
                     iterator.remove();
                 }
             }

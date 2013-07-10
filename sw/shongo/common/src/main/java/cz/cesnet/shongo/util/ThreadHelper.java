@@ -111,12 +111,12 @@ public class ThreadHelper
      */
     public static void printRunningThreads()
     {
-        // Get the threadlisting as a string using a StringWriter stream
-        StringWriter sout = new StringWriter(); // To capture the listing
-        PrintWriter out = new PrintWriter(sout);
-        listAllThreads(out); // List threads to stream
+        // Get the thread listing as a string using a StringWriter stream
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter out = new PrintWriter(stringWriter);
+        listAllThreads(out);
         out.close();
-        String threadListing = sout.toString(); // Get l
+        String threadListing = stringWriter.toString();
         System.out.println(threadListing);
     }
 

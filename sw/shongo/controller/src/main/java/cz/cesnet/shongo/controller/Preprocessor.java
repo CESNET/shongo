@@ -10,7 +10,6 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
-import org.joda.time.ReadablePartial;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

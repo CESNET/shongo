@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
+import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

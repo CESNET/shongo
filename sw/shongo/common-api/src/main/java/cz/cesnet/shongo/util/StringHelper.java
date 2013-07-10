@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.util;
 
+import java.text.Normalizer;
+
 /**
  * Helper for formatting string.
  *
@@ -35,5 +37,20 @@ public class StringHelper
             stringBuilder.append(line);
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * Removing accents and diacritics from given {@code text}.
+     *
+     * @param text
+     * @return given {@code text} without accents and diacritics
+     */
+    public static String removeAccents(String text)
+    {
+        if (text == null) {
+            return null;
+        }
+        text = Normalizer.normalize(text, Normalizer.Form.NFD);
+        return text.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
     }
 }
