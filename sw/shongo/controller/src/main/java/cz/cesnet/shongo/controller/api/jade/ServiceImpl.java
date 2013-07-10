@@ -116,6 +116,7 @@ public class ServiceImpl implements Service
                 finally {
                     entityManager.close();
                 }
+                break;
             default:
                 throw new TodoImplementException(targetType.toString());
         }

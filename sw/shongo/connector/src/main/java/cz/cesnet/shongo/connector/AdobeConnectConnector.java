@@ -9,6 +9,8 @@ import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.controller.api.jade.GetUserInformation;
+import cz.cesnet.shongo.controller.api.jade.NotifyTarget;
+import cz.cesnet.shongo.controller.api.jade.Service;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -1011,7 +1013,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     }
 
                     try {
-                        checkRoomsCapacity();
+                        checkAllRoomsCapacity();
                     } catch (CommandException e) {
                         logger.error(String.format("Capacity check failed: " + e));
                         continue;
@@ -1040,29 +1042,56 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
      * @throws CommandException
      */
-    protected void checkRoomsCapacity() throws CommandException
+    protected void checkAllRoomsCapacity() throws CommandException
     {
         HashMap<String,String> attributes = new HashMap<String, String>();
         Element response = request("report-active-meetings",attributes);
 
         for (Element sco : response.getChild("report-active-meetings").getChildren())
         {
-            String scoId = sco.getAttributeValue("sco-id");
-            String activeParticipants = sco.getAttributeValue("active-participants");
-            int participants = activeParticipants == null ? 0 : countRoomParticipants(scoId);
+            checkRoomCapacity(sco.getAttributeValue("sco-id"));
+        }
+    }
 
-            int roomCapacity = getRoomCapacity(scoId);
-            logger.debug("Checking capacity for room " + scoId + " with capacity " + roomCapacity + " and " + participants + " participants.");
-            if (participants > roomCapacity) {
-                logger.warn("Capacity has been exceeded in room " + scoId);
-                // TODO: notify
-                /*
-                   String roomId = scoId;
-                   String notificationTitle = "Exceeded capacity";
-                   String notificationMessage = "Capacity for room " + scoId + "exceeded.";
-                   performControllerAction(new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId, notificationTitle, notificationMessage));
-                 */
+    protected void checkRoomCapacity(String roomId) throws CommandException
+    {
+        int roomCapacity = -1;
+        int participants = 0;
+
+        try {
+            participants = countRoomParticipants(roomId);
+        } catch (RequestFailedCommandException ex) {
+            if (ex.getCode().equals("no-access") && ex.getSubCode().equals("not-available")) {
+                logger.debug("Can't get number of room participants. Is the room " + roomId + " still existing? This may be normal behavior.");
+                return;
+            } else {
+                throw ex;
             }
+        }
+
+        try {
+            roomCapacity = getRoomCapacity(roomId);
+        } catch (RequestFailedCommandException ex) {
+            if (ex.getCode().equals("no-data")) {
+                logger.debug("Can't get room capacity. Is the room " + roomId + " still existing? This may be normal behavior.");
+                return;
+            } else {
+                throw ex;
+            }
+        }
+
+        if (roomCapacity == -1) {
+            logger.error("Capacity is not set for room: sco-id=" + roomId + ", skipping capacity check.");
+            return;
+        }
+
+        logger.debug("Checking capacity for room " + roomId + " with capacity " + roomCapacity + " and " + participants + " participants.");
+        if (participants > roomCapacity) {
+            logger.warn("Capacity has been exceeded in room " + roomId);
+
+            String notificationTitle = "Exceeded capacity";
+            String notificationMessage = "Capacity for room " + roomId + "exceeded.";
+            performControllerAction(new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId, notificationTitle, notificationMessage));
         }
     }
 
@@ -1094,7 +1123,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("sco-info", scoInfoAttributes);
         if (response.getChild("sco").getChildText("sco-tag") == null) {
-            logger.error("Capacity is not set for room: sco-id=" + roomId + ", skipping capacity check.");
             return -1;
         }
 
@@ -1183,15 +1211,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     private boolean isError(Document result)
     {
-        //TODO: simplify
-        Element status = result.getRootElement().getChild("status");
-        if (status != null) {
-            String code = status.getAttributeValue("code");
-            if (code != null && code.equals("ok")) {
-                return false;
-            }
-        }
-        return true;
+        return isError(result.getRootElement());
     }
 
     /**
@@ -1240,11 +1260,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
-            acc.connect(address, "admin", "cip9skovi3t2");
+            acc.connect(address, "admin", "******");
 
             /************************/
 
-            //acc.endMeetingUpdate("49157","true");
 
             acc.disconnect();
 
