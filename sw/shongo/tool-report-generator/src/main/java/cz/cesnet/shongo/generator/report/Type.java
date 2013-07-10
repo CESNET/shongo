@@ -104,6 +104,7 @@ public abstract class Type
         types.put("Capability", new EntityType("cz.cesnet.shongo.controller.resource.Capability"));
         types.put("Specification", new EntityType("cz.cesnet.shongo.controller.request.Specification"));
         types.put("Reservation", new EntityType("cz.cesnet.shongo.controller.reservation.Reservation"));
+        types.put("AbstractReservationRequest", new EntityType("cz.cesnet.shongo.controller.request.AbstractReservationRequest"));
         types.put("ReservationRequest", new EntityType("cz.cesnet.shongo.controller.request.ReservationRequest"));
         types.put("Executable", new EntityType("cz.cesnet.shongo.controller.executor.Executable"));
         types.put("Endpoint", new EntityType("cz.cesnet.shongo.controller.executor.Endpoint",

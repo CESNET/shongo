@@ -174,24 +174,6 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * Get list of reused {@link Reservation}s. Reused {@link Reservation} is a {@link Reservation} which is referenced
-     * by at least one {@link ExistingReservation} in the {@link ExistingReservation#reservation} attribute.
-     *
-     * @param referencedDateTime ignore all reservations which ends before the specified date/time
-     * @return list of reused {@link Reservation}.
-     */
-    public List<Reservation> getReusedReservations(DateTime referencedDateTime)
-    {
-        List<Reservation> reservations = entityManager.createQuery(
-                "SELECT DISTINCT reusedReservation FROM ExistingReservation reservation"
-                        + " LEFT JOIN reservation.reservation reusedReservation"
-                        + " WHERE reusedReservation.slotEnd > dateTime", Reservation.class)
-                .setParameter("dateTime", referencedDateTime)
-                .getResultList();
-        return reservations;
-    }
-
-    /**
      * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
      * in given {@code interval}.
      *

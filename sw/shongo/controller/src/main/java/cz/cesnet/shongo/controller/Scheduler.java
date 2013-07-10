@@ -7,10 +7,8 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.request.Specification;
+import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -216,6 +214,49 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     }
 
     /**
+     * @param interval
+     * @param providedReservationRequest
+     * @param entityManager
+     * @return {@link Reservation} to be provided from given {@code providedReservationRequest} for given {@code interval}
+     * @throws SchedulerException
+     */
+    public static Reservation getProvidedReservation(Interval interval,
+            AbstractReservationRequest providedReservationRequest, EntityManager entityManager, SchedulerContext schedulerContext)
+            throws SchedulerException
+    {
+        // Only reservation request can be provided
+        if (!(providedReservationRequest instanceof ReservationRequest)) {
+            throw new SchedulerReportSet.ReservationRequestNotUsableException(providedReservationRequest);
+        }
+        ReservationRequest reservationRequest = (ReservationRequest) providedReservationRequest;
+
+        // Find provided reservation
+        Reservation providedReservation = null;
+        for (Reservation reservation : reservationRequest.getAllocation().getReservations()) {
+            if (reservation.getSlot().contains(interval)) {
+                providedReservation = reservation;
+                break;
+            }
+        }
+        if (providedReservation == null) {
+            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest);
+        }
+
+        // Check the provided reservation
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<ExistingReservation> existingReservations =
+                reservationManager.getExistingReservations(providedReservation, interval);
+        if (schedulerContext != null) {
+            schedulerContext.applyAvailableReservations(existingReservations);
+        }
+        if (existingReservations.size() > 0) {
+            throw new SchedulerReportSet.ReservationNotAvailableException(
+                    providedReservation, reservationRequest);
+        }
+        return providedReservation;
+    }
+
+    /**
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
@@ -239,27 +280,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
 
-        // Fill allocated reservations from provided reservation request as reusable
-        ReservationRequest providedReservationRequest = reservationRequest.getProvidedReservationRequest();
-        if (providedReservationRequest != null) {
-            // Find provided reservation
-            Reservation providedReservation = null;
-            for (Reservation reservation : providedReservationRequest.getAllocation().getReservations()) {
-                if (reservation.getSlot().contains(requestedSlot)) {
-                    providedReservation = reservation;
-                    break;
-                }
-            }
-            if (providedReservation == null) {
-                throw new SchedulerReportSet.ReservationRequestNotUsableException(providedReservationRequest);
-            }
-            // Check the provided reservation and use it
-            if (!schedulerContext.isReservationAvailable(providedReservation)) {
-                throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation);
-            }
-            schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
-        }
-
         // Fill already allocated reservations as reallocatable
         Allocation allocation = reservationRequest.getAllocation();
         for (Reservation allocatedReservation : allocation.getReservations()) {
@@ -267,6 +287,14 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                 continue;
             }
             schedulerContext.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
+        }
+
+        // Fill allocated reservation from provided reservation request as reusable
+        ReservationRequest providedReservationRequest = reservationRequest.getProvidedReservationRequest();
+        if (providedReservationRequest != null) {
+            Reservation providedReservation = getProvidedReservation(
+                    requestedSlot, providedReservationRequest, entityManager, schedulerContext);
+            schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
         }
 
         // Get reservation task

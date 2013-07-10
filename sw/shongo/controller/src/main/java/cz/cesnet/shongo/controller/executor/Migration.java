@@ -102,18 +102,41 @@ public class Migration extends PersistentObject
      */
     public void perform(Executor executor, ExecutableManager executableManager)
     {
-        ResourceRoomEndpoint sourceRoom = (ResourceRoomEndpoint) executableManager.get(sourceExecutable.getId());
-        ResourceRoomEndpoint targetRoom = (ResourceRoomEndpoint) executableManager.get(targetExecutable.getId());
-        if (sourceRoom.getResource().equals(targetRoom.getResource())) {
-            targetRoom.setState(Executable.State.STARTED);
-            targetRoom.setRoomId(sourceRoom.getRoomId());
-            targetRoom.update(executor, executableManager);
-            if (targetRoom.getState().isStarted()) {
-                sourceRoom.setState(Executable.State.STOPPED);
+        RoomEndpoint sourceRoom = (RoomEndpoint) executableManager.get(sourceExecutable.getId());
+        RoomEndpoint targetRoom = (RoomEndpoint) executableManager.get(targetExecutable.getId());
+
+        // Migrate between resource rooms
+        if (sourceRoom instanceof ResourceRoomEndpoint && targetRoom instanceof ResourceRoomEndpoint) {
+            ResourceRoomEndpoint sourceResourceRoom = (ResourceRoomEndpoint) sourceRoom;
+            ResourceRoomEndpoint targetResourceRoom = (ResourceRoomEndpoint) targetRoom;
+
+            // Reuse the same room in the device
+            if (sourceResourceRoom.getResource().equals(targetResourceRoom.getResource())) {
+                targetResourceRoom.setState(Executable.State.STARTED);
+                targetResourceRoom.setRoomId(sourceRoom.getRoomId());
+                targetResourceRoom.update(executor, executableManager);
+                if (targetResourceRoom.getState().isStarted()) {
+                    sourceResourceRoom.setState(Executable.State.STOPPED);
+                }
+            }
+            // Migrate room between devices
+            else {
+                // TODO: migrate room settings
             }
         }
-        else {
-            // TODO: migrate room settings
+        // Migrate between used rooms
+        else if (sourceRoom instanceof UsedRoomEndpoint && targetRoom instanceof UsedRoomEndpoint) {
+            UsedRoomEndpoint sourceUsedRoom = (UsedRoomEndpoint) sourceRoom;
+            UsedRoomEndpoint targetUsedRoom = (UsedRoomEndpoint) targetRoom;
+
+            // If the same room is reused, only update the room
+            if (sourceUsedRoom.getRoomEndpoint().equals(targetUsedRoom.getRoomEndpoint())) {
+                targetUsedRoom.setState(Executable.State.STARTED);
+                targetUsedRoom.update(executor, executableManager);
+                if (targetUsedRoom.getState().isStarted()) {
+                    sourceUsedRoom.setState(Executable.State.STOPPED);
+                }
+            }
         }
     }
 }

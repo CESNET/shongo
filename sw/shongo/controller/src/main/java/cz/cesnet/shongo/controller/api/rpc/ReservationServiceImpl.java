@@ -83,12 +83,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Object checkSpecificationAvailability(SecurityToken token, Specification specificationApi, Interval slot)
+    public Object checkAvailableSpecification(SecurityToken token, Interval slot, Specification specificationApi)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-
         try {
             cz.cesnet.shongo.controller.request.Specification specification =
                     cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
@@ -114,14 +113,29 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
     }
 
-    private void checkProvidedReservationRequest(String userId, String providedReservationRequestId)
+    @Override
+    public Object checkAvailableProvidedReservationRequest(SecurityToken token, Interval slot,
+            String providedReservationRequestId)
     {
-        if (providedReservationRequestId != null) {
-            EntityIdentifier entityId = EntityIdentifier.parse(providedReservationRequestId);
-            if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
-                        "provide reservation request %s", entityId);
+        authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        try {
+            EntityIdentifier entityId = EntityIdentifier.parse(
+                    providedReservationRequestId, EntityType.RESERVATION_REQUEST);
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest =
+                    reservationRequestManager.get(entityId.getPersistenceId());
+            try {
+                Scheduler.getProvidedReservation(slot, providedReservationRequest, entityManager, null);
+                return Boolean.TRUE;
             }
+            catch (SchedulerException exception) {
+                return exception.getReport().getMessageRecursive(Report.MessageType.USER);
+            }
+        }
+        finally {
+            entityManager.close();
         }
     }
 
@@ -171,44 +185,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             entityManager.close();
         }
 
-    }
-
-    /**
-     * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
-     *
-     * @param abstractReservationRequest
-     */
-    private boolean isModifiableReservationRequest(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest,
-            ReservationManager reservationManager)
-    {
-        Allocation allocation = abstractReservationRequest.getAllocation();
-
-        // Check if reservation is not created by controller
-        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
-            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
-                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
-            if (reservationRequestImpl.getParentAllocation() != null) {
-                return false;
-            }
-        }
-
-        // Check child reservation requests
-        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
-                allocation.getChildReservationRequests()) {
-            if (isModifiableReservationRequest(reservationRequestImpl, reservationManager)) {
-                return false;
-            }
-        }
-
-        // Check allocated reservations
-        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : allocation.getReservations()) {
-            if (reservationManager.isProvided(reservation)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     @Override
@@ -1034,5 +1010,63 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         finally {
             entityManager.close();
         }
+    }
+
+    /**
+     * Check whether user with given {@code userId} can provide given {@code providedReservationRequestId}.
+     *
+     * @param userId
+     * @param providedReservationRequestId
+     * @throws ControllerReportSet.SecurityNotAuthorizedException
+     *
+     */
+    private void checkProvidedReservationRequest(String userId, String providedReservationRequestId)
+    {
+        if (providedReservationRequestId != null) {
+            EntityIdentifier entityId = EntityIdentifier.parse(providedReservationRequestId);
+            if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                        "provide reservation request %s", entityId);
+            }
+        }
+    }
+
+    /**
+     * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
+     *
+     * @param abstractReservationRequest
+     * @return true when the given {@code abstractReservationRequest} can be modified, otherwise false
+     */
+    private boolean isModifiableReservationRequest(
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest,
+            ReservationManager reservationManager)
+    {
+        Allocation allocation = abstractReservationRequest.getAllocation();
+
+        // Check if reservation is not created by controller
+        if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+            if (reservationRequestImpl.getParentAllocation() != null) {
+                return false;
+            }
+        }
+
+        // Check child reservation requests
+        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
+                allocation.getChildReservationRequests()) {
+            if (isModifiableReservationRequest(reservationRequestImpl, reservationManager)) {
+                return false;
+            }
+        }
+
+        // Check allocated reservations
+        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : allocation.getReservations()) {
+            if (reservationManager.isProvided(reservation)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

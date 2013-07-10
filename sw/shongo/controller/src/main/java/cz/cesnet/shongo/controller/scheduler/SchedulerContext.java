@@ -343,34 +343,19 @@ public class SchedulerContext
     }
 
     /**
-     * @return {@link #availableReservations}
+     * Remove {@link #availableReservations} from given {@code reservations}.
+     *
+     * @param reservations
      */
-    /*public Set<AvailableReservation> getParentAvailableReservations()
+    public void applyAvailableReservations(Collection<ExistingReservation> reservations)
     {
-        Set<AvailableReservation> parentAvailableReservations = new HashSet<AvailableReservation>();
-        for (AvailableReservation availableReservation : availableReservations) {
-            Reservation originalReservation = availableReservation.getOriginalReservation();
-            Reservation parentReservation = originalReservation.getParentReservation();
-            if (parentReservation != null) {
-                AvailableReservation parentAvailableReservation = getAvailableReservation(parentReservation);
-                if (parentAvailableReservation == null) {
-                    throw new IllegalArgumentException("Parent allocated reservation is not available.");
-                }
-                continue;
+        for (AvailableReservation<? extends Reservation> availableReservation : availableReservations) {
+            Reservation reservation = availableReservation.getOriginalReservation();
+            if (reservation instanceof ExistingReservation) {
+                reservations.remove(reservation);
             }
-            parentAvailableReservations.add(availableReservation);
         }
-        return parentAvailableReservations;
-    }*/
-
-    /**
-     * @param originalReservation for which the {@link AvailableReservation} should be returned
-     * @return {@link AvailableReservation} for given {@code originalReservation}
-     */
-    /*public AvailableReservation<? extends Reservation> getAvailableReservation(Reservation originalReservation)
-    {
-        return availableReservationByOriginalReservation.get(originalReservation);
-    }*/
+    }
 
     /**
      * @param executableType
@@ -755,20 +740,6 @@ public class SchedulerContext
     public void applyValueReservations(Long valueProviderId, List<ValueReservation> valueReservations)
     {
         valueReservationTransaction.applyReservations(valueProviderId, valueReservations);
-    }
-
-    /**
-     * @param reservation
-     * @return true whether given {@code reservation} is available in given {@code interval} (it means it is not
-     *         referenced by any {@link ExistingReservation}),
-     *         false otherwise
-     */
-    public boolean isReservationAvailable(Reservation reservation)
-    {
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(reservation, requestedSlot);
-        return existingReservations.size() == 0;
     }
 
     /**

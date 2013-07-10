@@ -826,7 +826,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource}.
+                The ${resource}.
             </message>
         </report>
 
@@ -837,7 +837,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource} is not allocatable.
+                The ${resource} is not allocatable.
             </message>
             <user visible="true"/>
         </report>
@@ -849,7 +849,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource} is already allocated.
+                The ${resource} is already allocated.
             </message>
             <user visible="true"/>
         </report>
@@ -864,7 +864,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource} is not available for the requested time slot.
+                The ${resource} is not available for the requested time slot.
                 The maximum date/time for which the resource can be allocated is ${maxDateTime}.
             </message>
             <user visible="true"/>
@@ -877,7 +877,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource} is not endpoint.
+                The ${resource} is not endpoint.
             </message>
             <user visible="true"/>
         </report>
@@ -889,7 +889,7 @@
                 TODO:
             </description>
             <message>
-                Resource ${resource} is requested multiple times.
+                The ${resource} is requested multiple times.
             </message>
             <user visible="true"/>
         </report>
@@ -1017,13 +1017,13 @@
             <id>reservation-request-not-usable</id>
             <classification severity="error"/>
             <params>
-                <param name="reservationRequest" type="ReservationRequest"/>
+                <param name="reservationRequest" type="AbstractReservationRequest"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                Provided reservation request ${reservationRequest} has no usable allocated reservation.
+                No reservation is allocated for provided ${reservationRequest} which can be used in requested time slot.
             </message>
             <user visible="true"/>
         </report>
@@ -1038,11 +1038,15 @@
         <report extends="reservation">
             <id>reservation-not-available</id>
             <classification severity="error"/>
+            <params>
+                <param name="providedReservationRequest" type="ReservationRequest"/>
+            </params>
             <description>
                 TODO:
             </description>
             <message>
-                Provided reservation ${reservation} is not available.
+                The ${reservation} from provided ${providedReservationRequest} is not available because it is already
+                allocated for another reservation request in requested time slot.
             </message>
             <user visible="true"/>
         </report>
@@ -1054,7 +1058,7 @@
                 TODO:
             </description>
             <message>
-                Reusing reservation ${reservation}.
+                Reusing ${reservation}.
             </message>
         </report>
 
@@ -1117,7 +1121,7 @@
                 TODO:
             </description>
             <message>
-                Allocating resource ${resource}.
+                Allocating the ${resource}.
             </message>
         </report>
 
@@ -1148,7 +1152,7 @@
                 TODO:
             </description>
             <message>
-                Allocating value in resource ${resource}.
+                Allocating value in the ${resource}.
             </message>
         </report>
 

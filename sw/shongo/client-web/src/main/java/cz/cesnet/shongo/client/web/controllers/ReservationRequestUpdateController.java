@@ -79,10 +79,20 @@ public class ReservationRequestUpdateController
         }
         switch (reservationRequestModel.getSpecificationType()) {
             case PERMANENT_ROOM:
-                Object isSpecificationAvailable = reservationService.checkSpecificationAvailability(securityToken,
-                        reservationRequestModel.toSpecificationApi(), reservationRequestModel.getSlot());
+                Object isSpecificationAvailable = reservationService.checkAvailableSpecification(securityToken,
+                        reservationRequestModel.getSlot(), reservationRequestModel.toSpecificationApi());
                 if (!isSpecificationAvailable.equals(Boolean.TRUE)) {
                     result.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
+                    return "reservationRequestCreate";
+                }
+                break;
+            case PERMANENT_ROOM_CAPACITY:
+                Object isProvidedReservationAvailableAvailable =
+                        reservationService.checkAvailableProvidedReservationRequest(securityToken,
+                            reservationRequestModel.getSlot(),
+                                reservationRequestModel.getPermanentRoomCapacityReservationRequestId());
+                if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
+                    result.rejectValue("permanentRoomCapacityReservationRequestId", "validation.field.permanentRoomNotAvailable");
                     return "reservationRequestCreate";
                 }
                 break;

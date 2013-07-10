@@ -371,7 +371,7 @@ public class ReservationRequestModel implements Validator
         }
 
         // Room duration
-        if (specificationType.equals(SpecificationType.ADHOC_ROOM)) {
+        if (!specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
             int minutes = duration.toStandardMinutes().getMinutes();
             if ((minutes % (60 * 24)) == 0) {
                 durationCount = minutes / (60 * 24);
