@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebMessage;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.Permission;
@@ -15,25 +17,22 @@ import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * Controller for managing reservation requests.
+ * Controller for listing reservation requests.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@RequestMapping("/reservation-request")
 public class ReservationRequestController
 {
-    private static final String MESSAGE_ADHOC_ROOM = "views.reservationRequest.specification.ADHOC_ROOM";
-    private static final String MESSAGE_PERMANENT_ROOM = "views.reservationRequest.specification.PERMANENT_ROOM";
-    private static final String MESSAGE_ROOMS_ROOM_ADHOC = "views.reservationRequestList.rooms.room.adhoc";
-
     @Resource
     private ReservationService reservationService;
 
@@ -43,45 +42,30 @@ public class ReservationRequestController
     @Resource
     private MessageSource messageSource;
 
-    @RequestMapping(value = {"", "/list"}, method = RequestMethod.GET)
-    public String getList()
+    /**
+     * Handle default reservation request view.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST, method = RequestMethod.GET)
+    public String handleDefaultView()
+    {
+        return "forward:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
+    }
+
+    /**
+     * Handle list of reservation requests view.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST, method = RequestMethod.GET)
+    public String handleListView()
     {
         return "reservationRequestList";
     }
 
-    @RequestMapping(value = "/delete/{id:.+}", method = RequestMethod.GET)
-    public String getDelete(
-            SecurityToken securityToken,
-            @PathVariable(value = "id") String reservationRequestId, Model model)
-    {
-        // Get reservation request
-        AbstractReservationRequest reservationRequest =
-                reservationService.getReservationRequest(securityToken, reservationRequestId);
-
-        // List reservation requests which got provided the reservation request to be deleted
-        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
-        reservationRequestListRequest.setSecurityToken(securityToken);
-        reservationRequestListRequest.setProvidedReservationRequestId(reservationRequestId);
-        ListResponse<ReservationRequestSummary> reservationRequests =
-                reservationService.listReservationRequests(reservationRequestListRequest);
-
-        model.addAttribute("dependencies", reservationRequests.getItems());
-        model.addAttribute("reservationRequest", reservationRequest);
-        return "reservationRequestDelete";
-    }
-
-    @RequestMapping(value = "/delete/confirmed", method = RequestMethod.POST)
-    public String getDeleteConfirmed(
-            SecurityToken securityToken,
-            @RequestParam(value = "id") String reservationRequestId)
-    {
-        reservationService.deleteReservationRequest(securityToken, reservationRequestId);
-        return "redirect:/reservation-request";
-    }
-
-    @RequestMapping(value = "/data", method = RequestMethod.GET)
+    /**
+     * Handle data request for list of reservation requests.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_LIST_DATA, method = RequestMethod.GET)
     @ResponseBody
-    public Map getDataList(
+    public Map handleListData(
             Locale locale,
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
@@ -173,18 +157,21 @@ public class ReservationRequestController
             ReservationRequestModel.Technology technology = ReservationRequestModel.Technology.find(technologies);
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
-                ReservationRequestSummary.RoomSpecification roomSpecification =
+                ReservationRequestSummary.RoomSpecification room =
                         (ReservationRequestSummary.RoomSpecification) specification;
-                item.put("type", messageSource.getMessage(MESSAGE_ADHOC_ROOM, null, locale));
                 String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
                 if (providedReservationRequestId != null) {
+                    item.put("type", messageSource.getMessage(
+                            ClientWebMessage.SPECIFICATION_PERMANENT_ROOM_CAPACITY, null, locale));
                     item.put("roomReservationRequestId", providedReservationRequestId);
                     ReservationRequestSummary providedReservationRequest =
                             cache.getReservationRequest(securityToken, providedReservationRequestId);
                     if (providedReservationRequest != null) {
                         ReservationRequestSummary.AliasSpecification aliasSpecification =
-                                (ReservationRequestSummary.AliasSpecification) providedReservationRequest.getSpecification();
-                        if (aliasSpecification != null && AliasType.ROOM_NAME.equals(aliasSpecification.getAliasType())) {
+                                (ReservationRequestSummary.AliasSpecification)
+                                        providedReservationRequest.getSpecification();
+                        if (aliasSpecification != null && AliasType.ROOM_NAME
+                                .equals(aliasSpecification.getAliasType())) {
                             item.put("room", aliasSpecification.getValue());
                         }
                         else {
@@ -193,8 +180,9 @@ public class ReservationRequestController
                     }
                 }
                 else {
+                    item.put("type", messageSource.getMessage(ClientWebMessage.SPECIFICATION_ADHOC_ROOM, null, locale));
                     StringBuilder roomBuilder = new StringBuilder();
-                    roomBuilder.append(messageSource.getMessage(MESSAGE_ROOMS_ROOM_ADHOC, null, locale));
+                    roomBuilder.append(messageSource.getMessage(ClientWebMessage.ROOM_ADHOC, null, locale));
                     if (technology != null) {
                         roomBuilder.append(" (");
                         roomBuilder.append(technology.getTitle());
@@ -202,16 +190,17 @@ public class ReservationRequestController
                     }
                     item.put("room", roomBuilder.toString());
                 }
-                item.put("participantCount", roomSpecification.getParticipantCount());
+                item.put("participantCount", room.getParticipantCount());
             }
             else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
-                ReservationRequestSummary.AliasSpecification aliasType = (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource.getMessage(MESSAGE_PERMANENT_ROOM, null, locale));
+                ReservationRequestSummary.AliasSpecification alias =
+                        (ReservationRequestSummary.AliasSpecification) specification;
+                item.put("type", messageSource.getMessage(ClientWebMessage.SPECIFICATION_PERMANENT_ROOM, null, locale));
                 if (technology != null) {
                     item.put("technology", technology.getTitle());
                 }
-                if (aliasType.getAliasType().equals(AliasType.ROOM_NAME)) {
-                    item.put("roomName", aliasType.getValue());
+                if (alias.getAliasType().equals(AliasType.ROOM_NAME)) {
+                    item.put("roomName", alias.getValue());
                 }
             }
         }

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomUser;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
@@ -32,12 +33,8 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@RequestMapping("/room")
 public class RoomController
 {
-    @Resource
-    private ReservationService reservationService;
-
     @Resource
     private ExecutableService executableService;
 
@@ -50,11 +47,11 @@ public class RoomController
     @Resource
     private MessageSource messageSource;
 
-    @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
-    public String getRoom(
+    @RequestMapping(value = ClientWebUrl.ROOM_MANAGEMENT, method = RequestMethod.GET)
+    public String handleRoomManagement(
             Locale locale,
             SecurityToken securityToken,
-            @PathVariable(value = "id") String executableId, Model model)
+            @PathVariable(value = "roomId") String executableId, Model model)
     {
         Executable executable = executableService.getExecutable(securityToken, executableId);
         String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);

@@ -3,6 +3,7 @@
   --%>
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" trimDirectiveWhitespaces="true" %>
 <%@ page import="org.springframework.web.util.UriComponentsBuilder" %>
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="cs" xml:lang="cs">
 
@@ -13,8 +14,12 @@
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 
 <%-- Variables --%>
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <tiles:importAttribute/>
+<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="urlDashboard">${contextPath}<%= ClientWebUrl.DASHBOARD %></c:set>
+<c:set var="urlWizard">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
+<c:set var="urlReservationRequestList">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<c:set var="urlChangelog">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
 <spring:message code="${title}" var="title"/>
 <%
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
@@ -52,8 +57,9 @@
             <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse pull-left">
                 <ul class="nav" role="navigation">
-                    <li><a href="${contextPath}/"><spring:message code="views.layout.link.home"/></a></li>
-                    <li><a href="${contextPath}/reservation-request"><spring:message code="views.layout.link.reservationRequests"/></a></li>
+                    <li><a href="${urlDashboard}"><spring:message code="views.layout.link.dashboard"/></a></li>
+                    <li><a href="${urlWizard}"><spring:message code="views.layout.link.wizard"/></a></li>
+                    <li><a href="${urlReservationRequestList}"><spring:message code="views.layout.link.reservationRequests"/></a></li>
                 </ul>
             </div>
         </div>
@@ -68,7 +74,8 @@
             </li>
             <security:authorize access="!isAuthenticated()">
                 <li>
-                    <a href="${contextPath}/login"><spring:message code="views.layout.login"/></a>
+                    <c:set var="urlLogin">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
+                    <a href="${urlLogin}"><spring:message code="views.layout.login"/></a>
                 </li>
             </security:authorize>
             <security:authorize access="isAuthenticated()">
@@ -79,7 +86,8 @@
                     </a>
                     <ul class="dropdown-menu" role="menu">
                         <li>
-                            <a class="menuitem" href="${contextPath}/logout"><spring:message code="views.layout.logout"/></a>
+                            <c:set var="urlLogout">${contextPath}<%= ClientWebUrl.LOGOUT %></c:set>
+                            <a class="menuitem" href="${urlLogout}"><spring:message code="views.layout.logout"/></a>
                         </li>
                     </ul>
                 </li>
@@ -119,7 +127,7 @@
 <%-- Page footer --%>
 <div class="footer block">
     <p class="muted">
-        <a href="${contextPath}/changelog"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
+        <a href="${urlChangelog}"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
                 code="shongo.version"/></a>
         &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
         <a title="CESNET" href="http://www.cesnet.cz/">

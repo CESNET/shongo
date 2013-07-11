@@ -37,8 +37,11 @@ public class ErrorController
     @Resource
     private ClientWebConfiguration configuration;
 
+    /**
+     * Handle error view.
+     */
     @RequestMapping("/error")
-    public String getError(HttpServletRequest request, Model model)
+    public String handleErrorView(HttpServletRequest request, Model model)
     {
         String requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
         String message = (String) request.getAttribute("javax.servlet.error.message");
@@ -64,8 +67,11 @@ public class ErrorController
         return "error";
     }
 
+    /**
+     * Handle login error view.
+     */
     @RequestMapping("/login-error")
-    public String getLoginError(HttpServletRequest request, Model model)
+    public String handleLoginErrorView(HttpServletRequest request, Model model)
     {
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
 
@@ -75,8 +81,11 @@ public class ErrorController
         return "errorLogin";
     }
 
+    /**
+     * Handle controller not available view.
+     */
     @RequestMapping(value = "/controller-not-available")
-    public String getControllerNotAvailable()
+    public String handleControllerNotAvailableView()
     {
         return "controllerNotAvailable";
     }

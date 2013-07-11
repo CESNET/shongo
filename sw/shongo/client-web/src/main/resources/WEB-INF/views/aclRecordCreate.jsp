@@ -6,9 +6,11 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="urlConfirm" value="${contextPath}${urlConfirm}"/>
+<c:set var="urlBack" value="${contextPath}${urlBack}"/>
 <tiles:importAttribute/>
 
 <script type="text/javascript">
@@ -17,13 +19,9 @@
         if ( user.lastName != null ) {
             text += " " + user.lastName;
         }
-        //text +=  " (id: " + user.userId + ")";
         if ( user.originalId != null ) {
             text += " (" + user.originalId + ")";
         }
-        /*if ( user.emails != null && user.emails.length > 0) {
-            text += ", " + user.emails[0];
-        }*/
         return text;
     };
     $(function () {
@@ -63,7 +61,7 @@
 
 <form:form class="form-horizontal"
            commandName="aclRecord"
-           action="${contextPath}${confirmUrl}"
+           action="${urlConfirm}"
            method="post">
 
     <fieldset>
@@ -109,7 +107,7 @@
         <div class="controls">
             <spring:message code="${confirm}" var="confirm"/>
             <input class="btn btn-primary" type="submit" value="${confirm}"/>
-            <a class="btn" href="${contextPath}${backUrl}"><spring:message code="views.button.cancel"/></a>
+            <a class="btn" href="${urlBack}"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>
 

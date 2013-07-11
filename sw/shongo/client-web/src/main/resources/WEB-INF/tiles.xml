@@ -45,6 +45,11 @@
         <put-attribute name="body" value="/WEB-INF/views/message.jsp" type="template"/>
     </definition>
 
+    <definition name="dashboard" extends="layout">
+        <put-attribute name="title" value="views.dashboard.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/dashboard.jsp" type="template"/>
+    </definition>
+
     <definition name="reservationRequestList" extends="layout">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
@@ -88,7 +93,6 @@
     </definition>
     <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
         <put-attribute name="confirm" value=""/>
-        <put-attribute name="confirmUrl" value=""/>
     </definition>
 
     <definition name="reservationRequestCreate" extends="reservationRequestUpdate">
@@ -97,7 +101,6 @@
     </definition>
     <definition name="reservationRequestCreateBody" extends="reservationRequestUpdateBody">
         <put-attribute name="confirm" value="views.button.create"/>
-        <put-attribute name="confirmUrl" value="/reservation-request/create/confirmed"/>
     </definition>
 
     <definition name="reservationRequestModify" extends="reservationRequestUpdate">
@@ -106,7 +109,6 @@
     </definition>
     <definition name="reservationRequestModifyBody" extends="reservationRequestUpdateBody">
         <put-attribute name="confirm" value="views.button.save"/>
-        <put-attribute name="confirmUrl" value="/reservation-request/modify/confirmed"/>
     </definition>
 
     <definition name="reservationRequestDelete" extends="layout">

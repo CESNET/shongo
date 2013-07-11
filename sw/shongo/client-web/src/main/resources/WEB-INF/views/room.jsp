@@ -2,12 +2,14 @@
   -- Page for displaying details about a single reservation request.
   --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="s" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<s:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
+<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <script type="text/javascript">
     // Angular application
@@ -18,27 +20,27 @@
 
     <dl class="dl-horizontal">
 
-        <dt><spring:message code="views.reservationRequest"/>:</dt>
-        <dd><a href="${contextPath}/reservation-request/detail/${reservationRequestId}">${reservationRequestId}</a></dd>
+        <dt><s:message code="views.reservationRequest"/>:</dt>
+        <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
 
-        <dt><spring:message code="views.room.identifier"/>:</dt>
+        <dt><s:message code="views.room.identifier"/>:</dt>
         <dd>${executable.id}</dd>
 
-        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+        <dt><s:message code="views.reservationRequest.slot"/>:</dt>
         <dd>
             <joda:format value="${executable.slot.start}" style="MM"/>
             <br/>
             <joda:format value="${executable.slot.end}" style="MM"/>
         </dd>
 
-        <dt><spring:message code="views.room.state"/>:</dt>
+        <dt><s:message code="views.room.state"/>:</dt>
         <dd class="executable-state">
             <span class="${executable.state}" id="executableState">
-                <spring:message code="views.reservationRequest.executableState.${executable.state}"/>
+                <s:message code="views.reservationRequest.executableState.${executable.state}"/>
             </span>
             <app:help label="executableState">
                 <span>
-                    <spring:message code="views.help.reservationRequest.executableState.${executable.state}"/>
+                    <s:message code="views.help.reservationRequest.executableState.${executable.state}"/>
                 </span>
                 <c:if test="${!executable.state.available && executable.stateReport != null}">
                     <pre>${executable.stateReport}</pre>
@@ -47,17 +49,17 @@
         </dd>
 
         <c:if test="${room != null}">
-            <dt><spring:message code="views.room.licenseCount"/>:</dt>
+            <dt><s:message code="views.room.licenseCount"/>:</dt>
             <dd>
                     ${room.licenseCount}
                 <c:if test="${room.licenseCount == 0}">
-                    <c:set var="createUrl">${contextPath}/reservation-request/create?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequestId}</c:set>
-                    (<spring:message code="views.room.licenseCount.none" arguments="${createUrl}"/>)
+                    <c:set var="urlCreatePermanentRoomCapacity">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_CREATE %>?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequestId}</c:set>
+                    (<s:message code="views.room.licenseCount.none" arguments="${urlCreatePermanentRoomCapacity}"/>)
                 </c:if>
             </dd>
         </c:if>
 
-        <dt><spring:message code="views.room.aliases"/>:</dt>
+        <dt><s:message code="views.room.aliases"/>:</dt>
         <dd>
             <span id="roomAliases">${roomAliases}</span>
             <c:if test="${roomAliasesDescription != null}">
@@ -69,18 +71,18 @@
 
     <c:if test="${notAvailable}">
         <div class="not-available">
-            <h2><spring:message code="views.room.notAvailable.heading"/></h2>
-            <p><spring:message code="views.room.notAvailable.text" arguments="${configuration.contactEmail}"/></p>
+            <h2><s:message code="views.room.notAvailable.heading"/></h2>
+            <p><s:message code="views.room.notAvailable.text" arguments="${configuration.contactEmail}"/></p>
         </div>
     </c:if>
 
     <c:if test="${participants != null}">
-        <h2><spring:message code="views.room.participants"/></h2>
+        <h2><s:message code="views.room.participants"/></h2>
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.room.participant.name"/></th>
-                <th><spring:message code="views.room.participant.email"/></th>
+                <th><s:message code="views.room.participant.name"/></th>
+                <th><s:message code="views.room.participant.email"/></th>
             </tr>
             </thead>
             <tbody>
@@ -102,11 +104,11 @@
     </c:if>
 
     <c:if test="${recordings != null}">
-        <h2><spring:message code="views.room.recordings"/></h2>
+        <h2><s:message code="views.room.recordings"/></h2>
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.room.recording.url"/></th>
+                <th><s:message code="views.room.recording.url"/></th>
             </tr>
             </thead>
             <tbody>
@@ -128,10 +130,10 @@
 </div>
 
 <div class="pull-right">
-    <a class="btn btn-primary" href="${contextPath}/reservation-request">
-        <spring:message code="views.button.back"/>
+    <a class="btn btn-primary" href="${urlBack}">
+        <s:message code="views.button.back"/>
     </a>
     <a class="btn" href="javascript: location.reload();">
-        <spring:message code="views.button.refresh"/>
+        <s:message code="views.button.refresh"/>
     </a>
 </div>

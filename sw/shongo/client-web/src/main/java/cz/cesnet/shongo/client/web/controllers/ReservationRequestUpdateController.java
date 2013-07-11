@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
@@ -27,13 +28,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Controller for managing reservation requests.
+ * Controller for creating/modifying reservation requests.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@RequestMapping("/reservation-request")
-@SessionAttributes({"reservationRequest", "permanentRooms"})
+@SessionAttributes({"reservationRequest", "permanentRooms", "urlConfirm"})
 public class ReservationRequestUpdateController
 {
     @Resource
@@ -50,8 +50,13 @@ public class ReservationRequestUpdateController
         binder.registerCustomEditor(Period.class, new PeriodEditor());
     }
 
-    @RequestMapping(value = "/create", method = RequestMethod.GET)
-    public String getCreate(
+    /**
+     * Handle creation of a new reservation request.
+     */
+    @RequestMapping(
+            value = ClientWebUrl.RESERVATION_REQUEST_CREATE,
+            method = {RequestMethod.GET})
+    public String handleCreate(
             SecurityToken securityToken,
             @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
@@ -64,11 +69,17 @@ public class ReservationRequestUpdateController
         reservationRequest.setPermanentRoomCapacityReservationRequestId(permanentRoom);
         model.addAttribute("reservationRequest", reservationRequest);
         model.addAttribute("permanentRooms", getPermanentRooms(securityToken));
+        model.addAttribute("urlConfirm", ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM);
         return "reservationRequestCreate";
     }
 
-    @RequestMapping(value = "/create/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
-    public String getCreateConfirmed(
+    /**
+     * Handle confirmation of creation of a new reservation request.
+     */
+    @RequestMapping(
+            value = ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM,
+            method = {RequestMethod.POST, RequestMethod.GET})
+    public String handleCreateConfirm(
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
@@ -89,48 +100,67 @@ public class ReservationRequestUpdateController
             case PERMANENT_ROOM_CAPACITY:
                 Object isProvidedReservationAvailableAvailable =
                         reservationService.checkAvailableProvidedReservationRequest(securityToken,
-                            reservationRequestModel.getSlot(),
+                                reservationRequestModel.getSlot(),
                                 reservationRequestModel.getPermanentRoomCapacityReservationRequestId());
                 if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
-                    result.rejectValue("permanentRoomCapacityReservationRequestId", "validation.field.permanentRoomNotAvailable");
+                    result.rejectValue("permanentRoomCapacityReservationRequestId",
+                            "validation.field.permanentRoomNotAvailable");
                     return "reservationRequestCreate";
                 }
                 break;
         }
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
         String reservationRequestId = reservationService.createReservationRequest(securityToken, reservationRequest);
-        return "redirect:/reservation-request/detail/" + reservationRequestId;
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 
-    @RequestMapping(value = "/modify/{id:.+}", method = RequestMethod.GET)
-    public String getModify(
+    /**
+     * Handle modification of an existing reservation request.
+     */
+    @RequestMapping(
+            value = ClientWebUrl.RESERVATION_REQUEST_MODIFY,
+            method = RequestMethod.GET)
+    public String handleModify(
             SecurityToken securityToken,
-            @PathVariable(value = "id") String id,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId,
             Model model)
     {
-        AbstractReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, id);
+        AbstractReservationRequest reservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
         ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
         model.addAttribute("reservationRequest", reservationRequestModel);
         if (reservationRequestModel.getSpecificationType().equals(
                 ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             model.addAttribute("permanentRooms", getPermanentRooms(securityToken));
         }
+        model.addAttribute("urlConfirm",
+                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM, reservationRequestId));
         return "reservationRequestModify";
     }
 
-    @RequestMapping(value = "/modify/confirmed", method = {RequestMethod.POST, RequestMethod.GET})
-    public String getModifyConfirmed(
+    /**
+     * Handle confirmation of modification of an existing reservation request.
+     */
+    @RequestMapping(
+            value = ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM,
+            method = {RequestMethod.POST, RequestMethod.GET})
+    public String handleModifyConfirm(
             SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
+        if (reservationRequestId.equals(reservationRequestModel.getId())) {
+            throw new IllegalArgumentException("Modification of " + reservationRequestId +
+                    " was requested but attributes for " + reservationRequestModel.getId() + " was present.");
+        }
         reservationRequestModel.validate(result);
         if (result.hasErrors()) {
             return "reservationRequestModify";
         }
         AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
-        String reservationRequestId = reservationService.modifyReservationRequest(securityToken, reservationRequest);
-        return "redirect:/reservation-request/detail/" + reservationRequestId;
+        reservationRequestId = reservationService.modifyReservationRequest(securityToken, reservationRequest);
+        return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
 
     /**
@@ -145,7 +175,7 @@ public class ReservationRequestUpdateController
         request.addSpecificationClass(AliasSetSpecification.class);
         List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
 
-        ListResponse<ReservationRequestSummary> response =  reservationService.listReservationRequests(request);
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
         if (response.getItemCount() > 0) {
             Set<String> reservationRequestIds = new HashSet<String>();
             for (ReservationRequestSummary reservationRequestSummary : response) {

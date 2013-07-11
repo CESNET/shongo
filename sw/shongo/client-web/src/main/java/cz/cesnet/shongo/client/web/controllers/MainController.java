@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Changelog;
+import cz.cesnet.shongo.client.web.ClientWebNavigation;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,31 +19,44 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 public class MainController
 {
+    /**
+     * Handle shongo ICO image.
+     */
     @RequestMapping("**/favicon.ico")
-    public String getShongoIcon()
+    public String handleShongoIcon()
     {
         return "forward:/img/shongo.ico";
     }
 
+    /**
+     * Handle shongo PNG image.
+     */
     @RequestMapping("**/apple-touch-icon*.png")
-    public String getShongoPng()
+    public String handleShongoPng()
     {
         return "forward:/img/shongo.png";
     }
 
-    @RequestMapping(value = {"/", "/index"}, method = RequestMethod.GET)
-    public String getIndex(HttpServletRequest request, RedirectAttributes redirectAttributes)
+
+    /**
+     * Handle main (index) view.
+     */
+    @RequestMapping(value = ClientWebUrl.HOME, method = RequestMethod.GET)
+    public String handleIndexView(HttpServletRequest request, RedirectAttributes redirectAttributes)
     {
         // Redirect authentication requests until the "redirect_uri" is fixed
         if (request.getParameter("code") != null || request.getParameter("error") != null) {
             redirectAttributes.addAllAttributes(request.getParameterMap());
-            return "redirect:/login";
+            return "redirect:" + ClientWebUrl.LOGIN;
         }
         return "index";
     }
 
-    @RequestMapping(value = "/changelog", method = RequestMethod.GET)
-    public String getChangelog(Model model)
+    /**
+     * Handle changelog view.
+     */
+    @RequestMapping(value = ClientWebUrl.CHANGELOG, method = RequestMethod.GET)
+    public String handleChangelogView(Model model)
     {
         model.addAttribute("changelog", Changelog.getInstance());
         return "changelog";

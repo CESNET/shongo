@@ -1,3 +1,4 @@
+<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 <%--
   -- Page for displaying details about a single reservation request.
   --%>
@@ -5,9 +6,12 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<spring:eval var="urlModify" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
+<spring:eval var="urlDelete" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
 
 <c:if test="${isActive && parentReservationRequestId == null}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
@@ -49,7 +53,8 @@
                 <td>
                     <c:choose>
                         <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
-                            <a href="${contextPath}/reservation-request/detail/${historyItem.id}">
+                            <spring:eval var="urlDetail" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, historyItem.id)"/>
+                            <a href="${urlDetail}">
                                 <spring:message code="views.list.action.show"/>
                             </a>
                         </c:when>
@@ -83,9 +88,8 @@
         <c:if test="${parentReservationRequestId != null}">
             <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
             <dd>
-                <a href="${contextPath}/reservation-request/detail/${parentReservationRequestId}">
-                        ${parentReservationRequestId}
-                </a>
+                <spring:eval var="urlDetail" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, parentReservationRequestId)"/>
+                <a href="${urlDetail}">${parentReservationRequestId}</a>
             </dd>
         </c:if>
 
@@ -143,9 +147,8 @@
             <dd>
                 <c:choose>
                     <c:when test="${reservationRequest.permanentRoomCapacityReservationRequestId != null}">
-                        <a href="${contextPath}/reservation-request/detail/${reservationRequest.permanentRoomCapacityReservationRequestId}">
-                            ${permanentRoomReservationRequest.specification.value}
-                        </a>
+                        <spring:eval var="urlDetail" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequest.permanentRoomCapacityReservationRequestId)"/>
+                        <a href="${urlDetail}">${permanentRoomReservationRequest.specification.value}</a>
                     </c:when>
                     <c:otherwise>
                         <spring:message code="views.reservationRequest.specification.roomAlias.adhoc"/>
@@ -167,8 +170,9 @@
     </dl>
 
     <%-- List of user roles --%>
+    <spring:eval var="urlAcl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAcl(contextPath, ':id')"/>
     <div ng-controller="PaginationController"
-         ng-init="init('reservationRequestDetail.acl', '${contextPath}/reservation-request/:id/acl?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+         ng-init="init('reservationRequestDetail.acl', '${urlAcl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
         <pagination-page-size class="pull-right">
             <spring:message code="views.pagination.records"/>
         </pagination-page-size>
@@ -193,7 +197,8 @@
                 <td>{{userRole.user.primaryEmail}}</td>
                 <c:if test="${isWritable}">
                     <td>
-                        <a href="${contextPath}/reservation-request/${reservationRequest.id}/acl/delete/{{userRole.id}}">
+                        <spring:eval var="urlAclDelete" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclDelete(contextPath, reservationRequest.id, '{{userRole.id}}')"/>
+                        <a href="${urlAclDelete}">
                             <spring:message code="views.list.action.delete"/>
                         </a>
                     </td>
@@ -206,7 +211,8 @@
         </table>
         <c:choose>
             <c:when test="${isWritable}">
-                <a class="btn btn-primary" href="${contextPath}/reservation-request/${reservationRequest.id}/acl/create">
+                <spring:eval var="urlAclCreate" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclCreate(contextPath, reservationRequest.id)"/>
+                <a class="btn btn-primary" href="${urlAclCreate}">
                     <spring:message code="views.button.create"/>
                 </a>
                 <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
@@ -279,7 +285,8 @@
                             </td>
                             <td>
                                 <c:if test="${reservation.roomState.available}">
-                                    <a href="${contextPath}/room/${reservation.roomId}">
+                                    <spring:eval var="urlRoomManagement" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
+                                    <a href="${urlRoomManagement}">
                                         <spring:message code="views.list.action.manage"/>
                                     </a>
                                 </c:if>
@@ -292,8 +299,11 @@
 
             <%-- Multiple reservation requests dynamically --%>
             <c:otherwise>
+                <spring:eval var="urlChildList" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailChildren(contextPath, ':id')"/>
+                <spring:eval var="urlChildDetail" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{childReservationRequest.id}}')"/>
+                <spring:eval var="urlChildRoomManagement" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
                 <div ng-controller="PaginationController"
-                     ng-init="init('reservationRequestDetail.children', '${contextPath}/reservation-request/:id/children?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+                     ng-init="init('reservationRequestDetail.children', '${urlChildList}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
                     <pagination-page-size class="pull-right">
                         <spring:message code="views.pagination.records"/>
                     </pagination-page-size>
@@ -347,11 +357,9 @@
                                 </div>
                             </td>
                             <td>
-                                <a href="${contextPath}/reservation-request/detail/{{childReservationRequest.id}}">
-                                    <spring:message code="views.list.action.show"/>
-                                </a>
+                                <a href="${urlChildDetail}"><spring:message code="views.list.action.show"/></a>
                                 <span ng-show="childReservationRequest.roomStateAvailable">
-                                    | <a href="${contextPath}/room/{{childReservationRequest.roomId}}">
+                                    | <a href="${urlChildRoomManagement}">
                                         <spring:message code="views.list.action.manage"/>
                                     </a>
                                 </span>
@@ -367,9 +375,11 @@
 
     <%-- Permanent room capacities --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+        <spring:eval var="urlUsageList" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailUsages(contextPath, ':id')"/>
+        <spring:eval var="urlUsageDetail" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, '{{permanentRoomCapacity.id}}')"/>
         <hr/>
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestDetail.permanentRoomCapacities', '${contextPath}/reservation-request/:id/usages?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+             ng-init="init('reservationRequestDetail.permanentRoomCapacities', '${urlUsageList}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
             <pagination-page-size class="pull-right">
                 <spring:message code="views.pagination.records"/>
             </pagination-page-size>
@@ -395,9 +405,7 @@
                         </app:help>
                     </td>
                     <td>
-                        <a href="${contextPath}/reservation-request/detail/{{permanentRoomCapacity.id}}">
-                            <spring:message code="views.list.action.show"/>
-                        </a>
+                        <a href="${urlUsageDetail}"><spring:message code="views.list.action.show"/></a>
                     </td>
                 </tr>
                 <tr ng-hide="items.length">
@@ -407,7 +415,8 @@
             </table>
             <c:choose>
                 <c:when test="${isProvidable && reservationRequest.slot.containsNow()}">
-                    <a class="btn btn-primary" href="${contextPath}/reservation-request/create?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequest.id}">
+                    <c:set var="urlCreate">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %></c:set>
+                    <a class="btn btn-primary" href="${urlCreate}?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequest.id}">
                         <spring:message code="views.button.create"/>
                     </a>
                     <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
@@ -422,17 +431,17 @@
 </div>
 
 <div class="pull-right">
-    <a class="btn btn-primary" href="${contextPath}/reservation-request">
+    <a class="btn btn-primary" href="${urlBack}">
         <spring:message code="views.button.back"/>
     </a>
     <a class="btn" href="javascript: location.reload();">
         <spring:message code="views.button.refresh"/>
     </a>
     <c:if test="${isWritable}">
-        <a class="btn" href="${contextPath}/reservation-request/modify/${reservationRequest.id}">
+        <a class="btn" href="${urlModify}">
             <spring:message code="views.button.modify"/>
         </a>
-        <a class="btn" href="${contextPath}/reservation-request/delete/${reservationRequest.id}">
+        <a class="btn" href="${urlDelete}">
             <spring:message code="views.button.delete"/>
         </a>
     </c:if>

@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.AclRecordValidator;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
@@ -26,13 +26,11 @@ import javax.annotation.Resource;
 import java.util.*;
 
 /**
- * Controller for managing reservation requests.
+ * Controller for displaying detail of reservation requests.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@RequestMapping("/reservation-request")
-@SessionAttributes({"aclRecord"})
 public class ReservationRequestDetailController
 {
     @Resource
@@ -47,11 +45,14 @@ public class ReservationRequestDetailController
     @Resource
     private MessageSource messageSource;
 
-    @RequestMapping(value = "/detail/{id:.+}", method = RequestMethod.GET)
-    public String getDetail(
+    /**
+     * Handle detail of reservation request view.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
+    public String handleDetailView(
             Locale locale,
             SecurityToken securityToken,
-            @PathVariable(value = "id") String id,
+            @PathVariable(value = "reservationRequestId") String id,
             Model model)
     {
         // Get reservation request
@@ -151,9 +152,12 @@ public class ReservationRequestDetailController
         return "reservationRequestDetail";
     }
 
-    @RequestMapping(value = "/{reservationRequestId:.+}/children", method = RequestMethod.GET)
+    /**
+     * Handle data request for children of reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_CHILDREN, method = RequestMethod.GET)
     @ResponseBody
-    public Map getChildren(
+    public Map handleDetailChildren(
             Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -227,9 +231,12 @@ public class ReservationRequestDetailController
         return data;
     }
 
-    @RequestMapping(value = "/{reservationRequestId:.+}/usages", method = RequestMethod.GET)
+    /**
+     * Handle data request for usages of reservation request.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_USAGES, method = RequestMethod.GET)
     @ResponseBody
-    public Map getUsages(
+    public Map handleDetailUsages(
             Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
@@ -339,102 +346,5 @@ public class ReservationRequestDetailController
         }
 
         return child;
-    }
-
-
-
-    @RequestMapping(value = "/{reservationRequestId:.+}/acl", method = RequestMethod.GET)
-    @ResponseBody
-    public Map getAcl(
-            Locale locale,
-            SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "count", required = false) Integer count)
-    {
-        // List reservation requests
-        AclRecordListRequest request = new AclRecordListRequest();
-        request.setSecurityToken(securityToken);
-        request.setStart(start);
-        request.setCount(count);
-        request.addEntityId(reservationRequestId);
-        ListResponse<AclRecord> response = authorizationService.listAclRecords(request);
-
-        // Build response
-        List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
-        for (AclRecord aclRecord : response.getItems()) {
-
-            Map<String, Object> item = new HashMap<String, Object>();
-            item.put("id", aclRecord.getId());
-            item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
-            String role = aclRecord.getRole().toString();
-            item.put("role", messageSource.getMessage("views.aclRecord.role." + role, null, locale));
-            items.add(item);
-        }
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("start", response.getStart());
-        data.put("count", response.getCount());
-        data.put("items", items);
-        return data;
-    }
-
-    private ModelAndView getAclCreate(String reservationRequestId, AclRecord aclRecord)
-    {
-        ModelAndView modelAndView = new ModelAndView("aclRecordCreate");
-        modelAndView.addObject("aclRecord", aclRecord);
-        modelAndView.addObject("entity", "views.reservationRequest");
-        modelAndView.addObject("roles", EntityType.RESERVATION_REQUEST.getOrderedRoles());
-        modelAndView.addObject("confirm", "views.button.create");
-        modelAndView.addObject("confirmUrl", "/reservation-request/" + reservationRequestId + "/acl/create/confirmed");
-        modelAndView.addObject("backUrl", "/reservation-request/detail/" + reservationRequestId);
-        return modelAndView;
-    }
-
-    @RequestMapping(value = "/{reservationRequestId:.+}/acl/create", method = RequestMethod.GET)
-    public ModelAndView getAclCreate(
-            @PathVariable(value = "reservationRequestId") String reservationRequestId)
-    {
-        AclRecord aclRecord = new AclRecord();
-        aclRecord.setEntityId(reservationRequestId);
-        return getAclCreate(reservationRequestId, aclRecord);
-    }
-
-    @RequestMapping(value = "/{reservationRequestId:.+}/acl/create/confirmed", method = RequestMethod.POST)
-    public Object getAclCreateConfirmed(
-            SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            @ModelAttribute("aclRecord") AclRecord aclRecord,
-            BindingResult result)
-    {
-        AclRecordValidator aclRecordValidator = new AclRecordValidator();
-        aclRecordValidator.validate(aclRecord, result);
-        if (result.hasErrors()) {
-            return getAclCreate(reservationRequestId, aclRecord);
-        }
-        authorizationService.createAclRecord(securityToken,
-                aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole());
-        return "redirect:/reservation-request/detail/" + reservationRequestId;
-    }
-
-    @RequestMapping(value = "/{reservationRequestId:.+}/acl/delete/{aclRecordId}", method = RequestMethod.GET)
-    public String getAclDelete(
-            SecurityToken securityToken,
-            @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            @PathVariable(value = "aclRecordId") String aclRecordId,
-            Model model)
-    {
-        AclRecordListRequest request = new AclRecordListRequest();
-        request.setSecurityToken(securityToken);
-        request.addEntityId(reservationRequestId);
-        request.addRole(Role.OWNER);
-        ListResponse<AclRecord> aclRecords = authorizationService.listAclRecords(request);
-        if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(aclRecordId)) {
-            model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
-            model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
-            model.addAttribute("backUrl", "/reservation-request/detail/" + reservationRequestId);
-            return "message";
-        }
-        authorizationService.deleteAclRecord(securityToken, aclRecordId);
-        return "redirect:/reservation-request/detail/" + reservationRequestId;
     }
 }

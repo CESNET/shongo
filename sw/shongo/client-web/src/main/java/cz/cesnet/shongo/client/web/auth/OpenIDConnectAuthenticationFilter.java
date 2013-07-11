@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.auth;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -42,8 +43,6 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
 {
     private static Logger logger = LoggerFactory.getLogger(OpenIDConnectAuthenticationFilter.class);
 
-    private final static String FILTER_PROCESSES_URL = "/login";
-
     private final static String SESSION_STATE_VARIABLE = "state";
 
     /**
@@ -58,7 +57,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
      */
     protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration)
     {
-        super(FILTER_PROCESSES_URL);
+        super(ClientWebUrl.LOGIN);
         this.configuration = configuration;
     }
 

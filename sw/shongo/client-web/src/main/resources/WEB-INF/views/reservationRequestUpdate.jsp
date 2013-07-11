@@ -7,10 +7,12 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <tiles:importAttribute/>
+<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="urlConfirm" value="${contextPath}${urlConfirm}"/>
+<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <script type="text/javascript">
     // Angular application
@@ -118,7 +120,7 @@
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
-           action="${contextPath}${confirmUrl}"
+           action="${urlConfirm}"
            method="post"
            ng-controller="FormController">
 
@@ -311,7 +313,7 @@
         <div class="controls">
             <spring:message code="${confirm}" var="confirm"/>
             <input class="btn btn-primary" type="submit" value="${confirm}"/>
-            <a class="btn" href="${contextPath}/reservation-request"><spring:message code="views.button.cancel"/></a>
+            <a class="btn" href="${urlBack}"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>
 

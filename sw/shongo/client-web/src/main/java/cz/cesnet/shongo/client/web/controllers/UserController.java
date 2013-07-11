@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
 
 /**
  * Controller for retrieving {@link UserInformation}.
@@ -18,7 +19,6 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@RequestMapping("/user")
 public class UserController
 {
     @Resource
@@ -27,13 +27,27 @@ public class UserController
     @Resource
     private Cache cache;
 
-    @RequestMapping(value = {"", "list"}, method = RequestMethod.GET)
+    /**
+     * Handle default user action.
+     */
+    @RequestMapping(value = ClientWebUrl.USER, method = RequestMethod.GET)
+    public String handleDefault()
+    {
+        return "forward:" + ClientWebUrl.USER_LIST;
+    }
+
+    /**
+     * Handle data request for list of {@link UserInformation} which contains given {@code filter} text in any field.
+     *
+     * @param filter
+     * @return list of {@link UserInformation}
+     */
+    @RequestMapping(value = ClientWebUrl.USER_LIST, method = RequestMethod.GET)
     @ResponseBody
-    public List<UserInformation> getAcl(
+    public List<UserInformation> handleList(
             SecurityToken securityToken,
             @RequestParam(value = "filter", required = false) String filter)
     {
-        // List reservation requests
         UserListRequest request = new UserListRequest();
         request.setSecurityToken(securityToken);
         request.setFilter(filter);
@@ -41,9 +55,15 @@ public class UserController
         return response.getItems();
     }
 
-    @RequestMapping(value = "/user/{userId:.+}", method = RequestMethod.GET)
+    /**
+     * Handle data request for {@link UserInformation}.
+     *
+     * @param userId
+     * @return {@link UserInformation} with given {@code userId}
+     */
+    @RequestMapping(value = ClientWebUrl.USER_DETAIL, method = RequestMethod.GET)
     @ResponseBody
-    public UserInformation getUser(
+    public UserInformation handleDetail(
             SecurityToken securityToken,
             @PathVariable(value = "userId") String userId)
     {
