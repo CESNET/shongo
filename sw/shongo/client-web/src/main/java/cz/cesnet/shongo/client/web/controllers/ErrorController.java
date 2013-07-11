@@ -18,6 +18,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -43,10 +44,10 @@ public class ErrorController
     @RequestMapping("/error")
     public String handleErrorView(HttpServletRequest request, Model model)
     {
-        String requestUri = (String) request.getAttribute("javax.servlet.error.request_uri");
-        String message = (String) request.getAttribute("javax.servlet.error.message");
-        Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-        Throwable throwable = (Throwable) request.getAttribute("javax.servlet.error.exception");
+        String requestUri = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
+        String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
+        Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
 
         reportError("Error " + statusCode + " in " + requestUri + ": " + message, throwable, request);
 

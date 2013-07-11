@@ -50,6 +50,11 @@
         <put-attribute name="body" value="/WEB-INF/views/dashboard.jsp" type="template"/>
     </definition>
 
+    <definition name="wizard" extends="layout">
+        <put-attribute name="title" value="views.wizard.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/wizard.jsp" type="template"/>
+    </definition>
+
     <definition name="reservationRequestList" extends="layout">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>

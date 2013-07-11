@@ -23,7 +23,7 @@
 <spring:message code="${title}" var="title"/>
 <%
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
-            (String) request.getAttribute("javax.servlet.forward.request_uri"));
+            (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
     uriBuilder.query(request.getQueryString()).replaceQueryParam("lang", ":lang");
     pageContext.setAttribute("urlLanguage", uriBuilder.build().toUriString());
 %>
@@ -57,9 +57,9 @@
             <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse pull-left">
                 <ul class="nav" role="navigation">
-                    <li><a href="${urlDashboard}"><spring:message code="views.layout.link.dashboard"/></a></li>
-                    <li><a href="${urlWizard}"><spring:message code="views.layout.link.wizard"/></a></li>
-                    <li><a href="${urlReservationRequestList}"><spring:message code="views.layout.link.reservationRequests"/></a></li>
+                    <li><a href="${urlDashboard}"><spring:message code="navigation.dashboard"/></a></li>
+                    <li><a href="${urlWizard}"><spring:message code="navigation.wizard"/></a></li>
+                    <li><a href="${urlReservationRequestList}"><spring:message code="navigation.reservationRequest"/></a></li>
                 </ul>
             </div>
         </div>
@@ -103,26 +103,44 @@
                 </span>
             </li>
 
-
         </ul>
 
+        <c:if test="${requestScope.breadcrumb != null && requestScope.breadcrumb.isMultiple()}">
+            <ul class="breadcrumb">
+                <c:forEach items="${requestScope.breadcrumb.iterator()}" var="item" varStatus="status">
+                    <c:choose>
+                        <c:when test="${!status.last}">
+                            <li>
+                                <a href="${contextPath}${item.url}"><spring:message code="${item.titleCode}"/></a>
+                                <span class="divider">/</span>
+                            </li>
+                        </c:when>
+                        <c:otherwise>
+                            <li class="active"><spring:message code="${item.titleCode}"/></li>
+                        </c:otherwise>
+                    </c:choose>
+                </c:forEach>
+            </ul>
+        </c:if>
+
     </div>
+
 </div>
 
 <%-- Page content --%>
-<div class="block push">
-    <div class="container">
-    <c:choose>
-        <c:when test="${heading == 'title'}">
-            <h1>${title}</h1>
-        </c:when>
-        <c:when test="${heading != ''}">
-            <h1>${heading}</h1>
-        </c:when>
-    </c:choose>
-    <tiles:insertAttribute name="body"/>
+    <div class="block push">
+        <div class="container">
+            <c:choose>
+                <c:when test="${heading == 'title'}">
+                    <h1>${title}</h1>
+                </c:when>
+                <c:when test="${heading != ''}">
+                    <h1>${heading}</h1>
+                </c:when>
+            </c:choose>
+            <tiles:insertAttribute name="body"/>
         </div>
-</div>
+    </div>
 
 <%-- Page footer --%>
 <div class="footer block">
