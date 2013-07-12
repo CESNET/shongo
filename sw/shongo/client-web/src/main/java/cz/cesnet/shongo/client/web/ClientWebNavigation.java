@@ -1,23 +1,63 @@
 package cz.cesnet.shongo.client.web;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Navigation for shongo web client.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ClientWebNavigation
+public class ClientWebNavigation extends NavigationNode
 {
+    private Map<String, NavigationNode> cachedNavigationNodeByUrl = new HashMap<String, NavigationNode>();
+
     /**
-     * {@link ClientWebNavigation} cannot be instanced.
+     * Construct the navigation.
      */
     private ClientWebNavigation()
     {
+        super(ClientWebUrl.HOME, "navigation.home");
+
+        addChildNode(new NavigationNode(ClientWebUrl.DASHBOARD, "navigation.dashboard"));
+
+        addChildNode(new NavigationNode(ClientWebUrl.WIZARD, "navigation.wizard"));
+
+        NavigationNode reservationRequest = addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST, "navigation.reservationRequest"));
+        reservationRequest.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_LIST));
+        NavigationNode reservationRequestDetail = reservationRequest.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_DETAIL, "navigation.reservationRequest.detail", false));
+        reservationRequest.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_CREATE, "navigation.reservationRequest.create"));
+        reservationRequest.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_MODIFY, "navigation.reservationRequest.modify"));
+        reservationRequest.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_DELETE, "navigation.reservationRequest.delete"));
+
+        reservationRequestDetail.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, "navigation.reservationRequest.detail.createAcl"));
+        reservationRequestDetail.addChildNode(new NavigationNode(
+                ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE, "navigation.reservationRequest.detail.deleteAcl"));
+
+        addChildNode(new NavigationNode(ClientWebUrl.CHANGELOG, "navigation.changelog"));
+    }
+
+    @Override
+    public NavigationNode findByUrl(String url)
+    {
+        if (!cachedNavigationNodeByUrl.containsKey(url)) {
+            NavigationNode navigationNode = super.findByUrl(url);
+            cachedNavigationNodeByUrl.put(url, navigationNode);
+        }
+        return cachedNavigationNodeByUrl.get(url);
     }
 
     /**
      * Single instance of root {@link NavigationNode}.
      */
-    private static NavigationNode rootNavigationNode;
+    private static ClientWebNavigation rootNavigationNode;
 
     /**
      * @return {@link #rootNavigationNode}
@@ -25,34 +65,8 @@ public class ClientWebNavigation
     public static NavigationNode getInstance()
     {
         if (rootNavigationNode == null) {
-            rootNavigationNode = createRootNavigationNode();
+            rootNavigationNode = new ClientWebNavigation();
         }
-        return rootNavigationNode;
-    }
-
-    /**
-     * @return new instance of root {@link NavigationNode} for {@link ClientWebNavigation}
-     */
-    private static NavigationNode createRootNavigationNode()
-    {
-        NavigationNode rootNavigationNode = new NavigationNode(ClientWebUrl.HOME, "navigation.home");
-
-        rootNavigationNode.addChildNode(
-                new NavigationNode(ClientWebUrl.DASHBOARD, "navigation.dashboard"));
-
-        rootNavigationNode.addChildNode(
-                new NavigationNode(ClientWebUrl.WIZARD, "navigation.wizard"));
-
-        NavigationNode reservationRequest = rootNavigationNode.addChildNode(
-                new NavigationNode(ClientWebUrl.RESERVATION_REQUEST, "navigation.home"));
-        reservationRequest.addChildNode(
-                new NavigationNode(ClientWebUrl.RESERVATION_REQUEST_LIST, "navigation.reservationRequest.list"));
-        reservationRequest.addChildNode(
-                new NavigationNode(ClientWebUrl.RESERVATION_REQUEST_DETAIL, "navigation.reservationRequest.detail"));
-
-        rootNavigationNode.addChildNode(
-                new NavigationNode(ClientWebUrl.CHANGELOG, "navigation.changelog"));
-
         return rootNavigationNode;
     }
 }

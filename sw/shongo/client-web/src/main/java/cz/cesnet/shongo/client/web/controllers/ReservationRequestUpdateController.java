@@ -150,7 +150,7 @@ public class ReservationRequestUpdateController
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
-        if (reservationRequestId.equals(reservationRequestModel.getId())) {
+        if (!reservationRequestId.equals(reservationRequestModel.getId())) {
             throw new IllegalArgumentException("Modification of " + reservationRequestId +
                     " was requested but attributes for " + reservationRequestModel.getId() + " was present.");
         }

@@ -59,12 +59,13 @@
         <property name="defaultLocale" value="en"/>
     </bean>
 
-    <!-- Create locale change interceptor and register it to all controllers -->
+    <!-- Initialize interceptors -->
     <mvc:interceptors>
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
             <property name="paramName" value="lang"/>
         </bean>
         <bean id="timeZoneInterceptor" class="cz.cesnet.shongo.client.web.interceptors.DateTimeZoneInterceptor"/>
+        <bean id="navigationInterceptor" class="cz.cesnet.shongo.client.web.interceptors.NavigationInterceptor"/>
     </mvc:interceptors>
 
     <!-- i18n message source -->
