@@ -9,7 +9,6 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <s:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
-<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <script type="text/javascript">
     // Angular application
@@ -96,7 +95,7 @@
             </c:forEach>
             <c:if test="${participants.isEmpty()}">
                 <tr>
-                    <td colspan="2" class="empty">- - - None - - -</td>
+                    <td colspan="2" class="empty"><s:message code="views.list.none"/></td>
                 </tr>
             </c:if>
             </tbody>
@@ -121,7 +120,7 @@
             </c:forEach>
             <c:if test="${recordings.isEmpty()}">
                 <tr>
-                    <td colspan="2" class="empty">- - - None - - -</td>
+                    <td colspan="2" class="empty"><s:message code="views.list.none"/></td>
                 </tr>
             </c:if>
             </tbody>
@@ -130,9 +129,6 @@
 </div>
 
 <div class="pull-right">
-    <a class="btn btn-primary" href="${urlBack}">
-        <s:message code="views.button.back"/>
-    </a>
     <a class="btn" href="javascript: location.reload();">
         <s:message code="views.button.refresh"/>
     </a>

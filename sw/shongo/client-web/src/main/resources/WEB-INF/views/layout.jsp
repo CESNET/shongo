@@ -16,7 +16,6 @@
 <%-- Variables --%>
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlDashboard">${contextPath}<%= ClientWebUrl.DASHBOARD %></c:set>
 <c:set var="urlWizard">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
 <c:set var="urlReservationRequestList">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="urlChangelog">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
@@ -57,7 +56,6 @@
             <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse pull-left">
                 <ul class="nav" role="navigation">
-                    <li><a href="${urlDashboard}"><spring:message code="navigation.dashboard"/></a></li>
                     <li><a href="${urlWizard}"><spring:message code="navigation.wizard"/></a></li>
                     <li><a href="${urlReservationRequestList}"><spring:message code="navigation.reservationRequest"/></a></li>
                 </ul>
@@ -105,7 +103,7 @@
 
         </ul>
 
-        <c:if test="${requestScope.breadcrumb != null && requestScope.breadcrumb.isMultiple()}">
+        <c:if test="${requestScope.breadcrumb != null}">
             <ul class="breadcrumb">
                 <c:forEach items="${requestScope.breadcrumb.iterator()}" var="item" varStatus="status">
                     <c:choose>

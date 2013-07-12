@@ -4,11 +4,8 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.AclRecordValidator;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
-import cz.cesnet.shongo.controller.EntityType;
-import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -18,9 +15,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -35,9 +30,6 @@ public class ReservationRequestDetailController
 {
     @Resource
     private ReservationService reservationService;
-
-    @Resource
-    private AuthorizationService authorizationService;
 
     @Resource
     private Cache cache;
@@ -323,7 +315,7 @@ public class ReservationRequestDetailController
             child.put("slot", reservation.getSlot());
 
             // Reservation should contain allocated room
-            Executable.ResourceRoom room = (Executable.ResourceRoom) reservation.getExecutable();
+            RoomExecutable room = (RoomExecutable) reservation.getExecutable();
             if (room != null) {
                 child.put("roomId", room.getId());
 

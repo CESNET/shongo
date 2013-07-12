@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
@@ -18,6 +19,11 @@ import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.TodoImplementException;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ManagedMode;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
@@ -101,13 +107,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Executable.ResourceRoom();
+        return new RoomExecutable();
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable.ResourceRoom toApi(Report.MessageType messageType)
+    public RoomExecutable toApi(Report.MessageType messageType)
     {
-        return (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) super.toApi(messageType);
+        return (RoomExecutable) super.toApi(messageType);
     }
 
     @Override
@@ -115,32 +121,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, messageType);
 
-        cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
-                (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
-        resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
-        resourceRoomEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
-        resourceRoomEndpointApi.setRoomId(getRoomId());
+        RoomExecutable roomExecutableEndpointApi =
+                (RoomExecutable) executableApi;
+        roomExecutableEndpointApi.setLicenseCount(getLicenseCount());
+        roomExecutableEndpointApi.setResourceId(EntityIdentifier.formatId(getDeviceResource()));
+        roomExecutableEndpointApi.setRoomId(getRoomId());
         for (Technology technology : getTechnologies()) {
-            resourceRoomEndpointApi.addTechnology(technology);
+            roomExecutableEndpointApi.addTechnology(technology);
         }
         for (Alias alias : getAssignedAliases()) {
-            resourceRoomEndpointApi.addAlias(alias.toApi());
+            roomExecutableEndpointApi.addAlias(alias.toApi());
         }
         for (RoomSetting roomSetting : getRoomSettings()) {
-            resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
-        }
-    }
-
-    @Override
-    @Transient
-    public Set<Technology> getTechnologies()
-    {
-        RoomConfiguration roomConfiguration = getRoomConfiguration();
-        if (roomConfiguration.getTechnologies().size() > 0) {
-            return roomConfiguration.getTechnologies();
-        }
-        else {
-            return getDeviceResource().getTechnologies();
+            roomExecutableEndpointApi.addRoomSetting(roomSetting.toApi());
         }
     }
 
@@ -150,7 +143,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public int getLicenseCount()
     {
-        return getRoomConfiguration().getLicenseCount();
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        if (roomConfiguration == null) {
+            throw new IllegalStateException("Room configuration hasn't been set yet.");
+        }
+        return roomConfiguration.getLicenseCount();
     }
 
     /**
@@ -159,7 +156,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     private Collection<RoomSetting> getRoomSettings()
     {
-        return getRoomConfiguration().getRoomSettings();
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        if (roomConfiguration == null) {
+            throw new IllegalStateException("Room configuration hasn't been set yet.");
+        }
+        return roomConfiguration.getRoomSettings();
     }
 
     @Override

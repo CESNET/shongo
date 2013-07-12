@@ -12,7 +12,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Main controller.
+ * Controller for other views and resources.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -35,21 +35,6 @@ public class MainController
     public String handleShongoPng()
     {
         return "forward:/img/shongo.png";
-    }
-
-
-    /**
-     * Handle main (index) view.
-     */
-    @RequestMapping(value = ClientWebUrl.HOME, method = RequestMethod.GET)
-    public String handleIndexView(HttpServletRequest request, RedirectAttributes redirectAttributes)
-    {
-        // Redirect authentication requests until the "redirect_uri" is fixed
-        if (request.getParameter("code") != null || request.getParameter("error") != null) {
-            redirectAttributes.addAllAttributes(request.getParameterMap());
-            return "redirect:" + ClientWebUrl.LOGIN;
-        }
-        return "index";
     }
 
     /**

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -276,41 +277,27 @@ public class AliasReservationTask extends ReservationTask
                         throw new RuntimeException("Permanent room should be enabled only for device resource"
                                 + " with room provider capability.");
                     }
-                    ResourceRoomEndpoint roomEndpoint;
-                    Executable executable = aliasReservation.getExecutable();
-                    if (executable != null && executable instanceof ResourceRoomEndpoint) {
-                        // Reallocate existing room endpoint
-                        roomEndpoint = (ResourceRoomEndpoint) executable;
-                        roomEndpoint.clearAssignedAliases();
-                    }
-                    else {
-                        if (executable != null) {
-                            // If executable exists it will be stopped
-                            executable.setSlotEnd(DateTime.now());
-                        }
-                        // Create new room endpoint
-                        roomEndpoint = new ResourceRoomEndpoint();
-                    }
+                    DeviceResource deviceResource = roomProvider.getDeviceResource();                    ;
 
-                    roomEndpoint.setSlot(interval);
-                    roomEndpoint.setRoomProviderCapability(roomProvider);
-                    roomEndpoint.setRoomDescription(schedulerContext.getDescription());
+                    // Create new room
+                    ResourceRoomEndpoint room = new ResourceRoomEndpoint();
+                    room.setSlot(interval);
+                    room.setRoomProviderCapability(roomProvider);
+                    room.setRoomDescription(schedulerContext.getDescription());
+                    room.setState(ResourceRoomEndpoint.State.NOT_STARTED);
 
-                    // Update room endpoint state
-                    if (roomEndpoint.getState() == null) {
-                        roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
-                    }
-                    else if (roomEndpoint.getState().equals(Executable.State.STARTED)) {
-                        roomEndpoint.setState(ResourceRoomEndpoint.State.MODIFIED);
-                    }
+                    // Create room configuration
+                    RoomConfiguration roomConfiguration = new RoomConfiguration();
+                    roomConfiguration.setTechnologies(deviceResource.getTechnologies());
+                    room.setRoomConfiguration(roomConfiguration);
 
-                    Set<Technology> technologies = roomEndpoint.getTechnologies();
+                    Set<Technology> roomTechnologies = room.getTechnologies();
                     for (Alias alias : aliasReservation.getAliases()) {
-                        if (alias.getTechnology().isCompatibleWith(technologies)) {
-                            roomEndpoint.addAssignedAlias(alias);
+                        if (alias.getTechnology().isCompatibleWith(roomTechnologies)) {
+                            room.addAssignedAlias(alias);
                         }
                     }
-                    aliasReservation.setExecutable(roomEndpoint);
+                    aliasReservation.setExecutable(room);
                 }
 
                 endReport();

@@ -229,7 +229,7 @@ public abstract class Specification extends PersistentObject implements Reportab
 
     /**
      * @param specificationApiClass
-     * @return {@link Specification} for given {@code apiClass}
+     * @return {@link Specification} for given {@code specificationApiClass}
      */
     public static Class<? extends Specification> getClassFromApi(
             Class<? extends cz.cesnet.shongo.controller.api.Specification> specificationApiClass)

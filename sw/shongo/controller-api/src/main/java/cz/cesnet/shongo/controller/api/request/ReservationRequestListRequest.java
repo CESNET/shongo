@@ -13,7 +13,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestListRequest extends ListRequest
+public class ReservationRequestListRequest extends SortableListRequest<ReservationRequestListRequest.Sort>
 {
     private Set<String> reservationRequestIds = new HashSet<String>();
 
@@ -25,22 +25,19 @@ public class ReservationRequestListRequest extends ListRequest
 
     private String historyReservationRequestId;
 
-    private Sort sort;
-
-    private Boolean sortDescending;
-
     public ReservationRequestListRequest()
     {
+        super(Sort.class);
     }
 
     public ReservationRequestListRequest(SecurityToken securityToken)
     {
-        super(securityToken);
+        super(Sort.class, securityToken);
     }
 
     public ReservationRequestListRequest(SecurityToken securityToken, Technology[] technologies)
     {
-        super(securityToken);
+        super(Sort.class, securityToken);
         for (Technology technology : technologies) {
             this.technologies.add(technology);
         }
@@ -111,39 +108,16 @@ public class ReservationRequestListRequest extends ListRequest
         this.historyReservationRequestId = historyReservationRequestId;
     }
 
-    public Sort getSort()
-    {
-        return sort;
-    }
-
-    public void setSort(Sort sort)
-    {
-        this.sort = sort;
-    }
-
-    public Boolean getSortDescending()
-    {
-        return sortDescending;
-    }
-
-    public void setSortDescending(Boolean sortDescending)
-    {
-        this.sortDescending = sortDescending;
-    }
-
     public static enum Sort
     {
         DATETIME
     }
 
     private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";
-
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
     private static final String HISTORY_RESERVATION_REQUEST_ID = "historyReservationRequestId";
-    private static final String SORT = "sort";
-    private static final String SORT_DESCENDING = "sortDescending";
 
     @Override
     public DataMap toData()
@@ -154,8 +128,6 @@ public class ReservationRequestListRequest extends ListRequest
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
         dataMap.set(HISTORY_RESERVATION_REQUEST_ID, historyReservationRequestId);
-        dataMap.set(SORT, sort);
-        dataMap.set(SORT_DESCENDING, sortDescending);
         return dataMap;
     }
 
@@ -168,7 +140,5 @@ public class ReservationRequestListRequest extends ListRequest
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
         historyReservationRequestId = dataMap.getString(HISTORY_RESERVATION_REQUEST_ID);
-        sort = dataMap.getEnum(SORT, Sort.class);
-        sortDescending = dataMap.getBool(SORT_DESCENDING);
     }
 }

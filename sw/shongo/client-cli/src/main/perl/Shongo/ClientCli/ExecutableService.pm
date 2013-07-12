@@ -97,7 +97,9 @@ sub list_executables()
     my ($options) = @_;
     my $filter = {};
     my $application = Shongo::ClientCli->instance();
-    my $response = $application->secure_request('Executable.listExecutables', $filter);
+    my $response = $application->secure_hash_request('Executable.listExecutables', {
+        'includeHistory' => 1
+    });
     if ( !defined($response) ) {
         return
     }
@@ -110,13 +112,10 @@ sub list_executables()
         ],
         'data' => []
     };
-    foreach my $executable (@{$response}) {
+    foreach my $executable (@{$response->{'items'}}) {
         my $type = '';
-        if ( $executable->{'type'} eq 'COMPARTMENT' ) {
-            $type = 'Compartment';
-        }
-        elsif ( $executable->{'type'} eq 'ROOM' ) {
-            $type = 'Virtual Room';
+        if ( $executable->{'class'} eq 'RoomExecutableSummary' ) {
+            $type = 'Room';
         }
         push(@{$table->{'data'}}, {
             'id' => $executable->{'id'},

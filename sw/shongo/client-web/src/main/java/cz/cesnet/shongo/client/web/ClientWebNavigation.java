@@ -19,16 +19,19 @@ public class ClientWebNavigation extends NavigationNode
     {
         super(ClientWebUrl.HOME, "navigation.home");
 
-        addChildNode(new NavigationNode(ClientWebUrl.DASHBOARD, "navigation.dashboard"));
+        addChildNode(new NavigationNode(ClientWebUrl.CHANGELOG, "navigation.changelog"));
 
-        addChildNode(new NavigationNode(ClientWebUrl.WIZARD, "navigation.wizard"));
+        // Wizard
+        NavigationNode wizard = addChildNode(new NavigationNode(
+                ClientWebUrl.WIZARD, "navigation.wizard"));
 
+        // Reservation requests
         NavigationNode reservationRequest = addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST, "navigation.reservationRequest"));
         reservationRequest.addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST_LIST));
         NavigationNode reservationRequestDetail = reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_DETAIL, "navigation.reservationRequest.detail", false));
+                ClientWebUrl.RESERVATION_REQUEST_DETAIL, "navigation.reservationRequest.detail"));
         reservationRequest.addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST_CREATE, "navigation.reservationRequest.create"));
         reservationRequest.addChildNode(new NavigationNode(
@@ -36,12 +39,15 @@ public class ClientWebNavigation extends NavigationNode
         reservationRequest.addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST_DELETE, "navigation.reservationRequest.delete"));
 
+        // Detail of reservation request
         reservationRequestDetail.addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, "navigation.reservationRequest.detail.createAcl"));
         reservationRequestDetail.addChildNode(new NavigationNode(
                 ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE, "navigation.reservationRequest.detail.deleteAcl"));
 
-        addChildNode(new NavigationNode(ClientWebUrl.CHANGELOG, "navigation.changelog"));
+        // Room management
+        addChildNode(new NavigationNode(
+                ClientWebUrl.ROOM_MANAGEMENT, "navigation.roomManagement"));
     }
 
     @Override

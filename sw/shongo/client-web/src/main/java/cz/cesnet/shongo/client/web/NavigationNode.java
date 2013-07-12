@@ -48,11 +48,6 @@ public class NavigationNode
     private List<NavigationNode> childNodes = new LinkedList<NavigationNode>();
 
     /**
-     * Specifies whether child URL must start with parent URL (e.g., the parent URL must be prefix of the child URL).
-     */
-    private boolean childrenRequiresParentUrl = true;
-
-    /**
      * Constructor.
      *
      * @param url sets the {@link #url}
@@ -65,27 +60,13 @@ public class NavigationNode
     /**
      * Constructor.
      *
-     * @param url                       sets the {@link #url}
-     * @param titleCode                 sets the {@link #titleCode}
+     * @param url       sets the {@link #url}
+     * @param titleCode sets the {@link #titleCode}
      */
     public NavigationNode(String url, String titleCode)
     {
         this.url = url;
         this.titleCode = titleCode;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param url                       sets the {@link #url}
-     * @param titleCode                 sets the {@link #titleCode}
-     * @param childrenRequiresParentUrl sets the {@link #childrenRequiresParentUrl}
-     */
-    public NavigationNode(String url, String titleCode, boolean childrenRequiresParentUrl)
-    {
-        this.url = url;
-        this.titleCode = titleCode;
-        this.childrenRequiresParentUrl = childrenRequiresParentUrl;
     }
 
     /**
@@ -157,10 +138,6 @@ public class NavigationNode
         // If url starts with this url and none children are present, return this
         else if (startsWith && childNodes.size() == 0) {
             return this;
-        }
-        // If children requires parent url and the specified doesn't start with this url, children can't match
-        else if (childrenRequiresParentUrl && !startsWith) {
-            return null;
         }
         // Else find matching child
         else {

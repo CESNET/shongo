@@ -41,8 +41,8 @@ our $ConnectionState = {
 # Capability types
 #
 our $Type = ordered_hash(
-    'Executable.Compartment' => 'Compartment',
-    'Executable.ResourceRoom' => 'Virtual Room'
+    'CompartmentExecutable' => 'Compartment',
+    'RoomExecutable' => 'Room'
 );
 
 #
@@ -97,7 +97,7 @@ sub on_init()
         'type' => 'interval'
     });
     switch ($class) {
-        case 'Executable.Compartment' {
+        case 'CompartmentExecutable' {
             $self->add_attribute(
                 'endpoints', {
                     'type' => 'collection',
@@ -142,10 +142,10 @@ sub on_init()
                             my ($connection) = @_;
                             my $endpointFrom = $self->get_endpoint($connection->{'endpointFromId'});
                             my $endpointTo = $self->get_endpoint($connection->{'endpointToId'});
-                            if ( $endpointFrom->{'class'} eq 'Executable.ResourceRoom' ) {
+                            if ( $endpointFrom->{'class'} eq 'RoomExecutable' ) {
                                 $endpointFrom->{'description'} = "virtual room (in " . $endpointFrom->{'resourceId'} . ")";
                             }
-                            if ( $endpointTo->{'class'} eq 'Executable.ResourceRoom' ) {
+                            if ( $endpointTo->{'class'} eq 'RoomExecutable' ) {
                                 $endpointTo->{'description'} = "virtual room (in " . $endpointTo->{'resourceId'} . ")";
                             }
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
@@ -158,7 +158,7 @@ sub on_init()
                 }
             );
         }
-        case 'Executable.ResourceRoom' {
+        case 'RoomExecutable' {
             $self->add_attribute(
                 'licenseCount', {
                     'title' => 'Number of Licenses'

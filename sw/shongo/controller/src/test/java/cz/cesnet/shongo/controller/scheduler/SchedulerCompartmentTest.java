@@ -14,7 +14,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Tests for allocation of a {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
+ * Tests for allocation of a {@link cz.cesnet.shongo.controller.api.CompartmentExecutable}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -299,6 +299,7 @@ public class SchedulerCompartmentTest extends AbstractControllerTest
 
         runScheduler();
 
+        // Verify that all executables created for scheduler reports has been deleted
         EntityManager entityManager = createEntityManager();
         List<cz.cesnet.shongo.controller.executor.Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable",

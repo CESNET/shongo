@@ -1,14 +1,21 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.RoomExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -102,35 +109,152 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
+    public ListResponse<ExecutableSummary> listExecutables(ExecutableListRequest request)
     {
-        String userId = authorization.validate(token);
-
+        String userId = authorization.validate(request.getSecurityToken());
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        try {
+            DatabaseFilter filter = new DatabaseFilter("executable");
 
-        Set<Long> executableIds =
-                authorization.getEntitiesWithPermission(userId, EntityType.EXECUTABLE, Permission.READ);
-        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(executableIds);
+            // List only reservations which is current user permitted to read
+            filter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
 
-        List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
-        for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
-            ExecutableSummary summary = new ExecutableSummary();
-            summary.setId(EntityIdentifier.formatId(executable));
-            summary.setSlot(executable.getSlot());
-            summary.setState(executable.getState().toApi());
-            if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {
-                summary.setType(ExecutableSummary.Type.COMPARTMENT);
+            // List only executables which are allocated
+            filter.addFilter("executable.state NOT IN(:notAllocatedStates)");
+            filter.addFilterParameter("notAllocatedStates",
+                    cz.cesnet.shongo.controller.executor.Executable.NOT_ALLOCATED_STATES);
+
+            // List only top executables
+            filter.addFilter("executable NOT IN("
+                    + "  SELECT childExecutable FROM Executable executable"
+                    + "  INNER JOIN executable.childExecutables childExecutable"
+                    + ")");
+
+            // If history executables should not be included
+            if (!request.isIncludeHistory()) {
+                // List only executables which are allocated by any existing reservation
+                filter.addFilter("executable IN("
+                        + "  SELECT executable FROM Reservation reservation"
+                        + "  INNER JOIN reservation.executable executable"
+                        + ")");
             }
-            else if (executable instanceof RoomEndpoint) {
-                summary.setType(ExecutableSummary.Type.ROOM);
+
+            // List only executables of requested classes
+            Set<Class<? extends Executable>> executableApiClasses = request.getExecutableClasses();
+            if (executableApiClasses.size() > 0) {
+                filter.addFilter("TYPE(executable) IN(:classes)");
+                Set<Class<? extends cz.cesnet.shongo.controller.executor.Executable>> executableClasses =
+                        new HashSet<Class<? extends cz.cesnet.shongo.controller.executor.Executable>>();
+                for (Class<? extends Executable> executableApiClass : executableApiClasses) {
+                    executableClasses.addAll(
+                            cz.cesnet.shongo.controller.executor.Executable.getClassesFromApi(executableApiClass));
+                }
+                filter.addFilterParameter("classes", executableClasses);
             }
-            summaryList.add(summary);
+
+            // Sort query part
+            String queryOrderBy;
+            ExecutableListRequest.Sort sort = request.getSort();
+            if (sort != null) {
+                switch (sort) {
+                    case SLOT:
+                        queryOrderBy = "executable.slotStart";
+                        break;
+                    default:
+                        throw new TodoImplementException(sort.toString());
+                }
+            }
+            else {
+                queryOrderBy = "executable.id";
+            }
+            Boolean sortDescending = request.getSortDescending();
+            sortDescending = (sortDescending != null ? sortDescending : false);
+            if (sortDescending) {
+                queryOrderBy = queryOrderBy + " DESC";
+            }
+
+            ListResponse<ExecutableSummary> response = new ListResponse<ExecutableSummary>();
+            List<cz.cesnet.shongo.controller.executor.Executable> executables = performListRequest(
+                    "executable", "executable", cz.cesnet.shongo.controller.executor.Executable.class,
+                    "Executable executable", queryOrderBy, filter, request, response, entityManager);
+
+            // Fill executables to response
+            Map<Long, RoomExecutableSummary> roomExecutableSummaryById = new HashMap<Long, RoomExecutableSummary>();
+            for (cz.cesnet.shongo.controller.executor.Executable executable : executables) {
+                Long executableId = executable.getId();
+                ExecutableSummary executableSummary;
+                if (executable instanceof RoomEndpoint) {
+                    RoomExecutableSummary roomExecutableSummary = new RoomExecutableSummary();
+                    roomExecutableSummaryById.put(executableId, roomExecutableSummary);
+                    executableSummary = roomExecutableSummary;
+                }
+                else {
+                    executableSummary = new ExecutableSummary();
+                }
+                executableSummary.setId(EntityIdentifier.formatId(EntityType.EXECUTABLE, executableId));
+                executableSummary.setSlot(executable.getSlot());
+                executableSummary.setState(executable.getState().toApi());
+                response.addItem(executableSummary);
+            }
+
+            // Fill technologies
+            Set<Long> roomIds = roomExecutableSummaryById.keySet();
+            if (roomIds.size() > 0) {
+                // Fill technologies
+                List<Object[]> roomTechnologies = entityManager.createQuery(""
+                        + "SELECT room.id, technology"
+                        + " FROM RoomEndpoint room"
+                        + " LEFT JOIN room.roomConfiguration.technologies technology"
+                        + " WHERE room.id IN(:roomIds) AND technology != null",
+                        Object[].class)
+                        .setParameter("roomIds", roomIds)
+                        .getResultList();
+                for (Object[] roomTechnology : roomTechnologies) {
+                    Long roomId = (Long) roomTechnology[0];
+                    Technology technology = (Technology) roomTechnology[1];
+                    RoomExecutableSummary roomExecutableSummary = roomExecutableSummaryById.get(roomId);
+                    roomExecutableSummary.addTechnology(technology);
+                }
+
+                // Fill room names
+                List<Object[]> roomNames = entityManager.createQuery(""
+                        + "SELECT room.id, alias.value"
+                        + " FROM ResourceRoomEndpoint room"
+                        + " LEFT JOIN room.assignedAliases alias"
+                        + " WHERE room.id IN(:roomIds) AND alias.type = :roomName",
+                        Object[].class)
+                        .setParameter("roomIds", roomIds)
+                        .setParameter("roomName", AliasType.ROOM_NAME)
+                        .getResultList();
+                for (Object[] roomName : roomNames) {
+                    Long roomId = (Long) roomName[0];
+                    String name = (String) roomName[1];
+                    RoomExecutableSummary roomExecutableSummary = roomExecutableSummaryById.get(roomId);
+                    roomExecutableSummary.setName(name);
+                }
+
+                // Fill used room names
+                List<Object[]> usedRoomNames = entityManager.createQuery(""
+                        + "SELECT room.id, alias.value"
+                        + " FROM UsedRoomEndpoint room"
+                        + " LEFT JOIN room.roomEndpoint.assignedAliases alias"
+                        + " WHERE room.id IN(:roomIds) AND alias.type = :roomName",
+                        Object[].class)
+                        .setParameter("roomIds", roomIds)
+                        .setParameter("roomName", AliasType.ROOM_NAME)
+                        .getResultList();
+                for (Object[] usedRoomName : usedRoomNames) {
+                    Long roomId = (Long) usedRoomName[0];
+                    String name = (String) usedRoomName[1];
+                    RoomExecutableSummary roomExecutableSummary = roomExecutableSummaryById.get(roomId);
+                    roomExecutableSummary.setName(name);
+                }
+            }
+            return response;
         }
-
-        entityManager.close();
-
-        return summaryList;
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override

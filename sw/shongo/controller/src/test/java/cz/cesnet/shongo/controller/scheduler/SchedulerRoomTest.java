@@ -150,7 +150,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         roomSpecification.setResourceId(firstMcuId);
         reservationRequest.setSpecification(roomSpecification);
         RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        Executable.ResourceRoom reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        RoomExecutable reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.H323_URI, AliasType.SIP_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
@@ -163,7 +163,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         roomSpecification.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(
                 new AliasType[]{
                         AliasType.ROOM_NAME, AliasType.H323_URI, AliasType.SIP_URI,
@@ -180,7 +180,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         roomSpecification.setResourceId(secondMcuId);
         reservationRequest.setSpecification(roomSpecification);
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(
                 new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI, AliasType.H323_E164, AliasType.H323_URI},
                 reservationRoom.getAliases());
@@ -223,7 +223,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(5, Technology.H323));
         RoomReservation reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        Executable.ResourceRoom reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        RoomExecutable reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
@@ -232,7 +232,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         reservationRequest.setSpecification(
                 new RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "2-5"));
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.H323_E164, AliasType.H323_URI}, reservationRoom.getAliases());
 
         reservationRequest = new ReservationRequest();
@@ -241,7 +241,7 @@ public class SchedulerRoomTest extends AbstractControllerTest
         reservationRequest.setSpecification(
                 new RoomSpecification(5, Technology.H323).withAlias(AliasType.H323_URI, "1-5"));
         reservation = (RoomReservation) allocateAndCheck(reservationRequest);
-        reservationRoom = (Executable.ResourceRoom) reservation.getExecutable();
+        reservationRoom = (RoomExecutable) reservation.getExecutable();
         checkAliasTypes(new AliasType[]{AliasType.ROOM_NAME, AliasType.H323_URI}, reservationRoom.getAliases());
     }
 

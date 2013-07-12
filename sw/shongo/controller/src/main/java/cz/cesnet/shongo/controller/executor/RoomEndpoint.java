@@ -4,8 +4,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import org.joda.time.DateTime;
 
 import javax.persistence.*;
+import java.util.Set;
 
 /**
  * Represents an {@link Endpoint} which represents a {@link RoomConfiguration} (is able to
@@ -19,7 +21,7 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * @see RoomConfiguration
      */
-    private RoomConfiguration roomConfiguration = new RoomConfiguration();
+    private RoomConfiguration roomConfiguration;
 
     /**
      * Description of the room which can be displayed to the user.
@@ -79,6 +81,16 @@ public abstract class RoomEndpoint extends Endpoint
         return 0;
     }
 
+    @Override
+    @Transient
+    public Set<Technology> getTechnologies()
+    {
+        if (roomConfiguration == null) {
+            throw new IllegalStateException("Room configuration hasn't been set yet.");
+        }
+        return roomConfiguration.getTechnologies();
+    }
+
     /**
      * @return {@link Technology} specific id of the {@link RoomConfiguration}.
      */
@@ -101,4 +113,23 @@ public abstract class RoomEndpoint extends Endpoint
     public abstract void modifyRoom(Room roomApi, Executor executor,
             ExecutableManager executableManager)
             throws ExecutorReportSet.RoomNotStartedException, ExecutorReportSet.CommandFailedException;
+
+    @Override
+    protected void onCreate()
+    {
+        super.onCreate();
+
+        onUpdate();
+    }
+
+    @PreUpdate
+    protected void onUpdate()
+    {
+        if (roomConfiguration == null) {
+            throw new IllegalStateException("Room configuration should not be null.");
+        }
+        if (roomConfiguration.getTechnologies().size() == 0) {
+            throw new IllegalStateException("Room configuration should have some technologies.");
+        }
+    }
 }

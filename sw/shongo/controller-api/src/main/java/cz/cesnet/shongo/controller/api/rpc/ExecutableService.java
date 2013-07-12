@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
 
 import java.util.Collection;
 import java.util.Map;
@@ -27,13 +29,11 @@ public interface ExecutableService extends Service
     /**
      * Lists all the {@link cz.cesnet.shongo.controller.api.Executable}s.
      *
-     * @param token  token of the user requesting the operation
-     * @param filter attributes for filtering {@link cz.cesnet.shongo.controller.api.Executable}s (map of name => value pairs):
-     *               -none for now
-     * @return collection of {@link cz.cesnet.shongo.controller.api.ExecutableSummary}s
+     * @param request {@link ExecutableListRequest}
+     * @return {@link ListResponse} of {@link ExecutableSummary}s
      */
     @API
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter);
+    public ListResponse<ExecutableSummary> listExecutables(ExecutableListRequest request);
 
     /**
      * Gets the complete compartment object.

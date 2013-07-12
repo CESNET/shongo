@@ -332,6 +332,7 @@ sub get_reservation_for_request()
     if ( !defined($response) ) {
         return;
     }
+    $response = $response->{'items'};
     if (get_collection_size($response) == 0) {
         return;
     }

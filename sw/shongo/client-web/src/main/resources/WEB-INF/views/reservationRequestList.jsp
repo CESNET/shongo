@@ -83,7 +83,7 @@
                     </td>
                 </tr>
                 <tr ng-hide="items.length">
-                    <td colspan="7" class="empty">- - - None - - -</td>
+                    <td colspan="7" class="empty"><s:message code="views.list.none"/></td>
                 </tr>
                 </tbody>
             </table>
@@ -148,7 +148,7 @@
                     </td>
                 </tr>
                 <tr ng-hide="items.length">
-                    <td colspan="7" class="empty">- - - None - - -</td>
+                    <td colspan="7" class="empty"><s:message code="views.list.none"/></td>
                 </tr>
                 </tbody>
             </table>

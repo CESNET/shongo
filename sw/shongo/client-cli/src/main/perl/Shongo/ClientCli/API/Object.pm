@@ -23,7 +23,7 @@ our $COLLECTION_EMPTY = "-- None --";
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::ClientCli::API::Reservation',
     '^.*Specification$' => 'Shongo::ClientCli::API::Specification',
-    '^Executable\.(Compartment|ResourceRoom)$' => 'Shongo::ClientCli::API::Executable',
+    '^(CompartmentExecutable|RoomExecutable)$' => 'Shongo::ClientCli::API::Executable',
     '^ValueProvider\.(Pattern|Filtered)$' => 'Shongo::ClientCli::API::ValueProvider'
 };
 

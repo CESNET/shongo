@@ -29,9 +29,20 @@
         <put-attribute name="body" value="/WEB-INF/views/controllerNotAvailable.jsp" type="template"/>
     </definition>
 
-    <definition name="index" extends="layout">
+    <definition name="indexAnonymous" extends="layout">
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
+    </definition>
+    <definition name="indexAuthenticated" extends="layout">
+        <put-attribute name="title" value="views.index.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-resource.min.js"/>
+            <add-attribute value="angular-cookies.min.js"/>
+            <add-attribute value="angular-pagination.js"/>
+            <add-attribute value="angular-tooltip.js"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="changelog" extends="layout">
@@ -45,14 +56,12 @@
         <put-attribute name="body" value="/WEB-INF/views/message.jsp" type="template"/>
     </definition>
 
-    <definition name="dashboard" extends="layout">
-        <put-attribute name="title" value="views.dashboard.title"/>
-        <put-attribute name="body" value="/WEB-INF/views/dashboard.jsp" type="template"/>
-    </definition>
-
     <definition name="wizard" extends="layout">
         <put-attribute name="title" value="views.wizard.title"/>
         <put-attribute name="body" value="/WEB-INF/views/wizard.jsp" type="template"/>
+        <put-list-attribute name="css" inherit="true">
+            <add-attribute value="wizard.css"/>
+        </put-list-attribute>
     </definition>
 
     <definition name="reservationRequestList" extends="layout">

@@ -205,7 +205,7 @@
                 </c:if>
             </tr>
             <tr ng-hide="items.length">
-                <td colspan="7" class="empty">- - - None - - -</td>
+                <td colspan="7" class="empty"><spring:message code="views.list.none"/></td>
             </tr>
             </tbody>
         </table>
@@ -409,7 +409,7 @@
                     </td>
                 </tr>
                 <tr ng-hide="items.length">
-                    <td colspan="3" class="empty">- - - None - - -</td>
+                    <td colspan="3" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
                 </tbody>
             </table>

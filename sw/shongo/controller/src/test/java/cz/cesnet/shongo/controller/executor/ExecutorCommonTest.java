@@ -8,7 +8,6 @@ import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Executable;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Assert;
@@ -78,7 +77,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.api.Executable.Compartment} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.api.CompartmentExecutable} and execute it.
      *
      * @throws Exception
      */
@@ -590,10 +589,10 @@ public class ExecutorCommonTest extends AbstractExecutorTest
                 UsedRoomEndpoint.class, result.getStartedExecutables().get(1).getClass());
 
         // Get room id
-        Executable.ResourceRoom resourceRoom = (Executable.ResourceRoom) getExecutorService().getExecutable(
+        RoomExecutable roomExecutable = (RoomExecutable) getExecutorService().getExecutable(
                 SECURITY_TOKEN_USER1, aliasReservation.getExecutable().getId());
-        String roomId = resourceRoom.getRoomId();
-        String roomResourceId = resourceRoom.getResourceId();
+        String roomId = roomExecutable.getRoomId();
+        String roomResourceId = roomExecutable.getResourceId();
         Assert.assertNotNull("Alias room should have roomId.", roomId);
 
         // Check room

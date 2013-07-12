@@ -9,7 +9,6 @@ import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -70,12 +69,12 @@ public class SchedulerMigrationTest extends AbstractControllerTest
         RoomReservation reservation2 = (RoomReservation) service.getReservation(SECURITY_TOKEN, reservationIds.get(1));
         Assert.assertEquals(Interval.parse("2012-01-01T13:00/2012-01-01T14:00"), reservation2.getSlot());
         Assert.assertEquals(mcu2Id, reservation2.getResourceId());
-        Executable.ResourceRoom resourceRoom1 = (Executable.ResourceRoom) reservation1.getExecutable();
-        Assert.assertEquals(Interval.parse("2012-01-01T12:00/2012-01-01T13:00"), resourceRoom1.getSlot());
-        Assert.assertNotNull(mcu1Id, resourceRoom1.getResourceId());
-        Executable.ResourceRoom resourceRoom2 = (Executable.ResourceRoom) reservation2.getExecutable();
-        Assert.assertEquals(Interval.parse("2012-01-01T13:00/2012-01-01T14:00"), resourceRoom2.getSlot());
-        Assert.assertNotNull(mcu2Id, resourceRoom2.getResourceId());
-        Assert.assertEquals(resourceRoom1.getId(), resourceRoom2.getMigratedExecutable().getId());
+        RoomExecutable roomExecutable1 = (RoomExecutable) reservation1.getExecutable();
+        Assert.assertEquals(Interval.parse("2012-01-01T12:00/2012-01-01T13:00"), roomExecutable1.getSlot());
+        Assert.assertNotNull(mcu1Id, roomExecutable1.getResourceId());
+        RoomExecutable roomExecutable2 = (RoomExecutable) reservation2.getExecutable();
+        Assert.assertEquals(Interval.parse("2012-01-01T13:00/2012-01-01T14:00"), roomExecutable2.getSlot());
+        Assert.assertNotNull(mcu2Id, roomExecutable2.getResourceId());
+        Assert.assertEquals(roomExecutable1.getId(), roomExecutable2.getMigratedExecutable().getId());
     }
 }

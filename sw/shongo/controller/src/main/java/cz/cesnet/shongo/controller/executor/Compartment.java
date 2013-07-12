@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.api.CompartmentExecutable;
+import cz.cesnet.shongo.controller.api.ConnectionExecutable;
+import cz.cesnet.shongo.controller.api.EndpointExecutable;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.report.Report;
 
@@ -103,13 +106,13 @@ public class Compartment extends Executable
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Executable.Compartment();
+        return new CompartmentExecutable();
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable.Compartment toApi(Report.MessageType messageType)
+    public CompartmentExecutable toApi(Report.MessageType messageType)
     {
-        return (cz.cesnet.shongo.controller.api.Executable.Compartment) super.toApi(messageType);
+        return (CompartmentExecutable) super.toApi(messageType);
     }
 
     @Override
@@ -117,10 +120,10 @@ public class Compartment extends Executable
     {
         super.toApi(executableApi, messageType);
 
-        cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
-                (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
+        CompartmentExecutable compartmentApi =
+                (CompartmentExecutable) executableApi;
         for (Endpoint endpoint : getEndpoints()) {
-            compartmentApi.addEndpoint((cz.cesnet.shongo.controller.api.Executable.Endpoint) endpoint.toApi(messageType));
+            compartmentApi.addEndpoint((EndpointExecutable) endpoint.toApi(messageType));
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
@@ -129,8 +132,8 @@ public class Compartment extends Executable
             }
         }
         for (Connection connection : getConnections()) {
-            cz.cesnet.shongo.controller.api.Executable.Compartment.Connection connectionApi =
-                    new cz.cesnet.shongo.controller.api.Executable.Compartment.Connection();
+            ConnectionExecutable connectionApi =
+                    new ConnectionExecutable();
             connectionApi.setEndpointFromId(EntityIdentifier.formatId(connection.getEndpointFrom()));
             connectionApi.setEndpointToId(EntityIdentifier.formatId(connection.getEndpointTo()));
             connectionApi.setAlias(connection.getAlias().toApi());

@@ -47,6 +47,26 @@ img.language {
     height: 11px;
 }
 
+/* Actions */
+div.actions {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    padding: 10px 20px;
+    font-size: 20px;
+    border: solid 1px #888888;
+    background-color: #f9f9f9;
+}
+div.actions span {
+    font-weight: bold;
+    line-height: 30px;
+}
+div.actions ul {
+    margin-bottom: 0px;
+}
+div.actions li {
+    line-height: 30px;
+}
+
 /** Navigation nav-pills disabled state */
 .nav-pills.disabled li a {
     color: #999;

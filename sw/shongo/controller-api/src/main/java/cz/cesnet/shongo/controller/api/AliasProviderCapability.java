@@ -41,7 +41,7 @@ public class AliasProviderCapability extends Capability
 
     /**
      * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
-     * permanent rooms (should get allocated {@link Executable.ResourceRoom}).
+     * permanent rooms (should get allocated {@link RoomExecutable}).
      */
     private Boolean permanentRoom;
 

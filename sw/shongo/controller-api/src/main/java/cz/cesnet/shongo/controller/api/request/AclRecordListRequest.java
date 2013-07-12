@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link cz.cesnet.shongo.controller.api.request.ListRequest} for reservations.
+ * {@link cz.cesnet.shongo.controller.api.request.ListRequest} for {@link cz.cesnet.shongo.controller.api.AclRecord}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

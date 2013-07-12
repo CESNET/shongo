@@ -668,8 +668,8 @@ public class SchedulerModificationTest extends AbstractControllerTest
         Reservation aliasReservation2 = allocateAndCheck(aliasReservationRequest);
 
         Assert.assertEquals(aliasReservation1.getId(), aliasReservation2.getId());
-        Executable.ResourceRoom resourceRoom1 = (Executable.ResourceRoom) aliasReservation1.getExecutable();
-        Executable.ResourceRoom resourceRoom2 = (Executable.ResourceRoom) aliasReservation2.getExecutable();
+        Executable.RoomExecutable resourceRoom1 = (Executable.RoomExecutable) aliasReservation1.getExecutable();
+        Executable.RoomExecutable resourceRoom2 = (Executable.RoomExecutable) aliasReservation2.getExecutable();
         Assert.assertEquals(resourceRoom1.getId(), resourceRoom2.getId());
         Assert.assertEquals(resourceRoom1.getAliases(), resourceRoom2.getAliases());
     }

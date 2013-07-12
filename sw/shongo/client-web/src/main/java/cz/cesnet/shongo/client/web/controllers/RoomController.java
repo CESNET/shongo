@@ -10,12 +10,10 @@ import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
-import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -56,21 +54,21 @@ public class RoomController
         Executable executable = executableService.getExecutable(securityToken, executableId);
         String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);
 
-        Executable.ResourceRoom resourceRoom = (Executable.ResourceRoom) executable;
-        if (resourceRoom == null) {
+        RoomExecutable roomExecutable = (RoomExecutable) executable;
+        if (roomExecutable == null) {
             throw new UnsupportedApiException(executable);
         }
 
-        List<Alias> aliases = resourceRoom.getAliases();
-        Executable.State executableState = resourceRoom.getState();
+        List<Alias> aliases = roomExecutable.getAliases();
+        Executable.State executableState = roomExecutable.getState();
         model.addAttribute("roomAliases", ReservationRequestModel.formatAliases(aliases, executableState));
         model.addAttribute("roomAliasesDescription",
                 ReservationRequestModel.formatAliasesDescription(aliases, executableState, locale, messageSource));
 
-        if (resourceRoom.getState().isAvailable()) {
-            String resourceId = resourceRoom.getResourceId();
-            String roomId = resourceRoom.getRoomId();
-            Set<Technology> technologies = resourceRoom.getTechnologies();
+        if (roomExecutable.getState().isAvailable()) {
+            String resourceId = roomExecutable.getResourceId();
+            String roomId = roomExecutable.getRoomId();
+            Set<Technology> technologies = roomExecutable.getTechnologies();
 
             try {
                 Room room = resourceControlService.getRoom(securityToken, resourceId, roomId);
@@ -99,7 +97,7 @@ public class RoomController
                 model.addAttribute("notAvailable", true);
             }
         }
-        model.addAttribute("executable", resourceRoom);
+        model.addAttribute("executable", roomExecutable);
         model.addAttribute("reservationRequestId", reservationRequestId);
         return "room";
     }

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.EndpointExecutable;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -142,7 +143,7 @@ public abstract class Endpoint extends Executable
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Executable.Endpoint();
+        return new EndpointExecutable();
     }
 
     @Override
@@ -150,9 +151,9 @@ public abstract class Endpoint extends Executable
     {
         super.toApi(executableApi, messageType);
 
-        if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.Endpoint) {
-            cz.cesnet.shongo.controller.api.Executable.Endpoint endpointApi =
-                    (cz.cesnet.shongo.controller.api.Executable.Endpoint) executableApi;
+        if (executableApi instanceof EndpointExecutable) {
+            EndpointExecutable endpointApi =
+                    (EndpointExecutable) executableApi;
             endpointApi.setDescription(getDescription());
             for (Alias alias : getAssignedAliases()) {
                 endpointApi.addAlias(alias.toApi());

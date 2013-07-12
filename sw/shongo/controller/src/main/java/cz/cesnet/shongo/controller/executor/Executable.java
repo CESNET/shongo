@@ -1,9 +1,14 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Temporal;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.api.CompartmentExecutable;
+import cz.cesnet.shongo.controller.api.ConnectionExecutable;
+import cz.cesnet.shongo.controller.api.EndpointExecutable;
+import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
@@ -374,7 +379,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
                 stringBuilder.append("\n");
                 stringBuilder.append("\n");
             }
-            if ( ++count > 5 ) {
+            if (++count > 5) {
                 stringBuilder.append("... ");
                 stringBuilder.append(reports.size() - count + 1);
                 stringBuilder.append(" more");
@@ -465,7 +470,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Start given {@code executable}.
      *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      */
     public final void start(Executor executor, ExecutableManager executableManager)
@@ -481,7 +486,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Update given {@code executable}.
      *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      */
     public final void update(Executor executor, ExecutableManager executableManager)
@@ -499,7 +504,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Start given {@code executable}.
      *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      */
     public final void stop(Executor executor, ExecutableManager executableManager)
@@ -515,8 +520,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Start this {@link Executable}.
      *
-     *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      * @return new {@link State}
      */
@@ -528,9 +532,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Update this {@link Executable}.
      *
-     *
-     *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      * @return new {@link State} or null when the state should not change
      */
@@ -542,8 +544,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
     /**
      * Stop this {@link Executable}.
      *
-     *
-     * @param executor which is executing
+     * @param executor          which is executing
      * @param executableManager
      * @return new {@link State}
      */
@@ -682,7 +683,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
         /**
          * Constructor.
          *
-         * @param started sets the {@link #started}
+         * @param started  sets the {@link #started}
          * @param modified sets the {@link #modified}
          */
         private State(boolean started, boolean modified)
@@ -732,5 +733,65 @@ public abstract class Executable extends PersistentObject implements Reportable,
                     throw new RuntimeException("Cannot convert " + this.toString() + " to API.");
             }
         }
+    }
+
+    /**
+     * States which represents {@link Executable} which is is created only for
+     * {@link cz.cesnet.shongo.controller.scheduler.SchedulerReport} and thus it is not allocated.
+     */
+    public static final Set<State> NOT_ALLOCATED_STATES = new HashSet<State>()
+    {{
+            add(State.NOT_ALLOCATED);
+            add(State.TO_DELETE);
+        }};
+
+    /**
+     * {@link Executable} class by {@link cz.cesnet.shongo.controller.api.Executable} class.
+     */
+    private static final Map<
+            Class<? extends cz.cesnet.shongo.controller.api.Executable>,
+            Set<Class<? extends Executable>>> CLASS_BY_API = new HashMap<
+            Class<? extends cz.cesnet.shongo.controller.api.Executable>,
+            Set<Class<? extends Executable>>>();
+
+    /**
+     * Initialization for {@link #CLASS_BY_API}.
+     */
+    static {
+        CLASS_BY_API.put(RoomExecutable.class,
+                new HashSet<Class<? extends Executable>>()
+                {{
+                        add(ResourceRoomEndpoint.class);
+                        add(UsedRoomEndpoint.class);
+                    }});
+        CLASS_BY_API.put(CompartmentExecutable.class,
+                new HashSet<Class<? extends Executable>>()
+                {{
+                        add(Compartment.class);
+                    }});
+        CLASS_BY_API.put(ConnectionExecutable.class,
+                new HashSet<Class<? extends Executable>>()
+                {{
+                        add(Connection.class);
+                    }});
+        CLASS_BY_API.put(EndpointExecutable.class,
+                new HashSet<Class<? extends Executable>>()
+                {{
+                        add(ResourceEndpoint.class);
+                    }});
+    }
+
+    /**
+     * @param executableApiClass
+     * @return {@link Executable} for given {@code executableApiClass}
+     */
+    public static Set<Class<? extends Executable>> getClassesFromApi(
+            Class<? extends cz.cesnet.shongo.controller.api.Executable> executableApiClass)
+    {
+        Set<Class<? extends Executable>> executableClass = CLASS_BY_API.get(executableApiClass);
+        if (executableClass == null) {
+            throw new TodoImplementException(executableApiClass.getCanonicalName());
+        }
+        return executableClass;
     }
 }

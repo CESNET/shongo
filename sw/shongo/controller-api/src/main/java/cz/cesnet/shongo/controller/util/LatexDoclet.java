@@ -352,8 +352,8 @@ public class LatexDoclet extends Doclet
                         "Reservation", "ResourceReservation", "RoomReservation", "AliasReservation",
                         "ExistingReservation",
 
-                        "Executable", "Executable.State", "Executable.Compartment", "Executable.Endpoint",
-                        "Executable.ResourceRoom", "Executable.Connection",
+                        "Executable", "Executable.State", "CompartmentExecutable", "EndpointExecutable",
+                        "RoomExecutable", "ConnectionExecutable",
 
                         "ResourceAllocation", "RoomProviderResourceAllocation"
                 });

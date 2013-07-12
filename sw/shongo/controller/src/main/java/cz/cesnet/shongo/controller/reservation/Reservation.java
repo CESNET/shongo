@@ -527,15 +527,15 @@ public class Reservation extends PersistentObject implements Reportable
 
     /**
      * @param reservationApiClass
-     * @return {@link Reservation} for given {@code apiClass}
+     * @return {@link Reservation} for given {@code reservationApiClass}
      */
     public static Class<? extends Reservation> getClassFromApi(
             Class<? extends cz.cesnet.shongo.controller.api.Reservation> reservationApiClass)
     {
-        Class<? extends Reservation> specificationClass = CLASS_BY_API.get(reservationApiClass);
-        if (specificationClass == null) {
+        Class<? extends Reservation> reservationClass = CLASS_BY_API.get(reservationApiClass);
+        if (reservationClass == null) {
             throw new TodoImplementException(reservationApiClass.getCanonicalName());
         }
-        return specificationClass;
+        return reservationClass;
     }
 }

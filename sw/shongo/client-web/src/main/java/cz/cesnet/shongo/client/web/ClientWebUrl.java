@@ -13,10 +13,22 @@ public class ClientWebUrl
             "/logout";
     public static final String CHANGELOG =
             "/changelog";
-    public static final String DASHBOARD =
-            "/dashboard";
+
     public static final String WIZARD =
             "/wizard";
+    public static final String WIZARD_SELECT =
+            "/wizard/select";
+    public static final String WIZARD_RESERVATIONS =
+            "/wizard/reservations";
+    public static final String WIZARD_CREATE_ROOM =
+            "/wizard/create/room";
+    public static final String WIZARD_CREATE_ADHOC_ROOM =
+            "/wizard/create/adhoc-room";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM =
+            "/wizard/create/permanent-room";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
+            "/wizard/create/permanent-room-capacity";
+
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
     public static final String RESERVATION_REQUEST_LIST =
@@ -49,14 +61,18 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/acl/create/confirm";
     public static final String RESERVATION_REQUEST_ACL_DELETE =
             "/reservation-request/{reservationRequestId:.+}/acl/{aclRecordId}/delete";
-    public static final String ROOM_MANAGEMENT =
-            "/room/{roomId:.+}";
+
     public static final String USER =
             "/user";
     public static final String USER_LIST =
             "/user/list";
     public static final String USER_DETAIL =
             "/user/{userId:.+}";
+
+    public static final String ROOMS_DATA =
+            "/rooms";
+    public static final String ROOM_MANAGEMENT =
+            "/room/{roomId:.+}";
 
     public static String format(String url, Object... variables)
     {
@@ -111,8 +127,13 @@ public class ClientWebUrl
         return path + format(RESERVATION_REQUEST_ACL_DELETE, reservationRequestId, aclRecordId);
     }
 
+    public static String getRoomManagement(String roomId)
+    {
+        return format(ROOM_MANAGEMENT, roomId);
+    }
+
     public static String getRoomManagement(String path, String roomId)
     {
-        return path + format(ROOM_MANAGEMENT, roomId);
+        return path + getRoomManagement(roomId);
     }
 }
