@@ -15,7 +15,8 @@
 
 <h1>${title}</h1>
 <p><spring:message code="views.index.welcome"/></p>
-
+<p><spring:message code="views.index.suggestions" arguments="${configuration.contactEmail}"/></p>
+<p style="text-align: center"><spring:message code="views.index.developmentTeam"/></p>
 
 <security:authorize access="!isAuthenticated()">
     <p><spring:message code="views.index.login" arguments="${urlLogin}"/></p>
@@ -75,6 +76,3 @@
 
     </div>
 </security:authorize>
-
-<p><spring:message code="views.index.suggestions" arguments="${configuration.contactEmail}"/></p>
-<p style="text-align: center"><spring:message code="views.index.developmentTeam"/></p>

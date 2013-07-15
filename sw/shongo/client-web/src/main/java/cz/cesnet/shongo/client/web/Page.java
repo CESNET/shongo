@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NavigationNode
+public class Page
 {
     /**
      * Node URL (with attributes).
@@ -38,24 +38,14 @@ public class NavigationNode
     private String titleCode;
 
     /**
-     * Parent {@link NavigationNode}.
+     * Parent {@link Page}.
      */
-    private NavigationNode parentNode;
+    private Page parentPage;
 
     /**
-     * Child {@link NavigationNode}s.
+     * Child {@link Page}s.
      */
-    private List<NavigationNode> childNodes = new LinkedList<NavigationNode>();
-
-    /**
-     * Constructor.
-     *
-     * @param url sets the {@link #url}
-     */
-    public NavigationNode(String url)
-    {
-        this.url = url;
-    }
+    private List<Page> childPages = new LinkedList<Page>();
 
     /**
      * Constructor.
@@ -63,21 +53,29 @@ public class NavigationNode
      * @param url       sets the {@link #url}
      * @param titleCode sets the {@link #titleCode}
      */
-    public NavigationNode(String url, String titleCode)
+    public Page(String url, String titleCode)
     {
         this.url = url;
         this.titleCode = titleCode;
     }
 
     /**
-     * @param childNode to be added to the {@link #childNodes}
+     * @param childNode to be added to the {@link #childPages}
      * @return {@code childNode}
      */
-    public NavigationNode addChildNode(NavigationNode childNode)
+    public Page addChildNode(Page childNode)
     {
-        childNodes.add(childNode);
-        childNode.parentNode = this;
+        childPages.add(childNode);
+        childNode.parentPage = this;
         return childNode;
+    }
+
+    /**
+     * @return {@link #url}
+     */
+    public String getUrl()
+    {
+        return url;
     }
 
     /**
@@ -114,21 +112,29 @@ public class NavigationNode
     }
 
     /**
-     * @return {@link #parentNode}
+     * @return {@link #parentPage}
      */
-    public NavigationNode getParentNode()
+    public Page getParentPage()
     {
-        return parentNode;
+        return parentPage;
     }
 
     /**
-     * Find a {@link NavigationNode} in this and all child {@link NavigationNode}s (recursive)
+     * @return {@link #childPages}
+     */
+    public List<Page> getChildPages()
+    {
+        return childPages;
+    }
+
+    /**
+     * Find a {@link Page} in this and all child {@link Page}s (recursive)
      * which matches given {@code url}.
      *
      * @param url which the node should match
-     * @return {@link NavigationNode} which matches given {@code url}
+     * @return {@link Page} which matches given {@code url}
      */
-    public NavigationNode findByUrl(String url)
+    public Page findByUrl(String url)
     {
         boolean startsWith = url.startsWith(this.url);
         // If specified url matches this url, return this
@@ -136,15 +142,15 @@ public class NavigationNode
             return this;
         }
         // If url starts with this url and none children are present, return this
-        else if (startsWith && childNodes.size() == 0) {
+        else if (startsWith && childPages.size() == 0) {
             return this;
         }
         // Else find matching child
         else {
-            for (NavigationNode childNode : childNodes) {
-                NavigationNode navigationNode = childNode.findByUrl(url);
-                if (navigationNode != null) {
-                    return navigationNode;
+            for (Page childNode : childPages) {
+                Page page = childNode.findByUrl(url);
+                if (page != null) {
+                    return page;
                 }
             }
         }

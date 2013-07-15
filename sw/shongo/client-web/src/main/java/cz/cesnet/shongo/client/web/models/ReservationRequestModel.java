@@ -2,13 +2,19 @@ package cz.cesnet.shongo.client.web.models;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -24,10 +30,12 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestModel implements Validator
+public class ReservationRequestModel
 {
     public ReservationRequestModel()
     {
+        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
+        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
     }
 
     public ReservationRequestModel(AbstractReservationRequest reservationRequest)
@@ -541,59 +549,6 @@ public class ReservationRequestModel implements Validator
     }
 
     /**
-     * Validate this {@link ReservationRequestModel}.
-     *
-     * @param errors
-     */
-    public void validate(Errors errors)
-    {
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "purpose", "validation.field.required");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
-        if (specificationType != null) {
-            switch (specificationType) {
-                case ADHOC_ROOM:
-                case PERMANENT_ROOM_CAPACITY:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
-                    ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "roomParticipantCount", "validation.field.required");
-                    break;
-            }
-            switch (specificationType) {
-                case PERMANENT_ROOM:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
-                    if (end != null && end.getMillisOfDay() == 0) {
-                        end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);
-                    }
-                    if (start != null && end != null && !start.isBefore(end)) {
-                        errors.rejectValue("end", "validation.field.invalidIntervalEnd");
-                    }
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "permanentRoomName", "validation.field.required");
-                    break;
-                case PERMANENT_ROOM_CAPACITY:
-                    ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "permanentRoomCapacityReservationRequestId", "validation.field.required");
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public boolean supports(Class<?> type)
-    {
-        return ReservationRequestModel.class.equals(type);
-    }
-
-    @Override
-    public void validate(Object object, Errors errors)
-    {
-        ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
-        reservationRequestModel.validate(errors);
-    }
-
-    /**
      * Type of the reservation request.
      */
     public static enum SpecificationType
@@ -601,17 +556,29 @@ public class ReservationRequestModel implements Validator
         /**
          * For ad-hoc room.
          */
-        ADHOC_ROOM,
+        ADHOC_ROOM(true),
 
         /**
          * For permanent room.
          */
-        PERMANENT_ROOM,
+        PERMANENT_ROOM(true),
 
         /**
          * For permanent room capacity.
          */
-        PERMANENT_ROOM_CAPACITY
+        PERMANENT_ROOM_CAPACITY(false);
+
+        private final boolean isRoom;
+
+        private SpecificationType(boolean isRoom)
+        {
+            this.isRoom = isRoom;
+        }
+
+        public boolean isRoom()
+        {
+            return isRoom;
+        }
     }
 
     /**
@@ -838,5 +805,42 @@ public class ReservationRequestModel implements Validator
             stringBuilder.append("</span>");
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * @param reservationService
+     * @param securityToken
+     * @param cache
+     * @return list of reservation requests for permanent rooms
+     */
+    public static List<ReservationRequestSummary> getPermanentRooms(ReservationService reservationService,
+            SecurityToken securityToken, Cache cache)
+    {
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(securityToken);
+        request.addSpecificationClass(AliasSpecification.class);
+        request.addSpecificationClass(AliasSetSpecification.class);
+        List<ReservationRequestSummary> reservationRequests = new LinkedList<ReservationRequestSummary>();
+
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
+        if (response.getItemCount() > 0) {
+            Set<String> reservationRequestIds = new HashSet<String>();
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                reservationRequestIds.add(reservationRequestSummary.getId());
+            }
+            cache.fetchPermissions(securityToken, reservationRequestIds);
+
+            for (ReservationRequestSummary reservationRequestSummary : response) {
+                if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getAllocationState())) {
+                    continue;
+                }
+                Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
+                if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
+                    continue;
+                }
+                reservationRequests.add(reservationRequestSummary);
+            }
+        }
+        return reservationRequests;
     }
 }

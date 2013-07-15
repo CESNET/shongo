@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
@@ -90,8 +91,12 @@ public abstract class Notification
      */
     public void addUserRecipient(String userId)
     {
-        UserInformation userRecipient = Authorization.getInstance().getUserInformation(userId);
-        addRecipient(RecipientGroup.USER, userRecipient);
+        try {
+            UserInformation userRecipient = Authorization.getInstance().getUserInformation(userId);
+            addRecipient(RecipientGroup.USER, userRecipient);
+        } catch (ControllerReportSet.UserNotExistException exception) {
+            logger.error("User '{}' doesn't exist.", userId);
+        }
     }
 
     /**
@@ -262,8 +267,13 @@ public abstract class Notification
          */
         public String formatUser(String userId)
         {
-            UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
-            return PersonInformation.Formatter.format(userInformation);
+            try {
+                UserInformation userInformation = Authorization.getInstance().getUserInformation(userId);
+                return PersonInformation.Formatter.format(userInformation);
+            } catch (ControllerReportSet.UserNotExistException exception) {
+                logger.warn("User '{}' doesn't exist.", userId);
+                return "<not-exist> (" + userId + ")";
+            }
         }
     }
 

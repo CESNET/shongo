@@ -17,19 +17,6 @@
 <script type="text/javascript">
     // Angular application
     angular.module('ngReservationRequestList', ['ngPagination', 'ngTooltip']);
-
-    // On error handler for listing reservation requests
-    window.onErrorResolved = false;
-    window.onError = function(response) {
-        // Handle only first error
-        if (window.onErrorResolved) {
-            return;
-        }
-        window.onErrorResolved = true;
-
-        // Rewrite document by error page
-        document.write(response.data);
-    };
 </script>
 
 <div ng-app="ngReservationRequestList" ng-controller="ReadyController">
@@ -39,8 +26,7 @@
     <div ng-show="ready">
 
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestList.aliases', '${urlListData}?start=:start&count=:count&type=PERMANENT_ROOM')"
-             on-error="window.onError">
+             ng-init="init('reservationRequestList.aliases', '${urlListData}?start=:start&count=:count&type=PERMANENT_ROOM')">
             <pagination-page-size class="pull-right">
                 <s:message code="views.pagination.records"/>
             </pagination-page-size>
@@ -97,8 +83,7 @@
         <hr/>
 
         <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestList.rooms', '${urlListData}?start=:start&count=:count&type=ADHOC_ROOM')"
-             on-error="window.onError">
+             ng-init="init('reservationRequestList.rooms', '${urlListData}?start=:start&count=:count&type=ADHOC_ROOM')">
             <pagination-page-size class="pull-right">
                 <s:message code="views.pagination.records"/>
             </pagination-page-size>

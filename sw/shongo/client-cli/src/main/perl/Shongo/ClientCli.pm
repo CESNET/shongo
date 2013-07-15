@@ -337,13 +337,11 @@ sub status()
 sub format_user
 {
     my ($self, $user_id, $long) = @_;
-
     if ( !defined($user_id) ) {
         return undef;
     }
-
     my $user_information = $self->{'client'}->get_user_information($user_id);
-    my $name = '<not-exists>';
+    my $name = '<not-exist>';
     if ( defined($user_information) ) {
         $name = $user_information->{'firstName'};
         if ( defined($user_information->{'lastName'}) ) {

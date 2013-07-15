@@ -128,8 +128,7 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
     {
         UriComponentsBuilder requestUrlBuilder =
                 UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
-                        .pathSegment("userinfo")
-                        .queryParam("schema", "openid");
+                        .pathSegment("userinfo");
         return requestUrlBuilder.build().toUriString();
     }
 }

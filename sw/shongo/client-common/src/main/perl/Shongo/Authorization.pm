@@ -245,7 +245,6 @@ sub get_user_information
 
     # Setup request url
     my $url = URI->new($self->{'url'} . '/authn/oic/userinfo');
-    $url->query_form('schema' => 'openid');
 
     # Request user information
     my $request = HTTP::Request->new(GET => $url);

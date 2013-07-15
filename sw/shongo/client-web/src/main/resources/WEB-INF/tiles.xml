@@ -60,7 +60,18 @@
         <put-attribute name="title" value="views.wizard.title"/>
         <put-attribute name="body" value="/WEB-INF/views/wizard.jsp" type="template"/>
         <put-list-attribute name="css" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker.css"/>
             <add-attribute value="wizard.css"/>
+        </put-list-attribute>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker.min.js"/>
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-datetime.js"/>
+            <add-attribute value="angular-tooltip.js"/>
+            <add-attribute value="moment.min.js"/>
+        </put-list-attribute>
+        <put-list-attribute name="i18n" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker"/>
         </put-list-attribute>
     </definition>
 

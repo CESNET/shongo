@@ -124,13 +124,20 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     };
 
     /**
-     * First time data is ready.
+     * Error happened.
      */
     $scope.setError = function (response) {
-        $scope.error = true;
-        if ($scope.onError != null) {
-            $scope.onError(response);
+        // Handle only first error
+        if ($scope.error || ($scope.$parent != null && $scope.$parent.error)) {
+            return;
         }
+        $scope.error = true;
+        if ($scope.$parent != null) {
+            $scope.$parent.error = true;
+        }
+
+        // Rewrite document by error page
+        document.write(response.data);
     };
 
     /**

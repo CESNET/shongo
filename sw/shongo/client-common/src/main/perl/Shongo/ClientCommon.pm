@@ -179,7 +179,9 @@ sub request()
         return undef;
     }
     if ( $response->is_fault() ) {
-        $self->{'on-fault'}($response);
+        if ( defined($self->{'on-fault'}) ) {
+            $self->{'on-fault'}($response);
+        }
         return undef;
     }
     return $response->value();
@@ -249,13 +251,28 @@ sub get_user_information()
     my ($self, $user_id) = @_;
     my $user_information = $self->{'user-cache-get'}($user_id);
     if ( !defined($user_information) ) {
+        my $on_fault = $self->{'on-fault'};
+        $self->{'on-fault'} = undef;
         my $response = $self->secure_hash_request('Authorization.listUsers', {
             'userIds' => [RPC::XML::string->new($user_id)]
         });
-        $user_information = $response->{'items'}->[0];
-        if ( defined($user_information) ) {
-            $self->{'user-cache-put'}($user_id, $user_information);
+        $self->{'on-fault'} = $on_fault;
+        if ( defined($response) ) {
+            $user_information = $response->{'items'}->[0];
+            if ( defined($user_information) ) {
+                $self->{'user-cache-put'}($user_id, $user_information);
+            }
         }
+        else {
+            # Encode null as empty hash
+            $user_information = {};
+            $self->{'user-cache-put'}($user_id, $user_information);
+            $user_information = undef;
+        }
+    }
+    # Decode empty hash as null
+    elsif ( !%{$user_information} ) {
+        return undef;
     }
     return $user_information;
 }

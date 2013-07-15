@@ -190,13 +190,20 @@ public class ServerAuthorization extends Authorization
         try {
             HttpGet httpGet = new HttpGet(getUserServiceUrl() + "/user/" + userId);
             HttpResponse response = httpClient.execute(httpGet);
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
                 JsonNode jsonNode = readJson(response.getEntity());
                 return createUserInformationFromData(jsonNode);
             }
             else {
                 readContent(response.getEntity());
+                if (statusCode == HttpStatus.SC_NOT_FOUND) {
+                    throw new ControllerReportSet.UserNotExistException(userId);
+                }
             }
+        }
+        catch (ControllerReportSet.UserNotExistException exception) {
+            throw exception;
         }
         catch (Exception exception) {
             errorException = exception;

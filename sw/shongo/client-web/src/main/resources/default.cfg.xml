@@ -24,10 +24,10 @@
 
     <!-- Authorization -->
     <security>
-        <server>https://shongo-auth-dev.cesnet.cz</server>
+        <server>https://shongo-auth-dev.cesnet.cz/devel</server>
         <client-id>shongo-client-web</client-id>
-        <redirect-uri>http://127.0.0.1:8182</redirect-uri>
-        <secret>testclientsecret</secret>
+        <client-secret>testclientsecret</client-secret>
+        <redirect-uri>http://127.0.0.1:8182/</redirect-uri>
     </security>
 
     <!-- Configuration for sending emails -->

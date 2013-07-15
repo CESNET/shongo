@@ -18,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -122,14 +123,20 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         // Get access token from authorization code
         JsonNode tokenResponse;
         try {
+            String clientId = configuration.getAuthenticationClientId();
+            String clientSecret = configuration.getAuthenticationClientSecret();
+
             List<NameValuePair> content = new LinkedList<NameValuePair>();
-            content.add(new BasicNameValuePair("client_id", configuration.getAuthenticationClientId()));
-            content.add(new BasicNameValuePair("redirect_uri", configuration.getAuthenticationRedirectUri()));
+            content.add(new BasicNameValuePair("client_id", clientId));
+            content.add(new BasicNameValuePair("redirect_uri", getRedirectUri()));
             content.add(new BasicNameValuePair("grant_type", "authorization_code"));
             content.add(new BasicNameValuePair("code", authorizationCode));
 
             HttpPost httpPost = new HttpPost(getTokenEndpointUrl());
-            httpPost.setHeader("Authorization", "secret auth=" + configuration.getAuthenticationSecret());
+
+            String clientAuthorization = clientId + ":" + clientSecret;
+            clientAuthorization = new String(Base64.encode(clientAuthorization.getBytes()));
+            httpPost.setHeader("Authorization", "Basic " + clientAuthorization);
             httpPost.setEntity(new UrlEncodedFormEntity(content));
 
             HttpClient httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
@@ -189,7 +196,7 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
                 UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
                         .pathSegment("authorize")
                         .queryParam("client_id", configuration.getAuthenticationClientId())
-                        .queryParam("redirect_uri", configuration.getAuthenticationRedirectUri())
+                        .queryParam("redirect_uri", getRedirectUri())
                         .queryParam("state", state)
                         .queryParam("scope", "openid")
                         .queryParam("response_type", "code")
@@ -206,6 +213,16 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
                 UriComponentsBuilder.fromHttpUrl(configuration.getAuthenticationServerUrl())
                         .pathSegment("token");
         return requestUrlBuilder.build().toUriString();
+    }
+
+    /**
+     * @return redirect URI
+     */
+    private String getRedirectUri()
+    {
+        String redirectUri = configuration.getAuthenticationRedirectUri();
+        redirectUri = redirectUri.replaceAll("/$", "");
+        return redirectUri + ClientWebUrl.LOGIN;
     }
 
     /**

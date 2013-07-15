@@ -18,16 +18,24 @@ public class ClientWebUrl
             "/wizard";
     public static final String WIZARD_SELECT =
             "/wizard/select";
-    public static final String WIZARD_RESERVATIONS =
-            "/wizard/reservations";
+    public static final String WIZARD_RESERVATION_REQUEST_LIST =
+            "/wizard/reservation-request";
+    public static final String WIZARD_RESERVATION_REQUEST_DETAIL =
+            "/wizard/reservation-request/{reservationRequestId:.+}";
     public static final String WIZARD_CREATE_ROOM =
             "/wizard/create/room";
     public static final String WIZARD_CREATE_ADHOC_ROOM =
             "/wizard/create/adhoc-room";
     public static final String WIZARD_CREATE_PERMANENT_ROOM =
             "/wizard/create/permanent-room";
+    public static final String WIZARD_CREATE_ROOM_ATTRIBUTES =
+            "/wizard/create/attributes";
+    public static final String WIZARD_CREATE_ROOM_USER_ROLES =
+            "/wizard/create/roles";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
+    public static final String WIZARD_CREATE_CONFIRM =
+            "/wizard/create/confirm";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";

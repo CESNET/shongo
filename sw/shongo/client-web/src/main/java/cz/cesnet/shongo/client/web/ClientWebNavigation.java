@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -8,71 +9,97 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ClientWebNavigation extends NavigationNode
+public enum ClientWebNavigation
 {
-    private Map<String, NavigationNode> cachedNavigationNodeByUrl = new HashMap<String, NavigationNode>();
+    // Site navigation
+    HOME(null, ClientWebUrl.HOME,
+            "navigation.home"),
 
-    /**
-     * Construct the navigation.
-     */
-    private ClientWebNavigation()
+    CHANGELOG(HOME, ClientWebUrl.CHANGELOG,
+            "navigation.changelog"),
+    WIZARD(HOME, ClientWebUrl.WIZARD,
+            "navigation.wizard"),
+
+    RESERVATION_REQUEST(HOME, ClientWebUrl.RESERVATION_REQUEST,
+            "navigation.reservationRequest"),
+    RESERVATION_REQUEST_LIST(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_LIST,
+            null),
+    RESERVATION_REQUEST_DETAIL(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_DETAIL,
+            "navigation.reservationRequest.detail"),
+    RESERVATION_REQUEST_ACL_CREATE(RESERVATION_REQUEST_DETAIL, ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE,
+            "navigation.reservationRequest.detail.createAcl"),
+    RESERVATION_REQUEST_ACL_DELETE(RESERVATION_REQUEST_DETAIL, ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE,
+            "navigation.reservationRequest.detail.deleteAcl"),
+    RESERVATION_REQUEST_CREATE(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_CREATE,
+            "navigation.reservationRequest.create"),
+    RESERVATION_REQUEST_MODIFY(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_MODIFY,
+            "navigation.reservationRequest.modify"),
+    RESERVATION_REQUEST_DELETE(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_DELETE,
+            "navigation.reservationRequest.delete"),
+
+    ROOM_MANAGEMENT(HOME, ClientWebUrl.ROOM_MANAGEMENT,
+            "navigation.roomManagement"),
+
+    // Wizard navigation
+    WIZARD_SELECT(null, ClientWebUrl.WIZARD_SELECT,
+            "Select action"),
+    // Reservation requests
+    WIZARD_RESERVATION_REQUEST(WIZARD_SELECT, ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST,
+            "Reservation requests"),
+    WIZARD_RESERVATION_REQUEST_DETAIL(WIZARD_RESERVATION_REQUEST, null,
+            "Detail"),
+    // Create permanent/adhoc room
+    WIZARD_CREATE_ROOM(WIZARD_SELECT, ClientWebUrl.WIZARD_CREATE_ROOM,
+            "Create room"),
+    WIZARD_CREATE_ROOM_ATTRIBUTES(WIZARD_CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
+            "Set attributes"),
+    WIZARD_CREATE_ROOM_ROLES(WIZARD_CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_USER_ROLES,
+            "Set user roles"),
+    WIZARD_CREATE_ROOM_FINISH(WIZARD_CREATE_ROOM_ROLES, null,
+            "Finish"),
+    // Create permanent room capacity
+    WIZARD_CREATE_PERMANENT_ROOM_CAPACITY(WIZARD_SELECT, ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY,
+            "Create capacity for room"),
+    WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, null,
+            "Finish");
+
+    private final Page page;
+
+    private ClientWebNavigation(ClientWebNavigation parentPage, String url, String titleCode)
     {
-        super(ClientWebUrl.HOME, "navigation.home");
-
-        addChildNode(new NavigationNode(ClientWebUrl.CHANGELOG, "navigation.changelog"));
-
-        // Wizard
-        NavigationNode wizard = addChildNode(new NavigationNode(
-                ClientWebUrl.WIZARD, "navigation.wizard"));
-
-        // Reservation requests
-        NavigationNode reservationRequest = addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST, "navigation.reservationRequest"));
-        reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_LIST));
-        NavigationNode reservationRequestDetail = reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_DETAIL, "navigation.reservationRequest.detail"));
-        reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_CREATE, "navigation.reservationRequest.create"));
-        reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_MODIFY, "navigation.reservationRequest.modify"));
-        reservationRequest.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_DELETE, "navigation.reservationRequest.delete"));
-
-        // Detail of reservation request
-        reservationRequestDetail.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, "navigation.reservationRequest.detail.createAcl"));
-        reservationRequestDetail.addChildNode(new NavigationNode(
-                ClientWebUrl.RESERVATION_REQUEST_ACL_DELETE, "navigation.reservationRequest.detail.deleteAcl"));
-
-        // Room management
-        addChildNode(new NavigationNode(
-                ClientWebUrl.ROOM_MANAGEMENT, "navigation.roomManagement"));
+        page = new Page(url, titleCode);
+        if (parentPage != null) {
+            parentPage.page.addChildNode(page);
+        }
     }
 
-    @Override
-    public NavigationNode findByUrl(String url)
+    public Page getPage()
+    {
+        return page;
+    }
+
+    public Page getPreviousPage()
+    {
+        return page.getParentPage();
+    }
+
+    public Page getNextPage()
+    {
+        List<Page> childPages = page.getChildPages();
+        if (childPages.size() == 1) {
+            return childPages.get(0);
+        }
+        return null;
+    }
+
+    private static Map<String, Page> cachedNavigationNodeByUrl = new HashMap<String, Page>();
+
+    public static Page findByUrl(String url)
     {
         if (!cachedNavigationNodeByUrl.containsKey(url)) {
-            NavigationNode navigationNode = super.findByUrl(url);
-            cachedNavigationNodeByUrl.put(url, navigationNode);
+            Page page = HOME.page.findByUrl(url);
+            cachedNavigationNodeByUrl.put(url, page);
         }
         return cachedNavigationNodeByUrl.get(url);
-    }
-
-    /**
-     * Single instance of root {@link NavigationNode}.
-     */
-    private static ClientWebNavigation rootNavigationNode;
-
-    /**
-     * @return {@link #rootNavigationNode}
-     */
-    public static NavigationNode getInstance()
-    {
-        if (rootNavigationNode == null) {
-            rootNavigationNode = new ClientWebNavigation();
-        }
-        return rootNavigationNode;
     }
 }

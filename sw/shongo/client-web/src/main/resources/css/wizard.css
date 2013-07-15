@@ -72,11 +72,11 @@
 }
 
 /* current link */
-.wizard a.current {
+.wizard .link.current {
     background: #007ACC;
     color: #fff;
 }
-.wizard a.current:after {
+.wizard .link.current:after {
     border-left-color: #007ACC;
 }
 

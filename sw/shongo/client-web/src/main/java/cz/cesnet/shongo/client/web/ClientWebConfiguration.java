@@ -155,9 +155,9 @@ public class ClientWebConfiguration extends CombinedConfiguration
     /**
      * @return authentication client secret
      */
-    public String getAuthenticationSecret()
+    public String getAuthenticationClientSecret()
     {
-        return getString("security.secret");
+        return getString("security.client-secret");
     }
 
     /**
