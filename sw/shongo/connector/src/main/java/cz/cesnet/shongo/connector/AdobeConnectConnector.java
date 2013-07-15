@@ -61,6 +61,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected String meetingsFolderID;
 
     /**
+     * Root folder for meetings
+     */
+    protected String recordingsFolderID;
+
+    /**
      * This is the user log in name, typically the user email address.
      */
     private String login;
@@ -84,8 +89,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     /**
      * Timeout for checking room capacity, default value is 5 minutes
      */
-    private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
-
+    //private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
+    // TESTING
+    private final int CAPACITY_CHECK_TIMEOUT = 5*1000;
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
      *                      trailing slash http://www.breeze.example/ is a typical
@@ -147,9 +153,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     {
         String principalName = userInformation.getOriginalId();
         if (principalName == null) {
-            logger.warn("Participant '{}' doesn't have EPPN and he cannot use the Adobe Connect.",
-                    userInformation.getFullName());
-            return null;
+            throw new CommandException("EPPN is unset for user " + userInformation.getFullName() + ".");
         }
 
         HashMap<String, String> userSearchAttributes = new HashMap<String, String>();
@@ -485,8 +489,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         if (sco.getChildText("sco-tag") != null) {
             room.setLicenseCount(Integer.valueOf(sco.getChildText("sco-tag")));
         } else {
-            room.setLicenseCount(999);
-            logger.error("Licence count not set for room " + roomId);
+            throw new CommandException("Licence count not set for room " + roomId + ".");
         }
         room.addTechnology(Technology.ADOBE_CONNECT);
 
@@ -541,13 +544,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     private void addRoomParticipant(String roomId, UserInformation participant) throws CommandException
     {
         String principalId = this.createAdobeConnectUser(participant);
-        if (principalId == null) {
-            logger.warn("Participant '{}' cannot be configured for the room.",
-                    participant.getFullName());
-            return;
-        }
 
-        logger.debug("Configuring participant '{}' as host in the room.", participant.getFullName());
+        //TODO: more user roles
+        logger.info("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(), principalId);
+
         HashMap<String, String> userAttributes = new HashMap<String, String>();
         userAttributes.put("acl-id", roomId);
         userAttributes.put("principal-id", principalId);
@@ -771,7 +771,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
             // Participant list cannot be retrieved because of internal error
             else if (exception.getCode().equals("internal-error")) {
-                logger.warn("Problem getting meeting participants. May be caused by calling unsafe AC method."
+                logger.debug("Adobe Connect issued internal error while getting meeting participants (UNSAFE API CALL)."
                         + " This should just mean, that there is no participants.", exception);
                 return participantList;
             }
@@ -934,6 +934,55 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
+     * Sets and returns SCO-ID of folder for recordings.
+     *
+     * @return recordings folder SCO-ID
+     * @throws CommandException
+     */
+    protected String getRecordingFolderID() throws CommandException
+    {
+        if (recordingsFolderID == null) {
+            Element response = request("sco-shortcuts", null);
+            for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
+                if (sco.getAttributeValue("type").equals("content")) {
+                    // Find sco-id of /shongo folder
+                    HashMap<String, String> searchAttributes = new HashMap<String, String>();
+                    searchAttributes.put("sco-id", sco.getAttributeValue("sco-id"));
+                    searchAttributes.put("filter-is-folder", "1");
+
+                    Element shongoFolder = request("sco-contents", searchAttributes);
+
+                    for (Element folder : shongoFolder.getChild("scos").getChildren("sco")) {
+                        if (folder.getChildText("name").equals("shongo-rec")) {
+                            recordingsFolderID = folder.getAttributeValue("sco-id");
+                        }
+                    }
+
+                    // Creates /shongo folder if not exists
+                    if (recordingsFolderID == null) {
+                        logger.debug("Folder /shongo for shongo meetings does not exists, creating...");
+
+                        HashMap<String, String> folderAttributes = new HashMap<String, String>();
+                        folderAttributes.put("folder-id", sco.getAttributeValue("sco-id"));
+                        folderAttributes.put("name", "shongo-rec");
+                        folderAttributes.put("type", "folder");
+
+                        Element folder = request("sco-update", folderAttributes);
+
+                        recordingsFolderID = folder.getChild("sco").getAttributeValue("sco-id");
+
+                        logger.debug("Folder /shongo-rec for meetings created with sco-id: " + recordingsFolderID);
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        return recordingsFolderID;
+    }
+
+    /**
      * Performs the action to log into Adobe Connect server. Stores the breezeseession ID.
      */
     protected void login() throws CommandException
@@ -958,8 +1007,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             Document doc = new SAXBuilder().build(resultStream);
 
             if (this.isError(doc)) {
-                logger.error(String.format("Login to server %s failed", info.getDeviceAddress()));
-
                 throw new CommandException("Login to server " + info.getDeviceAddress() + " failed");
             }
             else {
@@ -989,6 +1036,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
 
             this.meetingsFolderID = this.getMeetingsFolderID();
+            this.recordingsFolderID = this.getRecordingFolderID();
         }
 
 
@@ -1015,7 +1063,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     try {
                         checkAllRoomsCapacity();
                     } catch (CommandException e) {
-                        logger.error(String.format("Capacity check failed: " + e));
+                        logger.warn(String.format("Capacity check failed: " + e));
                         continue;
                     }
                 }
@@ -1055,14 +1103,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
     protected void checkRoomCapacity(String roomId) throws CommandException
     {
-        int roomCapacity = -1;
+        Room room = null;
         int participants = 0;
 
         try {
             participants = countRoomParticipants(roomId);
         } catch (RequestFailedCommandException ex) {
             if (ex.getCode().equals("no-access") && ex.getSubCode().equals("not-available")) {
-                logger.debug("Can't get number of room participants. Is the room " + roomId + " still existing? This may be normal behavior.");
+                logger.warn("Can't get number of room participants! Skipping capacity check for room " + roomId + ". This may be normal behavior.");
                 return;
             } else {
                 throw ex;
@@ -1070,27 +1118,37 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
 
         try {
-            roomCapacity = getRoomCapacity(roomId);
+            room = getRoom(roomId);
         } catch (RequestFailedCommandException ex) {
             if (ex.getCode().equals("no-data")) {
-                logger.debug("Can't get room capacity. Is the room " + roomId + " still existing? This may be normal behavior.");
+                logger.warn("Can't get room capacity! Skipping capacity check for room " + roomId + ". This may be normal behavior.");
                 return;
             } else {
                 throw ex;
             }
         }
 
-        if (roomCapacity == -1) {
-            logger.error("Capacity is not set for room: sco-id=" + roomId + ", skipping capacity check.");
+        if (room == null) {
+            logger.warn("Can't get room info (room ID: " + roomId + "), skipping capacity check.");
             return;
         }
 
-        logger.debug("Checking capacity for room " + roomId + " with capacity " + roomCapacity + " and " + participants + " participants.");
-        if (participants > roomCapacity) {
-            logger.warn("Capacity has been exceeded in room " + roomId);
+        logger.info("Checking capacity for room " + roomId + " with capacity " + room.getLicenseCount() + " and " + participants + " participants.");
+        if (participants > room.getLicenseCount()) {
+            logger.info("Capacity has been exceeded in room " + room.getName() + " (room ID: " + roomId + ").");
 
-            String notificationTitle = "Exceeded capacity";
-            String notificationMessage = "Capacity for room " + roomId + "exceeded.";
+            //TODO: will do controller in future
+
+            String notificationTitle = "Room capacity exceeded / Kapacita místnosti překročena : " + room.getName();
+            String notificationMessage = "Capacity has been exceeded in your room \"" + room.getName() + "\".\n\n"
+                    + "Licence count: " + room.getLicenseCount() + "\n"
+                    + "Number of participants: " + participants + "\n\n"
+                    + "===========================================================\n\n"
+                    + "Kapacita vaší místnosti \"" + room.getName() + "\" byla překročena.\n\n"
+                    + "Počet licencí: " + room.getLicenseCount() + "\n"
+                    + "Počet účastníků: " + participants + "\n\n";
+
+            //TODO: list of participants
             performControllerAction(new NotifyTarget(Service.NotifyTargetType.ROOM_OWNERS, roomId, notificationTitle, notificationMessage));
         }
     }
@@ -1110,12 +1168,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return response.getChild("meeting-usermanager-user-list").getChildren("userdetails").size();
     }
 
-    /**
+    //TODO: delete
+    /**           DELETE
      * Returns room capacity stored in sco-tag (in sco-info).
      *
      * @param roomId sco-id of the room
      * @return room capacity, value -1 for unlimited or not set
-     */
+     *
     protected int getRoomCapacity(String roomId) throws CommandException
     {
         HashMap<String,String> scoInfoAttributes = new HashMap<String, String>();
@@ -1123,11 +1182,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("sco-info", scoInfoAttributes);
         if (response.getChild("sco").getChildText("sco-tag") == null) {
-            return -1;
+            throw new CommandException("Licence count not set for room " + roomId + ".");
         }
 
         return Integer.parseInt(response.getChild("sco").getChildText("sco-tag"));
-    }
+    }    */
 
     /**
      * Logout of the server, clearing the session as well.
@@ -1199,7 +1258,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             throw new RuntimeException("Error initializing parser", e);
         }
         catch (RequestFailedCommandException exception) {
-            logger.error(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), exception));
+            logger.debug(String.format("Command %s has failed on %s: %s", action, info.getDeviceAddress(), exception));
             throw exception;
         }
     }
