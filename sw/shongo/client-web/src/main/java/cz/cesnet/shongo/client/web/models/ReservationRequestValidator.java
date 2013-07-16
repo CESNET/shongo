@@ -53,7 +53,7 @@ public class ReservationRequestValidator implements Validator
             switch (specificationType) {
                 case PERMANENT_ROOM:
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "end", "validation.field.required");
-                    DateTime start = reservationRequestModel.getEnd();
+                    DateTime start = reservationRequestModel.getStart();
                     DateTime end = reservationRequestModel.getEnd();
                     if (end != null && end.getMillisOfDay() == 0) {
                         end = end.withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59);

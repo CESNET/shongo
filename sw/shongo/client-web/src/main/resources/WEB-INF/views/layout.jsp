@@ -79,7 +79,7 @@
             <security:authorize access="isAuthenticated()">
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <b><security:authentication property="principal"/></b>
+                        <b><security:authentication property="principal.fullName"/></b>
                         <b class="caret"></b>
                     </a>
                     <ul class="dropdown-menu" role="menu">

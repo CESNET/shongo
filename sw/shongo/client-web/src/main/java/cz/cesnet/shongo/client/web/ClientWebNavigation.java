@@ -42,26 +42,27 @@ public enum ClientWebNavigation
 
     // Wizard navigation
     WIZARD_SELECT(null, ClientWebUrl.WIZARD_SELECT,
-            "Select action"),
+            "views.wizard.page.select"),
     // Reservation requests
     WIZARD_RESERVATION_REQUEST(WIZARD_SELECT, ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST,
-            "Reservation requests"),
+            "views.wizard.page.reservationRequestList"),
     WIZARD_RESERVATION_REQUEST_DETAIL(WIZARD_RESERVATION_REQUEST, null,
-            "Detail"),
+            "views.wizard.page.reservationRequestDetail"),
     // Create permanent/adhoc room
     WIZARD_CREATE_ROOM(WIZARD_SELECT, ClientWebUrl.WIZARD_CREATE_ROOM,
-            "Create room"),
+            "views.wizard.page.createRoom"),
     WIZARD_CREATE_ROOM_ATTRIBUTES(WIZARD_CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
-            "Set attributes"),
-    WIZARD_CREATE_ROOM_ROLES(WIZARD_CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_USER_ROLES,
-            "Set user roles"),
-    WIZARD_CREATE_ROOM_FINISH(WIZARD_CREATE_ROOM_ROLES, null,
-            "Finish"),
+            "views.wizard.page.createRoom.attributes"),
+    WIZARD_CREATE_ROOM_ROLES(WIZARD_CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_ROLES,
+            "views.wizard.page.createRoom.roles"),
+    WIZARD_CREATE_ROOM_FINISH(WIZARD_CREATE_ROOM_ROLES, ClientWebUrl.WIZARD_CREATE_FINISH,
+            "views.wizard.page.finish"),
     // Create permanent room capacity
     WIZARD_CREATE_PERMANENT_ROOM_CAPACITY(WIZARD_SELECT, ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY,
-            "Create capacity for room"),
-    WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, null,
-            "Finish");
+            "views.wizard.page.createPermanentRoomCapacity"),
+    WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_FINISH(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY,
+            ClientWebUrl.WIZARD_CREATE_FINISH,
+            "views.wizard.page.finish");
 
     private final Page page;
 

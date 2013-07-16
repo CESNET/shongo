@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.auth;
 
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -14,13 +15,10 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Authentication provider for OpenID Connect.
@@ -95,21 +93,31 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             }
 
             // Build user info
-            UserInfo userInfo = new UserInfo();
-            userInfo.setId(userInfoResponse.get("id").getTextValue());
-            String givenName = userInfoResponse.get("given_name").getTextValue();
-            String familyName = userInfoResponse.get("family_name").getTextValue();
-            StringBuilder nameBuilder = new StringBuilder();
-            nameBuilder.append(givenName);
-            if (nameBuilder.length() > 0) {
-                nameBuilder.append(" ");
+            UserInformation userInformation = new UserInformation();
+            userInformation.setUserId(userInfoResponse.get("id").getTextValue());
+            userInformation.setFirstName(userInfoResponse.get("given_name").getTextValue());
+            userInformation.setLastName(userInfoResponse.get("family_name").getTextValue());
+            if (userInfoResponse.has("original_id")) {
+                userInformation.setOriginalId(userInfoResponse.get("original_id").getTextValue());
             }
-            nameBuilder.append(familyName);
-            userInfo.setName(nameBuilder.toString());
+            if (userInfoResponse.has("organization")) {
+                userInformation.setOrganization(userInfoResponse.get("organization").getTextValue());
+            }
+            if (userInfoResponse.has("email")) {
+                String emails = userInfoResponse.get("email").getTextValue();
+                if (emails != null) {
+                    for (String email : emails.split(";")) {
+                        if (!email.isEmpty()) {
+                            userInformation.addEmail(email);
+                        }
+                    }
+                }
+            }
+            securityToken.setUserInformation(userInformation);
 
-            logger.debug("User {} authenticated.", userInfo);
+            logger.debug("User {} authenticated.", userInformation);
 
-            authentication = new OpenIDConnectAuthenticationToken(securityToken, userInfo);
+            authentication = new OpenIDConnectAuthenticationToken(securityToken, userInformation);
             authentication.setAuthenticated(true);
             return authentication;
         }

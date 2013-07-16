@@ -30,10 +30,10 @@
     <div ng-app="ngDashboard">
 
         <div class="actions">
-            <span><spring:message code="views.index.dashboard.start"/></span>
+            <span><spring:message code="views.wizard.select"/></span>
             <ul>
-                <li><a href="${urlWizard}"><spring:message code="views.index.dashboard.start.wizard"/></a></li>
-                <li><a href="${urlAdvanced}"><spring:message code="views.index.dashboard.start.advanced"/></a></li>
+                <li><a href="${urlWizard}"><spring:message code="views.index.dashboard.startWizard"/></a></li>
+                <li><a href="${urlAdvanced}"><spring:message code="views.index.dashboard.startAdvanced"/></a></li>
             </ul>
         </div>
 

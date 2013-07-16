@@ -18,7 +18,7 @@ public class SecurityToken implements AtomicType
     /**
      * Cached person information of the user.
      */
-    private UserInformation cachedUserInformation;
+    private UserInformation userInformation;
 
     /**
      * Constructor.
@@ -46,19 +46,19 @@ public class SecurityToken implements AtomicType
     }
 
     /**
-     * @return {@link #cachedUserInformation}
+     * @return {@link #userInformation}
      */
-    public UserInformation getCachedUserInformation()
+    public UserInformation getUserInformation()
     {
-        return cachedUserInformation;
+        return userInformation;
     }
 
     /**
-     * @param cachedUserInformation sets the {@link #cachedUserInformation}
+     * @param userInformation sets the {@link #userInformation}
      */
-    public void setCachedUserInformation(UserInformation cachedUserInformation)
+    public void setUserInformation(UserInformation userInformation)
     {
-        this.cachedUserInformation = cachedUserInformation;
+        this.userInformation = userInformation;
     }
 
     @Override

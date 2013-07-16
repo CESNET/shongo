@@ -111,7 +111,7 @@ public abstract class Authorization
      */
     public final UserInformation getUserInformation(SecurityToken securityToken)
     {
-        UserInformation userInformation = securityToken.getCachedUserInformation();
+        UserInformation userInformation = securityToken.getUserInformation();
         if (userInformation != null) {
             return userInformation;
         }
@@ -124,7 +124,7 @@ public abstract class Authorization
             userInformation = getUserInformation(userId);
 
             // Store the user information inside the security token
-            securityToken.setCachedUserInformation(userInformation);
+            securityToken.setUserInformation(userInformation);
 
             return userInformation;
         }
@@ -137,7 +137,7 @@ public abstract class Authorization
             cache.putUserInformationByUserId(userId, userInformation);
 
             // Store the user information inside the security token
-            securityToken.setCachedUserInformation(userInformation);
+            securityToken.setUserInformation(userInformation);
 
             return userInformation;
         }
