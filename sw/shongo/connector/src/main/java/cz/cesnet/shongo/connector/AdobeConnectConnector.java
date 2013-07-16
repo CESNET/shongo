@@ -334,91 +334,90 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public int startRecording(String roomId, ContentType format, RoomLayout layout)
+    public String startRecording(String folderId, Alias alias)
             throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id", roomId);
+        attributes.put("sco-id", folderId);
         attributes.put("active", "true");
 
         request("meeting-recorder-activity-update", attributes);
 
         HashMap<String, String> recAttributes = new HashMap<String, String>();
-        recAttributes.put("sco-id", roomId);
+        recAttributes.put("sco-id", folderId);
 
         Element response = request("meeting-recorder-activity-info", recAttributes);
 
-        int recScoId = Integer.valueOf(
-                response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"));
-
-        return recScoId;
+        //TODO: return 0 for allready recording - maybe
+        return response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id");
     }
 
     @java.lang.Override
-    public void stopRecording(int recordingId) throws CommandException
+    public void stopRecording(String recordingId) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id", Integer.toString(recordingId));
+        attributes.put("sco-id", recordingId);
         attributes.put("active", "false");
 
         request("meeting-recorder-activity-update", attributes);
     }
 
     @java.lang.Override
-    public String getRecordingDownloadURL(int recordingId) throws CommandException
+    public Recording getRecording(String recordingId) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id", Integer.toString(recordingId));
+        attributes.put("sco-id", recordingId);
 
         Element response = request("sco-info", attributes);
 
-        String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
-                .getChild("sco").getChildText("url-path");
+        Recording recording = new Recording();
 
-        return url;
+        recording.setUrl("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                .getChild("sco").getChildText("url-path"));
+        //TODO: vse ostatni
+        //recording.setDownloadableUrl();
+
+        return recording;
     }
 
-    public Collection<String> listRecordings(String roomId) throws CommandException
+    public Collection<Recording> listRecordings(String folderId) throws CommandException
     {
-        ArrayList<String> recordingList = new ArrayList<String>();
+        //TODO: rozeznat folderId a roomId
+
+        ArrayList<Recording> recordingList = new ArrayList<Recording>();
 
         HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id", roomId);
+        attributes.put("sco-id", folderId);
         attributes.put("filter-icon", "archive");
 
         Element response = request("sco-contents", attributes);
 
-        for (Element recording : response.getChild("scos").getChildren()) {
-            if (recording.getChild("date-end") == null) {
+        for (Element resultRecording : response.getChild("scos").getChildren()) {
+            if (resultRecording.getChild("date-end") == null) {
                 continue;
             }
-            String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress()
-                    .getPort() + recording.getChildText("url-path");
-            recordingList.add(url);
+            Recording recording = new Recording();
+            recording.setUrl("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress()
+                    .getPort() + resultRecording.getChildText("url-path"));
+
+            //TODO: vse ostatni
+
+            recordingList.add(recording);
         }
 
         return Collections.unmodifiableList(recordingList);
     }
 
-    @java.lang.Override
-    public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
+    @Override
+    public void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
     {
-        //TODO: ???
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @java.lang.Override
-    public void downloadRecording(String downloadURL, String targetPath)
-            throws CommandException, CommandUnsupportedException
-    {
-        //TODO: ???
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
-    public void deleteRecording(int recordingId) throws CommandException
+    public void deleteRecording(String recordingId) throws CommandException
     {
-        deleteSCO(Integer.toString(recordingId));
+        deleteSCO(recordingId);
     }
 
     @java.lang.Override
@@ -573,7 +572,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         String principalId = this.createAdobeConnectUser(participant);
 
         //TODO: more user roles
-        logger.info("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(), principalId);
+        logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(),
+                principalId);
 
         HashMap<String, String> userAttributes = new HashMap<String, String>();
         userAttributes.put("acl-id", roomId);
