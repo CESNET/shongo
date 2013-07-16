@@ -2,10 +2,9 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.*;
-import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.connector.api.jade.multipoint.rooms.ModifyRoom;
@@ -13,26 +12,23 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
+import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ManagedMode;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import cz.cesnet.shongo.report.Report;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint} in a {@link Compartment}.
@@ -267,7 +263,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             // TODO: Retrieve current room state and only apply changes
 
             SendLocalCommand sendLocalCommand = controllerAgent.sendCommand(agentName, new ModifyRoom(roomApi));
-            if (sendLocalCommand.getState() != SendLocalCommand.State.SUCCESSFUL) {
+            if (sendLocalCommand.getState() == SendLocalCommand.State.SUCCESSFUL) {
+                setRoomId((String) sendLocalCommand.getResult());
+            } else {
                 throw new ExecutorReportSet.CommandFailedException(
                         sendLocalCommand.getName(), sendLocalCommand.getJadeReport());
             }

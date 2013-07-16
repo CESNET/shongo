@@ -89,9 +89,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     /**
      * Timeout for checking room capacity, default value is 5 minutes
      */
-    //private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
-    // TESTING
-    private final int CAPACITY_CHECK_TIMEOUT = 5*1000;
+    private final int CAPACITY_CHECK_TIMEOUT = 5*60*1000;
+
     /*
      * @param serverUrl     the base URL of the Breeze server, including the
      *                      trailing slash http://www.breeze.example/ is a typical
@@ -184,7 +183,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param roomId identifier of the room
      * @param state  state of session; true for end, false for start session
      */
-    protected void endMeetingUpdate(String roomId, String state) throws CommandException
+    protected void endMeetingUpdate(String roomId, Boolean state, String message, Boolean redirect, String url) throws CommandException
     {
         HashMap<String, String> sessionsAttributes = new HashMap<String, String>();
         sessionsAttributes.put("sco-id", roomId);
@@ -196,7 +195,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         HashMap<String, String> endMeetingAttributes = new HashMap<String, String>();
         endMeetingAttributes.put("sco-id", roomId);
-        endMeetingAttributes.put("state", state);
+        endMeetingAttributes.put("state", state.toString());
+        if (message != null) {
+            endMeetingAttributes.put("message",message);
+        }
+        if (redirect == true && url != null) {
+            endMeetingAttributes.put("redirect",redirect.toString());
+            endMeetingAttributes.put("url",url);
+        }
 
         try {
             request("meeting-roommanager-endmeeting-update", endMeetingAttributes);
@@ -213,7 +219,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void endMeeting(String roomId) throws CommandException
     {
-        endMeetingUpdate(roomId, "true");
+        String message = "Capacity of the room has ended.";
+
+        endMeeting(roomId, message, false, null);
+    }
+
+    /**
+     * End current session, set message show after stoping meeting, set url to be redirect (for recreating rooms)
+     *
+     * @param roomId identifier of the room
+     * @param message message shown after ending meeting session
+     * @param redirect boolean value for redirecting after ending meeting session
+     * @param url url to redirect if redirect == true
+     * @throws CommandException
+     */
+    protected void endMeeting(String roomId, String message, Boolean redirect, String url) throws CommandException
+    {
+        endMeetingUpdate(roomId, true, message, redirect, url);
     }
 
     /**
@@ -224,7 +246,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void startMeeting(String roomId) throws CommandException
     {
-        endMeetingUpdate(roomId, "false");
+        endMeetingUpdate(roomId, false, null, false, null);
     }
 
     /**
@@ -504,40 +526,45 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     private void setRoomAttributes(HashMap<String, String> attributes, Room room)
-            throws UnsupportedEncodingException, CommandException
+            throws CommandException
     {
-        // Set the description
-        if (room.getDescription() != null) {
-            attributes.put("description", URLEncoder.encode(room.getDescription(), "UTF8"));
-        }
+        try {
+            // Set the description
+            if (room.getDescription() != null) {
+                attributes.put("description", URLEncoder.encode(room.getDescription(), "UTF8"));
+            }
 
-        // Set capacity
-        attributes.put("sco-tag", String.valueOf(room.getLicenseCount()));
+            // Set capacity
+            attributes.put("sco-tag", String.valueOf(room.getLicenseCount()));
 
 
-        // Create/Update aliases
-        if (room.getAliases() != null) {
-            for (Alias alias : room.getAliases()) {
-                switch (alias.getType()) {
-                    case ROOM_NAME:
-                        attributes.put("name", URLEncoder.encode(alias.getValue(), "UTF8"));
-                        break;
-                    case ADOBE_CONNECT_URI:
-                        if (urlPathExtractionFromUri == null) {
-                            throw new CommandException(String.format(
-                                    "Cannot set Adobe Connect Url Path - missing connector device option '%s'",
-                                    URL_PATH_EXTRACTION_FROM_URI));
-                        }
-                        Matcher matcher = urlPathExtractionFromUri.matcher(alias.getValue());
-                        if (!matcher.find()) {
-                            throw new CommandException("Invalid Adobe Connect URI: " + alias.getValue());
-                        }
-                        attributes.put("url-path", matcher.group(1));
-                        break;
-                    default:
-                        throw new RuntimeException("Unrecognized alias: " + alias.toString());
+            // Create/Update aliases
+            if (room.getAliases() != null) {
+                for (Alias alias : room.getAliases()) {
+                    switch (alias.getType()) {
+                        case ROOM_NAME:
+                            attributes.put("name", URLEncoder.encode(alias.getValue(), "UTF8"));
+                            break;
+                        case ADOBE_CONNECT_URI:
+                            if (urlPathExtractionFromUri == null) {
+                                throw new CommandException(String.format(
+                                        "Cannot set Adobe Connect Url Path - missing connector device option '%s'",
+                                        URL_PATH_EXTRACTION_FROM_URI));
+                            }
+                            Matcher matcher = urlPathExtractionFromUri.matcher(alias.getValue());
+                            if (!matcher.find()) {
+                                throw new CommandException("Invalid Adobe Connect URI: " + alias.getValue());
+                            }
+                            attributes.put("url-path", matcher.group(1));
+                            break;
+                        default:
+                            throw new RuntimeException("Unrecognized alias: " + alias.toString());
+                    }
                 }
             }
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while URL encoding.", ex);
         }
     }
 
@@ -593,44 +620,71 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         }
         catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while URL encoding.", ex);
+            throw new CommandException("Error while encoding date: ", ex);
         }
     }
 
     @java.lang.Override
     public String modifyRoom(Room room) throws CommandException
     {
+        String roomId = room.getId();
+
+        getRoom(roomId);
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", roomId);
+        attributes.put("type", "meeting");
+
+        // Set room attributes
+        setRoomAttributes(attributes, room);
+
+        // Recreate room if new URL PATH is set
+        if (attributes.get("url-path") != null && attributes.get("url-path") != getRoom(roomId).getAlias(AliasType.ADOBE_CONNECT_URI).getValue()) {
+            return recreateRoom(room);
+        }
+
+        // Remove all participants first
+        HashMap<String, String> permissionsResetAttributes = new HashMap<String, String>();
+        permissionsResetAttributes.put("acl-id", roomId);
+        request("permissions-reset", permissionsResetAttributes);
+
+        // Add/modify participants
+        if (room.getLicenseCount() > 0) {
+            startMeeting(roomId);
+            for (UserInformation participant : room.getParticipants()) {
+                addRoomParticipant(roomId, participant);
+            }
+        }
+        else if (room.getLicenseCount() == 0) {
+            endMeeting(roomId);
+        }
+
+        request("sco-update", attributes);
+        return roomId;
+    }
+
+    /**
+     * Create new room and while deleting the old one redirect to the new one.
+     *
+     * Is necessary for changing room URL.
+     *
+     * @param room new room
+     * @return
+     */
+    public String recreateRoom(Room room) throws CommandException
+    {
         try {
             String roomId = room.getId();
 
-            HashMap<String, String> attributes = new HashMap<String, String>();
-            attributes.put("sco-id", roomId);
-            attributes.put("type", "meeting");
+            String newRoomId = createRoom(room);
 
-            // Set room attributes
-            setRoomAttributes(attributes, room);
+            String msg = "Room has been modified, you have been redirected to the new one (" + room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue() + ").";
+            endMeeting(roomId, URLEncoder.encode(msg,"UTF8"), true, URLEncoder.encode(room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue(), "UTF8"));
 
-            // Remove all participants first
-            HashMap<String, String> permissionsResetAttributes = new HashMap<String, String>();
-            permissionsResetAttributes.put("acl-id", roomId);
-            request("permissions-reset", permissionsResetAttributes);
+            deleteRoom(roomId);
 
-            // Add/modify participants
-            if (room.getLicenseCount() > 0) {
-                startMeeting(roomId);
-                for (UserInformation participant : room.getParticipants()) {
-                    addRoomParticipant(roomId, participant);
-                }
-            }
-            else if (room.getLicenseCount() == 0) {
-                endMeeting(roomId);
-            }
-
-            request("sco-update", attributes);
-            return roomId;
-        }
-        catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while URL encoding.", ex);
+            return newRoomId;
+        } catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while encoding URL. ", ex);
         }
     }
 
