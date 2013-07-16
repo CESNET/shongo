@@ -171,57 +171,15 @@
 
     <%-- List of user roles --%>
     <spring:eval var="urlAcl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAcl(contextPath, ':id')"/>
-    <div ng-controller="PaginationController"
-         ng-init="init('reservationRequestDetail.acl', '${urlAcl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-        <pagination-page-size class="pull-right">
-            <spring:message code="views.pagination.records"/>
-        </pagination-page-size>
-        <h2><spring:message code="views.reservationRequestDetail.userRoles"/></h2>
+    <spring:eval var="urlAclCreate" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclCreate(contextPath, reservationRequest.id)"/>
+    <spring:eval var="urlAclDelete" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclDelete(contextPath, reservationRequest.id)"/>
 
-        <div class="spinner" ng-hide="ready"></div>
-        <table class="table table-striped table-hover" ng-show="ready">
-            <thead>
-            <tr>
-                <th><spring:message code="views.aclRecord.user"/></th>
-                <th><spring:message code="views.aclRecord.role"/></th>
-                <th><spring:message code="views.aclRecord.email"/></th>
-                <c:if test="${isWritable}">
-                    <th width="100px"><spring:message code="views.list.action"/></th>
-                </c:if>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="userRole in items">
-                <td>{{userRole.user.fullName}} ({{userRole.user.originalId}})</td>
-                <td>{{userRole.role}}</td>
-                <td>{{userRole.user.primaryEmail}}</td>
-                <c:if test="${isWritable}">
-                    <td>
-                        <spring:eval var="urlAclDelete" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclDelete(contextPath, reservationRequest.id, '{{userRole.id}}')"/>
-                        <a href="${urlAclDelete}">
-                            <spring:message code="views.list.action.delete"/>
-                        </a>
-                    </td>
-                </c:if>
-            </tr>
-            <tr ng-hide="items.length">
-                <td colspan="7" class="empty"><spring:message code="views.list.none"/></td>
-            </tr>
-            </tbody>
-        </table>
-        <c:choose>
-            <c:when test="${isWritable}">
-                <spring:eval var="urlAclCreate" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAclCreate(contextPath, reservationRequest.id)"/>
-                <a class="btn btn-primary" href="${urlAclCreate}">
-                    <spring:message code="views.button.create"/>
-                </a>
-                <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
-            </c:when>
-            <c:otherwise>
-                <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
-            </c:otherwise>
-        </c:choose>
-    </div>
+    <h2><spring:message code="views.reservationRequestDetail.userRoles"/></h2>
+    <app:userRoleList dataUrl="${urlAcl}"
+                   dataUrlParameters="id: '${reservationRequest.id}'"
+                   createUrl="${urlAclCreate}"
+                   deleteUrl="${urlAclDelete}"
+                   isWritable="${isWritable}"/>
 
     <%-- Active reservation request --%>
     <c:if test="${isActive}">

@@ -59,8 +59,11 @@ public class ErrorController
                 message = throwable.getMessage();
             }
         }
-        else if (message == null) {
-            message = HttpStatus.valueOf(statusCode).getReasonPhrase();
+        else if (message == null && statusCode != null) {
+            HttpStatus httpStatus = HttpStatus.valueOf(statusCode);
+            if (httpStatus != null) {
+                message = httpStatus.getReasonPhrase();
+            }
         }
         model.addAttribute("url", requestUri);
         model.addAttribute("code", statusCode);

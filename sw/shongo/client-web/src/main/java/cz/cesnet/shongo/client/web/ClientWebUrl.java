@@ -23,19 +23,25 @@ public class ClientWebUrl
     public static final String WIZARD_RESERVATION_REQUEST_DETAIL =
             "/wizard/reservation-request/{reservationRequestId:.+}";
     public static final String WIZARD_CREATE_ROOM =
-            "/wizard/create/room";
+            "/wizard/create";
     public static final String WIZARD_CREATE_ADHOC_ROOM =
             "/wizard/create/adhoc-room";
     public static final String WIZARD_CREATE_PERMANENT_ROOM =
             "/wizard/create/permanent-room";
     public static final String WIZARD_CREATE_ROOM_ATTRIBUTES =
             "/wizard/create/attributes";
-    public static final String WIZARD_CREATE_ROOM_USER_ROLES =
+    public static final String WIZARD_CREATE_ROOM_ROLES =
             "/wizard/create/roles";
+    public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
+            "/wizard/create/role/create";
+    public static final String WIZARD_CREATE_ROOM_ROLE_DELETE =
+            "/wizard/create/role/{userRoleId:.+}/delete";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
     public static final String WIZARD_CREATE_CONFIRM =
             "/wizard/create/confirm";
+    public static final String WIZARD_CREATE_FINISH =
+            "/wizard/create/finish";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";
@@ -85,7 +91,7 @@ public class ClientWebUrl
     public static String format(String url, Object... variables)
     {
         for (Object variable : variables) {
-            url = url.replaceFirst("\\{[^/]+\\}", variable.toString());
+            url = url.replaceFirst("\\{[^/]+\\}", variable != null ? variable.toString() : "");
         }
         return url;
     }
@@ -128,6 +134,11 @@ public class ClientWebUrl
     public static String getReservationRequestAclCreate(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_ACL_CREATE, reservationRequestId);
+    }
+
+    public static String getReservationRequestAclDelete(String path, String reservationRequestId)
+    {
+        return path + format(RESERVATION_REQUEST_ACL_DELETE, reservationRequestId);
     }
 
     public static String getReservationRequestAclDelete(String path, String reservationRequestId, String aclRecordId)

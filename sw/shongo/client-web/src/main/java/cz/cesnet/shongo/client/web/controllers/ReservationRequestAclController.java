@@ -2,7 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.AclRecordValidator;
+import cz.cesnet.shongo.client.web.models.UserRoleValidator;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
@@ -98,8 +98,8 @@ public class ReservationRequestAclController
             @ModelAttribute("aclRecord") AclRecord aclRecord,
             BindingResult result)
     {
-        AclRecordValidator aclRecordValidator = new AclRecordValidator();
-        aclRecordValidator.validate(aclRecord, result);
+        UserRoleValidator userRoleValidator = new UserRoleValidator();
+        userRoleValidator.validate(aclRecord, result);
         if (result.hasErrors()) {
             return handleAclCreate(reservationRequestId, aclRecord);
         }

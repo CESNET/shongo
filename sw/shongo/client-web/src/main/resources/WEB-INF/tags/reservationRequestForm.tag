@@ -1,7 +1,9 @@
 <%--
-  -- Page for reservation request form.
+  -- Reservation request form.
   --%>
-<%@ page import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
+<%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
+<%@ tag import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
@@ -9,15 +11,17 @@
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
-<tiles:importAttribute/>
-<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<%@attribute name="permanentRooms" required="false" type="java.util.Collection<cz.cesnet.shongo.controller.api.ReservationRequestSummary>" %>
+<%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
+<%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
+<%@attribute name="backUrl" required="false" type="java.lang.String" %>
 
 <script type="text/javascript">
     // Angular module
     angular.module('ngReservationRequestForm', ['ngDateTime', 'ngTooltip']);
 
     // Form controller
-    function FormController($scope) {
+    function ReservationRequestFormController($scope) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
             return ((value == null || value == '') ? defaultValue : value);
@@ -27,7 +31,9 @@
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
 
-    <c:if test="${permanentRooms != null && permanentRooms.size() > 0}">
+        console.debug($scope.technology);
+
+        <c:if test="${permanentRooms != null && permanentRooms.size() > 0}">
         // Get permanent rooms
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
@@ -92,25 +98,23 @@
             if ($scope.permanentRoom != null) {
                 $scope.technology = $scope.permanentRoom.technology;
             }
+            else {
+                $scope.technology = null;
+            }
         });
         // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
-    </c:if>
+        </c:if>
     }
 </script>
 
 <div ng-app="ngReservationRequestForm">
 
-<c:if test="${param.reservationRequestFormId == null}">
-    <c:set var="param.reservationRequestFormId">reservationRequest</c:set>
-</c:if>
-
 <form:form class="form-horizontal"
-           id="${param.reservationRequestFormId}"
            commandName="reservationRequest"
-           action="${param.confirmUrl}"
+           action="${confirmUrl}"
            method="post"
-           ng-controller="FormController">
+           ng-controller="ReservationRequestFormController">
 
     <fieldset>
 
@@ -141,23 +145,28 @@
             </div>
         </div>
 
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
-            <div class="control-group">
-                <form:label class="control-label" path="technology">
-                    <spring:message code="views.reservationRequest.technology"/>:
-                </form:label>
-                <div class="controls">
-                    <form:select path="technology" ng-model="technology">
-                        <form:option value="H323_SIP">
-                            <%= ReservationRequestModel.Technology.H323_SIP.getTitle() %>
-                        </form:option>
-                        <form:option value="ADOBE_CONNECT">
-                            <%= ReservationRequestModel.Technology.ADOBE_CONNECT.getTitle() %>
-                        </form:option>
-                    </form:select>
+        <c:choose>
+            <c:when test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+                <div class="control-group">
+                    <form:label class="control-label" path="technology">
+                        <spring:message code="views.reservationRequest.technology"/>:
+                    </form:label>
+                    <div class="controls">
+                        <form:select path="technology" ng-model="technology">
+                            <form:option value="H323_SIP">
+                                <%= ReservationRequestModel.Technology.H323_SIP.getTitle() %>
+                            </form:option>
+                            <form:option value="ADOBE_CONNECT">
+                                <%= ReservationRequestModel.Technology.ADOBE_CONNECT.getTitle() %>
+                            </form:option>
+                        </form:select>
+                    </div>
                 </div>
-            </div>
-        </c:if>
+            </c:when>
+            <c:otherwise>
+                <input type="hidden" name="technology" value="{{technology}}"/>
+            </c:otherwise>
+        </c:choose>
 
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
             <div class="control-group">
@@ -292,8 +301,8 @@
             </div>
         </c:if>
 
-        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM' && reservationRequest.technology == 'H323_SIP'}">
-            <div class="control-group">
+        <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM'}">
+            <div class="control-group" ng-show="technology == 'H323_SIP'" class="hide">
                 <form:label class="control-label" path="roomPin">
                     <spring:message code="views.reservationRequest.specification.roomPin"/>:
                 </form:label>
@@ -306,6 +315,22 @@
 
     </fieldset>
 
+    <c:if test="${confirmTitle != null || backUrl != null}">
+        <div class="control-group">
+            <div class="controls">
+                <c:if test="${backUrl != null}">
+                    <spring:message code="${confirmTitle}" var="confirmTitle"/>
+                    <input class="btn btn-primary" type="submit" value="${confirmTitle}"/>
+                </c:if>
+                <c:if test="${backUrl != null}">
+                    <a class="btn" href="${backUrl}"><spring:message code="views.button.cancel"/></a>
+                </c:if>
+            </div>
+        </div>
+    </c:if>
+
 </form:form>
 
 </div>
+
+

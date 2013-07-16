@@ -7,9 +7,11 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -19,9 +21,6 @@ import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
 
 import java.util.*;
 
@@ -76,6 +75,8 @@ public class ReservationRequestModel
     private Integer roomParticipantCount;
 
     private String roomPin;
+
+    private List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
     public String getId()
     {
@@ -240,6 +241,43 @@ public class ReservationRequestModel
     public void setRoomPin(String roomPin)
     {
         this.roomPin = roomPin;
+    }
+
+    public List<UserRoleModel> getUserRoles()
+    {
+        return userRoles;
+    }
+
+    public UserRoleModel getUserRole(String userRoleId)
+    {
+        if (userRoleId == null) {
+            return null;
+        }
+        for (UserRoleModel userRole : userRoles) {
+            if (userRoleId.equals(userRole.getId())) {
+                return userRole;
+            }
+        }
+        return null;
+    }
+
+    public UserRoleModel addUserRole(UserInformation userInformation, Role role)
+    {
+        UserRoleModel userRole = new UserRoleModel(userInformation);
+        userRole.setEntityId(id);
+        userRole.setRole(role);
+        userRoles.add(userRole);
+        return userRole;
+    }
+
+    public void addUserRole(UserRoleModel userRole)
+    {
+        userRoles.add(userRole);
+    }
+
+    public void removeUserRole(UserRoleModel userRole)
+    {
+        userRoles.remove(userRole);
     }
 
     /**
