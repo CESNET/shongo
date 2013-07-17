@@ -17,7 +17,13 @@
 <div class="actions">
     <span><spring:message code="views.wizard.createRoom"/></span>
     <ul>
-        <li><a href="${urlCreateAdhocRoom}"><spring:message code="views.wizard.createRoom.adhoc"/></a></li>
-        <li><a href="${urlCreatePermanentRoom}"><spring:message code="views.wizard.createRoom.permanent"/></a></li>
+        <li>
+            <a href="${urlCreateAdhocRoom}"><spring:message code="views.wizard.createRoom.adhoc"/></a>
+            <p><spring:message code="views.help.reservationRequest.specification.ADHOC_ROOM"/></p>
+        </li>
+        <li>
+            <a href="${urlCreatePermanentRoom}"><spring:message code="views.wizard.createRoom.permanent"/></a>
+            <p><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM"/></p>
+        </li>
     </ul>
 </div>

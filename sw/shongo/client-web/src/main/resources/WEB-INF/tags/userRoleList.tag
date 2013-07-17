@@ -61,7 +61,7 @@
         </table>
         <c:if test="${isWritable && createUrl != null}">
             <a class="btn btn-primary" href="${createUrl}">
-                <spring:message code="views.button.create"/>
+                <spring:message code="views.button.add"/>
             </a>
         </c:if>
     </c:when>
@@ -98,7 +98,7 @@
             <c:choose>
                 <c:when test="${isWritable && createUrl != null}">
                     <a class="btn btn-primary" href="${createUrl}">
-                        <spring:message code="views.button.create"/>
+                        <spring:message code="views.button.add"/>
                     </a>
                     <pagination-pages class="pull-right"><spring:message
                             code="views.pagination.pages"/></pagination-pages>

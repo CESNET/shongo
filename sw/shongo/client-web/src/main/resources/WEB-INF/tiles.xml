@@ -58,6 +58,7 @@
 
     <definition name="wizard" extends="layout">
         <put-attribute name="body" value="wizardBody" type="definition"/>
+        <put-attribute name="heading" value=""/>
         <put-list-attribute name="title">
             <add-attribute value="views.wizard.title"/>
             <add-attribute expression="${wizardPageCurrent.titleCode}"/>

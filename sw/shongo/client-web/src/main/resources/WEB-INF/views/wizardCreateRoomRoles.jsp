@@ -15,5 +15,7 @@
     ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE %>
 </c:set>
 
-<h1>Use roles</h1>
+<h1><spring:message code="views.wizard.createRoom.roles"/></h1>
+<hr/>
 <app:userRoleList data="${reservationRequest.userRoles}" createUrl="${createRoleUrl}" deleteUrl="${deleteRoleUrl}"/>
+<hr/>

@@ -63,9 +63,10 @@ div.actions span {
 div.actions ul {
     margin-bottom: 0px;
 }
-div.actions li {
+div.actions li a {
     line-height: 30px;
 }
+
 
 /** Navigation nav-pills disabled state */
 .nav-pills.disabled li a {

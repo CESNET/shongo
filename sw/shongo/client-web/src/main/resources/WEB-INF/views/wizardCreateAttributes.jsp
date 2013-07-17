@@ -9,5 +9,7 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
-<h1>Create ${reservationRequest.specificationType}</h1>
+<h1><spring:message code="views.wizard.createAttributes.${reservationRequest.specificationType}"/></h1>
+<hr/>
 <app:reservationRequestForm confirmUrl="${formUrl}" permanentRooms="${permanentRooms}"/>
+<hr/>

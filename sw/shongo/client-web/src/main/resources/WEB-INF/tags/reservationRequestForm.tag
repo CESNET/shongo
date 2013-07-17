@@ -31,9 +31,11 @@
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
 
-        console.debug($scope.technology);
 
-        <c:if test="${permanentRooms != null && permanentRooms.size() > 0}">
+
+
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+
         // Get permanent rooms
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
@@ -160,6 +162,7 @@
                                 <%= ReservationRequestModel.Technology.ADOBE_CONNECT.getTitle() %>
                             </form:option>
                         </form:select>
+                        <form:errors path="technology" cssClass="error"/>
                     </div>
                 </div>
             </c:when>
@@ -259,7 +262,8 @@
                     <spring:message code="views.reservationRequest.duration"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="durationCount" cssErrorClass="error" cssStyle="width: 100px;"/>
+                    <form:input path="durationCount" cssErrorClass="error" cssStyle="width: 95px;"/>
+                    &nbsp;
                     <form:select path="durationType" cssStyle="width: 100px;">
                         <form:option value="MINUTE"><spring:message
                                 code="views.reservationRequest.duration.minutes"/></form:option>

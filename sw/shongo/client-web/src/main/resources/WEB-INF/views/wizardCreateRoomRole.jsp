@@ -11,5 +11,7 @@
     ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLES %>
 </c:set>
 
-<h1>Create user role</h1>
+<h1><spring:message code="views.wizard.createRoom.role.add"/></h1>
+<hr/>
 <app:userRoleForm confirmTitle="views.button.create" cancelUrl="${cancelUrl}"/>
+<hr/>
