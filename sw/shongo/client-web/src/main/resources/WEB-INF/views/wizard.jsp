@@ -1,20 +1,19 @@
 <%--
   -- Wizard user interface.
   --%>
-<%@ page import="cz.cesnet.shongo.client.web.ClientWebUrl" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
-<%-- List of wizard pages --%>
+<%-- Wizard pages --%>
 <c:if test="${wizardPages != null}">
     <div class="wizard">
-        <c:forEach items="${wizardPages}" var="wizardPage" varStatus="pageStatus">
+        <c:forEach items="${wizardPages}" var="wizardPage" varStatus="wizardPageStatus">
             <c:choose>
-                <c:when test="${wizardPage == currentPage}">
+                <c:when test="${wizardPage == wizardPageCurrent}">
                     <c:set var="classLink" value="link current"/>
                     <c:set var="classBadge" value="badge badge-inverse"/>
                 </c:when>
@@ -24,15 +23,15 @@
                 </c:otherwise>
             </c:choose>
             <c:choose>
-                <c:when test="${wizardPage.url != null && enabledWizardPages.contains(wizardPage)}">
+                <c:when test="${wizardPage.url != null && wizardPage.available}">
                     <a href="${wizardPage.url}" class="${classLink}">
-                        <span class="${classBadge}">${pageStatus.index + 1}</span>
+                        <span class="${classBadge}">${wizardPageStatus.index + 1}</span>
                         <spring:message code="${wizardPage.titleCode}"/>
                     </a>
                 </c:when>
                 <c:otherwise>
                     <span class="${classLink}">
-                        <span class="${classBadge}">${pageStatus.index + 1}</span>
+                        <span class="${classBadge}">${wizardPageStatus.index + 1}</span>
                         <spring:message code="${wizardPage.titleCode}"/>
                     </span>
                 </c:otherwise>
@@ -41,116 +40,41 @@
     </div>
 </c:if>
 
-<%-- Content for current wizard page --%>
-<c:choose>
-    <%-- Select page --%>
-    <c:when test="${currentPage == 'WIZARD_SELECT'}">
-        <c:set var="urlReservations">${contextPath}
-            <%= ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST %>
-        </c:set>
-        <c:set var="urlCreateRoom">${contextPath}
-            <%= ClientWebUrl.WIZARD_CREATE_ROOM %>
-        </c:set>
-        <c:set var="urlCreatePermanentRoomCapacity">
-            ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>
-        </c:set>
-        <div class="actions">
-            <span><spring:message code="views.wizard.select"/></span>
-            <ul>
-                <li><a href="${urlCreateRoom}">
-                    <spring:message code="views.wizard.select.createRoom"/>
-                </a></li>
-                <li><a href="${urlCreatePermanentRoomCapacity}">
-                    <spring:message code="views.wizard.select.createPermanentRoomCapacity"/>
-                </a></li>
-                <li><a href="${urlReservations}">
-                    <spring:message code="views.wizard.select.reservationRequestList"/>
-                </a></li>
-            </ul>
-        </div>
-    </c:when>
-
-    <%-- List of reservation requests --%>
-    <c:when test="${currentPage == 'WIZARD_RESERVATION_REQUEST'}">
-        TODO: reservation requests
-    </c:when>
-
-    <%-- Detail of reservation request --%>
-    <c:when test="${currentPage == 'WIZARD_RESERVATION_REQUEST_DETAIL'}">
-        TODO: reservation request detail
-    </c:when>
-
-    <%-- Select room type to be created --%>
-    <c:when test="${currentPage == 'WIZARD_CREATE_ROOM'}">
-        <c:set var="urlCreateAdhocRoom">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ADHOC_ROOM %>
-        </c:set>
-        <c:set var="urlCreatePermanentRoom">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM %>
-        </c:set>
-        <div class="actions">
-            <span><spring:message code="views.wizard.createRoom"/></span>
-            <ul>
-                <li><a href="${urlCreateAdhocRoom}"><spring:message code="views.wizard.createRoom.adhoc"/></a></li>
-                <li><a href="${urlCreatePermanentRoom}"><spring:message code="views.wizard.createRoom.permanent"/></a></li>
-            </ul>
-        </div>
-    </c:when>
-
-    <%-- Create room capacity or set attributes to room of selected type --%>
-    <c:when test="${currentPage == 'WIZARD_CREATE_ROOM_ATTRIBUTES' || currentPage == 'WIZARD_CREATE_PERMANENT_ROOM_CAPACITY'}">
-        <c:set var="nextPageUrl">javascript: document.getElementById('reservationRequest').submit();</c:set>
-        <c:set var="createProcessUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_PROCESS %></c:set>
-        <h1>Create ${reservationRequest.specificationType}</h1>
-        <app:reservationRequestForm confirmUrl="${createProcessUrl}"
-                                    permanentRooms="${permanentRooms}"/>
-    </c:when>
-
-    <%-- Set user roles for room --%>
-    <c:when test="${currentPage == 'WIZARD_CREATE_ROOM_ROLES'}">
-        <c:choose>
-            <c:when test="${userRole != null && userRole.id == null}">
-                <h1>Create user role</h1>
-                <app:userRoleForm confirmTitle="views.button.create"/>
-            </c:when>
-            <c:otherwise>
-                <h1>Use roles</h1>
-                <c:set var="createRoleUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE %></c:set>
-                <c:set var="deleteRoleUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE %></c:set>
-                <app:userRoleList data="${reservationRequest.userRoles}"
-                                  createUrl="${createRoleUrl}"
-                                  deleteUrl="${deleteRoleUrl}"/>
-            </c:otherwise>
-        </c:choose>
-    </c:when>
-
-    <%-- Finish room or room capacity --%>
-    <c:when test="${currentPage == 'WIZARD_CREATE_ROOM_CONFIRM' || currentPage == 'WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM'}">
-        <h1>Confirmation ${reservationRequest.specificationType} ${reservationRequest.id}</h1>
-        <c:set var="nextPageUrl">${contextPath}<%= ClientWebUrl.WIZARD_CREATE_CONFIRMED %></c:set>
-    </c:when>
-
-</c:choose>
+<%-- Wizard page content --%>
+<tiles:importAttribute name="content"/>
+<tiles:insertAttribute name="content"/>
 
 <%-- Wizard navigation --%>
 <div>
     <c:set var="primaryClass" value="btn-primary"/>
 
     <%-- Link to next page --%>
-    <c:if test="${nextPageUrl == null && currentPage.nextPage != null && currentPage.nextPage.url != null}">
-        <c:if test="${!currentPage.nextRequiredEnabled || enabledWizardPages.contains(currentPage.nextPage)}">
-            <c:set var="nextPageUrl">${contextPath}${currentPage.nextPage.url}</c:set>
-        </c:if>
+    <c:if test="${wizardPageNextUrl == null && wizardPageNext != null}">
+        <c:set var="wizardPageNextUrl" value="${wizardPageNext.url}"/>
     </c:if>
-    <c:if test="${nextPageUrl != null}">
-        <a class="btn ${primaryClass} pull-right" href="${nextPageUrl}">
-            <spring:message code="views.button.continue"/>
+    <c:if test="${wizardPageNextUrl != null && wizardPageNextUrl != ''}">
+        <c:if test="${wizardPageNextTitle == null}">
+            <c:choose>
+                <c:when test="${wizardPageNext != null}">
+                    <c:set var="wizardPageNextTitle" value="views.button.continue"/>
+                </c:when>
+                <c:otherwise>
+                    <c:set var="wizardPageNextTitle" value="views.button.finish"/>
+                </c:otherwise>
+            </c:choose>
+        </c:if>
+        <a class="btn ${primaryClass} pull-right" href="${contextPath}${wizardPageNextUrl}">
+            <spring:message code="${wizardPageNextTitle}"/>
         </a>
         <c:set var="primaryClass"></c:set>
     </c:if>
 
     <%-- Link to previous page --%>
-    <c:if test="${currentPage.previousPage != null}">
-        <c:set var="previousPageUrl">${contextPath}${currentPage.previousPage.url}</c:set>
-        <a class=" btn ${primaryClass}" href="${previousPageUrl}">
+    <c:if test="${wizardPagePreviousUrl == null && wizardPagePrevious != null}">
+        <c:set var="wizardPagePreviousUrl" value="${wizardPagePrevious.url}"/>
+    </c:if>
+    <c:if test="${wizardPagePreviousUrl != null && wizardPagePreviousUrl != ''}">
+        <a class=" btn ${primaryClass}" href="${contextPath}${wizardPagePreviousUrl}">
             <spring:message code="views.button.back"/>
         </a>
     </c:if>

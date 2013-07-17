@@ -30,22 +30,27 @@ public class ClientWebUrl
             "/wizard/create/permanent-room";
     public static final String WIZARD_CREATE_ROOM_ATTRIBUTES =
             "/wizard/create/attributes";
+    public static final String WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS =
+            "/wizard/create/attributes/process";
     public static final String WIZARD_CREATE_ROOM_ROLES =
             "/wizard/create/roles";
     public static final String WIZARD_CREATE_ROOM_ROLE_CREATE =
             "/wizard/create/role/create";
     public static final String WIZARD_CREATE_ROOM_ROLE_DELETE =
             "/wizard/create/role/{userRoleId:.+}/delete";
+    public static final String WIZARD_CREATE_ROOM_CONFIRM =
+            "/wizard/create/confirm";
+    public static final String WIZARD_CREATE_ROOM_CONFIRMED =
+            "/wizard/create/confirmed";
+
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
-    public static final String WIZARD_CREATE_PROCESS =
-            "/wizard/create/process";
-    public static final String WIZARD_CREATE_CONFIRM =
-            "/wizard/create/confirm";
-    public static final String WIZARD_CREATE_CONFIRMED =
-            "/wizard/create/confirmed";
-    public static final String WIZARD_CREATE_DETAIL =
-            "/wizard/create/detail";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS =
+            "/wizard/create/permanent-room-capacity/process";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM =
+            "/wizard/create/permanent-room-capacity/confirm";
+    public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED =
+            "/wizard/create/permanent-room-capacity/confirmed";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";

@@ -118,7 +118,7 @@
 
     <fieldset>
 
-        <c:if test="${reservationRequest.id != null}">
+        <c:if test="${reservationRequest.id != null && reservationRequest.id != ''}">
             <div class="control-group">
                 <form:label class="control-label" path="id">
                     <spring:message code="views.reservationRequest.identifier"/>:

@@ -46,6 +46,17 @@ public class SecurityToken implements AtomicType
     }
 
     /**
+     * {@link #userInformation#getUserId()}
+     */
+    public String getUserId()
+    {
+        if (userInformation == null) {
+            return null;
+        }
+        return userInformation.getUserId();
+    }
+
+    /**
      * @return {@link #userInformation}
      */
     public UserInformation getUserInformation()

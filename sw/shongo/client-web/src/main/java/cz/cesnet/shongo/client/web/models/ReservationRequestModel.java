@@ -499,7 +499,12 @@ public class ReservationRequestModel
                 if (end == null) {
                     throw new IllegalStateException("Slot end must be not empty for alias.");
                 }
-                return new Period(start, end);
+                if (!start.equals(end)) {
+                    return new Period(start, end);
+                }
+                else {
+                    return new Period(start.withTime(0, 0, 0, 0), end.withTime(23,59,59,0));
+                }
             case ADHOC_ROOM:
             case PERMANENT_ROOM_CAPACITY:
                 if (durationCount == null || durationType == null) {

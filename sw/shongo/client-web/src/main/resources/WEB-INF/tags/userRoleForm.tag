@@ -12,7 +12,8 @@
 <%@attribute name="entityTitle" required="false" type="java.lang.String" %>
 <%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
-<%@attribute name="backUrl" required="false" type="java.lang.String" %>
+<%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
+<%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
 <script type="text/javascript">
     window.formatUser = function(user) {
@@ -107,15 +108,18 @@
 
     </fieldset>
 
-    <c:if test="${confirmTitle != null || backUrl != null}">
+    <c:if test="${confirmTitle != null || cancelUrl != null}">
         <div class="control-group">
             <div class="controls">
                 <c:if test="${confirmTitle != null}">
                     <spring:message code="${confirmTitle}" var="confirmTitle"/>
                     <input class="btn btn-primary" type="submit" value="${confirmTitle}"/>
                 </c:if>
-                <c:if test="${backUrl != null}">
-                    <a class="btn" href="${backUrl}"><spring:message code="views.button.cancel"/></a>
+                <c:if test="${cancelUrl != null}">
+                    <c:if test="${cancelTitle == null}">
+                        <c:set var="cancelTitle" value="views.button.cancel"/>
+                    </c:if>
+                    <a class="btn" href="${cancelUrl}"><spring:message code="${cancelTitle}"/></a>
                 </c:if>
             </div>
         </div>
