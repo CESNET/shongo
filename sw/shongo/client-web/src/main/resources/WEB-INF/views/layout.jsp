@@ -19,7 +19,6 @@
 <c:set var="urlWizard">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
 <c:set var="urlReservationRequestList">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="urlChangelog">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
-<spring:message code="${title}" var="title"/>
 <%
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
@@ -29,7 +28,22 @@
 
 <%-- Header --%>
 <head>
-    <title>Shongo - ${title}</title>
+    <title>
+        Shongo
+        <c:choose>
+            <c:when test="${title.getClass().name == 'java.lang.String'}">
+                <spring:message code="${title}" var="title"/>
+                - ${title}
+            </c:when>
+            <c:otherwise>
+                <c:forEach items="${title}" var="titleItem" varStatus="titleStatus">
+                    <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
+                    - <spring:message code="${titleItem}"/>
+                </c:forEach>
+                <spring:message code="${title.get(0)}" var="title"/>
+            </c:otherwise>
+        </c:choose>
+    </title>
 
     <c:forEach items="${css}" var="file">
         <link rel="stylesheet" href="${contextPath}/css/${file}" />

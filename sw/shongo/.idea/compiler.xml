@@ -33,6 +33,7 @@
         <module name="controller-api" />
         <module name="tool-maven-plugin-exec" />
         <module name="tool-report-generator" />
+        <module name="xml-rpc-test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -49,6 +50,7 @@
       <module name="shongo" target="1.6" />
       <module name="tool-maven-plugin-exec" target="1.6" />
       <module name="tool-report-generator" target="1.6" />
+      <module name="xml-rpc-test" target="1.6" />
     </bytecodeTargetLevel>
   </component>
 </project>

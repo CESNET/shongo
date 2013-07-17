@@ -16,9 +16,12 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -37,9 +40,11 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"availablePages", "reservationRequest", "permanentRooms", "userRole"})
+@SessionAttributes({"enabledWizardPages", "reservationRequest", "permanentRooms", "userRole"})
 public class WizardController
 {
+    private static Logger logger = LoggerFactory.getLogger(WizardController.class);
+
     @Resource
     private HttpSession httpSession;
 
@@ -80,7 +85,7 @@ public class WizardController
         // Clear session attributes
         sessionStatus.setComplete();
 
-        return handleWizardView(ClientWebNavigation.WIZARD_SELECT);
+        return getWizardView(WizardPage.WIZARD_SELECT);
     }
 
     /**
@@ -89,7 +94,7 @@ public class WizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestList()
     {
-        return handleWizardView(ClientWebNavigation.WIZARD_RESERVATION_REQUEST);
+        return getWizardView(WizardPage.WIZARD_RESERVATION_REQUEST);
     }
 
     /**
@@ -102,7 +107,9 @@ public class WizardController
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
-        return handleWizardView(ClientWebNavigation.WIZARD_RESERVATION_REQUEST_DETAIL);
+        ReservationRequestModel reservationRequest = new ReservationRequestModel(
+                reservationService.getReservationRequest(securityToken, reservationRequestId));
+        return getReservationRequestDetail(reservationRequest, WizardPage.WIZARD_RESERVATION_REQUEST_DETAIL);
     }
 
     /**
@@ -111,7 +118,7 @@ public class WizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM, method = RequestMethod.GET)
     public ModelAndView handleCreateRoom(SecurityToken securityToken, ModelMap modelMap)
     {
-        ModelAndView modelAndView = handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM);
+        ModelAndView modelAndView = getWizardView(WizardPage.WIZARD_CREATE_ROOM);
 
         // If reservation request model doesn't exist create it
         if (!modelMap.containsAttribute("reservationRequest")) {
@@ -158,7 +165,10 @@ public class WizardController
     public ModelAndView handleCreateRoomAttributes(
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
-        return handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_ATTRIBUTES);
+        if (reservationRequest.getSpecificationType() == null) {
+            throw new IllegalStateException("Room type is not specified.");
+        }
+        return getWizardView(WizardPage.WIZARD_CREATE_ROOM_ATTRIBUTES);
     }
 
     /**
@@ -168,7 +178,7 @@ public class WizardController
     public ModelAndView handleCreateRoomRoles(
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel)
     {
-        return handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_ROLES);
+        return getWizardView(WizardPage.WIZARD_CREATE_ROOM_ROLES);
     }
 
     /**
@@ -177,7 +187,7 @@ public class WizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_CREATE, method = RequestMethod.GET)
     public ModelAndView handleCreateRoomRole(SecurityToken securityToken)
     {
-        ModelAndView modelAndView = handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_ROLES);
+        ModelAndView modelAndView = getWizardView(WizardPage.WIZARD_CREATE_ROOM_ROLES);
         UserInformationProvider userInformationProvider = new CacheUserInformationProvider(cache, securityToken);
         modelAndView.addObject("userRole", new UserRoleModel(userInformationProvider));
         return modelAndView;
@@ -199,7 +209,7 @@ public class WizardController
         userRoleValidator.validate(userRole, bindingResult);
         if (bindingResult.hasErrors()) {
             // Show form for adding new user role with validation errors
-            return handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_ROLES);
+            return getWizardView(WizardPage.WIZARD_CREATE_ROOM_ROLES);
         }
         userRole.setTemporaryId();
         reservationRequest.addUserRole(userRole);
@@ -222,21 +232,34 @@ public class WizardController
             throw new IllegalArgumentException("User role " + userRoleId + " doesn't exist.");
         }
         reservationRequest.removeUserRole(userRole);
-        return handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_ROLES);
+        return getWizardView(WizardPage.WIZARD_CREATE_ROOM_ROLES);
     }
 
     /**
      * Show form for editing permanent room capacity attributes.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, method = RequestMethod.GET)
-    public ModelAndView handleCreatePermanentRoomCapacity(SecurityToken securityToken)
+    public ModelAndView handleCreatePermanentRoomCapacity(SecurityToken securityToken, ModelMap modelMap)
     {
-        ModelAndView modelAndView = handleWizardView(ClientWebNavigation.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY);
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel();
+        ModelAndView modelAndView = getWizardView(WizardPage.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY);
+
+        // If reservation request model doesn't exist create it
+        ReservationRequestModel reservationRequestModel = (ReservationRequestModel) modelMap.get("reservationRequest");
+        if (reservationRequestModel == null) {
+            reservationRequestModel = new ReservationRequestModel();
+            modelAndView.addObject("reservationRequest", reservationRequestModel);
+
+        }
+
+        // If permanent rooms doesn't exists create them
+        if (!modelMap.containsAttribute("reservationRequest")) {
+            modelAndView.addObject("permanentRooms",
+                    ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+        }
+
+        // Initialize room
         reservationRequestModel.setSpecificationType(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY);
-        modelAndView.addObject("reservationRequest", reservationRequestModel);
-        modelAndView.addObject("permanentRooms",
-                ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
+
         return modelAndView;
     }
 
@@ -245,15 +268,15 @@ public class WizardController
      *
      * @param reservationRequest to be validated
      */
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_CONFIRM, method = {RequestMethod.GET, RequestMethod.POST})
-    public Object handleCreateConfirm(
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PROCESS, method = {RequestMethod.GET, RequestMethod.POST})
+    public Object handleCreateProcess(
             SecurityToken securityToken,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ClientWebNavigation navigation = validateReservationRequest(securityToken, reservationRequest, bindingResult);
+        WizardPage navigation = validateReservationRequest(securityToken, reservationRequest, bindingResult);
         if (navigation != null) {
-            return handleWizardView(navigation);
+            return getWizardView(navigation);
         }
 
         // Move to next wizard page, because reservation request is valid
@@ -262,44 +285,94 @@ public class WizardController
             case PERMANENT_ROOM:
                 return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ROLES;
             case PERMANENT_ROOM_CAPACITY:
-                return "redirect:" + ClientWebUrl.WIZARD_CREATE_FINISH;
+                return "redirect:" + ClientWebUrl.WIZARD_CREATE_CONFIRM;
             default:
                 throw new TodoImplementException(reservationRequest.getSpecificationType().toString());
         }
     }
 
-    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_FINISH, method = RequestMethod.GET)
-    public ModelAndView handleCreateRoomFinish(
+    /**
+     * Show confirmation for creation of a new reservation request.
+     *
+     * @param reservationRequest to be confirmed
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_CONFIRM, method = RequestMethod.GET)
+    public Object handleCreateConfirm(
             SecurityToken securityToken,
-            SessionStatus sessionStatus,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
-        ClientWebNavigation navigation = validateReservationRequest(securityToken, reservationRequest, bindingResult);
+        WizardPage navigation = validateReservationRequest(securityToken, reservationRequest, bindingResult);
         if (navigation != null) {
-            return handleWizardView(navigation);
+            // Show page for correcting validation errors
+            return getWizardView(navigation);
         }
+        // Show confirmation page
+        switch (reservationRequest.getSpecificationType()) {
+            case ADHOC_ROOM:
+            case PERMANENT_ROOM:
+                return getWizardView(WizardPage.WIZARD_CREATE_ROOM_CONFIRM);
+            case PERMANENT_ROOM_CAPACITY:
+                return getWizardView(WizardPage.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM);
+            default:
+                throw new TodoImplementException(reservationRequest.getSpecificationType().toString());
+        }
+    }
+
+    /**
+     * Create new reservation request and redirect to it's detail.
+     *
+     * @param reservationRequest to be created
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_CONFIRMED, method = RequestMethod.GET)
+    public Object handleCreateConfirmed(
+            SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
+    {
+        // TODO: Create reservation request
+        reservationRequest.setId("TODO: create");
 
         // Clear session attributes
         sessionStatus.setComplete();
 
-        // TODO: Create reservation request
-        reservationRequest.setId("TODO: create");
+        // Show detail of newly created reservation request
+        String reservationRequestId = reservationRequest.getId();
+        return "redirect:" + ClientWebUrl.WIZARD_CREATE_DETAIL + "?reservationRequestId=" + reservationRequestId;
+    }
 
-        ModelAndView modelAndView;
+    /**
+     * Show detail of newly created reservation request.
+     *
+     * @param reservationRequestId to be displayed
+     */
+    @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_DETAIL, method = RequestMethod.GET)
+    public Object handleCreateDetail(
+            SecurityToken securityToken,
+            @RequestParam(value = "reservationRequestId") String reservationRequestId)
+    {
+        ReservationRequestModel reservationRequest = new ReservationRequestModel(
+                reservationService.getReservationRequest(securityToken, reservationRequestId));
         switch (reservationRequest.getSpecificationType()) {
             case ADHOC_ROOM:
             case PERMANENT_ROOM:
-                modelAndView = handleWizardView(ClientWebNavigation.WIZARD_CREATE_ROOM_FINISH);
-                break;
+                return getReservationRequestDetail(reservationRequest, WizardPage.WIZARD_CREATE_ROOM_DETAIL);
             case PERMANENT_ROOM_CAPACITY:
-                modelAndView = handleWizardView(ClientWebNavigation.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_FINISH);
-                break;
+                return getReservationRequestDetail(reservationRequest,
+                        WizardPage.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_DETAIL);
             default:
                 throw new TodoImplementException(reservationRequest.getSpecificationType().toString());
         }
-        modelAndView.addObject("reservationRequest", reservationRequest);
-        return modelAndView;
+    }
+
+    /**
+     * Handle missing session attributes.
+     */
+    @ExceptionHandler(HttpSessionRequiredException.class)
+    public Object handleExceptions(Exception exception) {
+
+        logger.warn("Redirecting to action selection because session attribute is missing.", exception);
+        return "redirect:" + ClientWebUrl.WIZARD_SELECT;
     }
 
     /**
@@ -311,7 +384,7 @@ public class WizardController
      * @return null if validation succeeds,
      *         {@link ClientWebNavigation} for displaying validation errors otherwise
      */
-    private ClientWebNavigation validateReservationRequest(SecurityToken securityToken,
+    private WizardPage validateReservationRequest(SecurityToken securityToken,
             ReservationRequestModel reservationRequest, BindingResult bindingResult)
     {
         ReservationRequestValidator validator = new ReservationRequestValidator(securityToken, reservationService);
@@ -324,65 +397,69 @@ public class WizardController
         switch (reservationRequest.getSpecificationType()) {
             case ADHOC_ROOM:
             case PERMANENT_ROOM:
-                return ClientWebNavigation.WIZARD_CREATE_ROOM_ATTRIBUTES;
+                return WizardPage.WIZARD_CREATE_ROOM_ATTRIBUTES;
             case PERMANENT_ROOM_CAPACITY:
-                return ClientWebNavigation.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY;
+                return WizardPage.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY;
             default:
                 throw new TodoImplementException(reservationRequest.getSpecificationType().toString());
         }
     }
 
     /**
-     * Wizard page which represents multiple pages from which the user will select one.
-     */
-    private static final Page PAGE_OTHER = new Page(null, "views.wizard.page.other");
-
-    /**
-     * Display wizard view for given {@code navigation}.
+     * Get wizard view for detail of given {@code reservationRequest}.
      *
-     * @param navigation current {@link ClientWebNavigation} for which the wizard should be displayed
+     * @param reservationRequest
+     * @param wizardPage
      * @return initialized {@link ModelAndView}
      */
-    private ModelAndView handleWizardView(ClientWebNavigation navigation)
+    public ModelAndView getReservationRequestDetail(ReservationRequestModel reservationRequest, WizardPage wizardPage)
     {
+        ModelAndView modelAndView = getWizardView(wizardPage);
+        modelAndView.addObject("reservationRequest", reservationRequest);
+        return modelAndView;
+    }
+
+    /**
+     * Get wizard view for given {@code wizardPage}.
+     *
+     * @param currentPage {@link WizardPage} for which the wizard should be displayed
+     * @return initialized {@link ModelAndView}
+     */
+    private ModelAndView getWizardView(WizardPage currentPage)
+    {
+        if (currentPage == null) {
+            throw new IllegalArgumentException("Current page must not be null.");
+        }
         @SuppressWarnings("unchecked")
-        Set<Page> availablePages = (Set) httpSession.getAttribute("availablePages");
-        if (availablePages == null) {
-            availablePages = new HashSet<Page>();
+        Set<WizardPage> enabledWizardPages = (Set) httpSession.getAttribute("enabledWizardPages");
+        if (enabledWizardPages == null) {
+            enabledWizardPages = new HashSet<WizardPage>();
         }
 
-        Page currentPage = navigation.getPage();
-
-        // Get
-        List<Page> wizardPages = new LinkedList<Page>();
-        wizardPages.add(currentPage);
-        availablePages.add(currentPage);
-        Page page = currentPage.getParentPage();
-        while (page != null) {
-            wizardPages.add(0, page);
-            availablePages.add(page);
-            page = page.getParentPage();
+        List<WizardPage> wizardPages = new LinkedList<WizardPage>();
+        // Add current and previous pages
+        WizardPage previousPage = currentPage;
+        boolean enabled = true;
+        while (previousPage != null) {
+            wizardPages.add(0, previousPage);
+            if (enabled || previousPage.isAlwaysEnabled()) {
+                enabledWizardPages.add(previousPage);
+            }
+            if (!previousPage.isPreviousEnabled()) {
+                enabled = false;
+            }
+            previousPage = previousPage.getPreviousPage();
         }
-        page = currentPage;
-        while (page != null) {
-            List<Page> childPages = page.getChildPages();
-            int childPageCount = childPages.size();
-            if (childPageCount == 0) {
-                break;
-            }
-            else if (childPageCount == 1) {
-                page = childPages.get(0);
-                wizardPages.add(page);
-            }
-            else {
-                wizardPages.add(PAGE_OTHER);
-                break;
-            }
+        // Add next pages
+        WizardPage nextPage = currentPage.getNextPage();
+        while (nextPage != null) {
+            wizardPages.add(nextPage);
+            nextPage = nextPage.getNextPage();
         }
         ModelAndView modelAndView = new ModelAndView("wizard");
-        modelAndView.addObject("navigation", navigation);
         modelAndView.addObject("wizardPages", wizardPages);
-        modelAndView.addObject("availablePages", availablePages);
+        modelAndView.addObject("enabledWizardPages", enabledWizardPages);
+        modelAndView.addObject("currentPage", currentPage);
         return modelAndView;
     }
 }

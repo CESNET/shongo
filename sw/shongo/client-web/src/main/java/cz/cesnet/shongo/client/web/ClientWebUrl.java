@@ -38,10 +38,14 @@ public class ClientWebUrl
             "/wizard/create/role/{userRoleId:.+}/delete";
     public static final String WIZARD_CREATE_PERMANENT_ROOM_CAPACITY =
             "/wizard/create/permanent-room-capacity";
+    public static final String WIZARD_CREATE_PROCESS =
+            "/wizard/create/process";
     public static final String WIZARD_CREATE_CONFIRM =
             "/wizard/create/confirm";
-    public static final String WIZARD_CREATE_FINISH =
-            "/wizard/create/finish";
+    public static final String WIZARD_CREATE_CONFIRMED =
+            "/wizard/create/confirmed";
+    public static final String WIZARD_CREATE_DETAIL =
+            "/wizard/create/detail";
 
     public static final String RESERVATION_REQUEST =
             "/reservation-request";

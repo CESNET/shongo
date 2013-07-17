@@ -57,8 +57,11 @@
     </definition>
 
     <definition name="wizard" extends="layout">
-        <put-attribute name="title" value="views.wizard.title"/>
         <put-attribute name="body" value="/WEB-INF/views/wizard.jsp" type="template"/>
+        <put-list-attribute name="title">
+            <add-attribute value="views.wizard.title"/>
+            <add-attribute expression="${currentPage.titleCode}"/>
+        </put-list-attribute>
         <put-list-attribute name="css" inherit="true">
             <add-attribute value="bootstrap-datetimepicker.css"/>
             <add-attribute value="ui-select2.css"/>
@@ -74,6 +77,7 @@
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
             <add-attribute value="bootstrap-datetimepicker"/>
+            <add-attribute value="select2"/>
         </put-list-attribute>
     </definition>
 

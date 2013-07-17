@@ -49,7 +49,7 @@
             },
             initSelection: function (element, callback) {
                 var id = $(element).val();
-                callback({id: 0, text: 'Loading...'});
+                callback({id: 0, text: '<spring:message code="views.select.loading"/>'});
                 $.ajax("/user/" + id, {
                     dataType: "json"
                 }).done(function (data) {

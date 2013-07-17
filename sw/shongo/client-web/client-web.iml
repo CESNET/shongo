@@ -94,6 +94,7 @@
     <orderEntry type="library" name="Maven: org.apache.tiles:tiles-template:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.tiles:tiles-autotag-core-runtime:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.tiles:tiles-request-jsp:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.tiles:tiles-el:3.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:8.1.11.v20130520" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-continuation:8.1.11.v20130520" level="project" />
