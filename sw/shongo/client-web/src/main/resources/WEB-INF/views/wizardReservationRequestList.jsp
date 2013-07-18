@@ -3,7 +3,19 @@
   --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+<c:set var="detailUrl">
+    ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL %>
+</c:set>
 
-TODO: reservation request list
+<div ng-app="tag:reservationRequestList">
+
+    <tag:reservationRequestList specificationType="ADHOC_ROOM,PERMANENT_ROOM" detailUrl="${detailUrl}">
+        <h1><spring:message code="views.wizard.reservationRequestList"/></h1>
+    </tag:reservationRequestList>
+
+</div>
+
+<hr/>

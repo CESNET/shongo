@@ -70,7 +70,7 @@ public class ReservationRequestController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType)
+            @RequestParam(value = "type") Set<ReservationRequestModel.SpecificationType> specificationTypes)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -79,15 +79,24 @@ public class ReservationRequestController
         request.setCount(count);
         request.setSort(ReservationRequestListRequest.Sort.DATETIME);
         request.setSortDescending(true);
-        if (specificationType != null) {
-            switch (specificationType) {
-                case PERMANENT_ROOM:
-                    request.addSpecificationClass(AliasSpecification.class);
-                    request.addSpecificationClass(AliasSetSpecification.class);
-                    break;
-                case ADHOC_ROOM:
-                    request.addSpecificationClass(RoomSpecification.class);
-                    break;
+        if (specificationTypes.size() > 0) {
+            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.ADHOC_ROOM)) {
+                request.addSpecificationClass(RoomSpecification.class);
+            }
+            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.PERMANENT_ROOM)) {
+                request.addSpecificationClass(AliasSpecification.class);
+                request.addSpecificationClass(AliasSetSpecification.class);
+            }
+            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+                request.addSpecificationClass(RoomSpecification.class);
+                if (specificationTypes.size() == 1) {
+                    // We want only room capacities and thus the provided reservation request must be set
+                    request.setProvidedReservationRequestId(ReservationRequestListRequest.FILTER_NOT_EMPTY);
+                }
+            }
+            else {
+                // We don't want room capacities and thus the provided reservation request must be not set
+                request.setProvidedReservationRequestId(ReservationRequestListRequest.FILTER_EMPTY);
             }
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
@@ -181,14 +190,10 @@ public class ReservationRequestController
                 }
                 else {
                     item.put("type", messageSource.getMessage(ClientWebMessage.SPECIFICATION_ADHOC_ROOM, null, locale));
-                    StringBuilder roomBuilder = new StringBuilder();
-                    roomBuilder.append(messageSource.getMessage(ClientWebMessage.ROOM_ADHOC, null, locale));
                     if (technology != null) {
-                        roomBuilder.append(" (");
-                        roomBuilder.append(technology.getTitle());
-                        roomBuilder.append(")");
+                        item.put("technology", technology.getTitle());
                     }
-                    item.put("room", roomBuilder.toString());
+                    item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
                 }
                 item.put("participantCount", room.getParticipantCount());
             }

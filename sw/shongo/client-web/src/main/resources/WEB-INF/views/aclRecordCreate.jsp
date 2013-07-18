@@ -9,8 +9,8 @@
 <%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlConfirm" value="${contextPath}${urlConfirm}"/>
-<c:set var="urlBack" value="${contextPath}${urlBack}"/>
+<c:set var="confirmUrl" value="${contextPath}${urlConfirm}"/>
+<c:set var="backUrl" value="${contextPath}${urlBack}"/>
 <tiles:importAttribute/>
 
 <script type="text/javascript">
@@ -61,7 +61,7 @@
 
 <form:form class="form-horizontal"
            commandName="aclRecord"
-           action="${urlConfirm}"
+           action="${confirmUrl}"
            method="post">
 
     <fieldset>
@@ -105,9 +105,9 @@
 
     <div class="control-group">
         <div class="controls">
-            <spring:message code="${confirm}" var="confirm"/>
-            <input class="btn btn-primary" type="submit" value="${confirm}"/>
-            <a class="btn" href="${urlBack}"><spring:message code="views.button.cancel"/></a>
+            <spring:message code="${confirmUrl}" var="confirm"/>
+            <input class="btn btn-primary" type="submit" value="${confirmUrl}"/>
+            <a class="btn" href="${backUrl}"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>
 

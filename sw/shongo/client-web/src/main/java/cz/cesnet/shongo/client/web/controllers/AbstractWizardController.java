@@ -66,12 +66,18 @@ public abstract class AbstractWizardController
             super("wizard");
         }
 
-        public void setNextPageUrl(String nextPageUrl)
+        public void setNextPage(String nextPageUrl)
         {
             if (nextPageUrl == null) {
                 nextPageUrl = "";
             }
             addObject("wizardPageNextUrl", nextPageUrl);
+        }
+
+        public void setNextPage(String nextPageUrl, String nextPageTitle)
+        {
+            setNextPage(nextPageUrl);
+            addObject("wizardPageNextTitle", nextPageTitle);
         }
     }
 }

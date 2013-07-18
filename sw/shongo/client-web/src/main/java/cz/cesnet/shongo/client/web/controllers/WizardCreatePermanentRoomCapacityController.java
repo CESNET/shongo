@@ -104,7 +104,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     private WizardView getCreatePermanentRoomCapacityView()
     {
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY, "wizardCreateAttributes.jsp");
-        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addObject("formUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS);
         return wizardView;
     }
@@ -147,7 +147,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             return getCreatePermanentRoomCapacityView();
         }
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM, "wizardCreateConfirm.jsp");
-        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
+        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
         return wizardView;
     }
 

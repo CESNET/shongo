@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.auth.UserInformationProvider;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
@@ -19,7 +17,6 @@ import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
@@ -95,7 +92,7 @@ public class WizardCreateController extends AbstractWizardController
         ReservationRequestModel reservationRequest = new ReservationRequestModel();
         reservationRequest.addUserRole(securityToken.getUserInformation(), Role.OWNER);
         wizardView.addObject("reservationRequest", reservationRequest);
-        wizardView.setNextPageUrl(null);
+        wizardView.setNextPage(null);
         return wizardView;
     }
 
@@ -146,7 +143,7 @@ public class WizardCreateController extends AbstractWizardController
     private WizardView getCreateRoomAttributesView()
     {
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
-        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addObject("formUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
         return wizardView;
     }
@@ -255,7 +252,7 @@ public class WizardCreateController extends AbstractWizardController
             return getCreateRoomAttributesView();
         }
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_CONFIRM, "wizardCreateConfirm.jsp");
-        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED);
+        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED);
         return wizardView;
     }
 

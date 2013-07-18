@@ -5,11 +5,18 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <h1><spring:message code="views.wizard.createAttributes.${reservationRequest.specificationType}"/></h1>
+
 <hr/>
-<app:reservationRequestForm confirmUrl="${formUrl}" permanentRooms="${permanentRooms}"/>
+
+<div ng-app="tag:reservationRequestForm">
+
+    <tag:reservationRequestForm confirmUrl="${formUrl}" permanentRooms="${permanentRooms}"/>
+
+</div>
+
 <hr/>

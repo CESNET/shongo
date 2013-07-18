@@ -12,8 +12,16 @@
         <path>/WEB-INF/tags/help.tag</path>
     </tag-file>
     <tag-file>
+        <name>reservationRequestDetail</name>
+        <path>/WEB-INF/tags/reservationRequestDetail.tag</path>
+    </tag-file>
+    <tag-file>
         <name>reservationRequestForm</name>
         <path>/WEB-INF/tags/reservationRequestForm.tag</path>
+    </tag-file>
+    <tag-file>
+        <name>reservationRequestList</name>
+        <path>/WEB-INF/tags/reservationRequestList.tag</path>
     </tag-file>
     <tag-file>
         <name>userRoleForm</name>

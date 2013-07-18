@@ -23,6 +23,35 @@
         </put-list-attribute>
     </definition>
 
+    <definition name="layoutAngular" extends="layout">
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="angular.min.js"/>
+            <add-attribute value="angular-cookies.min.js"/>
+            <add-attribute value="angular-datetime.js"/>
+            <add-attribute value="angular-extension.js"/>
+            <add-attribute value="angular-pagination.js"/>
+            <add-attribute value="angular-resource.min.js"/>
+            <add-attribute value="angular-sanitize.min.js"/>
+            <add-attribute value="angular-tooltip.js"/>
+        </put-list-attribute>
+    </definition>
+
+    <definition name="layoutAngularForm" extends="layoutAngular">
+        <put-list-attribute name="css" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker.css"/>
+            <add-attribute value="ui-select2.css"/>
+        </put-list-attribute>
+        <put-list-attribute name="js" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker.min.js"/>
+            <add-attribute value="moment.min.js"/>
+            <add-attribute value="ui-select2.min.js"/>
+        </put-list-attribute>
+        <put-list-attribute name="i18n" inherit="true">
+            <add-attribute value="bootstrap-datetimepicker"/>
+            <add-attribute value="select2"/>
+        </put-list-attribute>
+    </definition>
+
     <definition name="controllerNotAvailable" extends="layout">
         <put-attribute name="title" value="views.controllerNotAvailable.title"/>
         <put-attribute name="heading" value=""/>
@@ -33,16 +62,9 @@
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
     </definition>
-    <definition name="indexAuthenticated" extends="layout">
+    <definition name="indexAuthenticated" extends="layoutAngular">
         <put-attribute name="title" value="views.index.title"/>
         <put-attribute name="body" value="/WEB-INF/views/index.jsp" type="template"/>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-resource.min.js"/>
-            <add-attribute value="angular-cookies.min.js"/>
-            <add-attribute value="angular-pagination.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-        </put-list-attribute>
     </definition>
 
     <definition name="changelog" extends="layout">
@@ -56,7 +78,7 @@
         <put-attribute name="body" value="/WEB-INF/views/message.jsp" type="template"/>
     </definition>
 
-    <definition name="wizard" extends="layout">
+    <definition name="wizard" extends="layoutAngularForm">
         <put-attribute name="body" value="wizardBody" type="definition"/>
         <put-attribute name="heading" value=""/>
         <put-list-attribute name="title">
@@ -64,21 +86,7 @@
             <add-attribute expression="${wizardPageCurrent.titleCode}"/>
         </put-list-attribute>
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.css"/>
-            <add-attribute value="ui-select2.css"/>
             <add-attribute value="wizard.css"/>
-        </put-list-attribute>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-datetime.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-            <add-attribute value="bootstrap-datetimepicker.min.js"/>
-            <add-attribute value="moment.min.js"/>
-            <add-attribute value="ui-select2.min.js"/>
-        </put-list-attribute>
-        <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker"/>
-            <add-attribute value="select2"/>
         </put-list-attribute>
     </definition>
     <definition name="wizardBody" template="/WEB-INF/views/wizard.jsp">
@@ -87,52 +95,22 @@
     <definition name="wizardContent" templateExpression="${wizardContent}">
     </definition>
 
-    <definition name="reservationRequestList" extends="layout">
+    <definition name="reservationRequestList" extends="layoutAngular">
         <put-attribute name="title" value="views.reservationRequestList.title"/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestList.jsp" type="template"/>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-resource.min.js"/>
-            <add-attribute value="angular-cookies.min.js"/>
-            <add-attribute value="angular-pagination.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-        </put-list-attribute>
     </definition>
 
-    <definition name="reservationRequestDetail" extends="layout">
+    <definition name="reservationRequestDetail" extends="layoutAngular">
         <put-attribute name="title" value="views.reservationRequestDetail.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/reservationRequestDetail.jsp" type="template"/>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-resource.min.js"/>
-            <add-attribute value="angular-cookies.min.js"/>
-            <add-attribute value="angular-sanitize.min.js"/>
-            <add-attribute value="angular-pagination.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-        </put-list-attribute>
     </definition>
 
-    <definition name="reservationRequestUpdate" extends="layout">
-        <put-list-attribute name="css" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.css"/>
-        </put-list-attribute>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.min.js"/>
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-datetime.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-            <add-attribute value="moment.min.js"/>
-        </put-list-attribute>
-        <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker"/>
-        </put-list-attribute>
-    </definition>
     <definition name="reservationRequestUpdateBody" template="/WEB-INF/views/reservationRequestUpdate.jsp">
         <put-attribute name="confirm" value=""/>
     </definition>
 
-    <definition name="reservationRequestCreate" extends="reservationRequestUpdate">
+    <definition name="reservationRequestCreate" extends="layoutAngularForm">
         <put-attribute name="title" value="views.reservationRequestCreate.title"/>
         <put-attribute name="body" value="reservationRequestCreateBody" type="definition"/>
     </definition>
@@ -140,7 +118,7 @@
         <put-attribute name="confirm" value="views.button.create"/>
     </definition>
 
-    <definition name="reservationRequestModify" extends="reservationRequestUpdate">
+    <definition name="reservationRequestModify" extends="layoutAngularForm">
         <put-attribute name="title" value="views.reservationRequestModify.title"/>
         <put-attribute name="body" value="reservationRequestModifyBody" type="definition"/>
     </definition>
@@ -164,13 +142,9 @@
         </put-list-attribute>
     </definition>
 
-    <definition name="room" extends="layout">
+    <definition name="room" extends="layoutAngular">
         <put-attribute name="title" value="views.room.title"/>
         <put-attribute name="body" value="/WEB-INF/views/room.jsp" type="template"/>
-        <put-list-attribute name="js" inherit="true">
-            <add-attribute value="angular.min.js"/>
-            <add-attribute value="angular-tooltip.js"/>
-        </put-list-attribute>
     </definition>
 
 </tiles-definitions>

@@ -5,17 +5,16 @@
 <%@ taglib prefix="s" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <s:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
 
 <script type="text/javascript">
-    // Angular application
-    angular.module('ngRoom', ['ngTooltip']);
+    angular.module('jsp:room', ['ngTooltip']);
 </script>
 
-<div ng-app="ngRoom">
+<div ng-app="jsp:room">
 
     <dl class="dl-horizontal">
 
@@ -37,14 +36,14 @@
             <span class="${executable.state}" id="executableState">
                 <s:message code="views.reservationRequest.executableState.${executable.state}"/>
             </span>
-            <app:help label="executableState">
+            <tag:help label="executableState">
                 <span>
                     <s:message code="views.help.reservationRequest.executableState.${executable.state}"/>
                 </span>
                 <c:if test="${!executable.state.available && executable.stateReport != null}">
                     <pre>${executable.stateReport}</pre>
                 </c:if>
-            </app:help>
+            </tag:help>
         </dd>
 
         <c:if test="${room != null}">
@@ -62,7 +61,7 @@
         <dd>
             <span id="roomAliases">${roomAliases}</span>
             <c:if test="${roomAliasesDescription != null}">
-                <app:help label="roomAliases">${roomAliasesDescription}</app:help>
+                <tag:help label="roomAliases">${roomAliasesDescription}</tag:help>
             </c:if>
         </dd>
 

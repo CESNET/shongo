@@ -8,8 +8,8 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<s:eval var="urlConfirm" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDeleteConfirm(contextPath, reservationRequest.id)"/>
-<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<s:eval var="confirmUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDeleteConfirm(contextPath, reservationRequest.id)"/>
+<c:set var="backUrl">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="reservationRequestName"><strong>${reservationRequest.id}</strong></c:set>
 
 <c:choose>
@@ -25,14 +25,14 @@
             </c:forEach>
         </ul>
         <div>
-            <a class="btn btn-primary" href="${urlBack}"><s:message code="views.button.back"/></a>
+            <a class="btn btn-primary" href="${backUrl}"><s:message code="views.button.back"/></a>
         </div>
     </c:when>
     <c:otherwise>
         <p><s:message code="views.reservationRequestDelete.question" arguments="${reservationRequestName}"/></p>
         <div>
-            <a class="btn btn-primary" href="${urlConfirm}"><s:message code="views.button.yes"/></a>
-            <a class="btn" href="${urlBack}"><s:message code="views.button.no"/></a>
+            <a class="btn btn-primary" href="${confirmUrl}"><s:message code="views.button.yes"/></a>
+            <a class="btn" href="${backUrl}"><s:message code="views.button.no"/></a>
         </div>
     </c:otherwise>
 </c:choose>

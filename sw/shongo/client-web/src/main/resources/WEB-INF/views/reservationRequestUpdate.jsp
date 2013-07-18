@@ -7,16 +7,16 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlConfirm" value="${contextPath}${urlConfirm}"/>
-<c:set var="urlBack">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<c:set var="confirmUrl" value="${contextPath}${urlConfirm}"/>
+<c:set var="backUrl">${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 
 <script type="text/javascript">
     // Angular application
-    var app = angular.module('ngReservationRequestUpdate', ['ngDateTime', 'ngTooltip']);
+    angular.module('jsp:reservationRequestUpdate', ['ngDateTime', 'ngTooltip']);
 
     // Form controller
     function FormController($scope) {
@@ -116,11 +116,11 @@
     }
 </script>
 
-<div ng-app="ngReservationRequestUpdate">
+<div ng-app="jsp:reservationRequestUpdate">
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
-           action="${urlConfirm}"
+           action="${confirmUrl}"
            method="post"
            ng-controller="FormController">
 
@@ -145,14 +145,14 @@
                     </a>
                 </li>
             </ul>
-            <app:help>
+            <tag:help>
                 <strong><spring:message code="views.reservationRequest.specification.ADHOC_ROOM"/></strong>
                 <p><spring:message code="views.help.reservationRequest.specification.ADHOC_ROOM"/></p>
                 <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM"/></strong>
                 <p><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM"/></p>
                 <strong><spring:message code="views.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/></strong>
                 <p><spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/></p>
-            </app:help>
+            </tag:help>
         </legend>
 
         <c:if test="${reservationRequest.id != null}">
@@ -212,7 +212,7 @@
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error"/>
                 <form:errors path="description" cssClass="error"/>
-                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
+                <tag:help><spring:message code="views.help.reservationRequest.description"/></tag:help>
             </div>
         </div>
 
@@ -311,9 +311,9 @@
 
     <div class="control-group">
         <div class="controls">
-            <spring:message code="${confirm}" var="confirm"/>
-            <input class="btn btn-primary" type="submit" value="${confirm}"/>
-            <a class="btn" href="${urlBack}"><spring:message code="views.button.cancel"/></a>
+            <spring:message code="${confirmUrl}" var="confirm"/>
+            <input class="btn btn-primary" type="submit" value="${confirmUrl}"/>
+            <a class="btn" href="${backUrl}"><spring:message code="views.button.cancel"/></a>
         </div>
     </div>
 

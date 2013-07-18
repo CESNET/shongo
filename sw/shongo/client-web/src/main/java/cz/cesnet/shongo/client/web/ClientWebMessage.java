@@ -11,5 +11,5 @@ public class ClientWebMessage
             "views.reservationRequest.specification.PERMANENT_ROOM";
     public static final String SPECIFICATION_PERMANENT_ROOM_CAPACITY =
             "views.reservationRequest.specification.PERMANENT_ROOM_CAPACITY";
-    public static final String ROOM_ADHOC = "views.reservationRequestList.rooms.room.adhoc";
+    public static final String ROOM_NAME_ADHOC = "views.reservationRequestList.roomName.adhoc";
 }

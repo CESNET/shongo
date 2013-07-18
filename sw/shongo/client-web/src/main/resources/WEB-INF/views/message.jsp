@@ -6,13 +6,13 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlBack" value="${contextPath}${urlBack}"/>
+<c:set var="backUrl" value="${contextPath}${urlBack}"/>
 
 <div>
     <h1><spring:message code="${title}"/></h1>
     <p><spring:message code="${message}"/></p>
     <div>
-        <a class="btn btn-primary" href="${urlBack}"><spring:message code="views.button.back"/></a>
+        <a class="btn btn-primary" href="${backUrl}"><spring:message code="views.button.back"/></a>
     </div>
 </div>
 

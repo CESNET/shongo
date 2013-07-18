@@ -12,6 +12,16 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 public abstract class AbstractRequest extends AbstractComplexType
 {
     /**
+     * When this value is set to an attribute filter it requests that the target entity should have the attribute empty.
+     */
+    public static final String FILTER_EMPTY = "";
+
+    /**
+     * When this value is set to an attribute filter it requests that the target entity should have the attribute set.
+     */
+    public static final String FILTER_NOT_EMPTY = "*";
+
+    /**
      * {@link SecurityToken} of user who is requesting this request.
      */
     private SecurityToken securityToken;

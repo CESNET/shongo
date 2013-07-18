@@ -458,11 +458,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             String providedReservationRequestId = request.getProvidedReservationRequestId();
             if (providedReservationRequestId != null) {
-                // List only reservation requests which got provided given reservation request
-                Long persistenceId = EntityIdentifier.parseId(
-                        cz.cesnet.shongo.controller.request.ReservationRequest.class, providedReservationRequestId);
-                filter.addFilter("request.providedReservationRequest.id = :providedReservationRequestId");
-                filter.addFilterParameter("providedReservationRequestId", persistenceId);
+                if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
+                    // List only reservation requests which hasn't got provided any reservation request
+                    filter.addFilter("request.providedReservationRequest IS NULL");
+                }
+                else if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
+                    // List only reservation requests which got provided any reservation request
+                    filter.addFilter("request.providedReservationRequest IS NOT NULL");
+                }
+                else {
+                    // List only reservation requests which got provided given reservation request
+                    Long persistenceId = EntityIdentifier.parseId(
+                            cz.cesnet.shongo.controller.request.ReservationRequest.class, providedReservationRequestId);
+                    filter.addFilter("request.providedReservationRequest.id = :providedReservationRequestId");
+                    filter.addFilterParameter("providedReservationRequestId", persistenceId);
+                }
             }
 
             // Create parts

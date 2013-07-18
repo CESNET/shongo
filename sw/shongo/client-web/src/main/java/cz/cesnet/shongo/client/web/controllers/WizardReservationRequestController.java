@@ -3,7 +3,11 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.WizardPage;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,7 +52,9 @@ public class WizardReservationRequestController extends AbstractWizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestList()
     {
-        return getWizardView(Page.RESERVATION_REQUEST, "wizardReservationRequestList.jsp");
+        WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST, "wizardReservationRequestList.jsp");
+        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_ROOM, "views.wizard.select.createRoom");
+        return wizardView;
     }
 
     /**

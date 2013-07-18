@@ -9,7 +9,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="permanentRooms" required="false" type="java.util.Collection<cz.cesnet.shongo.controller.api.ReservationRequestSummary>" %>
 <%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
@@ -17,10 +17,8 @@
 <%@attribute name="backUrl" required="false" type="java.lang.String" %>
 
 <script type="text/javascript">
-    // Angular module
-    angular.module('ngReservationRequestForm', ['ngDateTime', 'ngTooltip']);
+    angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
 
-    // Form controller
     function ReservationRequestFormController($scope) {
         // Get value or default value if null
         $scope.value = function (value, defaultValue) {
@@ -31,11 +29,7 @@
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
 
-
-
-
-        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
-
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
@@ -106,11 +100,9 @@
         });
         // Initially update permanent rooms
         $scope.updatePermanentRooms(false);
-        </c:if>
+    </c:if>
     }
 </script>
-
-<div ng-app="ngReservationRequestForm">
 
 <form:form class="form-horizontal"
            commandName="reservationRequest"
@@ -199,7 +191,7 @@
             <div class="controls double-width">
                 <form:input path="description" cssErrorClass="error"/>
                 <form:errors path="description" cssClass="error"/>
-                <app:help><spring:message code="views.help.reservationRequest.description"/></app:help>
+                <tag:help><spring:message code="views.help.reservationRequest.description"/></tag:help>
             </div>
         </div>
 
@@ -334,7 +326,3 @@
     </c:if>
 
 </form:form>
-
-</div>
-
-
