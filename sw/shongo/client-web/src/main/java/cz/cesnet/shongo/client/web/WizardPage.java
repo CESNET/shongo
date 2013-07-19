@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.client.web;
 
 /**
- * Represents a {@link Page} for {@link cz.cesnet.shongo.client.web.controllers.AbstractWizardController}.
+ * Represents a {@link NavigationPage} for {@link cz.cesnet.shongo.client.web.controllers.AbstractWizardController}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class WizardPage extends Page
+public class WizardPage extends NavigationPage
 {
     /**
      * Identifier of the page.

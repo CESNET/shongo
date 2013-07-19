@@ -9,6 +9,7 @@ import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
@@ -31,18 +32,9 @@ import java.util.*;
  */
 public class ReservationRequestModel
 {
-    public ReservationRequestModel()
-    {
-        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
-        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
-    }
-
-    public ReservationRequestModel(AbstractReservationRequest reservationRequest)
-    {
-        fromApi(reservationRequest);
-    }
-
     private String id;
+
+    private String parentReservationRequestId;
 
     private ReservationRequestType type;
 
@@ -70,13 +62,26 @@ public class ReservationRequestModel
 
     private String permanentRoomName;
 
-    private String permanentRoomCapacityReservationRequestId;
+    private String permanentRoomReservationRequestId;
+
+    private ReservationRequestSummary permanentRoomReservationRequest;
 
     private Integer roomParticipantCount;
 
     private String roomPin;
 
     private List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
+
+    public ReservationRequestModel()
+    {
+        setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
+        setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
+    }
+
+    public ReservationRequestModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
+    {
+        fromApi(reservationRequest, cacheProvider);
+    }
 
     public String getId()
     {
@@ -86,6 +91,11 @@ public class ReservationRequestModel
     public void setId(String id)
     {
         this.id = id;
+    }
+
+    public String getParentReservationRequestId()
+    {
+        return parentReservationRequestId;
     }
 
     public ReservationRequestType getType()
@@ -213,14 +223,19 @@ public class ReservationRequestModel
         this.permanentRoomName = permanentRoomName;
     }
 
-    public String getPermanentRoomCapacityReservationRequestId()
+    public String getPermanentRoomReservationRequestId()
     {
-        return permanentRoomCapacityReservationRequestId;
+        return permanentRoomReservationRequestId;
     }
 
-    public void setPermanentRoomCapacityReservationRequestId(String permanentRoomCapacityReservationRequestId)
+    public void setPermanentRoomReservationRequestId(String permanentRoomReservationRequestId)
     {
-        this.permanentRoomCapacityReservationRequestId = permanentRoomCapacityReservationRequestId;
+        this.permanentRoomReservationRequestId = permanentRoomReservationRequestId;
+    }
+
+    public ReservationRequestSummary getPermanentRoomReservationRequest()
+    {
+        return permanentRoomReservationRequest;
     }
 
     public Integer getRoomParticipantCount()
@@ -318,7 +333,7 @@ public class ReservationRequestModel
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
             if (providedReservationRequestId != null) {
-                permanentRoomCapacityReservationRequestId = providedReservationRequestId;
+                permanentRoomReservationRequestId = providedReservationRequestId;
                 specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
             }
             else {
@@ -343,7 +358,7 @@ public class ReservationRequestModel
      *
      * @param abstractReservationRequest from which the attributes should be loaded
      */
-    public void fromApi(AbstractReservationRequest abstractReservationRequest)
+    public void fromApi(AbstractReservationRequest abstractReservationRequest, CacheProvider cacheProvider)
     {
         id = abstractReservationRequest.getId();
         type = abstractReservationRequest.getType();
@@ -359,6 +374,7 @@ public class ReservationRequestModel
         Period duration;
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            parentReservationRequestId = reservationRequest.getParentReservationRequestId();
             periodicityType = PeriodicityType.NONE;
             Interval slot = reservationRequest.getSlot();
             start = slot.getStart();
@@ -432,6 +448,29 @@ public class ReservationRequestModel
                 durationType = DurationType.MINUTE;
             }
         }
+
+        // Additional specification attributes
+        switch (specificationType) {
+            case PERMANENT_ROOM_CAPACITY:
+                if (cacheProvider != null) {
+                    loadPermanentRoom(cacheProvider);
+                }
+                break;
+        }
+    }
+
+    /**
+     * Load {@link #permanentRoomReservationRequest} by given {@code cacheProvider}.
+     *
+     * @param cacheProvider
+     */
+    public void loadPermanentRoom(CacheProvider cacheProvider)
+    {
+        if (permanentRoomReservationRequestId == null) {
+            throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
+        }
+        permanentRoomReservationRequest =
+                cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
     }
 
     /**
@@ -582,7 +621,7 @@ public class ReservationRequestModel
         abstractReservationRequest.setPurpose(purpose);
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-            abstractReservationRequest.setProvidedReservationRequestId(permanentRoomCapacityReservationRequestId);
+            abstractReservationRequest.setProvidedReservationRequestId(permanentRoomReservationRequestId);
         }
 
         // Create specification
@@ -885,5 +924,23 @@ public class ReservationRequestModel
             }
         }
         return reservationRequests;
+    }
+
+    /**
+     * @param reservationRequestId
+     * @param reservationService
+     * @param securityToken
+     * @return list of deletion dependencies for reservation request with given {@code reservationRequestId}
+     */
+    public static List<ReservationRequestSummary> getDeleteDependencies(String reservationRequestId,
+            ReservationService reservationService, SecurityToken securityToken)
+    {
+        // List reservation requests which got provided the reservation request to be deleted
+        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
+        reservationRequestListRequest.setSecurityToken(securityToken);
+        reservationRequestListRequest.setProvidedReservationRequestId(reservationRequestId);
+        ListResponse<ReservationRequestSummary> reservationRequests =
+                reservationService.listReservationRequests(reservationRequestListRequest);
+        return reservationRequests.getItems();
     }
 }

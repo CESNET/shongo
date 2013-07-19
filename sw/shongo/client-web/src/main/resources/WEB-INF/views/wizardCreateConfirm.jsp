@@ -11,11 +11,23 @@
 
 <hr/>
 
-<p><spring:message code="views.wizard.confirmation.question"/></p>
-
 <div ng-app="tag:reservationRequestDetail">
 
+    <h2><spring:message code="views.wizard.confirmation.question"/></h2>
+
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
+
+    <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
+        <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
+        <ul>
+            <c:forEach items="${reservationRequest.userRoles}" var="userRole">
+                <li>${userRole.user.fullName} (<spring:message code="views.aclRecord.role.${userRole.role}"/>)</li>
+            </c:forEach>
+        </ul>
+    </c:if>
+
+    &nbsp;
+    <p><spring:message code="views.wizard.confirmation.chooseFinish"/></p>
 
 </div>
 

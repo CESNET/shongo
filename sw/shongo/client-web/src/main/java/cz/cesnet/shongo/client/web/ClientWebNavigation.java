@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,28 +39,28 @@ public enum ClientWebNavigation
     ROOM_MANAGEMENT(HOME, ClientWebUrl.ROOM_MANAGEMENT,
             "navigation.roomManagement");
 
-    private final Page page;
+    private final NavigationPage navigationPage;
 
     private ClientWebNavigation(ClientWebNavigation parentPage, String url, String titleCode)
     {
-        page = new Page(url, titleCode);
+        navigationPage = new NavigationPage(url, titleCode);
         if (parentPage != null) {
-            parentPage.page.addChildNode(page);
+            parentPage.navigationPage.addChildNode(navigationPage);
         }
     }
 
-    public Page getPage()
+    public NavigationPage getNavigationPage()
     {
-        return page;
+        return navigationPage;
     }
 
-    private static Map<String, Page> cachedNavigationNodeByUrl = new HashMap<String, Page>();
+    private static Map<String, NavigationPage> cachedNavigationNodeByUrl = new HashMap<String, NavigationPage>();
 
-    public static Page findByUrl(String url)
+    public static NavigationPage findByUrl(String url)
     {
         if (!cachedNavigationNodeByUrl.containsKey(url)) {
-            Page page = HOME.page.findByUrl(url);
-            cachedNavigationNodeByUrl.put(url, page);
+            NavigationPage navigationPage = HOME.navigationPage.findByUrl(url);
+            cachedNavigationNodeByUrl.put(url, navigationPage);
         }
         return cachedNavigationNodeByUrl.get(url);
     }

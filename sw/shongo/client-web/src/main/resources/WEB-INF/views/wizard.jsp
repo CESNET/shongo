@@ -48,34 +48,28 @@
 <div>
     <c:set var="primaryClass" value="btn-primary"/>
 
-    <%-- Link to next page --%>
-    <c:if test="${wizardPageNextUrl == null && wizardPageNext != null}">
-        <c:set var="wizardPageNextUrl" value="${wizardPageNext.url}"/>
-    </c:if>
-    <c:if test="${wizardPageNextUrl != null && wizardPageNextUrl != ''}">
-        <c:if test="${wizardPageNextTitle == null}">
-            <c:choose>
-                <c:when test="${wizardPageNext != null}">
-                    <c:set var="wizardPageNextTitle" value="views.button.continue"/>
-                </c:when>
-                <c:otherwise>
-                    <c:set var="wizardPageNextTitle" value="views.button.finish"/>
-                </c:otherwise>
-            </c:choose>
+    <c:forEach items="${wizardActions}" var="wizardAction">
+        <c:if test="${wizardAction.url != null && wizardAction.position == 'LEFT'}">
+            <c:set var="wizardActionClass" value="btn"/>
+            <c:if test="${wizardAction.primary}">
+                <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
+            </c:if>
+            <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}">
+                <spring:message code="${wizardAction.titleCode}"/>
+            </a>
         </c:if>
-        <a class="btn ${primaryClass} pull-right" href="${contextPath}${wizardPageNextUrl}">
-            <spring:message code="${wizardPageNextTitle}"/>
-        </a>
-        <c:set var="primaryClass"></c:set>
-    </c:if>
-
-    <%-- Link to previous page --%>
-    <c:if test="${wizardPagePreviousUrl == null && wizardPagePrevious != null}">
-        <c:set var="wizardPagePreviousUrl" value="${wizardPagePrevious.url}"/>
-    </c:if>
-    <c:if test="${wizardPagePreviousUrl != null && wizardPagePreviousUrl != ''}">
-        <a class=" btn ${primaryClass}" href="${contextPath}${wizardPagePreviousUrl}">
-            <spring:message code="views.button.back"/>
-        </a>
-    </c:if>
+    </c:forEach>
+    <div class="pull-right">
+        <c:forEach items="${wizardActions}" var="wizardAction">
+            <c:if test="${wizardAction.url != null && wizardAction.position == 'RIGHT'}">
+                <c:set var="wizardActionClass" value="btn"/>
+                <c:if test="${wizardAction.primary}">
+                    <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
+                </c:if>
+                <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}">
+                    <spring:message code="${wizardAction.titleCode}"/>
+                </a>
+            </c:if>
+        </c:forEach>
+    </div>
 </div>

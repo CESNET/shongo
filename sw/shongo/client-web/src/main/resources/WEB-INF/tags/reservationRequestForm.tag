@@ -46,7 +46,7 @@
             $scope.permanentRooms[permanentRoom] = permanentRooms[permanentRoom];
         }
         // Set current permanent rooms
-        $scope.permanentRoom = $scope.permanentRooms["${reservationRequest.permanentRoomCapacityReservationRequestId}"];
+        $scope.permanentRoom = $scope.permanentRooms["${reservationRequest.permanentRoomReservationRequestId}"];
         $scope.updatePermanentRooms = function (performApply) {
             // Determine requested slot
             var requestedStart = moment($("#start").val());
@@ -112,7 +112,7 @@
 
     <fieldset>
 
-        <c:if test="${reservationRequest.id != null && reservationRequest.id != ''}">
+        <c:if test="${not empty reservationRequest.id}">
             <div class="control-group">
                 <form:label class="control-label" path="id">
                     <spring:message code="views.reservationRequest.identifier"/>:
@@ -165,17 +165,17 @@
 
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
             <div class="control-group">
-                <form:label class="control-label" path="permanentRoomCapacityReservationRequestId"><spring:message
-                        code="views.reservationRequest.specification.permanentRoomCapacityReservationRequestId"/>:
+                <form:label class="control-label" path="permanentRoomReservationRequestId"><spring:message
+                        code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:
                 </form:label>
                 <div class="controls">
-                    <form:select path="permanentRoomCapacityReservationRequestId" cssErrorClass="error"
+                    <form:select path="permanentRoomReservationRequestId" cssErrorClass="error"
                                  ng-model="permanentRoom"
                                  ng-options="option.name for (value, option) in permanentRooms">
                         <form:option value="">-- <spring:message code="views.select.choose"/> --</form:option>
                         {{option}}
                     </form:select>
-                    <form:errors path="permanentRoomCapacityReservationRequestId" cssClass="error"/>
+                    <form:errors path="permanentRoomReservationRequestId" cssClass="error"/>
                     <div ng-show="permanentRoom" class="description">
                         <b><spring:message code="views.reservationRequest.validity"/>:</b>
                         {{permanentRoom.formattedSlot}}
@@ -311,7 +311,7 @@
 
     </fieldset>
 
-    <c:if test="${confirmTitle != null || backUrl != null}">
+    <c:if test="${not empty confirmTitle || backUrl != null}">
         <div class="control-group">
             <div class="controls">
                 <c:if test="${backUrl != null}">

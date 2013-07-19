@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Controller for managing reservation requests.
@@ -35,19 +37,12 @@ public class ReservationRequestDeleteController
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             Model model)
     {
-        // Get reservation request
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
-
-        // List reservation requests which got provided the reservation request to be deleted
-        ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
-        reservationRequestListRequest.setSecurityToken(securityToken);
-        reservationRequestListRequest.setProvidedReservationRequestId(reservationRequestId);
-        ListResponse<ReservationRequestSummary> reservationRequests =
-                reservationService.listReservationRequests(reservationRequestListRequest);
-
-        model.addAttribute("dependencies", reservationRequests.getItems());
+        List<ReservationRequestSummary> dependencies =
+                ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
         model.addAttribute("reservationRequest", reservationRequest);
+        model.addAttribute("dependencies", dependencies);
         return "reservationRequestDelete";
     }
 

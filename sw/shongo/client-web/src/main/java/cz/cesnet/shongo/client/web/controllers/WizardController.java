@@ -33,7 +33,7 @@ public class WizardController extends AbstractWizardController
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages)
+    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
     {
         wizardPages.add(createSelectWizardPage());
         wizardPages.add(new WizardPage(null, null, "views.wizard.page.multiple"));

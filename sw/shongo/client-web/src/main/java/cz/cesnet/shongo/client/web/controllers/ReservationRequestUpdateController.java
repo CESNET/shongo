@@ -7,10 +7,7 @@ import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
-import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -22,10 +19,6 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Controller for creating/modifying reservation requests.
@@ -64,7 +57,7 @@ public class ReservationRequestUpdateController
     {
         ReservationRequestModel reservationRequestModel = new ReservationRequestModel();
         reservationRequestModel.setSpecificationType(specificationType);
-        reservationRequestModel.setPermanentRoomCapacityReservationRequestId(permanentRoom);
+        reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("permanentRooms",
                 ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
@@ -106,7 +99,7 @@ public class ReservationRequestUpdateController
     {
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
         model.addAttribute("reservationRequest", reservationRequestModel);
         if (reservationRequestModel.getSpecificationType().equals(
                 ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {

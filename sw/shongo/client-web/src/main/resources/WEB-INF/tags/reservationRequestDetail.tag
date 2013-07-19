@@ -4,9 +4,7 @@
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
@@ -40,17 +38,17 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
-        <dt><spring:message code="views.reservationRequest.specification.permanentRoomCapacityReservationRequestId"/>:
+        <dt><spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:
         </dt>
         <dd>
             <c:choose>
-                <c:when test="${reservationRequest.permanentRoomCapacityReservationRequestId != null}">
-                    <spring:eval var="urlDetail"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.permanentRoomCapacityReservationRequestId)"/>
-                    <a href="${urlDetail}">${permanentRoomReservationRequest.specification.value}</a>
+                <c:when test="${not empty detailUrl}">
+                    <spring:eval var="permanentRoomDetailUrl"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.permanentRoomReservationRequestId)"/>
+                    <a href="${permanentRoomDetailUrl}">${reservationRequest.permanentRoomReservationRequest.specification.value}</a>
                 </c:when>
                 <c:otherwise>
-                    <spring:message code="views.reservationRequest.specification.roomAlias.adhoc"/>
+                    ${reservationRequest.permanentRoomReservationRequest.specification.value}
                 </c:otherwise>
             </c:choose>
         </dd>
@@ -68,18 +66,18 @@
         <joda:format value="${reservationRequest.end}" style="MM"/>
     </dd>
 
-    <c:if test="${parentReservationRequestId == null}">
+    <c:if test="${empty reservationRequest.parentReservationRequestId}">
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
             <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
             <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
-                (<spring:message code="views.reservationRequest.periodicity.until"/> <joda:format
-                    value="${reservationRequest.periodicityEnd}" style="M-"/>)
+                (<spring:message code="views.reservationRequest.periodicity.until"/>
+                <joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
             </c:if>
         </dd>
     </c:if>
 
-    <c:if test="${reservationRequest.roomPin != null}">
+    <c:if test="${not empty reservationRequest.roomPin}">
         <dt><spring:message code="views.reservationRequest.specification.roomPin"/>:</dt>
         <dd>${reservationRequest.roomPin}</dd>
     </c:if>
@@ -92,22 +90,22 @@
         <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
     </dd>
 
-    <c:if test="${reservationRequest.dateTime != null}">
+    <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
         <dd><joda:format value="${reservationRequest.dateTime}" style="MM"/></dd>
     </c:if>
 
-    <c:if test="${reservationRequest.id != null}">
+    <c:if test="${not empty reservationRequest.id}">
         <dt><spring:message code="views.reservationRequest.identifier"/>:</dt>
         <dd>${reservationRequest.id}</dd>
     </c:if>
 
-    <c:if test="${parentReservationRequestId != null}">
+    <c:if test="${not empty reservationRequest.parentReservationRequestId}">
         <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
         <dd>
             <spring:eval var="urlDetail"
-                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, parentReservationRequestId)"/>
-            <a href="${urlDetail}">${parentReservationRequestId}</a>
+                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.parentReservationRequestId)"/>
+            <a href="${urlDetail}">${reservationRequest.parentReservationRequestId}</a>
         </dd>
     </c:if>
 

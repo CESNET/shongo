@@ -65,7 +65,7 @@ public class ReservationRequestValidator implements Validator
                     break;
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(
-                            errors, "permanentRoomCapacityReservationRequestId", "validation.field.required");
+                            errors, "permanentRoomReservationRequestId", "validation.field.required");
                     break;
             }
         }
@@ -87,9 +87,9 @@ public class ReservationRequestValidator implements Validator
                     Object isProvidedReservationAvailableAvailable =
                             reservationService.checkAvailableProvidedReservationRequest(securityToken,
                                     reservationRequestModel.getSlot(),
-                                    reservationRequestModel.getPermanentRoomCapacityReservationRequestId());
+                                    reservationRequestModel.getPermanentRoomReservationRequestId());
                     if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
-                        errors.rejectValue("permanentRoomCapacityReservationRequestId",
+                        errors.rejectValue("permanentRoomReservationRequestId",
                                 "validation.field.permanentRoomNotAvailable");
                     }
                     break;

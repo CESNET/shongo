@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.WizardPage;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -36,6 +38,8 @@ import java.util.List;
 public class WizardCreatePermanentRoomCapacityController extends AbstractWizardController
 {
     private static Logger logger = LoggerFactory.getLogger(WizardCreatePermanentRoomCapacityController.class);
+
+    private static final String FORCE_NEW = "new";
 
     @Resource
     private ReservationService reservationService;
@@ -53,7 +57,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages)
+    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
     {
         wizardPages.add(WizardController.createSelectWizardPage());
         wizardPages.add(new WizardPage(
@@ -82,14 +86,21 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
      * Book capacity for existing permanent room.
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY, method = RequestMethod.GET)
-    public ModelAndView handleCreatePermanentRoomCapacity(SecurityToken securityToken)
+    public ModelAndView handleCreatePermanentRoomCapacity(
+            SecurityToken securityToken,
+            HttpSession httpSession,
+            @RequestParam(value = "force", required = false) String force)
     {
         WizardView wizardView = getCreatePermanentRoomCapacityView();
 
         // Add reservation request model
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel();
+        ReservationRequestModel reservationRequestModel =
+                (ReservationRequestModel) httpSession.getAttribute("reservationRequest");
+        if (reservationRequestModel == null || FORCE_NEW.equals(force)) {
+            reservationRequestModel = new ReservationRequestModel();
+            wizardView.addObject("reservationRequest", reservationRequestModel);
+        }
         reservationRequestModel.setSpecificationType(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY);
-        wizardView.addObject("reservationRequest", reservationRequestModel);
 
         // Add permanent rooms
         wizardView.addObject("permanentRooms",
@@ -146,6 +157,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();
         }
+        reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM, "wizardCreateConfirm.jsp");
         wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
         return wizardView;

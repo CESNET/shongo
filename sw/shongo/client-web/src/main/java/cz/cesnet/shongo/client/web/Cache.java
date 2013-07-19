@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Cache of {@link UserInformation}s, {@link Permission}s.
@@ -162,6 +165,18 @@ public class Cache
     /**
      * @param securityToken of the requesting user
      * @param entityId      of the entity
+     * @param permission    to be checked for existence
+     * @return true if the requesting user has given {@code permission} for entity with given {@code entityId}
+     */
+    public boolean hasPermission(SecurityToken securityToken, String entityId, Permission permission)
+    {
+        Set<Permission> permissions = getPermissions(securityToken, entityId);
+        return permissions.contains(permission);
+    }
+
+    /**
+     * @param securityToken of the requesting user
+     * @param entityId      of the entity
      * @return set of {@link Permission} for requesting user and given {@code entityId}
      *         or null if the {@link Permission}s aren't cached
      */
@@ -235,7 +250,7 @@ public class Cache
      * @param reservationRequestId
      * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
      */
-    public synchronized ReservationRequestSummary getReservationRequest(SecurityToken securityToken,
+    public synchronized ReservationRequestSummary getReservationRequestSummary(SecurityToken securityToken,
             String reservationRequestId)
     {
         ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);

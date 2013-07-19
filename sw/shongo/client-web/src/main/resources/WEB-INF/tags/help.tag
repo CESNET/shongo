@@ -23,7 +23,7 @@
 
 <div class="tooltip-container">
     <c:choose>
-        <c:when test="${label != null}">
+        <c:when test="${not empty label}">
             <img tooltip="${tooltipId}" label="${label}" class="tooltip-label help-icon" src="${contextPath}/img/help.gif"/>
         </c:when>
         <c:otherwise>
@@ -31,7 +31,7 @@
         </c:otherwise>
     </c:choose>
     <jsp:doBody var="body"/>
-    <c:if test="${body != null && body != ''}">
+    <c:if test="${not empty body}">
         <div id="${tooltipId}" class="tooltip-content">
             <span>${body}</span>
         </div>

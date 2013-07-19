@@ -50,7 +50,7 @@ public class ReservationRequestAclController
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count)
     {
-        // List reservation requests
+        // List ACL records
         AclRecordListRequest request = new AclRecordListRequest();
         request.setSecurityToken(securityToken);
         request.setStart(start);

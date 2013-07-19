@@ -204,6 +204,7 @@ public abstract class AbstractExecutorTest extends AbstractControllerTest
                     throw new RuntimeException("Room not found.");
                 }
                 rooms.put(roomId, room);
+                return roomId;
             }
             else if (command instanceof GetRoom) {
                 GetRoom getRoom = (GetRoom) command;

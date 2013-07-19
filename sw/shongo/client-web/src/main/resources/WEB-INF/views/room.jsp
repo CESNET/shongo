@@ -40,7 +40,7 @@
                 <span>
                     <s:message code="views.help.reservationRequest.executableState.${executable.state}"/>
                 </span>
-                <c:if test="${!executable.state.available && executable.stateReport != null}">
+                <c:if test="${!executable.state.available && not empty executable.stateReport}">
                     <pre>${executable.stateReport}</pre>
                 </c:if>
             </tag:help>
@@ -60,7 +60,7 @@
         <dt><s:message code="views.room.aliases"/>:</dt>
         <dd>
             <span id="roomAliases">${roomAliases}</span>
-            <c:if test="${roomAliasesDescription != null}">
+            <c:if test="${not empty roomAliasesDescription}">
                 <tag:help label="roomAliases">${roomAliasesDescription}</tag:help>
             </c:if>
         </dd>

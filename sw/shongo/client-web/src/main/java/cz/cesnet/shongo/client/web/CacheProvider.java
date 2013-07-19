@@ -1,15 +1,15 @@
 package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.auth.UserInformationProvider;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 /**
- * {@link cz.cesnet.shongo.client.web.auth.UserInformationProvider} by {@link Cache}.
+ * {@link Cache} provided for specified {@link #securityToken}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CacheUserInformationProvider implements UserInformationProvider
+public class CacheProvider
 {
     /**
      * {@link Cache} to be used for retrieving {@link UserInformation}.
@@ -27,15 +27,27 @@ public class CacheUserInformationProvider implements UserInformationProvider
      * @param cache sets the {@link #cache}
      * @param securityToken sets the {@link #securityToken}
      */
-    public CacheUserInformationProvider(Cache cache, SecurityToken securityToken)
+    public CacheProvider(Cache cache, SecurityToken securityToken)
     {
         this.cache = cache;
         this.securityToken = securityToken;
     }
 
-    @Override
+    /**
+     * @param userId
+     * @return {@link UserInformation} for given {@code userId}
+     */
     public UserInformation getUserInformation(String userId)
     {
         return cache.getUserInformation(securityToken, userId);
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
+     */
+    public ReservationRequestSummary getReservationRequestSummary(String reservationRequestId)
+    {
+        return cache.getReservationRequestSummary(securityToken, reservationRequestId);
     }
 }

@@ -14,7 +14,7 @@
     ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM %>
 </c:set>
 <c:set var="urlCreatePermanentRoomCapacity">
-    ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>
+    ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY %>?force=new
 </c:set>
 
 <div class="actions">

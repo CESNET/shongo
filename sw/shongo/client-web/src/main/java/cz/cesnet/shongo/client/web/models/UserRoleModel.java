@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.auth.UserInformationProvider;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 
@@ -21,7 +20,7 @@ public class UserRoleModel
 
     private Role role;
 
-    private UserInformationProvider userInformationProvider;
+    private CacheProvider cacheProvider;
 
     private static int lastGeneratedId = 0;
 
@@ -30,14 +29,14 @@ public class UserRoleModel
         setUser(userInformation);
     }
 
-    public UserRoleModel(UserInformationProvider userInformationProvider)
+    public UserRoleModel(CacheProvider cacheProvider)
     {
-        this.userInformationProvider = userInformationProvider;
+        this.cacheProvider = cacheProvider;
     }
 
-    public UserRoleModel(AclRecord aclRecord, UserInformationProvider userInformationProvider)
+    public UserRoleModel(AclRecord aclRecord, CacheProvider cacheProvider)
     {
-        this.userInformationProvider = userInformationProvider;
+        this.cacheProvider = cacheProvider;
         fromApi(aclRecord);
     }
 
@@ -82,10 +81,10 @@ public class UserRoleModel
             setUser(null);
             return;
         }
-        if (userInformationProvider == null) {
+        if (cacheProvider == null) {
             throw new IllegalStateException("UserInformationProvider isn't set.");
         }
-        setUser(userInformationProvider.getUserInformation(userId));
+        setUser(cacheProvider.getUserInformation(userId));
     }
 
     public UserInformation getUser()

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
@@ -52,16 +53,12 @@ public class ReservationRequestDetailController
                 reservationService.getReservationRequest(securityToken, id);
 
         // Check if it is single reservation request
-        ReservationRequest reservationRequest = null;
-        String parentReservationRequestId = null;
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            reservationRequest = (ReservationRequest) abstractReservationRequest;
-            parentReservationRequestId = reservationRequest.getParentReservationRequestId();
-        }
+        ReservationRequestModel reservationRequestModel =
+                new ReservationRequestModel(abstractReservationRequest, new CacheProvider(cache, securityToken));
 
         // Get history of reservation request (only if it is not child reservation request)
         boolean isActive;
-        if (parentReservationRequestId == null) {
+        if (reservationRequestModel.getParentReservationRequestId() == null) {
             ReservationRequestListRequest request = new ReservationRequestListRequest();
             request.setSecurityToken(securityToken);
             request.setHistoryReservationRequestId(id);
@@ -98,7 +95,8 @@ public class ReservationRequestDetailController
         }
 
         // Get reservations for single reservation request
-        if (reservationRequest != null && isActive) {
+        if (abstractReservationRequest instanceof ReservationRequest && isActive) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
             // Add fake not allocated reservation
             AllocationState allocationState = reservationRequest.getAllocationState();
@@ -125,20 +123,6 @@ public class ReservationRequestDetailController
             model.addAttribute("reservations", reservations);
         }
 
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(abstractReservationRequest);
-        switch (reservationRequestModel.getSpecificationType()) {
-            case PERMANENT_ROOM_CAPACITY:
-                String permanentRoomReservationRequestId =
-                        reservationRequestModel.getPermanentRoomCapacityReservationRequestId();
-                if (permanentRoomReservationRequestId == null) {
-                    throw new UnsupportedApiException("Room capacity should have provided permanent room.");
-                }
-                model.addAttribute("permanentRoomReservationRequest",
-                        cache.getReservationRequest(securityToken, permanentRoomReservationRequestId));
-                break;
-        }
-
-        model.addAttribute("parentReservationRequestId", parentReservationRequestId);
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
         return "reservationRequestDetail";

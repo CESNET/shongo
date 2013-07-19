@@ -9,13 +9,15 @@
 <c:set var="detailUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL %>
 </c:set>
+<c:set var="deleteUrl">
+    ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.WIZARD_RESERVATION_REQUEST_DELETE %>
+</c:set>
 
 <div ng-app="tag:reservationRequestList">
 
-    <tag:reservationRequestList specificationType="ADHOC_ROOM,PERMANENT_ROOM" detailUrl="${detailUrl}">
+    <tag:reservationRequestList specificationType="ADHOC_ROOM,PERMANENT_ROOM"
+                                detailUrl="${detailUrl}" deleteUrl="${deleteUrl}">
         <h1><spring:message code="views.wizard.reservationRequestList"/></h1>
     </tag:reservationRequestList>
 
 </div>
-
-<hr/>

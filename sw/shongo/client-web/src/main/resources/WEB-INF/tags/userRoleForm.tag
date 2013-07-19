@@ -70,7 +70,7 @@
 
         <form:hidden path="id"/>
 
-        <c:if test="${userRole.entityId != null && entityTitle != null}">
+        <c:if test="${not empty userRole.entityId && not empty entityTitle}">
             <div class="control-group">
                 <form:label class="control-label" path="entityId">
                     <spring:message code="${entityTitle}"/>:
@@ -108,15 +108,15 @@
 
     </fieldset>
 
-    <c:if test="${confirmTitle != null || cancelUrl != null}">
+    <c:if test="${not empty confirmTitle || cancelUrl != null}">
         <div class="control-group">
             <div class="controls">
-                <c:if test="${confirmTitle != null}">
+                <c:if test="${not empty confirmTitle}">
                     <spring:message code="${confirmTitle}" var="confirmTitle"/>
                     <input class="btn btn-primary" type="submit" value="${confirmTitle}"/>
                 </c:if>
                 <c:if test="${cancelUrl != null}">
-                    <c:if test="${cancelTitle == null}">
+                    <c:if test="${empty cancelTitle}">
                         <c:set var="cancelTitle" value="views.button.cancel"/>
                     </c:if>
                     <a class="btn" href="${cancelUrl}"><spring:message code="${cancelTitle}"/></a>

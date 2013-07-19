@@ -174,7 +174,7 @@ public class ReservationRequestController
                             ClientWebMessage.SPECIFICATION_PERMANENT_ROOM_CAPACITY, null, locale));
                     item.put("roomReservationRequestId", providedReservationRequestId);
                     ReservationRequestSummary providedReservationRequest =
-                            cache.getReservationRequest(securityToken, providedReservationRequestId);
+                            cache.getReservationRequestSummary(securityToken, providedReservationRequestId);
                     if (providedReservationRequest != null) {
                         ReservationRequestSummary.AliasSpecification aliasSpecification =
                                 (ReservationRequestSummary.AliasSpecification)

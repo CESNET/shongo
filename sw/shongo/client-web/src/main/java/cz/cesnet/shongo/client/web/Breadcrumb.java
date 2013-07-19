@@ -18,9 +18,9 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     public final static String REQUEST_ATTRIBUTE_BREADCRUMB = "breadcrumb";
 
     /**
-     * Current {@link Page} for which the breadcrumb should be constructed.
+     * Current {@link NavigationPage} for which the breadcrumb should be constructed.
      */
-    private Page page;
+    private NavigationPage navigationPage;
 
     /**
      * Current request URL.
@@ -35,12 +35,12 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     /**
      * Constructor.
      *
-     * @param page sets the {@link #page}
+     * @param navigationPage sets the {@link #navigationPage}
      * @param requestUrl sets the {@link #requestUrl}
      */
-    public Breadcrumb(Page page, String requestUrl)
+    public Breadcrumb(NavigationPage navigationPage, String requestUrl)
     {
-        this.page = page;
+        this.navigationPage = navigationPage;
         this.requestUrl = requestUrl;
     }
 
@@ -49,24 +49,24 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
      */
     public boolean isMultiple()
     {
-        return this.page.getParentPage() != null;
+        return this.navigationPage.getParentNavigationPage() != null;
     }
 
     @Override
     public Iterator<BreadcrumbItem> iterator()
     {
         if (items == null) {
-            Map<String, String> attributes = this.page.parseUrlAttributes(requestUrl);
+            Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl);
 
             items = new LinkedList<BreadcrumbItem>();
-            Page page = this.page;
-            while (page != null) {
-                String titleCode = page.getTitleCode();
+            NavigationPage navigationPage = this.navigationPage;
+            while (navigationPage != null) {
+                String titleCode = navigationPage.getTitleCode();
                 if (titleCode != null) {
-                    String url = page.getUrl(attributes);
+                    String url = navigationPage.getUrl(attributes);
                     items.add(0, new BreadcrumbItem(url, titleCode));
                 }
-                page = page.getParentPage();
+                navigationPage = navigationPage.getParentNavigationPage();
             }
         }
         return items.iterator();

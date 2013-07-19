@@ -18,7 +18,7 @@
 <spring:eval var="modifyUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestModify(contextPath, reservationRequest.id)"/>
 <spring:eval var="deleteUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDelete(contextPath, reservationRequest.id)"/>
 
-<c:if test="${isActive && parentReservationRequestId == null}">
+<c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
     <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST" domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
@@ -76,7 +76,7 @@
 <%-- Page title --%>
 <h1>
     <c:choose>
-        <c:when test="${parentReservationRequestId != null}">
+        <c:when test="${not empty reservationRequest.parentReservationRequestId}">
             <spring:message code="views.reservationRequestDetail.title.child"/>
         </c:when>
         <c:otherwise>
@@ -91,7 +91,7 @@
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
 
     <%-- List of user roles --%>
-    <h2><spring:message code="views.reservationRequestDetail.userRoles"/></h2>
+    <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
     <spring:eval var="aclUrl"
                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAcl(contextPath, ':id')"/>
     <spring:eval var="aclCreateUrl"
@@ -134,7 +134,7 @@
                                         <span>
                                             <spring:message code="views.help.reservationRequest.allocationState.${reservation.allocationState}"/>
                                         </span>
-                                        <c:if test="${reservation.allocationStateReport != null}">
+                                        <c:if test="${not empty reservation.allocationStateReport}">
                                             <pre>${reservation.allocationStateReport}</pre>
                                         </c:if>
                                     </tag:help>
@@ -149,7 +149,7 @@
                                         <span>
                                             <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
                                         </span>
-                                        <c:if test="${reservation.roomStateReport != null}">
+                                        <c:if test="${not empty reservation.roomStateReport}">
                                             <pre>${reservation.roomStateReport}</pre>
                                         </c:if>
                                     </tag:help>
@@ -157,7 +157,7 @@
                             </td>
                             <td>
                                 <span id="executableAliases-${status.index}">${reservation.roomAliases}</span>
-                                <c:if test="${reservation.roomAliasesDescription != null}">
+                                <c:if test="${not empty reservation.roomAliasesDescription}">
                                     <tag:help label="executableAliases-${status.index}">${reservation.roomAliasesDescription}</tag:help>
                                 </c:if>
                             </td>

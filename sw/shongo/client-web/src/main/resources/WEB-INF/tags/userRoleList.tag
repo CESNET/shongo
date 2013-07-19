@@ -43,7 +43,7 @@
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && deleteUrl != null}">
                         <td>
-                            <c:if test="${userRole.id != null}">
+                            <c:if test="${not empty userRole.id}">
                                 <spring:eval var="aclDeleteUrl"
                                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, userRole.id)"/>
                                 <a href="${aclDeleteUrl}">

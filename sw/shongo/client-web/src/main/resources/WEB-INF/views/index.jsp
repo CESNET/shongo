@@ -18,7 +18,7 @@
 <p><spring:message code="views.index.suggestions" arguments="${configuration.contactEmail}"/></p>
 
 <security:authorize access="!isAuthenticated()">
-    <p><spring:message code="views.index.login" arguments="${urlLogin}"/></p>
+    <p><strong><spring:message code="views.index.login" arguments="${urlLogin}"/></strong></p>
 </security:authorize>
 
 <security:authorize access="isAuthenticated()">

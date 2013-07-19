@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.*;
-import cz.cesnet.shongo.client.web.auth.UserInformationProvider;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
@@ -56,7 +55,7 @@ public class WizardCreateController extends AbstractWizardController
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages)
+    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
     {
         wizardPages.add(WizardController.createSelectWizardPage());
         wizardPages.add(new WizardPage(Page.CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM,
@@ -188,8 +187,8 @@ public class WizardCreateController extends AbstractWizardController
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
         ModelAndView modelAndView = getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
-        UserInformationProvider userInformationProvider = new CacheUserInformationProvider(cache, securityToken);
-        modelAndView.addObject("userRole", new UserRoleModel(userInformationProvider));
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        modelAndView.addObject("userRole", new UserRoleModel(cacheProvider));
         return modelAndView;
     }
 
