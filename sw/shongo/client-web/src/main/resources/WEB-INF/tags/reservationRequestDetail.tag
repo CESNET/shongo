@@ -91,6 +91,23 @@
         <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
     </dd>
 
+    <c:if test="${reservationRequest.allocationState != null}">
+        <dt><spring:message code="views.reservationRequest.allocationState"/></dt>
+        <dd class="allocation-state">
+            <span id="reservationState" class="${reservationRequest.allocationState}">
+                <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
+            </span>
+            <tag:help label="reservationState">
+                <span>
+                    <spring:message code="views.help.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
+                </span>
+                <c:if test="${reservationRequest.allocationState == 'ALLOCATION_FAILED' && not empty reservationRequest.allocationStateReport}">
+                    <pre>${reservationRequest.allocationStateReport}</pre>
+                </c:if>
+            </tag:help>
+        </dd>
+    </c:if>
+
     <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
         <dd><joda:format value="${reservationRequest.dateTime}" style="MM"/></dd>

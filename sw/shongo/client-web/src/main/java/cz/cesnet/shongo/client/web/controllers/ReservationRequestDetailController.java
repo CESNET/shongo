@@ -56,8 +56,12 @@ public class ReservationRequestDetailController
         ReservationRequestModel reservationRequestModel =
                 new ReservationRequestModel(abstractReservationRequest, new CacheProvider(cache, securityToken));
 
+        // Reservation request is active (e.g., it can be modified and deleted)
+        boolean isActive = true;
+        // Reservation request has visible allocated reservation
+        boolean hasVisibleReservation = true;
+
         // Get history of reservation request (only if it is not child reservation request)
-        boolean isActive;
         if (reservationRequestModel.getParentReservationRequestId() == null) {
             ReservationRequestListRequest request = new ReservationRequestListRequest();
             request.setSecurityToken(securityToken);
@@ -75,9 +79,22 @@ public class ReservationRequestDetailController
                 UserInformation user = cache.getUserInformation(securityToken, historyItem.getUserId());
                 item.put("user", user.getFullName());
                 item.put("type", historyItem.getType());
+
+                AllocationState allocationState = historyItem.getAllocationState();
+                String allocationStateMessage = messageSource.getMessage(
+                        "views.reservationRequest.allocationState." + allocationState, null, locale);
+                item.put("allocationState", allocationState);
+                item.put("allocationStateMessage", allocationStateMessage);
+
                 if (historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
                 }
+
+                // Reservation is visible only for reservation requests until first ALLOCATED reservation request
+                if (allocationState.equals(AllocationState.ALLOCATED) && currentHistoryItem == null) {
+                    hasVisibleReservation = false;
+                }
+
                 historyItems.add(item);
             }
             if (currentHistoryItem == null) {
@@ -90,37 +107,19 @@ public class ReservationRequestDetailController
             isActive = currentHistoryItem == historyItems.get(0);
         }
         else {
-            // Child reservation requests don't have history and thus they are automatically active
-            isActive = true;
+            // Child reservation requests don't have history
+            // and thus they are automatically active and have visible reservation
         }
 
-        // Get reservations for single reservation request
-        if (abstractReservationRequest instanceof ReservationRequest && isActive) {
+        // Get reservation for the reservation request
+        if (hasVisibleReservation && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
-            // Add fake not allocated reservation
-            AllocationState allocationState = reservationRequest.getAllocationState();
-            if (!allocationState.equals(AllocationState.ALLOCATED)) {
-                Map<String, Object> reservation = new HashMap<String, Object>();
-                reservation.put("slot", reservationRequest.getSlot());
-                reservation.put("allocationState", allocationState);
-                reservation.put("allocationStateReport", getAllocationStateReport(reservationRequest));
-                reservations.add(reservation);
+            String reservationId = reservationRequest.getLastReservationId();
+            if (reservationId != null) {
+                Reservation reservation = reservationService.getReservation(securityToken, reservationId);
+                model.addAttribute("reservation", getReservation(reservation, locale));
             }
-            // Add existing reservations
-            List<String> reservationIds = reservationRequest.getReservationIds();
-            if (reservationIds.size() > 0) {
-                ReservationListRequest reservationListRequest = new ReservationListRequest();
-                reservationListRequest.setSecurityToken(securityToken);
-                reservationListRequest.setReservationIds(reservationIds);
-                reservationListRequest.setSort(ReservationListRequest.Sort.SLOT);
-                reservationListRequest.setSortDescending(true);
-                ListResponse<Reservation> response = reservationService.listReservations(reservationListRequest);
-                for (Reservation reservation : response) {
-                    reservations.add(getReservation(reservation, locale));
-                }
-            }
-            model.addAttribute("reservations", reservations);
         }
 
         model.addAttribute("reservationRequest", reservationRequestModel);

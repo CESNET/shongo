@@ -70,6 +70,10 @@ public class ReservationRequestModel
 
     private String roomPin;
 
+    private AllocationState allocationState;
+
+    private String allocationStateReport;
+
     private List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
     public ReservationRequestModel()
@@ -258,6 +262,16 @@ public class ReservationRequestModel
         this.roomPin = roomPin;
     }
 
+    public AllocationState getAllocationState()
+    {
+        return allocationState;
+    }
+
+    public String getAllocationStateReport()
+    {
+        return allocationStateReport;
+    }
+
     public List<UserRoleModel> getUserRoles()
     {
         return userRoles;
@@ -374,12 +388,16 @@ public class ReservationRequestModel
         Period duration;
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            parentReservationRequestId = reservationRequest.getParentReservationRequestId();
             periodicityType = PeriodicityType.NONE;
             Interval slot = reservationRequest.getSlot();
             start = slot.getStart();
             end = slot.getEnd();
             duration = slot.toPeriod();
+
+            parentReservationRequestId = reservationRequest.getParentReservationRequestId();
+
+            allocationState = reservationRequest.getAllocationState();
+            allocationStateReport = reservationRequest.getAllocationStateReport();
         }
         else if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;

@@ -37,6 +37,7 @@
                 <th><spring:message code="views.reservationRequest.dateTime"/></th>
                 <th><spring:message code="views.reservationRequest.user"/></th>
                 <th><spring:message code="views.reservationRequest.type"/></th>
+                <th><spring:message code="views.reservationRequest.allocationState"/></th>
                 <th><spring:message code="views.list.action"/></th>
             </tr>
             </thead>
@@ -54,6 +55,9 @@
                 <td><joda:format value="${historyItem.dateTime}" style="MM"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
+                <td class="allocation-state">
+                    <span class="${historyItem.allocationState}">${historyItem.allocationStateMessage}</span>
+                </td>
                 <td>
                     <c:choose>
                         <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
@@ -90,7 +94,62 @@
     <%-- Detail of request --%>
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
 
+    <%-- Reservation --%>
+    <c:if test="${reservation != null}">
+        <h2><spring:message code="views.reservationRequestDetail.reservation"/></h2>
+        <dl class="dl-horizontal">
+
+            <dt><spring:message code="views.reservationRequest.slot"/></dt>
+            <dd>
+                <joda:format value="${reservation.slot.start}" style="MS"/> -
+                <joda:format value="${reservation.slot.end}" style="MS"/>
+            </dd>
+
+            <dt><spring:message code="views.room.state"/></dt>
+            <dd class="executable-state">
+                <c:if test="${reservation.roomState != null}">
+                                    <span id="executableState" class="${reservation.roomState}">
+                                        <spring:message
+                                                code="views.reservationRequest.executableState.${reservation.roomState}"/>
+                                    </span>
+                    <tag:help label="executableState">
+                                        <span>
+                                            <spring:message
+                                                    code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
+                                        </span>
+                        <c:if test="${not empty reservation.roomStateReport}">
+                            <pre>${reservation.roomStateReport}</pre>
+                        </c:if>
+                    </tag:help>
+                </c:if>
+            </dd>
+
+            <dt><spring:message code="views.room.aliases"/></dt>
+            <dd>
+                <span id="executableAliases">${reservation.roomAliases}</span>
+                <c:if test="${not empty reservation.roomAliasesDescription}">
+                    <tag:help
+                            label="executableAliases">${reservation.roomAliasesDescription}</tag:help>
+                </c:if>
+            </dd>
+
+            <c:if test="${reservation.roomState.available}">
+                <dt><spring:message code="views.list.action"/></dt>
+                <dd>
+
+                    <spring:eval var="urlRoomManagement"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
+                    <a href="${urlRoomManagement}">
+                        <spring:message code="views.list.action.manage"/>
+                    </a>
+                </dd>
+            </c:if>
+
+        </dl>
+    </c:if>
+
     <%-- List of user roles --%>
+    <hr/>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
     <spring:eval var="aclUrl"
                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestAcl(contextPath, ':id')"/>
@@ -101,154 +160,91 @@
     <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
                       isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${aclDeleteUrl}"/>
 
-    <%-- Active reservation request --%>
-    <c:if test="${isActive}">
+    <%-- Multiple reservation requests dynamically --%>
+    <c:if test="${reservationRequest.periodicityType != 'NONE'}">
         <hr/>
-        <c:choose>
-            <%-- List of reservations --%>
-            <c:when test="${reservationRequest.periodicityType == 'NONE'}">
-                <h2><spring:message code="views.reservationRequestDetail.reservations"/></h2>
-                <table class="table table-striped table-hover">
-                    <thead>
-                    <tr>
-                        <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-                        <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                        <th><spring:message code="views.room.state"/></th>
-                        <th><spring:message code="views.room.aliases"/></th>
-                        <th width="120px"><spring:message code="views.list.action"/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:forEach items="${reservations}" var="reservation" varStatus="status">
-                        <tr>
-                            <td>
-                                <joda:format value="${reservation.slot.start}" style="MS"/> -
-                                <joda:format value="${reservation.slot.end}" style="MS"/>
-                            </td>
-                            <td class="allocation-state">
-                                <c:if test="${reservation.allocationState != null}">
-                                    <span id="reservationState-${status.index}" class="${reservation.allocationState}">
-                                        <spring:message code="views.reservationRequest.allocationState.${reservation.allocationState}"/>
-                                    </span>
-                                    <tag:help label="reservationState-${status.index}">
-                                        <span>
-                                            <spring:message code="views.help.reservationRequest.allocationState.${reservation.allocationState}"/>
-                                        </span>
-                                        <c:if test="${not empty reservation.allocationStateReport}">
-                                            <pre>${reservation.allocationStateReport}</pre>
-                                        </c:if>
-                                    </tag:help>
-                                </c:if>
-                            </td>
-                            <td class="executable-state">
-                                <c:if test="${reservation.roomState != null}">
-                                    <span id="executableState-${status.index}" class="${reservation.roomState}">
-                                        <spring:message code="views.reservationRequest.executableState.${reservation.roomState}"/>
-                                    </span>
-                                    <tag:help label="executableState-${status.index}">
-                                        <span>
-                                            <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
-                                        </span>
-                                        <c:if test="${not empty reservation.roomStateReport}">
-                                            <pre>${reservation.roomStateReport}</pre>
-                                        </c:if>
-                                    </tag:help>
-                                </c:if>
-                            </td>
-                            <td>
-                                <span id="executableAliases-${status.index}">${reservation.roomAliases}</span>
-                                <c:if test="${not empty reservation.roomAliasesDescription}">
-                                    <tag:help label="executableAliases-${status.index}">${reservation.roomAliasesDescription}</tag:help>
-                                </c:if>
-                            </td>
-                            <td>
-                                <c:if test="${reservation.roomState.available}">
-                                    <spring:eval var="urlRoomManagement" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
-                                    <a href="${urlRoomManagement}">
-                                        <spring:message code="views.list.action.manage"/>
-                                    </a>
-                                </c:if>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
-            </c:when>
+        <spring:eval var="childListUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailChildren(contextPath, ':id')"/>
+        <spring:eval var="childDetailUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{childReservationRequest.id}}')"/>
+        <spring:eval var="childRoomManagementUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
+        <div ng-controller="PaginationController"
+             ng-init="init('reservationRequestDetail.children', '${childListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+            <pagination-page-size class="pull-right">
+                <spring:message code="views.pagination.records"/>
+            </pagination-page-size>
+            <h2><spring:message code="views.reservationRequestDetail.children"/></h2>
 
-            <%-- Multiple reservation requests dynamically --%>
-            <c:otherwise>
-                <spring:eval var="childListUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailChildren(contextPath, ':id')"/>
-                <spring:eval var="childDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{childReservationRequest.id}}')"/>
-                <spring:eval var="childRoomManagementUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
-                <div ng-controller="PaginationController"
-                     ng-init="init('reservationRequestDetail.children', '${childListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-                    <pagination-page-size class="pull-right">
-                        <spring:message code="views.pagination.records"/>
-                    </pagination-page-size>
-                    <h2><spring:message code="views.reservationRequestDetail.children"/></h2>
-                    <div class="spinner" ng-hide="ready"></div>
-                    <table class="table table-striped table-hover" ng-show="ready">
-                        <thead>
-                        <tr>
-                            <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-                            <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                            <th><spring:message code="views.room.state"/></th>
-                            <th><spring:message code="views.room.aliases"/></th>
-                            <th width="120px"><spring:message code="views.list.action"/></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr ng-repeat="childReservationRequest in items">
-                            <td>{{childReservationRequest.slot}}</td>
-                            <td class="allocation-state">
-                                <span id="reservationState-{{$index}}" class="{{childReservationRequest.allocationState}}">{{childReservationRequest.allocationStateMessage}}</span>
-                                <tag:help label="reservationState-{{$index}}" tooltipId="reservationState-tooltip-{{$index}}">
-                                    <span>{{childReservationRequest.allocationStateHelp}}</span>
-                                    <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
-                                        <div ng-switch-when="false">
-                                            <pre>{{childReservationRequest.allocationStateReport}}</pre>
-                                        </div>
-                                    </div>
-                                </tag:help>
-                            </td>
-                            <td class="executable-state">
-                                <div ng-show="childReservationRequest.roomState">
-                                    <span id="executableState-{{$index}}" class="{{childReservationRequest.roomState}}">{{childReservationRequest.roomStateMessage}}</span>
-                                    <tag:help label="executableState-{{$index}}" tooltipId="executableState-tooltip-{{$index}}">
-                                        <span>{{childReservationRequest.roomStateHelp}}</span>
-                                        <div ng-switch on="isEmpty(childReservationRequest.roomStateReport)">
-                                            <div ng-switch-when="false">
-                                                <pre>{{childReservationRequest.roomStateReport}}</pre>
-                                            </div>
-                                        </div>
-                                    </tag:help>
+            <div class="spinner" ng-hide="ready"></div>
+            <table class="table table-striped table-hover" ng-show="ready">
+                <thead>
+                <tr>
+                    <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
+                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                    <th><spring:message code="views.room.state"/></th>
+                    <th><spring:message code="views.room.aliases"/></th>
+                    <th width="120px"><spring:message code="views.list.action"/></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="childReservationRequest in items">
+                    <td>{{childReservationRequest.slot}}</td>
+                    <td class="allocation-state">
+                        <span id="reservationState-{{$index}}" class="{{childReservationRequest.allocationState}}">{{childReservationRequest.allocationStateMessage}}</span>
+                        <tag:help label="reservationState-{{$index}}"
+                                  tooltipId="reservationState-tooltip-{{$index}}">
+                            <span>{{childReservationRequest.allocationStateHelp}}</span>
+
+                            <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
+                                <div ng-switch-when="false">
+                                    <pre>{{childReservationRequest.allocationStateReport}}</pre>
                                 </div>
-                            </td>
-                            <td>
-                                <span id="executableAliases-{{$index}}" ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
-                                <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
+                            </div>
+                        </tag:help>
+                    </td>
+                    <td class="executable-state">
+                        <div ng-show="childReservationRequest.roomState">
+                            <span id="executableState-{{$index}}" class="{{childReservationRequest.roomState}}">{{childReservationRequest.roomStateMessage}}</span>
+                            <tag:help label="executableState-{{$index}}"
+                                      tooltipId="executableState-tooltip-{{$index}}">
+                                <span>{{childReservationRequest.roomStateHelp}}</span>
+
+                                <div ng-switch on="isEmpty(childReservationRequest.roomStateReport)">
                                     <div ng-switch-when="false">
-                                        <tag:help label="executableAliases-{{$index}}" tooltipId="executableAliases-tooltip-{{$index}}">
-                                            <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
-                                        </tag:help>
+                                        <pre>{{childReservationRequest.roomStateReport}}</pre>
                                     </div>
                                 </div>
-                            </td>
-                            <td>
-                                <a href="${childDetailUrl}"><spring:message code="views.list.action.show"/></a>
+                            </tag:help>
+                        </div>
+                    </td>
+                    <td>
+                            <span id="executableAliases-{{$index}}"
+                                  ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
+
+                        <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)"
+                             style="display: inline-block;">
+                            <div ng-switch-when="false">
+                                <tag:help label="executableAliases-{{$index}}"
+                                          tooltipId="executableAliases-tooltip-{{$index}}">
+                                    <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
+                                </tag:help>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="${childDetailUrl}"><spring:message code="views.list.action.show"/></a>
                                 <span ng-show="childReservationRequest.roomStateAvailable">
                                     | <a href="${childRoomManagementUrl}">
-                                        <spring:message code="views.list.action.manage"/>
-                                    </a>
+                                    <spring:message code="views.list.action.manage"/>
+                                </a>
                                 </span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
-                </div>
-            </c:otherwise>
-        </c:choose>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
+        </div>
     </c:if>
 
     <%-- Permanent room capacities --%>

@@ -79,9 +79,12 @@
         <ul class="nav pull-right">
             <li>
                 <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
+                    <div>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </div>
+                    <span>&nbsp;<spring:message code="views.layout.menu"/></span>
                 </button>
             </li>
             <security:authorize access="!isAuthenticated()">
