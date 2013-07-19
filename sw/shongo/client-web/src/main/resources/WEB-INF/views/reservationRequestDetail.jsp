@@ -293,8 +293,9 @@
             </table>
             <c:choose>
                 <c:when test="${isProvidable && reservationRequest.slot.containsNow()}">
-                    <c:set var="urlCreate">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_CREATE %></c:set>
-                    <a class="btn btn-primary" href="${urlCreate}?type=PERMANENT_ROOM_CAPACITY&permanentRoom=${reservationRequest.id}">
+                    <spring:eval var="createUrl"
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+                    <a class="btn btn-primary" href="${createUrl}">
                         <spring:message code="views.button.create"/>
                     </a>
                     <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>

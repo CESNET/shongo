@@ -26,7 +26,7 @@ import javax.annotation.Resource;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"reservationRequest", "permanentRooms", "urlConfirm"})
+@SessionAttributes({"reservationRequest", "permanentRooms", "confirmUrl"})
 public class ReservationRequestUpdateController
 {
     @Resource
@@ -51,7 +51,7 @@ public class ReservationRequestUpdateController
             method = {RequestMethod.GET})
     public String handleCreate(
             SecurityToken securityToken,
-            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType,
+            @PathVariable(value = "type") ReservationRequestModel.SpecificationType specificationType,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
             Model model)
     {
@@ -61,7 +61,7 @@ public class ReservationRequestUpdateController
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("permanentRooms",
                 ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
-        model.addAttribute("urlConfirm", ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM);
+        model.addAttribute("confirmUrl", ClientWebUrl.RESERVATION_REQUEST_CREATE_CONFIRM);
         return "reservationRequestCreate";
     }
 
@@ -106,7 +106,7 @@ public class ReservationRequestUpdateController
             model.addAttribute("permanentRooms",
                     ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
         }
-        model.addAttribute("urlConfirm",
+        model.addAttribute("confirmUrl",
                 ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM, reservationRequestId));
         return "reservationRequestModify";
     }

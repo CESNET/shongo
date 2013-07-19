@@ -143,7 +143,7 @@ public class WizardCreateController extends AbstractWizardController
     {
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
         wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
-        wizardView.addObject("formUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
+        wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
         return wizardView;
     }
 

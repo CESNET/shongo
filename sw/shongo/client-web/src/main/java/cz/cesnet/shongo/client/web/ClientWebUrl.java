@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web;
 
+import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+
 /**
  * Definition of URL constants in Shongo web client.
  */
@@ -63,7 +65,7 @@ public class ClientWebUrl
     public static final String RESERVATION_REQUEST_LIST_DATA =
             "/reservation-request/list/data";
     public static final String RESERVATION_REQUEST_CREATE =
-            "/reservation-request/create";
+            "/reservation-request/create/{type}";
     public static final String RESERVATION_REQUEST_CREATE_CONFIRM =
             "/reservation-request/create/confirm";
     public static final String RESERVATION_REQUEST_DETAIL =
@@ -122,6 +124,17 @@ public class ClientWebUrl
     public static String getReservationRequestDetailUsages(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_DETAIL_USAGES, reservationRequestId);
+    }
+
+    public static String getReservationRequestCreate(String path, ReservationRequestModel.SpecificationType type)
+    {
+        return path + format(RESERVATION_REQUEST_CREATE, type);
+    }
+
+    public static String getReservationRequestCreatePermanentRoomCapacity(String path, String permanentRoom)
+    {
+        return getReservationRequestCreate(path, ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY) +
+                "?permanentRoom=" + permanentRoom;
     }
 
     public static String getReservationRequestModify(String path, String reservationRequestId)

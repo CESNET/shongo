@@ -116,7 +116,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     {
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY, "wizardCreateAttributes.jsp");
         wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
-        wizardView.addObject("formUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS);
+        wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS);
         return wizardView;
     }
 
