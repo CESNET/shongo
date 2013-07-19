@@ -11,5 +11,3 @@
 </c:set>
 
 <tag:reservationRequestDelete dependencies="${dependencies}" detailUrl="${detailUrl}"/>
-
-<hr/>

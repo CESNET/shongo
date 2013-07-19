@@ -61,9 +61,10 @@
 
     <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
     <dd>
-        <joda:format value="${reservationRequest.start}" style="MM"/>
+        <c:set var="reservationRequestSlot" value="${reservationRequest.slot}"/>
+        <joda:format value="${reservationRequestSlot.start}" style="MM"/>
         <br/>
-        <joda:format value="${reservationRequest.end}" style="MM"/>
+        <joda:format value="${reservationRequestSlot.end}" style="MM"/>
     </dd>
 
     <c:if test="${empty reservationRequest.parentReservationRequestId}">

@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.client.web.models.UserRoleValidator;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Role;
@@ -26,7 +28,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-@SessionAttributes({"aclRecord"})
+@SessionAttributes({"userRole"})
 public class ReservationRequestAclController
 {
     @Resource
@@ -81,11 +83,12 @@ public class ReservationRequestAclController
      */
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE, method = RequestMethod.GET)
     public ModelAndView handleAclCreate(
+            SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
-        AclRecord aclRecord = new AclRecord();
-        aclRecord.setEntityId(reservationRequestId);
-        return handleAclCreate(reservationRequestId, aclRecord);
+        UserRoleModel userRole = new UserRoleModel(new CacheProvider(cache, securityToken));
+        userRole.setEntityId(reservationRequestId);
+        return handleAclCreate(userRole);
     }
 
     /**
@@ -95,16 +98,19 @@ public class ReservationRequestAclController
     public Object handleAclCreateConfirm(
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
-            @ModelAttribute("aclRecord") AclRecord aclRecord,
+            @ModelAttribute("userRole") UserRoleModel userRole,
             BindingResult result)
     {
+        if (!userRole.getEntityId().equals(reservationRequestId)) {
+            throw new IllegalStateException("Acl record entity id doesn't match the reservation request id.");
+        }
         UserRoleValidator userRoleValidator = new UserRoleValidator();
-        userRoleValidator.validate(aclRecord, result);
+        userRoleValidator.validate(userRole, result);
         if (result.hasErrors()) {
-            return handleAclCreate(reservationRequestId, aclRecord);
+            return handleAclCreate(userRole);
         }
         authorizationService.createAclRecord(securityToken,
-                aclRecord.getUserId(), aclRecord.getEntityId(), aclRecord.getRole());
+                userRole.getUserId(), userRole.getEntityId(), userRole.getRole());
 
         return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
     }
@@ -128,7 +134,7 @@ public class ReservationRequestAclController
         if (aclRecords.getItemCount() == 1 && aclRecords.getItem(0).getId().equals(aclRecordId)) {
             model.addAttribute("title", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.title");
             model.addAttribute("message", "views.reservationRequestDetail.userRoles.cannotDeleteLastOwner.message");
-            model.addAttribute("urlBack",
+            model.addAttribute("backUrl",
                     ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
             return "message";
         }
@@ -139,17 +145,10 @@ public class ReservationRequestAclController
     /**
      * Handle view for creation of {@link AclRecord} for reservation request.
      */
-    private ModelAndView handleAclCreate(String reservationRequestId, AclRecord aclRecord)
+    private ModelAndView handleAclCreate(UserRoleModel userRole)
     {
-        ModelAndView modelAndView = new ModelAndView("aclRecordCreate");
-        modelAndView.addObject("aclRecord", aclRecord);
-        modelAndView.addObject("entity", "views.reservationRequest");
-        modelAndView.addObject("roles", EntityType.RESERVATION_REQUEST.getOrderedRoles());
-        modelAndView.addObject("confirm", "views.button.create");
-        modelAndView.addObject("urlConfirm",
-                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_ACL_CREATE_CONFIRM, reservationRequestId));
-        modelAndView.addObject("urlBack",
-                ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId));
+        ModelAndView modelAndView = new ModelAndView("reservationRequestUserRole");
+        modelAndView.addObject("userRole", userRole);
         return modelAndView;
     }
 }

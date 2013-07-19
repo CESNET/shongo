@@ -9,7 +9,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
 
-<%@attribute name="entityTitle" required="false" type="java.lang.String" %>
+<%@attribute name="entityType" required="true" type="cz.cesnet.shongo.controller.EntityType" %>
 <%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
 <%@attribute name="confirmTitle" required="false" type="java.lang.String" %>
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
@@ -70,10 +70,10 @@
 
         <form:hidden path="id"/>
 
-        <c:if test="${not empty userRole.entityId && not empty entityTitle}">
+        <c:if test="${not empty userRole.entityId}">
             <div class="control-group">
                 <form:label class="control-label" path="entityId">
-                    <spring:message code="${entityTitle}"/>:
+                    <spring:message code="views.aclRecord.entity.${entityType}"/>:
                 </form:label>
                 <div class="controls double-width">
                     <form:input path="entityId" readonly="true"/>
@@ -97,7 +97,7 @@
             </form:label>
             <div class="controls">
                 <form:select path="role">
-                    <spring:eval var="roles" expression="T(cz.cesnet.shongo.controller.EntityType).RESERVATION_REQUEST.getOrderedRoles()"/>
+                    <spring:eval var="roles" expression="entityType.getOrderedRoles()"/>
                     <c:forEach items="${roles}" var="role">
                         <form:option value="${role}"><spring:message code="views.aclRecord.role.${role}"/></form:option>
                     </c:forEach>

@@ -129,9 +129,10 @@ public class WizardReservationRequestController extends AbstractWizardController
         wizardView.addObject("reservationRequest", reservationRequest);
         wizardView.addObject("dependencies", dependencies);
         if(dependencies.size() == 0) {
-            wizardView.setPreviousPage(ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, "views.button.no", false);
+            wizardView.setPreviousPage(null);
             wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId),
                     "views.button.yes").setPrimary(true);
+            wizardView.addAction(ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, "views.button.no");
         }
         return wizardView;
     }

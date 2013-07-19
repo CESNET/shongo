@@ -6,7 +6,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="backUrl" value="${contextPath}${urlBack}"/>
+<c:set var="backUrl" value="${contextPath}${backUrl}"/>
 
 <div>
     <h1><spring:message code="${title}"/></h1>

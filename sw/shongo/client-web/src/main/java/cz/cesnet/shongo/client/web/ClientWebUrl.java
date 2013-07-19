@@ -149,6 +149,11 @@ public class ClientWebUrl
         return path + format(RESERVATION_REQUEST_ACL_CREATE, reservationRequestId);
     }
 
+    public static String getReservationRequestAclCreateConfirm(String path, String reservationRequestId)
+    {
+        return path + format(RESERVATION_REQUEST_ACL_CREATE_CONFIRM, reservationRequestId);
+    }
+
     public static String getReservationRequestAclDelete(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_ACL_DELETE, reservationRequestId);

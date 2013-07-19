@@ -34,6 +34,7 @@ public class ReservationRequestValidator implements Validator
     public void validate(Object object, Errors errors)
     {
         ReservationRequestModel reservationRequestModel = (ReservationRequestModel) object;
+
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "purpose", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "description", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "technology", "validation.field.required");

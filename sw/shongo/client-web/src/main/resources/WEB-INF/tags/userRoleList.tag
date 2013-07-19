@@ -84,7 +84,7 @@
                     <td>{{userRole.user.primaryEmail}}</td>
                     <c:if test="${isWritable}">
                         <td>
-                            <spring:eval var="urlAclDelete"
+                            <spring:eval var="aclDeleteUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, '{{userRole.id}}')"/>
                             <a href="${aclDeleteUrl}">
                                 <spring:message code="views.list.action.delete"/>
