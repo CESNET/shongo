@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.mail.*;
@@ -42,14 +43,61 @@ public class ErrorController
      * Handle error view.
      */
     @RequestMapping("/error")
-    public String handleErrorView(HttpServletRequest request, Model model)
+    public ModelAndView handleError(HttpServletRequest request)
     {
         String requestUri = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
         String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
+        return handleError(requestUri, statusCode, message, throwable, request, configuration);
+    }
 
-        reportError("Error " + statusCode + " in " + requestUri + ": " + message, throwable, request);
+    /**
+     * Handle error not found.
+     */
+    @RequestMapping("/error-not-found")
+    public String handleErrorNotFound()
+    {
+        return "errorNotFound";
+    }
+
+    /**
+     * Handle login error view.
+     */
+    @RequestMapping("/login-error")
+    public ModelAndView handleLoginErrorView(HttpServletRequest request, Model model)
+    {
+        Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
+
+        return handleError(request.getRequestURI(), null, "Login error.", exception,
+                request, configuration);
+    }
+
+    /**
+     * Handle controller not available view.
+     */
+    @RequestMapping(value = "/controller-not-available")
+    public String handleControllerNotAvailableView()
+    {
+        return "controllerNotAvailable";
+    }
+
+    public static ModelAndView handleError(String requestUri, Integer statusCode, String message, Throwable throwable,
+            HttpServletRequest request, ClientWebConfiguration configuration)
+    {
+        StringBuilder messageBuilder = new StringBuilder();
+        messageBuilder.append("Error");
+        if (statusCode != null) {
+            messageBuilder.append(" ");
+            messageBuilder.append(statusCode);
+        }
+        messageBuilder.append(" in ");
+        messageBuilder.append(requestUri);
+        if (message != null) {
+            messageBuilder.append(": ");
+            messageBuilder.append(message);
+        }
+        reportError(messageBuilder.toString(), throwable, request, configuration);
 
         if (throwable != null) {
             if (message != null) {
@@ -65,33 +113,11 @@ public class ErrorController
                 message = httpStatus.getReasonPhrase();
             }
         }
-        model.addAttribute("url", requestUri);
-        model.addAttribute("code", statusCode);
-        model.addAttribute("message", message);
-        return "error";
-    }
-
-    /**
-     * Handle login error view.
-     */
-    @RequestMapping("/login-error")
-    public String handleLoginErrorView(HttpServletRequest request, Model model)
-    {
-        Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        reportError("Login error.", exception, request);
-
-        model.addAttribute("exception", exception);
-        return "errorLogin";
-    }
-
-    /**
-     * Handle controller not available view.
-     */
-    @RequestMapping(value = "/controller-not-available")
-    public String handleControllerNotAvailableView()
-    {
-        return "controllerNotAvailable";
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.addObject("url", requestUri);
+        modelAndView.addObject("code", statusCode);
+        modelAndView.addObject("message", message);
+        return modelAndView;
     }
 
     /**
@@ -101,7 +127,8 @@ public class ErrorController
      * @param throwable
      * @param request
      */
-    private void reportError(String message, Throwable throwable, HttpServletRequest request)
+    private static void reportError(String message, Throwable throwable, HttpServletRequest request,
+            ClientWebConfiguration configuration)
     {
         logger.error(message, throwable);
 

@@ -47,6 +47,11 @@
     </servlet-mapping>
 
     <error-page>
+        <location>/error-not-found</location>
+        <error-code>404</error-code>
+    </error-page>
+
+    <error-page>
         <location>/error</location>
     </error-page>
 

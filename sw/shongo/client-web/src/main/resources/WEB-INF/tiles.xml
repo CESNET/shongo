@@ -57,6 +57,11 @@
         <put-attribute name="body" value="/WEB-INF/views/error.jsp" type="template"/>
     </definition>
 
+    <definition name="errorNotFound" extends="layout">
+        <put-attribute name="title" value="views.errorNotFound.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/errorNotFound.jsp" type="template"/>
+    </definition>
+
     <definition name="report" extends="layout">
         <put-attribute name="title" value="views.report.title"/>
         <put-attribute name="body" value="/WEB-INF/views/report.jsp" type="template"/>
