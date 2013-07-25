@@ -20,6 +20,14 @@
         <path>/WEB-INF/tags/reservationRequestDetail.tag</path>
     </tag-file>
     <tag-file>
+        <name>reservationRequestChildren</name>
+        <path>/WEB-INF/tags/reservationRequestChildren.tag</path>
+    </tag-file>
+    <tag-file>
+        <name>reservationRequestUsages</name>
+        <path>/WEB-INF/tags/reservationRequestUsages.tag</path>
+    </tag-file>
+    <tag-file>
         <name>reservationRequestForm</name>
         <path>/WEB-INF/tags/reservationRequestForm.tag</path>
     </tag-file>

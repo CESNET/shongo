@@ -6,10 +6,8 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
-import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
@@ -114,11 +112,11 @@ public class ReservationRequestDetailController
         // Get reservation for the reservation request
         if (hasVisibleReservation && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            List<Map<String, Object>> reservations = new LinkedList<Map<String, Object>>();
             String reservationId = reservationRequest.getLastReservationId();
             if (reservationId != null) {
                 Reservation reservation = reservationService.getReservation(securityToken, reservationId);
-                model.addAttribute("reservation", getReservation(reservation, locale));
+                model.addAttribute("reservation", ReservationRequestModel.getReservationModel(
+                        reservation, messageSource, locale));
             }
         }
 
@@ -167,8 +165,7 @@ public class ReservationRequestDetailController
         DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequest reservationRequest : response.getItems()) {
-            String reservationId = reservationRequest.getLastReservationId();
-            Map<String, Object> child = getReservation(reservationById.get(reservationId), locale);
+            Map<String, Object> child = new HashMap<String, Object>();
             child.put("id", reservationRequest.getId());
 
             Interval slot = reservationRequest.getSlot();
@@ -187,16 +184,42 @@ public class ReservationRequestDetailController
                 child.put("allocationStateReport", getAllocationStateReport(reservationRequest));
             }
 
-            Executable.State roomState = (Executable.State) child.get("roomState");
-            if (roomState != null) {
-                String roomStateMessage = messageSource.getMessage(
-                        "views.reservationRequest.executableState." + roomState, null, locale);
-                String roomStateHelp = messageSource.getMessage(
-                        "views.help.reservationRequest.executableState." + roomState, null, locale);
-                child.put("roomStateAvailable", roomState.isAvailable());
-                child.put("roomStateMessage", roomStateMessage);
-                child.put("roomStateHelp", roomStateHelp);
+            String reservationId = reservationRequest.getLastReservationId();
+            Reservation reservation = reservationById.get(reservationId);
+            if (reservation != null) {
+                // If reservation is not null it means that the reservation is allocated
+                child.put("allocationState", AllocationState.ALLOCATED);
+
+                // Reservation should contain allocated room
+                RoomExecutable room = (RoomExecutable) reservation.getExecutable();
+                if (room != null) {
+                    child.put("roomId", room.getId());
+
+                    // Set room state and report
+                    Executable.State roomState = room.getState();
+                    String roomStateMessage = messageSource.getMessage(
+                            "views.reservationRequest.executableState." + roomState, null, locale);
+                    String roomStateHelp = messageSource.getMessage(
+                            "views.help.reservationRequest.executableState." + roomState, null, locale);
+                    child.put("roomState", roomState);
+                    child.put("roomStateMessage", roomStateMessage);
+                    child.put("roomStateHelp", roomStateHelp);
+                    child.put("roomStateAvailable", roomState.isAvailable());
+                    switch (roomState) {
+                        case STARTING_FAILED:
+                        case STOPPING_FAILED:
+                            child.put("roomStateReport", room.getStateReport());
+                            break;
+                    }
+
+                    // Set room aliases
+                    List<Alias> aliases = room.getAliases();
+                    child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
+                    child.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
+                            aliases, roomState, locale, messageSource));
+                }
             }
+
             children.add(child);
         }
         Map<String, Object> data = new HashMap<String, Object>();
@@ -280,46 +303,5 @@ public class ReservationRequestDetailController
                 return reservationRequest.getAllocationStateReport();
         }
         return null;
-    }
-
-    /**
-     * @param reservation
-     * @return reservation attributes
-     */
-    private Map<String, Object> getReservation(Reservation reservation, Locale locale)
-    {
-        Map<String, Object> child = new HashMap<String, Object>();
-
-        if (reservation != null) {
-            // If reservation is not null it means that the reservation is allocated
-            child.put("allocationState", AllocationState.ALLOCATED);
-
-            // Get reservation date/time slot
-            child.put("slot", reservation.getSlot());
-
-            // Reservation should contain allocated room
-            RoomExecutable room = (RoomExecutable) reservation.getExecutable();
-            if (room != null) {
-                child.put("roomId", room.getId());
-
-                // Set room state and report
-                Executable.State roomState = room.getState();
-                child.put("roomState", roomState);
-                switch (roomState) {
-                    case STARTING_FAILED:
-                    case STOPPING_FAILED:
-                        child.put("roomStateReport", room.getStateReport());
-                        break;
-                }
-
-                // Set room aliases
-                List<Alias> aliases = room.getAliases();
-                child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
-                child.put("roomAliasesDescription",
-                        ReservationRequestModel.formatAliasesDescription(aliases, roomState, locale, messageSource));
-            }
-        }
-
-        return child;
     }
 }

@@ -38,10 +38,26 @@ public class Page
     }
 
     /**
+     * @param url sets the {@link #url}
+     */
+    public void setUrl(String url)
+    {
+        this.url = url;
+    }
+
+    /**
      * @return {@link #titleCode}
      */
     public String getTitleCode()
     {
         return titleCode;
+    }
+
+    /**
+     * @param titleCode sets the {@link #titleCode}
+     */
+    public void setTitleCode(String titleCode)
+    {
+        this.titleCode = titleCode;
     }
 }

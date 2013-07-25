@@ -89,6 +89,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     public ModelAndView handleCreatePermanentRoomCapacity(
             SecurityToken securityToken,
             HttpSession httpSession,
+            @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
             @RequestParam(value = "force", required = false) String force)
     {
         WizardView wizardView = getCreatePermanentRoomCapacityView();
@@ -101,6 +102,9 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             wizardView.addObject("reservationRequest", reservationRequestModel);
         }
         reservationRequestModel.setSpecificationType(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY);
+        if (permanentRoom != null) {
+            reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
+        }
 
         // Add permanent rooms
         wizardView.addObject("permanentRooms",

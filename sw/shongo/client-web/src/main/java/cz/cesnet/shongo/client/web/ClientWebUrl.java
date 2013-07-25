@@ -187,6 +187,11 @@ public class ClientWebUrl
         return path + getRoomManagement(roomId);
     }
 
+    public static String getWizardReservationRequestDelete(String path, String reservationRequestI)
+    {
+        return path + getWizardReservationRequestDelete(reservationRequestI);
+    }
+
     public static String getWizardReservationRequestDelete(String reservationRequestI)
     {
         return format(WIZARD_RESERVATION_REQUEST_DELETE, reservationRequestI);
@@ -195,5 +200,10 @@ public class ClientWebUrl
     public static String getWizardReservationRequestDeleteConfirm(String reservationRequestI)
     {
         return format(WIZARD_RESERVATION_REQUEST_DELETE_CONFIRM, reservationRequestI);
+    }
+
+    public static String getWizardCreatePermanentRoomCapacity(String path, String permanentRoom)
+    {
+        return path + format(WIZARD_CREATE_PERMANENT_ROOM_CAPACITY) + "?permanentRoom=" + permanentRoom;
     }
 }

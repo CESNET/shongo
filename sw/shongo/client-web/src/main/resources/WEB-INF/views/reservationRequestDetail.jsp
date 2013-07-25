@@ -20,11 +20,12 @@
 
 <c:if test="${isActive && empty reservationRequest.parentReservationRequestId}">
     <security:accesscontrollist hasPermission="WRITE" domainObject="${reservationRequest}" var="isWritable"/>
-    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST" domainObject="${reservationRequest}" var="isProvidable"/>
+    <security:accesscontrollist hasPermission="PROVIDE_RESERVATION_REQUEST"
+                                domainObject="${reservationRequest}" var="isProvidable"/>
 </c:if>
 
 <script type="text/javascript">
-    angular.module('jsp:reservationRequestDetail', ['ngPagination', 'tag:reservationRequestDetail']);
+    angular.module('jsp:reservationRequestDetail', ['tag:reservationRequestDetail', 'ngPagination']);
 </script>
 
 <%-- History --%>
@@ -96,7 +97,23 @@
 
     <%-- Reservation --%>
     <c:if test="${reservation != null}">
-        <h2><spring:message code="views.reservationRequestDetail.reservation"/></h2>
+        <h2>
+            <c:choose>
+                <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
+                    <spring:message code="views.reservationRequestDetail.reservation"/>
+                </c:when>
+                <c:otherwise>
+                    <spring:message code="views.reservationRequestDetail.oldReservation"/>
+                </c:otherwise>
+            </c:choose>
+            <c:if test="${reservation.roomState.available}">
+                <spring:eval var="urlRoomManagement"
+                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
+                <a href="${urlRoomManagement}">
+                    <spring:message code="views.list.action.manage"/>
+                </a>
+            </c:if>
+        </h2>
         <dl class="dl-horizontal">
 
             <dt><spring:message code="views.reservationRequest.slot"/></dt>
@@ -108,21 +125,22 @@
             <dt><spring:message code="views.room.state"/></dt>
             <dd class="executable-state">
                 <c:if test="${reservation.roomState != null}">
-                                    <span id="executableState" class="${reservation.roomState}">
-                                        <spring:message
-                                                code="views.reservationRequest.executableState.${reservation.roomState}"/>
-                                    </span>
+                    <span id="executableState" class="${reservation.roomState}">
+                        <spring:message code="views.reservationRequest.executableState.${reservation.roomState}"/>
+                    </span>
                     <tag:help label="executableState">
-                                        <span>
-                                            <spring:message
-                                                    code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
-                                        </span>
+                        <span>
+                            <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
+                        </span>
                         <c:if test="${not empty reservation.roomStateReport}">
                             <pre>${reservation.roomStateReport}</pre>
                         </c:if>
                     </tag:help>
                 </c:if>
             </dd>
+
+            <dt><spring:message code="views.room.licenseCount"/></dt>
+            <dd>${reservation.roomLicenseCount}</dd>
 
             <dt><spring:message code="views.room.aliases"/></dt>
             <dd>
@@ -133,22 +151,10 @@
                 </c:if>
             </dd>
 
-            <c:if test="${reservation.roomState.available}">
-                <dt><spring:message code="views.list.action"/></dt>
-                <dd>
-
-                    <spring:eval var="urlRoomManagement"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
-                    <a href="${urlRoomManagement}">
-                        <spring:message code="views.list.action.manage"/>
-                    </a>
-                </dd>
-            </c:if>
-
         </dl>
     </c:if>
 
-    <%-- List of user roles --%>
+    <%-- User roles --%>
     <hr/>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>
     <spring:eval var="aclUrl"
@@ -160,147 +166,20 @@
     <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
                       isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${aclDeleteUrl}"/>
 
-    <%-- Multiple reservation requests dynamically --%>
+    <%-- Periodic events --%>
     <c:if test="${reservationRequest.periodicityType != 'NONE'}">
         <hr/>
-        <spring:eval var="childListUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailChildren(contextPath, ':id')"/>
-        <spring:eval var="childDetailUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{childReservationRequest.id}}')"/>
-        <spring:eval var="childRoomManagementUrl"
-                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
-        <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestDetail.children', '${childListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-            <pagination-page-size class="pull-right">
-                <spring:message code="views.pagination.records"/>
-            </pagination-page-size>
-            <h2><spring:message code="views.reservationRequestDetail.children"/></h2>
-
-            <div class="spinner" ng-hide="ready"></div>
-            <table class="table table-striped table-hover" ng-show="ready">
-                <thead>
-                <tr>
-                    <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                    <th><spring:message code="views.room.state"/></th>
-                    <th><spring:message code="views.room.aliases"/></th>
-                    <th width="120px"><spring:message code="views.list.action"/></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="childReservationRequest in items">
-                    <td>{{childReservationRequest.slot}}</td>
-                    <td class="allocation-state">
-                        <span id="reservationState-{{$index}}" class="{{childReservationRequest.allocationState}}">{{childReservationRequest.allocationStateMessage}}</span>
-                        <tag:help label="reservationState-{{$index}}"
-                                  tooltipId="reservationState-tooltip-{{$index}}">
-                            <span>{{childReservationRequest.allocationStateHelp}}</span>
-
-                            <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
-                                <div ng-switch-when="false">
-                                    <pre>{{childReservationRequest.allocationStateReport}}</pre>
-                                </div>
-                            </div>
-                        </tag:help>
-                    </td>
-                    <td class="executable-state">
-                        <div ng-show="childReservationRequest.roomState">
-                            <span id="executableState-{{$index}}" class="{{childReservationRequest.roomState}}">{{childReservationRequest.roomStateMessage}}</span>
-                            <tag:help label="executableState-{{$index}}"
-                                      tooltipId="executableState-tooltip-{{$index}}">
-                                <span>{{childReservationRequest.roomStateHelp}}</span>
-
-                                <div ng-switch on="isEmpty(childReservationRequest.roomStateReport)">
-                                    <div ng-switch-when="false">
-                                        <pre>{{childReservationRequest.roomStateReport}}</pre>
-                                    </div>
-                                </div>
-                            </tag:help>
-                        </div>
-                    </td>
-                    <td>
-                            <span id="executableAliases-{{$index}}"
-                                  ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
-
-                        <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)"
-                             style="display: inline-block;">
-                            <div ng-switch-when="false">
-                                <tag:help label="executableAliases-{{$index}}"
-                                          tooltipId="executableAliases-tooltip-{{$index}}">
-                                    <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
-                                </tag:help>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <a href="${childDetailUrl}"><spring:message code="views.list.action.show"/></a>
-                                <span ng-show="childReservationRequest.roomStateAvailable">
-                                    | <a href="${childRoomManagementUrl}">
-                                    <spring:message code="views.list.action.manage"/>
-                                </a>
-                                </span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
-        </div>
+        <tag:reservationRequestChildren detailUrl="${detailUrl}"/>
     </c:if>
 
     <%-- Permanent room capacities --%>
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-        <spring:eval var="usageListUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailUsages(contextPath, ':id')"/>
-        <spring:eval var="usageDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{permanentRoomCapacity.id}}')"/>
         <hr/>
-        <div ng-controller="PaginationController"
-             ng-init="init('reservationRequestDetail.permanentRoomCapacities', '${usageListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-            <pagination-page-size class="pull-right">
-                <spring:message code="views.pagination.records"/>
-            </pagination-page-size>
-            <h2><spring:message code="views.reservationRequestDetail.permanentRoomCapacities"/></h2>
-            <div class="spinner" ng-hide="ready"></div>
-            <table class="table table-striped table-hover" ng-show="ready">
-                <thead>
-                <tr>
-                    <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-                    <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
-                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                    <th width="120px"><spring:message code="views.list.action"/></th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr ng-repeat="permanentRoomCapacity in items">
-                    <td>{{permanentRoomCapacity.slot}}</td>
-                    <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
-                    <td class="allocation-state">
-                        <span id="permanentRoomCapacityState-{{$index}}" class="{{permanentRoomCapacity.allocationState}}">{{permanentRoomCapacity.allocationStateMessage}}</span>
-                        <tag:help label="permanentRoomCapacityState-{{$index}}" tooltipId="reservationState-tooltip-{{$index}}">
-                            <span>{{permanentRoomCapacity.allocationStateHelp}}</span>
-                        </tag:help>
-                    </td>
-                    <td>
-                        <a href="${usageDetailUrl}"><spring:message code="views.list.action.show"/></a>
-                    </td>
-                </tr>
-                <tr ng-hide="items.length">
-                    <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
-                </tr>
-                </tbody>
-            </table>
-            <c:choose>
-                <c:when test="${isProvidable && reservationRequest.slot.containsNow()}">
-                    <spring:eval var="createUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
-                    <a class="btn btn-primary" href="${createUrl}">
-                        <spring:message code="views.button.create"/>
-                    </a>
-                    <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
-                </c:when>
-                <c:otherwise>
-                    <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>
-                </c:otherwise>
-            </c:choose>
-        </div>
+        <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+            <spring:eval var="usageCreateUrl"
+                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+        </c:if>
+        <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${usageCreateUrl}"/>
     </c:if>
 
 </div>

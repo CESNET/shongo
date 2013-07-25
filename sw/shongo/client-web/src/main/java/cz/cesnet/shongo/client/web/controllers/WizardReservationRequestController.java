@@ -7,14 +7,12 @@ import cz.cesnet.shongo.client.web.WizardPage;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.controller.Permission;
-import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.api.AclRecord;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +22,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Controller for displaying wizard interface.
@@ -41,6 +40,9 @@ public class WizardReservationRequestController extends AbstractWizardController
 
     @Resource
     private Cache cache;
+
+    @Resource
+    private MessageSource messageSource;
 
     private static enum Page
     {
@@ -73,7 +75,7 @@ public class WizardReservationRequestController extends AbstractWizardController
     public ModelAndView handleReservationRequestList()
     {
         WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST, "wizardReservationRequestList.jsp");
-        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_ROOM, "views.wizard.select.createRoom");
+        wizardView.setNextPage(null);
         return wizardView;
     }
 
@@ -84,14 +86,16 @@ public class WizardReservationRequestController extends AbstractWizardController
      */
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, method = RequestMethod.GET)
     public ModelAndView handleReservationRequestDetail(
+            Locale locale,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
 
         // Get reservation request
-        ReservationRequestModel reservationRequest = new ReservationRequestModel(
-                reservationService.getReservationRequest(securityToken, reservationRequestId), cacheProvider);
+        AbstractReservationRequest abstractReservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        ReservationRequestModel reservationRequest = new ReservationRequestModel(abstractReservationRequest, cacheProvider);
 
         // Get user roles
         AclRecordListRequest request = new AclRecordListRequest();
@@ -106,10 +110,17 @@ public class WizardReservationRequestController extends AbstractWizardController
         WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST_DETAIL, "wizardReservationRequestDetail.jsp");
         wizardView.addObject("reservationRequest", reservationRequest);
         wizardView.addObject("userRoles", userRoles);
-        if (cache.hasPermission(securityToken, reservationRequestId, Permission.WRITE)) {
-            wizardView.addAction(ClientWebUrl.getWizardReservationRequestDelete(reservationRequestId),
-                    "views.button.delete", WizardView.ActionPosition.RIGHT);
+
+        // Get reservation
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            String reservationId = ((ReservationRequest) abstractReservationRequest).getLastReservationId();
+            if (reservationId != null) {
+                Reservation reservation = reservationService.getReservation(securityToken, reservationId);
+                wizardView.addObject("reservation", ReservationRequestModel.getReservationModel(
+                        reservation, messageSource, locale));
+            }
         }
+
         return wizardView;
     }
 

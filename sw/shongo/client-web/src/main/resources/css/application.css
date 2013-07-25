@@ -77,6 +77,11 @@ div.actions ul {
 div.actions li a {
     line-height: 30px;
 }
+div.actions li span {
+    line-height: 30px;
+    font-weight: normal;
+    color: #808080;
+}
 
 
 /** Navigation nav-pills disabled state */

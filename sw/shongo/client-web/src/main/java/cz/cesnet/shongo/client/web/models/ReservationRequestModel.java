@@ -908,6 +908,46 @@ public class ReservationRequestModel
     }
 
     /**
+     * @param reservation
+     * @param messageSource
+     * @param locale
+     * @return reservation model for given {@code reservation}
+     */
+    public static Map<String, Object> getReservationModel(Reservation reservation, MessageSource messageSource,
+            Locale locale)
+    {
+        Map<String, Object> reservationModel = new HashMap<String, Object>();
+        if (reservation != null) {
+            // Get reservation date/time slot
+            reservationModel.put("slot", reservation.getSlot());
+
+            // Reservation should contain allocated room
+            RoomExecutable room = (RoomExecutable) reservation.getExecutable();
+            if (room != null) {
+                reservationModel.put("roomId", room.getId());
+                reservationModel.put("roomLicenseCount", room.getLicenseCount());
+
+                // Set room state and report
+                Executable.State roomState = room.getState();
+                reservationModel.put("roomState", roomState);
+                switch (roomState) {
+                    case STARTING_FAILED:
+                    case STOPPING_FAILED:
+                        reservationModel.put("roomStateReport", room.getStateReport());
+                        break;
+                }
+
+                // Set room aliases
+                List<Alias> aliases = room.getAliases();
+                reservationModel.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
+                reservationModel.put("roomAliasesDescription",
+                        ReservationRequestModel.formatAliasesDescription(aliases, roomState, locale, messageSource));
+            }
+        }
+        return reservationModel;
+    }
+
+    /**
      * @param reservationService
      * @param securityToken
      * @param cache

@@ -67,13 +67,12 @@
         <joda:format value="${reservationRequestSlot.end}" style="MM"/>
     </dd>
 
-    <c:if test="${empty reservationRequest.parentReservationRequestId}">
+    <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
         <dt><spring:message code="views.reservationRequest.periodicity"/>:</dt>
         <dd>
             <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
             <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
-                (<spring:message code="views.reservationRequest.periodicity.until"/>
-                <joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
+                (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
             </c:if>
         </dd>
     </c:if>

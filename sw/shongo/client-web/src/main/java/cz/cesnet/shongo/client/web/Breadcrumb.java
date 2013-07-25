@@ -56,7 +56,7 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
     public Iterator<BreadcrumbItem> iterator()
     {
         if (items == null) {
-            Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl);
+            Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl, true);
 
             items = new LinkedList<BreadcrumbItem>();
             NavigationPage navigationPage = this.navigationPage;

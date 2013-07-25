@@ -4,8 +4,11 @@ import cz.cesnet.shongo.client.web.Page;
 import cz.cesnet.shongo.client.web.WizardPage;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for displaying wizard interface.
@@ -14,6 +17,9 @@ import java.util.List;
  */
 public abstract class AbstractWizardController
 {
+    @Resource
+    private HttpServletRequest request;
+
     protected abstract void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId);
 
     protected WizardView getWizardView(Object wizardPageId, String wizardContent)
@@ -49,6 +55,16 @@ public abstract class AbstractWizardController
             }
         }
 
+        if (wizardPageCurrent != null) {
+            Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(request.getRequestURI(), false);
+            for (WizardPage wizardPage : wizardPages) {
+                if (wizardPage.isAvailable()) {
+                    String wizardPageUrl = wizardPage.getUrl(attributes);
+                    wizardPage.setUrl(wizardPageUrl);
+                }
+            }
+        }
+
         WizardView wizardView = new WizardView(wizardPagePrevious, wizardPageNext);
         wizardView.addObject("wizardContent", wizardContent);
         wizardView.addObject("wizardPages", wizardPages);
@@ -58,6 +74,8 @@ public abstract class AbstractWizardController
 
     public static class WizardView extends ModelAndView
     {
+        public static final String URL_REFRESH = "javascript: location.reload();";
+
         private final List<Action> actions = new LinkedList<Action>();
 
         private final Action actionPrevious;
@@ -165,22 +183,6 @@ public abstract class AbstractWizardController
             {
                 super(url, titleCode);
                 this.position = position;
-            }
-
-            /**
-             * @param url sets the {@link #url}
-             */
-            protected void setUrl(String url)
-            {
-                this.url = url;
-            }
-
-            /**
-             * @param titleCode sets the {@link #titleCode}
-             */
-            protected void setTitleCode(String titleCode)
-            {
-                this.titleCode = titleCode;
             }
 
             /**

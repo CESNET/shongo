@@ -65,6 +65,9 @@ public class NavigationPage extends Page
      */
     public String getUrl(Map<String, String> attributes)
     {
+        if (attributes == null) {
+            return url;
+        }
         if (urlAttributes == null) {
             buildUrl();
         }
@@ -131,10 +134,12 @@ public class NavigationPage extends Page
     }
 
     /**
-     * @param requestUrl from which should be attributes parsed and which must match the {@link #url}
+     * @param requestUrl    from which should be attributes parsed and which must match the {@link #url}
+     * @param failUnmatched specifies whether exception should be thrown when given {@code requestUrl}
+     *                      doesn't match the {@link #urlPattern}
      * @return attributes parsed from given {@code requestUrl} by the {@link #url} definition
      */
-    public Map<String, String> parseUrlAttributes(String requestUrl)
+    public Map<String, String> parseUrlAttributes(String requestUrl, boolean failUnmatched)
     {
         if (urlPattern == null) {
             buildUrl();
@@ -152,9 +157,10 @@ public class NavigationPage extends Page
             }
             return attributes;
         }
-        else {
+        else if (failUnmatched) {
             throw new RuntimeException("Pattern " + urlPattern + " should match " + requestUrl);
         }
+        return null;
     }
 
     /**

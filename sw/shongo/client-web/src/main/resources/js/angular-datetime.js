@@ -7,7 +7,9 @@ var dateTimeModule = angular.module('ngDateTime', []);
  * Initialize date/time picker.
  */
 $(function () {
-    $.fn.datetimepicker.dates['en'].today = 'Now';
+    if ( $.fn.datetimepicker != null) {
+        $.fn.datetimepicker.dates['en'].today = 'Now';
+    }
 });
 
 /**
