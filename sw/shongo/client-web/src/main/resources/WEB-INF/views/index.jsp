@@ -9,7 +9,7 @@
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="urlLogin">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
-<c:set var="urlWizard">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
+<c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
 <c:set var="urlAdvanced">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="urlRoomsData">${contextPath}<%= ClientWebUrl.ROOMS_DATA %></c:set>
 
@@ -31,7 +31,7 @@
         <div class="actions">
             <span><spring:message code="views.wizard.select"/></span>
             <ul>
-                <li><a href="${urlWizard}"><spring:message code="views.index.dashboard.startWizard"/></a></li>
+                <li><a href="${wizardUrl}"><spring:message code="views.index.dashboard.startWizard"/></a></li>
                 <li><a href="${urlAdvanced}"><spring:message code="views.index.dashboard.startAdvanced"/></a></li>
             </ul>
         </div>

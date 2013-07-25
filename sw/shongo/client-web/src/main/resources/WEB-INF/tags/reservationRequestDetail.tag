@@ -1,5 +1,5 @@
 <%--
-  -- Reservation request form.
+  -- Detail of reservation request.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
 

@@ -13,9 +13,11 @@ public enum ClientWebNavigation
     // Site navigation
     HOME(null, ClientWebUrl.HOME,
             "navigation.home"),
-
+    REPORT(HOME, ClientWebUrl.REPORT,
+            "navigation.report"),
     CHANGELOG(HOME, ClientWebUrl.CHANGELOG,
             "navigation.changelog"),
+
     WIZARD(HOME, ClientWebUrl.WIZARD,
             "navigation.wizard"),
 

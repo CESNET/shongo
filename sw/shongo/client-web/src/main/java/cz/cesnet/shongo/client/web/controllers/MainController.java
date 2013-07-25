@@ -45,4 +45,22 @@ public class MainController
         model.addAttribute("changelog", Changelog.getInstance());
         return "changelog";
     }
+
+    /**
+     * Handle report problem.
+     */
+    @RequestMapping(value = ClientWebUrl.REPORT)
+    public String handleReport()
+    {
+        return "report";
+    }
+
+    /**
+     * Raise test error.
+     */
+    @RequestMapping(value = "/test-error")
+    public String handleTestError(Model model)
+    {
+        throw new RuntimeException("Test error");
+    }
 }

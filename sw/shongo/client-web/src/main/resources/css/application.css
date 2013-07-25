@@ -57,6 +57,10 @@ img.language {
     width: 16px;
     height: 11px;
 }
+/** Navigation breadcrumb */
+.breadcrumb {
+    padding-right: 5px;
+}
 
 /* Actions */
 div.actions {
@@ -166,7 +170,10 @@ dl.dl-horizontal dd {
     margin-left: 200px;
 }
 
-/** Form group */
+/** Form */
+form fieldset textarea {
+    resize:none;
+}
 form fieldset legend.select {
     padding-bottom: 5px;
     margin-bottom: 0px;
@@ -189,6 +196,9 @@ form .controls .description {
 
 /** Form double width */
 form .double-width input {
+    width: 336px;
+}
+form .double-width textarea {
     width: 336px;
 }
 form .double-width select {
@@ -358,5 +368,17 @@ table.aliases td.label {
 }
 .executable-state .STOPPING_FAILED {
     color: red;
+}
+
+/* error page */
+.error pre {
+    margin: 10px;
+}
+
+.report {
+    margin: 20px;
+}
+.report textarea {
+    height: 200px;
 }
 

@@ -16,6 +16,11 @@ public class ClientWebUrl
     public static final String CHANGELOG =
             "/changelog";
 
+    public static final String REPORT =
+            "/report";
+    public static final String REPORT_SUBMIT =
+            "/report/submit";
+
     public static final String WIZARD =
             "/wizard";
     public static final String WIZARD_SELECT =

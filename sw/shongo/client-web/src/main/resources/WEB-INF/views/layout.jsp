@@ -16,9 +16,10 @@
 <%-- Variables --%>
 <tiles:importAttribute/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="urlWizard">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
-<c:set var="urlReservationRequestList">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
-<c:set var="urlChangelog">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
+<c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
+<c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+<c:set var="reportUrl">${contextPath}<%= ClientWebUrl.REPORT %></c:set>
+<c:set var="changelogUrl">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
 <%
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
@@ -70,8 +71,8 @@
             <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse pull-left">
                 <ul class="nav" role="navigation">
-                    <li><a href="${urlWizard}"><spring:message code="navigation.wizard"/></a></li>
-                    <li><a href="${urlReservationRequestList}"><spring:message code="navigation.reservationRequest"/></a></li>
+                    <li><a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a></li>
+                    <li><a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a></li>
                 </ul>
             </div>
         </div>
@@ -121,6 +122,7 @@
         </ul>
 
         <c:if test="${requestScope.breadcrumb != null}">
+
             <ul class="breadcrumb">
                 <c:forEach items="${requestScope.breadcrumb.iterator()}" var="item" varStatus="status">
                     <c:choose>
@@ -135,7 +137,12 @@
                         </c:otherwise>
                     </c:choose>
                 </c:forEach>
+
+                <li class="pull-right">
+                    <a href="${reportUrl}"><spring:message code="views.layout.report"/></a>
+                </li>
             </ul>
+
         </c:if>
 
     </div>
@@ -160,7 +167,7 @@
 <%-- Page footer --%>
 <div class="footer block">
     <p class="muted">
-        <a href="${urlChangelog}"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
+        <a href="${changelogUrl}"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
                 code="shongo.version"/></a>
         &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
         <a title="CESNET" href="http://www.cesnet.cz/">

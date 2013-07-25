@@ -1,5 +1,5 @@
 <%--
-  -- Reservation request form.
+  -- List of reservation requests.
   --%>
 <%@ tag trimDirectiveWhitespaces="true" %>
 

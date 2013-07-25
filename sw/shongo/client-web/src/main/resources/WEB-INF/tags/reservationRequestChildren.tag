@@ -1,5 +1,5 @@
 <%--
-  -- Reservation request form.
+  -- Child reservation requests.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
 
