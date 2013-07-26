@@ -125,10 +125,8 @@
             <dt><spring:message code="views.room.state"/></dt>
             <dd class="executable-state">
                 <c:if test="${reservation.roomState != null}">
-                    <span id="executableState" class="${reservation.roomState}">
-                        <spring:message code="views.reservationRequest.executableState.${reservation.roomState}"/>
-                    </span>
-                    <tag:help label="executableState">
+                    <spring:message code="views.reservationRequest.executableState.${reservation.roomState}" var="roomState"/>
+                    <tag:help label="${roomState}" labelClass="${reservation.roomState}">
                         <span>
                             <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
                         </span>
@@ -144,11 +142,11 @@
 
             <dt><spring:message code="views.room.aliases"/></dt>
             <dd>
-                <span id="executableAliases">${reservation.roomAliases}</span>
-                <c:if test="${not empty reservation.roomAliasesDescription}">
-                    <tag:help
-                            label="executableAliases">${reservation.roomAliasesDescription}</tag:help>
-                </c:if>
+                <tag:help label="${reservation.roomAliases}">
+                    <c:if test="${not empty reservation.roomAliasesDescription}">
+                        ${reservation.roomAliasesDescription}
+                    </c:if>
+                </tag:help>
             </dd>
 
         </dl>

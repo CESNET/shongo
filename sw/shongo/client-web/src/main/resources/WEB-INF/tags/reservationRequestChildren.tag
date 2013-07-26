@@ -44,8 +44,8 @@
         <tr ng-repeat="childReservationRequest in items">
             <td>{{childReservationRequest.slot}}</td>
             <td class="allocation-state">
-                <span id="reservationState-{{$index}}" class="{{childReservationRequest.allocationState}}">{{childReservationRequest.allocationStateMessage}}</span>
-                <tag:help label="reservationState-{{$index}}"
+                <tag:help label="{{childReservationRequest.allocationStateMessage}}"
+                          labelClass="{{childReservationRequest.allocationState}}"
                           tooltipId="reservationState-tooltip-{{$index}}">
                     <span>{{childReservationRequest.allocationStateHelp}}</span>
                     <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
@@ -57,8 +57,8 @@
             </td>
             <td class="executable-state">
                 <div ng-show="childReservationRequest.roomState">
-                    <span id="executableState-{{$index}}" class="{{childReservationRequest.roomState}}">{{childReservationRequest.roomStateMessage}}</span>
-                    <tag:help label="executableState-{{$index}}"
+                    <tag:help label="{{childReservationRequest.roomStateMessage}}"
+                              labelClass="{{childReservationRequest.roomState}}"
                               tooltipId="executableState-tooltip-{{$index}}">
                         <span>{{childReservationRequest.roomStateHelp}}</span>
                         <div ng-switch on="isEmpty(childReservationRequest.roomStateReport)">
@@ -70,16 +70,18 @@
                 </div>
             </td>
             <td>
-                <span id="executableAliases-{{$index}}"
-                      ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
-                <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)"
-                     style="display: inline-block;">
+                <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
                     <div ng-switch-when="false">
-                        <tag:help label="executableAliases-{{$index}}"
+                        <c:set var="executableAliases">
+                            <span ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
+                        </c:set>
+                        <tag:help label="${executableAliases}"
                                   tooltipId="executableAliases-tooltip-{{$index}}">
                             <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
                         </tag:help>
                     </div>
+                    <span ng-switch-when="true"
+                          ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
                 </div>
             </td>
             <td>

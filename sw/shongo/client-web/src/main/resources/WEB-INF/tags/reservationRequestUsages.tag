@@ -40,8 +40,9 @@
             <td>{{permanentRoomCapacity.slot}}</td>
             <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
             <td class="allocation-state">
-                <span id="permanentRoomCapacityState-{{$index}}" class="{{permanentRoomCapacity.allocationState}}">{{permanentRoomCapacity.allocationStateMessage}}</span>
-                <tag:help label="permanentRoomCapacityState-{{$index}}" tooltipId="reservationState-tooltip-{{$index}}">
+                <tag:help label="{{permanentRoomCapacity.allocationStateMessage}}"
+                          labelClass="{{permanentRoomCapacity.allocationState}}"
+                          tooltipId="reservationState-tooltip-{{$index}}">
                     <span>{{permanentRoomCapacity.allocationStateHelp}}</span>
                 </tag:help>
             </td>

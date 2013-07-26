@@ -33,10 +33,8 @@
 
         <dt><spring:message code="views.room.state"/>:</dt>
         <dd class="executable-state">
-            <span class="${executable.state}" id="executableState">
-                <spring:message code="views.reservationRequest.executableState.${executable.state}"/>
-            </span>
-            <tag:help label="executableState">
+            <spring:message code="views.reservationRequest.executableState.${executable.state}" var="executableState"/>
+            <tag:help label="${executableState}" labelClass="${executable.state}">
                 <span>
                     <spring:message code="views.help.reservationRequest.executableState.${executable.state}"/>
                 </span>
@@ -60,10 +58,11 @@
 
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <span id="roomAliases">${roomAliases}</span>
-            <c:if test="${not empty roomAliasesDescription}">
-                <tag:help label="roomAliases">${roomAliasesDescription}</tag:help>
-            </c:if>
+            <tag:help label="${roomAliases}">
+                <c:if test="${not empty roomAliasesDescription}">
+                    ${roomAliasesDescription}
+                </c:if>
+            </tag:help>
         </dd>
 
     </dl>

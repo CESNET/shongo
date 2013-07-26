@@ -59,8 +59,7 @@
                     <td>{{room.technology}}</td>
                     <td>{{room.slotStart}} - {{room.slotEnd}}</td>
                     <td class="executable-state">
-                        <span id="roomState-{{$index}}" class="{{room.state}}">{{room.stateMessage}}</span>
-                        <tag:help label="roomState-{{$index}}" tooltipId="roomStateTooltip-{{$index}}">
+                        <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}" tooltipId="roomStateTooltip-{{$index}}">
                             <span>{{room.stateHelp}}</span>
                         </tag:help>
                     </td>

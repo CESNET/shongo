@@ -274,6 +274,9 @@ div.bordered table {
     display: inline-block;
     cursor: default;
 }
+.tooltip-label.dotted {
+    border-bottom: 1px dotted;
+}
 .tooltip-content {
     position: absolute;
     display: none;
