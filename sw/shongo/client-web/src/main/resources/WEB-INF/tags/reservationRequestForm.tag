@@ -326,7 +326,7 @@
 
     </fieldset>
 
-    <c:if test="${not empty confirmTitle || backUrl != null}">
+    <c:if test="${not empty confirmTitle || cancelUrl != null}">
         <div class="control-group">
             <div class="controls">
                 <c:if test="${not empty confirmTitle}">

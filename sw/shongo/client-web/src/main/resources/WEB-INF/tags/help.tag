@@ -23,11 +23,15 @@
 
     // Set type
     if (labelElement != null) {
-        jspContext.setAttribute("type", "icon");
+        type = "icon";
     }
     else if (type == null && label != null) {
-        jspContext.setAttribute("type", "text");
+        type = "text";
     }
+    else if (type == null) {
+        type = "icon";
+    }
+    jspContext.setAttribute("type", type);
 %>
 
 <c:choose>
