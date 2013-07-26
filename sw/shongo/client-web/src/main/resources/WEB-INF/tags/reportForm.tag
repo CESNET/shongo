@@ -3,36 +3,38 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 
 <%@attribute name="label" required="false"%>
 <%@attribute name="tooltipId" required="false"%>
+<%@attribute name="submitUrl" required="false"%>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="submitUrl">${contextPath}<%= ClientWebUrl.REPORT_SUBMIT %></c:set>
+<c:if test="${empty submitUrl}">
+    <c:set var="submitUrl">${contextPath}<%= ClientWebUrl.REPORT_SUBMIT %></c:set>
+</c:if>
 
 <div class="report">
-    <form class="form-horizontal" action="${submitUrl}" method="post">
+    <form:form class="form-horizontal" commandName="report" action="${submitUrl}" method="post">
         <fieldset>
 
             <div class="control-group">
-                <label class="control-label" for="email">
+                <form:label class="control-label" path="email">
                     <spring:message code="views.report.email"/>:
-                </label>
+                </form:label>
                 <div class="controls double-width">
-                    <security:authorize access="isAuthenticated()">
-                        <security:authentication var="email" property="principal.primaryEmail"/>
-                        <c:set var="emailReadOnly" value="readonly"/>
-                    </security:authorize>
-                    <input id="email" type="text" name="email" value="${email}" ${emailReadOnly}/>
+                    <form:input path="email" value="${email}" readonly="${emailReadOnly}" cssErrorClass="error"/>
+                    <form:errors path="email" cssClass="error"/>
                 </div>
             </div>
 
             <div class="control-group">
-                <label class="control-label" for="message">
+                <form:label class="control-label" path="message">
                     <spring:message code="views.report.message"/>:
-                </label>
+                </form:label>
                 <div class="controls double-width">
-                    <textarea id="message" name="message"></textarea>
+                    <form:textarea path="message" cssErrorClass="error"/>
+                    <form:errors path="message" cssClass="error"/>
                 </div>
             </div>
 
@@ -45,5 +47,5 @@
             </div>
 
         </fieldset>
-    </form>
+    </form:form>
 </div>

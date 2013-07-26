@@ -2,15 +2,17 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
-import org.apache.http.HttpHeaders;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.ErrorModel;
+import cz.cesnet.shongo.client.web.models.ReportModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -21,9 +23,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Properties;
 
 /**
@@ -32,12 +31,45 @@ import java.util.Properties;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
+@SessionAttributes({"error", "report"})
 public class ErrorController
 {
     private static Logger logger = LoggerFactory.getLogger(ErrorController.class);
 
     @Resource
     private ClientWebConfiguration configuration;
+
+    /**
+     * Handle report problem.
+     */
+    @RequestMapping(value = ClientWebUrl.REPORT)
+    public ModelAndView handleReport()
+    {
+        ModelAndView modelAndView = new ModelAndView("report");
+        modelAndView.addObject("report", new ReportModel());
+        return modelAndView;
+    }
+
+    /**
+     * Handle report problem.
+     */
+    @RequestMapping(value = ClientWebUrl.REPORT_SUBMIT)
+    public ModelAndView handleReportSubmit(
+            @ModelAttribute("report") ReportModel reportModel,
+            BindingResult bindingResult)
+    {
+        reportModel.validate(bindingResult);
+        if (bindingResult.hasErrors()) {
+            return new ModelAndView("report");
+        }
+        else {
+            sendReport(reportModel, null);
+
+            ModelAndView modelAndView = new ModelAndView("report");
+            modelAndView.addObject("isSubmitted", true);
+            return modelAndView;
+        }
+    }
 
     /**
      * Handle error view.
@@ -49,7 +81,33 @@ public class ErrorController
         String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
-        return handleError(requestUri, statusCode, message, throwable, request, configuration);
+        ErrorModel errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
+        return handleError(errorModel, configuration);
+    }
+
+    /**
+     * Handle error report problem.
+     */
+    @RequestMapping("/error/submit")
+    public ModelAndView handleErrorReportSubmit(
+            @ModelAttribute("error") ErrorModel errorModel,
+            @ModelAttribute("report") ReportModel reportModel,
+            BindingResult bindingResult)
+    {
+        reportModel.validate(bindingResult);
+        if (bindingResult.hasErrors()) {
+            ModelAndView modelAndView = new ModelAndView("error");
+            modelAndView.addObject("error", errorModel);
+            modelAndView.addObject("report", reportModel);
+            return modelAndView;
+        }
+        else {
+            sendReport(reportModel, errorModel);
+
+            ModelAndView modelAndView = new ModelAndView("report");
+            modelAndView.addObject("isSubmitted", true);
+            return modelAndView;
+        }
     }
 
     /**
@@ -65,12 +123,11 @@ public class ErrorController
      * Handle login error view.
      */
     @RequestMapping("/login-error")
-    public ModelAndView handleLoginErrorView(HttpServletRequest request, Model model)
+    public ModelAndView handleLoginErrorView(HttpServletRequest request)
     {
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
-
-        return handleError(request.getRequestURI(), null, "Login error.", exception,
-                request, configuration);
+        ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
+        return handleError(errorModel, configuration);
     }
 
     /**
@@ -82,56 +139,59 @@ public class ErrorController
         return "controllerNotAvailable";
     }
 
-    public static ModelAndView handleError(String requestUri, Integer statusCode, String message, Throwable throwable,
-            HttpServletRequest request, ClientWebConfiguration configuration)
+    /**
+     * Raise test error.
+     */
+    @RequestMapping(value = "/test-error")
+    public String handleTestError()
     {
-        StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append("Error");
-        if (statusCode != null) {
-            messageBuilder.append(" ");
-            messageBuilder.append(statusCode);
-        }
-        messageBuilder.append(" in ");
-        messageBuilder.append(requestUri);
-        if (message != null) {
-            messageBuilder.append(": ");
-            messageBuilder.append(message);
-        }
-        reportError(messageBuilder.toString(), throwable, request, configuration);
-
-        if (throwable != null) {
-            if (message != null) {
-                message = message + ": " + throwable.getMessage();
-            }
-            else {
-                message = throwable.getMessage();
-            }
-        }
-        else if (message == null && statusCode != null) {
-            HttpStatus httpStatus = HttpStatus.valueOf(statusCode);
-            if (httpStatus != null) {
-                message = httpStatus.getReasonPhrase();
-            }
-        }
-        ModelAndView modelAndView = new ModelAndView("error");
-        modelAndView.addObject("url", requestUri);
-        modelAndView.addObject("code", statusCode);
-        modelAndView.addObject("message", message);
-        return modelAndView;
+        throw new RuntimeException("Test error");
     }
 
     /**
-     * Report error.
+     * Send report.
      *
-     * @param message
-     * @param throwable
-     * @param request
+     * @param reportModel
+     * @param errorModel
      */
-    private static void reportError(String message, Throwable throwable, HttpServletRequest request,
-            ClientWebConfiguration configuration)
+    private void sendReport(ReportModel reportModel, ErrorModel errorModel)
     {
-        logger.error(message, throwable);
+        String subject = "Problem report";
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("From: ");
+        contentBuilder.append(reportModel.getEmail());
+        contentBuilder.append("\n\n");
+        contentBuilder.append("Message:\n\n");
+        contentBuilder.append(reportModel.getMessage());
+        if (errorModel != null) {
+            subject = errorModel.getEmailSubject() + " - User report";
+            contentBuilder.append("\n\n");
+            contentBuilder.append(errorModel.getEmailContent());
+        }
+        sendEmailToAdministrator(subject, contentBuilder.toString(), configuration);
+    }
 
+    /**
+     * Handle error.
+     *
+     * @param errorModel
+     * @param configuration
+     * @return error {@link ModelAndView}
+     */
+    public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration)
+    {
+        String emailSubject = errorModel.getEmailSubject();
+        logger.error(emailSubject, errorModel.getThrowable());
+        sendEmailToAdministrator(emailSubject, errorModel.getEmailContent(), configuration);
+
+        ModelAndView modelAndView = new ModelAndView("error");
+        modelAndView.addObject("error", errorModel);
+        modelAndView.addObject("report", new ReportModel());
+        return modelAndView;
+    }
+
+    private static void sendEmailToAdministrator(String subject, String content, ClientWebConfiguration configuration)
+    {
         String administratorEmail = configuration.getAdministratorEmail();
         if (Strings.isNullOrEmpty(administratorEmail)) {
             logger.warn("Administrator email for sending error reports is not configured.");
@@ -152,29 +212,11 @@ public class ErrorController
         }
         Session session = Session.getDefaultInstance(properties);
 
-        StringBuilder content = new StringBuilder();
-        if (message != null) {
-            content.append(message);
-        }
-        if (throwable != null) {
-            content.append("\n\nEXCEPTION\n\n");
-            final Writer result = new StringWriter();
-            final PrintWriter printWriter = new PrintWriter(result);
-            throwable.printStackTrace(printWriter);
-            String stackTrace = result.toString();
-            content.append(stackTrace);
-        }
-
-        content.append("\n\nCONFIGURATION\n\n");
-        content.append("  User-Agent: ");
-        content.append(request.getHeader(HttpHeaders.USER_AGENT));
-        content.append("\n");
-
         String sender = configuration.getSmtpSender();
         String subjectPrefix = configuration.getSmtpSubjectPrefix();
         try {
             MimeBodyPart textPart = new MimeBodyPart();
-            textPart.setContent(content.toString(), "text/plain; charset=utf-8");
+            textPart.setContent(content, "text/plain; charset=utf-8");
 
             StringBuilder html = new StringBuilder();
             html.append("<html><body><pre>");
@@ -191,10 +233,10 @@ public class ErrorController
             MimeMessage mimeMessage = new MimeMessage(session);
             mimeMessage.setFrom(new InternetAddress(sender));
             mimeMessage.addRecipient(Message.RecipientType.TO, new InternetAddress(administratorEmail));
-            mimeMessage.setSubject(subjectPrefix + message);
+            mimeMessage.setSubject(subjectPrefix + subject);
             mimeMessage.setContent(multipart);
 
-            logger.debug("Sending error report from '{}' to '{}'...", new Object[]{sender, administratorEmail});
+            logger.debug("Sending email from '{}' to '{}'...", new Object[]{sender, administratorEmail});
             Transport.send(mimeMessage);
         }
         catch (MessagingException exception) {

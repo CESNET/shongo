@@ -3,10 +3,16 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.Changelog;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.interceptors.IgnoreDateTimeZone;
+import cz.cesnet.shongo.client.web.models.CommonValidator;
+import cz.cesnet.shongo.client.web.models.ReportModel;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * Controller for other views and resources.
@@ -44,23 +50,5 @@ public class MainController
     {
         model.addAttribute("changelog", Changelog.getInstance());
         return "changelog";
-    }
-
-    /**
-     * Handle report problem.
-     */
-    @RequestMapping(value = ClientWebUrl.REPORT)
-    public String handleReport()
-    {
-        return "report";
-    }
-
-    /**
-     * Raise test error.
-     */
-    @RequestMapping(value = "/test-error")
-    public String handleTestError(Model model)
-    {
-        throw new RuntimeException("Test error");
     }
 }

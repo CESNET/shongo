@@ -6,4 +6,14 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
-<tag:report/>
+<c:set var="contextPath" value="${pageContext.request.contextPath}"/>
+
+<c:choose>
+    <c:when test="${isSubmitted}">
+        <p><spring:message code="views.report.submitted"/></p>
+        <a class="btn btn-primary" href="${contextPath}/"><spring:message code="views.button.back"/></a>
+    </c:when>
+    <c:otherwise>
+        <tag:reportForm/>
+    </c:otherwise>
+</c:choose>
