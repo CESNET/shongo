@@ -65,7 +65,7 @@ public class NavigationPage extends Page
      */
     public String getUrl(Map<String, String> attributes)
     {
-        if (attributes == null) {
+        if (attributes == null || url == null) {
             return url;
         }
         if (urlAttributes == null) {

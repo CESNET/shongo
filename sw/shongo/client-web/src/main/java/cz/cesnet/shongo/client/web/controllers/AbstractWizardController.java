@@ -6,9 +6,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Controller for displaying wizard interface.
@@ -20,18 +18,18 @@ public abstract class AbstractWizardController
     @Resource
     private HttpServletRequest request;
 
-    protected abstract void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId);
+    protected abstract void initWizardPages(WizardView wizardView, Object currentWizardPageId);
 
     protected WizardView getWizardView(Object wizardPageId, String wizardContent)
     {
-        List<WizardPage> wizardPages = new LinkedList<WizardPage>();
-        initWizardPages(wizardPages, wizardPageId);
+        WizardView wizardView = new WizardView();
+        initWizardPages(wizardView, wizardPageId);
 
         // Find current, previous and next page
         WizardPage wizardPageCurrent = null;
         WizardPage wizardPagePrevious = null;
         WizardPage wizardPageNext = null;
-        for (WizardPage wizardPage : wizardPages) {
+        for (WizardPage wizardPage : wizardView.getPages()) {
             if (wizardPageId == wizardPage.getId()) {
                 wizardPageCurrent = wizardPage;
             }
@@ -45,19 +43,23 @@ public abstract class AbstractWizardController
                 }
             }
         }
+        wizardView.initNavigationPages(wizardPagePrevious, wizardPageNext);
+        wizardView.addObject("wizardContent", wizardContent);
+        wizardView.addObject("wizardPageCurrent", wizardPageCurrent);
 
         // Set all pages until current page as available
         boolean available = wizardPageCurrent != null;
-        for (WizardPage wizardPage : wizardPages) {
+        for (WizardPage wizardPage : wizardView.getPages()) {
             wizardPage.setAvailable(available);
             if (wizardPageCurrent == wizardPage) {
                 available = false;
             }
         }
 
+        // Update page urls
         if (wizardPageCurrent != null) {
             Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(request.getRequestURI(), false);
-            for (WizardPage wizardPage : wizardPages) {
+            for (WizardPage wizardPage : wizardView.getPages()) {
                 if (wizardPage.isAvailable()) {
                     String wizardPageUrl = wizardPage.getUrl(attributes);
                     wizardPage.setUrl(wizardPageUrl);
@@ -65,28 +67,28 @@ public abstract class AbstractWizardController
             }
         }
 
-        WizardView wizardView = new WizardView(wizardPagePrevious, wizardPageNext);
-        wizardView.addObject("wizardContent", wizardContent);
-        wizardView.addObject("wizardPages", wizardPages);
-        wizardView.addObject("wizardPageCurrent", wizardPageCurrent);
         return wizardView;
     }
 
     public static class WizardView extends ModelAndView
     {
-        public static final String URL_REFRESH = "javascript: location.reload();";
+        private Map<Object, WizardPage> pages = new LinkedHashMap<Object, WizardPage>();
 
         private final List<Action> actions = new LinkedList<Action>();
 
-        private final Action actionPrevious;
+        private Action actionPrevious;
 
-        private final Action actionNext;
+        private Action actionNext;
 
-        public WizardView(WizardPage wizardPagePrevious, WizardPage wizardPageNext)
+        public WizardView()
         {
             super("wizard");
+            addObject("wizardPages", pages.values());
             addObject("wizardActions", actions);
+        }
 
+        public void initNavigationPages(WizardPage wizardPagePrevious, WizardPage wizardPageNext)
+        {
             // Add previous action
             if (wizardPagePrevious != null) {
                 actionPrevious = new Action(wizardPagePrevious.getUrl(), "views.button.back", ActionPosition.LEFT);
@@ -107,6 +109,21 @@ public abstract class AbstractWizardController
 
             // Update primary button
             updatePrimary();
+        }
+
+        public Collection<WizardPage> getPages()
+        {
+            return pages.values();
+        }
+
+        public void addPage(WizardPage wizardPage)
+        {
+            pages.put(wizardPage.getId(), wizardPage);
+        }
+
+        public WizardPage getCurrentPage()
+        {
+            return (WizardPage) getModel().get("wizardPageCurrent");
         }
 
         public Action addAction(String url, String titleCode)

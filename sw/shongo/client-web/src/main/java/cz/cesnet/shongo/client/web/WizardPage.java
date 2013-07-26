@@ -18,6 +18,11 @@ public class WizardPage extends NavigationPage
     private boolean available = false;
 
     /**
+     * Description of page title.
+     */
+    private String titleDescription;
+
+    /**
      * Constructor.
      *
      * @param id        sets the {@link #id}
@@ -52,5 +57,21 @@ public class WizardPage extends NavigationPage
     public void setAvailable(boolean available)
     {
         this.available = available;
+    }
+
+    /**
+     * @return {@link #titleDescription}
+     */
+    public String getTitleDescription()
+    {
+        return titleDescription;
+    }
+
+    /**
+     * @param titleDescription sets the {@link #titleDescription}
+     */
+    public void setTitleDescription(String titleDescription)
+    {
+        this.titleDescription = titleDescription;
     }
 }

@@ -35,29 +35,27 @@
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
-                    <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th><spring:message code="views.reservationRequest.specification.permanentRoomName"/></th>
+                    <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.slot"/></th>
                     <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                    <th><spring:message code="views.reservationRequest.description"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
+                    <th width="100px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
-                    <td>{{reservationRequest.dateTime}}</td>
-                    <td>{{reservationRequest.user}}</td>
-                    <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.roomName}}</td>
+                    <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
                     <td class="allocation-state">
                         <span class="{{reservationRequest.allocationState}}">
                             {{reservationRequest.allocationStateMessage}}
                         </span>
                     </td>
-                    <td>{{reservationRequest.description}}</td>
+                    <td>{{reservationRequest.user}}</td>
+                    <td>{{reservationRequest.dateTime}}</td>
                     <td>
                         <a href="${urlDetail}"><spring:message code="views.list.action.show"/></a>
                         <span ng-show="reservationRequest.writable">
@@ -98,20 +96,17 @@
             <table class="table table-striped table-hover">
                 <thead>
                 <tr>
-                    <th width="85px"><spring:message code="views.reservationRequest.dateTime"/></th>
-                    <th><spring:message code="views.reservationRequest.user"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th width="100px"><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.slot"/></th>
                     <th><spring:message code="views.reservationRequest.allocationState"/></th>
-                    <th><spring:message code="views.reservationRequest.description"/></th>
+                    <th><spring:message code="views.reservationRequest.user"/></th>
+                    <th width="100px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr ng-repeat="reservationRequest in items">
-                    <td>{{reservationRequest.dateTime}}</td>
-                    <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
@@ -120,7 +115,8 @@
                             {{reservationRequest.allocationStateMessage}}
                         </span>
                     </td>
-                    <td>{{reservationRequest.description}}</td>
+                    <td>{{reservationRequest.user}}</td>
+                    <td>{{reservationRequest.dateTime}}</td>
                     <td>
                         <a href="${urlDetail}"><spring:message code="views.list.action.show"/></a>
                         <span ng-show="reservationRequest.writable">

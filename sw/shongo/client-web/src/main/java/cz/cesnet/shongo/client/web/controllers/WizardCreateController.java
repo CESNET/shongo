@@ -55,16 +55,16 @@ public class WizardCreateController extends AbstractWizardController
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
-        wizardPages.add(WizardController.createSelectWizardPage());
-        wizardPages.add(new WizardPage(Page.CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM,
+        wizardView.addPage(WizardController.createSelectWizardPage());
+        wizardView.addPage(new WizardPage(Page.CREATE_ROOM, ClientWebUrl.WIZARD_CREATE_ROOM,
                 "views.wizard.page.createRoom"));
-        wizardPages.add(new WizardPage(Page.CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
+        wizardView.addPage(new WizardPage(Page.CREATE_ROOM_ATTRIBUTES, ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES,
                 "views.wizard.page.createRoom.attributes"));
-        wizardPages.add(new WizardPage(Page.CREATE_ROOM_ROLES, ClientWebUrl.WIZARD_CREATE_ROOM_ROLES,
+        wizardView.addPage(new WizardPage(Page.CREATE_ROOM_ROLES, ClientWebUrl.WIZARD_CREATE_ROOM_ROLES,
                 "views.wizard.page.createRoom.roles"));
-        wizardPages.add(new WizardPage(Page.CREATE_ROOM_CONFIRM, ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRM,
+        wizardView.addPage(new WizardPage(Page.CREATE_ROOM_CONFIRM, ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRM,
                 "views.wizard.page.createConfirm"));
     }
 

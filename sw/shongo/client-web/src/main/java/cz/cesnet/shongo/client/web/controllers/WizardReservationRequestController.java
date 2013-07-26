@@ -52,18 +52,18 @@ public class WizardReservationRequestController extends AbstractWizardController
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
-        wizardPages.add(WizardController.createSelectWizardPage());
-        wizardPages.add(new WizardPage(Page.RESERVATION_REQUEST, ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST,
+        wizardView.addPage(WizardController.createSelectWizardPage());
+        wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST, ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST,
                 "views.wizard.page.reservationRequestList"));
 
         if (Page.RESERVATION_REQUEST_DELETE.equals(currentWizardPageId)) {
-            wizardPages.add(new WizardPage(Page.RESERVATION_REQUEST_DELETE,
+            wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DELETE,
                     ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDelete"));
         }
         else {
-            wizardPages.add(new WizardPage(Page.RESERVATION_REQUEST_DETAIL,
+            wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DETAIL,
                     ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDetail"));
         }
     }
@@ -121,6 +121,8 @@ public class WizardReservationRequestController extends AbstractWizardController
             }
         }
 
+        wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
+
         return wizardView;
     }
 
@@ -145,6 +147,8 @@ public class WizardReservationRequestController extends AbstractWizardController
                     "views.button.yes").setPrimary(true);
             wizardView.addAction(ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, "views.button.no");
         }
+        wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
+
         return wizardView;
     }
 

@@ -38,8 +38,18 @@
             </c:when>
             <c:otherwise>
                 <c:forEach items="${title}" var="titleItem" varStatus="titleStatus">
-                    <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
-                    - <spring:message code="${titleItem}"/>
+                    <c:if test="${titleItem != null}">
+                        <c:set var="titleItem"><tiles:insertAttribute value="${titleItem}"/></c:set>
+                        <c:choose>
+                            <c:when test="${empty titleItem}"/>
+                            <c:when test="${!titleItem.startsWith('T(')}">
+                                - <spring:message code="${titleItem}"/>
+                            </c:when>
+                            <c:when test="${titleItem.length() > 3}">
+                                - ${titleItem.substring(2, titleItem.length() - 1)}
+                            </c:when>
+                        </c:choose>
+                    </c:if>
                 </c:forEach>
                 <spring:message code="${title.get(0)}" var="title"/>
             </c:otherwise>

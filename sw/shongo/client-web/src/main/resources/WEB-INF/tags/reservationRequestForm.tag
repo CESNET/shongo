@@ -30,6 +30,20 @@
         $scope.id = $scope.value('${reservationRequest.id}', null);
         $scope.technology = $scope.value('${reservationRequest.technology}', 'H323_SIP');
 
+        // Update end when start is changed
+        $("#start").change(function () {
+            var startPicker = $("#start");
+            var endPicker = $("#end");
+            if ( endPicker.length == 0 ) {
+                return;
+            }
+            var start = moment(startPicker.val());
+            var end = moment(endPicker.val());
+            if ( end == null || end < start) {
+                endPicker.val(start.format("YYYY-MM-DD"));
+            }
+        });
+
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />

@@ -57,14 +57,14 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     }
 
     @Override
-    protected void initWizardPages(List<WizardPage> wizardPages, Object currentWizardPageId)
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
-        wizardPages.add(WizardController.createSelectWizardPage());
-        wizardPages.add(new WizardPage(
+        wizardView.addPage(WizardController.createSelectWizardPage());
+        wizardView.addPage(new WizardPage(
                 Page.CREATE_PERMANENT_ROOM_CAPACITY,
                 ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY,
                 "views.wizard.page.createPermanentRoomCapacity"));
-        wizardPages.add(new WizardPage(
+        wizardView.addPage(new WizardPage(
                 Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM,
                 ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM,
                 "views.wizard.page.createConfirm"));
