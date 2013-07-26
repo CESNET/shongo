@@ -45,7 +45,7 @@
 <div ng-controller="PaginationController"
      ng-init="init('${listName}', '${listUrl}?start=:start&count=:count${listUrlQuery}')">
     <pagination-page-size class="pull-right">
-        <s:message code="views.pagination.records"/>
+        <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <jsp:doBody/>
     <div class="spinner" ng-hide="ready"></div>
@@ -88,7 +88,7 @@
             </td>
         </tr>
         <tr ng-hide="items.length">
-            <td colspan="7" class="empty"><s:message code="views.list.none"/></td>
+            <td colspan="6" class="empty"><spring:message code="views.list.none"/></td>
         </tr>
         </tbody>
     </table>
