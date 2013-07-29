@@ -18,11 +18,8 @@
 
     <dl class="dl-horizontal">
 
-        <dt><spring:message code="views.reservationRequest"/>:</dt>
-        <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
-
-        <dt><spring:message code="views.room.identifier"/>:</dt>
-        <dd>${executable.id}</dd>
+        <dt><spring:message code="views.room.technology"/>:</dt>
+        <dd>${roomTechnology.title}</dd>
 
         <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
         <dd>
@@ -64,6 +61,12 @@
                 </c:if>
             </tag:help>
         </dd>
+
+        <dt><spring:message code="views.room.identifier"/>:</dt>
+        <dd>${executable.id}</dd>
+
+        <dt><spring:message code="views.reservationRequest"/>:</dt>
+        <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
 
     </dl>
 

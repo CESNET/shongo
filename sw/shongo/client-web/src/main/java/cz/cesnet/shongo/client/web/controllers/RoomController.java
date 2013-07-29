@@ -59,6 +59,8 @@ public class RoomController
             throw new UnsupportedApiException(executable);
         }
 
+        model.addAttribute("roomTechnology", ReservationRequestModel.Technology.find(roomExecutable.getTechnologies()));
+
         List<Alias> aliases = roomExecutable.getAliases();
         Executable.State executableState = roomExecutable.getState();
         model.addAttribute("roomAliases", ReservationRequestModel.formatAliases(aliases, executableState));
