@@ -20,8 +20,8 @@
 
     <dt><spring:message code="views.reservationRequest.type"/>:</dt>
     <dd>
-        <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}"/>
-        <tag:help>
+        <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
+        <tag:help label="${specificationType}">
             <spring:message code="views.help.reservationRequest.specification.${reservationRequest.specificationType}"/>
         </tag:help>
     </dd>
