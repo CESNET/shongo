@@ -57,7 +57,11 @@
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <td class="allocation-state">
-                    <span class="${historyItem.allocationState}">${historyItem.allocationStateMessage}</span>
+                    <c:if test="${historyItem.allocationState != null}">
+                        <span class="${historyItem.allocationState}">
+                            <spring:message code="views.reservationRequest.allocationState.${historyItem.allocationState}"/>
+                        </span>
+                    </c:if>
                 </td>
                 <td>
                     <c:choose>
@@ -70,6 +74,11 @@
                         </c:when>
                         <c:otherwise>(<spring:message code="views.list.selected"/>)</c:otherwise>
                     </c:choose>
+                    <c:if test="${historyItem.isRevertible}">
+                        <spring:eval var="historyItemRevertUrl"
+                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
+                        | <a href="${historyItemRevertUrl}"><spring:message code="views.list.action.revert"/></a>
+                    </c:if>
                 </td>
                 </tr>
             </c:forEach>
@@ -164,20 +173,24 @@
     <tag:userRoleList dataUrl="${aclUrl}" dataUrlParameters="id: '${reservationRequest.id}'"
                       isWritable="${isWritable}" createUrl="${aclCreateUrl}" deleteUrl="${aclDeleteUrl}"/>
 
-    <%-- Periodic events --%>
-    <c:if test="${reservationRequest.periodicityType != 'NONE'}">
-        <hr/>
-        <tag:reservationRequestChildren detailUrl="${detailUrl}"/>
-    </c:if>
+    <c:if test="${isActive}">
 
-    <%-- Permanent room capacities --%>
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-        <hr/>
-        <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
-            <spring:eval var="usageCreateUrl"
-                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+        <%-- Periodic events --%>
+        <c:if test="${reservationRequest.periodicityType != 'NONE'}">
+            <hr/>
+            <tag:reservationRequestChildren detailUrl="${detailUrl}"/>
         </c:if>
-        <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${usageCreateUrl}"/>
+
+        <%-- Permanent room capacities --%>
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+            <hr/>
+            <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+                <spring:eval var="usageCreateUrl"
+                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
+            </c:if>
+            <tag:reservationRequestUsages detailUrl="${detailUrl}" createUrl="${usageCreateUrl}"/>
+        </c:if>
+
     </c:if>
 
 </div>

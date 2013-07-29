@@ -79,6 +79,8 @@ public class ClientWebUrl
             "/reservation-request/{reservationRequestId:.+}/detail/children";
     public static final String RESERVATION_REQUEST_DETAIL_USAGES =
             "/reservation-request/{reservationRequestId:.+}/detail/usages";
+    public static final String RESERVATION_REQUEST_DETAIL_REVERT =
+            "/reservation-request/{reservationRequestId:.+}/detail/revert";
     public static final String RESERVATION_REQUEST_MODIFY =
             "/reservation-request/{reservationRequestId:.+}/modify";
     public static final String RESERVATION_REQUEST_MODIFY_CONFIRM =
@@ -116,9 +118,14 @@ public class ClientWebUrl
         return url;
     }
 
+    public static String getReservationRequestDetail(String reservationRequestId)
+    {
+        return format(RESERVATION_REQUEST_DETAIL, reservationRequestId);
+    }
+
     public static String getReservationRequestDetail(String path, String reservationRequestId)
     {
-        return path + format(RESERVATION_REQUEST_DETAIL, reservationRequestId);
+        return path + getReservationRequestDetail(reservationRequestId);
     }
 
     public static String getReservationRequestDetailChildren(String path, String reservationRequestId)
@@ -129,6 +136,11 @@ public class ClientWebUrl
     public static String getReservationRequestDetailUsages(String path, String reservationRequestId)
     {
         return path + format(RESERVATION_REQUEST_DETAIL_USAGES, reservationRequestId);
+    }
+
+    public static String getReservationRequestDetailRevert(String path, String reservationRequestId)
+    {
+        return path + format(RESERVATION_REQUEST_DETAIL_REVERT, reservationRequestId);
     }
 
     public static String getReservationRequestCreate(String path, ReservationRequestModel.SpecificationType type)

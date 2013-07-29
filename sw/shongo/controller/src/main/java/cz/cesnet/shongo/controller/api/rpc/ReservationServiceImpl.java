@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -109,7 +110,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             Specification specificationApi = request.getSpecification();
             if (specificationApi != null) {
                 cz.cesnet.shongo.controller.request.Specification specification =
-                        cz.cesnet.shongo.controller.request.Specification.createFromApi(specificationApi, entityManager);
+                        cz.cesnet.shongo.controller.request.Specification
+                                .createFromApi(specificationApi, entityManager);
                 Throwable cause = null;
                 if (specification instanceof SpecificationCheckAvailability) {
                     SpecificationCheckAvailability checkAvailability = (SpecificationCheckAvailability) specification;
@@ -270,6 +272,71 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             authorizationManager.commitTransaction();
 
             return EntityIdentifier.formatId(newReservationRequest);
+        }
+        finally {
+            if (authorizationManager.isTransactionActive()) {
+                authorizationManager.rollbackTransaction();
+            }
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public String revertReservationRequest(SecurityToken token, String reservationRequestId)
+    {
+        String userId = authorization.validate(token);
+        if (reservationRequestId == null) {
+            throw new IllegalArgumentException();
+        }
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        try {
+            authorizationManager.beginTransaction(authorization);
+            entityManager.getTransaction().begin();
+
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
+                    reservationRequestManager.get(entityId.getPersistenceId());
+
+            if (!(abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest)) {
+                throw new ControllerReportSet.ReservationRequestNotRevertibleException(
+                        EntityIdentifier.formatId(abstractReservationRequest));
+            }
+
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+            if (reservationRequest.getAllocationState().equals(
+                    cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.ALLOCATED)
+                    || !reservationRequest.getState().equals(
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE)) {
+                throw new ControllerReportSet.ReservationRequestNotRevertibleException(
+                        EntityIdentifier.formatId(abstractReservationRequest));
+            }
+
+            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("revert reservation request %s", entityId);
+            }
+
+            // Set modified reservation request as ACTIVE
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest modifiedReservationRequest =
+                    abstractReservationRequest.getModifiedReservationRequest();
+            modifiedReservationRequest.setState(
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE);
+            modifiedReservationRequest.getAllocation().setReservationRequest(modifiedReservationRequest);
+            reservationRequestManager.update(modifiedReservationRequest);
+
+            // Revert the modification
+            reservationRequestManager.delete(abstractReservationRequest, authorizationManager, true);
+
+            entityManager.getTransaction().commit();
+            authorizationManager.commitTransaction();
+
+            return EntityIdentifier.formatId(modifiedReservationRequest);
         }
         finally {
             if (authorizationManager.isTransactionActive()) {
@@ -595,7 +662,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                                     (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[12]));
                 }
                 else {
-                    reservationRequestSetIds.add(id);
+                    if (historyReservationRequestId != null) {
+                        reservationRequestSummary.setAllocationState(AllocationState.ALLOCATED);
+                    }
+                    else {
+                        reservationRequestSetIds.add(id);
+                    }
                 }
 
                 // Provided reservation request
@@ -814,15 +886,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ListResponse<ReservationRequest> listChildReservationRequests(ChildReservationRequestListRequest request)
+    public ListResponse<cz.cesnet.shongo.controller.api.ReservationRequest> listChildReservationRequests(
+            ChildReservationRequestListRequest request)
     {
         String userId = authorization.validate(request.getSecurityToken());
 
         EntityIdentifier reservationRequestId =
                 EntityIdentifier.parse(request.getReservationRequestId(), EntityType.RESERVATION_REQUEST);
         if (!authorization.hasPermission(userId, reservationRequestId, Permission.READ)) {
-            ControllerReportSetHelper
-                    .throwSecurityNotAuthorizedFault("read reservation request %s", reservationRequestId);
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                    "read reservation request %s", reservationRequestId);
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -839,7 +912,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             String queryFrom = "AbstractReservationRequest reservationRequest"
                     + " LEFT JOIN reservationRequest.allocation.childReservationRequests childReservationRequest";
-            ListResponse<ReservationRequest> response = new ListResponse<ReservationRequest>();
+            ListResponse<cz.cesnet.shongo.controller.api.ReservationRequest> response =
+                    new ListResponse<cz.cesnet.shongo.controller.api.ReservationRequest>();
             List<cz.cesnet.shongo.controller.request.ReservationRequest> reservationRequests = performListRequest(
                     "childReservationRequest", "childReservationRequest",
                     cz.cesnet.shongo.controller.request.ReservationRequest.class, queryFrom,

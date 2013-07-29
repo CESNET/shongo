@@ -43,10 +43,21 @@ public interface ReservationService extends Service
     public String modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest);
 
     /**
-     * Deletes a given reservation.
+     * Revert a given modification of a reservation request. The reverting is allowed only when the reservation request
+     * is not in {@link AllocationState#ALLOCATED}.
      *
      * @param token                token of the user requesting the operation
-     * @param reservationRequestId shongo-id of the reservation to modify
+     * @param reservationRequestId shongo-id of the reservation request to be reverted
+     * @return identifier of the reservation request that was modified by the reverted one
+     */
+    @API
+    public String revertReservationRequest(SecurityToken token, String reservationRequestId);
+
+    /**
+     * Deletes a given reservation request.
+     *
+     * @param token                token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation request to delete
      */
     @API
     public void deleteReservationRequest(SecurityToken token, String reservationRequestId);

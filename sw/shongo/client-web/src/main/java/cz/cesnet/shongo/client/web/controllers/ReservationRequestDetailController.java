@@ -6,6 +6,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -78,19 +79,22 @@ public class ReservationRequestDetailController
                 item.put("user", user.getFullName());
                 item.put("type", historyItem.getType());
 
-                AllocationState allocationState = historyItem.getAllocationState();
-                String allocationStateMessage = messageSource.getMessage(
-                        "views.reservationRequest.allocationState." + allocationState, null, locale);
-                item.put("allocationState", allocationState);
-                item.put("allocationStateMessage", allocationStateMessage);
-
                 if (historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
                 }
 
-                // Reservation is visible only for reservation requests until first ALLOCATED reservation request
-                if (allocationState.equals(AllocationState.ALLOCATED) && currentHistoryItem == null) {
-                    hasVisibleReservation = false;
+                AllocationState allocationState = historyItem.getAllocationState();
+                item.put("allocationState", allocationState);
+                if (allocationState != null) {
+                    // Reservation is visible only for reservation requests until first ALLOCATED reservation request
+                    if (allocationState.equals(AllocationState.ALLOCATED) && currentHistoryItem == null) {
+                        hasVisibleReservation = false;
+                    }
+
+                    // First allocation failed is revertible
+                    if (!allocationState.equals(AllocationState.ALLOCATED) && historyItems.size() == 0) {
+                        item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
+                    }
                 }
 
                 historyItems.add(item);
@@ -187,9 +191,6 @@ public class ReservationRequestDetailController
             String reservationId = reservationRequest.getLastReservationId();
             Reservation reservation = reservationById.get(reservationId);
             if (reservation != null) {
-                // If reservation is not null it means that the reservation is allocated
-                child.put("allocationState", AllocationState.ALLOCATED);
-
                 // Reservation should contain allocated room
                 RoomExecutable room = (RoomExecutable) reservation.getExecutable();
                 if (room != null) {
@@ -290,6 +291,19 @@ public class ReservationRequestDetailController
         data.put("count", response.getCount());
         data.put("items", usages);
         return data;
+    }
+
+    /**
+     * Handle detail of reservation request view.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_REVERT, method = RequestMethod.GET)
+    public String handleDetailRevert(
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+    {
+        // Get reservation request
+        reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
+        return "redirect:" + ClientWebUrl.getReservationRequestDetail(reservationRequestId);
     }
 
     /**

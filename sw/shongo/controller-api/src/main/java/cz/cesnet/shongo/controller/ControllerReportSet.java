@@ -19,9 +19,10 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 107;
     public static final int IDENTIFIER_INVALID_TYPE_REPORT = 108;
     public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 109;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 110;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 111;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 112;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT = 110;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 111;
+    public static final int RESERVATION_REQUEST_DELETED_REPORT = 112;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 113;
 
     /**
      * User {@link #user} doesn't exist.
@@ -1431,6 +1432,137 @@ public class ControllerReportSet extends AbstractReportSet
     }
 
     /**
+     * Reservation request with identifier {@link #id} cannot be reverted.
+     */
+    public static class ReservationRequestNotRevertibleReport extends Report implements ApiFault
+    {
+        protected String id;
+
+        public ReservationRequestNotRevertibleReport()
+        {
+        }
+
+        public ReservationRequestNotRevertibleReport(String id)
+        {
+            setId(id);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ReservationRequestNotRevertibleException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Reservation request with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" cannot be reverted.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationRequestNotRevertibleReport}.
+     */
+    public static class ReservationRequestNotRevertibleException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ReservationRequestNotRevertibleException(ReservationRequestNotRevertibleReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationRequestNotRevertibleException(Throwable throwable, ReservationRequestNotRevertibleReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationRequestNotRevertibleException(String id)
+        {
+            ReservationRequestNotRevertibleReport report = new ReservationRequestNotRevertibleReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public ReservationRequestNotRevertibleException(Throwable throwable, String id)
+        {
+            super(throwable);
+            ReservationRequestNotRevertibleReport report = new ReservationRequestNotRevertibleReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        @Override
+        public ReservationRequestNotRevertibleReport getReport()
+        {
+            return (ReservationRequestNotRevertibleReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ReservationRequestNotRevertibleReport) report;
+        }
+    }
+
+    /**
      * Reservation request with identifier {@link #id} has already been modified.
      */
     public static class ReservationRequestAlreadyModifiedReport extends Report implements ApiFault
@@ -1808,6 +1940,7 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(IdentifierInvalidDomainReport.class);
         addReportClass(IdentifierInvalidTypeReport.class);
         addReportClass(ReservationRequestNotModifiableReport.class);
+        addReportClass(ReservationRequestNotRevertibleReport.class);
         addReportClass(ReservationRequestAlreadyModifiedReport.class);
         addReportClass(ReservationRequestDeletedReport.class);
         addReportClass(ReservationRequestEmptyDurationReport.class);

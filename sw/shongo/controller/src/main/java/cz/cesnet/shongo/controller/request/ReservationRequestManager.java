@@ -188,7 +188,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param authorizationManager       to be used for deleting ACL records
      * @param hardDelete                 specifies whether request should be really deleted or only marked as deleted
      */
-    private void delete(AbstractReservationRequest abstractReservationRequest,
+    public void delete(AbstractReservationRequest abstractReservationRequest,
             AuthorizationManager authorizationManager, boolean hardDelete)
     {
         // Clear preprocessor state
