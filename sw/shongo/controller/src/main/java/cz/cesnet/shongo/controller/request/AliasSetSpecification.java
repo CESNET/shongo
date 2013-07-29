@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.CommonReportSet;
-import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.scheduler.*;
 import cz.cesnet.shongo.util.ObjectHelper;
-import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.*;
@@ -129,10 +126,10 @@ public class AliasSetSpecification extends Specification
     }
 
     @Override
-    public void checkAvailability(Interval slot, EntityManager entityManager) throws SchedulerException
+    public void checkAvailability(SchedulerContext schedulerContext) throws SchedulerException
     {
         for (AliasSpecification aliasSpecification : aliasSpecifications) {
-            aliasSpecification.checkAvailability(slot, entityManager);
+            aliasSpecification.checkAvailability(schedulerContext);
         }
     }
 

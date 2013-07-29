@@ -74,7 +74,7 @@
         </h2>
         <dl class="dl-horizontal">
 
-            <dt><spring:message code="views.room.state"/></dt>
+            <dt><spring:message code="views.room.state"/>:</dt>
             <dd class="executable-state">
                 <c:if test="${reservation.roomState != null}">
                     <spring:message code="views.reservationRequest.executableState.${reservation.roomState}" var="roomState"/>
@@ -89,7 +89,7 @@
                 </c:if>
             </dd>
 
-            <dt><spring:message code="views.room.aliases"/></dt>
+            <dt><spring:message code="views.room.aliases"/>:</dt>
             <dd>
                 <c:if test="${not empty reservation.roomAliasesDescription}">
                     <tag:help label="${reservation.roomAliases}">${reservation.roomAliasesDescription}</tag:help>

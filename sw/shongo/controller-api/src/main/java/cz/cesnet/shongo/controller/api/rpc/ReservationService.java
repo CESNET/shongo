@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.api.rpc;
 
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
-import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
-import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
+import cz.cesnet.shongo.controller.api.request.*;
 import org.joda.time.Interval;
 
 /**
@@ -16,25 +13,12 @@ import org.joda.time.Interval;
 public interface ReservationService extends Service
 {
     /**
-     * @param token         token of the user requesting the operation
-     * @param slot          in which the given {@code specification} should be checked
-     * @param specification to be checked
-     * @return {@link Boolean#TRUE} when given {@code specification} can be allocated for given date/time {@code slot},
-     *         otherwise {@link String} report describing the reason why the specification is not available
+     * @param request {@link AvailabilityCheckRequest}
+     * @return {@link Boolean#TRUE} when given {@code request} is available,
+     *         otherwise {@link String} report describing the reason why it is not available
      */
     @API
-    public Object checkAvailableSpecification(SecurityToken token, Interval slot, Specification specification);
-
-    /**
-     * @param token                        token of the user requesting the operation
-     * @param slot                         for which the given {@code providedReservationRequestId} should be checked
-     * @param providedReservationRequestId to be checked
-     * @return {@link Boolean#TRUE} when given {@code providedReservationRequestId} can be provided for given
-     *         date/time {@code slot}, otherwise {@link String} report describing the reason why it is not available
-     */
-    @API
-    public Object checkAvailableProvidedReservationRequest(SecurityToken token, Interval slot,
-            String providedReservationRequestId);
+    public Object checkAvailability(AvailabilityCheckRequest request);
 
     /**
      * Creates a new reservation request.

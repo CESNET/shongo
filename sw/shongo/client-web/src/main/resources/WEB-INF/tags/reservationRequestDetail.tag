@@ -37,8 +37,7 @@
     </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
-        <dt><spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:
-        </dt>
+        <dt><spring:message code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:</dt>
         <dd>
             <c:choose>
                 <c:when test="${not empty detailUrl}">
@@ -90,7 +89,7 @@
     </dd>
 
     <c:if test="${reservationRequest.allocationState != null}">
-        <dt><spring:message code="views.reservationRequest.allocationState"/></dt>
+        <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
         <dd class="allocation-state">
             <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}" var="allocationState"/>
             <tag:help label="${allocationState}" labelClass="${reservationRequest.allocationState}">

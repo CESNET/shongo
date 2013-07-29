@@ -116,13 +116,13 @@
         </h2>
         <dl class="dl-horizontal">
 
-            <dt><spring:message code="views.reservationRequest.slot"/></dt>
+            <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
             <dd>
                 <joda:format value="${reservation.slot.start}" style="MS"/> -
                 <joda:format value="${reservation.slot.end}" style="MS"/>
             </dd>
 
-            <dt><spring:message code="views.room.state"/></dt>
+            <dt><spring:message code="views.room.state"/>:</dt>
             <dd class="executable-state">
                 <c:if test="${reservation.roomState != null}">
                     <spring:message code="views.reservationRequest.executableState.${reservation.roomState}" var="roomState"/>
@@ -137,10 +137,10 @@
                 </c:if>
             </dd>
 
-            <dt><spring:message code="views.room.licenseCount"/></dt>
+            <dt><spring:message code="views.room.licenseCount"/>:</dt>
             <dd>${reservation.roomLicenseCount}</dd>
 
-            <dt><spring:message code="views.room.aliases"/></dt>
+            <dt><spring:message code="views.room.aliases"/>:</dt>
             <dd>
                 <tag:help label="${reservation.roomAliases}">
                     <c:if test="${not empty reservation.roomAliasesDescription}">

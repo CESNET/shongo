@@ -279,8 +279,10 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public void checkAvailability(Interval slot, EntityManager entityManager) throws SchedulerException
+    public void checkAvailability(SchedulerContext schedulerContext) throws SchedulerException
     {
+        Interval slot = schedulerContext.getRequestedSlot();
+        EntityManager entityManager = schedulerContext.getEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
@@ -303,6 +305,7 @@ public class AliasSpecification extends Specification
                 continue;
             }
             List<ResourceReservation> resourceReservations = reservationManager.getResourceReservations(resource, slot);
+            schedulerContext.applyResourceReservations(resource.getId(), resourceReservations);
             if (resourceReservations.size() > 0) {
                 continue;
             }
@@ -311,8 +314,13 @@ public class AliasSpecification extends Specification
 
             ValueProvider valueProvider = aliasProvider.getValueProvider();
             ValueProvider targetValueProvider = valueProvider.getTargetValueProvider();
+
+            List<ValueReservation> valueReservations =
+                    reservationManager.getValueReservations(targetValueProvider, slot);
+            schedulerContext.applyValueReservations(targetValueProvider.getId(), valueReservations);
+
             Set<String> usedValues = new HashSet<String>();
-            for (ValueReservation allocatedValue : reservationManager.getValueReservations(targetValueProvider, slot)) {
+            for (ValueReservation allocatedValue : valueReservations) {
                 usedValues.add(allocatedValue.getValue());
             }
             try {

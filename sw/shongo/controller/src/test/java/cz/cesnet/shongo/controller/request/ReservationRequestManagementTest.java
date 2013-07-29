@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.api.ReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSet;
 import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -498,7 +499,11 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         aliasSpecification.addAliasType(AliasType.ROOM_NAME);
         aliasSpecification.setValue("test");
 
-        result = getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval, aliasSpecification);
+        AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(SECURITY_TOKEN);
+        availabilityCheckRequest.setSlot(interval);
+        availabilityCheckRequest.setSpecification(aliasSpecification);
+
+        result = getReservationService().checkAvailability(availabilityCheckRequest);
         Assert.assertEquals(Boolean.TRUE, result);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -507,12 +512,12 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
         reservationRequest.setSpecification(aliasSpecification);
         allocateAndCheck(reservationRequest);
 
-        result = getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval, aliasSpecification);
+        result = getReservationService().checkAvailability(availabilityCheckRequest);
         Assert.assertEquals(String.class, result.getClass());
 
         try {
-            getReservationService().checkAvailableSpecification(SECURITY_TOKEN, interval,
-                    new RoomSpecification(1, Technology.H323));
+            availabilityCheckRequest.setSpecification(new RoomSpecification(1, Technology.H323));
+            getReservationService().checkAvailability(availabilityCheckRequest);
             Assert.fail("Room specification should not be able to be checked for availability for now.");
         }
         catch (RuntimeException exception) {

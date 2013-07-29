@@ -214,16 +214,16 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     }
 
     /**
-     * @param interval
      * @param providedReservationRequest
-     * @param entityManager
      * @return {@link Reservation} to be provided from given {@code providedReservationRequest} for given {@code interval}
      * @throws SchedulerException
      */
-    public static Reservation getProvidedReservation(Interval interval,
-            AbstractReservationRequest providedReservationRequest, EntityManager entityManager, SchedulerContext schedulerContext)
+    public static Reservation getProvidedReservation(AbstractReservationRequest providedReservationRequest,
+            SchedulerContext schedulerContext)
             throws SchedulerException
     {
+        Interval interval = schedulerContext.getRequestedSlot();
+
         // Only reservation request can be provided
         if (!(providedReservationRequest instanceof ReservationRequest)) {
             throw new SchedulerReportSet.ReservationRequestNotUsableException(providedReservationRequest);
@@ -243,12 +243,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Check the provided reservation
-        ReservationManager reservationManager = new ReservationManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
         List<ExistingReservation> existingReservations =
                 reservationManager.getExistingReservations(providedReservation, interval);
-        if (schedulerContext != null) {
-            schedulerContext.applyAvailableReservations(existingReservations);
-        }
+        schedulerContext.applyAvailableReservations(existingReservations);
         if (existingReservations.size() > 0) {
             throw new SchedulerReportSet.ReservationNotAvailableException(
                     providedReservation, reservationRequest);
@@ -292,8 +290,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Fill allocated reservation from provided reservation request as reusable
         ReservationRequest providedReservationRequest = reservationRequest.getProvidedReservationRequest();
         if (providedReservationRequest != null) {
-            Reservation providedReservation = getProvidedReservation(
-                    requestedSlot, providedReservationRequest, entityManager, schedulerContext);
+            Reservation providedReservation = getProvidedReservation(providedReservationRequest, schedulerContext);
             schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
         }
 

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.springframework.validation.Errors;
@@ -76,19 +77,26 @@ public class ReservationRequestValidator implements Validator
         }
 
         if (specificationType != null) {
+            AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
+            availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
+            if (reservationRequestModel.getId() != null) {
+                availabilityCheckRequest.setProvidedReservationRequestId(reservationRequestModel.getId());
+            }
             switch (specificationType) {
                 case PERMANENT_ROOM:
-                    Object isSpecificationAvailable = reservationService.checkAvailableSpecification(securityToken,
-                            reservationRequestModel.getSlot(), reservationRequestModel.toSpecificationApi());
+                    // Check if room name is available
+                    availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
+                    Object isSpecificationAvailable = reservationService.checkAvailability(availabilityCheckRequest);
                     if (!Boolean.TRUE.equals(isSpecificationAvailable)) {
                         errors.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
                     }
                     break;
                 case PERMANENT_ROOM_CAPACITY:
+                    // Check if permanent room is available
+                    availabilityCheckRequest.setReservationRequestId(
+                            reservationRequestModel.getPermanentRoomReservationRequestId());
                     Object isProvidedReservationAvailableAvailable =
-                            reservationService.checkAvailableProvidedReservationRequest(securityToken,
-                                    reservationRequestModel.getSlot(),
-                                    reservationRequestModel.getPermanentRoomReservationRequestId());
+                            reservationService.checkAvailability(availabilityCheckRequest);
                     if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
                         errors.rejectValue("permanentRoomReservationRequestId",
                                 "validation.field.permanentRoomNotAvailable");
