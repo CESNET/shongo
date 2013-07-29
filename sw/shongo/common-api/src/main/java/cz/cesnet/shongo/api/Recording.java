@@ -25,6 +25,11 @@ public class Recording extends IdentifiedComplexType
     private String downloadableUrl;
 
     /**
+     * URL for editing recording.
+     */
+    private String editableURL;
+
+    /**
      * Time of the beginning of the recording.
      */
     private DateTime beginDate;
@@ -80,6 +85,22 @@ public class Recording extends IdentifiedComplexType
     public void setDownloadableUrl(String downloadableUrl)
     {
         this.downloadableUrl = downloadableUrl;
+    }
+
+    /**
+     * @return {@link #editableURL}
+     */
+    public String getEditableURL()
+    {
+        return editableURL;
+    }
+
+    /**
+     * @param editableURL sets the {@link #editableURL}
+     */
+    public void setEditableURL(String editableURL)
+    {
+        this.editableURL = editableURL;
     }
 
     /**

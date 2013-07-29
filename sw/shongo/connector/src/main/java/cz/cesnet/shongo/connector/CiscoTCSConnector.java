@@ -1,0 +1,401 @@
+ package cz.cesnet.shongo.connector;
+
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.DeviceLoadInfo;
+import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.jade.CommandException;
+import cz.cesnet.shongo.api.jade.CommandUnsupportedException;
+import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.connector.api.RecordingService;
+import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.soap.*;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+
+/**
+ * {@link AbstractConnector} for Cisco TelePresence Content Server
+ *
+ * @author Ondrej Pavelka <pavelka@cesnet.cz>
+ */
+public class CiscoTCSConnector extends AbstractConnector implements RecordingService
+{
+     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
+
+    /**
+     * This is the user log in name, typically the user email address.
+     */
+    private String login;
+
+    /**
+     * The password of the user.
+     */
+    private String password;
+
+    /**
+     *
+     */
+    private SOAPConnection soapConnection;
+
+
+    @Override
+    public void connect(Address address, String username, String password) throws CommandException
+    {
+        this.info.setDeviceAddress(address);
+        this.login = username;
+        this.password = password;
+
+        // Setup options
+        //TODO: what needed
+
+        try {
+            SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+            this.soapConnection = soapConnectionFactory.createConnection();
+
+            String url = "https://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress().getPort() + "/tcs/Helium.wsdl";
+        }
+        catch (SOAPException e) {
+            //TODO: process
+            throw new CommandException("TODO: process request exceptions", e);
+        }
+
+        this.info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
+    }
+
+    @Override
+    public void disconnect() throws CommandException
+    {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
+    {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public String startRecording(String folderId, Alias alias) throws CommandException, CommandUnsupportedException
+    {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void stopRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public Recording getRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public Collection<Recording> listRecordings(String folderId) throws CommandException, CommandUnsupportedException
+    {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void deleteRecording(String recordingId) throws CommandException, CommandUnsupportedException
+    {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
+    {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    protected void request(String action, Map<String, String> attributes) throws CommandException
+    {
+        try {
+            SOAPMessage soapMessage = this.soapConnection.call(createSOAPRequest(),new Object());
+        }
+        catch (SOAPException e) {
+            throw new CommandException("TODO: deal with this exception in request()" ,e);
+        }
+    }
+
+    protected SOAPMessage createSOAPRequest() throws SOAPException
+    {
+        MessageFactory messageFactory = MessageFactory.newInstance();
+        SOAPMessage soapMessage = messageFactory.createMessage();
+        SOAPPart soapPart = soapMessage.getSOAPPart();
+
+        String serverURI = "https://" + this.info.getDeviceAddress().getHost() + ":" + this.info.getDeviceAddress().getPort() + "/tcs/SoapServer.php";
+
+        ConfiguredSSLContext.getInstance().addAdditionalCertificates(info.getDeviceAddress().getHost());
+
+        // SOAP Envelope
+        SOAPEnvelope envelope = soapPart.getEnvelope();
+        envelope.setPrefix("soap");
+        envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
+        envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+
+        /*
+        Constructed SOAP Request Message:
+        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:example="http://ws.cdyne.com/">
+            <SOAP-ENV:Header/>
+            <SOAP-ENV:Body>
+                <example:VerifyEmail>
+                    <example:email>mutantninja@gmail.com</example:email>
+                    <example:LicenseKey>123</example:LicenseKey>
+                </example:VerifyEmail>
+            </SOAP-ENV:Body>
+        </SOAP-ENV:Envelope>
+         */
+
+        // SOAP Body
+        SOAPBody soapBody = envelope.getBody();
+
+        SOAPElement soapBodyElem = soapBody.addChildElement("RequestConferenceID");
+        soapBodyElem.addNamespaceDeclaration("test","http://www.tandberg.net/XML/Streaming/1.0");
+
+        //soapBodyElem.addAttribute("xmlns","http://www.tandberg.net/XML/Streaming/1.0");
+        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("email");
+        soapBodyElem1.addTextNode("mutantninja@gmail.com");
+        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("LicenseKey");
+        soapBodyElem2.addTextNode("123");
+
+        MimeHeaders headers = soapMessage.getMimeHeaders();
+        headers.addHeader("SOAPAction", serverURI  + "VerifyEmail");
+
+        soapMessage.saveChanges();
+
+        /* Print the request message */
+        System.out.print("Request SOAP Message = ");
+        try {
+            soapMessage.writeTo(System.out);
+        }
+        catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        System.out.println();
+
+        return soapMessage;
+    }
+
+    public static void main(String[] args) throws Exception
+    {
+        Address address = new Address("195.113.151.188",443);
+
+        CiscoTCSConnector tcs = new CiscoTCSConnector();
+        tcs.connect(address,"opicak","kalamita42");
+
+        SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+        SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+
+        String url = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/Helium.wsdl";
+        String tcsUrl = "https://" + address.getHost() + ":" + address.getPort() + "/tcs/SoapServer.php";
+
+        SOAPMessage response = soapConnection.call(tcs.createSOAPRequest(), tcsUrl);
+
+        printSOAPResponse(response);
+
+        soapConnection.close();
+
+    }
+
+    private static void printSOAPResponse(SOAPMessage soapResponse) throws Exception {
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        Source sourceContent = soapResponse.getSOAPPart().getContent();
+        System.out.print("\nResponse SOAP Message = ");
+        StreamResult result = new StreamResult(System.out);
+        transformer.transform(sourceContent, result);
+    }
+
+
+
+
+
+
+
+private static final String TECHNET_NAMESPACE_PREFIX = "shongo";
+private static final String WEBSERVICE_SECURE_URL =
+"https://195.113.151.188:443/tcs/SoapServer.php";
+private static final String WEBSERVICE_INSECURE_URL =
+"https://195.113.151.188:443/tcs/SoapServer.php";
+
+
+/**
+* Get the login token
+*
+* @param username
+* @param password
+* @return The authentication ticket
+* @throws SOAPException
+*/
+private String login( final String username, final String password) throws SOAPException {
+final SOAPMessage soapMessage = getSoapMessage();
+final SOAPBody soapBody = soapMessage.getSOAPBody();
+final SOAPElement loginElement = soapBody.addChildElement("Login");
+
+loginElement.addChildElement("Username").addTextNode(username);
+loginElement.addChildElement("Password").addTextNode(password);
+
+soapMessage.saveChanges();
+
+final SOAPConnection soapConnection = getSoapConnection();
+final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_SECURE_URL);
+final String textContent = soapMessageReply.getSOAPHeader().getFirstChild().getTextContent();
+
+soapConnection.close();
+
+return textContent;
+}
+
+/**
+* Returns the price
+*
+* @param authenticationTicket
+* @param shape
+* @param size
+* @param color
+* @param clarity
+* @throws SOAPException
+*
+private void getPrice( final String authenticationTicket, final String shape, final float size, final String color,
+final String clarity) throws SOAPException {
+final SOAPMessage soapMessage = getSoapMessage();
+
+addAuthenticationTicket(authenticationTicket, soapMessage);
+
+final SOAPBody soapBody = soapMessage.getSOAPBody();
+final SOAPElement getPriceElement = soapBody.addChildElement("GetPrice", TECHNET_NAMESPACE_PREFIX);
+getPriceElement.addChildElement("shape", TECHNET_NAMESPACE_PREFIX).addTextNode(shape);
+getPriceElement.addChildElement("size", TECHNET_NAMESPACE_PREFIX).addTextNode(String.valueOf(size));
+getPriceElement.addChildElement("color", TECHNET_NAMESPACE_PREFIX).addTextNode(color);
+getPriceElement.addChildElement("clarity", TECHNET_NAMESPACE_PREFIX).addTextNode(clarity);
+
+soapMessage.saveChanges();
+
+final SOAPConnection soapConnection = getSoapConnection();
+
+final SOAPMessage soapMessageReply = soapConnection.call(soapMessage,WEBSERVICE_INSECURE_URL);
+
+final SOAPBody replyBody = soapMessageReply.getSOAPBody();
+final Node getPriceResponse = replyBody.getFirstChild();
+final Node getPriceResult = getPriceResponse.getFirstChild();
+
+final NodeList childNodes = getPriceResult.getChildNodes();
+final String replyShape = childNodes.item(0).getTextContent();
+final String lowSize = childNodes.item(1).getTextContent();
+
+// ... etc etc
+// You can create a bean that will encompass all elements
+
+soapConnection.close();
+}
+
+/**
+* Gets the price sheet
+*
+* @param authenticationTicket
+* @param shapes
+* @throws SOAPException
+* @throws TransformerException
+*
+private void getPriceSheet( final String authenticationTicket, final Shapes shapes)
+throws SOAPException, TransformerException {
+final SOAPMessage soapMessage = getSoapMessage();
+
+addAuthenticationTicket(authenticationTicket, soapMessage);
+
+final SOAPBody soapBody = soapMessage.getSOAPBody();
+
+final SOAPElement getPriceSheetElement =
+soapBody.addChildElement("GetPriceSheet", TECHNET_NAMESPACE_PREFIX);
+
+getPriceSheetElement.addChildElement(
+"shape", TECHNET_NAMESPACE_PREFIX).addTextNode(shapes.enumString);
+
+soapMessage.saveChanges();
+
+final SOAPConnection soapConnection = getSoapConnection();
+final SOAPMessage soapMessageReply = soapConnection.call(soapMessage, WEBSERVICE_INSECURE_URL);
+
+// this will print out the result
+// Create transformer
+
+final TransformerFactory tff = TransformerFactory.newInstance();
+final Transformer tf = tff.newTransformer();
+
+// Get reply content
+final Source sc = soapMessageReply.getSOAPPart().getContent();
+
+// Set output transformation
+final StreamResult result = new StreamResult(System.out);
+tf.transform(sc, result);
+System.out.println();
+
+// Close connection
+soapConnection.close();
+}
+
+/**
+* Create a SOAP Connection
+*
+* @return
+* @throws UnsupportedOperationException
+* @throws SOAPException
+*/
+private SOAPConnection getSoapConnection() throws UnsupportedOperationException, SOAPException {
+final SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
+final SOAPConnection soapConnection = soapConnectionFactory.createConnection();
+
+return soapConnection;
+}
+
+/**
+* Create the SOAP Message
+*
+* @return
+* @throws SOAPException
+*/
+private SOAPMessage getSoapMessage() throws SOAPException {
+final MessageFactory messageFactory = MessageFactory.newInstance();
+final SOAPMessage soapMessage = messageFactory.createMessage();
+
+// Object for message parts
+final SOAPPart soapPart = soapMessage.getSOAPPart();
+final SOAPEnvelope envelope = soapPart.getEnvelope();
+                                                                                       /*
+envelope.addNamespaceDeclaration("xsd", "http://www.w3.org/2001/XMLSchema");
+envelope.addNamespaceDeclaration("xsi", "http://www.w3.org/2001/XMLSchema-instance");
+envelope.addNamespaceDeclaration("enc", "http://schemas.xmlsoap.org/soap/encoding/");
+envelope.addNamespaceDeclaration("env", "http://schemas.xmlsoap.org/soap/envelop/"); */
+envelope.addNamespaceDeclaration("URL", WEBSERVICE_SECURE_URL);
+
+
+// add the technet namespace as "technet"
+envelope.addNamespaceDeclaration(TECHNET_NAMESPACE_PREFIX, "http://technet.rapaport.com/");
+
+envelope.setEncodingStyle("http://schemas.xmlsoap.org/soap/encoding/");
+
+return soapMessage;
+}
+
+private void addAuthenticationTicket( final String authenticationTicket, final SOAPMessage soapMessage)
+throws SOAPException {
+final SOAPHeader header = soapMessage.getSOAPHeader();
+final SOAPElement authenticationTicketHeader =
+header.addChildElement("AuthenticationTicketHeader", TECHNET_NAMESPACE_PREFIX);
+authenticationTicketHeader.addChildElement(
+"Ticket", TECHNET_NAMESPACE_PREFIX).addTextNode(authenticationTicket);
+}
+
+
+}

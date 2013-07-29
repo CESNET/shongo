@@ -46,7 +46,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
     /**
-     * Options for the {@link CiscoMCUConnector}.
+     * Options for the {@link AdobeConnectConnector}.
      */
     public static final String URL_PATH_EXTRACTION_FROM_URI = "url-path-extraction-from-uri";
 
@@ -372,10 +372,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Recording recording = new Recording();
 
-        recording.setUrl("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
-                .getChild("sco").getChildText("url-path"));
+        String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                .getChild("sco").getChildText("url-path");
+        recording.setUrl(baseUrl);
         //TODO: vse ostatni
-        //recording.setDownloadableUrl();
+        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+        recording.setEditableURL(baseUrl + "?pbMode=edit");
 
         return recording;
     }
@@ -397,10 +399,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 continue;
             }
             Recording recording = new Recording();
-            recording.setUrl("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress()
-                    .getPort() + resultRecording.getChildText("url-path"));
 
+            String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                    .getChild("sco").getChildText("url-path");
+            recording.setUrl(baseUrl);
             //TODO: vse ostatni
+            //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+            recording.setEditableURL(baseUrl + "?pbMode=edit");
 
             recordingList.add(recording);
         }
@@ -411,7 +416,18 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @Override
     public void moveRecording(String recordingId, String folderId) throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String,String> folderAttributes = new HashMap<String, String>();
+        folderAttributes.put("folder-id",recordingsFolderID);
+        folderAttributes.put("name", folderId);
+        folderAttributes.put("type", "folder");
+
+        String folderScoId = request("sco-update",folderAttributes).getChild("sco").getAttributeValue("sco-id");
+
+        HashMap<String,String> moveAttributes = new HashMap<String, String>();
+        moveAttributes.put("sco-id",recordingId);
+        moveAttributes.put("folder-id",folderScoId);
+
+        request("sco-move",moveAttributes);
     }
 
     @java.lang.Override
@@ -638,7 +654,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         setRoomAttributes(attributes, room);
 
         // Recreate room if new URL PATH is set
-        if (attributes.get("url-path") != null && attributes.get("url-path") != getRoom(roomId).getAlias(AliasType.ADOBE_CONNECT_URI).getValue()) {
+        String oldRoomURI = getRoom(roomId).getAlias(AliasType.ADOBE_CONNECT_URI).getValue();
+        if (attributes.get("url-path") != null && !attributes.get("url-path").equalsIgnoreCase(getLastPathSegmentFromURI(oldRoomURI))) {
             return recreateRoom(room);
         }
 
@@ -663,6 +680,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
+     * Returns last segment of URI. For http://example.com/test/myPage returns myPage.
+     *
+     * @param uri given URI
+     * @return last segment or null if URI has only domain
+     */
+    protected String getLastPathSegmentFromURI(String uri)
+    {
+        String[] uriArray = uri.split("/");
+
+        return (uriArray.length > 1 ? uriArray[uriArray.length - 1] : null);
+    }
+
+    /**
      * Create new room and while deleting the old one redirect to the new one.
      *
      * Is necessary for changing room URL.
@@ -676,6 +706,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String roomId = room.getId();
 
             String newRoomId = createRoom(room);
+
+            //TODO: manage creating new Room with same name
 
             String msg = "Room has been modified, you have been redirected to the new one (" + room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue() + ").";
             endMeeting(roomId, URLEncoder.encode(msg,"UTF8"), true, URLEncoder.encode(room.getAlias(AliasType.ADOBE_CONNECT_URI).getValue(), "UTF8"));
