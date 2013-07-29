@@ -29,6 +29,31 @@ the following command:
 
     sudo apt-get install sun-java6-jdk
 
+POSTGRESQL DATABASE
+
+Connect to PostgreSQL console (e.g., run 'psql' command as 'postgres' system user).
+
+Create database for the Shongo:
+
+    CREATE DATABASE shongo;
+
+Create user for connecting to the database:
+
+    CREATE USER shongo WITH PASSWORD 'shongo';
+
+Change the database owner to the created user:
+
+    ALTER DATABASE shongo OWNER TO shongo;
+
+Add the following lines to controller.cfg.xml configuration file:
+
+    <database>
+        <driver>org.postgresql.Driver</driver>
+        <url>jdbc:postgresql://127.0.0.1/shongo</url>
+        <username>shongo</username>
+        <password>shongo</password>
+    </database>
+
 HIBERNATE NOTES
 
 1) If OneToMany association without mappedBy attribute is declared as java.util.List, deletion of one item

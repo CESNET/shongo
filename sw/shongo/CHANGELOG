@@ -1,19 +1,27 @@
-0.5.3 (2013-07-25)
+0.5.3 (2013-07-29)
 
-    * Web client rewritten from scratch to Java.
+    * Reservation system web interface rewritten to Java from scratch.
 
-    * Added history for reservation requests in detail page and reservation requests can be modified.
+    * Allow the users to modify theirs reservation requests and added reservation request history to detail page
+      with "reverting" ability.
 
-    * Added language selection for English or Czech.
+    * Added selection for English or Czech language.
 
     * Show only actions which logged user can perform (e.g., user who isn't owner of a reservation request
       cannot modify or delete the request and thus the actions aren't visible).
 
-    * Added "dashboard" to main page.
+    * Added "dashboard" of allocated rooms for logged user to main page.
 
     * Added breadcrumb navigation to the top of the layout.
 
     * Added wizard for beginners.
+
+    * Added problem reporting to the right of the top menu.
+
+    * User-friendly keyboard navigation.
+
+    * Reordered properties of reservation request in lists and detail page, replaced help icons by underlined labels
+      and updating the end of time slot field according to changes in start field.
 
 0.5.2 (2013-04-25)
 
@@ -24,7 +32,7 @@
 
     * Fixed few issues when reservation request is deleted.
 
-    * Information emails are sent to users and admins separately.
+    * Information emails are sent to users and administrators separately.
 
 0.5.1 (2013-04-05)
 

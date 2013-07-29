@@ -92,7 +92,7 @@ public class ReservationRequestDetailController
                     }
 
                     // First allocation failed is revertible
-                    if (!allocationState.equals(AllocationState.ALLOCATED) && historyItems.size() == 0) {
+                    if (!allocationState.equals(AllocationState.ALLOCATED) && historyItem.getType().equals(ReservationRequestType.MODIFIED) && historyItems.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
                 }
