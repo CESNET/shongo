@@ -46,7 +46,7 @@
                             <c:if test="${not empty userRole.id}">
                                 <spring:eval var="aclDeleteUrl"
                                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, userRole.id)"/>
-                                <a href="${aclDeleteUrl}">
+                                <a href="${aclDeleteUrl}" tabindex="2">
                                     <spring:message code="views.list.action.delete"/>
                                 </a>
                             </c:if>
@@ -86,7 +86,7 @@
                         <td>
                             <spring:eval var="aclDeleteUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, '{{userRole.id}}')"/>
-                            <a href="${aclDeleteUrl}">
+                            <a href="${aclDeleteUrl}" tabindex="2">
                                 <spring:message code="views.list.action.delete"/>
                             </a>
                         </td>
@@ -97,7 +97,7 @@
             </table>
             <c:choose>
                 <c:when test="${isWritable && createUrl != null}">
-                    <a class="btn btn-primary" href="${createUrl}">
+                    <a class="btn btn-primary" href="${createUrl}" tabindex="1">
                         <spring:message code="views.button.add"/>
                     </a>
                     <pagination-pages class="pull-right">

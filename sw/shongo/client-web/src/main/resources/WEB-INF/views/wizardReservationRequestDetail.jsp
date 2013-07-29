@@ -33,19 +33,21 @@
     <ul>
         <c:if test="${createPermanentRoomCapacityUrl != null}">
             <li>
-                <a href="${createPermanentRoomCapacityUrl}">
+                <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
                     <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>
                 </a>
             </li>
         </c:if>
-        <li><a href="javascript: location.reload();">
-            <spring:message code="views.wizard.reservationRequestDetail.refresh"/>
-        </a></li>
+        <li>
+            <a href="javascript: location.reload();"  tabindex="1">
+                <spring:message code="views.wizard.reservationRequestDetail.refresh"/>
+            </a>
+        </li>
         <c:if test="${isWritable}">
             <li>
                 <spring:eval var="deleteUrl"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getWizardReservationRequestDelete(contextPath, reservationRequest.id)"/>
-                <a href="${deleteUrl}"><spring:message code="views.wizard.reservationRequestDetail.delete"/></a>
+                <a href="${deleteUrl}" tabindex="1"><spring:message code="views.wizard.reservationRequestDetail.delete"/></a>
             </li>
         </c:if>
     </ul>

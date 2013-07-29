@@ -47,7 +47,7 @@
                 </tag:help>
             </td>
             <td>
-                <a href="${usageDetailUrl}"><spring:message code="views.list.action.show"/></a>
+                <a href="${usageDetailUrl}" tabindex="2"><spring:message code="views.list.action.show"/></a>
             </td>
         </tr>
         <tr ng-hide="items.length">
@@ -57,7 +57,7 @@
     </table>
     <c:choose>
         <c:when test="${createUrl != null}">
-            <a class="btn btn-primary" href="${createUrl}">
+            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>

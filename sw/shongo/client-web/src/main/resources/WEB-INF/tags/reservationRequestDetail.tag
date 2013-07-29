@@ -43,7 +43,7 @@
                 <c:when test="${not empty detailUrl}">
                     <spring:eval var="permanentRoomDetailUrl"
                                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.permanentRoomReservationRequestId)"/>
-                    <a href="${permanentRoomDetailUrl}">${reservationRequest.permanentRoomReservationRequest.specification.value}</a>
+                    <a href="${permanentRoomDetailUrl}" tabindex="2">${reservationRequest.permanentRoomReservationRequest.specification.value}</a>
                 </c:when>
                 <c:otherwise>
                     ${reservationRequest.permanentRoomReservationRequest.specification.value}

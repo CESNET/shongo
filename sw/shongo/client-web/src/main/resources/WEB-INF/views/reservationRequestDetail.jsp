@@ -68,7 +68,7 @@
                         <c:when test="${historyItem.id != reservationRequest.id && historyItem.type != 'DELETED'}">
                             <spring:eval var="historyItemDetailUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, historyItem.id)"/>
-                            <a href="${historyItemDetailUrl}">
+                            <a href="${historyItemDetailUrl}"  tabindex="1">
                                 <spring:message code="views.list.action.show"/>
                             </a>
                         </c:when>
@@ -77,7 +77,7 @@
                     <c:if test="${historyItem.isRevertible}">
                         <spring:eval var="historyItemRevertUrl"
                                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailRevert(contextPath, historyItem.id)"/>
-                        | <a href="${historyItemRevertUrl}"><spring:message code="views.list.action.revert"/></a>
+                        | <a href="${historyItemRevertUrl}" tabindex="2"><spring:message code="views.list.action.revert"/></a>
                     </c:if>
                 </td>
                 </tr>
@@ -196,17 +196,17 @@
 </div>
 
 <div class="pull-right">
-    <a class="btn btn-primary" href="${backUrl}">
+    <a class="btn btn-primary" href="${backUrl}" tabindex="1">
         <spring:message code="views.button.back"/>
     </a>
-    <a class="btn" href="javascript: location.reload();">
+    <a class="btn" href="javascript: location.reload();" tabindex="1">
         <spring:message code="views.button.refresh"/>
     </a>
     <c:if test="${isWritable}">
-        <a class="btn" href="${modifyUrl}">
+        <a class="btn" href="${modifyUrl}" tabindex="1">
             <spring:message code="views.button.modify"/>
         </a>
-        <a class="btn" href="${deleteUrl}">
+        <a class="btn" href="${deleteUrl}" tabindex="1">
             <spring:message code="views.button.delete"/>
         </a>
     </c:if>

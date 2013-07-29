@@ -20,7 +20,7 @@
     <span><spring:message code="views.wizard.select"/></span>
     <ul>
         <li>
-            <a href="${createUrl}">
+            <a href="${createUrl}" tabindex="1">
                 <spring:message code="views.wizard.select.createRoom"/>
             </a>
         </li>

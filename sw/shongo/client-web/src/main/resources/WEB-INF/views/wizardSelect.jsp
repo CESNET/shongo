@@ -20,13 +20,13 @@
 <div class="actions">
     <span><spring:message code="views.wizard.select"/></span>
     <ul>
-        <li><a href="${urlCreateRoom}">
+        <li><a href="${urlCreateRoom}" tabindex="1">
             <spring:message code="views.wizard.select.createRoom"/>
         </a></li>
-        <li><a href="${urlCreatePermanentRoomCapacity}">
+        <li><a href="${urlCreatePermanentRoomCapacity}" tabindex="1">
             <spring:message code="views.wizard.select.createPermanentRoomCapacity"/>
         </a></li>
-        <li><a href="${urlReservations}">
+        <li><a href="${urlReservations}" tabindex="1">
             <spring:message code="views.wizard.select.reservationRequestList"/>
         </a></li>
     </ul>

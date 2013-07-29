@@ -17,6 +17,8 @@
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
+<c:set var="tabIndex" value="1"/>
+
 <script type="text/javascript">
     angular.module('tag:reservationRequestForm', ['ngDateTime', 'ngTooltip']);
 
@@ -133,7 +135,7 @@
                     <spring:message code="views.reservationRequest.identifier"/>:
                 </form:label>
                 <div class="controls double-width">
-                    <form:input path="id" readonly="true"/>
+                    <form:input path="id" readonly="true" tabindex="${tabIndex}"/>
                 </div>
             </div>
         </c:if>
@@ -143,7 +145,7 @@
                 <spring:message code="views.reservationRequest.purpose"/>:
             </form:label>
             <div class="controls">
-                <form:select path="purpose">
+                <form:select path="purpose" tabindex="${tabIndex}">
                     <form:option value="SCIENCE">
                         <spring:message code="views.reservationRequest.purpose.SCIENCE"/>
                     </form:option>
@@ -161,7 +163,7 @@
                         <spring:message code="views.reservationRequest.technology"/>:
                     </form:label>
                     <div class="controls">
-                        <form:select path="technology" ng-model="technology">
+                        <form:select path="technology" ng-model="technology" tabindex="${tabIndex}">
                             <form:option value="H323_SIP">
                                 <%= ReservationRequestModel.Technology.H323_SIP.getTitle() %>
                             </form:option>
@@ -186,7 +188,7 @@
                 <div class="controls">
                     <form:select path="permanentRoomReservationRequestId" cssErrorClass="error"
                                  ng-model="permanentRoom"
-                                 ng-options="option.name for (value, option) in permanentRooms">
+                                 ng-options="option.name for (value, option) in permanentRooms" tabindex="${tabIndex}">
                         <form:option value="">-- <spring:message code="views.select.choose"/> --</form:option>
                         {{option}}
                     </form:select>
@@ -204,7 +206,7 @@
                 <spring:message code="views.reservationRequest.description"/>:
             </form:label>
             <div class="controls double-width">
-                <form:input path="description" cssErrorClass="error"/>
+                <form:input path="description" cssErrorClass="error" tabindex="${tabIndex}"/>
                 <form:errors path="description" cssClass="error"/>
                 <tag:help><spring:message code="views.help.reservationRequest.description"/></tag:help>
             </div>
@@ -216,7 +218,7 @@
                     <spring:message code="views.reservationRequest.specification.permanentRoomName"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="permanentRoomName" cssErrorClass="error"/>
+                    <form:input path="permanentRoomName" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <form:errors path="permanentRoomName" cssClass="error"/>
                 </div>
             </div>
@@ -228,7 +230,7 @@
                     <spring:message code="views.reservationRequest.specification.roomParticipantCount"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="roomParticipantCount" cssErrorClass="error"/>
+                    <form:input path="roomParticipantCount" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <form:errors path="roomParticipantCount" cssClass="error"/>
                 </div>
             </div>
@@ -241,10 +243,10 @@
             <div class="controls">
                 <c:choose>
                     <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-                        <form:input path="start" cssErrorClass="error" date-picker="true"/>
+                        <form:input path="start" cssErrorClass="error" date-picker="true" tabindex="${tabIndex}"/>
                     </c:when>
                     <c:otherwise>
-                        <form:input path="start" cssErrorClass="error" date-time-picker="true"/>
+                        <form:input path="start" cssErrorClass="error" date-time-picker="true" tabindex="${tabIndex}"/>
                     </c:otherwise>
                 </c:choose>
                 <form:errors path="start" cssClass="error"/>
@@ -257,7 +259,7 @@
                     <spring:message code="views.reservationRequest.end"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="end" cssErrorClass="error" date-time-picker="true" format="date"/>
+                    <form:input path="end" cssErrorClass="error" date-time-picker="true" format="date" tabindex="${tabIndex}"/>
                     <form:errors path="end" cssClass="error"/>
                 </div>
             </div>
@@ -269,9 +271,9 @@
                     <spring:message code="views.reservationRequest.duration"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="durationCount" cssErrorClass="error" cssStyle="width: 95px;"/>
+                    <form:input path="durationCount" cssErrorClass="error" cssStyle="width: 95px;" tabindex="${tabIndex}"/>
                     &nbsp;
-                    <form:select path="durationType" cssStyle="width: 100px;">
+                    <form:select path="durationType" cssStyle="width: 100px;" tabindex="${tabIndex}">
                         <form:option value="MINUTE"><spring:message
                                 code="views.reservationRequest.duration.minutes"/></form:option>
                         <form:option value="HOUR"><spring:message
@@ -289,15 +291,15 @@
                 </form:label>
                 <div class="controls">
                     <label class="radio inline" for="periodicity-none">
-                        <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE"/>
+                        <form:radiobutton id="periodicity-none" path="periodicityType" value="NONE" tabindex="${tabIndex}"/>
                         <spring:message code="views.reservationRequest.periodicity.NONE"/>
                     </label>
                     <label class="radio inline" for="periodicity-daily">
-                        <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY"/>
+                        <form:radiobutton id="periodicity-daily" path="periodicityType" value="DAILY" tabindex="${tabIndex}"/>
                         <spring:message code="views.reservationRequest.periodicity.DAILY"/>
                     </label>
                     <label class="radio inline" for="periodicity-weekly">
-                        <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY"/>
+                        <form:radiobutton id="periodicity-weekly" path="periodicityType" value="WEEKLY" tabindex="${tabIndex}"/>
                         <spring:message code="views.reservationRequest.periodicity.WEEKLY"/>
                     </label>
                     &nbsp;
@@ -305,7 +307,7 @@
                             <span class="add-on">
                                 <spring:message code="views.reservationRequest.periodicity.until"/>
                             </span>
-                        <form:input path="periodicityEnd" cssErrorClass="error" date-picker="true"/>
+                        <form:input path="periodicityEnd" cssErrorClass="error" date-picker="true" tabindex="${tabIndex}"/>
                     </div>
                     <form:errors path="periodicityEnd" cssClass="error"/>
                 </div>
@@ -318,7 +320,7 @@
                     <spring:message code="views.reservationRequest.specification.roomPin"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="roomPin" cssErrorClass="error"/>
+                    <form:input path="roomPin" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <form:errors path="roomPin" cssClass="error"/>
                 </div>
             </div>
@@ -331,13 +333,13 @@
             <div class="controls">
                 <c:if test="${not empty confirmTitle}">
                     <spring:message code="${confirmTitle}" var="confirmTitle"/>
-                    <input class="btn btn-primary" type="submit" value="${confirmTitle}"/>
+                    <input class="btn btn-primary" type="submit" value="${confirmTitle}" tabindex="${tabIndex}"/>
                 </c:if>
                 <c:if test="${cancelUrl != null}">
                     <c:if test="${empty cancelTitle}">
                         <c:set var="cancelTitle" value="views.button.cancel"/>
                     </c:if>
-                    <a class="btn" href="${cancelUrl}"><spring:message code="${cancelTitle}"/></a>
+                    <a class="btn" href="${cancelUrl}" tabindex="${tabIndex}"><spring:message code="${cancelTitle}"/></a>
                 </c:if>
             </div>
         </div>

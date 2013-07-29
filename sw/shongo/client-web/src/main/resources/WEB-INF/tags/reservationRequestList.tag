@@ -73,16 +73,16 @@
             </td>
             <td>
                 <c:if test="${detailUrl != null}">
-                    <a href="${detailUrl}"><spring:message code="views.list.action.show"/></a>
+                    <a href="${detailUrl}" tabindex="4"><spring:message code="views.list.action.show"/></a>
                 </c:if>
                     <span ng-show="reservationRequest.writable">
                         <c:if test="${modifyUrl != null}">
                             <c:if test="${detailUrl != null}">| </c:if>
-                            <a href="${modifyUrl}"><spring:message code="views.list.action.modify"/></a>
+                            <a href="${modifyUrl}" tabindex="4"><spring:message code="views.list.action.modify"/></a>
                         </c:if>
                         <c:if test="${deleteUrl != null}">
                             <c:if test="${detailUrl != null || modifyUrl != null}">| </c:if>
-                            <a href="${deleteUrl}"><spring:message code="views.list.action.delete"/></a>
+                            <a href="${deleteUrl}" tabindex="4"><spring:message code="views.list.action.delete"/></a>
                         </c:if>
                     </span>
             </td>
@@ -94,7 +94,7 @@
     </table>
     <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
     <c:if test="${createUrl != null}">
-        <a class="btn btn-primary" href="${createUrl}?type=PERMANENT_ROOM">
+        <a class="btn btn-primary" href="${createUrl}?type=PERMANENT_ROOM" tabindex="1">
             <spring:message code="views.button.create"/>
         </a>
         &nbsp;

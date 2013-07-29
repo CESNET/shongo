@@ -57,10 +57,10 @@
                     <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.dateTime}}</td>
                     <td>
-                        <a href="${urlDetail}"><spring:message code="views.list.action.show"/></a>
+                        <a href="${urlDetail}" tabindex="2"><spring:message code="views.list.action.show"/></a>
                         <span ng-show="reservationRequest.writable">
-                            | <a href="${modifyUrl}"><spring:message code="views.list.action.modify"/></a>
-                            | <a href="${deleteUrl}"><spring:message code="views.list.action.delete"/></a>
+                            | <a href="${modifyUrl}" tabindex="3"><spring:message code="views.list.action.modify"/></a>
+                            | <a href="${deleteUrl}" tabindex="4"><spring:message code="views.list.action.delete"/></a>
                         </span>
                     </td>
                 </tr>
@@ -71,7 +71,7 @@
             </table>
             <spring:eval var="createUrl"
                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'PERMANENT_ROOM')"/>
-            <a class="btn btn-primary" href="${createUrl}">
+            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
@@ -118,10 +118,10 @@
                     <td>{{reservationRequest.user}}</td>
                     <td>{{reservationRequest.dateTime}}</td>
                     <td>
-                        <a href="${urlDetail}"><spring:message code="views.list.action.show"/></a>
+                        <a href="${urlDetail}" tabindex="2"><spring:message code="views.list.action.show"/></a>
                         <span ng-show="reservationRequest.writable">
-                            | <a href="${modifyUrl}"><spring:message code="views.list.action.modify"/></a>
-                            | <a href="${deleteUrl}"><spring:message code="views.list.action.delete"/></a>
+                            | <a href="${modifyUrl}" tabindex="3"><spring:message code="views.list.action.modify"/></a>
+                            | <a href="${deleteUrl}" tabindex="4"><spring:message code="views.list.action.delete"/></a>
                         </span>
                     </td>
                 </tr>
@@ -132,7 +132,7 @@
             </table>
             <spring:eval var="createUrl"
                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'ADHOC_ROOM')"/>
-            <a class="btn btn-primary" href="${createUrl}">
+            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
                 <spring:message code="views.button.create"/>
             </a>
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>

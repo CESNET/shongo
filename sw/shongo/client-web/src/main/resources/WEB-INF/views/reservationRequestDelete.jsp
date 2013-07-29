@@ -21,13 +21,13 @@
 <c:choose>
     <c:when test="${dependencies.size() > 0}">
         <div>
-            <a class="btn btn-primary" href="${backUrl}"><spring:message code="views.button.back"/></a>
+            <a class="btn btn-primary" href="${backUrl}" tabindex="1"><spring:message code="views.button.back"/></a>
         </div>
     </c:when>
     <c:otherwise>
         <div>
-            <a class="btn btn-primary" href="${confirmUrl}"><spring:message code="views.button.yes"/></a>
-            <a class="btn" href="${backUrl}"><spring:message code="views.button.no"/></a>
+            <a class="btn btn-primary" href="${confirmUrl}" tabindex="1"><spring:message code="views.button.yes"/></a>
+            <a class="btn" href="${backUrl}" tabindex="1"><spring:message code="views.button.no"/></a>
         </div>
     </c:otherwise>
 </c:choose>

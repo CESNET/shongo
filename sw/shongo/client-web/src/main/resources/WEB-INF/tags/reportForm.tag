@@ -9,6 +9,7 @@
 <%@attribute name="tooltipId" required="false"%>
 <%@attribute name="submitUrl" required="false"%>
 
+<c:set var="tabIndex" value="1"/>
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:if test="${empty submitUrl}">
     <c:set var="submitUrl">${contextPath}<%= ClientWebUrl.REPORT_SUBMIT %></c:set>
@@ -23,7 +24,7 @@
                     <spring:message code="views.report.email"/>:
                 </form:label>
                 <div class="controls double-width">
-                    <form:input path="email" value="${email}" readonly="${emailReadOnly}" cssErrorClass="error"/>
+                    <form:input path="email" value="${email}" readonly="${emailReadOnly}" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <form:errors path="email" cssClass="error"/>
                 </div>
             </div>
@@ -33,7 +34,7 @@
                     <spring:message code="views.report.message"/>:
                 </form:label>
                 <div class="controls double-width">
-                    <form:textarea path="message" cssErrorClass="error"/>
+                    <form:textarea path="message" cssErrorClass="error" tabindex="${tabIndex}"/>
                     <form:errors path="message" cssClass="error"/>
                 </div>
             </div>
@@ -41,8 +42,8 @@
             <div class="control-group">
                 <div class="controls">
                     <spring:message code="views.button.send" var="submitTitle"/>
-                    <input class="btn btn-primary" type="submit" value="${submitTitle}"/>
-                    <a  class="btn" href="${contextPath}/"><spring:message code="views.button.cancel"/></a>
+                    <input class="btn btn-primary" type="submit" value="${submitTitle}" tabindex="${tabIndex}"/>
+                    <a  class="btn" href="${contextPath}/" tabindex="${tabIndex}"><spring:message code="views.button.cancel"/></a>
                 </div>
             </div>
 

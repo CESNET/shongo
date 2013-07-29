@@ -85,9 +85,9 @@
                 </div>
             </td>
             <td>
-                <a href="${childDetailUrl}"><spring:message code="views.list.action.show"/></a>
+                <a href="${childDetailUrl}" tabindex="2"><spring:message code="views.list.action.show"/></a>
                 <span ng-show="childReservationRequest.roomStateAvailable">
-                    | <a href="${childRoomManagementUrl}"><spring:message code="views.list.action.manage"/></a>
+                    | <a href="${childRoomManagementUrl}" tabindex="2"><spring:message code="views.list.action.manage"/></a>
                 </span>
             </td>
         </tr>

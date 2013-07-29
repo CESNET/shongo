@@ -31,8 +31,8 @@
         <div class="actions">
             <span><spring:message code="views.wizard.select"/></span>
             <ul>
-                <li><a href="${wizardUrl}"><spring:message code="views.index.dashboard.startWizard"/></a></li>
-                <li><a href="${urlAdvanced}"><spring:message code="views.index.dashboard.startAdvanced"/></a></li>
+                <li><a href="${wizardUrl}" tabindex="1"><spring:message code="views.index.dashboard.startWizard"/></a></li>
+                <li><a href="${urlAdvanced}" tabindex="1"><spring:message code="views.index.dashboard.startAdvanced"/></a></li>
             </ul>
         </div>
 
@@ -55,7 +55,7 @@
                 <tbody>
                 <tr ng-repeat="room in items">
                     <spring:eval var="urlRoomManagement" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
-                    <td><a href="${urlRoomManagement}">{{room.name}}</a></td>
+                    <td><a href="${urlRoomManagement}" tabindex="2">{{room.name}}</a></td>
                     <td>{{room.technology}}</td>
                     <td>{{room.slotStart}} - {{room.slotEnd}}</td>
                     <td class="executable-state">

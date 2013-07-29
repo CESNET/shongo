@@ -54,7 +54,7 @@
             <c:if test="${wizardAction.primary}">
                 <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
             </c:if>
-            <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}">
+            <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}" tabindex="3">
                 <spring:message code="${wizardAction.titleCode}"/>
             </a>
         </c:if>
@@ -66,7 +66,7 @@
                 <c:if test="${wizardAction.primary}">
                     <c:set var="wizardActionClass" value="${wizardActionClass} btn-primary"/>
                 </c:if>
-                <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}">
+                <a class="${wizardActionClass}" href="${contextPath}${wizardAction.url}" tabindex="2">
                     <spring:message code="${wizardAction.titleCode}"/>
                 </a>
             </c:if>
