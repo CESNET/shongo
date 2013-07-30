@@ -14,7 +14,7 @@ To run controller on localhost at port 8008 type:
 
 To connect to the controller use the client application:
 
-    bin/client-cli.sh
+    bin/client_cli.sh
 
 REQUIREMENTS
 

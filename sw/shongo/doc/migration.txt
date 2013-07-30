@@ -1,7 +1,7 @@
 Database migrations (should be placed into data/controller.log file)
 --------------------------------------------------------------------
 
-[2012-01-02] Move alias_id values to connection table and delete tables connection by address/alias
+[2013-01-02] Move alias_id values to connection table and delete tables connection by address/alias
 
 SET SCHEMA PUBLIC
 UPDATE CONNECTION SET ALIAS_ID = (SELECT ALIAS_ID FROM CONNECTION_BY_ALIAS WHERE ID = CONNECTION.ID)
@@ -9,10 +9,40 @@ DROP TABLE CONNECTION_BY_ADDRESS
 DROP TABLE CONNECTION_BY_ALIAS
 COMMIT
 
-[2012-04-05] Delete old ACL management
+[2013-04-05] Delete old ACL management
 
 SET SCHEMA PUBLIC
 DROP TABLE PUBLIC.ACL_RECORD_CREATE_REQUEST
 DROP TABLE PUBLIC.ACL_RECORD_DELETE_REQUEST
 DROP TABLE PUBLIC.ACL_RECORD_DEPENDENCY
 COMMIT
+
+[2013-07-29] Create missing indexes to foreign keys in PostgreSQL
+
+select pg_index.indexrelid::regclass, 'create index ' || relname || '_' ||
+         array_to_string(column_name_list, '_') || '_idx on ' || conrelid ||
+         ' (' || array_to_string(column_name_list, ',') || ')'
+from (select distinct
+       conrelid,
+       array_agg(attname) column_name_list,
+       array_agg(attnum) as column_list
+     from pg_attribute
+          join (select conrelid::regclass,
+                 conname,
+                 unnest(conkey) as column_index
+                from (select distinct
+                        conrelid, conname, conkey
+                      from pg_constraint
+                        join pg_class on pg_class.oid = pg_constraint.conrelid
+                        join pg_namespace on pg_namespace.oid = pg_class.relnamespace
+                      where nspname !~ '^pg_' and nspname <> 'information_schema'
+                      ) fkey
+               ) fkey
+               on fkey.conrelid = pg_attribute.attrelid
+                  and fkey.column_index = pg_attribute.attnum
+     group by conrelid, conname
+     ) candidate_index
+join pg_class on pg_class.oid = candidate_index.conrelid
+left join pg_index on pg_index.indrelid = conrelid
+                      and indkey::text = array_to_string(column_list, ' ')
+where indexrelid is null

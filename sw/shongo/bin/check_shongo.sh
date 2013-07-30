@@ -11,7 +11,7 @@ CONTROLLER=127.0.0.1
 
 function check_controller
 {
-    RESULT=$($BIN/client-cli.sh --connect $CONTROLLER --root --scripting --cmd "status" 2> /dev/null)
+    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --root --scripting --cmd "status" 2> /dev/null)
     if echo $RESULT | grep -s '"status"\s*:\s*"AVAILABLE"' > /dev/null; then
         echo "OK (controller available at '$CONTROLLER' for domain '`echo $RESULT | sed -s 's/^.\+"name" : "\([^"]\+\)".\+$/\1/'`')"
         exit 0
@@ -24,7 +24,7 @@ function check_controller
 function check_connector
 {
     AGENTS=$(echo $1 | sed -s 's/,/ /g')
-    RESULT=$($BIN/client-cli.sh --connect $CONTROLLER --root --scripting --cmd "list-connectors" 2> /dev/null)
+    RESULT=$($BIN/client_cli.sh --connect $CONTROLLER --root --scripting --cmd "list-connectors" 2> /dev/null)
     if [ -z "$RESULT" ]; then
         echo "FAILED (controller not available at '$CONTROLLER')"
         exit 2

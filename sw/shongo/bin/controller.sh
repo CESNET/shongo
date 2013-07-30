@@ -14,14 +14,14 @@ case $1 in
             echo >&2 "You can download it here [https://github.com/micha/jsawk].";
             exit 1;
         }
-        for id in $(bin/client-cli.sh --connect $1 --root --scripting --cmd "list-reservation-requests" | jsawk -n "out(this.id)"); do
+        for id in $(bin/client_cli.sh --connect $1 --root --scripting --cmd "list-reservation-requests" | jsawk -n "out(this.id)"); do
 
             # Get reservation request id only if it has owner
-            id=$(bin/client-cli.sh --connect $1 --root --scripting --cmd "list-acl -entity $id -role OWNER" | jsawk 'RS=RS.concat(this.entity)' -a 'return RS[0]')
+            id=$(bin/client_cli.sh --connect $1 --root --scripting --cmd "list-acl -entity $id -role OWNER" | jsawk 'RS=RS.concat(this.entity)' -a 'return RS[0]')
             if [ -n "$id" ]; then
                 echo
-                bin/client-cli.sh --connect $1 --root --scripting --cmd "get-reservation-request $id" | sed "s/^{$/\${id} = create-reservation-request {/g" | grep -v "        \"id\""
-                bin/client-cli.sh --connect $1 --root --scripting --cmd "list-acl -entity $id" | jsawk -n "out('\ncreate-acl ' + this.user + ' \${id} ' + this.role)"
+                bin/client_cli.sh --connect $1 --root --scripting --cmd "get-reservation-request $id" | sed "s/^{$/\${id} = create-reservation-request {/g" | grep -v "        \"id\""
+                bin/client_cli.sh --connect $1 --root --scripting --cmd "list-acl -entity $id" | jsawk -n "out('\ncreate-acl ' + this.user + ' \${id} ' + this.role)"
             fi
         done;
         echo

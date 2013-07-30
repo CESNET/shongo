@@ -59,7 +59,7 @@ echo "  Resource admin: $RESOURCE_ADMIN_EMAIL"
 echo -n "Presse enter to continue..."; read line
 
 RUN_CLIENT_CLI="cat"
-RUN_CLIENT_CLI="./client-cli.sh --connect $CONTROLLER --root --scripting"
+RUN_CLIENT_CLI="./client_cli.sh --connect $CONTROLLER --root --scripting"
 
 ################################################################################
 #
