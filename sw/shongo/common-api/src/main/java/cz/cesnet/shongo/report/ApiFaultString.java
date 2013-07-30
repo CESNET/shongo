@@ -3,6 +3,7 @@ package cz.cesnet.shongo.report;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 
@@ -57,10 +58,17 @@ public class ApiFaultString implements ReportSerializer
     public Object getParameter(String name, Class type)
     {
         if (String.class.equals(type)) {
-            return jsonNode.get(name).getTextValue();
+            JsonNode value = jsonNode.get(name);
+            if (value == null) {
+                return null;
+            }
+            return value.getTextValue();
         }
         else if (Report.class.isAssignableFrom(type)) {
             ObjectNode value = (ObjectNode) jsonNode.get(name);
+            if (value == null) {
+                return null;
+            }
             String reportClassName = value.get("class").getTextValue();
             try {
                 Class reportClass = ClassHelper.getClassFromShortName(reportClassName);
