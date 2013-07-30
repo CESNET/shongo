@@ -124,3 +124,9 @@
 </div>
 
 <hr/>
+
+<div class="pull-right">
+    <a class="btn" href="javascript: location.reload();">
+        <spring:message code="views.button.refresh"/>
+    </a>
+</div>
