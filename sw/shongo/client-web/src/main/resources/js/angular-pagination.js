@@ -240,7 +240,7 @@ paginationModule.directive('paginationPageSize', function () {
     return {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
-            var text = element[0].innerText;
+            var text = element.html();
             var attributeClass = (attrs.class != null ? attrs.class : '');
             var html = '<div class="' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;&nbsp;' +
@@ -263,7 +263,7 @@ paginationModule.directive('paginationPages', function () {
     return {
         restrict: 'E',
         compile: function (element, attrs, transclude) {
-            var text = element[0].innerText;
+            var text = element.html();
             var attributeClass = (attrs.class != null ? (' ' + attrs.class) : '');
             var html = '<div class="pagination' + attributeClass + '" style="text-align: right;">' +
                 '<span ng-hide="pages.length == 1">' + text + ' ' +
