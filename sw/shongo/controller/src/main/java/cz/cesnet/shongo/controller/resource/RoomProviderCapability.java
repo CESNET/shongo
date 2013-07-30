@@ -117,9 +117,9 @@ public class RoomProviderCapability extends DeviceCapability
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
-        super.loadLazyCollections();
+        super.loadLazyProperties();
 
         requiredAliasTypes.size();
     }

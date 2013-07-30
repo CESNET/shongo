@@ -184,20 +184,28 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
     private static Container jadeContainer;
 
-    @Override
-    public void before() throws Exception
+    /**
+     * Setup system properties for testing controller.
+     */
+    public static void setupSystemProperties()
     {
-        super.before();
-
-        // Enable throwing internal errors
-        Reporter.setThrowInternalErrorsForTesting(true);
-
         // Do not change default timezone by the controller
         System.setProperty(Configuration.TIMEZONE, "");
 
         // Change XML-RPC port
         System.setProperty(Configuration.RPC_PORT, "8484");
         System.setProperty(Configuration.JADE_PORT, "8585");
+    }
+
+    @Override
+    public void before() throws Exception
+    {
+        super.before();
+
+        AbstractControllerTest.setupSystemProperties();
+
+        // Enable throwing internal errors
+        Reporter.setThrowInternalErrorsForTesting(true);
 
         // Create controller
         controller = new cz.cesnet.shongo.controller.Controller()
@@ -265,7 +273,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         scheduler.destroy();
 
         // Disable throwing internal errors
-        Reporter.setThrowInternalErrorsForTesting(true);
+        Reporter.setThrowInternalErrorsForTesting(false);
 
         super.after();
     }

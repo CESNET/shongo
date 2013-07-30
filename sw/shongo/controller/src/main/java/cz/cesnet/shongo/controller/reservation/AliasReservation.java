@@ -40,7 +40,7 @@ public class AliasReservation extends Reservation
     /**
      * @return {@link #aliasProviderCapability}
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public AliasProviderCapability getAliasProviderCapability()
     {

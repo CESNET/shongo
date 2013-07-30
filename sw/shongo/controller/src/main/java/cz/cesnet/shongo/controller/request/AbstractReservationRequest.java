@@ -15,6 +15,10 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
 import cz.cesnet.shongo.util.ObjectHelper;
+import org.hibernate.Hibernate;
+import org.hibernate.proxy.HibernateProxyHelper;
+import org.hibernate.proxy.LazyInitializer;
+import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -263,10 +267,10 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     /**
      * @return {@link #specification}
      */
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     public Specification getSpecification()
     {
-        return specification;
+        return getLazyImplementation(specification);
     }
 
     /**

@@ -3,8 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.Resource;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * Represents a {@link Reservation} for a {@link Resource}.
@@ -29,10 +28,11 @@ public class ResourceReservation extends Reservation
     /**
      * @return {@link #resource}
      */
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @Access(AccessType.FIELD)
     public Resource getResource()
     {
-        return resource;
+        return getLazyImplementation(resource);
     }
 
     /**

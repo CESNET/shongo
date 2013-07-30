@@ -307,12 +307,12 @@ public class AliasProviderCapability extends Capability
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
-        super.loadLazyCollections();
+        super.loadLazyProperties();
 
         getAliases().size();
-        getValueProvider().loadLazyCollections();
+        getValueProvider().loadLazyProperties();
     }
 
     @Override

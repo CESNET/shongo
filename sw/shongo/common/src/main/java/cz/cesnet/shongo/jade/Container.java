@@ -80,9 +80,9 @@ public class Container
     private static Container createContainer(Profile profile)
     {
         // Setup container profile
-        profile.setParameter(Profile.FILE_DIR, "data/jade/");
+        profile.setParameter(Profile.FILE_DIR, ".jade/");
         // Create directory if not exits
-        new java.io.File("data/jade").mkdir();
+        new java.io.File(".jade").mkdir();
 
         return new Container(profile);
     }

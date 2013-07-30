@@ -39,7 +39,7 @@ public class RoomReservation extends Reservation implements EndpointProvider
     /**
      * @return {@link #roomProviderCapability}
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public RoomProviderCapability getRoomProviderCapability()
     {

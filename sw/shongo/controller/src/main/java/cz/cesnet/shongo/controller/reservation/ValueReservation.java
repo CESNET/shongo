@@ -35,11 +35,10 @@ public class ValueReservation extends Reservation
     /**
      * @return {@link #valueProvider}
      */
-    @ManyToOne(optional = false)
-    @Access(AccessType.FIELD)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     public ValueProvider getValueProvider()
     {
-        return valueProvider;
+        return getLazyImplementation(valueProvider);
     }
 
     /**

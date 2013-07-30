@@ -23,11 +23,11 @@ public abstract class Capability extends PersistentObject
     /**
      * @return {@link #resource}
      */
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public Resource getResource()
     {
-        return resource;
+        return getLazyImplementation(resource);
     }
 
     /**

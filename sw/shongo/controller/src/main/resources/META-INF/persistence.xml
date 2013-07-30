@@ -20,10 +20,6 @@
             <property name="hibernate.connection.password" value=""/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             <property name="hibernate.ejb.naming_strategy" value="cz.cesnet.shongo.controller.util.NamingStrategy"/>
-            <property name="hibernate.c3p0.min_size" value="5"/>
-            <property name="hibernate.c3p0.max_size" value="20"/>
-            <property name="hibernate.c3p0.timeout" value="1800"/>
-            <property name="hibernate.c3p0.max_statements" value="100"/>
         </properties>
 
     </persistence-unit>

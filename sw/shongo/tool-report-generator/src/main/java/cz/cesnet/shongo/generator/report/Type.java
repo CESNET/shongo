@@ -36,6 +36,11 @@ public abstract class Type
         return new LinkedList<String>();
     }
 
+    public String getPersistentGetterContent(String getterContent)
+    {
+        return getterContent;
+    }
+
     public Collection<String> getPersistencePreRemove(String variableName)
     {
         return new LinkedList<String>();
@@ -250,16 +255,30 @@ public abstract class Type
         public Collection<String> getPersistenceAnnotations(String columnName)
         {
             Collection<String> persistenceAnnotations = super.getPersistenceAnnotations(columnName);
-            String params = "";
+            String params = null;
             if (hasFlag(CASCADE_ALL)) {
-                params = "(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)";
+                params = "cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true";
             }
             else if (hasFlag(CASCADE_PERSIST)) {
-                params = "(cascade = javax.persistence.CascadeType.PERSIST)";
+                params = "cascade = javax.persistence.CascadeType.PERSIST";
             }
+            if (params != null) {
+                params = "(" + params + ", ";
+            }
+            else {
+                params = "(";
+            }
+            params = params + "fetch = javax.persistence.FetchType.LAZY)";
             persistenceAnnotations.add("@javax.persistence.OneToOne" + params);
+            persistenceAnnotations.add("@javax.persistence.Access(javax.persistence.AccessType.FIELD)");
             persistenceAnnotations.add("@javax.persistence.JoinColumn(name = \"" + columnName + "_id\")");
             return persistenceAnnotations;
+        }
+
+        @Override
+        public String getPersistentGetterContent(String getterContent)
+        {
+            return "cz.cesnet.shongo.PersistentObject.getLazyImplementation(" + getterContent + ")";
         }
 
         @Override

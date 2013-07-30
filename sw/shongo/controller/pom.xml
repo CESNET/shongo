@@ -67,7 +67,14 @@
         <dependency>
             <groupId>postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.1-901.jdbc4</version>
+            <version>8.4-702.jdbc3</version>
+        </dependency>
+
+        <!-- LOG4JDBC for debugging SQLs -->
+        <dependency>
+            <groupId>org.lazyluke</groupId>
+            <artifactId>log4jdbc-remix</artifactId>
+            <version>0.2.7</version>
         </dependency>
 
         <!-- Apache XML-RPC is used as implementation of remote procedure calls -->

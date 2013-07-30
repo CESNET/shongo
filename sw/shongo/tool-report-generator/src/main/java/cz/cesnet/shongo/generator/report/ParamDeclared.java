@@ -77,6 +77,16 @@ public class ParamDeclared extends Param
         return "get" + Formatter.formatCamelCaseFirstUpper(getName());
     }
 
+    public String getGetterContent(boolean isPersistent)
+    {
+        if (isPersistent) {
+            return getType().getPersistentGetterContent(getVariableName());
+        }
+        else {
+            return getVariableName();
+        }
+    }
+
     public String getSetterName()
     {
         return "set" + Formatter.formatCamelCaseFirstUpper(getName());

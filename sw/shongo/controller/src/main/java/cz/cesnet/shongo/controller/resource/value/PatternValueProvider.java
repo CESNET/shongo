@@ -113,9 +113,9 @@ public class PatternValueProvider extends ValueProvider
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
-        super.loadLazyCollections();
+        super.loadLazyProperties();
 
         getPatterns().size();
     }
