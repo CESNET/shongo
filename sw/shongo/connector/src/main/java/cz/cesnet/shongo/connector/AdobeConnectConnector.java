@@ -22,6 +22,7 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -372,12 +373,20 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Recording recording = new Recording();
 
+        recording.setName(response.getChild("sco").getChildText("name"));
+
+        recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
+        recording.setDuration(DateTime.parse(response.getChild("sco").getChildText("date-end")).minus(
+                recording.getBeginDate().getMillis()));
+
         String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
                 .getChild("sco").getChildText("url-path");
+
         recording.setUrl(baseUrl);
-        //TODO: vse ostatni
-        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
         recording.setEditableUrl(baseUrl + "?pbMode=edit");
+        //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+
+        //TODO: vse ostatni
 
         return recording;
     }
@@ -402,6 +411,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             recording.setName(resultRecording.getChildText("name"));
 
+            recording.setBeginDate(DateTime.parse(resultRecording.getChildText("date-begin")));
+            recording.setDuration(DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(
+                    resultRecording.getChildText("duration")));
+
             String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                     + resultRecording.getChildText("url-path");
 
@@ -411,9 +424,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             //TODO: vse ostatni
 
-            logger.debug("RECORDING: {}",recording.getName());
-            logger.debug("RECORDING-URL: {}",recording.getUrl());
-            logger.debug("RECORDING-EditableUrl: {}",recording.getEditableUrl());
             recordingList.add(recording);
         }
 
@@ -1412,10 +1422,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
-            acc.connect(address, "admin", "******");
+            acc.connect(address, "admin", "cip9skovi3t2");
 
             /************************/
 
+
+            /************************/
 
             acc.disconnect();
 

@@ -38,7 +38,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * Time of the end of the recording.
      */
-    private DateTime endDate;
+    private DateTime duration;
 
     /**
      * @return {@link #name}
@@ -121,19 +121,19 @@ public class Recording extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #endDate}
+     * @return {@link #duration}
      */
-    public DateTime getEndDate()
+    public DateTime getDuration()
     {
-        return endDate;
+        return duration;
     }
 
     /**
-     * @param endDate sets the {@link #endDate}
+     * @param duration sets the {@link #duration}
      */
-    public void setEndDate(DateTime endDate)
+    public void setDuration(DateTime duration)
     {
-        this.endDate = endDate;
+        this.duration = duration;
     }
 
     public static final String NAME = "name";
@@ -141,7 +141,7 @@ public class Recording extends IdentifiedComplexType
     public static final String DOWNLOADABLEURL = "downloadableUrl";
     public static final String EDITABLEURL = "editableUrl";
     public static final String BEGINDATE = "beginDate";
-    public static final String ENDDATE = "endDate";
+    public static final String DURATION = "duration";
 
     @Override
     public DataMap toData()
@@ -152,7 +152,7 @@ public class Recording extends IdentifiedComplexType
         dataMap.set(DOWNLOADABLEURL, downloadableUrl);
         dataMap.set(EDITABLEURL, editableUrl);
         dataMap.set(BEGINDATE, beginDate);
-        dataMap.set(ENDDATE, endDate);
+        dataMap.set(DURATION, duration);
         return dataMap;
     }
 
@@ -165,7 +165,19 @@ public class Recording extends IdentifiedComplexType
         downloadableUrl = dataMap.getString(DOWNLOADABLEURL);
         editableUrl = dataMap.getString(EDITABLEURL);
         beginDate = dataMap.getDateTime(BEGINDATE);
-        endDate = dataMap.getDateTime(ENDDATE);
+        duration = dataMap.getDateTime(DURATION);
     }
 
+    @Override
+    public String toString()
+    {
+        return "Recording{" +
+                "name='" + name + '\'' +
+                ", url='" + url + '\'' +
+                ", downloadableUrl='" + downloadableUrl + '\'' +
+                ", editableUrl='" + editableUrl + '\'' +
+                ", beginDate=" + beginDate +
+                ", duration=" + duration +
+                '}';
+    }
 }

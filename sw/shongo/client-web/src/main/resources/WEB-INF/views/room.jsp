@@ -110,19 +110,31 @@
             <thead>
             <tr>
                 <th><spring:message code="views.room.recording.name"/></th>
+                <th><spring:message code="views.room.recording.uploaded"/></th>
+                <th><spring:message code="views.room.recording.duration"/></th>
+                <th><spring:message code="views.room.recording.editableUrl"/></th>
             </tr>
             </thead>
             <tbody>
             <c:forEach items="${recordings}" var="recording" varStatus="status">
                 <tr>
                     <td>
-                        <a href="${recording.editableUrl}" target="_blank">${recording.name}</a>
+                        ${recording.name}
+                    </td>
+                    <td>
+                        <joda:format value="${recording.beginDate}" style="MM"/>
+                    </td>
+                    <td>
+                        <joda:format value="${recording.duration}" pattern="HH:mm:ss"/>
+                    </td>
+                    <td>
+                        <a href="${recording.editableUrl}" target="_blank">${recording.editableUrl}</a>
                     </td>
                 </tr>
             </c:forEach>
             <c:if test="${recordings.isEmpty()}">
                 <tr>
-                    <td colspan="2" class="empty"><spring:message code="views.list.none"/></td>
+                    <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
             </c:if>
             </tbody>
