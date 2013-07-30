@@ -61,7 +61,7 @@ public class ${scope.getClassName()} extends AbstractReportSet
         </#if>
         public ${param.getTypeClassName()} ${param.getGetterName()}()
         {
-            return ${param.getVariableName()};
+            return ${param.getGetterContent(report.isPersistent())};
         }
 
         public void ${param.getSetterName()}(${param.getTypeClassName()} ${param.getVariableName()})

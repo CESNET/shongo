@@ -254,10 +254,10 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
         getTechnologies().size();
-        super.loadLazyCollections();
+        super.loadLazyProperties();
     }
 
     @Override

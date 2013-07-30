@@ -41,11 +41,12 @@ public class ExecutorReportSet extends AbstractReportSet
             this.command = command;
         }
 
-        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true)
+        @javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL, orphanRemoval = true, fetch = javax.persistence.FetchType.LAZY)
+        @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "jadereport_id")
         public cz.cesnet.shongo.JadeReport getJadeReport()
         {
-            return jadeReport;
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(jadeReport);
         }
 
         public void setJadeReport(cz.cesnet.shongo.JadeReport jadeReport)

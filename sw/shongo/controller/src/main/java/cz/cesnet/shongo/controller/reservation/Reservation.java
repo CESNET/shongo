@@ -133,7 +133,7 @@ public class Reservation extends PersistentObject implements Reportable
     /**
      * @return {@link #allocation}
      */
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @Access(AccessType.FIELD)
     public Allocation getAllocation()
     {
@@ -333,10 +333,11 @@ public class Reservation extends PersistentObject implements Reportable
     /**
      * @return {@link #executable}
      */
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    @Access(AccessType.FIELD)
     public Executable getExecutable()
     {
-        return executable;
+        return getLazyImplementation(executable);
     }
 
     /**

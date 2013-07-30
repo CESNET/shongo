@@ -45,11 +45,10 @@ public class Allocation extends PersistentObject
     /**
      * @return {@link #reservationRequest}
      */
-    @OneToOne
-    @Access(AccessType.FIELD)
+    @OneToOne(fetch = FetchType.LAZY)
     public AbstractReservationRequest getReservationRequest()
     {
-        return reservationRequest;
+        return getLazyImplementation(reservationRequest);
     }
 
     /**

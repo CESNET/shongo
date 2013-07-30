@@ -13,3 +13,4 @@ client-web.cfg.xml
 *.fsps
 *.class
 log/
+.jade

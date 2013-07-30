@@ -32,6 +32,7 @@ public class ExecutionResult
      */
     public synchronized void addStartedExecutable(Executable startedExecutable)
     {
+        startedExecutable.loadLazyProperties();
         startedExecutables.add(startedExecutable);
     }
 
@@ -40,6 +41,7 @@ public class ExecutionResult
      */
     public synchronized void addUpdatedExecutable(Executable updatedExecutable)
     {
+        updatedExecutable.loadLazyProperties();
         updatedExecutables.add(updatedExecutable);
     }
 
@@ -48,6 +50,7 @@ public class ExecutionResult
      */
     public synchronized void addStoppedExecutable(Executable stoppedExecutable)
     {
+        stoppedExecutable.loadLazyProperties();
         stoppedExecutables.add(stoppedExecutable);
     }
 

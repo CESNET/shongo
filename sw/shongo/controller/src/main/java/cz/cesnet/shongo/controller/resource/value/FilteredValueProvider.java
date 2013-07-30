@@ -79,11 +79,11 @@ public class FilteredValueProvider extends ValueProvider
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
-        super.loadLazyCollections();
+        super.loadLazyProperties();
 
-        valueProvider.loadLazyCollections();
+        valueProvider.loadLazyProperties();
     }
 
     @Override

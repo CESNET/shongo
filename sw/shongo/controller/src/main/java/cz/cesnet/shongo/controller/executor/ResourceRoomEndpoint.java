@@ -360,4 +360,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             throw new TodoImplementException("TODO: Implement stopping room in not managed device resource.");
         }
     }
+
+    @Override
+    public void loadLazyProperties()
+    {
+        getResource();
+        super.loadLazyProperties();
+    }
 }

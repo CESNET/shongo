@@ -1,5 +1,7 @@
 package cz.cesnet.shongo;
 
+import org.hibernate.proxy.HibernateProxy;
+
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
@@ -68,7 +70,7 @@ public abstract class PersistentObject
         if (this.id == null && id != null) {
             return true;
         }
-        return this.id != null &&  this.id.equals(id);
+        return this.id != null && this.id.equals(id);
     }
 
     /**
@@ -121,9 +123,31 @@ public abstract class PersistentObject
     }
 
     /**
-     * Load all lazy collections.
+     * Load all lazy properties.
      */
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
+    }
+
+    /**
+     * Get implementation for given {@code object} in case that it is a {@link HibernateProxy}.
+     * <p/>
+     * Getters which uses this method for retrieving the values should not be annotated with
+     * {@link javax.persistence.Access} equaled to {@link javax.persistence.AccessType#FIELD},
+     * because it may end up in "org.hibernate.AssertionFailure: Unable to perform un-delete for instance ..."
+     * exception.
+     *
+     * @param object from which the implementation should be returned
+     * @return implementation of given lazy {@code object}
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T getLazyImplementation(T object)
+    {
+        if (object instanceof HibernateProxy) {
+            return (T) ((HibernateProxy) object).getHibernateLazyInitializer().getImplementation();
+        }
+        else {
+            return object;
+        }
     }
 }

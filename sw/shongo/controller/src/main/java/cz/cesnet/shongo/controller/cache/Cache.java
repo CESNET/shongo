@@ -8,9 +8,6 @@ import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,14 +135,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         // Add resource to resource cache
         resource.checkPersisted();
-        resource.loadLazyCollections();
+        resource.loadLazyProperties();
         resourceCache.addObject(resource);
 
         // Add room provider capability
         RoomProviderCapability roomProvider = resource.getCapability(RoomProviderCapability.class);
         if (roomProvider != null) {
             // Load lazy collections
-            roomProvider.loadLazyCollections();
+            roomProvider.loadLazyProperties();
             // Add room provider to the set of existing room providers
             roomProvider.checkPersisted();
             roomProviderById.put(roomProvider.getId(), roomProvider);
@@ -155,7 +152,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         List<AliasProviderCapability> aliasProviders = resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProvider : aliasProviders) {
             // Load lazy collections
-            aliasProvider.loadLazyCollections();
+            aliasProvider.loadLazyProperties();
             // Add alias provider to the set of existing alias providers
             aliasProvider.checkPersisted();
             aliasProviderById.put(aliasProvider.getId(), aliasProvider);

@@ -389,10 +389,10 @@ public class Resource extends PersistentObject implements Reportable
     }
 
     @Override
-    public void loadLazyCollections()
+    public void loadLazyProperties()
     {
         getAdministrators().size();
-        super.loadLazyCollections();
+        super.loadLazyProperties();
     }
 
     @Override
