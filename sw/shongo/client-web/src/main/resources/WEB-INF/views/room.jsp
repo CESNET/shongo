@@ -109,14 +109,14 @@
         <table class="table table-striped table-hover">
             <thead>
             <tr>
-                <th><spring:message code="views.room.recording.url"/></th>
+                <th><spring:message code="views.room.recording.name"/></th>
             </tr>
             </thead>
             <tbody>
             <c:forEach items="${recordings}" var="recording" varStatus="status">
                 <tr>
                     <td>
-                        <a href="${recording}" target="_blank">${recording}</a>
+                        <a href="${recording.editableUrl}" target="_blank">${recording.name}</a>
                     </td>
                 </tr>
             </c:forEach>

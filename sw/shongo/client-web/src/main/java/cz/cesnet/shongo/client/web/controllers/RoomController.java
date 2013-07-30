@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.RoomUser;
-import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
@@ -87,7 +84,7 @@ public class RoomController
                             (userInformation != null ? userInformation.getFullName() : roomUser.getDisplayName()));
                     participants.add(participant);
                 }
-                Collection<String> recordings = null;
+                Collection<Recording> recordings = null;
                 if (technologies.size() == 1 && technologies.contains(Technology.ADOBE_CONNECT)) {
                     recordings = resourceControlService.listRecordings(securityToken, resourceId, roomId);
                 }

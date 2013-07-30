@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api;
 
-import FIPA.DateTime;
+
+import org.joda.time.DateTime;
 
 /**
  * Represents a recording multipoint device or endpoint recording server.
@@ -27,7 +28,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * URL for editing recording.
      */
-    private String editableURL;
+    private String editableUrl;
 
     /**
      * Time of the beginning of the recording.
@@ -88,19 +89,19 @@ public class Recording extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #editableURL}
+     * @return {@link #editableUrl}
      */
-    public String getEditableURL()
+    public String getEditableUrl()
     {
-        return editableURL;
+        return editableUrl;
     }
 
     /**
-     * @param editableURL sets the {@link #editableURL}
+     * @param editableUrl sets the {@link #editableUrl}
      */
-    public void setEditableURL(String editableURL)
+    public void setEditableUrl(String editableUrl)
     {
-        this.editableURL = editableURL;
+        this.editableUrl = editableUrl;
     }
 
     /**
@@ -134,4 +135,37 @@ public class Recording extends IdentifiedComplexType
     {
         this.endDate = endDate;
     }
+
+    public static final String NAME = "name";
+    public static final String URL = "url";
+    public static final String DOWNLOADABLEURL = "downloadableUrl";
+    public static final String EDITABLEURL = "editableUrl";
+    public static final String BEGINDATE = "beginDate";
+    public static final String ENDDATE = "endDate";
+
+    @Override
+    public DataMap toData()
+    {
+        DataMap dataMap = super.toData();
+        dataMap.set(NAME, name);
+        dataMap.set(URL, url);
+        dataMap.set(DOWNLOADABLEURL, downloadableUrl);
+        dataMap.set(EDITABLEURL, editableUrl);
+        dataMap.set(BEGINDATE, beginDate);
+        dataMap.set(ENDDATE, endDate);
+        return dataMap;
+    }
+
+    @Override
+    public void fromData(DataMap dataMap)
+    {
+        super.fromData(dataMap);
+        name = dataMap.getString(NAME);
+        url = dataMap.getString(URL);
+        downloadableUrl = dataMap.getString(DOWNLOADABLEURL);
+        editableUrl = dataMap.getString(EDITABLEURL);
+        beginDate = dataMap.getDateTime(BEGINDATE);
+        endDate = dataMap.getDateTime(ENDDATE);
+    }
+
 }

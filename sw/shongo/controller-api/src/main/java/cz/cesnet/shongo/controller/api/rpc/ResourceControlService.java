@@ -148,5 +148,5 @@ public interface ResourceControlService extends Service
      * @return list of recording URLs for room with given {@code roomId}
      */
     @API
-    public Collection<String> listRecordings(SecurityToken token, String deviceResourceId, String roomId);
+    public Collection<Recording> listRecordings(SecurityToken token, String deviceResourceId, String roomId);
 }

@@ -317,10 +317,10 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<String> listRecordings(SecurityToken token, String deviceResourceId, String roomId)
+    public Collection<Recording> listRecordings(SecurityToken token, String deviceResourceId, String roomId)
     {
         String agentName = validate(token, deviceResourceId, roomId);
-        return (Collection<String>) performDeviceAction(deviceResourceId, agentName, new ListRecordings(roomId));
+        return (Collection<Recording>) performDeviceAction(deviceResourceId, agentName, new ListRecordings(roomId));
     }
 
     /**

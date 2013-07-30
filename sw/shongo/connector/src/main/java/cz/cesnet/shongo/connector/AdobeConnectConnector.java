@@ -377,7 +377,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         recording.setUrl(baseUrl);
         //TODO: vse ostatni
         //recording.setDownloadableUrl();                 output/filename.zip?download=zip
-        recording.setEditableURL(baseUrl + "?pbMode=edit");
+        recording.setEditableUrl(baseUrl + "?pbMode=edit");
 
         return recording;
     }
@@ -400,13 +400,20 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
             Recording recording = new Recording();
 
-            String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
-                    .getChild("sco").getChildText("url-path");
-            recording.setUrl(baseUrl);
-            //TODO: vse ostatni
-            //recording.setDownloadableUrl();                 output/filename.zip?download=zip
-            recording.setEditableURL(baseUrl + "?pbMode=edit");
+            recording.setName(resultRecording.getChildText("name"));
 
+            String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
+                    + resultRecording.getChildText("url-path");
+
+            recording.setUrl(baseUrl);
+            recording.setEditableUrl(baseUrl + "?pbMode=edit");
+            //recording.setDownloadableUrl();                 output/filename.zip?download=zip
+
+            //TODO: vse ostatni
+
+            logger.debug("RECORDING: {}",recording.getName());
+            logger.debug("RECORDING-URL: {}",recording.getUrl());
+            logger.debug("RECORDING-EditableUrl: {}",recording.getEditableUrl());
             recordingList.add(recording);
         }
 
