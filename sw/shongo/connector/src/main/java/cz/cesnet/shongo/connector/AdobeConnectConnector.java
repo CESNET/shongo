@@ -198,7 +198,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         endMeetingAttributes.put("sco-id", roomId);
         endMeetingAttributes.put("state", state.toString());
         if (message != null) {
-            endMeetingAttributes.put("message",message);
+            try {
+                endMeetingAttributes.put("message",URLEncoder.encode(message,"UTF8"));
+            }
+            catch (UnsupportedEncodingException e) {
+                throw new CommandException("Error while message encoding.", e);
+            }
         }
         if (redirect == true && url != null) {
             endMeetingAttributes.put("redirect",redirect.toString());

@@ -4,6 +4,8 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -15,6 +17,8 @@ import org.springframework.validation.Validator;
  */
 public class ReservationRequestValidator implements Validator
 {
+    private static Logger logger = LoggerFactory.getLogger(ReservationRequestValidator.class);
+
     private SecurityToken securityToken;
 
     private ReservationService reservationService;
@@ -88,6 +92,7 @@ public class ReservationRequestValidator implements Validator
                     availabilityCheckRequest.setSpecification(reservationRequestModel.toSpecificationApi());
                     Object isSpecificationAvailable = reservationService.checkAvailability(availabilityCheckRequest);
                     if (!Boolean.TRUE.equals(isSpecificationAvailable)) {
+                        logger.warn("Validation of room availability failed, may be another problem: {}", isSpecificationAvailable);
                         errors.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
                     }
                     break;
@@ -98,6 +103,7 @@ public class ReservationRequestValidator implements Validator
                     Object isProvidedReservationAvailableAvailable =
                             reservationService.checkAvailability(availabilityCheckRequest);
                     if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
+                        logger.warn("Validation of reservation availability failed, may be another problem: {}", isProvidedReservationAvailableAvailable);
                         errors.rejectValue("permanentRoomReservationRequestId",
                                 "validation.field.permanentRoomNotAvailable");
                     }

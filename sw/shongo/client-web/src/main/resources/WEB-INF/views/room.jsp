@@ -104,6 +104,8 @@
         </table>
     </c:if>
 
+    <security:accesscontrollist hasPermission="WRITE" domainObject="${executable}" var="isWritable"/>
+
     <c:if test="${recordings != null}">
         <h2><spring:message code="views.room.recordings"/></h2>
         <table class="table table-striped table-hover">
@@ -112,7 +114,16 @@
                 <th><spring:message code="views.room.recording.name"/></th>
                 <th><spring:message code="views.room.recording.uploaded"/></th>
                 <th><spring:message code="views.room.recording.duration"/></th>
-                <th><spring:message code="views.room.recording.editableUrl"/></th>
+                <th>
+                    <c:choose>
+                        <c:when test="${isWritable}">
+                            <spring:message code="views.room.recording.editableUrl"/>
+                        </c:when>
+                        <c:otherwise>
+                            <spring:message code="views.room.recording.url"/>
+                        </c:otherwise>
+                    </c:choose>
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -128,7 +139,14 @@
                         <joda:format value="${recording.duration}" pattern="HH:mm:ss"/>
                     </td>
                     <td>
-                        <a href="${recording.editableUrl}" target="_blank">${recording.editableUrl}</a>
+                        <c:choose>
+                            <c:when test="${isWritable}">
+                                <a href="${recording.editableUrl}" target="_blank">${recording.editableUrl}</a>
+                            </c:when>
+                            <c:otherwise>
+                                <a href="${recording.url}" target="_blank">${recording.url}</a>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                 </tr>
             </c:forEach>

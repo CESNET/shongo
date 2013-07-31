@@ -57,9 +57,19 @@
     </table>
     <c:choose>
         <c:when test="${createUrl != null}">
-            <a class="btn btn-primary" href="${createUrl}" tabindex="1">
-                <spring:message code="views.button.create"/>
-            </a>
+            <c:choose>
+                <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
+                    <a class="btn btn-primary" href="${createUrl}" tabindex="1">
+                        <spring:message code="views.button.create"/>
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <span class="btn btn-primary disabled">
+                        <spring:message code="views.button.create"/>
+                    </span>
+                </c:otherwise>
+            </c:choose>
+
             <pagination-pages class="pull-right"><spring:message code="views.pagination.pages"/></pagination-pages>
         </c:when>
         <c:otherwise>

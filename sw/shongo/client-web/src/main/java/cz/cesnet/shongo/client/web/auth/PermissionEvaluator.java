@@ -3,6 +3,8 @@ package cz.cesnet.shongo.client.web.auth;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import org.springframework.security.core.Authentication;
 
@@ -25,6 +27,15 @@ public class PermissionEvaluator implements org.springframework.security.access.
         SecurityToken securityToken = ((OpenIDConnectAuthenticationToken) authentication).getSecurityToken();
         String entityId;
         if (targetDomainObject instanceof ReservationRequestModel) {
+            entityId = ((ReservationRequestModel) targetDomainObject).getId();
+        }
+        else if (targetDomainObject instanceof Executable) {
+            entityId = ((Executable) targetDomainObject).getId();
+        }
+        else if (targetDomainObject instanceof AbstractReservationRequest) {
+            entityId = ((AbstractReservationRequest) targetDomainObject).getId();
+        }
+        else if (targetDomainObject instanceof ReservationRequestModel) {
             entityId = ((ReservationRequestModel) targetDomainObject).getId();
         }
         else {
