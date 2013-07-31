@@ -198,6 +198,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #modifiedReservationRequest}
      */
     @OneToOne
+    @JoinColumn(name = "modified_reservation_request_id")
     @Access(AccessType.FIELD)
     public AbstractReservationRequest getModifiedReservationRequest()
     {
@@ -302,6 +303,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
      * @return {@link #providedReservationRequest}
      */
     @ManyToOne
+    @JoinColumn(name = "provided_reservation_request_id")
     @Access(AccessType.FIELD)
     public ReservationRequest getProvidedReservationRequest()
     {

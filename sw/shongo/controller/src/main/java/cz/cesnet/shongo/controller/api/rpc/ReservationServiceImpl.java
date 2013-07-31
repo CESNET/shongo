@@ -724,10 +724,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         + "    FROM reservation_request_set"
                         + "      LEFT OUTER JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request_set.id"
                         + "      LEFT OUTER JOIN allocation ON allocation.id = abstract_reservation_request.allocation_id"
-                        + "      LEFT OUTER JOIN reservation_request ON reservation_request.allocation_id = allocation.id"
+                        + "      LEFT OUTER JOIN reservation_request ON reservation_request.parent_allocation_id = allocation.id"
                         + "    WHERE reservation_request_set.id IN (:reservationRequestSetIds)"
                         + "    GROUP BY abstract_reservation_request.allocation_id"
-                        + " ) AS allocation ON allocation.id = reservation_request.allocation_id AND ("
+                        + " ) AS allocation ON allocation.id = reservation_request.parent_allocation_id AND ("
                         + "                    allocation.slot_end_max = reservation_request.slot_end OR"
                         + "                    allocation.slot_end_future_min = reservation_request.slot_end)")
                         .setParameter("reservationRequestSetIds", reservationRequestSetIds)

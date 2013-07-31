@@ -48,7 +48,7 @@ RESERVATION:
 
   Participants:     ${reservationRequest.specification.participantCount}
     </#if>
-    <#if reservation.executable.aliases?has_content>
+    <#if reservation.executable?? && reservation.executable.aliases?has_content>
         <#-- Find room name -->
         <#list reservation.executable.aliases as alias>
             <#if alias.type == "ROOM_NAME">

@@ -66,6 +66,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
      * @return {@link #parentAllocation}
      */
     @ManyToOne
+    @JoinColumn(name = "parent_allocation_id")
     @Access(AccessType.FIELD)
     public Allocation getParentAllocation()
     {
