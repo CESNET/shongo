@@ -380,6 +380,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         recording.setName(response.getChild("sco").getChildText("name"));
 
+        String description = response.getChild("sco").getChildText("description");
+        recording.setDescription(description == null ? "" : description);
+
         recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
         recording.setDuration(DateTime.parse(response.getChild("sco").getChildText("date-end")).minus(
                 recording.getBeginDate().getMillis()));
@@ -416,6 +419,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             recording.setName(resultRecording.getChildText("name"));
 
+            String desciption = resultRecording.getChildText("description");
+            recording.setDescription(desciption == null ? "" : desciption);
+
             recording.setBeginDate(DateTime.parse(resultRecording.getChildText("date-begin")));
             recording.setDuration(DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(
                     resultRecording.getChildText("duration")));
@@ -450,6 +456,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         moveAttributes.put("folder-id",folderScoId);
 
         request("sco-move",moveAttributes);
+        //TODO: vyresit opravneni
     }
 
     @java.lang.Override

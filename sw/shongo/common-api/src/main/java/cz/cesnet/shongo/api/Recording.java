@@ -16,6 +16,11 @@ public class Recording extends IdentifiedComplexType
     private String name;
 
     /**
+     * Description.
+     */
+    private  String description;
+
+    /**
      * URL to view recording.
      */
     private String url;
@@ -54,6 +59,22 @@ public class Recording extends IdentifiedComplexType
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @param description sets the {@link #description}
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
+    }
+
+    /**
+     * @return {@link #description}
+     */
+    public String getDescription()
+    {
+        return description;
     }
 
     /**
@@ -137,6 +158,7 @@ public class Recording extends IdentifiedComplexType
     }
 
     public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
     public static final String URL = "url";
     public static final String DOWNLOADABLEURL = "downloadableUrl";
     public static final String EDITABLEURL = "editableUrl";
@@ -148,6 +170,7 @@ public class Recording extends IdentifiedComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(NAME, name);
+        dataMap.set(DESCRIPTION,description);
         dataMap.set(URL, url);
         dataMap.set(DOWNLOADABLEURL, downloadableUrl);
         dataMap.set(EDITABLEURL, editableUrl);
@@ -161,6 +184,7 @@ public class Recording extends IdentifiedComplexType
     {
         super.fromData(dataMap);
         name = dataMap.getString(NAME);
+        description = dataMap.getString(DESCRIPTION);
         url = dataMap.getString(URL);
         downloadableUrl = dataMap.getString(DOWNLOADABLEURL);
         editableUrl = dataMap.getString(EDITABLEURL);
@@ -168,11 +192,13 @@ public class Recording extends IdentifiedComplexType
         duration = dataMap.getDateTime(DURATION);
     }
 
+
     @Override
     public String toString()
     {
         return "Recording{" +
                 "name='" + name + '\'' +
+                ", description='" + description + '\'' +
                 ", url='" + url + '\'' +
                 ", downloadableUrl='" + downloadableUrl + '\'' +
                 ", editableUrl='" + editableUrl + '\'' +
