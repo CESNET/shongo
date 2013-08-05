@@ -34,7 +34,7 @@
         <thead>
         <tr>
             <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-            <th><spring:message code="views.reservationRequest.allocationState"/></th>
+            <th><spring:message code="views.reservationRequest.state"/></th>
             <th><spring:message code="views.room.state"/></th>
             <th><spring:message code="views.room.aliases"/></th>
             <th width="120px"><spring:message code="views.list.action"/></th>
@@ -43,14 +43,14 @@
         <tbody>
         <tr ng-repeat="childReservationRequest in items">
             <td>{{childReservationRequest.slot}}</td>
-            <td class="allocation-state">
-                <tag:help label="{{childReservationRequest.allocationStateMessage}}"
-                          labelClass="{{childReservationRequest.allocationState}}"
+            <td class="reservation-request-state">
+                <tag:help label="{{childReservationRequest.stateMessage}}"
+                          labelClass="{{childReservationRequest.state}}"
                           tooltipId="reservationState-tooltip-{{$index}}">
-                    <span>{{childReservationRequest.allocationStateHelp}}</span>
-                    <div ng-switch on="isEmpty(childReservationRequest.allocationStateReport)">
+                    <span>{{childReservationRequest.stateHelp}}</span>
+                    <div ng-switch on="isEmpty(childReservationRequest.stateReport)">
                         <div ng-switch-when="false">
-                            <pre>{{childReservationRequest.allocationStateReport}}</pre>
+                            <pre>{{childReservationRequest.stateReport}}</pre>
                         </div>
                     </div>
                 </tag:help>

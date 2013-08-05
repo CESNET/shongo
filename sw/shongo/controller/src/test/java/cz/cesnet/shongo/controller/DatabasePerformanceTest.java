@@ -7,8 +7,7 @@ import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.jade.Container;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.util.Timer;
 import org.apache.log4j.Level;
 import org.junit.Test;
@@ -19,7 +18,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 /**

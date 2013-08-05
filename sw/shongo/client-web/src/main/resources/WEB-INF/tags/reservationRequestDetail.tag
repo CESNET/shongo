@@ -90,7 +90,7 @@
 
     <c:if test="${reservationRequest.allocationState != null}">
         <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
-        <dd class="allocation-state">
+        <dd class="reservation-request-allocation-state">
             <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}" var="allocationState"/>
             <tag:help label="${allocationState}" labelClass="${reservationRequest.allocationState}">
                 <span>

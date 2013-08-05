@@ -35,7 +35,7 @@ public class ReservationRequestDetailController
     private Cache cache;
 
     @Resource
-    private MessageSource messageSource;
+    private MessageSource messages;
 
     /**
      * Handle detail of reservation request view.
@@ -62,15 +62,13 @@ public class ReservationRequestDetailController
 
         // Get history of reservation request (only if it is not child reservation request)
         if (reservationRequestModel.getParentReservationRequestId() == null) {
-            ReservationRequestListRequest request = new ReservationRequestListRequest();
-            request.setSecurityToken(securityToken);
-            request.setHistoryReservationRequestId(id);
-            request.setSort(ReservationRequestListRequest.Sort.DATETIME);
-            request.setSortDescending(true);
+            List<ReservationRequestSummary> history =
+                    reservationService.getReservationRequestHistory(securityToken, id);
+
             String reservationRequestId = abstractReservationRequest.getId();
             Map<String, Object> currentHistoryItem = null;
             List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
-            for (ReservationRequestSummary historyItem : reservationService.listReservationRequests(request)) {
+            for (ReservationRequestSummary historyItem : history) {
                 Map<String, Object> item = new HashMap<String, Object>();
                 String historyItemId = historyItem.getId();
                 item.put("id", historyItemId);
@@ -83,16 +81,16 @@ public class ReservationRequestDetailController
                     currentHistoryItem = item;
                 }
 
-                AllocationState allocationState = historyItem.getAllocationState();
-                item.put("allocationState", allocationState);
-                if (allocationState != null) {
+                ReservationRequestSummary.State state = historyItem.getState();
+                item.put("state", state);
+                if (state != null) {
                     // Reservation is visible only for reservation requests until first ALLOCATED reservation request
-                    if (allocationState.equals(AllocationState.ALLOCATED) && currentHistoryItem == null) {
+                    if (state.isAllocated() && currentHistoryItem == null) {
                         hasVisibleReservation = false;
                     }
 
                     // First allocation failed is revertible
-                    if (!allocationState.equals(AllocationState.ALLOCATED) && historyItem.getType().equals(ReservationRequestType.MODIFIED) && historyItems.size() == 0) {
+                    if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && historyItems.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
                 }
@@ -120,7 +118,7 @@ public class ReservationRequestDetailController
             if (reservationId != null) {
                 Reservation reservation = reservationService.getReservation(securityToken, reservationId);
                 model.addAttribute("reservation", ReservationRequestModel.getReservationModel(
-                        reservation, messageSource, locale));
+                        reservation, messages, locale));
             }
         }
 
@@ -176,16 +174,18 @@ public class ReservationRequestDetailController
             child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
                     dateTimeFormatter.print(slot.getEnd()));
 
-            AllocationState allocationState = reservationRequest.getAllocationState();
-            if (allocationState != null) {
-                String allocationStateMessage = messageSource.getMessage(
-                        "views.reservationRequest.allocationState." + allocationState, null, locale);
-                String allocationStateHelp = messageSource.getMessage(
-                        "views.help.reservationRequest.allocationState." + allocationState, null, locale);
-                child.put("allocationState", allocationState);
-                child.put("allocationStateMessage", allocationStateMessage);
-                child.put("allocationStateHelp", allocationStateHelp);
-                child.put("allocationStateReport", getAllocationStateReport(reservationRequest));
+            AllocationState state = reservationRequest.getAllocationState();
+            if (state != null) {
+                String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
+                String stateHelp = messages.getMessage("views.help.reservationRequest.state." + state, null, locale);
+                child.put("state", state);
+                child.put("stateMessage", stateMessage);
+                child.put("stateHelp", stateHelp);
+                switch (reservationRequest.getAllocationState()) {
+                    case ALLOCATION_FAILED:
+                        child.put("stateReport", reservationRequest.getAllocationStateReport());
+                        break;
+                }
             }
 
             String reservationId = reservationRequest.getLastReservationId();
@@ -198,9 +198,9 @@ public class ReservationRequestDetailController
 
                     // Set room state and report
                     Executable.State roomState = room.getState();
-                    String roomStateMessage = messageSource.getMessage(
+                    String roomStateMessage = messages.getMessage(
                             "views.reservationRequest.executableState." + roomState, null, locale);
-                    String roomStateHelp = messageSource.getMessage(
+                    String roomStateHelp = messages.getMessage(
                             "views.help.reservationRequest.executableState." + roomState, null, locale);
                     child.put("roomState", roomState);
                     child.put("roomStateMessage", roomStateMessage);
@@ -217,7 +217,7 @@ public class ReservationRequestDetailController
                     List<Alias> aliases = room.getAliases();
                     child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
                     child.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
-                            aliases, roomState, locale, messageSource));
+                            aliases, roomState, locale, messages));
                 }
             }
 
@@ -260,15 +260,13 @@ public class ReservationRequestDetailController
             item.put("purpose", reservationRequest.getPurpose());
             usages.add(item);
 
-            AllocationState allocationState = reservationRequest.getAllocationState();
-            if (allocationState != null) {
-                String allocationStateMessage = messageSource.getMessage(
-                        "views.reservationRequest.allocationState." + allocationState, null, locale);
-                String allocationStateHelp = messageSource.getMessage(
-                        "views.help.reservationRequest.allocationState." + allocationState, null, locale);
-                item.put("allocationState", allocationState);
-                item.put("allocationStateMessage", allocationStateMessage);
-                item.put("allocationStateHelp", allocationStateHelp);
+            ReservationRequestSummary.State state = reservationRequest.getState();
+            if (state != null) {
+                String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
+                String stateHelp = messages.getMessage("views.help.reservationRequest.state." + state, null, locale);
+                item.put("state", state);
+                item.put("stateMessage", stateMessage);
+                item.put("stateHelp", stateHelp);
             }
 
             UserInformation user = cache.getUserInformation(securityToken, reservationRequest.getUserId());
@@ -304,18 +302,5 @@ public class ReservationRequestDetailController
         // Get reservation request
         reservationRequestId = reservationService.revertReservationRequest(securityToken, reservationRequestId);
         return "redirect:" + ClientWebUrl.getReservationRequestDetail(reservationRequestId);
-    }
-
-    /**
-     * @param reservationRequest
-     * @return allocation state report for given {@code reservationRequest}
-     */
-    private Object getAllocationStateReport(ReservationRequest reservationRequest)
-    {
-        switch (reservationRequest.getAllocationState()) {
-            case ALLOCATION_FAILED:
-                return reservationRequest.getAllocationStateReport();
-        }
-        return null;
     }
 }

@@ -353,14 +353,33 @@ table.aliases td.label {
     text-align: right;
 }
 
-/** Allocation states */
-.allocation-state .NOT_ALLOCATED {
+/** Reservation request states */
+.reservation-request-state .NOT_ALLOCATED {
     color: #b8860b;
 }
-.allocation-state .ALLOCATED {
+.reservation-request-state .ALLOCATED {
     color: green;
 }
-.allocation-state .ALLOCATION_FAILED {
+.reservation-request-state .STARTED {
+    color: green;
+}
+.reservation-request-state .FINISHED {
+    color: blue;
+}
+.reservation-request-state .FAILED {
+    color: red;
+}
+.reservation-request-state .MODIFICATION_FAILED {
+    color: #DB7C00;
+}
+/** Reservation request allocation states */
+.reservation-request-allocation-state .NOT_ALLOCATED {
+    color: #b8860b;
+}
+.reservation-request-allocation-state .ALLOCATED {
+    color: green;
+}
+.reservation-request-allocation-state .ALLOCATION_FAILED {
     color: red;
 }
 /** Executable states */

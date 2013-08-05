@@ -5,6 +5,8 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
 import org.joda.time.Interval;
 
+import java.util.List;
+
 /**
  * Interface to the service handling operations on reservations.
  *
@@ -88,6 +90,17 @@ public interface ReservationService extends Service
      */
     @API
     public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId);
+
+    /**
+     * List reservation requests which is the requesting user entitled to see.
+     *
+     * @param token                token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation request to delete
+     * @return list of {@link ReservationRequestSummary}s
+     */
+    @API
+    public List<ReservationRequestSummary> getReservationRequestHistory(SecurityToken token,
+            String reservationRequestId);
 
     /**
      * List child reservation requests for reservation request specified in the {@code request}.

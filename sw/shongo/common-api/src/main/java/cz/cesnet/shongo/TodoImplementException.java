@@ -22,6 +22,16 @@ public class TodoImplementException extends RuntimeException
     /**
      * Constructor.
      *
+     * @param type which should be implemented
+     */
+    public TodoImplementException(Class type)
+    {
+        this.description = type.getCanonicalName();
+    }
+
+    /**
+     * Constructor.
+     *
      * @param description description what should be implemented
      */
     public TodoImplementException(String description)

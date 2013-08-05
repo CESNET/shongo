@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.util;
 
+import cz.cesnet.shongo.controller.Controller;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
@@ -8,8 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Database helper.
@@ -71,5 +76,24 @@ public class DatabaseHelper
                 logger.error("Failed to wait for database manager to close.", exception);
             }
         }
+    }
+
+    /**
+     * Test HSQLDB.
+     *
+     * @param args
+     * @throws Exception
+     */
+    public static void main(String[] args) throws Exception
+    {
+        logger.debug("Creating entity manager factory...");
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller");
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
+        logger.debug("Entity manager factory created in {} ms.");
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        runDatabaseManagerAndWait(entityManager);
+        entityManager.close();
     }
 }

@@ -23,8 +23,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     private String providedReservationRequestId;
 
-    private String historyReservationRequestId;
-
     public ReservationRequestListRequest()
     {
         super(Sort.class);
@@ -98,16 +96,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         this.providedReservationRequestId = providedReservationRequestId;
     }
 
-    public String getHistoryReservationRequestId()
-    {
-        return historyReservationRequestId;
-    }
-
-    public void setHistoryReservationRequestId(String historyReservationRequestId)
-    {
-        this.historyReservationRequestId = historyReservationRequestId;
-    }
-
     public static enum Sort
     {
         DATETIME
@@ -127,7 +115,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
-        dataMap.set(HISTORY_RESERVATION_REQUEST_ID, historyReservationRequestId);
         return dataMap;
     }
 
@@ -139,6 +126,5 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
-        historyReservationRequestId = dataMap.getString(HISTORY_RESERVATION_REQUEST_ID);
     }
 }

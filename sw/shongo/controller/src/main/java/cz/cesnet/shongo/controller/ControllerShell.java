@@ -113,14 +113,6 @@ public class ControllerShell extends Shell
                         consoleAppender.setFilter(filter);
                     }
                 });
-        addCommand("database", "Show database browser", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                DatabaseHelper.runDatabaseManager(controller.getEntityManagerFactory().createEntityManager());
-            }
-        });
         addCommand("notification", "Configure notification executor (on/off/redirect)", new CommandHandler()
         {
             @Override

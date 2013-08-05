@@ -63,6 +63,8 @@ public abstract class AbstractDatabaseTest
             Timer timer = new Timer();
             entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
             logger.info("Entity manager factory created in {} ms.", timer.stop());
+
+            Controller.initializeDatabase(entityManagerFactory);
         }
         else {
             logger.info("Reusing existing entity manager factory.");

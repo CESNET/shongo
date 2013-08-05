@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
@@ -21,6 +22,7 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.io.IOException;
@@ -644,6 +646,25 @@ public class Controller
     }
 
     /**
+     * Initialize database.
+     *
+     * @param entityManagerFactory
+     */
+    public static void initializeDatabase(EntityManagerFactory entityManagerFactory)
+    {
+        String initQuery = NativeQuery.getNativeQuery(entityManagerFactory, NativeQuery.INIT);
+
+        logger.debug("Initializing database...");
+
+        Timer timer = new Timer();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        NativeQuery.executeNativeUpdate(entityManager, initQuery);
+        entityManager.close();
+
+        logger.debug("Database initialized in {} ms.", timer.stop());
+    }
+
+    /**
      * Main controller method
      *
      * @param args
@@ -759,11 +780,6 @@ public class Controller
 
         logger.debug("Creating entity manager factory...");
         Timer timer = new Timer();
-        // DatabaseMigration cannot be used because HyperSQL doesn't support transactional DDL
-        // boolean development = Boolean.valueOf(System.getProperty("shongo.development"));
-        // DatabaseMigration databaseMigration = new DatabaseMigration("controller",
-        //         "cz.cesnet.shongo.controller.migration", (development ? "controller/src/main/java" : null));
-        // EntityManagerFactory entityManagerFactory = databaseMigration.migrate();
         Map<String, String> properties = new HashMap<String, String>();
         properties.put("hibernate.connection.driver_class",
                 controller.getConfiguration().getString(Configuration.DATABASE_DRIVER));
@@ -775,6 +791,8 @@ public class Controller
                 controller.getConfiguration().getString(Configuration.DATABASE_PASSWORD));
         EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
+
+        Controller.initializeDatabase(entityManagerFactory);
 
         // Setup controller
         controller.setAuthorization(ServerAuthorization.createInstance(configuration));

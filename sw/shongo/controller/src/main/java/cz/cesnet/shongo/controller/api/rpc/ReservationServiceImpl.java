@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -21,6 +20,7 @@ import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -488,24 +488,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 filter.addFilterParameter("reservationRequestIds", reservationRequestIds);
             }
 
-            String historyReservationRequestId = request.getHistoryReservationRequestId();
-            if (historyReservationRequestId != null) {
-                // List only reservation requests which shares the same allocation as specified reservation request
-                Long id = EntityIdentifier.parseId(cz.cesnet.shongo.controller.request.AbstractReservationRequest.class,
-                        historyReservationRequestId);
-                filter.addFilter("request.allocation IN ("
-                        + "  SELECT allocation"
-                        + "  FROM AbstractReservationRequest reservationRequest"
-                        + "  LEFT JOIN reservationRequest.allocation allocation"
-                        + "  WHERE reservationRequest.id = :reservationRequestId"
-                        + ")");
-                filter.addFilterParameter("reservationRequestId", id);
-            }
-            else {
-                // List only reservation requests which are ACTIVE
-                filter.addFilter("request.state = :activeState", "activeState",
-                        cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE);
-            }
+            // List only reservation requests which are ACTIVE
+            filter.addFilter("request.state = :activeState", "activeState",
+                    cz.cesnet.shongo.controller.request.AbstractReservationRequest.State.ACTIVE);
 
             if (request.getTechnologies().size() > 0) {
                 // List only reservation requests which specifies given technologies
@@ -615,39 +600,18 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
                 // Determine reservation request type
                 ReservationRequestType type;
-                // If history of reservation request was requested and current reservation request is deleted
-                ReservationRequestSummary deletedReservationRequestSummary = null;
-                if (historyReservationRequestId != null && state.equals(AbstractReservationRequest.State.DELETED)) {
-                    // Prepare fake deleted reservation request summary
-                    deletedReservationRequestSummary = new ReservationRequestSummary();
-                    deletedReservationRequestSummary.setId(
-                            EntityIdentifier.formatId(EntityType.RESERVATION_REQUEST, id));
-                    deletedReservationRequestSummary.setType(ReservationRequestType.DELETED);
-                    deletedReservationRequestSummary.setDateTime((DateTime) result[5]);
-                    deletedReservationRequestSummary.setUserId((String) result[6]);
-                    deletedReservationRequestSummary.setPurpose((ReservationRequestPurpose) result[7]);
-                    deletedReservationRequestSummary.setDescription((String) result[8]);
 
-                    // Type is only NEW or MODIFIED
-                    if (result[2] != null) {
-                        type = ReservationRequestType.MODIFIED;
-                    }
-                    else {
-                        type = ReservationRequestType.NEW;
-                    }
+                // Type can be anything
+                if (state.equals(AbstractReservationRequest.State.DELETED)) {
+                    type = ReservationRequestType.DELETED;
+                }
+                else if (result[2] != null) {
+                    type = ReservationRequestType.MODIFIED;
                 }
                 else {
-                    // Type can be anything
-                    if (state.equals(AbstractReservationRequest.State.DELETED)) {
-                        type = ReservationRequestType.DELETED;
-                    }
-                    else if (result[2] != null) {
-                        type = ReservationRequestType.MODIFIED;
-                    }
-                    else {
-                        type = ReservationRequestType.NEW;
-                    }
+                    type = ReservationRequestType.NEW;
                 }
+
 
                 // Set reservation request type
                 reservationRequestSummary.setType(type);
@@ -657,17 +621,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 DateTime slotEnd = (DateTime) result[10];
                 if (slotStart != null && slotEnd != null) {
                     reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
-                    reservationRequestSummary.setAllocationState(
+                    /*reservationRequestSummary.setState(
                             cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
-                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[12]));
+                                    (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) result[12]));*/
                 }
                 else {
-                    if (historyReservationRequestId != null) {
-                        reservationRequestSummary.setAllocationState(AllocationState.ALLOCATED);
-                    }
-                    else {
-                        reservationRequestSetIds.add(id);
-                    }
+                    reservationRequestSetIds.add(id);
                 }
 
                 // Provided reservation request
@@ -695,19 +654,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 reservationRequestById.put(id, reservationRequestSummary);
 
                 // Append reservation request summary
-                if (deletedReservationRequestSummary != null) {
-                    if (sortDescending) {
-                        response.addItem(deletedReservationRequestSummary);
-                        response.addItem(reservationRequestSummary);
-                    }
-                    else {
-                        response.addItem(reservationRequestSummary);
-                        response.addItem(deletedReservationRequestSummary);
-                    }
-                }
-                else {
-                    response.addItem(reservationRequestSummary);
-                }
+                response.addItem(reservationRequestSummary);
             }
 
             // Fill reservation request set earliest slot
@@ -777,9 +724,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         DateTime slotEnd = (DateTime) requestedSlot[2];
                         ReservationRequestSummary reservationRequestSummary = reservationRequestById.get(id);
                         reservationRequestSummary.setEarliestSlot(new Interval(slotStart, slotEnd));
-                        reservationRequestSummary.setAllocationState(
+                        /*reservationRequestSummary.setState(
                                 cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.getApi(
-                                        (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) requestedSlot[3]));
+                                        (cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState) requestedSlot[3]));*/
                     }
                 }
             }
@@ -869,7 +816,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
-
         try {
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
@@ -879,6 +825,52 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             return reservationRequest.toApi(authorization.isAdmin(userId));
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public List<ReservationRequestSummary> getReservationRequestHistory(SecurityToken token,
+            String reservationRequestId)
+    {
+        String userId = authorization.validate(token);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
+        try {
+            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+                ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
+            }
+
+            String historyQuery = NativeQuery.getNativeQuery(NativeQuery.RESERVATION_REQUEST_HISTORY);
+
+            List history = entityManager.createNativeQuery(historyQuery)
+                    .setParameter("reservationRequestId", entityId.getPersistenceId())
+                    .getResultList();
+
+            List<ReservationRequestSummary> reservationRequestSummaries = new LinkedList<ReservationRequestSummary>();
+            for (Object historyItem : history) {
+                Object[] historyItemData = (Object[]) historyItem;
+
+
+                ReservationRequestSummary reservationRequestSummary = new ReservationRequestSummary();
+                reservationRequestSummary.setId(EntityIdentifier.formatId(
+                        EntityType.RESERVATION_REQUEST, historyItemData[0].toString()));
+                reservationRequestSummary.setType(ReservationRequestType.valueOf(historyItemData[1].toString()));
+                reservationRequestSummary.setDateTime(new DateTime(historyItemData[2]));
+                reservationRequestSummary.setUserId(historyItemData[3].toString());
+                reservationRequestSummary.setDescription(historyItemData[4].toString());
+                reservationRequestSummary.setPurpose(ReservationRequestPurpose.valueOf(historyItemData[5].toString()));
+                reservationRequestSummary.setEarliestSlot(new Interval(
+                        new DateTime(historyItemData[6]), new DateTime(historyItemData[7])));
+                reservationRequestSummary.setState(
+                        ReservationRequestSummary.State.valueOf(historyItemData[8].toString()));
+                reservationRequestSummaries.add(reservationRequestSummary);
+            }
+
+            return reservationRequestSummaries;
         }
         finally {
             entityManager.close();

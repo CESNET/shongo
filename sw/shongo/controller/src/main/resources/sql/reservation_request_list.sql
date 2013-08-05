@@ -1,15 +1,14 @@
 ﻿/**
- * Select query
+ * Select query for list of reservation requests.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 SELECT
     reservation_request_summary.id AS id,
-    CASE
-        WHEN reservation_request_summary.state = 'DELETED' THEN 'DELETED'
+     CASE
         WHEN reservation_request_summary.modified_reservation_request_id IS NOT NULL THEN 'MODIFIED'
         ELSE 'NEW'
-    END as type,
+    END AS type,
     reservation_request_summary.created_at AS created_at,
     reservation_request_summary.created_by AS created_by,
     reservation_request_summary.description AS description,

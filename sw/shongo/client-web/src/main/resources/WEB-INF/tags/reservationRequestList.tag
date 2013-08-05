@@ -56,7 +56,7 @@
             <th><spring:message code="views.reservationRequest.specification.permanentRoomName"/></th>
             <th><spring:message code="views.reservationRequest.technology"/></th>
             <th><spring:message code="views.reservationRequest.slot"/></th>
-            <th><spring:message code="views.reservationRequest.allocationState"/></th>
+            <th><spring:message code="views.reservationRequest.state"/></th>
             <th><spring:message code="views.list.action"/></th>
         </tr>
         </thead>
@@ -66,10 +66,10 @@
             <td>{{reservationRequest.roomName}}</td>
             <td>{{reservationRequest.technology}}</td>
             <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
-            <td class="allocation-state">
-                    <span class="{{reservationRequest.allocationState}}">
-                        {{reservationRequest.allocationStateMessage}}
-                    </span>
+            <td class="reservation-request-state">
+                <span class="{{reservationRequest.state}}">
+                    {{reservationRequest.stateMessage}}
+                </span>
             </td>
             <td>
                 <c:if test="${detailUrl != null}">

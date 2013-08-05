@@ -38,7 +38,7 @@
                     <th><spring:message code="views.reservationRequest.specification.permanentRoomName"/></th>
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.slot"/></th>
-                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                    <th><spring:message code="views.reservationRequest.state"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th width="100px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
@@ -49,9 +49,9 @@
                     <td>{{reservationRequest.roomName}}</td>
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
-                    <td class="allocation-state">
-                        <span class="{{reservationRequest.allocationState}}">
-                            {{reservationRequest.allocationStateMessage}}
+                    <td class="reservation-request-state">
+                        <span class="{{reservationRequest.state}}">
+                            {{reservationRequest.stateMessage}}
                         </span>
                     </td>
                     <td>{{reservationRequest.user}}</td>
@@ -99,7 +99,7 @@
                     <th><spring:message code="views.reservationRequest.technology"/></th>
                     <th width="100px"><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
                     <th width="150px"><spring:message code="views.reservationRequestList.slot"/></th>
-                    <th><spring:message code="views.reservationRequest.allocationState"/></th>
+                    <th><spring:message code="views.reservationRequest.state"/></th>
                     <th><spring:message code="views.reservationRequest.user"/></th>
                     <th width="100px"><spring:message code="views.reservationRequest.dateTime"/></th>
                     <th width="160px"><spring:message code="views.list.action"/></th>
@@ -110,9 +110,9 @@
                     <td>{{reservationRequest.technology}}</td>
                     <td>{{reservationRequest.participantCount}}</td>
                     <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
-                    <td class="allocation-state">
-                        <span class="{{reservationRequest.allocationState}}">
-                            {{reservationRequest.allocationStateMessage}}
+                    <td class="reservation-request-state">
+                        <span class="{{reservationRequest.state}}">
+                            {{reservationRequest.stateMessage}}
                         </span>
                     </td>
                     <td>{{reservationRequest.user}}</td>

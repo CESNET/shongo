@@ -20,7 +20,7 @@
 <spring:eval var="usageListUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailUsages(contextPath, ':id')"/>
 <spring:eval var="usageDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{permanentRoomCapacity.id}}')"/>
 <div ng-controller="PaginationController"
-     ng-init="init('reservationRequestDetail.permanentRoomCapacities', '${usageListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+     ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
     <pagination-page-size class="pull-right">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
@@ -31,7 +31,7 @@
         <tr>
             <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
             <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
-            <th><spring:message code="views.reservationRequest.allocationState"/></th>
+            <th><spring:message code="views.reservationRequest.state"/></th>
             <th width="120px"><spring:message code="views.list.action"/></th>
         </tr>
         </thead>
@@ -39,11 +39,11 @@
         <tr ng-repeat="permanentRoomCapacity in items">
             <td>{{permanentRoomCapacity.slot}}</td>
             <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
-            <td class="allocation-state">
-                <tag:help label="{{permanentRoomCapacity.allocationStateMessage}}"
-                          labelClass="{{permanentRoomCapacity.allocationState}}"
+            <td class="reservation-request-state">
+                <tag:help label="{{permanentRoomCapacity.stateMessage}}"
+                          labelClass="{{permanentRoomCapacity.state}}"
                           tooltipId="reservationState-tooltip-{{$index}}">
-                    <span>{{permanentRoomCapacity.allocationStateHelp}}</span>
+                    <span>{{permanentRoomCapacity.stateHelp}}</span>
                 </tag:help>
             </td>
             <td>

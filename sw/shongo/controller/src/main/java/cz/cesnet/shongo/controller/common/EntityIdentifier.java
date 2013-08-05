@@ -307,6 +307,16 @@ public class EntityIdentifier
     }
 
     /**
+     * @param entityType    entity type for the identifier
+     * @param entityLocalId entity local id for the identifier
+     * @return entity global identifier
+     */
+    public static String formatId(EntityType entityType, String entityLocalId)
+    {
+        return formatId(Domain.getLocalDomainName(), entityType, entityLocalId);
+    }
+
+    /**
      * @param entityClass   entity type for the identifier
      * @param entityLocalId entity local id for the identifier
      * @return entity global identifier

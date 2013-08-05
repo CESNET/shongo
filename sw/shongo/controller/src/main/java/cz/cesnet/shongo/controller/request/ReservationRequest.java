@@ -427,7 +427,6 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         {
             switch (allocationState) {
                 case NOT_COMPLETE:
-                    return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
                 case COMPLETE:
                     return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
                 case ALLOCATED:
