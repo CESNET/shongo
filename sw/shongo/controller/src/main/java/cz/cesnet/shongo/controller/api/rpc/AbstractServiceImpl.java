@@ -3,9 +3,10 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.api.request.ListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -17,75 +18,82 @@ import java.util.List;
 public abstract class AbstractServiceImpl extends Component
 {
     /**
-     * @param queryAlias       main entity alias for counting query
-     * @param querySelect      query select statement without "SELECT " keyword
-     * @param querySelectClass query select result type
-     * @param queryFrom        query from statement without " FROM " keyword
-     * @param queryOrderBy     query order by statement without " ORDER BY " keyword or null
-     * @param filter           {@link DatabaseFilter} for filtering select and count statement
+     * @param query            query
+     * @param queryFilter      {@link QueryFilter} for filtering select and count statement
+     * @param listRequest      {@link ListRequest}  object
+     * @param listResponse     {@link ListResponse} object
+     * @param entityManager    to be used for performing queries
+     * @return list of objects
+     */
+    protected List<Object[]> performNativeListRequest(String query, QueryFilter queryFilter,
+            ListRequest listRequest, ListResponse listResponse, EntityManager entityManager)
+    {
+        StringBuilder countQueryBuilder = new StringBuilder();
+        countQueryBuilder.append("SELECT COUNT(*) FROM (");
+        countQueryBuilder.append(query);
+        countQueryBuilder.append(") AS count");
+
+        Query queryList = entityManager.createNativeQuery(query);
+        Query queryCount = entityManager.createNativeQuery(countQueryBuilder.toString());
+        return getResponse(queryList, queryCount, queryFilter, listRequest, listResponse);
+    }
+
+    /**
+     * @param query            query
+     * @param queryFilter      {@link QueryFilter} for filtering select and count statement
+     * @param queryResultClass query result type
      * @param listRequest      {@link ListRequest}  object
      * @param listResponse     {@link ListResponse} object
      * @param entityManager    to be used for performing queries
      * @return list of objects of given {@code querySelectClass}
      */
-    protected <T> List<T> performListRequest(String queryAlias, String querySelect, Class<T> querySelectClass,
-            String queryFrom, String queryOrderBy, DatabaseFilter filter,
+    protected <T> List<T> performListRequest(String query, QueryFilter queryFilter, Class<T> queryResultClass,
             ListRequest listRequest, ListResponse listResponse, EntityManager entityManager)
     {
-        String queryWhere = filter.toQueryWhere();
+        int fromPosition = query.indexOf("FROM");
+        String countQuery = "SELECT COUNT(*) " + query.substring(fromPosition);
 
-        // Create query for listing
-        StringBuilder listQueryBuilder = new StringBuilder();
-        listQueryBuilder.append("SELECT ");
-        listQueryBuilder.append(querySelect);
-        listQueryBuilder.append(" FROM ");
-        listQueryBuilder.append(queryFrom);
-        listQueryBuilder.append(" WHERE ");
-        listQueryBuilder.append(queryWhere);
-        if (queryOrderBy != null) {
-            listQueryBuilder.append(" ORDER BY ");
-            listQueryBuilder.append(queryOrderBy);
-        }
-        TypedQuery<T> listQuery = entityManager.createQuery(listQueryBuilder.toString(), querySelectClass);
+        TypedQuery<T> queryList = entityManager.createQuery(query, queryResultClass);
+        TypedQuery<Long> queryCount = entityManager.createQuery(countQuery, Long.class);
+        return getResponse(queryList, queryCount, queryFilter, listRequest, listResponse);
+    }
 
-        // Create query for counting records
-        StringBuilder countQueryBuilder = new StringBuilder();
-        countQueryBuilder.append("SELECT COUNT(");
-        countQueryBuilder.append(queryAlias);
-        countQueryBuilder.append(".id) FROM ");
-        countQueryBuilder.append(queryFrom);
-        countQueryBuilder.append(" WHERE ");
-        countQueryBuilder.append(queryWhere);
-        TypedQuery<Long> countQuery = entityManager.createQuery(countQueryBuilder.toString(), Long.class);
-
+    private <T> List<T> getResponse(Query queryList, Query queryCount, QueryFilter queryFilter,
+            ListRequest listRequest, ListResponse listResponse)
+    {
         // Fill filter parameters to queries
-        filter.fillQueryParameters(listQuery);
-        filter.fillQueryParameters(countQuery);
-
-        // Get total record count
-        Integer totalResultCount = countQuery.getSingleResult().intValue();
+        queryFilter.fillQueryParameters(queryList);
+        queryFilter.fillQueryParameters(queryCount);
 
         // Restrict first result
         Integer firstResult = listRequest.getStart(0);
         if (firstResult < 0) {
             firstResult = 0;
         }
-        listQuery.setFirstResult(firstResult);
+        queryList.setFirstResult(firstResult);
 
         // Restrict result count
+        Integer totalResultCount = null;
         Integer maxResultCount = listRequest.getCount(-1);
         if (maxResultCount != null && maxResultCount != -1) {
+            totalResultCount = ((Number) queryCount.getSingleResult()).intValue();
             if ((firstResult + maxResultCount) > totalResultCount) {
                 maxResultCount = totalResultCount - firstResult;
             }
-            listQuery.setMaxResults(maxResultCount);
+            queryList.setMaxResults(maxResultCount);
+        }
+
+        // List requested results
+        @SuppressWarnings("unchecked")
+        List<T> resultList = (List<T>) queryList.getResultList();
+        if (totalResultCount == null) {
+            totalResultCount = resultList.size();
         }
 
         // Setup response
         listResponse.setCount(totalResultCount);
         listResponse.setStart(firstResult);
 
-        // List requested results
-        return listQuery.getResultList();
+        return resultList;
     }
 }

@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -114,18 +114,18 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
         String userId = authorization.validate(request.getSecurityToken());
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            DatabaseFilter filter = new DatabaseFilter("executable");
+            QueryFilter queryFilter = new QueryFilter("executable");
 
             // List only reservations which is current user permitted to read
-            filter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
+            queryFilter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
 
             // List only executables which are allocated
-            filter.addFilter("executable.state NOT IN(:notAllocatedStates)");
-            filter.addFilterParameter("notAllocatedStates",
+            queryFilter.addFilter("executable.state NOT IN(:notAllocatedStates)");
+            queryFilter.addFilterParameter("notAllocatedStates",
                     cz.cesnet.shongo.controller.executor.Executable.NOT_ALLOCATED_STATES);
 
             // List only top executables
-            filter.addFilter("executable NOT IN("
+            queryFilter.addFilter("executable NOT IN("
                     + "  SELECT childExecutable FROM Executable executable"
                     + "  INNER JOIN executable.childExecutables childExecutable"
                     + ")");
@@ -133,7 +133,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             // If history executables should not be included
             if (!request.isIncludeHistory()) {
                 // List only executables which are allocated by any existing reservation
-                filter.addFilter("executable IN("
+                queryFilter.addFilter("executable IN("
                         + "  SELECT executable FROM Reservation reservation"
                         + "  INNER JOIN reservation.executable executable"
                         + ")");
@@ -142,14 +142,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             // List only executables of requested classes
             Set<Class<? extends Executable>> executableApiClasses = request.getExecutableClasses();
             if (executableApiClasses.size() > 0) {
-                filter.addFilter("TYPE(executable) IN(:classes)");
+                queryFilter.addFilter("TYPE(executable) IN(:classes)");
                 Set<Class<? extends cz.cesnet.shongo.controller.executor.Executable>> executableClasses =
                         new HashSet<Class<? extends cz.cesnet.shongo.controller.executor.Executable>>();
                 for (Class<? extends Executable> executableApiClass : executableApiClasses) {
                     executableClasses.addAll(
                             cz.cesnet.shongo.controller.executor.Executable.getClassesFromApi(executableApiClass));
                 }
-                filter.addFilterParameter("classes", executableClasses);
+                queryFilter.addFilterParameter("classes", executableClasses);
             }
 
             // Sort query part
@@ -173,10 +173,15 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                 queryOrderBy = queryOrderBy + " DESC";
             }
 
+            // Query
+            String query = "SELECT executable FROM Executable executable"
+                    + " WHERE " + queryFilter.toQueryWhere()
+                    + " ORDER BY " + queryOrderBy;
+
             ListResponse<ExecutableSummary> response = new ListResponse<ExecutableSummary>();
             List<cz.cesnet.shongo.controller.executor.Executable> executables = performListRequest(
-                    "executable", "executable", cz.cesnet.shongo.controller.executor.Executable.class,
-                    "Executable executable", queryOrderBy, filter, request, response, entityManager);
+                    query, queryFilter, cz.cesnet.shongo.controller.executor.Executable.class,
+                    request, response, entityManager);
 
             // Fill executables to response
             Map<Long, RoomExecutableSummary> roomExecutableSummaryById = new HashMap<Long, RoomExecutableSummary>();

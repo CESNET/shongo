@@ -19,7 +19,7 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
 
@@ -158,17 +158,17 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            DatabaseFilter filter = new DatabaseFilter("aclRecord");
-            filter.addFilter("aclRecord.deleted = FALSE");
+            QueryFilter queryFilter = new QueryFilter("aclRecord");
+            queryFilter.addFilter("aclRecord.deleted = FALSE");
 
             // List only records which are requested
             if (request.getAclRecordIds().size() > 0) {
-                filter.addFilter("aclRecord.id IN (:aclRecordIds)");
+                queryFilter.addFilter("aclRecord.id IN (:aclRecordIds)");
                 Set<Long> aclRecordIds = new HashSet<Long>();
                 for (String aclRecordId : request.getAclRecordIds()) {
                     aclRecordIds.add(Long.valueOf(aclRecordId));
                 }
-                filter.addFilterParameter("aclRecordIds", aclRecordIds);
+                queryFilter.addFilterParameter("aclRecordIds", aclRecordIds);
             }
 
             // List only records which are requested
@@ -219,25 +219,29 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                         entityIdsFilterBuilder.append(")");
                     }
                 }
-                filter.addFilter(entityIdsFilterBuilder.toString());
+                queryFilter.addFilter(entityIdsFilterBuilder.toString());
             }
 
             // List only records for requested users
             if (request.getUserIds().size() > 0) {
-                filter.addFilter("aclRecord.userId IN (:userIds)");
-                filter.addFilterParameter("userIds", request.getUserIds());
+                queryFilter.addFilter("aclRecord.userId IN (:userIds)");
+                queryFilter.addFilterParameter("userIds", request.getUserIds());
             }
 
             // List only records for requested roles
             if (request.getRoles().size() > 0) {
-                filter.addFilter("aclRecord.role IN (:roles)");
-                filter.addFilterParameter("roles", request.getRoles());
+                queryFilter.addFilter("aclRecord.role IN (:roles)");
+                queryFilter.addFilterParameter("roles", request.getRoles());
             }
+
+            // Query
+            String query = "SELECT aclRecord FROM AclRecord aclRecord"
+                    + " WHERE " + queryFilter.toQueryWhere();
 
             ListResponse<AclRecord> response = new ListResponse<AclRecord>();
             List<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = performListRequest(
-                    "aclRecord", "aclRecord", cz.cesnet.shongo.controller.authorization.AclRecord.class,
-                    "AclRecord aclRecord", null, filter, request, response, entityManager);
+                    query, queryFilter, cz.cesnet.shongo.controller.authorization.AclRecord.class,
+                    request, response, entityManager);
 
             // Fill reservations to response
             for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {

@@ -5,7 +5,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -87,7 +87,7 @@ public class ExecutableManager extends AbstractManager
      */
     public List<Executable> list(Set<Long> ids)
     {
-        DatabaseFilter filter = new DatabaseFilter("executable");
+        QueryFilter filter = new QueryFilter("executable");
         filter.addIds(ids);
         TypedQuery<Executable> query = entityManager.createQuery("SELECT executable FROM Executable executable"
                 + " WHERE executable.state != :notAllocated"

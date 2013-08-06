@@ -25,8 +25,9 @@ SELECT
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
-WHERE 1=1 
+WHERE ${filter}
     /* List only top reservation requests (no child requests created for a set of reservation requests) */
     AND reservation_request.parent_allocation_id IS NULL 
     /* List only latest version of a reservation request (no it's modifications or deleted requests) */
     AND reservation_request_summary.state = 'ACTIVE'
+ORDER BY ${order}

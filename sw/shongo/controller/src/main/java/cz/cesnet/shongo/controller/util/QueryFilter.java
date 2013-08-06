@@ -11,35 +11,51 @@ import javax.persistence.Query;
 import java.util.*;
 
 /**
- * Utility class for filtering database records.
+ * Utility class which represents a SQL where clause for filtering database records.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DatabaseFilter
+public class QueryFilter
 {
+    /**
+     * Specifies whether filter should be for native query.
+     */
+    private boolean nativeQuery = false;
+
     /**
      * Query alias of the main entity.
      */
-    String alias;
+    private String alias;
 
     /**
      * List of filters.
      */
-    List<String> filters = new ArrayList<String>();
+    private List<String> filters = new ArrayList<String>();
 
     /**
      * Map of parameters for filters.
      */
-    Map<String, Object> parameters = new HashMap<String, Object>();
+    private Map<String, Object> parameters = new HashMap<String, Object>();
 
     /**
      * Constructor.
      *
      * @param alias sets the {@link #alias}
      */
-    public DatabaseFilter(String alias)
+    public QueryFilter(String alias)
     {
         this.alias = alias;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param alias sets the {@link #alias}
+     */
+    public QueryFilter(String alias, boolean nativeQuery)
+    {
+        this.alias = alias;
+        this.nativeQuery = nativeQuery;
     }
 
     /**
@@ -70,6 +86,26 @@ public class DatabaseFilter
     public void addFilterParameter(String name, Object value)
     {
         parameters.put(name, value);
+    }
+
+    /**
+     * Add parameter for filters.
+     *
+     * @param name  of the parameter
+     * @param enumValues of the parameter
+     */
+    public <T extends Enum> void addFilterParameter(String name, Collection<T> enumValues)
+    {
+        if (nativeQuery) {
+            Set<String> values = new HashSet<String>();
+            for (T enumValue : enumValues) {
+                values.add(enumValue.toString());
+            }
+            parameters.put(name, values);
+        }
+        else {
+            parameters.put(name, enumValues);
+        }
     }
 
     /**

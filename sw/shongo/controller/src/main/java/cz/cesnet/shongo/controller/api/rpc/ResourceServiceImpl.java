@@ -12,7 +12,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateMidnight;
 import org.joda.time.Interval;
@@ -249,7 +249,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         try {
             Set<Long> resourceIds =
                     authorization.getEntitiesWithPermission(userId, EntityType.RESOURCE, Permission.READ);
-            String filterUserId = DatabaseFilter.getUserIdFromFilter(filter);
+            String filterUserId = QueryFilter.getUserIdFromFilter(filter);
             List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
             List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();

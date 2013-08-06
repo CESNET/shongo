@@ -60,14 +60,15 @@ public class NativeQuery
     }
 
     /**
-     * @param entityManager
      * @param fileName
+     * @param parameters
      * @return native query
      */
-    public static synchronized String getNativeQuery(EntityManager entityManager, String fileName)
+    public static String getNativeQuery(String fileName, Map<String, String> parameters)
     {
-        EntityManagerFactory entityManagerFactory = entityManager.getEntityManagerFactory();
-        return getNativeQuery(entityManagerFactory, fileName);
+        String nativeQuery = getNativeQuery(fileName);
+        nativeQuery = applyParameters(nativeQuery, parameters);
+        return nativeQuery;
     }
 
     /**
@@ -78,7 +79,8 @@ public class NativeQuery
     public static synchronized String getNativeQuery(EntityManagerFactory entityManagerFactory, String fileName)
     {
         // Try to read SQL from cache
-        Map<String, String> cachedNativeQueryForEntityManagerFactory = cachedNativeQueryByEntityManagerFactory.get(entityManagerFactory);
+        Map<String, String> cachedNativeQueryForEntityManagerFactory =
+                cachedNativeQueryByEntityManagerFactory.get(entityManagerFactory);
         if (cachedNativeQueryForEntityManagerFactory == null) {
             cachedNativeQueryForEntityManagerFactory = new HashMap<String, String>();
             cachedNativeQueryByEntityManagerFactory.put(entityManagerFactory, cachedNativeQueryForEntityManagerFactory);
@@ -109,6 +111,32 @@ public class NativeQuery
 
         // Add SQL to cache
         cachedNativeQueryForEntityManagerFactory.put(fileName, nativeQuery);
+        return nativeQuery;
+    }
+
+    /**
+     * @param entityManagerFactory
+     * @param fileName
+     * @return native query
+     */
+    public static String getNativeQuery(EntityManagerFactory entityManagerFactory, String fileName,
+            Map<String, String> parameters)
+    {
+        String nativeQuery = getNativeQuery(entityManagerFactory, fileName);
+        nativeQuery = applyParameters(nativeQuery, parameters);
+        return nativeQuery;
+    }
+
+    /**
+     * @param nativeQuery
+     * @param parameters
+     * @return given {@code nativeQuery} with applied {@code parameters}
+     */
+    private static String applyParameters(String nativeQuery, Map<String, String> parameters)
+    {
+        for(Map.Entry<String, String> entry : parameters.entrySet()) {
+            nativeQuery = nativeQuery.replace("${" + entry.getKey() + "}", entry.getValue());
+        }
         return nativeQuery;
     }
 

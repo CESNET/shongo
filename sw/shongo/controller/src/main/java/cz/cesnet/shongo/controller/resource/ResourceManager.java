@@ -9,7 +9,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
 import cz.cesnet.shongo.controller.resource.value.FilteredValueProvider;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -104,7 +104,7 @@ public class ResourceManager extends AbstractManager
      */
     public List<Resource> list(Set<Long> ids, String userId)
     {
-        DatabaseFilter filter = new DatabaseFilter("resource");
+        QueryFilter filter = new QueryFilter("resource");
         filter.addIds(ids);
         filter.addUserId(userId);
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
