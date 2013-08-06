@@ -130,7 +130,17 @@
             <c:forEach items="${recordings}" var="recording" varStatus="status">
                 <tr>
                     <td>
-                        ${recording.name}
+                        <c:choose>
+                            <c:when test="${not empty recording.description}">
+                                <tag:help label="${recording.name}">
+                                    <strong><spring:message code="views.room.recording.description"/>:</strong>
+                                    ${recording.description}
+                                </tag:help>
+                            </c:when>
+                            <c:otherwise>
+                                ${recording.name}
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                     <td>
                         <joda:format value="${recording.beginDate}" style="MM"/>
