@@ -124,7 +124,8 @@ SELECT
             END
         )
         ELSE 'NOT_ALLOCATED'
-    END AS state
+    END AS state,
+    reservation.id AS last_reservation_id
 FROM reservation_request
 LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
 LEFT JOIN reservation ON reservation.allocation_id = abstract_reservation_request.allocation_id AND abstract_reservation_request.state = 'ACTIVE'
@@ -153,7 +154,8 @@ SELECT
     reservation_request_set_earliest_child.child_id AS child_id,
     COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
     COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
-    reservation_request_state.state AS allocation_state
+    reservation_request_state.state AS allocation_state,
+    reservation_request_state.last_reservation_id AS last_reservation_id
 FROM abstract_reservation_request
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id

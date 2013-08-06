@@ -355,7 +355,7 @@ table.aliases td.label {
 
 /** Reservation request states */
 .reservation-request-state .NOT_ALLOCATED {
-    color: #D6A220;
+    color: #b8860b;
 }
 .reservation-request-state .ALLOCATED {
     color: green;

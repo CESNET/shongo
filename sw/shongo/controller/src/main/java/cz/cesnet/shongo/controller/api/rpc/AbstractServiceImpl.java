@@ -31,7 +31,7 @@ public abstract class AbstractServiceImpl extends Component
         StringBuilder countQueryBuilder = new StringBuilder();
         countQueryBuilder.append("SELECT COUNT(*) FROM (");
         countQueryBuilder.append(query);
-        countQueryBuilder.append(") AS count");
+        countQueryBuilder.append(") AS count_result");
 
         Query queryList = entityManager.createNativeQuery(query);
         Query queryCount = entityManager.createNativeQuery(countQueryBuilder.toString());
@@ -52,12 +52,26 @@ public abstract class AbstractServiceImpl extends Component
     {
         int fromPosition = query.indexOf("FROM");
         String countQuery = "SELECT COUNT(*) " + query.substring(fromPosition);
+        int orderByPosition = countQuery.lastIndexOf("ORDER BY");
+        if (orderByPosition != -1) {
+            countQuery = countQuery.substring(0, orderByPosition);
+        }
 
         TypedQuery<T> queryList = entityManager.createQuery(query, queryResultClass);
         TypedQuery<Long> queryCount = entityManager.createQuery(countQuery, Long.class);
         return getResponse(queryList, queryCount, queryFilter, listRequest, listResponse);
     }
 
+    /**
+     * Get listing response.
+     *
+     * @param queryList
+     * @param queryCount
+     * @param queryFilter
+     * @param listRequest
+     * @param listResponse
+     * @return response
+     */
     private <T> List<T> getResponse(Query queryList, Query queryCount, QueryFilter queryFilter,
             ListRequest listRequest, ListResponse listResponse)
     {

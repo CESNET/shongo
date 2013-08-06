@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;

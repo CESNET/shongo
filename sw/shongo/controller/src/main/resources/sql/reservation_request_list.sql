@@ -17,6 +17,7 @@ SELECT
     reservation_request_summary.slot_end AS slot_end,
     reservation_request_summary.allocation_state AS allocation_state,            
     reservation_request_summary.provided_reservation_request_id AS provided_reservation_request_id,
+    reservation_request_summary.last_reservation_id AS last_reservation_id,
     specification_summary.type AS specification_type,
     specification_summary.technologies AS technologies,
     specification_summary.room_participant_count AS room_participant_count,
@@ -26,8 +27,6 @@ FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
 WHERE ${filter}
-    /* List only top reservation requests (no child requests created for a set of reservation requests) */
-    AND reservation_request.parent_allocation_id IS NULL 
-    /* List only latest version of a reservation request (no it's modifications or deleted requests) */
+    /* List only latest versions of a reservation requests (no it's modifications or deleted requests) */
     AND reservation_request_summary.state = 'ACTIVE'
 ORDER BY ${order}

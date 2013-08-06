@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.api.rpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
-import org.joda.time.Interval;
 
 import java.util.List;
 
@@ -101,15 +100,6 @@ public interface ReservationService extends Service
     @API
     public List<ReservationRequestSummary> getReservationRequestHistory(SecurityToken token,
             String reservationRequestId);
-
-    /**
-     * List child reservation requests for reservation request specified in the {@code request}.
-     *
-     * @param request {@link ChildReservationRequestListRequest}
-     * @return {@link ListResponse} of {@link ReservationRequest}s
-     */
-    @API
-    public ListResponse<ReservationRequest> listChildReservationRequests(ChildReservationRequestListRequest request);
 
     /**
      * @param token

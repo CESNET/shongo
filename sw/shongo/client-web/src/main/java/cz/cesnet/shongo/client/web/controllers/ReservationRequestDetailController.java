@@ -140,19 +140,19 @@ public class ReservationRequestDetailController
             @RequestParam(value = "count", required = false) Integer count)
     {
         // List reservation requests
-        ChildReservationRequestListRequest request = new ChildReservationRequestListRequest();
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        request.setReservationRequestId(reservationRequestId);
-        ListResponse<ReservationRequest> response = reservationService.listChildReservationRequests(request);
+        request.setParentReservationRequestId(reservationRequestId);
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         ReservationListRequest reservationListRequest = new ReservationListRequest();
         reservationListRequest.setSecurityToken(securityToken);
-        for (ReservationRequest reservationRequest : response.getItems()) {
-            String reservationId = reservationRequest.getLastReservationId();
-            if (reservationId != null) {
-                reservationListRequest.addReservationId(reservationId);
+        for (ReservationRequestSummary reservationRequest : response.getItems()) {
+            String lastReservationId = reservationRequest.getLastReservationId();
+            if (lastReservationId != null) {
+                reservationListRequest.addReservationId(lastReservationId);
             }
         }
         Map<String, Reservation> reservationById = new HashMap<String, Reservation>();
@@ -166,26 +166,21 @@ public class ReservationRequestDetailController
         // Build response
         DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
-        for (ReservationRequest reservationRequest : response.getItems()) {
+        for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> child = new HashMap<String, Object>();
             child.put("id", reservationRequest.getId());
 
-            Interval slot = reservationRequest.getSlot();
+            Interval slot = reservationRequest.getEarliestSlot();
             child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
                     dateTimeFormatter.print(slot.getEnd()));
 
-            AllocationState state = reservationRequest.getAllocationState();
+            ReservationRequestSummary.State state = reservationRequest.getState();
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
                 String stateHelp = messages.getMessage("views.help.reservationRequest.state." + state, null, locale);
                 child.put("state", state);
                 child.put("stateMessage", stateMessage);
                 child.put("stateHelp", stateHelp);
-                switch (reservationRequest.getAllocationState()) {
-                    case ALLOCATION_FAILED:
-                        child.put("stateReport", reservationRequest.getAllocationStateReport());
-                        break;
-                }
             }
 
             String reservationId = reservationRequest.getLastReservationId();

@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
-import cz.cesnet.shongo.controller.api.request.ChildReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
@@ -360,10 +360,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         AbstractReservationRequest abstractReservationRequest =
                 getReservationService().getReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         if (abstractReservationRequest instanceof ReservationRequestSet) {
-            List<ReservationRequest> childReservationRequests = getReservationService().listChildReservationRequests(
-                    new ChildReservationRequestListRequest(SECURITY_TOKEN_ROOT, reservationRequestId)).getItems();
+            ReservationRequestListRequest request = new ReservationRequestListRequest();
+            request.setSecurityToken(SECURITY_TOKEN_ROOT);
+            request.setParentReservationRequestId(reservationRequestId);
+            List<ReservationRequestSummary> childReservationRequests =
+                    getReservationService().listReservationRequests(request).getItems();
             Assert.assertTrue(childReservationRequests.size() > 0);
-            reservationRequests.addAll(childReservationRequests);
+            for (ReservationRequestSummary reservationRequestSummary : childReservationRequests) {
+                reservationRequests.add((ReservationRequest) getReservationService().getReservationRequest(
+                        SECURITY_TOKEN_ROOT, reservationRequestSummary.getId()));
+            }
         }
         else {
             reservationRequests.add((ReservationRequest) abstractReservationRequest);

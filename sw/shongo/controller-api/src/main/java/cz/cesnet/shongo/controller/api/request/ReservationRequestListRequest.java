@@ -17,6 +17,8 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 {
     private Set<String> reservationRequestIds = new HashSet<String>();
 
+    private String parentReservationRequestId;
+
     private Set<Technology> technologies = new HashSet<Technology>();
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
@@ -54,6 +56,16 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     public void addReservationRequestId(String reservationRequestId)
     {
         reservationRequestIds.add(reservationRequestId);
+    }
+
+    public String getParentReservationRequestId()
+    {
+        return parentReservationRequestId;
+    }
+
+    public void setParentReservationRequestId(String parentReservationRequestId)
+    {
+        this.parentReservationRequestId = parentReservationRequestId;
     }
 
     public Set<Technology> getTechnologies()
@@ -102,16 +114,17 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     }
 
     private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";
+    private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
-    private static final String HISTORY_RESERVATION_REQUEST_ID = "historyReservationRequestId";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
         dataMap.set(RESERVATION_REQUEST_IDS, reservationRequestIds);
+        dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
@@ -123,6 +136,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     {
         super.fromData(dataMap);
         reservationRequestIds = dataMap.getSet(RESERVATION_REQUEST_IDS, String.class);
+        parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);

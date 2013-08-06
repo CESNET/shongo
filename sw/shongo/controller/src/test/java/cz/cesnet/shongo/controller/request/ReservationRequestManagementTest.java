@@ -18,6 +18,7 @@ import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;

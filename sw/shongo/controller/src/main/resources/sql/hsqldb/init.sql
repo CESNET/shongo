@@ -24,7 +24,7 @@ LEFT JOIN specification_technologies ON specification_technologies.specification
 LEFT JOIN room_specification ON room_specification.id = specification.id
 LEFT JOIN resource_specification ON resource_specification.id = specification.id
 LEFT JOIN alias_specification ON alias_specification.id = specification.id
-LEFT JOIN alias_set_specification ON alias_specification.id = specification.id
+LEFT JOIN alias_set_specification ON alias_set_specification.id = specification.id
 GROUP BY 
     specification.id,    
     alias_specification.id,
@@ -67,7 +67,8 @@ SELECT
     NULL AS child_id,
     reservation_request.slot_start AS slot_start,
     reservation_request.slot_end AS slot_end,
-    reservation_request_state.state AS allocation_state
+    reservation_request_state.state AS allocation_state,
+    NULL AS last_reservation_id
 FROM abstract_reservation_request
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set ON reservation_request_set.id = abstract_reservation_request.id

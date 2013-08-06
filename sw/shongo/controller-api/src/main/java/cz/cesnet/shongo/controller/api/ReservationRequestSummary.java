@@ -49,7 +49,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Interval earliestSlot;
 
     /**
-     * {@link cz.cesnet.shongo.controller.api.ReservationRequestSummary.State} of the reservation request for the earliest requested date/time slot.
+     * {@link ReservationRequestSummary.State} of the reservation request for the earliest requested date/time slot.
      */
     private State state;
 
@@ -67,6 +67,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * Provided reservation request identifier.
      */
     private String providedReservationRequestId;
+
+    /**
+     * Last allocated reservation id.
+     */
+    private String lastReservationId;
 
     /**
      * @return {@link #type}
@@ -229,6 +234,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #lastReservationId}
+     */
+    public String getLastReservationId()
+    {
+        return lastReservationId;
+    }
+
+    /**
+     * @param reservationId sets the {@link #lastReservationId}
+     */
+    public void setLastReservationId(String reservationId)
+    {
+        this.lastReservationId = reservationId;
+    }
+
+    /**
      * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
      */
     public void setProvidedReservationRequestId(String providedReservationRequestId)
@@ -246,6 +267,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String SPECIFICATION = "specification";
     private static final String TECHNOLOGIES = "technologies";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
+    private static final String LAST_RESERVATION_ID = "lastReservationId";
 
     @Override
     public DataMap toData()
@@ -261,6 +283,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
+        dataMap.set(LAST_RESERVATION_ID, lastReservationId);
         return dataMap;
     }
 
@@ -278,6 +301,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
+        lastReservationId = dataMap.getString(LAST_RESERVATION_ID);
     }
 
     /**

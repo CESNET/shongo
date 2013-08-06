@@ -192,7 +192,7 @@ public class NativeQuery
             if (statement.isEmpty()) {
                 continue;
             }
-            entityManager.createNativeQuery(statement);
+            entityManager.createNativeQuery(statement).executeUpdate();
         }
         entityManager.getTransaction().commit();
     }
