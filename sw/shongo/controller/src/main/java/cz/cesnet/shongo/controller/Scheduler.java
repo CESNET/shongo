@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -87,8 +86,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        SchedulerContext schedulerContext = new SchedulerContext(cache, entityManager, interval.getStart());
-        AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+        AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
             // Storage for reservation notifications
             List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
@@ -138,7 +136,20 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     reservationRequest = reservationRequestManager.getReservationRequest(
                             reservationRequest.getId());
 
+                    // Allocate reservation request
+                    SchedulerContext schedulerContext = new SchedulerContext(
+                            interval.getStart(), cache, entityManager, authorizationManager);
                     allocateReservationRequest(reservationRequest, schedulerContext, notifications);
+
+                    // Reallocate dependent reservation requests
+                    Iterator<ReservationRequest> iterator = schedulerContext.getReservationRequestsToReallocate();
+                    while (iterator.hasNext()) {
+                        ReservationRequest reservationRequestToReallocate = iterator.next();
+                        allocateReservationRequest(reservationRequestToReallocate, schedulerContext, notifications);
+                    }
+
+                    // Finalize (delete old reservations, etc)
+                    schedulerContext.finish();
 
                     entityManager.getTransaction().commit();
                     authorizationManager.commitTransaction();
@@ -214,69 +225,46 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     }
 
     /**
-     * @param providedReservationRequest
-     * @return {@link Reservation} to be provided from given {@code providedReservationRequest} for given {@code interval}
-     * @throws SchedulerException
-     */
-    public static Reservation getProvidedReservation(AbstractReservationRequest providedReservationRequest,
-            SchedulerContext schedulerContext)
-            throws SchedulerException
-    {
-        Interval interval = schedulerContext.getRequestedSlot();
-
-        // Only reservation request can be provided
-        if (!(providedReservationRequest instanceof ReservationRequest)) {
-            throw new SchedulerReportSet.ReservationRequestNotUsableException(providedReservationRequest);
-        }
-        ReservationRequest reservationRequest = (ReservationRequest) providedReservationRequest;
-
-        // Find provided reservation
-        Reservation providedReservation = null;
-        for (Reservation reservation : reservationRequest.getAllocation().getReservations()) {
-            if (reservation.getSlot().contains(interval)) {
-                providedReservation = reservation;
-                break;
-            }
-        }
-        if (providedReservation == null) {
-            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest);
-        }
-
-        // Check the provided reservation
-        ReservationManager reservationManager = new ReservationManager(schedulerContext.getEntityManager());
-        List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(providedReservation, interval);
-        schedulerContext.applyAvailableReservations(existingReservations);
-        if (existingReservations.size() > 0) {
-            throw new SchedulerReportSet.ReservationNotAvailableException(
-                    providedReservation, reservationRequest);
-        }
-        return providedReservation;
-    }
-
-    /**
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
      * @param schedulerContext
      * @param notifications
      */
-    private void allocateReservationRequest(ReservationRequest reservationRequest,
+    private static void allocateReservationRequest(ReservationRequest reservationRequest,
             SchedulerContext schedulerContext, List<ReservationNotification> notifications) throws SchedulerException
     {
-        // Create scheduler task context
-        schedulerContext.clear();
+        // Initialize scheduler context
         schedulerContext.setReservationRequest(reservationRequest);
 
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
         DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
         Interval requestedSlot = schedulerContext.getRequestedSlot();
+        DateTime requestedSlotStart = requestedSlot.getStart();
 
         EntityManager entityManager = schedulerContext.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+
+        // Find reservation requests which should be reallocated
+        List<ReservationRequest> reservationRequestUsages = reservationRequestManager.listAllocationUsages(
+                reservationRequest.getAllocation(), requestedSlot);
+        for (ReservationRequest reservationRequestUsage : reservationRequestUsages) {
+            Interval usageSlot = reservationRequestUsage.getSlot();
+            DateTime usageSlotEnd = usageSlot.getEnd();
+            // If usage is active (it starts before currently being allocate requested slot)
+            if (usageSlot.getStart().isBefore(requestedSlotStart) && requestedSlotStart.isBefore(usageSlotEnd)) {
+                // Move currently being allocated requested slot after the usage
+                requestedSlotStart = usageSlotEnd;
+            }
+            else {
+                schedulerContext.addReservationRequestToReallocate(reservationRequestUsage);
+            }
+        }
+        // Update requested slot start to be after active usages
+        schedulerContext.setRequestedSlotStart(requestedSlotStart);
 
         // Fill already allocated reservations as reallocatable
         Allocation allocation = reservationRequest.getAllocation();
@@ -288,9 +276,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Fill allocated reservation from provided reservation request as reusable
-        ReservationRequest providedReservationRequest = reservationRequest.getProvidedReservationRequest();
-        if (providedReservationRequest != null) {
-            Reservation providedReservation = getProvidedReservation(providedReservationRequest, schedulerContext);
+        Allocation providedAllocation = reservationRequest.getProvidedAllocation();
+        if (providedAllocation != null) {
+            Reservation providedReservation = schedulerContext.getProvidedReservation(providedAllocation);
             schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
         }
 
@@ -352,7 +340,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     precedingReservation = oldReservation;
 
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
-                    reservationManager.updateReservationSlotEnd(oldReservation, requestedSlot.getStart());
+                    oldReservation.setSlotEnd(requestedSlot.getStart());
                 }
                 // Old reservation which takes place in the past should not be deleted
                 continue;
@@ -365,7 +353,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Remove the old reservation from allocation
             allocation.removeReservation(oldReservation);
             // Delete the old reservation
-            reservationManager.delete(oldReservation, authorizationManager);
+            schedulerContext.addReservationToDelete(oldReservation);
         }
 
         // Add new allocated reservation

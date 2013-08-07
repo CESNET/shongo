@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.jade.Container;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -303,6 +304,16 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * Run {@link Scheduler}.
+     *
+     * @param dateTime representing now
+     */
+    protected void runScheduler(DateTime dateTime)
+    {
+        runScheduler(new Interval(dateTime, Temporal.DATETIME_INFINITY_END));
+    }
+
+    /**
      * Run propagations to authorization server.
      */
     protected void runAuthorizationPropagation()
@@ -409,10 +420,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             Assert.assertEquals("Reservation request should be in ALLOCATED state.",
                     AllocationState.ALLOCATED, reservationRequest.getAllocationState());
             Assert.assertTrue("Reservation should be allocated.", reservationRequest.getReservationIds().size() > 0);
-            for (String reservationId : reservationRequest.getReservationIds()) {
-                reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, reservationId);
-                Assert.assertNotNull("Reservation should be allocated for the reservation request.", reservation);
-            }
+            String lastReservationId = reservationRequest.getLastReservationId();
+            Assert.assertNotNull("Reservation should be allocated for the reservation request.", lastReservationId);
+            reservation = getReservationService().getReservation(SECURITY_TOKEN_ROOT, lastReservationId);
         }
         return reservation;
     }

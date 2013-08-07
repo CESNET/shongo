@@ -2,11 +2,15 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -166,7 +170,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             Assert.fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
+        catch (ControllerReportSet.ReservationRequestNotDeletableException exception) {
         }
     }
 
@@ -345,13 +349,11 @@ public class SchedulerProvidedTest extends AbstractControllerTest
     }
 
     /**
-     * Test that a reservation request with {@link cz.cesnet.shongo.controller.api.AliasSetSpecification} cannot be modified when the allocated
+     * Test that a reservation request with {@link AliasSetSpecification} can be modified when the allocated
      * {@link AliasReservation}s are reused in other reservation request (e.g., {@link RoomReservation}).
-     *
-     * @throws Exception
      */
     @Test
-    public void testProvidedAliasSetNotModifiable() throws Exception
+    public void testProvidedAliasSetModifiable() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -359,40 +361,70 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(100, new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
-        mcu.addCapability(new AliasProviderCapability("001", AliasType.H323_E164).withRestrictedToResource());
-        mcu.addCapability(new AliasProviderCapability("001@cesnet.cz", AliasType.SIP_URI).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("{digit:3}", AliasType.H323_E164)
+                .withRestrictedToResource().withPermanentRoom());
+        mcu.addCapability(new AliasProviderCapability("{digit:3}@cesnet.cz", AliasType.SIP_URI)
+                .withRestrictedToResource().withPermanentRoom());
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
-        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setSlot("2013-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(
-                new AliasSetSpecification(new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}));
+        aliasReservationRequest.setSpecification(new AliasSetSpecification(
+                new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}).withSharedExecutable());
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot("2013-07-01T12:00", "PT2H");
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
-        String reservationRequestId = allocate(reservationRequest);
-        checkAllocated(reservationRequestId);
+        reservationRequest1.setProvidedReservationRequestId(aliasReservationRequestId);
+        String reservationRequest1Id = allocate(reservationRequest1);
 
-        try {
-            getReservationService().modifyReservationRequest(SECURITY_TOKEN,
-                    getReservationService().getReservationRequest(SECURITY_TOKEN, aliasReservationRequestId));
-            Assert.fail("Exception that reservation request cannot be modified should be thrown");
-        }
-        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
-        }
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot("2013-07-02T12:00", "PT2H");
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+        reservationRequest2.setProvidedReservationRequestId(aliasReservationRequestId);
+        String reservationRequest2Id = allocate(reservationRequest2);
+
+        // Check allocated usages of alias
+        Reservation reservation1 = checkAllocated(reservationRequest1Id);
+        Reservation reservation2 = checkAllocated(reservationRequest2Id);
+        RoomExecutable room1 = (RoomExecutable) reservation1.getExecutable();
+        RoomExecutable room2 = (RoomExecutable) reservation2.getExecutable();
+        Assert.assertEquals("001", room1.getAliasByType(AliasType.H323_E164).getValue());
+        Assert.assertEquals("001", room2.getAliasByType(AliasType.H323_E164).getValue());
+
+        // Modify alias value
+        ReservationRequest reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(
+                    SECURITY_TOKEN, aliasReservationRequestId);
+        AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) reservationRequest.getSpecification();
+        AliasSpecification aliasSpecification = aliasSetSpecification.getAliases().get(0);
+        aliasSpecification.setValue("555");
+        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler(new DateTime("2013-07-01T13:00"));
+
+        // Check allocated alias
+        aliasReservation = checkAllocated(aliasReservationRequestId);
+        Assert.assertEquals(new DateTime("2013-07-01T14:00"), aliasReservation.getSlot().getStart());
+
+        // Check allocated usages of alias to be updated by the provided reservation request modification
+        reservation1 = checkAllocated(reservationRequest1Id);
+        reservation2 = checkAllocated(reservationRequest2Id);
+        room1 = (RoomExecutable) reservation1.getExecutable();
+        room2 = (RoomExecutable) reservation2.getExecutable();
+        Assert.assertEquals("001", room1.getAliasByType(AliasType.H323_E164).getValue());
+        Assert.assertEquals("555", room2.getAliasByType(AliasType.H323_E164).getValue());
 
         try {
             getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             Assert.fail("Exception that reservation request cannot be deleted should be thrown");
         }
-        catch (ControllerReportSet.ReservationRequestNotModifiableException exception) {
+        catch (ControllerReportSet.ReservationRequestNotDeletableException exception) {
         }
     }
 

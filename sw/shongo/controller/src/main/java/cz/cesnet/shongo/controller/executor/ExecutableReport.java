@@ -88,7 +88,6 @@ public abstract class ExecutableReport extends Report
      */
     @Column
     @org.hibernate.annotations.Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
     public DateTime getDateTime()
     {
         return dateTime;

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
@@ -135,6 +136,20 @@ public class RoomExecutable extends Executable
     public List<Alias> getAliases()
     {
         return aliases;
+    }
+
+    /**
+     * @param aliasType
+     * @return first {@link Alias} of given {@code aliasType}
+     */
+    public Alias getAliasByType(AliasType aliasType)
+    {
+        for (Alias alias : aliases) {
+            if (alias.getType().equals(aliasType)) {
+                return alias;
+            }
+        }
+        return null;
     }
 
     /**

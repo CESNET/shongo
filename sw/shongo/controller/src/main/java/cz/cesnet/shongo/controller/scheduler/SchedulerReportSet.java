@@ -1191,13 +1191,13 @@ public class SchedulerReportSet extends AbstractReportSet
     @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
     public static class ReservationNotAvailableReport extends ReservationReport
     {
-        protected cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest;
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest;
 
         public ReservationNotAvailableReport()
         {
         }
 
-        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
+        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
         {
             setReservation(reservation);
             setProvidedReservationRequest(providedReservationRequest);
@@ -1206,12 +1206,12 @@ public class SchedulerReportSet extends AbstractReportSet
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
         @javax.persistence.JoinColumn(name = "providedreservationrequest_id")
-        public cz.cesnet.shongo.controller.request.ReservationRequest getProvidedReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getProvidedReservationRequest()
         {
             return cz.cesnet.shongo.PersistentObject.getLazyImplementation(providedReservationRequest);
         }
 
-        public void setProvidedReservationRequest(cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
+        public void setProvidedReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
         {
             this.providedReservationRequest = providedReservationRequest;
         }
@@ -1264,7 +1264,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
+        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
         {
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
             report.setReservation(reservation);
@@ -1272,7 +1272,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.ReservationRequest providedReservationRequest)
+        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
         {
             super(throwable);
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
@@ -1281,7 +1281,7 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.ReservationRequest getProvidedReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getProvidedReservationRequest()
         {
             return getReport().getProvidedReservationRequest();
         }

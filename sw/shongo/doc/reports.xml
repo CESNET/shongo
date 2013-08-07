@@ -744,7 +744,25 @@
                 TODO:
             </description>
             <message>
-                Reservation request with identifier ${id} cannot be modified or deleted.
+                Reservation request with identifier ${id} cannot be modified.
+            </message>
+            <example>
+                TODO:
+            </example>
+            <user visible="true" via="api"/>
+        </report>
+
+        <report>
+            <id>reservation-request-not-deletable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reservation request with identifier ${id} cannot be deleted.
             </message>
             <example>
                 TODO:
@@ -1057,7 +1075,7 @@
             <id>reservation-not-available</id>
             <classification severity="error"/>
             <params>
-                <param name="providedReservationRequest" type="ReservationRequest"/>
+                <param name="providedReservationRequest" type="AbstractReservationRequest"/>
             </params>
             <description>
                 TODO:

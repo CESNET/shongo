@@ -53,6 +53,15 @@ public class AliasSetSpecification extends Specification
     }
 
     /**
+     * @return this {@link AliasSetSpecification} with {@link #sharedExecutable} set to {@code true}
+     */
+    public AliasSetSpecification withSharedExecutable()
+    {
+        setSharedExecutable(true);
+        return this;
+    }
+
+    /**
      * @return {@link #aliasSpecifications}
      */
     public List<AliasSpecification> getAliases()

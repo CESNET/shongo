@@ -7,6 +7,8 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
@@ -50,7 +52,7 @@ public class SchedulerContext
     private Interval requestedSlot;
 
     /**
-     * Description for allocated reservations or executables
+     * Description for allocated reservations or executables.
      */
     private String description;
 
@@ -116,6 +118,16 @@ public class SchedulerContext
     private Set<Resource> referencedResources = new HashSet<Resource>();
 
     /**
+     * List of {@link ReservationRequest} which should be reallocated.
+     */
+    private List<ReservationRequest> reservationRequestsToReallocate = new LinkedList<ReservationRequest>();
+
+    /**
+     * List of {@link Reservation}s which should be deleted.
+     */
+    private List<Reservation> reservationsToDelete = new LinkedList<Reservation>();
+
+    /**
      * Current {@link Savepoint} to which are recorded all performed changes.
      */
     private Savepoint currentSavepoint;
@@ -123,19 +135,21 @@ public class SchedulerContext
     /**
      * Constructor.
      *
-     * @param cache           sets the {@link #cache}
-     * @param entityManager   which can be used
-     * @param minimumDateTime sets the {@link #minimumDateTime}
+     * @param minimumDateTime      sets the {@link #minimumDateTime}
+     * @param cache                sets the {@link #cache}
+     * @param entityManager        which can be used
+     * @param authorizationManager which can be used
      */
-    public SchedulerContext(Cache cache, EntityManager entityManager, DateTime minimumDateTime)
+    public SchedulerContext(DateTime minimumDateTime, Cache cache, EntityManager entityManager,
+            AuthorizationManager authorizationManager)
     {
         if (minimumDateTime == null) {
             throw new IllegalArgumentException("Minimum date/time must not be null.");
         }
+        this.minimumDateTime = minimumDateTime;
         this.cache = cache;
         this.entityManager = entityManager;
-        this.authorizationManager = new AuthorizationManager(entityManager);
-        this.minimumDateTime = minimumDateTime;
+        this.authorizationManager = authorizationManager;
     }
 
     /**
@@ -147,7 +161,7 @@ public class SchedulerContext
      */
     public SchedulerContext(Cache cache, EntityManager entityManager, Interval requestedSlot)
     {
-        this(cache, entityManager, requestedSlot.getStart());
+        this(requestedSlot.getStart(), cache, entityManager, new AuthorizationManager(entityManager));
         setRequestedSlot(requestedSlot);
     }
 
@@ -159,7 +173,6 @@ public class SchedulerContext
         if (requestedSlot.isBefore(minimumDateTime)) {
             throw new IllegalArgumentException("Requested slot can't entirely belong to history.");
         }
-
         this.requestedSlot = requestedSlot;
 
         // Update requested slot to not allocate before minimum date/time
@@ -169,24 +182,17 @@ public class SchedulerContext
     }
 
     /**
-     * Clear current content of this {@link SchedulerContext}.
+     * @param requestSlotStart sets the start of the {@link #requestedSlot}
      */
-    public void clear()
+    public void setRequestedSlotStart(DateTime requestSlotStart)
     {
-        requestedSlot = null;
-        description = null;
-        purpose = null;
-        userIds.clear();
-        availableReservations.clear();
-        availableReservationByOriginalReservation.clear();
-        availableReservationsByAliasProviderId.clear();
-        availableExecutables.clear();
-        allocatedReservations.clear();
-        resourceReservationTransaction.clear();
-        valueReservationTransaction.clear();
-        roomReservationTransaction.clear();
-        referencedResources.clear();
-        currentSavepoint = null;
+        if (requestedSlot == null) {
+            throw new IllegalStateException("Requested slot hasn't been set yet.");
+        }
+        if (requestSlotStart.isBefore(minimumDateTime)) {
+            throw new IllegalArgumentException("Requested slot can't start before minimum date/time.");
+        }
+        requestedSlot = new Interval(requestSlotStart, requestedSlot.getEnd());
     }
 
     /**
@@ -772,6 +778,41 @@ public class SchedulerContext
     }
 
     /**
+     * @param reservation to be deleted
+     */
+    public void addReservationToDelete(Reservation reservation)
+    {
+        reservationsToDelete.add(reservation);
+    }
+
+    /**
+     * @return iterator of {@link #reservationRequestsToReallocate}
+     */
+    public Iterator<ReservationRequest> getReservationRequestsToReallocate()
+    {
+        return reservationRequestsToReallocate.iterator();
+    }
+
+    /**
+     * @param reservationRequest to be reallocated
+     */
+    public void addReservationRequestToReallocate(ReservationRequest reservationRequest)
+    {
+        reservationRequestsToReallocate.add(reservationRequest);
+    }
+
+    /**
+     * Delete all {@link #reservationsToDelete}.
+     */
+    public void finish()
+    {
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        for (Reservation reservation : reservationsToDelete) {
+            reservationManager.delete(reservation, authorizationManager);
+        }
+    }
+
+    /**
      * Represents a savepoint for the {@link SchedulerContext} to which it can be reverted.
      */
     public class Savepoint
@@ -925,5 +966,38 @@ public class SchedulerContext
          * Object has been removed from the {@link SchedulerContext}.
          */
         REMOVED
+    }
+
+    /**
+     * @param allocation
+     * @return {@link Reservation} to be provided from given {@code allocation} for {@link #requestedSlot}
+     * @throws SchedulerException
+     */
+    public Reservation getProvidedReservation(Allocation allocation)
+            throws SchedulerException
+    {
+        AbstractReservationRequest reservationRequest = allocation.getReservationRequest();
+
+        // Find provided reservation
+        Reservation providedReservation = null;
+        for (Reservation reservation : allocation.getReservations()) {
+            if (reservation.getSlot().contains(requestedSlot)) {
+                providedReservation = reservation;
+                break;
+            }
+        }
+        if (providedReservation == null) {
+            throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest);
+        }
+
+        // Check the provided reservation
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<ExistingReservation> existingReservations =
+                reservationManager.getExistingReservations(providedReservation, requestedSlot);
+        applyAvailableReservations(existingReservations);
+        if (existingReservations.size() > 0) {
+            throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation, reservationRequest);
+        }
+        return providedReservation;
     }
 }

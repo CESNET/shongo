@@ -19,10 +19,11 @@ public class ControllerReportSet extends AbstractReportSet
     public static final int IDENTIFIER_INVALID_DOMAIN_REPORT = 107;
     public static final int IDENTIFIER_INVALID_TYPE_REPORT = 108;
     public static final int RESERVATION_REQUEST_NOT_MODIFIABLE_REPORT = 109;
-    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT = 110;
-    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 111;
-    public static final int RESERVATION_REQUEST_DELETED_REPORT = 112;
-    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 113;
+    public static final int RESERVATION_REQUEST_NOT_DELETABLE_REPORT = 110;
+    public static final int RESERVATION_REQUEST_NOT_REVERTIBLE_REPORT = 111;
+    public static final int RESERVATION_REQUEST_ALREADY_MODIFIED_REPORT = 112;
+    public static final int RESERVATION_REQUEST_DELETED_REPORT = 113;
+    public static final int RESERVATION_REQUEST_EMPTY_DURATION_REPORT = 114;
 
     /**
      * User {@link #user} doesn't exist.
@@ -1301,7 +1302,7 @@ public class ControllerReportSet extends AbstractReportSet
     }
 
     /**
-     * Reservation request with identifier {@link #id} cannot be modified or deleted.
+     * Reservation request with identifier {@link #id} cannot be modified.
      */
     public static class ReservationRequestNotModifiableReport extends Report implements ApiFault
     {
@@ -1376,7 +1377,7 @@ public class ControllerReportSet extends AbstractReportSet
                 default:
                     message.append("Reservation request with identifier ");
                     message.append((id == null ? "null" : id));
-                    message.append(" cannot be modified or deleted.");
+                    message.append(" cannot be modified.");
                     break;
             }
             return message.toString();
@@ -1428,6 +1429,137 @@ public class ControllerReportSet extends AbstractReportSet
         public ApiFault getApiFault()
         {
             return (ReservationRequestNotModifiableReport) report;
+        }
+    }
+
+    /**
+     * Reservation request with identifier {@link #id} cannot be deleted.
+     */
+    public static class ReservationRequestNotDeletableReport extends Report implements ApiFault
+    {
+        protected String id;
+
+        public ReservationRequestNotDeletableReport()
+        {
+        }
+
+        public ReservationRequestNotDeletableReport(String id)
+        {
+            setId(id);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        public int getFaultCode()
+        {
+            return RESERVATION_REQUEST_NOT_DELETABLE_REPORT;
+        }
+
+        @Override
+        public String getFaultString()
+        {
+            return getMessage(MessageType.USER);
+        }
+
+        @Override
+        public Exception getException()
+        {
+            return new ReservationRequestNotDeletableException(this);
+        }
+
+        @Override
+        public void readParameters(ReportSerializer reportSerializer)
+        {
+            id = (String) reportSerializer.getParameter("id", String.class);
+        }
+
+        @Override
+        public void writeParameters(ReportSerializer reportSerializer)
+        {
+            reportSerializer.setParameter("id", id);
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Reservation request with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" cannot be deleted.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationRequestNotDeletableReport}.
+     */
+    public static class ReservationRequestNotDeletableException extends ReportRuntimeException implements ApiFaultException
+    {
+        public ReservationRequestNotDeletableException(ReservationRequestNotDeletableReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationRequestNotDeletableException(Throwable throwable, ReservationRequestNotDeletableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationRequestNotDeletableException(String id)
+        {
+            ReservationRequestNotDeletableReport report = new ReservationRequestNotDeletableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public ReservationRequestNotDeletableException(Throwable throwable, String id)
+        {
+            super(throwable);
+            ReservationRequestNotDeletableReport report = new ReservationRequestNotDeletableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        @Override
+        public ReservationRequestNotDeletableReport getReport()
+        {
+            return (ReservationRequestNotDeletableReport) report;
+        }
+        @Override
+        public ApiFault getApiFault()
+        {
+            return (ReservationRequestNotDeletableReport) report;
         }
     }
 
@@ -1940,6 +2072,7 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(IdentifierInvalidDomainReport.class);
         addReportClass(IdentifierInvalidTypeReport.class);
         addReportClass(ReservationRequestNotModifiableReport.class);
+        addReportClass(ReservationRequestNotDeletableReport.class);
         addReportClass(ReservationRequestNotRevertibleReport.class);
         addReportClass(ReservationRequestAlreadyModifiedReport.class);
         addReportClass(ReservationRequestDeletedReport.class);

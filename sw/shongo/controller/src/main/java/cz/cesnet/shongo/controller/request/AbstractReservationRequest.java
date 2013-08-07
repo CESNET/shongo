@@ -97,10 +97,10 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     private boolean interDomain;
 
     /**
-     * {@link ReservationRequest} whose allocated {@link Reservation}s can be used by {@link Scheduler} for allocation
-     * of this {@link cz.cesnet.shongo.controller.request.AbstractReservationRequest}.
+     * {@link Allocation} whose allocated {@link Reservation}s can be used by {@link Scheduler} for
+     * this {@link #allocation}.
      */
-    private ReservationRequest providedReservationRequest;
+    private Allocation providedAllocation;
 
     /**
      * @return {@link #createdAt}
@@ -300,22 +300,22 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
     }
 
     /**
-     * @return {@link #providedReservationRequest}
+     * @return {@link #providedAllocation}
      */
     @ManyToOne
-    @JoinColumn(name = "provided_reservation_request_id")
+    @JoinColumn(name = "provided_allocation_id")
     @Access(AccessType.FIELD)
-    public ReservationRequest getProvidedReservationRequest()
+    public Allocation getProvidedAllocation()
     {
-        return providedReservationRequest;
+        return providedAllocation;
     }
 
     /**
-     * @param providedReservationRequest sets the {@link #providedReservationRequest}
+     * @param providedAllocation sets the {@link #providedAllocation}
      */
-    public void setProvidedReservationRequest(ReservationRequest providedReservationRequest)
+    public void setProvidedAllocation(Allocation providedAllocation)
     {
-        this.providedReservationRequest = providedReservationRequest;
+        this.providedAllocation = providedAllocation;
     }
 
     /**
@@ -367,14 +367,14 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
                 || !ObjectHelper.isSame(getPriority(), reservationRequest.getPriority())
                 || !ObjectHelper.isSame(getDescription(), reservationRequest.getDescription())
                 || !ObjectHelper.isSame(isInterDomain(), reservationRequest.isInterDomain())
-                || !ObjectHelper.isSame(getProvidedReservationRequest(), reservationRequest.getProvidedReservationRequest());
+                || !ObjectHelper.isSame(getProvidedAllocation(), reservationRequest.getProvidedAllocation());
         setCreatedBy(reservationRequest.getCreatedBy());
         setUpdatedBy(reservationRequest.getUpdatedBy());
         setPurpose(reservationRequest.getPurpose());
         setPriority(reservationRequest.getPriority());
         setDescription(reservationRequest.getDescription());
         setInterDomain(reservationRequest.isInterDomain());
-        setProvidedReservationRequest(reservationRequest.getProvidedReservationRequest());
+        setProvidedAllocation(reservationRequest.getProvidedAllocation());
 
         Specification specification = reservationRequest.getSpecification();
         if (this.specification == null || this.specification.getClass() != specification.getClass()) {
@@ -467,8 +467,8 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
         api.setDescription(getDescription());
         api.setSpecification(getSpecification().toApi());
         api.setInterDomain(isInterDomain());
-        if (providedReservationRequest != null) {
-            api.setProvidedReservationRequestId(EntityIdentifier.formatId(providedReservationRequest));
+        if (providedAllocation != null) {
+            api.setProvidedReservationRequestId(EntityIdentifier.formatId(providedAllocation.getReservationRequest()));
         }
 
         // Reservation request is deleted
@@ -516,7 +516,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationRequest providedReservationRequest =
                     reservationRequestManager.getReservationRequest(providedReservationRequestId);
-            setProvidedReservationRequest(providedReservationRequest);
+            setProvidedAllocation(providedReservationRequest.getAllocation());
         }
     }
 

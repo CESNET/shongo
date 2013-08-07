@@ -49,40 +49,6 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param reservation reservation and all child reservations (recursive) to have date/time slot end updated
-     * @param slotEnd     new date/time slot end
-     */
-    public void updateReservationSlotEnd(Reservation reservation, DateTime slotEnd)
-    {
-        reservation.setSlotEnd(slotEnd);
-
-        // Update executable
-        Executable executable = reservation.getExecutable();
-        if (executable != null) {
-            updateExecutableSlotEnd(executable, slotEnd);
-        }
-
-        // Update child reservations
-        for (Reservation childReservation : reservation.getChildReservations()) {
-            updateReservationSlotEnd(childReservation, slotEnd);
-        }
-    }
-
-    /**
-     * @param executable executable and all child executables (recursive) to have date/time slot end updated
-     * @param slotEnd    new date/time slot end
-     */
-    private void updateExecutableSlotEnd(Executable executable, DateTime slotEnd)
-    {
-        executable.setSlotEnd(slotEnd);
-
-        // Update child executables
-        for (Executable childExecutable : executable.getChildExecutables()) {
-            updateExecutableSlotEnd(childExecutable, slotEnd);
-        }
-    }
-
-    /**
      * @param reservation to be deleted in the database
      */
     public synchronized void delete(Reservation reservation, AuthorizationManager authorizationManager)
@@ -125,7 +91,7 @@ public class ReservationManager extends AbstractManager
         Executable executable = reservation.getExecutable();
         if (executable != null) {
             if (executable.getSlot().contains(dateTimeNow)) {
-                updateExecutableSlotEnd(executable, dateTimeNow);
+                executable.setSlotEnd(dateTimeNow);
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 executableManager.update(executable);
             }

@@ -61,7 +61,7 @@ SELECT
     abstract_reservation_request.purpose AS purpose,
     abstract_reservation_request.state AS state,
     abstract_reservation_request.specification_id AS specification_id,
-    abstract_reservation_request.provided_reservation_request_id AS provided_reservation_request_id,
+    provided_allocation.abstract_reservation_request_id AS provided_reservation_request_id,
     abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
     abstract_reservation_request.allocation_id AS allocation_id,
     NULL AS child_id,
@@ -70,6 +70,7 @@ SELECT
     reservation_request_state.state AS allocation_state,
     NULL AS last_reservation_id
 FROM abstract_reservation_request
+LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set ON reservation_request_set.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id;

@@ -164,7 +164,7 @@ public class Reservation extends PersistentObject implements Reportable
      */
     @Column
     @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
+    @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -176,6 +176,12 @@ public class Reservation extends PersistentObject implements Reportable
     public void setSlotStart(DateTime slotStart)
     {
         this.slotStart = slotStart;
+        if (executable != null) {
+            executable.setSlotStart(slotStart);
+        }
+        for (Reservation childReservation : childReservations) {
+            childReservation.setSlotStart(slotStart);
+        }
     }
 
     /**
@@ -183,7 +189,7 @@ public class Reservation extends PersistentObject implements Reportable
      */
     @Column
     @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
+    @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
         return slotEnd;
@@ -195,6 +201,12 @@ public class Reservation extends PersistentObject implements Reportable
     public void setSlotEnd(DateTime slotEnd)
     {
         this.slotEnd = slotEnd;
+        if (executable != null) {
+            executable.setSlotEnd(slotEnd);
+        }
+        for (Reservation childReservation : childReservations) {
+            childReservation.setSlotEnd(slotEnd);
+        }
     }
 
     /**
@@ -212,21 +224,26 @@ public class Reservation extends PersistentObject implements Reportable
     @Transient
     public void setSlot(Interval slot)
     {
-        setSlotStart(slot.getStart());
-        setSlotEnd(slot.getEnd());
+        setSlot(slot.getStart(), slot.getEnd());
     }
 
     /**
      * Sets the slot to new interval created from given {@code start} and {@code end}.
      *
-     * @param start
-     * @param end
+     * @param slotStart
+     * @param slotEnd
      */
     @Transient
-    public void setSlot(DateTime start, DateTime end)
+    public void setSlot(DateTime slotStart, DateTime slotEnd)
     {
-        setSlotStart(start);
-        setSlotEnd(end);
+        this.slotStart = slotStart;
+        this.slotEnd = slotEnd;
+        if (executable != null) {
+            executable.setSlot(slotStart, slotEnd);
+        }
+        for (Reservation childReservation : childReservations) {
+            childReservation.setSlot(slotStart, slotEnd);
+        }
     }
 
     /**

@@ -79,7 +79,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     @Column
     @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
+    @Access(AccessType.FIELD)
     public DateTime getSlotStart()
     {
         return slotStart;
@@ -91,6 +91,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
     public void setSlotStart(DateTime slotStart)
     {
         this.slotStart = slotStart;
+        for (Executable childExecutable : childExecutables) {
+            childExecutable.setSlotStart(slotStart);
+        }
     }
 
     /**
@@ -98,7 +101,7 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     @Column
     @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
+    @Access(AccessType.FIELD)
     public DateTime getSlotEnd()
     {
         return slotEnd;
@@ -110,6 +113,9 @@ public abstract class Executable extends PersistentObject implements Reportable,
     public void setSlotEnd(DateTime slotEnd)
     {
         this.slotEnd = slotEnd;
+        for (Executable childExecutable : childExecutables) {
+            childExecutable.setSlotEnd(slotEnd);
+        }
     }
 
     /**
@@ -126,20 +132,22 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     public void setSlot(Interval slot)
     {
-        setSlotStart(slot.getStart());
-        setSlotEnd(slot.getEnd());
+        setSlot(slot.getStart(), slot.getEnd());
     }
 
     /**
      * Sets the slot to new interval created from given {@code start} and {@code end}.
      *
-     * @param start
-     * @param end
+     * @param slotStart
+     * @param slotEnd
      */
-    public void setSlot(DateTime start, DateTime end)
+    public void setSlot(DateTime slotStart, DateTime slotEnd)
     {
-        setSlotStart(start);
-        setSlotEnd(end);
+        this.slotStart = slotStart;
+        this.slotEnd = slotEnd;
+        for (Executable childExecutable : childExecutables) {
+            childExecutable.setSlot(slotStart, slotEnd);
+        }
     }
 
     /**
@@ -199,7 +207,6 @@ public abstract class Executable extends PersistentObject implements Reportable,
      */
     @Column
     @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
     public DateTime getNextAttempt()
     {
         return nextAttempt;
