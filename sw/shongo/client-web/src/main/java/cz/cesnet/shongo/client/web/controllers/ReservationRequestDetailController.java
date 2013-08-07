@@ -84,7 +84,7 @@ public class ReservationRequestDetailController
                 ReservationRequestSummary.State state = historyItem.getState();
                 item.put("state", state);
                 if (state != null) {
-                    // Reservation is visible only for reservation requests until first ALLOCATED reservation request
+                    // Reservation is visible only for reservation requests until first allocated reservation request
                     if (state.isAllocated() && currentHistoryItem == null) {
                         hasVisibleReservation = false;
                     }

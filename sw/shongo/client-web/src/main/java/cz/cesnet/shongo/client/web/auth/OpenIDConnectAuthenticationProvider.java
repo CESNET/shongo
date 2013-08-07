@@ -115,7 +115,7 @@ public class OpenIDConnectAuthenticationProvider implements AuthenticationProvid
             }
             securityToken.setUserInformation(userInformation);
 
-            logger.debug("User {} authenticated.", userInformation);
+            logger.info("{} authenticated.", userInformation);
 
             authentication = new OpenIDConnectAuthenticationToken(securityToken, userInformation);
             authentication.setAuthenticated(true);

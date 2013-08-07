@@ -78,7 +78,7 @@
     <div class="navbar-inner">
 
         <div class="main">
-            <a class="brand" href="/"><spring:message code="shongo.name"/>&nbsp;${configuration.titleSuffix}</a>
+            <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
             <div class="nav-collapse collapse pull-left">
                 <ul class="nav" role="navigation">
                     <li><a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a></li>
@@ -177,8 +177,8 @@
 <%-- Page footer --%>
 <div class="footer block">
     <p class="muted">
-        <a href="${changelogUrl}"><spring:message code="shongo.shortname"/>&nbsp;<spring:message
-                code="shongo.version"/></a>
+        <a href="${changelogUrl}"><spring:message code="system.name"/>&nbsp;<spring:message
+                code="system.version"/></a>
         &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
         <a title="CESNET" href="http://www.cesnet.cz/">
             <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>

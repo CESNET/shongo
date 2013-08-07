@@ -184,7 +184,7 @@
         <%-- Permanent room capacities --%>
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <hr/>
-            <c:if test="${isProvidable && reservationRequest.slot.containsNow()}">
+            <c:if test="${isProvidable && reservationRequest.allocationState == 'ALLOCATED' && reservationRequest.slot.containsNow()}">
                 <spring:eval var="usageCreateUrl"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequest.id)"/>
             </c:if>

@@ -72,15 +72,18 @@
     </mvc:interceptors>
 
     <!-- i18n message source -->
-    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+    <bean id="messageSource" class="cz.cesnet.shongo.client.web.ReflectiveResourceBundleMessageSource">
         <property name="basenames">
             <list>
-                <value>/WEB-INF/i18n/shongo</value>
+                <value>/WEB-INF/i18n/system</value>
                 <value>/WEB-INF/i18n/views</value>
             </list>
         </property>
         <property name="defaultEncoding" value="UTF-8"/>
         <property name="fallbackToSystemLocale" value="false"/>
+
+        <!-- Reload messages for debug purposes
+        <property name="cacheSeconds" value="5"/>-->
     </bean>
 
 </beans>

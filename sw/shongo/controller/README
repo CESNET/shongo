@@ -29,7 +29,7 @@ the following command:
 
     sudo apt-get install sun-java6-jdk
 
-POSTGRESQL DATABASE
+CONFIGURATION OF POSTGRESQL DATABASE
 
 Connect to PostgreSQL console (e.g., run 'psql' command as 'postgres' system user).
 

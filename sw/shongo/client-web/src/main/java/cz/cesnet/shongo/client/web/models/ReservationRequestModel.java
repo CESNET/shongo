@@ -971,7 +971,7 @@ public class ReservationRequestModel
             cache.fetchPermissions(securityToken, reservationRequestIds);
 
             for (ReservationRequestSummary reservationRequestSummary : response) {
-                if (!AllocationState.ALLOCATED.equals(reservationRequestSummary.getState())) {
+                if (!reservationRequestSummary.getState().isAllocated()) {
                     continue;
                 }
                 Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
