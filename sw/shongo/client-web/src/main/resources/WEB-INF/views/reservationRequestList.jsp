@@ -89,8 +89,6 @@
                 <spring:message code="views.reservationRequestList.adhocRooms"/>
                 <tag:help>
                     <spring:message code="views.help.reservationRequest.specification.ADHOC_ROOM"/>
-                    <br/>
-                    <spring:message code="views.help.reservationRequest.specification.PERMANENT_ROOM_CAPACITY"/>
                 </tag:help>
             </h2>
             <table class="table table-striped table-hover">

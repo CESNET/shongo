@@ -234,23 +234,20 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     private static void allocateReservationRequest(ReservationRequest reservationRequest,
             SchedulerContext schedulerContext, List<ReservationNotification> notifications) throws SchedulerException
     {
-        // Initialize scheduler context
-        schedulerContext.setReservationRequest(reservationRequest);
-
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
-
-        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
-        Interval requestedSlot = schedulerContext.getRequestedSlot();
-        DateTime requestedSlotStart = requestedSlot.getStart();
 
         EntityManager entityManager = schedulerContext.getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
 
+        // Initialize scheduler context
+        schedulerContext.setReservationRequest(reservationRequest);
+
         // Find reservation requests which should be reallocated
+        DateTime requestedSlotStart = schedulerContext.getRequestedSlotStart();
         List<ReservationRequest> reservationRequestUsages = reservationRequestManager.listAllocationUsages(
-                reservationRequest.getAllocation(), requestedSlot);
+                reservationRequest.getAllocation(), schedulerContext.getRequestedSlot());
         for (ReservationRequest reservationRequestUsage : reservationRequestUsages) {
             Interval usageSlot = reservationRequestUsage.getSlot();
             DateTime usageSlotEnd = usageSlot.getEnd();
@@ -265,6 +262,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
         // Update requested slot start to be after active usages
         schedulerContext.setRequestedSlotStart(requestedSlotStart);
+
+        DateTime minimumDateTime = schedulerContext.getMinimumDateTime();
+        Interval requestedSlot = schedulerContext.getRequestedSlot();
 
         // Fill already allocated reservations as reallocatable
         Allocation allocation = reservationRequest.getAllocation();
@@ -332,7 +332,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // If old reservation takes place before minimum date/time slot (i.e., in the past and before the new reservation)
             if (oldReservation.getSlotStart().isBefore(minimumDateTime)) {
                 // If old reservation time slot intersects the new reservation time slot
-                if (oldReservation.getSlotEnd().isAfter(requestedSlot.getStart())) {
+                if (oldReservation.getSlotEnd().isAfter(requestedSlotStart)) {
                     // Set preceding reservation
                     if (precedingReservation != null) {
                         throw new RuntimeException("Only one preceding reservation can exist in old reservations.");
@@ -340,7 +340,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     precedingReservation = oldReservation;
 
                     // Shorten the old reservation time slot to not intersect the new reservation time slot
-                    oldReservation.setSlotEnd(requestedSlot.getStart());
+                    oldReservation.setSlotEnd(requestedSlotStart);
                 }
                 // Old reservation which takes place in the past should not be deleted
                 continue;

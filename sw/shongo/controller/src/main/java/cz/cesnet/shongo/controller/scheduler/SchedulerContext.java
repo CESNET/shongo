@@ -256,6 +256,14 @@ public class SchedulerContext
     }
 
     /**
+     * @return {@link #requestedSlot} start
+     */
+    public DateTime getRequestedSlotStart()
+    {
+        return requestedSlot.getStart();
+    }
+
+    /**
      * @return {@link #description}
      */
     public String getDescription()

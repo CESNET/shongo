@@ -552,19 +552,18 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             if (providedReservationRequestId != null) {
                 if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
                     // List only reservation requests which hasn't got provided any reservation request
-                    queryFilter.addFilter("reservation_request_summary.provided_allocation_id IS NULL");
+                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id IS NULL");
                 }
                 else if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
                     // List only reservation requests which got provided any reservation request
-                    queryFilter.addFilter("reservation_request_summary.provided_allocation_id IS NOT NULL");
+                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id IS NOT NULL");
                 }
                 else {
                     // List only reservation requests which got provided given reservation request
                     Long persistenceId = EntityIdentifier.parseId(
                             cz.cesnet.shongo.controller.request.ReservationRequest.class, providedReservationRequestId);
-                    queryFilter.addFilter("reservation_request_summary.provided_allocation_id IN("
-                            + "SELECT abstract_reservation_request.allocation_id FROM abstract_reservation_request"
-                            + " WHERE abstract_reservation_request.id = :providedReservationRequestId)");
+                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id = "
+                            + ":providedReservationRequestId");
                     queryFilter.addFilterParameter("providedReservationRequestId", persistenceId);
                 }
             }
