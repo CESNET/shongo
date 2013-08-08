@@ -1,4 +1,4 @@
-0.5.3 (2013-07-29)
+0.5.3 (2013-08-08)
 
     * Reservation system web interface rewritten to Java from scratch.
 
@@ -22,6 +22,16 @@
 
     * Reordered properties of reservation request in lists and detail page, replaced help icons by underlined labels
       and updating the end of time slot field according to changes in start field.
+
+    * Migrated to PostgreSQL database.
+
+    * Propagation of room state to reservation request state in listings.
+
+    * Allowed modification of reservation request for permanent room which already has allocated some capacities.
+
+    * Added "Refresh" button and “All” option into “Records per page” for all tables in web client.
+
+    * Allowed to sort table of reservation requests by any column.
 
 0.5.2 (2013-04-25)
 
