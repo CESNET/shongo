@@ -31,7 +31,6 @@
         <module name="connector-api" />
         <module name="controller" />
         <module name="controller-api" />
-        <module name="tool-maven-plugin-exec" />
         <module name="tool-report-generator" />
         <module name="xml-rpc-test" />
       </profile>

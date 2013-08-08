@@ -22,7 +22,6 @@
         <module>client-common</module>
         <module>client-cli</module>
         <module>client-web</module>
-        <module>client-web-perl</module>
         <module>common-api</module>
         <module>common</module>
         <module>controller-api</module>
@@ -30,7 +29,6 @@
         <module>connector-api</module>
         <module>connector</module>
         <module>tool-report-generator</module>
-        <module>tool-maven-plugin-exec</module>
     </modules>
 
     <repositories>

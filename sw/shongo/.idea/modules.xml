@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/client-cli/client-cli.iml" filepath="$PROJECT_DIR$/client-cli/client-cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/client-common/client-common.iml" filepath="$PROJECT_DIR$/client-common/client-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/client-web/client-web.iml" filepath="$PROJECT_DIR$/client-web/client-web.iml" />
-      <module fileurl="file://$PROJECT_DIR$/client-web-perl/client-web-perl.iml" filepath="$PROJECT_DIR$/client-web-perl/client-web-perl.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
       <module fileurl="file://$PROJECT_DIR$/common-api/common-api.iml" filepath="$PROJECT_DIR$/common-api/common-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/connector/connector.iml" filepath="$PROJECT_DIR$/connector/connector.iml" />
@@ -13,7 +12,6 @@
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller-api/controller-api.iml" filepath="$PROJECT_DIR$/controller-api/controller-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/shongo.iml" filepath="$PROJECT_DIR$/shongo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/tool-maven-plugin-exec/tool-maven-plugin-exec.iml" filepath="$PROJECT_DIR$/tool-maven-plugin-exec/tool-maven-plugin-exec.iml" />
       <module fileurl="file://$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" filepath="$PROJECT_DIR$/tool-report-generator/tool-report-generator.iml" />
       <module fileurl="file://$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" filepath="$PROJECT_DIR$/tests/xml-rpc-test/xml-rpc-test.iml" />
     </modules>
