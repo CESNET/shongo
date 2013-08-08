@@ -606,7 +606,6 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
             else {
                 queryOrderBy = "reservation_request_summary.id";
-                queryOrderBy.con
             }
             Boolean sortDescending = request.getSortDescending();
             sortDescending = (sortDescending != null ? sortDescending : false);

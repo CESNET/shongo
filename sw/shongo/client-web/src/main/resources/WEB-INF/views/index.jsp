@@ -37,7 +37,7 @@
         </div>
 
         <div ng-controller="PaginationController"
-             ng-init="init('dashboard.rooms', '${urlRoomsData}?start=:start&count=:count')">
+             ng-init="init('dashboard.rooms', '${urlRoomsData}')">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <spring:message code="views.button.refresh" var="paginationRefresh"/>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">

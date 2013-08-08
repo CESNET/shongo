@@ -20,7 +20,7 @@
 <spring:eval var="usageListUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetailUsages(contextPath, ':id')"/>
 <spring:eval var="usageDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{permanentRoomCapacity.id}}')"/>
 <div ng-controller="PaginationController"
-     ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
+     ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}', {id: '${reservationRequest.id}'})">
     <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
     <spring:message code="views.button.refresh" var="paginationRefresh"/>
     <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
@@ -31,9 +31,15 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-            <th><spring:message code="views.reservationRequest.specification.roomParticipantCount"/></th>
-            <th><spring:message code="views.reservationRequest.state"/></th>
+            <th width="320px"><pagination-sort column="SLOT">
+                <spring:message code="views.reservationRequest.slot"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="ROOM_PARTICIPANT_COUNT">
+                <spring:message code="views.reservationRequest.specification.roomParticipantCount"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="STATE">
+                <spring:message code="views.reservationRequest.state"/></pagination-sort>
+            </th>
             <th width="120px"><spring:message code="views.list.action"/></th>
         </tr>
         </thead>

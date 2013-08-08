@@ -137,7 +137,9 @@ public class ReservationRequestDetailController
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "count", required = false) Integer count)
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -145,8 +147,8 @@ public class ReservationRequestDetailController
         request.setStart(start);
         request.setCount(count);
         request.setParentReservationRequestId(reservationRequestId);
-        request.setSort(ReservationRequestListRequest.Sort.SLOT);
-        request.setSortDescending(true);
+        request.setSort(sort);
+        request.setSortDescending(sortDescending);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         ReservationListRequest reservationListRequest = new ReservationListRequest();
@@ -224,13 +226,17 @@ public class ReservationRequestDetailController
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
-            @RequestParam(value = "count", required = false) Integer count)
+            @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
+        request.setSort(sort);
+        request.setSortDescending(sortDescending);
         request.setProvidedReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 

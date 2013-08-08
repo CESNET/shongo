@@ -294,11 +294,11 @@ paginationModule.directive('paginationPageSize', function () {
             }
             var refresh = '';
             if ( attrs.refresh != null ) {
-                refresh += '&nbsp;<a href="" ng-click="refresh()" class="btn" title="' + attrs.refresh +'"><span class="icon-refresh"></span></a>';
+                refresh += '&nbsp;&nbsp;<a href="" ng-click="refresh()" class="btn" title="' + attrs.refresh +'"><span class="icon-refresh"></span></a>';
             }
             var html =
                 '<div class="' + attributeClass + '">' +
-                '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;&nbsp;' +
+                '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;' +
                 '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
                 '<option value="5" selected="true">5</option>' +
                 '<option value="10">10</option>' +

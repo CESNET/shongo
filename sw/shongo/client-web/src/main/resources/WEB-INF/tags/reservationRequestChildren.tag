@@ -35,8 +35,12 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
-            <th><spring:message code="views.reservationRequest.state"/></th>
+            <th width="320px"><pagination-sort column="SLOT">
+                <spring:message code="views.reservationRequest.slot"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="STATE">
+                <spring:message code="views.reservationRequest.state"/></pagination-sort>
+            </th>
             <th><spring:message code="views.room.aliases"/></th>
             <th width="120px"><spring:message code="views.list.action"/></th>
         </tr>

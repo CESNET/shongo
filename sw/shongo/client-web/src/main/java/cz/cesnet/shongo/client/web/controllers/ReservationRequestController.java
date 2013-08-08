@@ -70,8 +70,7 @@ public class ReservationRequestController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME")
-            ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
             @RequestParam(value = "type", required = false) Set<ReservationRequestModel.SpecificationType> specificationTypes)
     {

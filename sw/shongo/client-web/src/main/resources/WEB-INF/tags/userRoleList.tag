@@ -69,7 +69,7 @@
     <%-- Dynamic list of user roles --%>
     <c:when test="${dataUrl != null}">
         <div ng-controller="PaginationController"
-             ng-init="init('userRoles', '${dataUrl}?start=:start&count=:count', {${dataUrlParameters}})">
+             ng-init="init('userRoles', '${dataUrl}', {${dataUrlParameters}})">
             <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
             <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}">
                 <spring:message code="views.pagination.records"/>
