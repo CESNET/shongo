@@ -73,7 +73,7 @@ public class ReservationRequestController
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME")
             ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
-            @RequestParam(value = "type") Set<ReservationRequestModel.SpecificationType> specificationTypes)
+            @RequestParam(value = "type", required = false) Set<ReservationRequestModel.SpecificationType> specificationTypes)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -82,7 +82,7 @@ public class ReservationRequestController
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        if (specificationTypes.size() > 0) {
+        if (specificationTypes != null && specificationTypes.size() > 0) {
             if (specificationTypes.contains(ReservationRequestModel.SpecificationType.ADHOC_ROOM)) {
                 request.addSpecificationClass(RoomSpecification.class);
             }

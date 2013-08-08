@@ -582,6 +582,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     case PROVIDED_RESERVATION_REQUEST:
                         queryOrderBy = "reservation_request_summary.provided_reservation_request_id IS NOT NULL";
                         break;
+                    case ROOM_PARTICIPANT_COUNT:
+                        queryOrderBy = "specification_summary.room_participant_count";
+                        break;
                     case SLOT:
                         queryOrderBy = "reservation_request_summary.slot_start";
                         break;
@@ -594,12 +597,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     case TYPE:
                         queryOrderBy = "specification_summary.type";
                         break;
+                    case USER:
+                        queryOrderBy = "reservation_request_summary.created_by";
+                        break;
                     default:
                         throw new TodoImplementException(sort.toString());
                 }
             }
             else {
                 queryOrderBy = "reservation_request_summary.id";
+                queryOrderBy.con
             }
             Boolean sortDescending = request.getSortDescending();
             sortDescending = (sortDescending != null ? sortDescending : false);

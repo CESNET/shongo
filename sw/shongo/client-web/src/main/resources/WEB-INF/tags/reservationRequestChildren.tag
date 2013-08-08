@@ -23,8 +23,10 @@
 <spring:eval var="childRoomManagementUrl"
              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{childReservationRequest.roomId}}')"/>
 <div ng-controller="PaginationController"
-     ng-init="init('reservationRequestDetail.children', '${childListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-    <pagination-page-size class="pull-right">
+     ng-init="init('reservationRequestDetail.children', '${childListUrl}', {id: '${reservationRequest.id}'})">
+    <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+    <spring:message code="views.button.refresh" var="paginationRefresh"/>
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.children"/></h2>

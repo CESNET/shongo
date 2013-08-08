@@ -113,10 +113,12 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         ALIAS_ROOM_NAME,
         DATETIME,
         PROVIDED_RESERVATION_REQUEST,
+        ROOM_PARTICIPANT_COUNT,
         SLOT,
         STATE,
         TECHNOLOGY,
-        TYPE
+        TYPE,
+        USER
     }
 
     private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";

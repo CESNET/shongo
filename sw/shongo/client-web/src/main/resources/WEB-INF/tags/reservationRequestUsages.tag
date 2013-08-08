@@ -21,7 +21,9 @@
 <spring:eval var="usageDetailUrl" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{permanentRoomCapacity.id}}')"/>
 <div ng-controller="PaginationController"
      ng-init="init('reservationRequestDetail.permanentRoomUsages', '${usageListUrl}?start=:start&count=:count', {id: '${reservationRequest.id}'})">
-    <pagination-page-size class="pull-right">
+    <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+    <spring:message code="views.button.refresh" var="paginationRefresh"/>
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <h2><spring:message code="views.reservationRequestDetail.permanentRoomCapacities"/></h2>

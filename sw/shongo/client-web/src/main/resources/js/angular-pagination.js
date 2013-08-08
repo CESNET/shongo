@@ -81,9 +81,12 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         $scope.items = data.items;
         // Create pages
         $scope.pages = [];
-        var pageCount = Math.floor((data.count - 1) / $scope.pageSize) + 1;
-        if (pageCount == 0) {
-            pageCount = 1;
+        var pageCount = 1;
+        if ($scope.pageSize != -1) {
+            pageCount = Math.floor((data.count - 1) / $scope.pageSize) + 1;
+            if (pageCount == 0) {
+                pageCount = 1;
+            }
         }
         for (var pageIndex = 0; pageIndex < pageCount; pageIndex++) {
             var pageStart = pageIndex * $scope.pageSize;
@@ -200,17 +203,30 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         var page = $scope.pages[pageIndex];
 
         // List items
-        $scope.resource.list({start: page.start, count: $scope.pageSize, sort: $scope.sort, sortDesc: $scope.sortDesc}, function (data) {
+        $scope.performList(page.start, function (data) {
             setData(data);
             if (callback != null) {
                 callback.call();
             }
+            $scope.ready = true;
 
             // Store configuration
             $scope.storeConfiguration();
         }, function (response) {
             $scope.setError(response);
         });
+    };
+
+    $scope.performList = function (start, callback) {
+        var listParameters = {
+            'start': start,
+            'count': $scope.pageSize
+        };
+        if ($scope.sort != null) {
+            listParameters['sort'] = $scope.sort;
+            listParameters['sort-desc'] = $scope.sortDesc;
+        }
+        return $scope.resource.list(listParameters, callback);
     };
 
     /**
@@ -221,16 +237,18 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
 
         // Find new start
         var start = 0;
-        for (var pageIndex = 0; pageIndex < $scope.pages.length; pageIndex++) {
-            var page = $scope.pages[pageIndex];
-            if (page.active) {
-                start = page.start;
+        if ($scope.pageSize != -1) {
+            for (var pageIndex = 0; pageIndex < $scope.pages.length; pageIndex++) {
+                var page = $scope.pages[pageIndex];
+                if (page.active) {
+                    start = page.start;
+                }
             }
+            start = Math.floor(start / $scope.pageSize) * $scope.pageSize;
         }
-        start = Math.floor(start / $scope.pageSize) * $scope.pageSize;
 
         // List items
-        $scope.resource.list({start: start, count: $scope.pageSize, sort: $scope.sort, sortDesc: $scope.sortDesc}, function (data) {
+        $scope.performList(start, function (data) {
             setData(data);
 
             // Store configuration
@@ -244,6 +262,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * Refresh current page
      */
     $scope.refresh = function() {
+        $scope.ready = false;
         $scope.setPage($scope.pageIndex, null, true);
     };
 });
@@ -269,16 +288,24 @@ paginationModule.directive('paginationPageSize', function () {
         compile: function (element, attrs, transclude) {
             var text = element.html();
             var attributeClass = (attrs.class != null ? attrs.class : '');
+            var optionUnlimited = '';
+            if ( attrs.unlimited != null ) {
+                optionUnlimited = '<option value="-1">' + attrs.unlimited + '</option>';
+            }
+            var refresh = '';
+            if ( attrs.refresh != null ) {
+                refresh += '&nbsp;<a href="" ng-click="refresh()" class="btn" title="' + attrs.refresh +'"><span class="icon-refresh"></span></a>';
+            }
             var html =
                 '<div class="' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;&nbsp;' +
-                '  <select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
-                '    <option value="5" selected="true">5</option>' +
-                '    <option value="10">10</option>' +
-                '    <option value="15">15</option>' +
-                '  </select>' +
-                '</span>' +
-                '</div>'
+                '<select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
+                '<option value="5" selected="true">5</option>' +
+                '<option value="10">10</option>' +
+                '<option value="15">15</option>' + optionUnlimited +
+                '</select>' +
+                '</span>' + refresh +
+                '</div>';
             element.replaceWith(html);
         }
     }

@@ -15,6 +15,7 @@
 <%@attribute name="createUrl" required="false" %>
 <%@attribute name="modifyUrl" required="false" %>
 <%@attribute name="deleteUrl" required="false" %>
+<%@attribute name="detailed" required="false" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 <c:set var="listName" value="${name != null ? ('reservationRequestList.' + name) : 'reservationRequestList'}"/>
@@ -22,9 +23,14 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>
 </c:set>
 <c:set var="listUrlQuery" value=""/>
-<c:forEach items="${specificationType}" var="specificationType">
-    <c:set var="listUrlQuery" value="${listUrlQuery}&type=${specificationType}"/>
+<c:set var="listUrlParameters" value="{'type': ["/>
+<c:forEach items="${specificationType}" var="specificationTypeItem" varStatus="specificationTypeStatus">
+    <c:set var="listUrlParameters" value="${listUrlParameters}'${specificationTypeItem}'"/>
+    <c:if test="${!specificationTypeStatus.last}">
+        <c:set var="listUrlParameters" value="${listUrlParameters},"/>
+    </c:if>
 </c:forEach>
+<c:set var="listUrlParameters" value="${listUrlParameters}]}"/>
 <c:if test="${detailUrl != null}">
     <spring:eval var="detailUrl"
                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, '{{reservationRequest.id}}')"/>
@@ -43,8 +49,10 @@
 </script>
 
 <div ng-controller="PaginationController"
-     ng-init="init('${listName}', '${listUrl}?start=:start&count=:count${listUrlQuery}&sort=:sort&sort-desc=:sortDesc')">
-    <pagination-page-size class="pull-right">
+     ng-init="init('${listName}', '${listUrl}', ${listUrlParameters})">
+    <spring:message code="views.pagination.records.all" var="paginationRecordsAll"/>
+    <spring:message code="views.button.refresh" var="paginationRefresh"/>
+    <pagination-page-size class="pull-right" unlimited="${paginationRecordsAll}" refresh="${paginationRefresh}">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
     <jsp:doBody/>
@@ -52,35 +60,63 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th><pagination-sort column="TYPE">
-                <spring:message code="views.reservationRequest.type"/></pagination-sort>
-            </th>
-            <th><pagination-sort column="ALIAS_ROOM_NAME">
-                <spring:message code="views.reservationRequest.specification.permanentRoomName"/></pagination-sort>
-            </th>
+            <c:if test="${empty specificationType || specificationType.contains(',')}">
+                <th><pagination-sort column="TYPE">
+                    <spring:message code="views.reservationRequest.type"/></pagination-sort>
+                </th>
+            </c:if>
+            <c:if test="${specificationType != 'ADHOC_ROOM'}">
+                <th><pagination-sort column="ALIAS_ROOM_NAME">
+                    <spring:message code="views.reservationRequest.specification.permanentRoomName"/></pagination-sort>
+                </th>
+            </c:if>
             <th><pagination-sort column="TECHNOLOGY">
                 <spring:message code="views.reservationRequest.technology"/></pagination-sort>
             </th>
+            <c:if test="${specificationType == 'ADHOC_ROOM'}">
+                <th><pagination-sort column="ROOM_PARTICIPANT_COUNT">
+                    <spring:message code="views.reservationRequest.specification.roomParticipantCount"/></pagination-sort>
+                </th>
+            </c:if>
             <th><pagination-sort column="SLOT">
                 <spring:message code="views.reservationRequest.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
+            <c:if test="${detailed}">
+                <th><pagination-sort column="USER">
+                    <spring:message code="views.reservationRequest.user"/></pagination-sort>
+                </th>
+                <th><pagination-sort column="DATETIME">
+                    <spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
+                </th>
+            </c:if>
             <th><spring:message code="views.list.action"/></th>
         </tr>
         </thead>
         <tbody>
         <tr ng-repeat="reservationRequest in items">
-            <td>{{reservationRequest.type}}</td>
-            <td>{{reservationRequest.roomName}}</td>
+            <c:if test="${empty specificationType || specificationType.contains(',')}">
+                <td>{{reservationRequest.type}}</td>
+            </c:if>
+            <c:if test="${specificationType != 'ADHOC_ROOM'}">
+                <td>{{reservationRequest.roomName}}</td>
+            </c:if>
             <td>{{reservationRequest.technology}}</td>
+            <c:if test="${specificationType == 'ADHOC_ROOM'}">
+                <td>{{reservationRequest.participantCount}}</td>
+            </c:if>
             <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
             <td class="reservation-request-state">
                 <span class="{{reservationRequest.state}}">
                     {{reservationRequest.stateMessage}}
                 </span>
             </td>
+            <c:if test="${detailed}">
+                <td>{{reservationRequest.user}}</td>
+                <td>{{reservationRequest.dateTime}}</td>
+            </c:if>
             <td>
                 <c:if test="${detailUrl != null}">
                     <a href="${detailUrl}" tabindex="4"><spring:message code="views.list.action.show"/></a>
