@@ -35,7 +35,6 @@
         <tr>
             <th width="320px"><spring:message code="views.reservationRequest.slot"/></th>
             <th><spring:message code="views.reservationRequest.state"/></th>
-            <th><spring:message code="views.room.state"/></th>
             <th><spring:message code="views.room.aliases"/></th>
             <th width="120px"><spring:message code="views.list.action"/></th>
         </tr>
@@ -54,20 +53,6 @@
                         </div>
                     </div>
                 </tag:help>
-            </td>
-            <td class="executable-state">
-                <div ng-show="childReservationRequest.roomState">
-                    <tag:help label="{{childReservationRequest.roomStateMessage}}"
-                              labelClass="{{childReservationRequest.roomState}}"
-                              tooltipId="executableState-tooltip-{{$index}}">
-                        <span>{{childReservationRequest.roomStateHelp}}</span>
-                        <div ng-switch on="isEmpty(childReservationRequest.roomStateReport)">
-                            <div ng-switch-when="false">
-                                <pre>{{childReservationRequest.roomStateReport}}</pre>
-                            </div>
-                        </div>
-                    </tag:help>
-                </div>
             </td>
             <td>
                 <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
@@ -90,6 +75,9 @@
                     | <a href="${childRoomManagementUrl}" tabindex="2"><spring:message code="views.list.action.manage"/></a>
                 </span>
             </td>
+        </tr>
+        <tr ng-hide="items.length">
+            <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
         </tr>
         </tbody>
     </table>

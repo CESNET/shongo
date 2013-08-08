@@ -33,7 +33,7 @@
 <c:choose>
     <%-- Static list of user roles --%>
     <c:when test="${data != null}">
-        <table class="table table-striped table-hover" ng-show="ready">
+        <table class="table table-striped table-hover">
                 ${tableHead}
             <tbody>
             <c:forEach items="${data}" var="userRole">

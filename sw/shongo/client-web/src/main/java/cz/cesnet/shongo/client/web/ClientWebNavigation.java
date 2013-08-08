@@ -37,6 +37,8 @@ public enum ClientWebNavigation
             "navigation.reservationRequest.create"),
     RESERVATION_REQUEST_MODIFY(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_MODIFY,
             "navigation.reservationRequest.modify"),
+    RESERVATION_REQUEST_MODIFY_CONFIRM(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_MODIFY_CONFIRM,
+            "navigation.reservationRequest.modify"),
     RESERVATION_REQUEST_DELETE(RESERVATION_REQUEST, ClientWebUrl.RESERVATION_REQUEST_DELETE,
             "navigation.reservationRequest.delete"),
 

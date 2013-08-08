@@ -11,7 +11,18 @@
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.WIZARD_CREATE_ROOM_ROLES %>
 </c:set>
 
-<h1><spring:message code="views.wizard.createRoom.role.add"/></h1>
-<hr/>
-<tag:userRoleForm entityType="${entityType}" confirmTitle="views.button.add" cancelUrl="${cancelUrl}"/>
-<hr/>
+<script type="text/javascript">
+    angular.module('jsp:wizardCreateRoomRole', ['ngTooltip']);
+</script>
+
+<div ng-app="jsp:wizardCreateRoomRole">
+
+    <h1><spring:message code="views.wizard.createRoom.role.add"/></h1>
+
+    <hr/>
+
+    <tag:userRoleForm entityType="${entityType}" confirmTitle="views.button.add" cancelUrl="${cancelUrl}"/>
+
+    <hr/>
+
+</div>

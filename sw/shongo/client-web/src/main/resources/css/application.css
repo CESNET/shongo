@@ -145,6 +145,9 @@ td.empty {
 .table tr.selected td {
     background-color: #DDF0FF !important;
 }
+.table thead a {
+    color: black;
+}
 
 /** Horizontal rules */
 hr {

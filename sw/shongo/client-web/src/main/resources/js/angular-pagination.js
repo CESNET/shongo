@@ -41,6 +41,25 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     $scope.pages = [
         {start: 0, active: true}
     ];
+    // Sorting
+    $scope.sort = null;
+    $scope.sortDesc = null;
+    $scope.setSort = function(sort, event) {
+        if (event.shiftKey && $scope.sort != null) {
+            $scope.sort = null;
+            $scope.sortDesc = null;
+        }
+        else if ($scope.sort == sort ) {
+            $scope.sortDesc = !$scope.sortDesc;
+        }
+        else {
+            $scope.sort = sort;
+            if ($scope.sortDesc == null) {
+                $scope.sortDesc = false;
+            }
+        }
+        $scope.refresh();
+    };
 
     /**
      * Test if given value is empty.
@@ -156,9 +175,10 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      *
      * @param pageIndex
      * @param callback to be called after page is set
+     * @param forceReload
      */
-    $scope.setPage = function (pageIndex, callback) {
-        if (pageIndex == $scope.pageIndex) {
+    $scope.setPage = function (pageIndex, callback, forceReload) {
+        if (pageIndex == $scope.pageIndex && !forceReload) {
             if (callback != null) {
                 callback.call();
             }
@@ -180,7 +200,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         var page = $scope.pages[pageIndex];
 
         // List items
-        $scope.resource.list({start: page.start, count: $scope.pageSize}, function (data) {
+        $scope.resource.list({start: page.start, count: $scope.pageSize, sort: $scope.sort, sortDesc: $scope.sortDesc}, function (data) {
             setData(data);
             if (callback != null) {
                 callback.call();
@@ -210,7 +230,7 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         start = Math.floor(start / $scope.pageSize) * $scope.pageSize;
 
         // List items
-        $scope.resource.list({start: start, count: $scope.pageSize}, function (data) {
+        $scope.resource.list({start: start, count: $scope.pageSize, sort: $scope.sort, sortDesc: $scope.sortDesc}, function (data) {
             setData(data);
 
             // Store configuration
@@ -218,6 +238,13 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
         }, function(response){
             $scope.setError(response);
         });
+    };
+
+    /**
+     * Refresh current page
+     */
+    $scope.refresh = function() {
+        $scope.setPage($scope.pageIndex, null, true);
     };
 });
 
@@ -242,7 +269,8 @@ paginationModule.directive('paginationPageSize', function () {
         compile: function (element, attrs, transclude) {
             var text = element.html();
             var attributeClass = (attrs.class != null ? attrs.class : '');
-            var html = '<div class="' + attributeClass + '">' +
+            var html =
+                '<div class="' + attributeClass + '">' +
                 '<span ng-hide="pages.length == 1 && items.length <= 5">' + text + '&nbsp;&nbsp;' +
                 '  <select ng-model="pageSize" ng-change="updatePageSize()" style="width: 60px; margin-bottom: 0px; padding: 0px 4px; height: 24px;">' +
                 '    <option value="5" selected="true">5</option>' +
@@ -265,13 +293,35 @@ paginationModule.directive('paginationPages', function () {
         compile: function (element, attrs, transclude) {
             var text = element.html();
             var attributeClass = (attrs.class != null ? (' ' + attrs.class) : '');
-            var html = '<div class="pagination' + attributeClass + '" style="text-align: right;">' +
+            var html =
+                '<div class="pagination' + attributeClass + '" style="text-align: right;">' +
                 '<span ng-hide="pages.length == 1">' + text + ' ' +
                 '  <span ng-repeat="page in pages">' +
                 '    <a ng-hide="page.active" class="page" href="" ng-click="setPage($index)">{{$index + 1}}</a>' +
                 '    <span ng-show="page.active" class="page">{{$index + 1}}</span>' +
                 '  </span>' +
                 '</span>' +
+                '</div>';
+            element.replaceWith(html);
+        }
+    }
+});
+
+/**
+ * Directive <pagination-sort> for displaying link for sorting by a single column.
+ */
+paginationModule.directive('paginationSort', function () {
+    return {
+        restrict: 'E',
+        compile: function (element, attrs, transclude) {
+            var body = element.html();
+            var column = attrs.column;
+            var html =
+                '<div>' +
+                '<a href="" ng-click="setSort(\'' + column + '\', $event)">' + body + '</a>' +
+                '&nbsp;' +
+                '<span class="icon-chevron-up" ng-show="sort == \'' + column + '\' && !sortDesc"></span>' +
+                '<span class="icon-chevron-down" ng-show="sort == \'' + column + '\' && sortDesc"></span>' +
                 '</div>';
             element.replaceWith(html);
         }

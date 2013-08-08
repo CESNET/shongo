@@ -43,7 +43,7 @@
 </script>
 
 <div ng-controller="PaginationController"
-     ng-init="init('${listName}', '${listUrl}?start=:start&count=:count${listUrlQuery}')">
+     ng-init="init('${listName}', '${listUrl}?start=:start&count=:count${listUrlQuery}&sort=:sort&sort-desc=:sortDesc')">
     <pagination-page-size class="pull-right">
         <spring:message code="views.pagination.records"/>
     </pagination-page-size>
@@ -52,11 +52,21 @@
     <table class="table table-striped table-hover" ng-show="ready">
         <thead>
         <tr>
-            <th><spring:message code="views.reservationRequest.type"/></th>
-            <th><spring:message code="views.reservationRequest.specification.permanentRoomName"/></th>
-            <th><spring:message code="views.reservationRequest.technology"/></th>
-            <th><spring:message code="views.reservationRequest.slot"/></th>
-            <th><spring:message code="views.reservationRequest.state"/></th>
+            <th><pagination-sort column="TYPE">
+                <spring:message code="views.reservationRequest.type"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="ALIAS_ROOM_NAME">
+                <spring:message code="views.reservationRequest.specification.permanentRoomName"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="TECHNOLOGY">
+                <spring:message code="views.reservationRequest.technology"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="SLOT">
+                <spring:message code="views.reservationRequest.slot"/></pagination-sort>
+            </th>
+            <th><pagination-sort column="STATE">
+                <spring:message code="views.reservationRequest.state"/></pagination-sort>
+            </th>
             <th><spring:message code="views.list.action"/></th>
         </tr>
         </thead>

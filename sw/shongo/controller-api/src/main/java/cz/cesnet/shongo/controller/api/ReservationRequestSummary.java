@@ -234,6 +234,14 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
+     */
+    public void setProvidedReservationRequestId(String providedReservationRequestId)
+    {
+        this.providedReservationRequestId = providedReservationRequestId;
+    }
+
+    /**
      * @return {@link #lastReservationId}
      */
     public String getLastReservationId()
@@ -247,14 +255,6 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     public void setLastReservationId(String reservationId)
     {
         this.lastReservationId = reservationId;
-    }
-
-    /**
-     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
-     */
-    public void setProvidedReservationRequestId(String providedReservationRequestId)
-    {
-        this.providedReservationRequestId = providedReservationRequestId;
     }
 
     private static final String TYPE = "type";

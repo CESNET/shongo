@@ -145,6 +145,8 @@ public class ReservationRequestDetailController
         request.setStart(start);
         request.setCount(count);
         request.setParentReservationRequestId(reservationRequestId);
+        request.setSort(ReservationRequestListRequest.Sort.SLOT);
+        request.setSortDescending(true);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         ReservationListRequest reservationListRequest = new ReservationListRequest();
@@ -191,22 +193,9 @@ public class ReservationRequestDetailController
                 if (room != null) {
                     child.put("roomId", room.getId());
 
-                    // Set room state and report
+                    // Set room state available
                     Executable.State roomState = room.getState();
-                    String roomStateMessage = messages.getMessage(
-                            "views.reservationRequest.executableState." + roomState, null, locale);
-                    String roomStateHelp = messages.getMessage(
-                            "views.help.reservationRequest.executableState." + roomState, null, locale);
-                    child.put("roomState", roomState);
-                    child.put("roomStateMessage", roomStateMessage);
-                    child.put("roomStateHelp", roomStateHelp);
                     child.put("roomStateAvailable", roomState.isAvailable());
-                    switch (roomState) {
-                        case STARTING_FAILED:
-                        case STOPPING_FAILED:
-                            child.put("roomStateReport", room.getStateReport());
-                            break;
-                    }
 
                     // Set room aliases
                     List<Alias> aliases = room.getAliases();

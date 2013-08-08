@@ -54,6 +54,10 @@ public class ReservationRequestValidator implements Validator
                     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "durationCount", "validation.field.required");
                     ValidationUtils.rejectIfEmptyOrWhitespace(
                             errors, "roomParticipantCount", "validation.field.required");
+                    Integer roomParticipantCount = reservationRequestModel.getRoomParticipantCount();
+                    if (roomParticipantCount != null && roomParticipantCount <= 0) {
+                        errors.rejectValue("roomParticipantCount", "validation.field.invalidCount");
+                    }
                     break;
             }
             switch (specificationType) {

@@ -3,7 +3,7 @@
     margin-top: 15px;
 }
 .wizard .link {
-    padding: 10px 12px 10px;
+    padding: 10px 10px 10px;
     margin-right: 5px;
     background: #efefef;
     position: relative;
@@ -54,7 +54,7 @@
     border-radius: 4px 4px 4px 4px;
 }
 .wizard .badge {
-    margin: 0 5px 0 18px;
+    margin: 0 3px 0 18px;
     position: relative;
     top: -1px;
     border-left: none;

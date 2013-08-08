@@ -15,7 +15,31 @@
     ${contextPath}<%= ClientWebUrl.WIZARD_CREATE_ROOM_ROLE_DELETE %>
 </c:set>
 
-<h1><spring:message code="views.wizard.createRoom.roles"/></h1>
-<hr/>
-<tag:userRoleList data="${reservationRequest.userRoles}" createUrl="${createRoleUrl}" deleteUrl="${deleteRoleUrl}"/>
-<hr/>
+<script type="text/javascript">
+    angular.module('jsp:wizardCreateRoomRoles', ['ngTooltip']);
+</script>
+
+<div ng-app="jsp:wizardCreateRoomRoles">
+
+    <h1><spring:message code="views.wizard.createRoom.roles"/></h1>
+
+    <spring:message code="views.wizard.createRoom.roles.description"/>
+    <tag:help>
+        <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
+        <p><spring:message code="views.help.reservationRequest.role.OWNER"/></p>
+        <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+            <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
+            <p><spring:message code="views.help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
+        </c:if>
+        <strong><spring:message code="views.aclRecord.role.READER"/></strong>
+        <p><spring:message code="views.help.reservationRequest.role.READER"/></p>
+    </tag:help>
+
+    <hr/>
+
+    <tag:userRoleList data="${reservationRequest.userRoles}" createUrl="${createRoleUrl}" deleteUrl="${deleteRoleUrl}"/>
+
+    <hr/>
+
+</div>
+

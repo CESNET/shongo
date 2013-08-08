@@ -573,8 +573,26 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             ReservationRequestListRequest.Sort sort = request.getSort();
             if (sort != null) {
                 switch (sort) {
+                    case ALIAS_ROOM_NAME:
+                        queryOrderBy = "specification_summary.alias_room_name";
+                        break;
                     case DATETIME:
                         queryOrderBy = "reservation_request_summary.created_at";
+                        break;
+                    case PROVIDED_RESERVATION_REQUEST:
+                        queryOrderBy = "reservation_request_summary.provided_reservation_request_id IS NOT NULL";
+                        break;
+                    case SLOT:
+                        queryOrderBy = "reservation_request_summary.slot_start";
+                        break;
+                    case STATE:
+                        queryOrderBy = "reservation_request_summary.allocation_state";
+                        break;
+                    case TECHNOLOGY:
+                        queryOrderBy = "specification_summary.technologies";
+                        break;
+                    case TYPE:
+                        queryOrderBy = "specification_summary.type";
                         break;
                     default:
                         throw new TodoImplementException(sort.toString());
@@ -957,7 +975,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     ReservationRequestSummary.State.valueOf(record[8].toString().trim()));
         }
         reservationRequestSummary.setProvidedReservationRequestId(record[9] != null ? record[9].toString() : null);
-        reservationRequestSummary.setLastReservationId(record[10] != null ? record[10].toString() : null);
+        if (record[10] != null) {
+            reservationRequestSummary.setLastReservationId(EntityIdentifier.formatId(
+                    EntityType.RESERVATION, record[10].toString()));
+        }
         String type = record[11].toString().trim();
         if (type.equals("ALIAS")) {
             ReservationRequestSummary.AliasSpecification aliasSpecification =

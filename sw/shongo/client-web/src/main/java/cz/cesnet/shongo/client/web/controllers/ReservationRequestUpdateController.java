@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.NavigationPage;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
+import cz.cesnet.shongo.client.web.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
 import cz.cesnet.shongo.controller.api.*;
@@ -12,13 +15,17 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Controller for creating/modifying reservation requests.
@@ -29,6 +36,8 @@ import javax.annotation.Resource;
 @SessionAttributes({"reservationRequest", "permanentRooms", "confirmUrl"})
 public class ReservationRequestUpdateController
 {
+    private static Logger logger = LoggerFactory.getLogger(ReservationRequestUpdateController.class);
+
     @Resource
     private Cache cache;
 
@@ -135,5 +144,15 @@ public class ReservationRequestUpdateController
         else {
             return "reservationRequestModify";
         }
+    }
+
+    /**
+     * Handle missing session attributes.
+     */
+    @ExceptionHandler(HttpSessionRequiredException.class)
+    public Object handleExceptions(Exception exception, HttpServletRequest request)
+    {
+        logger.warn("Redirecting to " + ClientWebUrl.RESERVATION_REQUEST_LIST + ".", exception);
+        return "redirect:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
     }
 }

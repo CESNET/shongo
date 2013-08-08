@@ -110,7 +110,13 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     public static enum Sort
     {
-        DATETIME
+        ALIAS_ROOM_NAME,
+        DATETIME,
+        PROVIDED_RESERVATION_REQUEST,
+        SLOT,
+        STATE,
+        TECHNOLOGY,
+        TYPE
     }
 
     private static final String RESERVATION_REQUEST_IDS = "reservationRequestIds";

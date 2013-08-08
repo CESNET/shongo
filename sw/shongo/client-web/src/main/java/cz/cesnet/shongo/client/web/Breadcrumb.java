@@ -52,6 +52,14 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
         return this.navigationPage.getParentNavigationPage() != null;
     }
 
+    /**
+     * @return current {@link #navigationPage}
+     */
+    public NavigationPage getNavigationPage()
+    {
+        return navigationPage;
+    }
+
     @Override
     public Iterator<BreadcrumbItem> iterator()
     {

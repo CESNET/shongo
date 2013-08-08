@@ -74,6 +74,9 @@ public class ErrorModel
                 messageDescription.append(httpStatus.getReasonPhrase());
             }
         }
+        else if (message != null) {
+            messageDescription.append(message);
+        }
         return messageDescription.toString();
     }
 

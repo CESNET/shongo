@@ -39,5 +39,18 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
         }
         return true;
     }
+
+    /**
+     * @param request
+     * @return current {@link NavigationPage} or null
+     */
+    public static NavigationPage getNavigationPage(HttpServletRequest request)
+    {
+        Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB);
+        if (breadcrumb != null) {
+            return breadcrumb.getNavigationPage();
+        }
+        return null;
+    }
 }
 

@@ -70,6 +70,9 @@ public class ReservationRequestController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
+            @RequestParam(value = "sort", required = false, defaultValue = "DATETIME")
+            ReservationRequestListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
             @RequestParam(value = "type") Set<ReservationRequestModel.SpecificationType> specificationTypes)
     {
         // List reservation requests
@@ -77,8 +80,8 @@ public class ReservationRequestController
         request.setSecurityToken(securityToken);
         request.setStart(start);
         request.setCount(count);
-        request.setSort(ReservationRequestListRequest.Sort.DATETIME);
-        request.setSortDescending(true);
+        request.setSort(sort);
+        request.setSortDescending(sortDescending);
         if (specificationTypes.size() > 0) {
             if (specificationTypes.contains(ReservationRequestModel.SpecificationType.ADHOC_ROOM)) {
                 request.addSpecificationClass(RoomSpecification.class);

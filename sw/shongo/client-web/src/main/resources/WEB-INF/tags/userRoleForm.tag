@@ -7,7 +7,7 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="app" uri="/WEB-INF/client-web.tld" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="entityType" required="true" type="cz.cesnet.shongo.controller.EntityType" %>
 <%@attribute name="confirmUrl" required="false" type="java.lang.String" %>
@@ -105,6 +105,16 @@
                     </c:forEach>
                 </form:select>
                 <form:errors path="role" cssClass="error"/>
+                <tag:help>
+                    <strong><spring:message code="views.aclRecord.role.OWNER"/></strong>
+                    <p><spring:message code="views.help.reservationRequest.role.OWNER"/></p>
+                    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+                        <strong><spring:message code="views.aclRecord.role.RESERVATION_REQUEST_USER"/></strong>
+                        <p><spring:message code="views.help.reservationRequest.role.RESERVATION_REQUEST_USER"/></p>
+                    </c:if>
+                    <strong><spring:message code="views.aclRecord.role.READER"/></strong>
+                    <p><spring:message code="views.help.reservationRequest.role.READER"/></p>
+                </tag:help>
             </div>
         </div>
 
