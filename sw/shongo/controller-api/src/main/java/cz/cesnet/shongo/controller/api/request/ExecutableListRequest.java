@@ -58,7 +58,10 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
 
     public static enum Sort
     {
-        SLOT
+        ROOM_NAME,
+        SLOT,
+        STATE,
+        TECHNOLOGY
     }
 
     private static final String INCLUDE_HISTORY = "includeHistory";

@@ -4,6 +4,8 @@ DROP VIEW IF EXISTS alias_specification_summary;
 DROP VIEW IF EXISTS reservation_request_summary;
 DROP VIEW IF EXISTS reservation_request_state;
 DROP VIEW IF EXISTS reservation_request_set_earliest_child;
+DROP VIEW IF EXISTS executable_summary;
+DROP VIEW IF EXISTS room_endpoint_usage;
 
 /**
  * View of room name for specifications for aliases or sets of aliases.
@@ -32,10 +34,10 @@ SELECT
     specification.id AS id,
     string_agg(specification_technologies.technologies, ',') AS technologies,
     CASE 
-    WHEN room_specification.id IS NOT NULL THEN 'ROOM'
-    WHEN alias_specification_summary.id IS NOT NULL THEN 'ALIAS'
-    WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
-    ELSE 'OTHER'
+        WHEN room_specification.id IS NOT NULL THEN 'ROOM'
+        WHEN alias_specification_summary.id IS NOT NULL THEN 'ALIAS'
+        WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
+        ELSE 'OTHER'
     END AS type,
     alias_specification_summary.room_name AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
@@ -161,3 +163,68 @@ LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id;
+
+/**
+ * View of id and time slot for the earliest usage for each room endpoint.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW room_endpoint_usage AS
+SELECT
+  DISTINCT ON(room_endpoint_usage_slots.id) /* only one usage for each set of room endpoint */
+  room_endpoint_usage_slots.id AS id,
+  room_endpoint_usage_slots.usage_count AS usage_count,
+  executable.id AS usage_id,
+  executable.slot_start AS slot_start,
+  executable.slot_end AS slot_end
+FROM (
+       SELECT /* room endpoints with "future minimum" and "whole maximum" slot ending for usages */
+         room_endpoint.id AS id,
+         COUNT(executable.id) AS usage_count,
+         MIN(CASE WHEN executable.slot_end > now() THEN executable.slot_end ELSE NULL END) AS slot_end_future_min,
+         MAX(executable.slot_end) AS slot_end_max
+       FROM room_endpoint
+         LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = room_endpoint.id
+         LEFT JOIN executable ON executable.id = room_endpoint_usage.id
+       GROUP BY room_endpoint.id
+     ) AS room_endpoint_usage_slots
+/* join room endpoint usage which matches the "future minimum" or the "whole maximum" slot ending */
+  LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = room_endpoint_usage_slots.id
+  LEFT JOIN executable ON executable.id = used_room_endpoint.id
+                          AND (executable.slot_end = room_endpoint_usage_slots.slot_end_future_min
+                               OR executable.slot_end = room_endpoint_usage_slots.slot_end_max)
+/* we want one room endpoint usage which has the earliest slot ending */
+ORDER BY room_endpoint_usage_slots.id, executable.slot_end;
+
+/**
+ * View of summaries of executables.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW executable_summary AS
+  SELECT
+    DISTINCT ON(executable.id)
+    executable.id AS id,
+    CASE
+        WHEN used_room_endpoint.id IS NOT NULL THEN 'USED_ROOM'
+        WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
+        ELSE 'OTHER'
+    END AS type,
+    COALESCE(room_endpoint_usage.slot_start, executable.slot_start) AS slot_start,
+    COALESCE(room_endpoint_usage.slot_end, executable.slot_end) AS slot_end,
+    executable.state AS state,
+    alias.value AS room_name,
+    string_agg(DISTINCT room_configuration_technologies.technologies, ',') AS room_technologies,
+    room_configuration.license_count AS room_license_count,
+    used_room_endpoint.room_endpoint_id AS room_id,
+    room_endpoint_usage.usage_count AS room_usage_count
+  FROM executable
+    LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
+    LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
+    LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
+    LEFT JOIN room_configuration_technologies ON room_configuration_technologies.room_configuration_id = room_configuration.id
+    LEFT JOIN endpoint_assigned_aliases ON endpoint_assigned_aliases.endpoint_id = executable.id OR endpoint_assigned_aliases.endpoint_id = used_room_endpoint.room_endpoint_id
+    LEFT JOIN alias ON alias.id = endpoint_assigned_aliases.alias_id AND alias.type = 'ROOM_NAME'
+    LEFT JOIN room_endpoint_usage ON room_endpoint_usage.id = executable.id
+  GROUP BY executable.id, room_endpoint.id, used_room_endpoint.id, room_configuration.id, alias.id, room_endpoint_usage.usage_count, room_endpoint_usage.slot_start, room_endpoint_usage.slot_end
+  ORDER BY executable.id, alias.id

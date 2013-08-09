@@ -32,6 +32,7 @@ public class NativeQuery
     public static final String INIT = "init.sql";
     public static final String RESERVATION_REQUEST_LIST = "reservation_request_list.sql";
     public static final String RESERVATION_REQUEST_HISTORY = "reservation_request_history.sql";
+    public static final String EXECUTABLE_LIST = "executable_list.sql";
 
     /**
      * Cached native queries (not targeted for any specific {@link EntityManagerFactory}).

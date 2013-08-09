@@ -11,10 +11,10 @@ SELECT
     specification.id AS id,
     GROUP_CONCAT(specification_technologies.technologies SEPARATOR ',') AS technologies,
     CASE 
-    WHEN room_specification.id IS NOT NULL THEN 'ROOM'
-    WHEN alias_specification.id IS NOT NULL OR alias_set_specification.id IS NOT NULL THEN 'ALIAS'
-    WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
-    ELSE 'OTHER'
+        WHEN room_specification.id IS NOT NULL THEN 'ROOM'
+        WHEN alias_specification.id IS NOT NULL OR alias_set_specification.id IS NOT NULL THEN 'ALIAS'
+        WHEN resource_specification.id IS NOT NULL THEN 'RESOURCE'
+        ELSE 'OTHER'
     END AS type,
     NULL AS alias_room_name,
     room_specification.participant_count AS room_participant_count,
@@ -74,3 +74,27 @@ LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set ON reservation_request_set.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id;
+
+/**
+ * @see executable_summary in postgresql/init.sql
+ */
+CREATE VIEW executable_summary AS
+SELECT
+    executable.id AS id,
+    CASE
+        WHEN used_room_endpoint.id IS NOT NULL THEN 'USED_ROOM'
+        WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
+        ELSE 'OTHER'
+    END AS type,
+    executable.slot_start AS slot_start,
+    executable.slot_end AS slot_end,
+    executable.state AS state,
+    NULL AS room_name,
+    NULL AS room_technologies,
+    room_configuration.license_count AS room_license_count,
+    used_room_endpoint.room_endpoint_id AS room_id,
+    0 AS room_usage_count
+FROM executable
+LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
+LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id
+LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
