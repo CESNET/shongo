@@ -137,7 +137,7 @@
                         </td>
                     </tr>
                     <tr ng-hide="items.length">
-                        <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
+                        <td colspan="5" class="empty"><spring:message code="views.list.none"/></td>
                     </tr>
                 </tbody>
             </table>
