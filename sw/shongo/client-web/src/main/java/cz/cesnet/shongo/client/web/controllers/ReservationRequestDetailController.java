@@ -181,7 +181,7 @@ public class ReservationRequestDetailController
             ReservationRequestSummary.State state = reservationRequest.getState();
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
-                String stateHelp = messages.getMessage("views.help.reservationRequest.state." + state, null, locale);
+                String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
                 child.put("state", state);
                 child.put("stateMessage", stateMessage);
                 child.put("stateHelp", stateHelp);
@@ -253,7 +253,7 @@ public class ReservationRequestDetailController
             ReservationRequestSummary.State state = reservationRequest.getState();
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
-                String stateHelp = messages.getMessage("views.help.reservationRequest.state." + state, null, locale);
+                String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
                 item.put("state", state);
                 item.put("stateMessage", stateMessage);
                 item.put("stateHelp", stateHelp);

@@ -22,7 +22,7 @@
     <dd>
         <spring:message code="views.reservationRequest.specification.${reservationRequest.specificationType}" var="specificationType"/>
         <tag:help label="${specificationType}">
-            <spring:message code="views.help.reservationRequest.specification.${reservationRequest.specificationType}"/>
+            <spring:message code="help.reservationRequest.specification.${reservationRequest.specificationType}"/>
         </tag:help>
     </dd>
 
@@ -94,7 +94,7 @@
             <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}" var="allocationState"/>
             <tag:help label="${allocationState}" labelClass="${reservationRequest.allocationState}">
                 <span>
-                    <spring:message code="views.help.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
+                    <spring:message code="help.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
                 </span>
                 <c:if test="${reservationRequest.allocationState == 'ALLOCATION_FAILED' && not empty reservationRequest.allocationStateReport}">
                     <pre>${reservationRequest.allocationStateReport}</pre>

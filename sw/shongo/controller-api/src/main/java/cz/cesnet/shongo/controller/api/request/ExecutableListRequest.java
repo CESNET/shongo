@@ -69,9 +69,10 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     public static enum Sort
     {
         ROOM_NAME,
+        ROOM_LICENSE_COUNT,
+        ROOM_TECHNOLOGY,
         SLOT,
-        STATE,
-        TECHNOLOGY
+        STATE
     }
 
     private static final String HISTORY = "history";

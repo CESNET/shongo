@@ -76,8 +76,13 @@
                         <pagination-sort column="ROOM_NAME"><spring:message code="views.room.name"/></pagination-sort>
                     </th>
                     <th>
-                        <pagination-sort column="TECHNOLOGY">
+                        <pagination-sort column="ROOM_TECHNOLOGY">
                             <spring:message code="views.room.technology"/>
+                        </pagination-sort>
+                    </th>
+                    <th style="text-align: right;">
+                        <pagination-sort column="ROOM_LICENSE_COUNT">
+                            <spring:message code="views.room.licenseCount"/>
                         </pagination-sort>
                     </th>
                     <th>
@@ -102,6 +107,7 @@
                             <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
                         </td>
                         <td>{{room.technology}}</td>
+                        <td style="text-align: right; padding-right: 30px;">{{room.licenseCount}}</td>
                         <td>{{room.slotStart}} - {{room.slotEnd}}</td>
                         <td class="executable-state">
                             <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}"
@@ -111,7 +117,7 @@
                         </td>
                     </tr>
                     <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
-                        <td ng-show="room.usageCount > 0 && room.showUsages" colspan="4" style="padding-left: 30px;">
+                        <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 30px;">
                             <spring:message code="views.index.dashboard.room.usages"/>:
                             <ul>
                                 <li ng-repeat="usage in room.usages">

@@ -88,10 +88,10 @@
             <dt><spring:message code="views.room.state"/>:</dt>
             <dd class="executable-state">
                 <c:if test="${reservation.roomState != null}">
-                    <spring:message code="views.reservationRequest.executableState.${reservation.roomState}" var="roomState"/>
+                    <spring:message code="views.executable.roomState.${reservation.roomState}" var="roomState"/>
                     <tag:help label="${roomState}" labelClass="${reservation.roomState}">
                         <span>
-                            <spring:message code="views.help.reservationRequest.executableState.${reservation.roomState}"/>
+                            <spring:message code="help.executable.roomState.${reservation.roomState}"/>
                         </span>
                         <c:if test="${not empty reservation.roomStateReport}">
                             <pre>${reservation.roomStateReport}</pre>

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -108,10 +109,24 @@ public class IndexController
             item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
 
             Executable.State roomState = executableSummary.getState();
-            String roomStateMessage = messageSource.getMessage(
-                    "views.reservationRequest.executableState." + roomState, null, locale);
-            String roomStateHelp = messageSource.getMessage(
-                    "views.help.reservationRequest.executableState." + roomState, null, locale);
+            String roomStateMessage;
+            String roomStateHelp;
+            switch (executableSummary.getType()) {
+                case ROOM:
+                    roomStateMessage = messageSource.getMessage(
+                            "views.executable.roomState." + roomState, null, locale);
+                    roomStateHelp = messageSource.getMessage(
+                            "help.executable.roomState." + roomState, null, locale);
+                    break;
+                case USED_ROOM:
+                    roomStateMessage = messageSource.getMessage(
+                            "views.executable.roomState." + roomState, null, locale);
+                    roomStateHelp = messageSource.getMessage(
+                            "help.executable.usedRoomState." + roomState, null, locale);
+                    break;
+                default:
+                    throw new TodoImplementException(executableSummary.getType().toString());
+            }
             item.put("state", roomState);
             item.put("stateAvailable", roomState.isAvailable());
             item.put("stateMessage", roomStateMessage);

@@ -71,7 +71,7 @@ FROM (
     SELECT /* sets of reservation requests with "future minimum" and "whole maximum" slot ending */
         abstract_reservation_request.id AS id,
         abstract_reservation_request.allocation_id AS allocation_id,
-        MIN(CASE WHEN reservation_request.slot_end > now() THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min,
+        MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min,
         MAX(reservation_request.slot_end) AS slot_end_max
     FROM reservation_request_set
     LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request_set.id
@@ -176,12 +176,14 @@ SELECT
   room_endpoint_usage_slots.usage_count AS usage_count,
   executable.id AS usage_id,
   executable.slot_start AS slot_start,
-  executable.slot_end AS slot_end
+  executable.slot_end AS slot_end,
+  executable.state AS state,
+  room_configuration.license_count
 FROM (
        SELECT /* room endpoints with "future minimum" slot ending for usages */
          room_endpoint.id AS id,
          COUNT(executable.id) AS usage_count,
-         MIN(CASE WHEN executable.slot_end > now() THEN executable.slot_end ELSE NULL END) AS slot_end_future_min
+         MIN(CASE WHEN executable.slot_end > (now() at time zone 'UTC') THEN executable.slot_end ELSE NULL END) AS slot_end_future_min
        FROM room_endpoint
          LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = room_endpoint.id
          LEFT JOIN executable ON executable.id = room_endpoint_usage.id
@@ -191,6 +193,8 @@ FROM (
   LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = room_endpoint_usage_slots.id
   LEFT JOIN executable ON executable.id = used_room_endpoint.id
                           AND executable.slot_end = room_endpoint_usage_slots.slot_end_future_min
+  LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
+  LEFT JOIN room_configuration ON room_configuration.id = room_endpoint.room_configuration_id
 /* we want one room endpoint usage which has the earliest slot ending */
 ORDER BY room_endpoint_usage_slots.id, executable.slot_end;
 
@@ -210,10 +214,10 @@ CREATE VIEW executable_summary AS
     END AS type,
     COALESCE(room_endpoint_usage.slot_start, executable.slot_start) AS slot_start,
     COALESCE(room_endpoint_usage.slot_end, executable.slot_end) AS slot_end,
-    executable.state AS state,
+    COALESCE(room_endpoint_usage.state, executable.state) AS state,
     alias.value AS room_name,
     string_agg(DISTINCT room_configuration_technologies.technologies, ',') AS room_technologies,
-    room_configuration.license_count AS room_license_count,
+    COALESCE(room_endpoint_usage.license_count, room_configuration.license_count) AS room_license_count,
     used_room_endpoint.room_endpoint_id AS room_id,
     room_endpoint_usage.usage_count AS room_usage_count
   FROM executable
@@ -224,5 +228,6 @@ CREATE VIEW executable_summary AS
     LEFT JOIN endpoint_assigned_aliases ON endpoint_assigned_aliases.endpoint_id = executable.id OR endpoint_assigned_aliases.endpoint_id = used_room_endpoint.room_endpoint_id
     LEFT JOIN alias ON alias.id = endpoint_assigned_aliases.alias_id AND alias.type = 'ROOM_NAME'
     LEFT JOIN room_endpoint_usage ON room_endpoint_usage.id = executable.id
-  GROUP BY executable.id, room_endpoint.id, used_room_endpoint.id, room_configuration.id, alias.id, room_endpoint_usage.usage_count, room_endpoint_usage.slot_start, room_endpoint_usage.slot_end
+  GROUP BY executable.id, room_endpoint.id, used_room_endpoint.id, room_configuration.id, alias.id,
+           room_endpoint_usage.usage_count, room_endpoint_usage.slot_start, room_endpoint_usage.slot_end, room_endpoint_usage.state, room_endpoint_usage.license_count
   ORDER BY executable.id, alias.id

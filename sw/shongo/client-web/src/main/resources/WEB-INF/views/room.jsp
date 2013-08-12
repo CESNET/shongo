@@ -30,10 +30,10 @@
 
         <dt><spring:message code="views.room.state"/>:</dt>
         <dd class="executable-state">
-            <spring:message code="views.reservationRequest.executableState.${executable.state}" var="executableState"/>
+            <spring:message code="views.executable.roomState.${executable.state}" var="executableState"/>
             <tag:help label="${executableState}" labelClass="${executable.state}">
                 <span>
-                    <spring:message code="views.help.reservationRequest.executableState.${executable.state}"/>
+                    <spring:message code="help.executable.roomState.${executable.state}"/>
                 </span>
                 <c:if test="${!executable.state.available && not empty executable.stateReport}">
                     <pre>${executable.stateReport}</pre>

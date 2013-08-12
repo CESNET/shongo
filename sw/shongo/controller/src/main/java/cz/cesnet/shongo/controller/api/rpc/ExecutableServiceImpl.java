@@ -160,8 +160,11 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                     case STATE:
                         queryOrderBy = "executable_summary.state";
                         break;
-                    case TECHNOLOGY:
+                    case ROOM_TECHNOLOGY:
                         queryOrderBy = "executable_summary.room_technologies";
+                        break;
+                    case ROOM_LICENSE_COUNT:
+                        queryOrderBy = "executable_summary.room_license_count";
                         break;
                     default:
                         throw new TodoImplementException(sort.toString());
