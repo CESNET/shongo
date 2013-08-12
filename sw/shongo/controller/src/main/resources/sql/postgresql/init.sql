@@ -178,21 +178,19 @@ SELECT
   executable.slot_start AS slot_start,
   executable.slot_end AS slot_end
 FROM (
-       SELECT /* room endpoints with "future minimum" and "whole maximum" slot ending for usages */
+       SELECT /* room endpoints with "future minimum" slot ending for usages */
          room_endpoint.id AS id,
          COUNT(executable.id) AS usage_count,
-         MIN(CASE WHEN executable.slot_end > now() THEN executable.slot_end ELSE NULL END) AS slot_end_future_min,
-         MAX(executable.slot_end) AS slot_end_max
+         MIN(CASE WHEN executable.slot_end > now() THEN executable.slot_end ELSE NULL END) AS slot_end_future_min
        FROM room_endpoint
          LEFT JOIN used_room_endpoint AS room_endpoint_usage ON room_endpoint_usage.room_endpoint_id = room_endpoint.id
          LEFT JOIN executable ON executable.id = room_endpoint_usage.id
        GROUP BY room_endpoint.id
      ) AS room_endpoint_usage_slots
-/* join room endpoint usage which matches the "future minimum" or the "whole maximum" slot ending */
+  /* join room endpoint usage which matches the "future minimum" slot ending */
   LEFT JOIN used_room_endpoint ON used_room_endpoint.room_endpoint_id = room_endpoint_usage_slots.id
   LEFT JOIN executable ON executable.id = used_room_endpoint.id
-                          AND (executable.slot_end = room_endpoint_usage_slots.slot_end_future_min
-                               OR executable.slot_end = room_endpoint_usage_slots.slot_end_max)
+                          AND executable.slot_end = room_endpoint_usage_slots.slot_end_future_min
 /* we want one room endpoint usage which has the earliest slot ending */
 ORDER BY room_endpoint_usage_slots.id, executable.slot_end;
 

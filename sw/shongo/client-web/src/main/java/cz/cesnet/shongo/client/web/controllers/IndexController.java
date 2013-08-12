@@ -2,7 +2,9 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -67,38 +69,45 @@ public class IndexController
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
-            @RequestParam(value = "type", required = false) ReservationRequestModel.SpecificationType specificationType)
+            @RequestParam(value = "sort", required = false, defaultValue = "SLOT") ExecutableListRequest.Sort sort,
+            @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
+            @RequestParam(value = "room-id", required = false) String roomId)
     {
         ExecutableListRequest request = new ExecutableListRequest();
         request.setSecurityToken(securityToken);
-        request.addExecutableClass(RoomExecutable.class);
         request.setStart(start);
         request.setCount(count);
-        request.setSort(ExecutableListRequest.Sort.SLOT);
-        request.setSortDescending(Boolean.TRUE);
+        request.setSort(sort);
+        request.setSortDescending(sortDescending);
+        if (roomId != null) {
+            request.addType(ExecutableSummary.Type.USED_ROOM);
+            request.setRoomId(roomId);
+        }
+        else {
+            request.addType(ExecutableSummary.Type.ROOM);
+        }
         ListResponse<ExecutableSummary> response = executableService.listExecutables(request);
 
         // Build response
         DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ExecutableSummary executableSummary : response.getItems()) {
-            RoomExecutableSummary roomExecutableSummary = (RoomExecutableSummary) executableSummary;
 
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", executableSummary.getId());
-            item.put("name", roomExecutableSummary.getName());
+            item.put("name", executableSummary.getRoomName());
 
             ReservationRequestModel.Technology technology =
-                    ReservationRequestModel.Technology.find(roomExecutableSummary.getTechnologies());
+                    ReservationRequestModel.Technology.find(executableSummary.getRoomTechnologies());
             if (technology != null) {
                 item.put("technology", technology.getTitle());
             }
 
-            Interval slot = roomExecutableSummary.getSlot();
+            Interval slot = executableSummary.getSlot();
             item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
             item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
 
-            Executable.State roomState = roomExecutableSummary.getState();
+            Executable.State roomState = executableSummary.getState();
             String roomStateMessage = messageSource.getMessage(
                     "views.reservationRequest.executableState." + roomState, null, locale);
             String roomStateHelp = messageSource.getMessage(
@@ -107,6 +116,9 @@ public class IndexController
             item.put("stateAvailable", roomState.isAvailable());
             item.put("stateMessage", roomStateMessage);
             item.put("stateHelp", roomStateHelp);
+
+            item.put("usageCount", executableSummary.getRoomUsageCount());
+            item.put("licenseCount", executableSummary.getRoomLicenseCount());
 
             items.add(item);
         }

@@ -12,6 +12,7 @@
 <c:set var="wizardUrl">${contextPath}<%= ClientWebUrl.WIZARD %></c:set>
 <c:set var="urlAdvanced">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="urlRoomsData">${contextPath}<%= ClientWebUrl.ROOMS_DATA %></c:set>
+<c:set var="urlRoomUsages">${contextPath}<%= ClientWebUrl.ROOMS_DATA %></c:set>
 
 <h1>${title}</h1>
 <p><spring:message code="views.index.welcome"/></p>
@@ -23,7 +24,30 @@
 
 <security:authorize access="isAuthenticated()">
     <script type="text/javascript">
-        angular.module('jsp:indexDashboard', ['ngPagination', 'ngTooltip']);
+        var module = angular.module('jsp:indexDashboard', ['ngPagination', 'ngTooltip']);
+        module.directive('roomUsages', function() {
+            return {
+                restrict: 'A',
+                link: function(scope, element, attrs) {
+                    element.after("<tr><td>ahoj</td></tr>");
+                }
+            };
+        })
+
+        function RoomController($scope, $resource)
+        {
+            $scope.toggleRoom = function(room) {
+                room.showUsages = !room.showUsages;
+                if (room.showUsages && room.usages == null) {
+                    var resource = $resource('${urlRoomUsages}', null, {
+                        list: {method: 'GET'}
+                    });
+                    resource.list({'room-id': room.id}, function (result) {
+                        room.usages = result.items;
+                    });
+                }
+            }
+        }
     </script>
 
     <div ng-app="jsp:indexDashboard">
@@ -48,27 +72,66 @@
             <table class="table table-striped table-hover" ng-show="ready">
                 <thead>
                 <tr>
-                    <th><spring:message code="views.room.name"/></th>
-                    <th><spring:message code="views.room.technology"/></th>
-                    <th><spring:message code="views.room.slot"/></th>
-                    <th width="200px"><spring:message code="views.room.state"/></th>
+                    <th>
+                        <pagination-sort column="ROOM_NAME"><spring:message code="views.room.name"/></pagination-sort>
+                    </th>
+                    <th>
+                        <pagination-sort column="TECHNOLOGY">
+                            <spring:message code="views.room.technology"/>
+                        </pagination-sort>
+                    </th>
+                    <th>
+                        <pagination-sort column="SLOT"><spring:message code="views.room.slot"/></pagination-sort>
+                    </th>
+                    <th width="200px">
+                        <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
+                    </th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr ng-repeat="room in items">
-                    <spring:eval var="urlRoomManagement" expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
-                    <td><a href="${urlRoomManagement}" tabindex="2">{{room.name}}</a></td>
-                    <td>{{room.technology}}</td>
-                    <td>{{room.slotStart}} - {{room.slotEnd}}</td>
-                    <td class="executable-state">
-                        <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}" tooltipId="roomStateTooltip-{{$index}}">
-                            <span>{{room.stateHelp}}</span>
-                        </tag:help>
-                    </td>
-                </tr>
-                <tr ng-hide="items.length">
-                    <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
-                </tr>
+                <tbody ng-controller="RoomController">
+                    <tr ng-repeat-start="room in items" ng-class-odd="'odd'" ng-class-even="'even'">
+                        <spring:eval var="urlRoomManagement"
+                                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
+                        <td>
+                            <span ng-switch="room.usageCount > 0">
+                                <a ng-switch-when="true" href="" ng-click="toggleRoom(room)"
+                                   ng-class="{'icon-plus': !room.showUsages, 'icon-minus': room.showUsages}"></a>
+                                <span ng-switch-default class="icon-none"></span>
+                            </span>
+                            <a href="${urlRoomManagement}" tabindex="2">{{room.name}}</a>
+                            <span ng-show="room.usageCount > 0">({{room.usageCount}})</span>
+                        </td>
+                        <td>{{room.technology}}</td>
+                        <td>{{room.slotStart}} - {{room.slotEnd}}</td>
+                        <td class="executable-state">
+                            <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}"
+                                      tooltipId="roomStateTooltip-{{$index}}">
+                                <span>{{room.stateHelp}}</span>
+                            </tag:help>
+                        </td>
+                    </tr>
+                    <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
+                        <td ng-show="room.usageCount > 0 && room.showUsages" colspan="4" style="padding-left: 30px;">
+                            <spring:message code="views.index.dashboard.room.usages"/>:
+                            <ul>
+                                <li ng-repeat="usage in room.usages">
+                                    <strong>
+                                        <spring:message code="views.index.dashboard.room.usage.participant"
+                                                        arguments="{{usage.licenseCount}}"/>
+                                    </strong>
+                                    <spring:message code="views.index.dashboard.room.usage.slot"
+                                                    arguments="{{usage.slotStart}},{{usage.slotEnd}}"/>
+                                    <span class="executable-state">
+                                        (<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)
+                                    </span>
+                                </li>
+                            </ul>
+
+                        </td>
+                    </tr>
+                    <tr ng-hide="items.length">
+                        <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
+                    </tr>
                 </tbody>
             </table>
             <pagination-pages><spring:message code="views.pagination.pages"/></pagination-pages>

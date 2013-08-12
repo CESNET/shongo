@@ -148,6 +148,16 @@ td.empty {
 .table thead a {
     color: black;
 }
+.table .odd td {
+    background-color: #f9f9f9 !important;
+}
+.table .even td {
+    background: none !important;
+}
+.table tr.description td {
+    border-top: none;
+    padding-top: 0px;
+}
 
 /** Horizontal rules */
 hr {
@@ -412,5 +422,10 @@ table.aliases td.label {
 }
 .report textarea {
     height: 200px;
+}
+
+.icon-none {
+    width: 14px;
+    height: 14px;
 }
 

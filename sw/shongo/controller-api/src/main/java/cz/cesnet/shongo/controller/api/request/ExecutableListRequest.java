@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.api.request;
 
 import cz.cesnet.shongo.api.DataMap;
-import cz.cesnet.shongo.controller.Role;
-import cz.cesnet.shongo.controller.api.Executable;
-import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
 import java.util.Collections;
@@ -17,9 +15,11 @@ import java.util.Set;
  */
 public class ExecutableListRequest extends SortableListRequest<ExecutableListRequest.Sort>
 {
-    private boolean includeHistory;
+    private boolean history;
 
-    private Set<Class<? extends Executable>> executableClasses = new HashSet<Class<? extends Executable>>();
+    private Set<ExecutableSummary.Type> types = new HashSet<ExecutableSummary.Type>();
+
+    private String roomId;
 
     public ExecutableListRequest()
     {
@@ -31,29 +31,39 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         super(Sort.class, securityToken);
     }
 
-    public boolean isIncludeHistory()
+    public boolean isHistory()
     {
-        return includeHistory;
+        return history;
     }
 
-    public void setIncludeHistory(boolean includeHistory)
+    public void setHistory(boolean history)
     {
-        this.includeHistory = includeHistory;
+        this.history = history;
     }
 
-    public Set<Class<? extends Executable>> getExecutableClasses()
+    public Set<ExecutableSummary.Type> getTypes()
     {
-        return Collections.unmodifiableSet(executableClasses);
+        return Collections.unmodifiableSet(types);
     }
 
-    public void setExecutableClasses(Set<Class<? extends Executable>> executableClasses)
+    public void setTypes(Set<ExecutableSummary.Type> types)
     {
-        this.executableClasses = executableClasses;
+        this.types = types;
     }
 
-    public void addExecutableClass(Class<? extends Executable> executableClass)
+    public void addType(ExecutableSummary.Type type)
     {
-        this.executableClasses.add(executableClass);
+        this.types.add(type);
+    }
+
+    public String getRoomId()
+    {
+        return roomId;
+    }
+
+    public void setRoomId(String roomId)
+    {
+        this.roomId = roomId;
     }
 
     public static enum Sort
@@ -64,15 +74,17 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
         TECHNOLOGY
     }
 
-    private static final String INCLUDE_HISTORY = "includeHistory";
-    private static final String EXECUTABLE_CLASSES = "executableClasses";
+    private static final String HISTORY = "history";
+    private static final String TYPES = "types";
+    private static final String ROOM_ID = "roomId";
 
     @Override
     public DataMap toData()
     {
         DataMap dataMap = super.toData();
-        dataMap.set(INCLUDE_HISTORY, includeHistory);
-        dataMap.set(EXECUTABLE_CLASSES, executableClasses);
+        dataMap.set(HISTORY, history);
+        dataMap.set(TYPES, types);
+        dataMap.set(ROOM_ID, roomId);
         return dataMap;
     }
 
@@ -80,7 +92,8 @@ public class ExecutableListRequest extends SortableListRequest<ExecutableListReq
     public void fromData(DataMap dataMap)
     {
         super.fromData(dataMap);
-        includeHistory = dataMap.getBool(INCLUDE_HISTORY);
-        executableClasses = (Set) dataMap.getSet(EXECUTABLE_CLASSES, Class.class);
+        history = dataMap.getBool(HISTORY);
+        types = (Set) dataMap.getSet(TYPES, ExecutableSummary.Type.class);
+        roomId = dataMap.getString(ROOM_ID);
     }
 }

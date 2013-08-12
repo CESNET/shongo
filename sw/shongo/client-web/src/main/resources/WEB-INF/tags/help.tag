@@ -35,21 +35,18 @@
 %>
 
 <c:choose>
-    <c:when test="${type == 'text'}">
-
-        <div class="tooltip-container">
-            <span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}">${label}</span>
-            <jsp:doBody var="body"/>
-            <c:if test="${not empty body}">
-                <div id="${tooltipId}" class="tooltip-content">
-                    <span>${body}</span>
-                </div>
-            </c:if>
-        </div>
-
-    </c:when>
+    <c:when test="${type == 'text'}"><%--
+    --%><div class="tooltip-container"><%--
+        --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}">${label}</span><%--
+        --%><jsp:doBody var="body"/>
+            <c:if test="${not empty body}"><%--
+            --%><div id="${tooltipId}" class="tooltip-content"><%--
+                --%><span>${body}</span><%--
+            --%></div><%--
+        --%></c:if><%--
+    --%></div><%--
+--%></c:when>
     <c:otherwise>
-
         <c:if test="${not empty label && empty labelElement}">
             <c:set var="labelElement" value="${tooltipId}-label"/>
             <span id="${labelElement}" class="${labelClass}">${label}</span>

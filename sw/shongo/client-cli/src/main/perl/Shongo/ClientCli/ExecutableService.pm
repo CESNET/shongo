@@ -98,11 +98,16 @@ sub list_executables()
     my $filter = {};
     my $application = Shongo::ClientCli->instance();
     my $response = $application->secure_hash_request('Executable.listExecutables', {
-        'includeHistory' => 1
+        'history' => 1
     });
     if ( !defined($response) ) {
         return
     }
+    our $Type = ordered_hash(
+        'ROOM' => 'Room',
+        'USED_ROOM' => 'Used Room',
+        'Other' => 'Other'
+    );
     my $table = {
         'columns' => [
             {'field' => 'id',    'title' => 'Identifier'},
@@ -114,8 +119,8 @@ sub list_executables()
     };
     foreach my $executable (@{$response->{'items'}}) {
         my $type = '';
-        if ( $executable->{'class'} eq 'RoomExecutableSummary' ) {
-            $type = 'Room';
+        if ( defined($Type->{$executable->{'type'}}) )  {
+            $type = $Type->{$executable->{'type'}};
         }
         push(@{$table->{'data'}}, {
             'id' => $executable->{'id'},

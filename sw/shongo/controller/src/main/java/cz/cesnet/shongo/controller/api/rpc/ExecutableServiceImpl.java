@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api.rpc;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
@@ -11,7 +10,6 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.util.NativeQuery;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.joda.time.DateTime;
@@ -119,39 +117,33 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             queryFilter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
 
             // If history executables should not be included
-            if (!request.isIncludeHistory()) {
+            if (!request.isHistory()) {
                 // List only executables which are allocated by any existing reservation
                 queryFilter.addFilter("executable_summary.id IN("
                         + "  SELECT reservation.executable_id FROM reservation)");
             }
 
             // List only executables of requested classes
-            if (request.getExecutableClasses().size() > 0) {
-                StringBuilder leftJoinBuilder = new StringBuilder();
-                StringBuilder whereBuilder = new StringBuilder();
-                for (Class<? extends Executable> type : request.getExecutableClasses()) {
-                    leftJoinBuilder.append(" LEFT JOIN ");
-                    if (whereBuilder.length() > 0) {
-                        whereBuilder.append(" OR ");
+            if (request.getTypes().size() > 0) {
+                StringBuilder typeFilterBuilder = new StringBuilder();
+                for (ExecutableSummary.Type type : request.getTypes()) {
+                    if (typeFilterBuilder.length() > 0) {
+                        typeFilterBuilder.append(",");
                     }
-                    if (type.equals(RoomExecutable.class)) {
-                        leftJoinBuilder.append("room_endpoint ON room_endpoint.id");
-                        whereBuilder.append("room_endpoint.id");
-                    }
-                    else {
-                        throw new TodoImplementException(type);
-                    }
-                    leftJoinBuilder.append(" = executable.id");
-                    whereBuilder.append(" IS NOT NULL");
+                    typeFilterBuilder.append("'");
+                    typeFilterBuilder.append(type.toString());
+                    typeFilterBuilder.append("'");
                 }
-                StringBuilder filterBuilder = new StringBuilder();
-                filterBuilder.append("executable_summary.id IN (");
-                filterBuilder.append(" SELECT executable.id FROM executable");
-                filterBuilder.append(leftJoinBuilder);
-                filterBuilder.append(" WHERE ");
-                filterBuilder.append(whereBuilder);
-                filterBuilder.append(")");
-                queryFilter.addFilter(filterBuilder.toString());
+                typeFilterBuilder.insert(0, "executable_summary.type IN(");
+                typeFilterBuilder.append(")");
+                queryFilter.addFilter(typeFilterBuilder.toString());
+            }
+
+            // List only usages of specified room
+            if (request.getRoomId() != null) {
+                queryFilter.addFilter("executable_summary.room_id = :roomId");
+                queryFilter.addFilterParameter("roomId", EntityIdentifier.parseId(
+                        cz.cesnet.shongo.controller.executor.Executable.class, request.getRoomId()));
             }
 
             // Sort query part
@@ -163,7 +155,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                         queryOrderBy = "executable_summary.room_name";
                         break;
                     case SLOT:
-                        queryOrderBy = "executable_summary.slot_start";
+                        queryOrderBy = "executable_summary.slot_end";
                         break;
                     case STATE:
                         queryOrderBy = "executable_summary.state";
@@ -192,35 +184,30 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             ListResponse<ExecutableSummary> response = new ListResponse<ExecutableSummary>();
             List<Object[]> records = performNativeListRequest(query, queryFilter, request, response, entityManager);
             for (Object[] record : records) {
-                ExecutableSummary executableSummary;
-
-                String type = record[1].toString().trim();
-                if (type.equals("ROOM")) {
-                    executableSummary = new RoomExecutableSummary();
-                }
-                else if (type.equals("USED_ROOM")) {
-                    executableSummary = new RoomExecutableSummary();
-                }
-                else {
-                    executableSummary = new ExecutableSummary();
-                }
-
+                ExecutableSummary executableSummary = new ExecutableSummary();
                 executableSummary.setId(EntityIdentifier.formatId(EntityType.EXECUTABLE, record[0].toString()));
+                executableSummary.setType(ExecutableSummary.Type.valueOf(record[1].toString().trim()));
                 executableSummary.setSlot(new Interval(new DateTime(record[2]), new DateTime(record[3])));
                 executableSummary.setState(
                         cz.cesnet.shongo.controller.executor.Executable.State.valueOf(record[4].toString()).toApi());
 
-                if (executableSummary instanceof RoomExecutableSummary) {
-                    RoomExecutableSummary roomExecutableSummary = (RoomExecutableSummary) executableSummary;
-                    roomExecutableSummary.setName(record[5] != null ? record[5].toString() : null);
-                    if (record[6] != null) {
-                        String technologies = record[6].toString();
-                        if (!technologies.isEmpty()) {
-                            for (String technology : technologies.split(",")) {
-                                roomExecutableSummary.addTechnology(Technology.valueOf(technology.trim()));
+                switch (executableSummary.getType()) {
+                    case USED_ROOM:
+                        executableSummary.setRoomId(
+                                EntityIdentifier.formatId(EntityType.EXECUTABLE, record[8].toString()));
+                    case ROOM:
+                        executableSummary.setRoomName(record[5] != null ? record[5].toString() : null);
+                        if (record[6] != null) {
+                            String technologies = record[6].toString();
+                            if (!technologies.isEmpty()) {
+                                for (String technology : technologies.split(",")) {
+                                    executableSummary.addTechnology(Technology.valueOf(technology.trim()));
+                                }
                             }
                         }
-                    }
+                        executableSummary.setRoomLicenseCount(((Number) record[7]).intValue());
+                        executableSummary.setRoomUsageCount(((Number) record[9]).intValue());
+                        break;
                 }
 
                 response.addItem(executableSummary);
