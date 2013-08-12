@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.MessageProvider;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
@@ -118,7 +119,7 @@ public class ReservationRequestDetailController
             if (reservationId != null) {
                 Reservation reservation = reservationService.getReservation(securityToken, reservationId);
                 model.addAttribute("reservation", ReservationRequestModel.getReservationModel(
-                        reservation, messages, locale));
+                        reservation, new MessageProvider(messages, locale)));
             }
         }
 
@@ -201,9 +202,9 @@ public class ReservationRequestDetailController
 
                     // Set room aliases
                     List<Alias> aliases = room.getAliases();
-                    child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
+                    child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState.isAvailable()));
                     child.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
-                            aliases, roomState, locale, messages));
+                            aliases, roomState.isAvailable(), new MessageProvider(messages, locale)));
                 }
             }
 

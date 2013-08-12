@@ -411,6 +411,15 @@ table.aliases td.label {
 .executable-state .STOPPING_FAILED {
     color: red;
 }
+.executable-state .NOT_AVAILABLE {
+    color: #b8860b;
+}
+.executable-state .AVAILABLE {
+    color: green;
+}
+.executable-state .FAILED {
+    color: red;
+}
 
 /* error page */
 .error pre {

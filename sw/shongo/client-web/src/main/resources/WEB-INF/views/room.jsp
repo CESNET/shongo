@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<spring:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
+<spring:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, room.reservationRequestId)" var="urlDetail"/>
 
 <script type="text/javascript">
     angular.module('jsp:room', ['ngTooltip']);
@@ -19,35 +19,34 @@
     <dl class="dl-horizontal">
 
         <dt><spring:message code="views.room.technology"/>:</dt>
-        <dd>${roomTechnology.title}</dd>
+        <dd>${room.technology.title}</dd>
 
         <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
         <dd>
-            <joda:format value="${executable.slot.start}" style="MM"/>
+            <joda:format value="${room.slot.start}" style="MM"/>
             <br/>
-            <joda:format value="${executable.slot.end}" style="MM"/>
+            <joda:format value="${room.slot.end}" style="MM"/>
         </dd>
 
         <dt><spring:message code="views.room.state"/>:</dt>
         <dd class="executable-state">
-            <spring:message code="views.executable.roomState.${executable.state}" var="executableState"/>
-            <tag:help label="${executableState}" labelClass="${executable.state}">
-                <span>
-                    <spring:message code="help.executable.roomState.${executable.state}"/>
-                </span>
-                <c:if test="${!executable.state.available && not empty executable.stateReport}">
-                    <pre>${executable.stateReport}</pre>
+            <spring:message code="views.executable.roomState.${room.state}" var="roomStateLabel"/>
+            <spring:message code="help.executable.roomState.${room.state}" var="roomStateHelp"/>
+            <tag:help label="${roomStateLabel}" labelClass="${room.state}">
+                <span>${roomStateHelp}</span>
+                <c:if test="${!room.state.available && not empty room.stateReport}">
+                    <pre>${room.stateReport}</pre>
                 </c:if>
             </tag:help>
         </dd>
 
-        <c:if test="${room != null}">
+        <c:if test="${roomRuntime != null}">
             <dt><spring:message code="views.room.licenseCount"/>:</dt>
             <dd>
-                ${room.licenseCount}
-                <c:if test="${room.licenseCount == 0}">
+                ${roomRuntime.licenseCount}
+                <c:if test="${roomRuntime.licenseCount == 0}">
                     <spring:eval var="createPermanentRoomCapacityUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, reservationRequestId)"/>
+                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, room.reservationRequestId)"/>
                     (<spring:message code="views.room.licenseCount.none" arguments="${createPermanentRoomCapacityUrl}"/>)
                 </c:if>
             </dd>
@@ -55,7 +54,8 @@
 
         <dt><spring:message code="views.room.aliases"/>:</dt>
         <dd>
-            <tag:help label="${roomAliases}">
+            <tag:help label="${room.aliases}">
+                <c:set value="${room.aliasesDescription}" var="roomAliasesDescription"/>
                 <c:if test="${not empty roomAliasesDescription}">
                     ${roomAliasesDescription}
                 </c:if>
@@ -63,21 +63,21 @@
         </dd>
 
         <dt><spring:message code="views.room.identifier"/>:</dt>
-        <dd>${executable.id}</dd>
+        <dd>${room.id}</dd>
 
         <dt><spring:message code="views.reservationRequest"/>:</dt>
         <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
 
     </dl>
 
-    <c:if test="${notAvailable}">
+    <c:if test="${roomNotAvailable}">
         <div class="not-available">
             <h2><spring:message code="views.room.notAvailable.heading"/></h2>
             <p><spring:message code="views.room.notAvailable.text" arguments="${configuration.contactEmail}"/></p>
         </div>
     </c:if>
 
-    <c:if test="${participants != null}">
+    <c:if test="${roomParticipants != null}">
         <h2><spring:message code="views.room.participants"/></h2>
         <table class="table table-striped table-hover">
             <thead>
@@ -87,7 +87,7 @@
             </tr>
             </thead>
             <tbody>
-            <c:forEach items="${participants}" var="participant" varStatus="status">
+            <c:forEach items="${roomParticipants}" var="participant" varStatus="status">
                 <tr>
                     <td>${participant.name}</td>
                     <td>
@@ -95,7 +95,7 @@
                     </td>
                 </tr>
             </c:forEach>
-            <c:if test="${participants.isEmpty()}">
+            <c:if test="${roomParticipants.isEmpty()}">
                 <tr>
                     <td colspan="2" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>
@@ -104,9 +104,9 @@
         </table>
     </c:if>
 
-    <security:accesscontrollist hasPermission="WRITE" domainObject="${executable}" var="isWritable"/>
+    <security:accesscontrollist hasPermission="WRITE" domainObject="${room}" var="isWritable"/>
 
-    <c:if test="${recordings != null}">
+    <c:if test="${roomRecordings != null}">
         <h2><spring:message code="views.room.recordings"/></h2>
         <table class="table table-striped table-hover">
             <thead>
@@ -127,7 +127,7 @@
             </tr>
             </thead>
             <tbody>
-            <c:forEach items="${recordings}" var="recording" varStatus="status">
+            <c:forEach items="${roomRecordings}" var="recording" varStatus="status">
                 <tr>
                     <td>
                         <c:choose>
@@ -160,7 +160,7 @@
                     </td>
                 </tr>
             </c:forEach>
-            <c:if test="${recordings.isEmpty()}">
+            <c:if test="${roomRecordings.isEmpty()}">
                 <tr>
                     <td colspan="4" class="empty"><spring:message code="views.list.none"/></td>
                 </tr>

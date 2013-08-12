@@ -1,10 +1,15 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Recording;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.RoomUser;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.client.web.models.RoomModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -48,29 +53,27 @@ public class RoomController
             SecurityToken securityToken,
             @PathVariable(value = "roomId") String executableId, Model model)
     {
+        // Room executable
         Executable executable = executableService.getExecutable(securityToken, executableId);
-        String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);
-
         RoomExecutable roomExecutable = (RoomExecutable) executable;
         if (roomExecutable == null) {
             throw new UnsupportedApiException(executable);
         }
 
-        model.addAttribute("roomTechnology", ReservationRequestModel.Technology.find(roomExecutable.getTechnologies()));
+        // Room model
+        RoomModel roomModel = new RoomModel(roomExecutable, new CacheProvider(cache, securityToken),
+                new MessageProvider(messageSource, locale), executableService);
+        model.addAttribute("room", roomModel);
 
-        List<Alias> aliases = roomExecutable.getAliases();
-        Executable.State executableState = roomExecutable.getState();
-        model.addAttribute("roomAliases", ReservationRequestModel.formatAliases(aliases, executableState));
-        model.addAttribute("roomAliasesDescription",
-                ReservationRequestModel.formatAliasesDescription(aliases, executableState, locale, messageSource));
-
-        if (roomExecutable.getState().isAvailable()) {
+        // Runtime room
+        if (roomModel.isAvailable()) {
             String resourceId = roomExecutable.getResourceId();
             String roomId = roomExecutable.getRoomId();
             Set<Technology> technologies = roomExecutable.getTechnologies();
 
             try {
                 Room room = resourceControlService.getRoom(securityToken, resourceId, roomId);
+
                 Collection<Map> participants = new LinkedList<Map>();
                 for (RoomUser roomUser : resourceControlService.listParticipants(securityToken, resourceId, roomId)) {
                     UserInformation userInformation = null;
@@ -88,16 +91,19 @@ public class RoomController
                 if (technologies.size() == 1 && technologies.contains(Technology.ADOBE_CONNECT)) {
                     recordings = resourceControlService.listRecordings(securityToken, resourceId, roomId);
                 }
-                model.addAttribute("room", room);
-                model.addAttribute("participants", participants);
-                model.addAttribute("recordings", recordings);
+                model.addAttribute("roomRuntime", room);
+                model.addAttribute("roomParticipants", participants);
+                model.addAttribute("roomRecordings", recordings);
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
-                model.addAttribute("notAvailable", true);
+                model.addAttribute("roomNotAvailable", true);
             }
         }
-        model.addAttribute("executable", roomExecutable);
+
+        // Reservation request for room
+        String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);
         model.addAttribute("reservationRequestId", reservationRequestId);
+
         return "room";
     }
 }

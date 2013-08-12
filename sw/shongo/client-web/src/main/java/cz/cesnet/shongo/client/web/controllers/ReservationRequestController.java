@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
@@ -164,7 +165,8 @@ public class ReservationRequestController
             }
 
             Set<Technology> technologies = reservationRequest.getTechnologies();
-            ReservationRequestModel.Technology technology = ReservationRequestModel.Technology.find(technologies);
+            TechnologyModel technology = TechnologyModel
+                    .find(technologies);
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationRequestSummary.RoomSpecification) {
                 ReservationRequestSummary.RoomSpecification room =

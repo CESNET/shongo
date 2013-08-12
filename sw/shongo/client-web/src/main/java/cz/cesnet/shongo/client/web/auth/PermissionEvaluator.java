@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.auth;
 
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.RoomModel;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -28,6 +29,9 @@ public class PermissionEvaluator implements org.springframework.security.access.
         String entityId;
         if (targetDomainObject instanceof ReservationRequestModel) {
             entityId = ((ReservationRequestModel) targetDomainObject).getId();
+        }
+        if (targetDomainObject instanceof RoomModel) {
+            entityId = ((RoomModel) targetDomainObject).getId();
         }
         else if (targetDomainObject instanceof Executable) {
             entityId = ((Executable) targetDomainObject).getId();

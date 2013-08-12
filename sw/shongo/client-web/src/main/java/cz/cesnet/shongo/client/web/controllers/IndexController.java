@@ -3,6 +3,8 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.RoomModel;
+import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
@@ -98,8 +100,8 @@ public class IndexController
             item.put("id", executableSummary.getId());
             item.put("name", executableSummary.getRoomName());
 
-            ReservationRequestModel.Technology technology =
-                    ReservationRequestModel.Technology.find(executableSummary.getRoomTechnologies());
+            TechnologyModel technology =
+                    TechnologyModel.find(executableSummary.getRoomTechnologies());
             if (technology != null) {
                 item.put("technology", technology.getTitle());
             }
@@ -108,17 +110,25 @@ public class IndexController
             item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
             item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
 
-            Executable.State roomState = executableSummary.getState();
+            Executable.State executableState = executableSummary.getState();
+
+            RoomModel.State roomState;
             String roomStateMessage;
             String roomStateHelp;
             switch (executableSummary.getType()) {
                 case ROOM:
+                    boolean isRoomPermanent = executableSummary.getRoomLicenseCount() == 0 ||
+                            executableSummary.getRoomUsageCount() > 0;
+                    roomState = RoomModel.State.fromRoomState(
+                            executableState, isRoomPermanent, executableSummary.getRoomLicenseCount());
                     roomStateMessage = messageSource.getMessage(
                             "views.executable.roomState." + roomState, null, locale);
                     roomStateHelp = messageSource.getMessage(
                             "help.executable.roomState." + roomState, null, locale);
                     break;
                 case USED_ROOM:
+                    roomState = RoomModel.State.fromRoomState(
+                            executableState, false, executableSummary.getRoomLicenseCount());
                     roomStateMessage = messageSource.getMessage(
                             "views.executable.roomState." + roomState, null, locale);
                     roomStateHelp = messageSource.getMessage(
@@ -127,6 +137,7 @@ public class IndexController
                 default:
                     throw new TodoImplementException(executableSummary.getType().toString());
             }
+
             item.put("state", roomState);
             item.put("stateAvailable", roomState.isAvailable());
             item.put("stateMessage", roomStateMessage);

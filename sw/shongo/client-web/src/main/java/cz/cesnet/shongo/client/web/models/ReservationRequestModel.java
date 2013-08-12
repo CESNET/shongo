@@ -10,6 +10,7 @@ import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.MessageProvider;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
@@ -44,7 +45,7 @@ public class ReservationRequestModel
 
     private ReservationRequestPurpose purpose;
 
-    private Technology technology;
+    private TechnologyModel technology;
 
     private DateTime start;
 
@@ -137,12 +138,12 @@ public class ReservationRequestModel
         this.purpose = purpose;
     }
 
-    public Technology getTechnology()
+    public TechnologyModel getTechnology()
     {
         return technology;
     }
 
-    public void setTechnology(Technology technology)
+    public void setTechnology(TechnologyModel technology)
     {
         this.technology = technology;
     }
@@ -320,7 +321,7 @@ public class ReservationRequestModel
         if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
             specificationType = SpecificationType.PERMANENT_ROOM;
-            technology = Technology.find(aliasSpecification.getTechnologies());
+            technology = TechnologyModel.find(aliasSpecification.getTechnologies());
             permanentRoomName = aliasSpecification.getValue();
             Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
@@ -336,7 +337,7 @@ public class ReservationRequestModel
             }
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
             specificationType = SpecificationType.PERMANENT_ROOM;
-            technology = Technology.find(roomNameSpecification.getTechnologies());
+            technology = TechnologyModel.find(roomNameSpecification.getTechnologies());
             permanentRoomName = roomNameSpecification.getValue();
             Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
@@ -353,7 +354,7 @@ public class ReservationRequestModel
             else {
                 specificationType = SpecificationType.ADHOC_ROOM;
             }
-            technology = Technology.find(roomSpecification.getTechnologies());
+            technology = TechnologyModel.find(roomSpecification.getTechnologies());
             roomParticipantCount = roomSpecification.getParticipantCount();
             for (RoomSetting roomSetting : roomSpecification.getRoomSettings()) {
                 if (roomSetting instanceof H323RoomSetting) {
@@ -503,7 +504,7 @@ public class ReservationRequestModel
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
@@ -534,7 +535,7 @@ public class ReservationRequestModel
                 RoomSpecification roomSpecification = new RoomSpecification();
                 roomSpecification.setTechnologies(technology.getTechnologies());
                 roomSpecification.setParticipantCount(roomParticipantCount);
-                if (technology.equals(Technology.H323_SIP) && roomPin != null) {
+                if (technology.equals(TechnologyModel.H323_SIP) && roomPin != null) {
                     H323RoomSetting h323RoomSetting = new H323RoomSetting();
                     h323RoomSetting.setPin(roomPin);
                     roomSpecification.addRoomSetting(h323RoomSetting);
@@ -682,82 +683,6 @@ public class ReservationRequestModel
     }
 
     /**
-     * Technology of the alias/room reservation request.
-     */
-    public static enum Technology
-    {
-        /**
-         * {@link cz.cesnet.shongo.Technology#H323} and/or {@link cz.cesnet.shongo.Technology#SIP}
-         */
-        H323_SIP("H.323/SIP", cz.cesnet.shongo.Technology.H323, cz.cesnet.shongo.Technology.SIP),
-
-        /**
-         * {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}
-         */
-        ADOBE_CONNECT("Adobe Connect", cz.cesnet.shongo.Technology.ADOBE_CONNECT);
-
-        /**
-         * Title which can be displayed to user.
-         */
-        private final String title;
-
-        /**
-         * Set of {@link cz.cesnet.shongo.Technology}s which it represents.
-         */
-        private final Set<cz.cesnet.shongo.Technology> technologies;
-
-        /**
-         * Constructor.
-         *
-         * @param title        sets the {@link #title}
-         * @param technologies sets the {@link #technologies}
-         */
-        private Technology(String title, cz.cesnet.shongo.Technology... technologies)
-        {
-            this.title = title;
-            Set<cz.cesnet.shongo.Technology> technologySet = new HashSet<cz.cesnet.shongo.Technology>();
-            for (cz.cesnet.shongo.Technology technology : technologies) {
-                technologySet.add(technology);
-            }
-            this.technologies = Collections.unmodifiableSet(technologySet);
-        }
-
-        /**
-         * @return {@link #title}
-         */
-        public String getTitle()
-        {
-            return title;
-        }
-
-        /**
-         * @return {@link #technologies}
-         */
-        public Set<cz.cesnet.shongo.Technology> getTechnologies()
-        {
-            return technologies;
-        }
-
-        /**
-         * @param technologies which must the returned {@link Technology} contain
-         * @return {@link Technology} which contains all given {@code technologies}
-         */
-        public static Technology find(Set<cz.cesnet.shongo.Technology> technologies)
-        {
-            if (technologies.size() == 0) {
-                return null;
-            }
-            if (H323_SIP.technologies.containsAll(technologies)) {
-                return H323_SIP;
-            }
-            else if (ADOBE_CONNECT.technologies.containsAll(technologies)) {
-                return ADOBE_CONNECT;
-            }
-            return null;
-        }
-    }
-
-    /**
      * Type of duration unit.
      */
     public static enum DurationType
@@ -794,14 +719,14 @@ public class ReservationRequestModel
 
     /**
      * @param aliases
-     * @param executableState
+     * @param isAvailable
      * @return formatted aliases
      */
-    public static String formatAliases(List<Alias> aliases, Executable.State executableState)
+    public static String formatAliases(List<Alias> aliases, boolean isAvailable)
     {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<span class=\"aliases");
-        if (!executableState.isAvailable()) {
+        if (!isAvailable) {
             stringBuilder.append(" not-available");
         }
         stringBuilder.append("\">");
@@ -816,7 +741,7 @@ public class ReservationRequestModel
                 case ADOBE_CONNECT_URI:
                     aliasValue = alias.getValue();
                     aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
-                    if (executableState.isAvailable()) {
+                    if (isAvailable) {
                         StringBuilder aliasValueBuilder = new StringBuilder();
                         aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
                         aliasValueBuilder.append(alias.getValue());
@@ -842,16 +767,15 @@ public class ReservationRequestModel
 
     /**
      * @param aliases
-     * @param executableState
-     * @param locale
+     * @param isAvailable
+     * @param messageProvider
      * @return formatted description of aliases
      */
-    public static String formatAliasesDescription(List<Alias> aliases, Executable.State executableState, Locale locale,
-            MessageSource messageSource)
+    public static String formatAliasesDescription(List<Alias> aliases, boolean isAvailable, MessageProvider messageProvider)
     {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<table class=\"aliases");
-        if (!executableState.isAvailable()) {
+        if (!isAvailable) {
             stringBuilder.append(" not-available");
         }
         stringBuilder.append("\">");
@@ -860,12 +784,12 @@ public class ReservationRequestModel
             switch (aliasType) {
                 case H323_E164:
                     stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164", null, locale));
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("+420" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
                     stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageSource.getMessage("views.room.alias.H323_E164_GDS", null, locale));
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
                     stringBuilder.append("</td></tr>");
@@ -875,16 +799,16 @@ public class ReservationRequestModel
                 case SIP_URI:
                 case SIP_IP:
                     stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");
                     stringBuilder.append(formatSelectable(alias.getValue()));
                     stringBuilder.append("</td></tr>");
                     break;
                 case ADOBE_CONNECT_URI:
                     stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageSource.getMessage("views.room.alias." + aliasType, null, locale));
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
                     stringBuilder.append(":</td><td>");
-                    if (executableState.isAvailable()) {
+                    if (isAvailable) {
                         stringBuilder.append("<a class=\"nowrap\" href=\"");
                         stringBuilder.append(alias.getValue());
                         stringBuilder.append("\" target=\"_blank\">");
@@ -899,9 +823,9 @@ public class ReservationRequestModel
             }
         }
         stringBuilder.append("</table>");
-        if (!executableState.isAvailable()) {
+        if (!isAvailable) {
             stringBuilder.append("<span class=\"aliases not-available\">");
-            stringBuilder.append(messageSource.getMessage("views.room.notAvailable", null, locale));
+            stringBuilder.append(messageProvider.getMessage("views.room.notAvailable"));
             stringBuilder.append("</span>");
         }
         return stringBuilder.toString();
@@ -909,12 +833,10 @@ public class ReservationRequestModel
 
     /**
      * @param reservation
-     * @param messageSource
-     * @param locale
+     * @param messageProvider
      * @return reservation model for given {@code reservation}
      */
-    public static Map<String, Object> getReservationModel(Reservation reservation, MessageSource messageSource,
-            Locale locale)
+    public static Map<String, Object> getReservationModel(Reservation reservation, MessageProvider messageProvider)
     {
         Map<String, Object> reservationModel = new HashMap<String, Object>();
         if (reservation != null) {
@@ -939,9 +861,10 @@ public class ReservationRequestModel
 
                 // Set room aliases
                 List<Alias> aliases = room.getAliases();
-                reservationModel.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState));
-                reservationModel.put("roomAliasesDescription",
-                        ReservationRequestModel.formatAliasesDescription(aliases, roomState, locale, messageSource));
+                reservationModel.put("roomAliases", ReservationRequestModel.formatAliases(
+                        aliases, roomState.isAvailable()));
+                reservationModel.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
+                        aliases, roomState.isAvailable(), messageProvider));
             }
         }
         return reservationModel;

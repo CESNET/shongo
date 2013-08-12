@@ -3,6 +3,7 @@
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
+<%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
@@ -48,7 +49,7 @@
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
         // Get permanent rooms
-        var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.ReservationRequestModel$Technology).find(permanentRoom.technologies)" var="technology" />
+        var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
                 id: "${permanentRoom.id}",
                 name: "${permanentRoom.specification.value}",
@@ -165,10 +166,10 @@
                     <div class="controls">
                         <form:select path="technology" ng-model="technology" tabindex="${tabIndex}">
                             <form:option value="H323_SIP">
-                                <%= ReservationRequestModel.Technology.H323_SIP.getTitle() %>
+                                <%= TechnologyModel.H323_SIP.getTitle() %>
                             </form:option>
                             <form:option value="ADOBE_CONNECT">
-                                <%= ReservationRequestModel.Technology.ADOBE_CONNECT.getTitle() %>
+                                <%= TechnologyModel.ADOBE_CONNECT.getTitle() %>
                             </form:option>
                         </form:select>
                         <form:errors path="technology" cssClass="error"/>

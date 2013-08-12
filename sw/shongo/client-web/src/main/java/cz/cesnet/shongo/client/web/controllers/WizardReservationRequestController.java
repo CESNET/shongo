@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.WizardPage;
+import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.controller.Permission;
@@ -117,7 +114,7 @@ public class WizardReservationRequestController extends AbstractWizardController
             if (reservationId != null) {
                 Reservation reservation = reservationService.getReservation(securityToken, reservationId);
                 wizardView.addObject("reservation", ReservationRequestModel.getReservationModel(
-                        reservation, messageSource, locale));
+                        reservation, new MessageProvider(messageSource, locale)));
             }
         }
 

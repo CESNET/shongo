@@ -119,6 +119,7 @@
                     <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
                         <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 30px;">
                             <spring:message code="views.index.dashboard.room.usages"/>:
+                            <div class="spinner" ng-hide="room.usages"></div>
                             <ul>
                                 <li ng-repeat="usage in room.usages">
                                     <strong>
