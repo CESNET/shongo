@@ -90,6 +90,7 @@
                     </th>
                     <th width="200px">
                         <pagination-sort column="STATE"><spring:message code="views.room.state"/></pagination-sort>
+                        <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
                     </th>
                 </tr>
                 </thead>

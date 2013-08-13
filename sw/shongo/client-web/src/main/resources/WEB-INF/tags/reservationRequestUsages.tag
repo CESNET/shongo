@@ -40,7 +40,10 @@
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
             </th>
-            <th width="120px"><spring:message code="views.list.action"/></th>
+            <th width="120px">
+                <spring:message code="views.list.action"/>
+                <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
+            </th>
         </tr>
         </thead>
         <tbody>

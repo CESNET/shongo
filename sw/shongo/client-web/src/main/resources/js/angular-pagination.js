@@ -18,6 +18,19 @@ paginationModule.controller('ReadyController', function ($scope) {
 
 /**
  * Pagination controller.
+ *
+ * Must be initialized by {@link init(name, url, urlParameters)} method.
+ * URL must return data in format:
+ *
+ *     {
+ *         start: <index-of-first-requested-item>,
+ *         count: <total-number-of-all-items>,
+ *         sort: <column-by-which-are-items-sorted>,
+ *         sort-desc: <boolean-whether-sorting-is-descending>,
+ *         items: [
+ *             <requested-items>
+ *         ]
+ *     }
  */
 paginationModule.controller('PaginationController', function ($scope, $resource, $window, $cookieStore) {
     // Resource used for fetching items
@@ -45,7 +58,11 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
     $scope.sort = null;
     $scope.sortDesc = null;
     $scope.setSort = function(sort, event) {
-        if (event.shiftKey && $scope.sort != null) {
+        if (sort == null) {
+            $scope.sort = null;
+            $scope.sortDesc = null;
+        }
+        else if (event.shiftKey && $scope.sort != null) {
             $scope.sort = null;
             $scope.sortDesc = null;
         }
@@ -77,6 +94,14 @@ paginationModule.controller('PaginationController', function ($scope, $resource,
      * @param data to be set
      */
     var setData = function (data) {
+        // Set sorting
+        if (data['sort'] != null ) {
+            $scope.sort = data['sort'];
+        }
+        if (data['sort-desc'] != null ) {
+            $scope.sortDesc = data['sort-desc'];
+        }
+
         // Set current items
         $scope.items = data.items;
         // Create pages
@@ -344,11 +369,31 @@ paginationModule.directive('paginationSort', function () {
             var body = element.html();
             var column = attrs.column;
             var html =
-                '<div>' +
+                '<div style="display: inline-block;">' +
                 '<a href="" ng-click="setSort(\'' + column + '\', $event)">' + body + '</a>' +
                 '&nbsp;' +
                 '<span class="icon-chevron-up" ng-show="sort == \'' + column + '\' && !sortDesc"></span>' +
                 '<span class="icon-chevron-down" ng-show="sort == \'' + column + '\' && sortDesc"></span>' +
+                '</div>';
+            element.replaceWith(html);
+        }
+    }
+});
+
+/**
+ * Directive <pagination-sort-default> for link to set default sorting.
+ */
+paginationModule.directive('paginationSortDefault', function () {
+    return {
+        restrict: 'E',
+        compile: function (element, attrs, transclude) {
+            var text = element.html();
+            var attributeClass = (attrs.class != null ? attrs.class : '');
+            var html =
+                '<div class="' + attributeClass + '">' +
+                '<a class="pull-right hovered" href="" ng-click="setSort()" title="' + text + '">' +
+                '<span class="icon-disable-sorting"></span>' +
+                '</a>' +
                 '</div>';
             element.replaceWith(html);
         }

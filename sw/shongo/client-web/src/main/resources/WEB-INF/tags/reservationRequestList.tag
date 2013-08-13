@@ -92,7 +92,10 @@
                     <spring:message code="views.reservationRequest.dateTime"/></pagination-sort>
                 </th>
             </c:if>
-            <th><spring:message code="views.list.action"/></th>
+            <th>
+                <spring:message code="views.list.action"/>
+                <pagination-sort-default class="pull-right"><spring:message code="views.pagination.defaultSorting"/></pagination-sort-default>
+            </th>
         </tr>
         </thead>
         <tbody>

@@ -159,6 +159,40 @@ td.empty {
     padding-top: 0px;
 }
 
+.icon-disable-sorting {
+    display: inline-block;
+    margin-left: 14px;
+    margin-right: 2px;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    line-height: 14px;
+    vertical-align: text-top;
+    background-image: url("../img/glyphicons-halflings.png");
+    background-position: -312px 0px;
+    background-repeat: no-repeat;
+}
+.icon-disable-sorting:after {
+    content: '';
+    display: inline-block;
+    margin-left: -10px;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    line-height: 14px;
+    vertical-align: text-top;
+    background-image: url("../img/glyphicons-halflings.png");
+    background-position: -434px -121px;
+    background-repeat: no-repeat;
+}
+
+a.hovered {
+    border: 1px solid transparent;
+}
+a.hovered:hover {
+    border: 1px solid;
+}
+
 /** Horizontal rules */
 hr {
     margin-top: 15px;

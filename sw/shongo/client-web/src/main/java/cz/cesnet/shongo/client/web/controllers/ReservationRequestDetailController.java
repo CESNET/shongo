@@ -213,6 +213,8 @@ public class ReservationRequestDetailController
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
         data.put("count", response.getCount());
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
         data.put("items", children);
         return data;
     }
@@ -278,6 +280,8 @@ public class ReservationRequestDetailController
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
         data.put("count", response.getCount());
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
         data.put("items", usages);
         return data;
     }

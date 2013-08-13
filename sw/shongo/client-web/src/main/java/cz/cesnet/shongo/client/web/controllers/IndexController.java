@@ -151,6 +151,8 @@ public class IndexController
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("start", response.getStart());
         data.put("count", response.getCount());
+        data.put("sort", sort);
+        data.put("sort-desc", sortDescending);
         data.put("items", items);
         return data;
     }
