@@ -405,7 +405,8 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         AliasSetSpecification aliasSetSpecification = (AliasSetSpecification) reservationRequest.getSpecification();
         AliasSpecification aliasSpecification = aliasSetSpecification.getAliases().get(0);
         aliasSpecification.setValue("555");
-        getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
+        aliasReservationRequestId = getReservationService().modifyReservationRequest(
+                SECURITY_TOKEN, reservationRequest);
         runScheduler(new DateTime("2013-07-01T13:00"));
 
         // Check allocated alias
@@ -426,6 +427,11 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         }
         catch (ControllerReportSet.ReservationRequestNotDeletableException exception) {
         }
+
+        // Delete all reservation requests
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest1Id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest2Id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
     }
 
     @Test

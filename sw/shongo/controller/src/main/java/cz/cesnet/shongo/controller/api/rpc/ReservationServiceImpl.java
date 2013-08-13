@@ -943,10 +943,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
 
         // Check allocated reservations
-        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : allocation.getReservations()) {
-            if (reservationManager.isProvided(reservation)) {
-                return false;
-            }
+        if (reservationManager.isAllocationProvided(allocation)) {
+            return false;
         }
 
         // Check child reservation requests

@@ -163,12 +163,13 @@ public class ReservationRequestManager extends AbstractManager
     {
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
+        // Check if reservations can be deleted
+        if (reservationManager.isAllocationProvided(allocation)) {
+            return false;
+        }
+
         // Detach reservations from allocation and they will be deleted by scheduler
         for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
-            // Check if reservation can be deleted
-            if (reservationManager.isProvided(reservation)) {
-                return false;
-            }
             reservation.setUserId(userId);
             reservation.setAllocation(null);
             reservationManager.update(reservation);

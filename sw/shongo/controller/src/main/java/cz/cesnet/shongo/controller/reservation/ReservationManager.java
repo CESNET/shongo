@@ -1,15 +1,18 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.*;
+import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.CommonReportSet;
+import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.resource.value.ValueProvider;
-import cz.cesnet.shongo.Temporal;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -244,25 +247,64 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param reservation to be checked if it is provided to any {@link ReservationRequest} or {@link Reservation}
-     * @return true if given {@code reservation} is provided to any other {@link ReservationRequest},
+     * @param allocation to be checked if it has a reservation provided to any {@link ReservationRequest}
+     * @return true if given {@code allocation} has a reservation provided to any {@link ReservationRequest},
      *         false otherwise
      */
-    public boolean isProvided(Reservation reservation)
+    public boolean isAllocationProvided(Allocation allocation)
     {
-        Collection<Reservation> reservations = new LinkedList<Reservation>();
-        getAllReservations(reservation, reservations);
+        return getReservationRequestWithProvidedAllocation(allocation).size() > 0;
+    }
 
-        // Checks whether reservation isn't referenced in existing reservations
-        List existingReservations = entityManager.createQuery(
-                "SELECT reservation.id FROM ExistingReservation reservation"
-                        + " WHERE reservation.reservation IN(:reservations)")
-                .setParameter("reservations", reservations)
+    /**
+     * @param allocation for which the {@link AbstractReservationRequest}s should be returned
+     * @return collection of {@link AbstractReservationRequest}s which has provided given {@code allocation}
+     */
+    public Collection<AbstractReservationRequest> getReservationRequestWithProvidedAllocation(Allocation allocation)
+    {
+        Set<AbstractReservationRequest> reservationRequests = new HashSet<AbstractReservationRequest>();
+
+        // Add top reservation requests by provided allocation
+        List<AbstractReservationRequest> reservationRequestsWithProvidedAllocation = entityManager.createQuery(
+                "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.providedAllocation = :providedAllocation",
+                AbstractReservationRequest.class)
+                .setParameter("providedAllocation", allocation)
                 .getResultList();
-        if (existingReservations.size() > 0) {
-            return true;
+        for (AbstractReservationRequest reservationRequest : reservationRequestsWithProvidedAllocation) {
+            if (!reservationRequest.getState().equals(AbstractReservationRequest.State.ACTIVE)) {
+                continue;
+            }
+            if (reservationRequest instanceof ReservationRequest) {
+                Allocation parentAllocation = ((ReservationRequest) reservationRequest).getParentAllocation();
+                if (parentAllocation != null) {
+                    reservationRequest = parentAllocation.getReservationRequest();
+                }
+            }
+            reservationRequests.add(reservationRequest);
         }
-        return false;
+
+        // Get all reservations
+        Collection<Reservation> reservations = new LinkedList<Reservation>();
+        for (Reservation reservation : allocation.getReservations()) {
+            getAllReservations(reservation, reservations);
+        }
+        if (reservations.size() > 0) {
+            // Add top reservation requests by existing reservations
+            List<ExistingReservation> existingReservations = entityManager.createQuery(
+                    "SELECT reservation FROM ExistingReservation reservation"
+                            + " WHERE reservation.reservation IN(:reservations)", ExistingReservation.class)
+                    .setParameter("reservations", reservations)
+                    .getResultList();
+            for (ExistingReservation reservation : existingReservations) {
+                AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
+                if (reservationRequest != null) {
+                    reservationRequests.add(reservationRequest);
+                }
+            }
+        }
+
+        return reservationRequests;
     }
 
     /**
