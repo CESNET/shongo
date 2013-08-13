@@ -22,6 +22,9 @@
     <c:when test="${dependencies.size() > 0}">
         <div>
             <a class="btn btn-primary" href="${backUrl}" tabindex="1"><spring:message code="views.button.back"/></a>
+            <a class="btn" href="${confirmUrl}?dependencies=true" tabindex="1">
+                <spring:message code="views.button.deleteAll"/>
+            </a>
         </div>
     </c:when>
     <c:otherwise>

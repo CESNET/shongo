@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -52,8 +53,17 @@ public class ReservationRequestDeleteController
     @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DELETE_CONFIRM, method = RequestMethod.GET)
     public String handleDeleteConfirm(
             SecurityToken securityToken,
+            @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        if (dependencies) {
+            List<ReservationRequestSummary> reservationRequestDependencies =
+                    ReservationRequestModel.getDeleteDependencies(
+                            reservationRequestId, reservationService, securityToken);
+            for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
+                reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
+            }
+        }
         reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:" + ClientWebUrl.RESERVATION_REQUEST_LIST;
     }

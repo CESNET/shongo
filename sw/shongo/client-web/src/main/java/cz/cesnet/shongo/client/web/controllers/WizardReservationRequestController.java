@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -144,6 +145,10 @@ public class WizardReservationRequestController extends AbstractWizardController
                     "views.button.yes").setPrimary(true);
             wizardView.addAction(ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, "views.button.no");
         }
+        else {
+            wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId)
+                    + "?dependencies=true", "deleteAll");
+        }
         wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
 
         return wizardView;
@@ -155,8 +160,17 @@ public class WizardReservationRequestController extends AbstractWizardController
     @RequestMapping(value = ClientWebUrl.WIZARD_RESERVATION_REQUEST_DELETE_CONFIRM, method = RequestMethod.GET)
     public String handleDeleteConfirm(
             SecurityToken securityToken,
+            @RequestParam(value = "dependencies", required = false, defaultValue = "false") boolean dependencies,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
+        if (dependencies) {
+            List<ReservationRequestSummary> reservationRequestDependencies =
+                    ReservationRequestModel.getDeleteDependencies(
+                            reservationRequestId, reservationService, securityToken);
+            for (ReservationRequestSummary reservationRequestSummary : reservationRequestDependencies) {
+                reservationService.deleteReservationRequest(securityToken, reservationRequestSummary.getId());
+            }
+        }
         reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:" + ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST;
     }
