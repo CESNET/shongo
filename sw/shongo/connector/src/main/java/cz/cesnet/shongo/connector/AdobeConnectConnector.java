@@ -612,19 +612,49 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
-    private void addRoomParticipant(String roomId, UserInformation participant) throws CommandException
+    /**
+     * Sets new participants in room.
+     *
+     * @param roomId Identifier of the room
+     * @param participants Collection of participants
+     * @throws CommandException
+     */
+    protected void addRoomParticipants(String roomId, List<UserInformation> participants) throws CommandException
     {
-        String principalId = this.createAdobeConnectUser(participant);
-
-        //TODO: more user roles
-        logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(),
-                principalId);
-
         HashMap<String, String> userAttributes = new HashMap<String, String>();
         userAttributes.put("acl-id", roomId);
-        userAttributes.put("principal-id", principalId);
-        userAttributes.put("permission-id", "host");
+
+        for (UserInformation participant : participants)
+        {
+            String principalId = createAdobeConnectUser(participant);
+            System.out.println(participant.getOriginalId());
+            System.out.println(participant.getUserId());
+            userAttributes.put("principal-id", principalId);
+            //TODO: more user roles
+            userAttributes.put("permission-id", "host");
+
+            logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(),
+                    principalId);        }
+
         request("permissions-update", userAttributes);
+    }
+
+    protected void setViewPermissionsForAllParticipants(String roomId) throws CommandException
+    {
+        HashMap<String, String> permissionsAttributes = new HashMap<String, String>();
+        permissionsAttributes.put("acl-id", roomId);
+
+        Element participants = request("permissions-info",permissionsAttributes);
+
+
+    }
+
+    protected void resetPermissions(String roomId) throws CommandException
+    {
+        HashMap<String, String> permissionsResetAttributes = new HashMap<String, String>();
+        permissionsResetAttributes.put("acl-id", roomId);
+
+        request("permissions-reset", permissionsResetAttributes);
     }
 
     @java.lang.Override
@@ -651,9 +681,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             // Add room participants
             if (room.getLicenseCount() > 0) {
                 startMeeting(roomId);
-                for (UserInformation participant : room.getParticipants()) {
-                    addRoomParticipant(roomId, participant);
-                }
+                addRoomParticipants(roomId, room.getParticipants());
             }
             else if (room.getLicenseCount() == 0) {
                 endMeeting(roomId);
@@ -688,19 +716,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             return recreateRoom(room);
         }
 
-        // Remove all participants first
-        HashMap<String, String> permissionsResetAttributes = new HashMap<String, String>();
-        permissionsResetAttributes.put("acl-id", roomId);
-        request("permissions-reset", permissionsResetAttributes);
-
         // Add/modify participants
         if (room.getLicenseCount() > 0) {
+            resetPermissions(roomId);
             startMeeting(roomId);
-            for (UserInformation participant : room.getParticipants()) {
-                addRoomParticipant(roomId, participant);
-            }
+            addRoomParticipants(roomId, room.getParticipants());
         }
         else if (room.getLicenseCount() == 0) {
+            setViewPermissionsForAllParticipants(roomId);
             endMeeting(roomId);
         }
 
@@ -752,10 +775,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public void deleteRoom(String roomId) throws CommandException
     {
-        HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id", roomId);
-
-        this.request("meeting-stop", attributes);
+        endMeeting(roomId);
 
         deleteSCO(roomId);
     }
