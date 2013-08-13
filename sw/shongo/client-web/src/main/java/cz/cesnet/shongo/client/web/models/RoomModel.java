@@ -1,25 +1,20 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.MessageProvider;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
-import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.springframework.context.MessageSource;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
- * TODO:
+ * Represents a room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -41,7 +36,7 @@ public class RoomModel
 
     private List<Alias> aliases;
 
-    private State state;
+    private RoomState state;
 
     private String stateReport;
 
@@ -77,24 +72,24 @@ public class RoomModel
 
         // State
         if (this.isPermanent) {
-            this.state = State.NOT_AVAILABLE;
+            this.state = RoomState.NOT_AVAILABLE;
             switch (roomExecutable.getState()) {
                 case STARTED:
                 case STOPPING_FAILED:
                     if (this.licenseCount > 0) {
-                        this.state = State.AVAILABLE;
+                        this.state = RoomState.AVAILABLE;
                     }
                     break;
                 case STARTING_FAILED:
-                    this.state = State.FAILED;
+                    this.state = RoomState.FAILED;
                     break;
                 case STOPPED:
-                    this.state = State.STOPPED;
+                    this.state = RoomState.STOPPED;
                     break;
             }
         }
         else {
-            this.state = State.valueOf(roomExecutable.getState().toString());
+            this.state = RoomState.valueOf(roomExecutable.getState().toString());
         }
         this.stateReport = roomExecutable.getStateReport();
     }
@@ -124,7 +119,7 @@ public class RoomModel
         return licenseCount;
     }
 
-    public State getState()
+    public RoomState getState()
     {
         return state;
     }
@@ -149,89 +144,4 @@ public class RoomModel
         return ReservationRequestModel.formatAliasesDescription(aliases, isAvailable(), messageProvider);
     }
 
-    public enum State
-    {
-        NOT_STARTED(Executable.State.NOT_STARTED.isAvailable()),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} is already started.
-         */
-        STARTED(Executable.State.STARTED.isAvailable()),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} failed to start.
-         */
-        STARTING_FAILED(Executable.State.STARTING_FAILED.isAvailable()),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} has been already stopped.
-         */
-        STOPPED(Executable.State.STOPPED.isAvailable()),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} failed to stop.
-         */
-        STOPPING_FAILED(Executable.State.STOPPING_FAILED.isAvailable()),
-
-        /**
-         * Permanent room is not available for participants to join.
-         */
-        NOT_AVAILABLE(false),
-
-        /**
-         * Permanent room is available for participants to join.
-         */
-        AVAILABLE(true),
-
-        /**
-         * Permanent room is not available for participants to join due to error.
-         */
-        FAILED(false);
-
-        /**
-         * Specifies whether this state represents an available room.
-         */
-        private final boolean isAvailable;
-
-        /**
-         * Constructor.
-         *
-         * @param isAvailable sets the {@link #isAvailable}
-         */
-        private State(boolean isAvailable)
-        {
-            this.isAvailable = isAvailable;
-        }
-
-        /**
-         * @return {@link #isAvailable}
-         */
-        public boolean isAvailable()
-        {
-            return isAvailable;
-        }
-
-
-        public static State fromRoomState(Executable.State roomState, boolean permanentRoom, int licenseCount)
-        {
-            if (permanentRoom) {
-                switch (roomState) {
-                    case STARTED:
-                    case STOPPING_FAILED:
-                        if (licenseCount > 0) {
-                            return State.AVAILABLE;
-                        }
-                        break;
-                    case STARTING_FAILED:
-                        return State.FAILED;
-                    case STOPPED:
-                        return State.STOPPED;
-                }
-                return NOT_AVAILABLE;
-            }
-            else {
-                return State.valueOf(roomState.toString());
-            }
-        }
-    }
 }

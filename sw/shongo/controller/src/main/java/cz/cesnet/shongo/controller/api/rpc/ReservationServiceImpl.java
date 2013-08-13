@@ -975,41 +975,43 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         reservationRequestSummary.setEarliestSlot(new Interval(
                 new DateTime(record[6]), new DateTime(record[7])));
         if (record[8] != null) {
-            reservationRequestSummary.setState(
-                    ReservationRequestSummary.State.valueOf(record[8].toString().trim()));
+            reservationRequestSummary.setAllocationState(AllocationState.valueOf(record[8].toString().trim()));
         }
-        reservationRequestSummary.setProvidedReservationRequestId(record[9] != null ? record[9].toString() : null);
-        if (record[10] != null) {
+        if (record[9] != null) {
+            reservationRequestSummary.setExecutableState(ExecutableState.valueOf(record[9].toString().trim()));
+        }
+        reservationRequestSummary.setProvidedReservationRequestId(record[10] != null ? record[10].toString() : null);
+        if (record[11] != null) {
             reservationRequestSummary.setLastReservationId(EntityIdentifier.formatId(
-                    EntityType.RESERVATION, record[10].toString()));
+                    EntityType.RESERVATION, record[11].toString()));
         }
-        String type = record[11].toString().trim();
+        String type = record[12].toString().trim();
         if (type.equals("ALIAS")) {
             ReservationRequestSummary.AliasSpecification aliasSpecification =
                     new ReservationRequestSummary.AliasSpecification();
             aliasSpecification.setAliasType(AliasType.ROOM_NAME);
-            aliasSpecification.setValue(record[14] != null ? record[14].toString() : null);
+            aliasSpecification.setValue(record[15] != null ? record[15].toString() : null);
             reservationRequestSummary.setSpecification(aliasSpecification);
         }
         else if (type.equals("ROOM")) {
             ReservationRequestSummary.RoomSpecification roomSpecification =
                     new ReservationRequestSummary.RoomSpecification();
-            if (record[13] != null) {
-                roomSpecification.setParticipantCount(((Number) record[13]).intValue());
+            if (record[14] != null) {
+                roomSpecification.setParticipantCount(((Number) record[14]).intValue());
             }
             reservationRequestSummary.setSpecification(roomSpecification);
         }
         else if (type.equals("RESOURCE")) {
             ReservationRequestSummary.ResourceSpecification resourceSpecification =
                     new ReservationRequestSummary.ResourceSpecification();
-            if (record[15] != null) {
+            if (record[16] != null) {
                 resourceSpecification.setResourceId(EntityIdentifier.formatId(
-                        EntityType.RESOURCE, ((Number) record[15]).longValue()));
+                        EntityType.RESOURCE, ((Number) record[16]).longValue()));
             }
             reservationRequestSummary.setSpecification(resourceSpecification);
         }
-        if (record[12] != null) {
-            String technologies = record[12].toString();
+        if (record[13] != null) {
+            String technologies = record[13].toString();
             if (!technologies.isEmpty()) {
                 for (String technology : technologies.split(",")) {
                     reservationRequestSummary.addTechnology(Technology.valueOf(technology.trim()));

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import org.joda.time.Interval;
@@ -25,7 +24,7 @@ public class Executable extends IdentifiedComplexType
     /**
      * Current state of the {@link cz.cesnet.shongo.controller.api.Executable}.
      */
-    private State state;
+    private ExecutableState state;
 
     /**
      * Description of state.
@@ -72,7 +71,7 @@ public class Executable extends IdentifiedComplexType
     /**
      * @return {@link #state}
      */
-    public State getState()
+    public ExecutableState getState()
     {
         return state;
     }
@@ -80,7 +79,7 @@ public class Executable extends IdentifiedComplexType
     /**
      * @param state sets the {@link #state}
      */
-    public void setState(State state)
+    public void setState(ExecutableState state)
     {
         this.state = state;
     }
@@ -141,63 +140,9 @@ public class Executable extends IdentifiedComplexType
         super.fromData(dataMap);
         reservationId = dataMap.getString(RESERVATION_ID);
         slot = dataMap.getInterval(SLOT);
-        state = dataMap.getEnum(STATE, State.class);
+        state = dataMap.getEnum(STATE, ExecutableState.class);
         stateReport = dataMap.getString(STATE_REPORT);
         migratedExecutable = dataMap.getComplexType(MIGRATED_EXECUTABLE, Executable.class);
-    }
-
-    /**
-     * State of the {@link cz.cesnet.shongo.controller.api.Executable}.
-     */
-    public static enum State
-    {
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} has not been started yet.
-         */
-        NOT_STARTED(false),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} is already started.
-         */
-        STARTED(true),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} failed to start.
-         */
-        STARTING_FAILED(false),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} has been already stopped.
-         */
-        STOPPED(false),
-
-        /**
-         * {@link cz.cesnet.shongo.controller.api.Executable} failed to stop.
-         */
-        STOPPING_FAILED(true);
-
-        /**
-         * Specifies whether the executable is available (e.g., it is started).
-         */
-        private final boolean available;
-
-        /**
-         * Constructor.
-         *
-         * @param available sets the {@link #available}
-         */
-        private State(boolean available)
-        {
-            this.available = available;
-        }
-
-        /**
-         * @return {@link #available}
-         */
-        public boolean isAvailable()
-        {
-            return available;
-        }
     }
 
 }

@@ -3,9 +3,9 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.RoomModel;
+import cz.cesnet.shongo.client.web.models.RoomState;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
-import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -110,16 +110,16 @@ public class IndexController
             item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
             item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
 
-            Executable.State executableState = executableSummary.getState();
+            ExecutableState executableState = executableSummary.getState();
 
-            RoomModel.State roomState;
+            RoomState roomState;
             String roomStateMessage;
             String roomStateHelp;
             switch (executableSummary.getType()) {
                 case ROOM:
                     boolean isRoomPermanent = executableSummary.getRoomLicenseCount() == 0 ||
                             executableSummary.getRoomUsageCount() > 0;
-                    roomState = RoomModel.State.fromRoomState(
+                    roomState = RoomState.fromRoomState(
                             executableState, isRoomPermanent, executableSummary.getRoomLicenseCount());
                     roomStateMessage = messageSource.getMessage(
                             "views.executable.roomState." + roomState, null, locale);
@@ -127,7 +127,7 @@ public class IndexController
                             "help.executable.roomState." + roomState, null, locale);
                     break;
                 case USED_ROOM:
-                    roomState = RoomModel.State.fromRoomState(
+                    roomState = RoomState.fromRoomState(
                             executableState, false, executableSummary.getRoomLicenseCount());
                     roomStateMessage = messageSource.getMessage(
                             "views.executable.roomState." + roomState, null, locale);

@@ -5,10 +5,7 @@ import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.Reporter;
-import cz.cesnet.shongo.controller.api.CompartmentExecutable;
-import cz.cesnet.shongo.controller.api.ConnectionExecutable;
-import cz.cesnet.shongo.controller.api.EndpointExecutable;
-import cz.cesnet.shongo.controller.api.RoomExecutable;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.report.Report;
 import cz.cesnet.shongo.report.Reportable;
@@ -716,26 +713,26 @@ public abstract class Executable extends PersistentObject implements Reportable,
         }
 
         /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.Executable.State}
+         * @return converted to {@link cz.cesnet.shongo.controller.api.ExecutableState}
          */
-        public cz.cesnet.shongo.controller.api.Executable.State toApi()
+        public ExecutableState toApi()
         {
             switch (this) {
                 case NOT_ALLOCATED:
                     throw new IllegalStateException(this.toString() + " should not be converted to API.");
                 case NOT_STARTED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
+                    return ExecutableState.NOT_STARTED;
                 case SKIPPED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
+                    return ExecutableState.NOT_STARTED;
                 case STARTED:
                 case MODIFIED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.STARTED;
+                    return ExecutableState.STARTED;
                 case STARTING_FAILED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.STARTING_FAILED;
+                    return ExecutableState.STARTING_FAILED;
                 case STOPPED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.STOPPED;
+                    return ExecutableState.STOPPED;
                 case STOPPING_FAILED:
-                    return cz.cesnet.shongo.controller.api.Executable.State.STOPPING_FAILED;
+                    return ExecutableState.STOPPING_FAILED;
                 default:
                     throw new RuntimeException("Cannot convert " + this.toString() + " to API.");
             }

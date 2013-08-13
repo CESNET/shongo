@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.MessageProvider;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.ReservationRequestState;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
@@ -82,7 +83,9 @@ public class ReservationRequestDetailController
                     currentHistoryItem = item;
                 }
 
-                ReservationRequestSummary.State state = historyItem.getState();
+                ReservationRequestState state = ReservationRequestState.fromApi(
+                        historyItem.getAllocationState(), historyItem.getExecutableState(),
+                        historyItem.getType(), historyItem.getLastReservationId());
                 item.put("state", state);
                 if (state != null) {
                     // Reservation is visible only for reservation requests until first allocated reservation request
@@ -179,7 +182,9 @@ public class ReservationRequestDetailController
             child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
                     dateTimeFormatter.print(slot.getEnd()));
 
-            ReservationRequestSummary.State state = reservationRequest.getState();
+            ReservationRequestState state = ReservationRequestState.fromApi(
+                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
+                    reservationRequest.getType(), reservationRequest.getLastReservationId());
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
                 String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
@@ -197,7 +202,7 @@ public class ReservationRequestDetailController
                     child.put("roomId", room.getId());
 
                     // Set room state available
-                    Executable.State roomState = room.getState();
+                    ExecutableState roomState = room.getState();
                     child.put("roomStateAvailable", roomState.isAvailable());
 
                     // Set room aliases
@@ -253,7 +258,9 @@ public class ReservationRequestDetailController
             item.put("purpose", reservationRequest.getPurpose());
             usages.add(item);
 
-            ReservationRequestSummary.State state = reservationRequest.getState();
+            ReservationRequestState state = ReservationRequestState.fromApi(
+                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
+                    reservationRequest.getType(), reservationRequest.getLastReservationId());
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
                 String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);

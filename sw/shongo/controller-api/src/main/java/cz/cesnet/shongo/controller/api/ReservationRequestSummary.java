@@ -49,9 +49,14 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Interval earliestSlot;
 
     /**
-     * {@link ReservationRequestSummary.State} of the reservation request for the earliest requested date/time slot.
+     * {@link AllocationState} of the reservation request for the earliest requested date/time slot.
      */
-    private State state;
+    private AllocationState allocationState;
+
+    /**
+     * {@link ExecutableState} of the reservation request for the earliest requested date/time slot.
+     */
+    private ExecutableState executableState;
 
     /**
      * @see cz.cesnet.shongo.controller.api.ReservationRequestSummary.Specification
@@ -170,19 +175,35 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #state}
+     * @return {@link #allocationState}
      */
-    public State getState()
+    public AllocationState getAllocationState()
     {
-        return state;
+        return allocationState;
     }
 
     /**
-     * @param state sets the {@link #state}
+     * @param allocationState sets the {@link #allocationState}
      */
-    public void setState(State state)
+    public void setAllocationState(AllocationState allocationState)
     {
-        this.state = state;
+        this.allocationState = allocationState;
+    }
+
+    /**
+     * @return {@link #executableState}
+     */
+    public ExecutableState getExecutableState()
+    {
+        return executableState;
+    }
+
+    /**
+     * @param executableState {@link #executableState}
+     */
+    public void setExecutableState(ExecutableState executableState)
+    {
+        this.executableState = executableState;
     }
 
     /**
@@ -263,7 +284,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String PURPOSE = "purpose";
     private static final String DESCRIPTION = "description";
     private static final String EARLIEST_SLOT = "earliestSlot";
-    private static final String STATE = "state";
+    private static final String ALLOCATION_STATE = "allocationState";
+    private static final String EXECUTABLE_STATE = "executableState";
     private static final String SPECIFICATION = "specification";
     private static final String TECHNOLOGIES = "technologies";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
@@ -279,7 +301,8 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(PURPOSE, purpose);
         dataMap.set(DESCRIPTION, description);
         dataMap.set(EARLIEST_SLOT, earliestSlot);
-        dataMap.set(STATE, state);
+        dataMap.set(ALLOCATION_STATE, allocationState);
+        dataMap.set(EXECUTABLE_STATE, executableState);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
@@ -297,71 +320,12 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
         description = dataMap.getString(DESCRIPTION);
         earliestSlot = dataMap.getInterval(EARLIEST_SLOT);
-        state = dataMap.getEnum(STATE, State.class);
+        allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
+        executableState = dataMap.getEnum(EXECUTABLE_STATE, ExecutableState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
         lastReservationId = dataMap.getString(LAST_RESERVATION_ID);
-    }
-
-    /**
-     * State of the reservation request which is represented by the {@link ReservationRequestSummary}.
-     */
-    public static enum State
-    {
-        /**
-         * Reservation request has not been allocated by the scheduler yet.
-         */
-        NOT_ALLOCATED(false),
-
-        /**
-         * Reservation request is allocated by the scheduler but the allocated executable has not been started yet.
-         */
-        ALLOCATED(true),
-
-        /**
-         * Reservation request is allocated by the scheduler and the allocated executable is started.
-         */
-        STARTED(true),
-
-        /**
-         * Reservation request is allocated by the scheduler and the allocated executable has been started and stopped.
-         */
-        FINISHED(true),
-
-        /**
-         * Reservation request cannot be allocated by the scheduler or the starting of executable failed.
-         */
-        FAILED(false),
-
-        /**
-         * Modification of reservation request cannot be allocated by the scheduler
-         * but some previous version of reservation request has been allocated and started.
-         */
-        MODIFICATION_FAILED(false);
-
-        /**
-         * Specifies whether reservation request is allocated.
-         */
-        private final boolean allocated;
-
-        /**
-         * Constructor.
-         *
-         * @param allocated sets the {@link #allocated}
-         */
-        private State(boolean allocated)
-        {
-            this.allocated = allocated;
-        }
-
-        /**
-         * @return {@link #allocated}
-         */
-        public boolean isAllocated()
-        {
-            return allocated;
-        }
     }
 
     /**

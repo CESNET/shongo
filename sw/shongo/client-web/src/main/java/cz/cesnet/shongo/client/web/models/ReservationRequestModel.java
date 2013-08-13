@@ -22,7 +22,6 @@ import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.springframework.context.MessageSource;
 
 import java.util.*;
 
@@ -850,7 +849,7 @@ public class ReservationRequestModel
                 reservationModel.put("roomLicenseCount", room.getLicenseCount());
 
                 // Set room state and report
-                Executable.State roomState = room.getState();
+                ExecutableState roomState = room.getState();
                 reservationModel.put("roomState", roomState);
                 switch (roomState) {
                     case STARTING_FAILED:
@@ -894,7 +893,8 @@ public class ReservationRequestModel
             cache.fetchPermissions(securityToken, reservationRequestIds);
 
             for (ReservationRequestSummary reservationRequestSummary : response) {
-                if (!reservationRequestSummary.getState().isAllocated()) {
+                ExecutableState executableState = reservationRequestSummary.getExecutableState();
+                if (executableState == null || !executableState.isAvailable()) {
                     continue;
                 }
                 Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());

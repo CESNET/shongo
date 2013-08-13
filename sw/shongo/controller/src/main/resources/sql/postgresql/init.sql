@@ -110,23 +110,6 @@ SELECT
     reservation_request.id AS id,
     reservation_request.allocation_state AS allocation_state,
     executable.state AS executable_state,
-    CASE
-        WHEN reservation_request.allocation_state = 'ALLOCATED' THEN (
-            CASE
-                WHEN executable.state IN('STARTED', 'MODIFIED', 'SKIPPED') THEN 'STARTED'
-                WHEN executable.state IN('STOPPED', 'STOPPING_FAILED')  THEN 'FINISHED'
-                WHEN executable.state = 'STARTING_FAILED' THEN 'FAILED'
-                ELSE 'ALLOCATED'
-            END
-        )
-        WHEN reservation_request.allocation_state = 'ALLOCATION_FAILED' THEN (
-            CASE
-                WHEN abstract_reservation_request.modified_reservation_request_id IS NOT NULL AND reservation.id IS NOT NULL AND executable.state != 'STARTING_FAILED' THEN 'MODIFICATION_FAILED'
-                ELSE 'FAILED'
-            END
-        )
-        ELSE 'NOT_ALLOCATED'
-    END AS state,
     reservation.id AS last_reservation_id
 FROM reservation_request
 LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request.id
@@ -156,7 +139,8 @@ SELECT
     reservation_request_set_earliest_child.child_id AS child_id,
     COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
     COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
-    reservation_request_state.state AS allocation_state,
+    reservation_request_state.allocation_state AS allocation_state,
+    reservation_request_state.executable_state AS executable_state,
     reservation_request_state.last_reservation_id AS last_reservation_id
 FROM abstract_reservation_request
 LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id

@@ -40,11 +40,7 @@ CREATE VIEW reservation_request_state AS
 SELECT
     reservation_request.id AS id,
     reservation_request.allocation_state AS allocation_state,
-    CASE
-        WHEN reservation_request.allocation_state = 'ALLOCATED' THEN 'ALLOCATED'
-        WHEN reservation_request.allocation_state = 'ALLOCATION_FAILED' THEN 'FAILED'
-        ELSE 'NOT_ALLOCATED'
-    END AS state
+    NULL AS executable_state,
 FROM reservation_request;
 
 /**
@@ -67,7 +63,8 @@ SELECT
     NULL AS child_id,
     reservation_request.slot_start AS slot_start,
     reservation_request.slot_end AS slot_end,
-    reservation_request_state.state AS allocation_state,
+    reservation_request_state.allocation_state AS allocation_state,
+    reservation_request_state.executable_state AS executable_state,
     NULL AS last_reservation_id
 FROM abstract_reservation_request
 LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id

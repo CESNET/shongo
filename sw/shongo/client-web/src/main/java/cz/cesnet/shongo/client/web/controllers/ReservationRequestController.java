@@ -7,6 +7,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.ReservationRequestState;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
 import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
 import cz.cesnet.shongo.controller.Permission;
@@ -144,8 +145,9 @@ public class ReservationRequestController
             item.put("dateTime", dateFormatter.print(reservationRequest.getDateTime()));
             items.add(item);
 
-            ReservationRequestSummary.State state = reservationRequest.getState();
-
+            ReservationRequestState state = ReservationRequestState.fromApi(
+                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
+                    reservationRequest.getType(), reservationRequest.getLastReservationId());
             if (state != null) {
                 String stateMessage = messageSource.getMessage("views.reservationRequest.state." + state, null, locale);
                 item.put("state", state);

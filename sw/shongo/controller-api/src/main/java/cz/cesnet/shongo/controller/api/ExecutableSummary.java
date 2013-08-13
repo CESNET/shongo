@@ -28,7 +28,7 @@ public class ExecutableSummary extends IdentifiedComplexType
     /**
      * Current state of the {@link ExecutableSummary}.
      */
-    private Executable.State state;
+    private ExecutableState state;
 
     /**
      * Room name.
@@ -90,7 +90,7 @@ public class ExecutableSummary extends IdentifiedComplexType
     /**
      * @return {@link #state}
      */
-    public Executable.State getState()
+    public ExecutableState getState()
     {
         return state;
     }
@@ -98,7 +98,7 @@ public class ExecutableSummary extends IdentifiedComplexType
     /**
      * @param state sets the {@link #state}
      */
-    public void setState(Executable.State state)
+    public void setState(ExecutableState state)
     {
         this.state = state;
     }
@@ -222,7 +222,7 @@ public class ExecutableSummary extends IdentifiedComplexType
         super.fromData(dataMap);
         type = dataMap.getEnum(TYPE, Type.class);
         slot = dataMap.getInterval(SLOT);
-        state = dataMap.getEnum(STATE, Executable.State.class);
+        state = dataMap.getEnum(STATE, ExecutableState.class);
         roomName = dataMap.getString(ROOM_NAME);
         roomTechnologies = dataMap.getSet(ROOM_TECHNOLOGIES, Technology.class);
         roomLicenseCount = dataMap.getInteger(ROOM_LICENSE_COUNT);
