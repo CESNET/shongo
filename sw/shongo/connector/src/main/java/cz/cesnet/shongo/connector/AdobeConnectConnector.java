@@ -452,10 +452,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         String folderScoId = request("sco-update",folderAttributes).getChild("sco").getAttributeValue("sco-id");
 
         HashMap<String,String> moveAttributes = new HashMap<String, String>();
-        moveAttributes.put("sco-id",recordingId);
-        moveAttributes.put("folder-id",folderScoId);
+        moveAttributes.put("sco-id", recordingId);
+        moveAttributes.put("folder-id", folderScoId);
 
-        request("sco-move",moveAttributes);
+        request("sco-move", moveAttributes);
         //TODO: vyresit opravneni
     }
 
@@ -613,7 +613,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
-     * Sets new participants in room.
+     * Sets participants roles in room.
      *
      * @param roomId Identifier of the room
      * @param participants Collection of participants
@@ -621,7 +621,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected void addRoomParticipants(String roomId, List<UserInformation> participants) throws CommandException
     {
-        HashMap<String, String> userAttributes = new HashMap<String, String>();
+        Map<String, String> userAttributes = new IdentityHashMap<String, String>();
         userAttributes.put("acl-id", roomId);
 
         for (UserInformation participant : participants)
@@ -629,24 +629,42 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String principalId = createAdobeConnectUser(participant);
             System.out.println(participant.getOriginalId());
             System.out.println(participant.getUserId());
-            userAttributes.put("principal-id", principalId);
+            userAttributes.put(new String("principal-id"), principalId);
             //TODO: more user roles
-            userAttributes.put("permission-id", "host");
+            userAttributes.put(new String("permission-id"), "host");
 
             logger.debug("Configuring participant '{}' (sco ID: '{}') as host in the room.", participant.getFullName(),
-                    principalId);        }
+                    principalId);
+        }
 
         request("permissions-update", userAttributes);
     }
 
-    protected void setViewPermissionsForAllParticipants(String roomId) throws CommandException
+    protected void setRecordingPermissionsAsMeetings(String roomId) throws CommandException
     {
-        HashMap<String, String> permissionsAttributes = new HashMap<String, String>();
+        Map<String, String> permissionsAttributes = new IdentityHashMap<String, String>();
         permissionsAttributes.put("acl-id", roomId);
+        permissionsAttributes.put("filter-out-permission-id","null");
 
         Element participants = request("permissions-info",permissionsAttributes);
 
+        HashMap<String, String> userAttributes = new HashMap<String, String>();
+        userAttributes.put("acl-id", roomId);
+        //TODO: pro vsechny meetingy
+        for (Element principal : participants.getChild("permissions").getChildren("principal"))
+        {
+            String principalId = principal.getAttributeValue("principal-id");
+            userAttributes.put("principal-id", principalId);
+            if (principal.getAttributeValue("permission-id").equals("host"))
+            {
+                userAttributes.put(new String("permission-id"), "manage");
+            } else {
+                userAttributes.put(new String("permisson-id"),"publish");
+            }
 
+        }
+
+        request("permissions-update", userAttributes);
     }
 
     protected void resetPermissions(String roomId) throws CommandException
@@ -723,7 +741,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             addRoomParticipants(roomId, room.getParticipants());
         }
         else if (room.getLicenseCount() == 0) {
-            setViewPermissionsForAllParticipants(roomId);
+            setRecordingPermissionsAsMeetings(roomId);
             endMeeting(roomId);
         }
 
@@ -861,6 +879,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             HashMap<String, String> userAttributes = new HashMap<String, String>();
             userAttributes.put("filter-principal-id", userPrincipalId);
             Element userResponse = request("principal-list", userAttributes);
+
             userLogin = userResponse.getChild("principal-list").getChild("principal").getChildText("login");
             cachedLoginByPrincipalId.put(userPrincipalId, userLogin);
         }
@@ -1457,7 +1476,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             acc.connect(address, "admin", "cip9skovi3t2");
 
             /************************/
-
 
             /************************/
 
