@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.util.List;
-
 /**
  * Controller for displaying wizard interface.
  *
@@ -19,8 +17,12 @@ import java.util.List;
 @Controller
 public class WizardController extends AbstractWizardController
 {
-    public static final String SUBMIT_RESERVATION_REQUEST =
-            "javascript: document.getElementById('reservationRequest').submit();";
+    public static final String SUBMIT_RESERVATION_REQUEST = "javascript: " +
+            "document.getElementById('reservationRequest').submit();";
+
+    public static final String SUBMIT_RESERVATION_REQUEST_FINISH = "javascript: " +
+            "$('form#reservationRequest').append('<input type=\\'hidden\\' name=\\'finish\\' value=\\'true\\'/>');" +
+            "document.getElementById('reservationRequest').submit();";
 
     private static enum Page
     {

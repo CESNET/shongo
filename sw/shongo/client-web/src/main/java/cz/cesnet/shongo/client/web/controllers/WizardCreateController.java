@@ -142,8 +142,10 @@ public class WizardCreateController extends AbstractWizardController
     private WizardView getCreateRoomAttributesView()
     {
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
-        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
+        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
 
@@ -157,6 +159,8 @@ public class WizardCreateController extends AbstractWizardController
             method = {RequestMethod.GET, RequestMethod.POST})
     public Object handleCreateRoomAttributesProcess(
             SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @RequestParam(value = "finish", required = false) boolean finish,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
@@ -165,7 +169,12 @@ public class WizardCreateController extends AbstractWizardController
         if (bindingResult.hasErrors()) {
             return getCreateRoomAttributesView();
         }
-        return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ROLES;
+        if (finish) {
+            return handleCreateRoomConfirmed(securityToken, sessionStatus, reservationRequest);
+        }
+        else {
+            return "redirect:" + ClientWebUrl.WIZARD_CREATE_ROOM_ROLES;
+        }
     }
 
     /**

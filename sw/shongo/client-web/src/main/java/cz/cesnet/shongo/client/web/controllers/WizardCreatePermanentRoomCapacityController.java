@@ -119,8 +119,10 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     private WizardView getCreatePermanentRoomCapacityView()
     {
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY, "wizardCreateAttributes.jsp");
-        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS);
+        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
+                "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
     }
 
@@ -134,6 +136,8 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             method = {RequestMethod.GET, RequestMethod.POST})
     public Object handleCreatePermanentRoomCapacityProcess(
             SecurityToken securityToken,
+            SessionStatus sessionStatus,
+            @RequestParam(value = "finish", required = false) boolean finish,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest,
             BindingResult bindingResult)
     {
@@ -142,7 +146,12 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
         if (bindingResult.hasErrors()) {
             return getCreatePermanentRoomCapacityView();
         }
-        return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM;
+        if (finish) {
+            return handleCreateConfirmed(securityToken, sessionStatus, reservationRequest);
+        }
+        else {
+            return "redirect:" + ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM;
+        }
     }
 
     /**
