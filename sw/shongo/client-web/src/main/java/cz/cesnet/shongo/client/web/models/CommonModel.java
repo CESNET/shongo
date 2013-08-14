@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
@@ -11,8 +13,17 @@ import java.util.regex.Pattern;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CommonValidator
+public class CommonModel
 {
+    /**
+     * Date/time formatters.
+     */
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
+
+    /**
+     * Email pattern.
+     */
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 

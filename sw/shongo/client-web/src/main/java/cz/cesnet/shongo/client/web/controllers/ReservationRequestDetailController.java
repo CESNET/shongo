@@ -6,11 +6,11 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.MessageProvider;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestState;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
@@ -34,6 +34,9 @@ public class ReservationRequestDetailController
     private ReservationService reservationService;
 
     @Resource
+    private ExecutableService executableService;
+
+    @Resource
     private Cache cache;
 
     @Resource
@@ -49,13 +52,20 @@ public class ReservationRequestDetailController
             @PathVariable(value = "reservationRequestId") String id,
             Model model)
     {
+        CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        MessageProvider messageProvider = new MessageProvider(messages, locale);
+
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, id);
+        String reservationRequestId = abstractReservationRequest.getId();
 
-        // Check if it is single reservation request
-        ReservationRequestModel reservationRequestModel =
-                new ReservationRequestModel(abstractReservationRequest, new CacheProvider(cache, securityToken));
+        // Determine whether reservation request is child reservation request
+        boolean isChildReservationRequest = false;
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            isChildReservationRequest = reservationRequest.getParentReservationRequestId() != null;
+        }
 
         // Reservation request is active (e.g., it can be modified and deleted)
         boolean isActive = true;
@@ -63,14 +73,11 @@ public class ReservationRequestDetailController
         boolean hasVisibleReservation = true;
 
         // Get history of reservation request (only if it is not child reservation request)
-        if (reservationRequestModel.getParentReservationRequestId() == null) {
-            List<ReservationRequestSummary> history =
-                    reservationService.getReservationRequestHistory(securityToken, id);
-
-            String reservationRequestId = abstractReservationRequest.getId();
+        if (!isChildReservationRequest) {
             Map<String, Object> currentHistoryItem = null;
-            List<Map<String, Object>> historyItems = new LinkedList<Map<String, Object>>();
-            for (ReservationRequestSummary historyItem : history) {
+            List<Map<String, Object>> history = new LinkedList<Map<String, Object>>();
+            for (ReservationRequestSummary historyItem :
+                    reservationService.getReservationRequestHistory(securityToken, id)) {
                 Map<String, Object> item = new HashMap<String, Object>();
                 String historyItemId = historyItem.getId();
                 item.put("id", historyItemId);
@@ -94,37 +101,39 @@ public class ReservationRequestDetailController
                     }
 
                     // First allocation failed is revertible
-                    if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && historyItems.size() == 0) {
+                    if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
                 }
 
-                historyItems.add(item);
+                history.add(item);
             }
             if (currentHistoryItem == null) {
-                throw new RuntimeException(
-                        "Reservation request " + reservationRequestId + " should exist in it's history.");
+                throw new RuntimeException("Reservation request " + reservationRequestId + " should exist in history.");
             }
             currentHistoryItem.put("selected", true);
 
-            model.addAttribute("history", historyItems);
-            isActive = currentHistoryItem == historyItems.get(0);
+            model.addAttribute("history", history);
+            isActive = currentHistoryItem == history.get(0);
         }
         else {
             // Child reservation requests don't have history
             // and thus they are automatically active and have visible reservation
         }
 
-        // Get reservation for the reservation request
+        // Get reservation
+        Reservation reservation = null;
         if (hasVisibleReservation && abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             String reservationId = reservationRequest.getLastReservationId();
             if (reservationId != null) {
-                Reservation reservation = reservationService.getReservation(securityToken, reservationId);
-                model.addAttribute("reservation", ReservationRequestModel.getReservationModel(
-                        reservation, new MessageProvider(messages, locale)));
+                reservation = reservationService.getReservation(cacheProvider.getSecurityToken(), reservationId);
             }
         }
+
+        // Create reservation request model
+        ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
+                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
@@ -172,7 +181,7 @@ public class ReservationRequestDetailController
         }
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> child = new HashMap<String, Object>();
@@ -207,8 +216,8 @@ public class ReservationRequestDetailController
 
                     // Set room aliases
                     List<Alias> aliases = room.getAliases();
-                    child.put("roomAliases", ReservationRequestModel.formatAliases(aliases, roomState.isAvailable()));
-                    child.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
+                    child.put("roomAliases", RoomModel.formatAliases(aliases, roomState.isAvailable()));
+                    child.put("roomAliasesDescription", RoomModel.formatAliasesDescription(
                             aliases, roomState.isAvailable(), new MessageProvider(messages, locale)));
                 }
             }
@@ -249,7 +258,7 @@ public class ReservationRequestDetailController
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> usages = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();

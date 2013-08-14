@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.MessageProvider;
@@ -46,7 +47,7 @@ public class RoomModel
         this.messageProvider = messageProvider;
 
         this.id = roomExecutable.getId();
-        this.reservationRequestId = cacheProvider.getReservationRequestIdByReservation(roomExecutable);
+        this.reservationRequestId = cacheProvider.getReservationRequestIdByExecutable(roomExecutable);
         this.slot = roomExecutable.getSlot();
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();
@@ -136,12 +137,135 @@ public class RoomModel
 
     public String getAliases()
     {
-        return ReservationRequestModel.formatAliases(aliases, isAvailable());
+        return formatAliases(aliases, isAvailable());
     }
 
     public String getAliasesDescription()
     {
-        return ReservationRequestModel.formatAliasesDescription(aliases, isAvailable(), messageProvider);
+        return formatAliasesDescription(aliases, isAvailable(), messageProvider);
+    }
+
+    /**
+     * @param text
+     * @return formatted given {@code text} to be better selectable by triple click
+     */
+    private static String formatSelectable(String text)
+    {
+        return "<span style=\"float:left\">" + text + "</span>";
+    }
+
+    /**
+     * @param aliases
+     * @param isAvailable
+     * @return formatted aliases
+     */
+    public static String formatAliases(List<Alias> aliases, boolean isAvailable)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<span class=\"aliases");
+        if (!isAvailable) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        int index = 0;
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            String aliasValue = null;
+            switch (aliasType) {
+                case H323_E164:
+                    aliasValue = alias.getValue();
+                    break;
+                case ADOBE_CONNECT_URI:
+                    aliasValue = alias.getValue();
+                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
+                    if (isAvailable) {
+                        StringBuilder aliasValueBuilder = new StringBuilder();
+                        aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
+                        aliasValueBuilder.append(alias.getValue());
+                        aliasValueBuilder.append("\" target=\"_blank\">");
+                        aliasValueBuilder.append(aliasValue);
+                        aliasValueBuilder.append("</a>");
+                        aliasValue = aliasValueBuilder.toString();
+                    }
+                    break;
+            }
+            if (aliasValue == null) {
+                continue;
+            }
+            if (index > 0) {
+                stringBuilder.append(",&nbsp;");
+            }
+            stringBuilder.append(aliasValue);
+            index++;
+        }
+        stringBuilder.append("</span>");
+        return stringBuilder.toString();
+    }
+
+    /**
+     * @param aliases
+     * @param isAvailable
+     * @param messageProvider
+     * @return formatted description of aliases
+     */
+    public static String formatAliasesDescription(List<Alias> aliases, boolean isAvailable, MessageProvider messageProvider)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<table class=\"aliases");
+        if (!isAvailable) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            switch (aliasType) {
+                case H323_E164:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case H323_URI:
+                case H323_IP:
+                case SIP_URI:
+                case SIP_IP:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case ADOBE_CONNECT_URI:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    if (isAvailable) {
+                        stringBuilder.append("<a class=\"nowrap\" href=\"");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("\" target=\"_blank\">");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("</a>");
+                    }
+                    else {
+                        stringBuilder.append(alias.getValue());
+                    }
+                    stringBuilder.append("</td></tr>");
+                    break;
+            }
+        }
+        stringBuilder.append("</table>");
+        if (!isAvailable) {
+            stringBuilder.append("<span class=\"aliases not-available\">");
+            stringBuilder.append(messageProvider.getMessage("views.room.notAvailable"));
+            stringBuilder.append("</span>");
+        }
+        return stringBuilder.toString();
     }
 
 }

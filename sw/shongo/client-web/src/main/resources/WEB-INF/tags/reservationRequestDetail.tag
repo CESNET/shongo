@@ -9,7 +9,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="reservationRequest" required="false"
-             type="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
+             type="cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel" %>
 <%@attribute name="detailUrl" required="false" %>
 
 <script type="text/javascript">
@@ -25,6 +25,15 @@
             <spring:message code="help.reservationRequest.specification.${reservationRequest.specificationType}"/>
         </tag:help>
     </dd>
+
+    <c:if test="${not empty reservationRequest.parentReservationRequestId}">
+        <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
+        <dd>
+            <spring:eval var="urlDetail"
+                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.parentReservationRequestId)"/>
+            <a href="${urlDetail}">${reservationRequest.parentReservationRequestId}</a>
+        </dd>
+    </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || reservationRequest.specificationType == 'ADHOC_ROOM'}">
         <dt><spring:message code="views.reservationRequest.technology"/>:</dt>
@@ -57,9 +66,19 @@
         <dd>${reservationRequest.roomParticipantCount}</dd>
     </c:if>
 
-    <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+    <c:choose>
+        <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
+            <c:set var="reservationRequestSlot" value="${reservationRequest.reservationSlot}"/>
+            <c:set var="reservationRequestSlotLabel" value="allocatedSlot"/>
+        </c:when>
+        <c:otherwise>
+            <c:set var="reservationRequestSlot" value="${reservationRequest.slot}"/>
+            <c:set var="reservationRequestSlotLabel" value="requestedSlot"/>
+        </c:otherwise>
+    </c:choose>
+
+    <dt>${reservationRequestSlotLabel}:</dt>
     <dd>
-        <c:set var="reservationRequestSlot" value="${reservationRequest.slot}"/>
         <joda:format value="${reservationRequestSlot.start}" style="MM"/>
         <br/>
         <joda:format value="${reservationRequestSlot.end}" style="MM"/>
@@ -88,16 +107,24 @@
         <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
     </dd>
 
-    <c:if test="${reservationRequest.allocationState != null}">
-        <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
-        <dd class="reservation-request-allocation-state">
-            <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}" var="allocationState"/>
-            <tag:help label="${allocationState}" labelClass="${reservationRequest.allocationState}">
-                <span>
-                    <spring:message code="help.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
-                </span>
-                <c:if test="${reservationRequest.allocationState == 'ALLOCATION_FAILED' && not empty reservationRequest.allocationStateReport}">
-                    <pre>${reservationRequest.allocationStateReport}</pre>
+    <dt><spring:message code="views.reservationRequest.state"/>:</dt>
+    <dd class="reservation-request-allocation-state">
+        ${reservationRequest.state}
+        <c:if test="${reservationRequest.room != null && reservationRequest.room.state.available}">
+            <spring:eval var="urlRoomManagement"
+                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservationRequest.room.id)"/>
+            <a class="btn" href="${urlRoomManagement}">
+                <spring:message code="views.list.action.manage"/>
+            </a>
+        </c:if>
+    </dd>
+
+    <c:if test="${reservationRequest.room != null}">
+        <dt><spring:message code="views.room.aliases"/>:</dt>
+        <dd>
+            <tag:help label="${reservationRequest.room.aliases}">
+                <c:if test="${not empty reservationRequest.room.aliasesDescription}">
+                    ${reservationRequest.room.aliasesDescription}
                 </c:if>
             </tag:help>
         </dd>
@@ -108,18 +135,66 @@
         <dd><joda:format value="${reservationRequest.dateTime}" style="MM"/></dd>
     </c:if>
 
-    <c:if test="${not empty reservationRequest.id}">
-        <dt><spring:message code="views.reservationRequest.identifier"/>:</dt>
-        <dd>${reservationRequest.id}</dd>
-    </c:if>
+    <div style="border: 1px solid">
 
-    <c:if test="${not empty reservationRequest.parentReservationRequestId}">
-        <dt><spring:message code="views.reservationRequest.parentIdentifier"/>:</dt>
-        <dd>
-            <spring:eval var="urlDetail"
-                         expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, reservationRequest.parentReservationRequestId)"/>
-            <a href="${urlDetail}">${reservationRequest.parentReservationRequestId}</a>
-        </dd>
-    </c:if>
+        More details:<br>
+
+        <c:if test="${reservationRequest.allocationState != null}">
+            <dt><spring:message code="views.reservationRequest.allocationState"/>:</dt>
+            <dd class="reservation-request-allocation-state">
+                <spring:message code="views.reservationRequest.allocationState.${reservationRequest.allocationState}" var="allocationState"/>
+                <tag:help label="${allocationState}" labelClass="${reservationRequest.allocationState}">
+                    <span>
+                        <spring:message code="help.reservationRequest.allocationState.${reservationRequest.allocationState}"/>
+                    </span>
+                    <c:if test="${reservationRequest.allocationState == 'ALLOCATION_FAILED' && not empty reservationRequest.allocationStateReport}">
+                        <pre>${reservationRequest.allocationStateReport}</pre>
+                    </c:if>
+                </tag:help>
+            </dd>
+        </c:if>
+
+        <c:if test="${reservationRequest.room != null}">
+            <dt><spring:message code="views.room.state"/>:</dt>
+            <dd class="executable-state">
+                <c:if test="${reservationRequest.room.state != null}">
+                    <spring:message code="views.executable.roomState.${reservationRequest.room.state}" var="roomState"/>
+                    <tag:help label="${roomState}" labelClass="${reservationRequest.room.state}">
+                            <span>
+                                <spring:message code="help.executable.roomState.${reservationRequest.room.state}"/>
+                            </span>
+                        <c:if test="${not empty reservationRequest.room.stateReport}">
+                            <pre>${reservationRequest.room.stateReport}</pre>
+                        </c:if>
+                    </tag:help>
+                </c:if>
+            </dd>
+        </c:if>
+
+        <c:if test="${reservationRequest.allocationState == 'ALLOCATED'}">
+            <dt>requestedSlot:</dt>
+            <dd class="reservation-request-allocation-state">
+                <joda:format value="${reservationRequest.slot.start}" style="MM"/>
+                <br/>
+                <joda:format value="${reservationRequest.slot.end}" style="MM"/>
+            </dd>
+
+            <c:if test="${not empty reservationRequest.permanentRoomName}">
+                <dt>allocatedRoomName:</dt>
+                <dd>${reservationRequest.permanentRoomName}</dd>
+            </c:if>
+
+            <c:if test="${not empty reservationRequest.roomParticipantCount}">
+                <dt>allocatedParticipants:</dt>
+                <dd>${reservationRequest.roomParticipantCount}</dd>
+            </c:if>
+        </c:if>
+
+        <c:if test="${not empty reservationRequest.id}">
+            <dt><spring:message code="views.reservationRequest.identifier"/>:</dt>
+            <dd>${reservationRequest.id}</dd>
+        </c:if>
+
+    </div>
 
 </dl>

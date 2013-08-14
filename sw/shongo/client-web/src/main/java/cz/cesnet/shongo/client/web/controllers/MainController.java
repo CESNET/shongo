@@ -3,16 +3,10 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.Changelog;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.interceptors.IgnoreDateTimeZone;
-import cz.cesnet.shongo.client.web.models.CommonValidator;
-import cz.cesnet.shongo.client.web.models.ReportModel;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * Controller for other views and resources.

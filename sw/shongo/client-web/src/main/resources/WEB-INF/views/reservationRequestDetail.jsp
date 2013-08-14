@@ -28,6 +28,28 @@
     angular.module('jsp:reservationRequestDetail', ['tag:reservationRequestDetail', 'ngPagination']);
 </script>
 
+<%-- Page title --%>
+<h1>
+    <c:choose>
+        <c:when test="${not empty reservationRequest.parentReservationRequestId}">
+            <spring:message code="views.reservationRequestDetail.title.child"/>
+        </c:when>
+        <c:otherwise>
+            <spring:message code="views.reservationRequestDetail.title"/>
+        </c:otherwise>
+    </c:choose>
+    <c:choose>
+        <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
+            <spring:message code="views.reservationRequestDetail.title.forRoom"
+                            arguments="${reservationRequest.permanentRoomName}"/>
+        </c:when>
+        <c:when test="${reservationRequest.specificationType == 'ADHOC_ROOM'}">
+            <spring:message code="views.reservationRequestDetail.title.forRoom.adhoc" var="adhocRoomName"/>
+            <spring:message code="views.reservationRequestDetail.title.forRoom" arguments="${adhocRoomName}"/>
+        </c:when>
+    </c:choose>
+</h1>
+
 <%-- History --%>
 <c:if test="${history != null}">
     <div class="pull-right bordered">
@@ -87,79 +109,10 @@
     </div>
 </c:if>
 
-<%-- Page title --%>
-<h1>
-    <c:choose>
-        <c:when test="${not empty reservationRequest.parentReservationRequestId}">
-            <spring:message code="views.reservationRequestDetail.title.child"/>
-        </c:when>
-        <c:otherwise>
-            <spring:message code="views.reservationRequestDetail.title"/>
-        </c:otherwise>
-    </c:choose>
-</h1>
-
 <div ng-app="jsp:reservationRequestDetail">
 
     <%-- Detail of request --%>
     <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
-
-    <%-- Reservation --%>
-    <c:if test="${reservation != null}">
-        <h2>
-            <c:choose>
-                <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
-                    <spring:message code="views.reservationRequestDetail.reservation"/>
-                </c:when>
-                <c:otherwise>
-                    <spring:message code="views.reservationRequestDetail.oldReservation"/>
-                </c:otherwise>
-            </c:choose>
-            <c:if test="${reservation.roomState.available}">
-                <spring:eval var="urlRoomManagement"
-                             expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservation.roomId)"/>
-                <a class="btn" href="${urlRoomManagement}">
-                    <spring:message code="views.list.action.manage"/>
-                </a>
-            </c:if>
-        </h2>
-        <dl class="dl-horizontal">
-
-            <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
-            <dd>
-                <joda:format value="${reservation.slot.start}" style="MS"/> -
-                <joda:format value="${reservation.slot.end}" style="MS"/>
-            </dd>
-
-            <dt><spring:message code="views.room.state"/>:</dt>
-            <dd class="executable-state">
-                <c:if test="${reservation.roomState != null}">
-                    <spring:message code="views.executable.roomState.${reservation.roomState}" var="roomState"/>
-                    <tag:help label="${roomState}" labelClass="${reservation.roomState}">
-                        <span>
-                            <spring:message code="help.executable.roomState.${reservation.roomState}"/>
-                        </span>
-                        <c:if test="${not empty reservation.roomStateReport}">
-                            <pre>${reservation.roomStateReport}</pre>
-                        </c:if>
-                    </tag:help>
-                </c:if>
-            </dd>
-
-            <dt><spring:message code="views.room.licenseCount"/>:</dt>
-            <dd>${reservation.roomLicenseCount}</dd>
-
-            <dt><spring:message code="views.room.aliases"/>:</dt>
-            <dd>
-                <tag:help label="${reservation.roomAliases}">
-                    <c:if test="${not empty reservation.roomAliasesDescription}">
-                        ${reservation.roomAliasesDescription}
-                    </c:if>
-                </tag:help>
-            </dd>
-
-        </dl>
-    </c:if>
 
     <%-- User roles --%>
     <hr/>

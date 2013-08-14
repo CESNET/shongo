@@ -101,7 +101,7 @@ public class RoomController
         }
 
         // Reservation request for room
-        String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);
+        String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
         model.addAttribute("reservationRequestId", reservationRequestId);
 
         return "room";
