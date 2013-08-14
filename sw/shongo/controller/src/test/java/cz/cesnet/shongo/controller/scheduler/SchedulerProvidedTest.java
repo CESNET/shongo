@@ -428,9 +428,20 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         catch (ControllerReportSet.ReservationRequestNotDeletableException exception) {
         }
 
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.addSlot("2013-07-03T12:00", "PT2H");
+        reservationRequestSet.addSlot("2013-07-04T12:00", "PT2H");
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.setSpecification(
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+        reservationRequestSet.setProvidedReservationRequestId(aliasReservationRequestId);
+        String reservationRequestSetId = allocate(reservationRequestSet);
+        checkAllocated(reservationRequestSetId);
+
         // Delete all reservation requests
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest1Id);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequest2Id);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestSetId);
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
     }
 

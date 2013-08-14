@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import com.google.common.base.Strings;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
@@ -87,7 +88,7 @@ public class ReservationRequestValidator implements Validator
         if (specificationType != null) {
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
-            if (reservationRequestModel.getId() != null) {
+            if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
                 availabilityCheckRequest.setProvidedReservationRequestId(reservationRequestModel.getId());
             }
             switch (specificationType) {

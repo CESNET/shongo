@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
@@ -75,18 +76,26 @@ public enum ReservationRequestState
     public static ReservationRequestState fromApi(AllocationState allocationState, ExecutableState executableState,
             ReservationRequestType reservationRequestType, String lastReservationId)
     {
+        if (allocationState == null) {
+            return NOT_ALLOCATED;
+        }
         switch (allocationState) {
             case ALLOCATED:
-                switch (executableState) {
-                    case STARTED:
-                        return STARTED;
-                    case STOPPED:
-                    case STOPPING_FAILED:
-                        return FINISHED;
-                    case STARTING_FAILED:
-                        return FAILED;
-                    default:
-                        return ALLOCATED;
+                if (executableState == null) {
+                    return ALLOCATED;
+                }
+                else {
+                    switch (executableState) {
+                        case STARTED:
+                            return STARTED;
+                        case STOPPED:
+                        case STOPPING_FAILED:
+                            return FINISHED;
+                        case STARTING_FAILED:
+                            return FAILED;
+                        default:
+                            return ALLOCATED;
+                    }
                 }
             case ALLOCATION_FAILED:
                 if (reservationRequestType.equals(ReservationRequestType.MODIFIED) && lastReservationId != null) {

@@ -109,7 +109,10 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         boolean modified = super.synchronizeFrom(specification);
 
         if (!ObjectHelper.isSame(getAliases(), externalEndpointSpecification.getAliases())) {
-            setAliases(externalEndpointSpecification.getAliases());
+            this.aliases.clear();
+            for (Alias alias : externalEndpointSpecification.getAliases()) {
+                addAlias(alias.clone());
+            }
             modified = true;
         }
 

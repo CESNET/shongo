@@ -137,7 +137,8 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
         if (getEndpointSpecification() != personSpecification.getEndpointSpecification()) {
             // We want make change only in the following scenarios
             if (getEndpointSpecification() == null || invitationState != InvitationState.ACCEPTED) {
-                setEndpointSpecification(personSpecification.getEndpointSpecification());
+                setEndpointSpecification(
+                        (EndpointSpecification) personSpecification.getEndpointSpecification().clone());
                 modified = true;
             }
         }
