@@ -894,9 +894,9 @@ public class ReservationRequestModel
 
             for (ReservationRequestSummary reservationRequestSummary : response) {
                 ExecutableState executableState = reservationRequestSummary.getExecutableState();
-                /*if (executableState == null || !executableState.isAvailable()) {
+                if (executableState == null || !executableState.isAvailable()) {
                     continue;
-                }*/
+                }
                 Set<Permission> permissions = cache.getPermissions(securityToken, reservationRequestSummary.getId());
                 if (!permissions.contains(Permission.PROVIDE_RESERVATION_REQUEST)) {
                     continue;
