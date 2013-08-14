@@ -40,7 +40,7 @@ CREATE VIEW reservation_request_state AS
 SELECT
     reservation_request.id AS id,
     reservation_request.allocation_state AS allocation_state,
-    NULL AS executable_state,
+    NULL AS executable_state
 FROM reservation_request;
 
 /**

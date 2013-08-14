@@ -117,10 +117,10 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             queryFilter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
 
             // If history executables should not be included
+            String filterExecutableId = "id IS NOT NULL";
             if (!request.isHistory()) {
                 // List only executables which are allocated by any existing reservation
-                queryFilter.addFilter("executable_summary.id IN("
-                        + "  SELECT reservation.executable_id FROM reservation)");
+                filterExecutableId = "id IN(SELECT reservation.executable_id FROM reservation)";
             }
 
             // List only executables of requested classes
@@ -180,6 +180,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             }
 
             Map<String, String> parameters = new HashMap<String, String>();
+            parameters.put("filterExecutableId", filterExecutableId);
             parameters.put("filter", queryFilter.toQueryWhere());
             parameters.put("order", queryOrderBy);
             String query = NativeQuery.getNativeQuery(NativeQuery.EXECUTABLE_LIST, parameters);

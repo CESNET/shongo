@@ -52,7 +52,7 @@
         var permanentRooms = {<c:forEach items="${permanentRooms}" var="permanentRoom" varStatus="status"><spring:eval expression="T(cz.cesnet.shongo.client.web.models.TechnologyModel).find(permanentRoom.technologies)" var="technology" />
             "${permanentRoom.id}": {
                 id: "${permanentRoom.id}",
-                name: "${permanentRoom.specification.value}",
+                name: "${permanentRoom.specification.value} (${technology.title})",
                 formattedSlot: "<joda:format value="${permanentRoom.earliestSlot.start}" style="M-"/> - <joda:format value="${permanentRoom.earliestSlot.end}" style="M-"/>",
                 slot: "${permanentRoom.earliestSlot}",
                 technology: "${technology}"
@@ -186,7 +186,7 @@
                 <form:label class="control-label" path="permanentRoomReservationRequestId"><spring:message
                         code="views.reservationRequest.specification.permanentRoomReservationRequestId"/>:
                 </form:label>
-                <div class="controls">
+                <div class="controls double-width">
                     <form:select path="permanentRoomReservationRequestId" cssErrorClass="error"
                                  ng-model="permanentRoom"
                                  ng-options="option.name for (value, option) in permanentRooms" tabindex="${tabIndex}">
