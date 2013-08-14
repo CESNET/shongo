@@ -23,6 +23,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -82,12 +83,14 @@ public class ReservationRequestUpdateController
             method = {RequestMethod.POST, RequestMethod.GET})
     public String handleCreateConfirm(
             SecurityToken token,
+            SessionStatus sessionStatus,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
     {
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             String reservationRequestId = reservationService.createReservationRequest(token, reservationRequest);
+            sessionStatus.setComplete();
             return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
         }
         else {
@@ -128,6 +131,7 @@ public class ReservationRequestUpdateController
             method = {RequestMethod.POST, RequestMethod.GET})
     public String handleModifyConfirm(
             SecurityToken token,
+            SessionStatus sessionStatus,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequestModel,
             BindingResult result)
@@ -139,6 +143,7 @@ public class ReservationRequestUpdateController
         if (ReservationRequestValidator.validate(reservationRequestModel, result, token, reservationService)) {
             AbstractReservationRequest reservationRequest = reservationRequestModel.toApi();
             reservationRequestId = reservationService.modifyReservationRequest(token, reservationRequest);
+            sessionStatus.setComplete();
             return "redirect:" + ClientWebUrl.format(ClientWebUrl.RESERVATION_REQUEST_DETAIL, reservationRequestId);
         }
         else {

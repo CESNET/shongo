@@ -104,7 +104,7 @@ div.actions li span {
 }
 
 /** Table empty row style */
-td.empty {
+td.empty, span.empty {
     background-color: transparent !important;
     text-align: center;
     color: #AAAAAA;

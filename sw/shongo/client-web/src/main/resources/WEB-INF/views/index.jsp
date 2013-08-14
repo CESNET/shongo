@@ -119,9 +119,10 @@
                     </tr>
                     <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
                         <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 30px;">
+                            <div class="spinner" ng-hide="room.usages != null"></div>
+                            <div>
                             <spring:message code="views.index.dashboard.room.usages"/>:
-                            <div class="spinner" ng-hide="room.usages"></div>
-                            <ul>
+                            <ul ng-show="room.usages.length">
                                 <li ng-repeat="usage in room.usages">
                                     <strong>
                                         <spring:message code="views.index.dashboard.room.usage.participant"
@@ -134,7 +135,9 @@
                                     </span>
                                 </li>
                             </ul>
-
+                            <span class="empty" ng-hide="room.usages.length">
+                                <br/>&nbsp;&nbsp;&nbsp;<spring:message code="views.list.none"/>
+                            </span>
                         </td>
                     </tr>
                     <tr ng-hide="items.length">

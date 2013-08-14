@@ -4,10 +4,7 @@ import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.AllocationState;
-import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReport;
 import cz.cesnet.shongo.controller.scheduler.SchedulerReportSet;
@@ -361,7 +358,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                     EntityIdentifier.formatId(parentAllocation.getReservationRequest()));
         }
         reservationRequestApi.setSlot(getSlot());
-        reservationRequestApi.setAllocationState(AllocationState.getApi(allocationState));
+        reservationRequestApi.setAllocationState(allocationState.toApi());
         reservationRequestApi.setAllocationStateReport(getReportText(messageType));
         for (Reservation reservation : getAllocation().getReservations()) {
             reservationRequestApi.addReservationId(EntityIdentifier.formatId(reservation));
@@ -418,12 +415,11 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
         ALLOCATION_FAILED;
 
         /**
-         * @param allocationState
-         * @return {@link cz.cesnet.shongo.controller.api.AllocationState} for given {@code allocationState}
+         * @return {@link cz.cesnet.shongo.controller.api.AllocationState} for this {@code allocationState}
          */
-        public static cz.cesnet.shongo.controller.api.AllocationState getApi(AllocationState allocationState)
+        public cz.cesnet.shongo.controller.api.AllocationState toApi()
         {
-            switch (allocationState) {
+            switch (this) {
                 case NOT_COMPLETE:
                 case COMPLETE:
                     return cz.cesnet.shongo.controller.api.AllocationState.NOT_ALLOCATED;
@@ -432,7 +428,7 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
                 case ALLOCATION_FAILED:
                     return cz.cesnet.shongo.controller.api.AllocationState.ALLOCATION_FAILED;
                 default:
-                    throw new TodoImplementException(allocationState.toString());
+                    throw new TodoImplementException(toString());
             }
         }
     }

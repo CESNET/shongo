@@ -6,13 +6,16 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AliasSetSpecification;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.AvailableReservation;
@@ -975,7 +978,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         reservationRequestSummary.setEarliestSlot(new Interval(
                 new DateTime(record[6]), new DateTime(record[7])));
         if (record[8] != null) {
-            reservationRequestSummary.setAllocationState(AllocationState.valueOf(record[8].toString().trim()));
+            reservationRequestSummary.setAllocationState(
+                    cz.cesnet.shongo.controller.request.ReservationRequest.AllocationState.valueOf(
+                            record[8].toString().trim()).toApi());
         }
         if (record[9] != null) {
             reservationRequestSummary.setExecutableState(ExecutableState.valueOf(record[9].toString().trim()));
