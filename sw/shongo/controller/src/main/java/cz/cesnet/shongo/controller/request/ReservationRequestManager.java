@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -176,7 +177,8 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         // Delete all child reservation requests
-        for (ReservationRequest reservationRequest : allocation.getChildReservationRequests()) {
+        for (ReservationRequest reservationRequest : new LinkedList<ReservationRequest>(allocation.getChildReservationRequests())) {
+            reservationRequest.setParentAllocation(null);
             hardDelete(reservationRequest, authorizationManager);
         }
 

@@ -23,6 +23,21 @@ public abstract class AbstractDatabaseTest
     private static Logger logger = LoggerFactory.getLogger(AbstractDatabaseTest.class);
 
     /**
+     * Connection.
+     */
+    protected static String connectionDriver = "org.hsqldb.jdbcDriver";
+    protected static String connectionUrl = "jdbc:hsqldb:mem:test; shutdown=true;";
+
+    /**
+     * Enable driver for debugging SQL.
+     */
+    protected static void enableDebugDriver()
+    {
+        connectionDriver = "net.sf.log4jdbc.DriverSpy";
+        connectionUrl = connectionUrl.replace("jdbc:", "jdbc:log4jdbc:");
+    }
+
+    /**
      * Single instance of entity manager factory.
      */
     private static EntityManagerFactory entityManagerFactory;
@@ -54,8 +69,8 @@ public abstract class AbstractDatabaseTest
         if (entityManagerFactory == null) {
             // For testing purposes use only in-memory database
             Map<String, String> properties = new HashMap<String, String>();
-            properties.put("hibernate.connection.driver_class", "org.hsqldb.jdbcDriver");
-            properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:test; shutdown=true;");
+            properties.put("hibernate.connection.driver_class", connectionDriver);
+            properties.put("hibernate.connection.url", connectionUrl);
             properties.put("hibernate.connection.username", "sa");
             properties.put("hibernate.connection.password", "");
 
