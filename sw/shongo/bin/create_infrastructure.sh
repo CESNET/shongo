@@ -67,7 +67,7 @@ RUN_CLIENT_CLI="./client_cli.sh --connect $CONTROLLER --root --scripting"
 #
 $RUN_CLIENT_CLI <<EOF
 
-    create-resource {
+    \${id} = create-resource {
         class: 'Resource',
         name: 'namingService',
         description: 'Naming service for all technologies',
@@ -99,7 +99,7 @@ $RUN_CLIENT_CLI <<EOF
             requiredAliasTypes: ['ROOM_NAME', 'H323_E164'],
         },{
             class: 'AliasProviderCapability',
-            valueProvider: '1',
+            valueProvider: '\${id}',
             aliases: [
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{value}' }
             ],
@@ -164,7 +164,7 @@ $RUN_CLIENT_CLI <<EOF
             valueProvider: {
                 class: 'ValueProvider.Filtered',
                 filterType: 'CONVERT_TO_URL',
-                valueProvider: '1',
+                valueProvider: '\${id}',
             },
             aliases: [
                 { type: 'ROOM_NAME', value: '$DEVICE_NAME_PREFIX{requested-value}' },
