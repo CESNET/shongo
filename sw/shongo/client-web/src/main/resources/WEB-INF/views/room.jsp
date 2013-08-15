@@ -21,7 +21,7 @@
         <dt><spring:message code="views.room.technology"/>:</dt>
         <dd>${room.technology.title}</dd>
 
-        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+        <dt><spring:message code="views.room.slot"/>:</dt>
         <dd>
             <joda:format value="${room.slot.start}" style="MM"/>
             <br/>

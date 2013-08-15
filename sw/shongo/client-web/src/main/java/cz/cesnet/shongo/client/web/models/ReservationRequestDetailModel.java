@@ -38,10 +38,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
     private String allocationStateReport;
 
-    private String reservationId;
-
-    private Interval reservationSlot;
-
     private RoomModel room;
 
     public ReservationRequestDetailModel(AbstractReservationRequest abstractReservationRequest, Reservation reservation,
@@ -59,11 +55,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             // Executable state, reservation and room
             ExecutableState executableState = null;
             if (reservation != null) {
-                reservationId = reservation.getId();
-
-                // Get reservation date/time slot
-                reservationSlot = reservation.getSlot();
-
                 // Reservation should contain allocated room
                 RoomExecutable roomExecutable = (RoomExecutable) reservation.getExecutable();
                 if (roomExecutable != null) {
@@ -74,7 +65,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Reservation request state
             state = ReservationRequestState.fromApi(
-                    allocationState, executableState, abstractReservationRequest.getType(), reservationId);
+                    allocationState, executableState, abstractReservationRequest.getType(), reservation.getId());
         }
 
     }
@@ -92,21 +83,6 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
     public String getAllocationStateReport()
     {
         return allocationStateReport;
-    }
-
-    public String getReservationId()
-    {
-        return reservationId;
-    }
-
-    public void setReservationId(String reservationId)
-    {
-        this.reservationId = reservationId;
-    }
-
-    public Interval getReservationSlot()
-    {
-        return reservationSlot;
     }
 
     public RoomModel getRoom()

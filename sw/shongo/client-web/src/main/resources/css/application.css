@@ -201,6 +201,9 @@ hr {
 
 /** Description lists */
 dl.dl-horizontal {
+    display: table;
+}
+dl.dl-horizontal {
     margin-top: 10px;
     margin-bottom: 0px;
 }
@@ -211,10 +214,14 @@ dl.dl-horizontal dt, dd {
     padding-bottom: 10px;
 }
 dl.dl-horizontal dt {
-    width: 190px;
+    width: 230px;
 }
 dl.dl-horizontal dd {
-    margin-left: 200px;
+    margin-left: 240px;
+}
+dl.dl-horizontal hr {
+    margin-top: 0px;
+    margin-bottom: 10px;
 }
 
 /** Form */
@@ -401,13 +408,13 @@ table.aliases td.label {
 }
 
 /** AllocationState */
-.reservation-request-allocation-state .NOT_ALLOCATED {
+.allocation-state .NOT_ALLOCATED {
     color: #b8860b;
 }
-.reservation-request-allocation-state .ALLOCATED {
+.allocation-state .ALLOCATED {
     color: green;
 }
-.reservation-request-allocation-state .ALLOCATION_FAILED {
+.allocation-state .ALLOCATION_FAILED {
     color: red;
 }
 

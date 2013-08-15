@@ -32,6 +32,8 @@ public class RoomModel
 
     private TechnologyModel technology;
 
+    private String name;
+
     private int licenseCount;
 
     private List<Alias> aliases;
@@ -50,6 +52,12 @@ public class RoomModel
         this.slot = roomExecutable.getSlot();
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();
+        for (Alias alias : roomExecutable.getAliases()) {
+            if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                this.name = alias.getValue();
+                break;
+            }
+        }
         this.licenseCount = roomExecutable.getLicenseCount();
 
 
@@ -93,6 +101,11 @@ public class RoomModel
     public TechnologyModel getTechnology()
     {
         return technology;
+    }
+
+    public String getName()
+    {
+        return name;
     }
 
     public int getLicenseCount()
