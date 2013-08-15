@@ -56,7 +56,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             ExecutableState executableState = null;
             if (reservation != null) {
                 // Reservation should contain allocated room
-                RoomExecutable roomExecutable = (RoomExecutable) reservation.getExecutable();
+                AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
                 if (roomExecutable != null) {
                     executableState = roomExecutable.getState();
                     room = new RoomModel(roomExecutable, cacheProvider, messageProvider, executableService);
@@ -64,8 +64,8 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
             }
 
             // Reservation request state
-            state = ReservationRequestState.fromApi(
-                    allocationState, executableState, abstractReservationRequest.getType(), reservation.getId());
+            state = ReservationRequestState.fromApi(allocationState, executableState,
+                    abstractReservationRequest.getType(), (reservation != null ? reservation.getId() : null));
         }
 
     }

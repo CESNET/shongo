@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
@@ -42,7 +43,7 @@ public class RoomModel
 
     private String stateReport;
 
-    public RoomModel(RoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
+    public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
             ExecutableService executableService)
     {
         this.messageProvider = messageProvider;
@@ -59,7 +60,6 @@ public class RoomModel
             }
         }
         this.licenseCount = roomExecutable.getLicenseCount();
-
 
         ExecutableState roomUsageState = null;
         if (this.licenseCount == 0) {
