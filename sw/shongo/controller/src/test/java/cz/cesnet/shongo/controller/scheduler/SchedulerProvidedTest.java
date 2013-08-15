@@ -394,8 +394,8 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         // Check allocated usages of alias
         Reservation reservation1 = checkAllocated(reservationRequest1Id);
         Reservation reservation2 = checkAllocated(reservationRequest2Id);
-        RoomExecutable room1 = (RoomExecutable) reservation1.getExecutable();
-        RoomExecutable room2 = (RoomExecutable) reservation2.getExecutable();
+        AbstractRoomExecutable room1 = (AbstractRoomExecutable) reservation1.getExecutable();
+        AbstractRoomExecutable room2 = (AbstractRoomExecutable) reservation2.getExecutable();
         Assert.assertEquals("001", room1.getAliasByType(AliasType.H323_E164).getValue());
         Assert.assertEquals("001", room2.getAliasByType(AliasType.H323_E164).getValue());
 
@@ -416,8 +416,8 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         // Check allocated usages of alias to be updated by the provided reservation request modification
         reservation1 = checkAllocated(reservationRequest1Id);
         reservation2 = checkAllocated(reservationRequest2Id);
-        room1 = (RoomExecutable) reservation1.getExecutable();
-        room2 = (RoomExecutable) reservation2.getExecutable();
+        room1 = (AbstractRoomExecutable) reservation1.getExecutable();
+        room2 = (AbstractRoomExecutable) reservation2.getExecutable();
         Assert.assertEquals("001", room1.getAliasByType(AliasType.H323_E164).getValue());
         Assert.assertEquals("555", room2.getAliasByType(AliasType.H323_E164).getValue());
 
