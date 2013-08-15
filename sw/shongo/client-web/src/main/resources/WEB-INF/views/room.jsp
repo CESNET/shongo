@@ -8,7 +8,7 @@
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<spring:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, room.reservationRequestId)" var="urlDetail"/>
+<spring:eval expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDetail(contextPath, reservationRequestId)" var="urlDetail"/>
 
 <script type="text/javascript">
     angular.module('jsp:room', ['ngTooltip']);
@@ -21,7 +21,7 @@
         <dt><spring:message code="views.room.technology"/>:</dt>
         <dd>${room.technology.title}</dd>
 
-        <dt><spring:message code="views.reservationRequest.slot"/>:</dt>
+        <dt><spring:message code="views.room.slot"/>:</dt>
         <dd>
             <joda:format value="${room.slot.start}" style="MM"/>
             <br/>
@@ -29,7 +29,7 @@
         </dd>
 
         <dt><spring:message code="views.room.state"/>:</dt>
-        <dd class="executable-state">
+        <dd class="room-state">
             <spring:message code="views.executable.roomState.${room.state}" var="roomStateLabel"/>
             <spring:message code="help.executable.roomState.${room.state}" var="roomStateHelp"/>
             <tag:help label="${roomStateLabel}" labelClass="${room.state}">

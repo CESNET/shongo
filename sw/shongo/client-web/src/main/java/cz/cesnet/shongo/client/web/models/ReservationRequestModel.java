@@ -70,10 +70,6 @@ public class ReservationRequestModel
 
     private String roomPin;
 
-    private AllocationState allocationState;
-
-    private String allocationStateReport;
-
     private List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
     public ReservationRequestModel()
@@ -85,6 +81,14 @@ public class ReservationRequestModel
     public ReservationRequestModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
     {
         fromApi(reservationRequest, cacheProvider);
+    }
+
+    public ReservationRequestDetailModel getDetail()
+    {
+        if (this instanceof ReservationRequestDetailModel) {
+            return (ReservationRequestDetailModel) this;
+        }
+        return null;
     }
 
     public String getId()
@@ -262,16 +266,6 @@ public class ReservationRequestModel
         this.roomPin = roomPin;
     }
 
-    public AllocationState getAllocationState()
-    {
-        return allocationState;
-    }
-
-    public String getAllocationStateReport()
-    {
-        return allocationStateReport;
-    }
-
     public List<UserRoleModel> getUserRoles()
     {
         return userRoles;
@@ -395,9 +389,6 @@ public class ReservationRequestModel
             duration = slot.toPeriod();
 
             parentReservationRequestId = reservationRequest.getParentReservationRequestId();
-
-            allocationState = reservationRequest.getAllocationState();
-            allocationStateReport = reservationRequest.getAllocationStateReport();
         }
         else if (abstractReservationRequest instanceof ReservationRequestSet) {
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
@@ -699,174 +690,6 @@ public class ReservationRequestModel
         NONE,
         DAILY,
         WEEKLY
-    }
-
-    /**
-     * Date/time formatters.
-     */
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
-
-    /**
-     * @param text
-     * @return formatted given {@code text} to be better selectable by triple click
-     */
-    private static String formatSelectable(String text)
-    {
-        return "<span style=\"float:left\">" + text + "</span>";
-    }
-
-    /**
-     * @param aliases
-     * @param isAvailable
-     * @return formatted aliases
-     */
-    public static String formatAliases(List<Alias> aliases, boolean isAvailable)
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<span class=\"aliases");
-        if (!isAvailable) {
-            stringBuilder.append(" not-available");
-        }
-        stringBuilder.append("\">");
-        int index = 0;
-        for (Alias alias : aliases) {
-            AliasType aliasType = alias.getType();
-            String aliasValue = null;
-            switch (aliasType) {
-                case H323_E164:
-                    aliasValue = alias.getValue();
-                    break;
-                case ADOBE_CONNECT_URI:
-                    aliasValue = alias.getValue();
-                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
-                    if (isAvailable) {
-                        StringBuilder aliasValueBuilder = new StringBuilder();
-                        aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
-                        aliasValueBuilder.append(alias.getValue());
-                        aliasValueBuilder.append("\" target=\"_blank\">");
-                        aliasValueBuilder.append(aliasValue);
-                        aliasValueBuilder.append("</a>");
-                        aliasValue = aliasValueBuilder.toString();
-                    }
-                    break;
-            }
-            if (aliasValue == null) {
-                continue;
-            }
-            if (index > 0) {
-                stringBuilder.append(",&nbsp;");
-            }
-            stringBuilder.append(aliasValue);
-            index++;
-        }
-        stringBuilder.append("</span>");
-        return stringBuilder.toString();
-    }
-
-    /**
-     * @param aliases
-     * @param isAvailable
-     * @param messageProvider
-     * @return formatted description of aliases
-     */
-    public static String formatAliasesDescription(List<Alias> aliases, boolean isAvailable, MessageProvider messageProvider)
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("<table class=\"aliases");
-        if (!isAvailable) {
-            stringBuilder.append(" not-available");
-        }
-        stringBuilder.append("\">");
-        for (Alias alias : aliases) {
-            AliasType aliasType = alias.getType();
-            switch (aliasType) {
-                case H323_E164:
-                    stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
-                    stringBuilder.append(":</td><td>");
-                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
-                    stringBuilder.append("</td></tr>");
-                    stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
-                    stringBuilder.append(":</td><td>");
-                    stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
-                    stringBuilder.append("</td></tr>");
-                    break;
-                case H323_URI:
-                case H323_IP:
-                case SIP_URI:
-                case SIP_IP:
-                    stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
-                    stringBuilder.append(":</td><td>");
-                    stringBuilder.append(formatSelectable(alias.getValue()));
-                    stringBuilder.append("</td></tr>");
-                    break;
-                case ADOBE_CONNECT_URI:
-                    stringBuilder.append("<tr><td class=\"label\">");
-                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
-                    stringBuilder.append(":</td><td>");
-                    if (isAvailable) {
-                        stringBuilder.append("<a class=\"nowrap\" href=\"");
-                        stringBuilder.append(alias.getValue());
-                        stringBuilder.append("\" target=\"_blank\">");
-                        stringBuilder.append(alias.getValue());
-                        stringBuilder.append("</a>");
-                    }
-                    else {
-                        stringBuilder.append(alias.getValue());
-                    }
-                    stringBuilder.append("</td></tr>");
-                    break;
-            }
-        }
-        stringBuilder.append("</table>");
-        if (!isAvailable) {
-            stringBuilder.append("<span class=\"aliases not-available\">");
-            stringBuilder.append(messageProvider.getMessage("views.room.notAvailable"));
-            stringBuilder.append("</span>");
-        }
-        return stringBuilder.toString();
-    }
-
-    /**
-     * @param reservation
-     * @param messageProvider
-     * @return reservation model for given {@code reservation}
-     */
-    public static Map<String, Object> getReservationModel(Reservation reservation, MessageProvider messageProvider)
-    {
-        Map<String, Object> reservationModel = new HashMap<String, Object>();
-        if (reservation != null) {
-            // Get reservation date/time slot
-            reservationModel.put("slot", reservation.getSlot());
-
-            // Reservation should contain allocated room
-            RoomExecutable room = (RoomExecutable) reservation.getExecutable();
-            if (room != null) {
-                reservationModel.put("roomId", room.getId());
-                reservationModel.put("roomLicenseCount", room.getLicenseCount());
-
-                // Set room state and report
-                ExecutableState roomState = room.getState();
-                reservationModel.put("roomState", roomState);
-                switch (roomState) {
-                    case STARTING_FAILED:
-                    case STOPPING_FAILED:
-                        reservationModel.put("roomStateReport", room.getStateReport());
-                        break;
-                }
-
-                // Set room aliases
-                List<Alias> aliases = room.getAliases();
-                reservationModel.put("roomAliases", ReservationRequestModel.formatAliases(
-                        aliases, roomState.isAvailable()));
-                reservationModel.put("roomAliasesDescription", ReservationRequestModel.formatAliasesDescription(
-                        aliases, roomState.isAvailable(), messageProvider));
-            }
-        }
-        return reservationModel;
     }
 
     /**

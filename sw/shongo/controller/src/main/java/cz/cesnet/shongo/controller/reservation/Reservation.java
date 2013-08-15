@@ -485,7 +485,9 @@ public class Reservation extends PersistentObject implements Reportable
         }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
-            api.setExecutable(getExecutable().toApi(admin));
+            cz.cesnet.shongo.controller.api.Executable executable = getExecutable().toApi(admin);
+            executable.setReservationId(api.getId());
+            api.setExecutable(executable);
         }
         if (getParentReservation() != null) {
             api.setParentReservationId(EntityIdentifier.formatId(getParentReservation()));

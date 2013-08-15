@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.models.CommonModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.RoomState;
 import cz.cesnet.shongo.client.web.models.TechnologyModel;
@@ -92,7 +93,7 @@ public class IndexController
         ListResponse<ExecutableSummary> response = executableService.listExecutables(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ExecutableSummary executableSummary : response.getItems()) {
 
@@ -106,33 +107,19 @@ public class IndexController
                 item.put("technology", technology.getTitle());
             }
 
-            Interval slot = executableSummary.getSlot();
-            item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
-            item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
-
-            ExecutableState executableState = executableSummary.getState();
-
-            RoomState roomState;
-            String roomStateMessage;
+            RoomState roomState = RoomState.fromRoomState(
+                    executableSummary.getState(), executableSummary.getRoomLicenseCount(), executableSummary.getRoomUsageState());
+            String roomStateMessage  = messageSource.getMessage(
+                    "views.executable.roomState." + roomState, null, locale);
             String roomStateHelp;
             switch (executableSummary.getType()) {
                 case ROOM:
-                    boolean isRoomPermanent = executableSummary.getRoomLicenseCount() == 0 ||
-                            executableSummary.getRoomUsageCount() > 0;
-                    roomState = RoomState.fromRoomState(
-                            executableState, isRoomPermanent, executableSummary.getRoomLicenseCount());
-                    roomStateMessage = messageSource.getMessage(
-                            "views.executable.roomState." + roomState, null, locale);
                     roomStateHelp = messageSource.getMessage(
                             "help.executable.roomState." + roomState, null, locale);
                     break;
                 case USED_ROOM:
-                    roomState = RoomState.fromRoomState(
-                            executableState, false, executableSummary.getRoomLicenseCount());
-                    roomStateMessage = messageSource.getMessage(
-                            "views.executable.roomState." + roomState, null, locale);
                     roomStateHelp = messageSource.getMessage(
-                            "help.executable.usedRoomState." + roomState, null, locale);
+                            "help.executable.roomState.USED_ROOM." + roomState, null, locale);
                     break;
                 default:
                     throw new TodoImplementException(executableSummary.getType().toString());
@@ -143,8 +130,20 @@ public class IndexController
             item.put("stateMessage", roomStateMessage);
             item.put("stateHelp", roomStateHelp);
 
+            Interval slot = executableSummary.getRoomUsageSlot();
+            if (slot == null) {
+                slot = executableSummary.getSlot();
+            }
+            item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
+            item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
+
+            Integer licenseCount = executableSummary.getRoomUsageLicenseCount();
+            if (licenseCount == null) {
+                licenseCount = executableSummary.getRoomLicenseCount();
+            }
+            item.put("licenseCount", licenseCount);
+
             item.put("usageCount", executableSummary.getRoomUsageCount());
-            item.put("licenseCount", executableSummary.getRoomLicenseCount());
 
             items.add(item);
         }

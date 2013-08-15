@@ -51,6 +51,21 @@ public class ExecutableSummary extends IdentifiedComplexType
     private String roomId;
 
     /**
+     * Slot of the earliest room usage.
+     */
+    private Interval roomUsageSlot;
+
+    /**
+     * State of the earliest room usage.
+     */
+    private ExecutableState roomUsageState;
+
+    /**
+     * License count of the earliest room usage.
+     */
+    private Integer roomUsageLicenseCount;
+
+    /**
      * Number of existing room usages.
      */
     private int roomUsageCount = 0;
@@ -176,6 +191,54 @@ public class ExecutableSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #roomUsageSlot}
+     */
+    public Interval getRoomUsageSlot()
+    {
+        return roomUsageSlot;
+    }
+
+    /**
+     * @param roomUsageSlot sets the {@link #roomUsageSlot}
+     */
+    public void setRoomUsageSlot(Interval roomUsageSlot)
+    {
+        this.roomUsageSlot = roomUsageSlot;
+    }
+
+    /**
+     * @return {@link #roomUsageState}
+     */
+    public ExecutableState getRoomUsageState()
+    {
+        return roomUsageState;
+    }
+
+    /**
+     * @param roomUsageState sets the {@link #roomUsageState}
+     */
+    public void setRoomUsageState(ExecutableState roomUsageState)
+    {
+        this.roomUsageState = roomUsageState;
+    }
+
+    /**
+     * @return {@link #roomUsageLicenseCount}
+     */
+    public Integer getRoomUsageLicenseCount()
+    {
+        return roomUsageLicenseCount;
+    }
+
+    /**
+     * @param roomUsageLicenseCount sets the {@link #roomUsageLicenseCount}
+     */
+    public void setRoomUsageLicenseCount(Integer roomUsageLicenseCount)
+    {
+        this.roomUsageLicenseCount = roomUsageLicenseCount;
+    }
+
+    /**
      * @return {@link #roomUsageCount}
      */
     public int getRoomUsageCount()
@@ -198,6 +261,9 @@ public class ExecutableSummary extends IdentifiedComplexType
     private static final String ROOM_TECHNOLOGIES = "roomTechnologies";
     private static final String ROOM_LICENSE_COUNT = "roomLicenseCount";
     private static final String ROOM_ID = "roomId";
+    private static final String ROOM_USAGE_SLOT = "roomUsageSlot";
+    private static final String ROOM_USAGE_STATE = "roomUsageState";
+    private static final String ROOM_USAGE_LICENSE_COUNT = "roomUsageLicenseCount";
     private static final String ROOM_USAGE_COUNT = "roomUsageCount";
 
 
@@ -212,6 +278,9 @@ public class ExecutableSummary extends IdentifiedComplexType
         dataMap.set(ROOM_TECHNOLOGIES, roomTechnologies);
         dataMap.set(ROOM_LICENSE_COUNT, roomLicenseCount);
         dataMap.set(ROOM_ID, roomId);
+        dataMap.set(ROOM_USAGE_SLOT, roomUsageSlot);
+        dataMap.set(ROOM_USAGE_STATE, roomUsageState);
+        dataMap.set(ROOM_USAGE_LICENSE_COUNT, roomUsageLicenseCount);
         dataMap.set(ROOM_USAGE_COUNT, roomUsageCount);
         return dataMap;
     }
@@ -227,6 +296,9 @@ public class ExecutableSummary extends IdentifiedComplexType
         roomTechnologies = dataMap.getSet(ROOM_TECHNOLOGIES, Technology.class);
         roomLicenseCount = dataMap.getInteger(ROOM_LICENSE_COUNT);
         roomId = dataMap.getString(ROOM_ID);
+        roomUsageSlot = dataMap.getInterval(ROOM_USAGE_SLOT);
+        roomUsageState = dataMap.getEnum(ROOM_USAGE_STATE, ExecutableState.class);
+        roomUsageLicenseCount = dataMap.getInteger(ROOM_USAGE_LICENSE_COUNT);
         roomUsageCount = dataMap.getInt(ROOM_USAGE_COUNT);
     }
 

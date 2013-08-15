@@ -210,7 +210,19 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
                             }
                         }
                         executableSummary.setRoomLicenseCount(((Number) record[7]).intValue());
-                        executableSummary.setRoomUsageCount(((Number) record[9]).intValue());
+                        if (record[9] != null && record[10] != null) {
+                            executableSummary.setRoomUsageSlot(
+                                    new Interval(new DateTime(record[9]), new DateTime(record[10])));
+                        }
+                        if (record[11] != null) {
+                            executableSummary.setRoomUsageState(
+                                    cz.cesnet.shongo.controller.executor.Executable.State.valueOf(
+                                            record[11].toString()).toApi());
+                        }
+                        if (record[12] != null) {
+                            executableSummary.setRoomUsageLicenseCount(((Number) record[12]).intValue());
+                        }
+                        executableSummary.setRoomUsageCount(((Number) record[13]).intValue());
                         break;
                 }
 

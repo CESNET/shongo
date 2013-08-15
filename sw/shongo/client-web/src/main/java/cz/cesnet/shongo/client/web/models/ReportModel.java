@@ -49,7 +49,7 @@ public class ReportModel
 
     public void validate(BindingResult bindingResult)
     {
-        CommonValidator.validateEmail(bindingResult, "email", "validation.field.invalidEmail");
+        CommonModel.validateEmail(bindingResult, "email", "validation.field.invalidEmail");
         ValidationUtils.rejectIfEmptyOrWhitespace(bindingResult, "message", "validation.field.required");
     }
 }

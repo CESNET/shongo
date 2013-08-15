@@ -2,6 +2,7 @@
 DROP VIEW specification_summary IF EXISTS;
 DROP VIEW reservation_request_summary IF EXISTS;
 DROP VIEW reservation_request_state IF EXISTS;
+DROP VIEW executable_summary IF EXISTS;
 
 /**
  * @see specification_summary in postgresql/init.sql
@@ -90,7 +91,11 @@ SELECT
     NULL AS room_technologies,
     room_configuration.license_count AS room_license_count,
     used_room_endpoint.room_endpoint_id AS room_id,
-    0 AS room_usage_count
+    0 AS room_usage_count,
+    NULL AS room_usage_slot_start,
+    NULL AS room_usage_slot_end,
+    NULL AS room_usage_state,
+    NULL AS room_usage_license_count
 FROM executable
 LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
 LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id

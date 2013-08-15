@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.UsedRoomExecutable;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ResourceControlService;
 import org.springframework.context.MessageSource;
@@ -55,8 +56,22 @@ public class RoomController
     {
         // Room executable
         Executable executable = executableService.getExecutable(securityToken, executableId);
-        RoomExecutable roomExecutable = (RoomExecutable) executable;
-        if (roomExecutable == null) {
+        RoomExecutable roomExecutable;
+        if (executable instanceof RoomExecutable) {
+            roomExecutable = (RoomExecutable) executable;
+        }
+        else if (executable instanceof UsedRoomExecutable) {
+            UsedRoomExecutable usedRoomExecutable = (UsedRoomExecutable) executable;
+            Executable usedExecutable = executableService.getExecutable(
+                    securityToken, usedRoomExecutable.getRoomExecutableId());
+            if (usedExecutable instanceof RoomExecutable) {
+                roomExecutable = (RoomExecutable) usedExecutable;
+            }
+            else {
+                throw new UnsupportedApiException(usedExecutable);
+            }
+        }
+        else {
             throw new UnsupportedApiException(executable);
         }
 
@@ -101,7 +116,7 @@ public class RoomController
         }
 
         // Reservation request for room
-        String reservationRequestId = cache.getReservationRequestIdByReservation(securityToken, executable);
+        String reservationRequestId = cache.getReservationRequestIdByExecutable(securityToken, executable);
         model.addAttribute("reservationRequestId", reservationRequestId);
 
         return "room";

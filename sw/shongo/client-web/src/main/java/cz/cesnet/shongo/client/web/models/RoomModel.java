@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.controller.api.AbstractRoomExecutable;
+import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -30,9 +33,9 @@ public class RoomModel
 
     private TechnologyModel technology;
 
-    private int licenseCount;
+    private String name;
 
-    private boolean isPermanent = false;
+    private int licenseCount;
 
     private List<Alias> aliases;
 
@@ -40,22 +43,26 @@ public class RoomModel
 
     private String stateReport;
 
-    public RoomModel(RoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
+    public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
             ExecutableService executableService)
     {
         this.messageProvider = messageProvider;
 
         this.id = roomExecutable.getId();
-        this.reservationRequestId = cacheProvider.getReservationRequestIdByReservation(roomExecutable);
+        this.reservationRequestId = cacheProvider.getReservationRequestIdByExecutable(roomExecutable);
         this.slot = roomExecutable.getSlot();
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();
+        for (Alias alias : roomExecutable.getAliases()) {
+            if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                this.name = alias.getValue();
+                break;
+            }
+        }
         this.licenseCount = roomExecutable.getLicenseCount();
 
+        ExecutableState roomUsageState = null;
         if (this.licenseCount == 0) {
-            // Permanent room
-            this.isPermanent = true;
-
             // Get license count from active usage
             ExecutableListRequest request = new ExecutableListRequest();
             request.setSecurityToken(cacheProvider.getSecurityToken());
@@ -65,32 +72,14 @@ public class RoomModel
             for (ExecutableSummary executableSummary : executableSummaries) {
                 if (executableSummary.getSlot().contains(dateTimeNow) && executableSummary.getState().isAvailable()) {
                     licenseCount = executableSummary.getRoomLicenseCount();
+                    roomUsageState = executableSummary.getState();
                     break;
                 }
             }
         }
 
-        // State
-        if (this.isPermanent) {
-            this.state = RoomState.NOT_AVAILABLE;
-            switch (roomExecutable.getState()) {
-                case STARTED:
-                case STOPPING_FAILED:
-                    if (this.licenseCount > 0) {
-                        this.state = RoomState.AVAILABLE;
-                    }
-                    break;
-                case STARTING_FAILED:
-                    this.state = RoomState.FAILED;
-                    break;
-                case STOPPED:
-                    this.state = RoomState.STOPPED;
-                    break;
-            }
-        }
-        else {
-            this.state = RoomState.valueOf(roomExecutable.getState().toString());
-        }
+        this.state = RoomState.fromRoomState(
+                roomExecutable.getState(), roomExecutable.getLicenseCount(), roomUsageState);
         this.stateReport = roomExecutable.getStateReport();
     }
 
@@ -112,6 +101,11 @@ public class RoomModel
     public TechnologyModel getTechnology()
     {
         return technology;
+    }
+
+    public String getName()
+    {
+        return name;
     }
 
     public int getLicenseCount()
@@ -136,12 +130,135 @@ public class RoomModel
 
     public String getAliases()
     {
-        return ReservationRequestModel.formatAliases(aliases, isAvailable());
+        return formatAliases(aliases, isAvailable());
     }
 
     public String getAliasesDescription()
     {
-        return ReservationRequestModel.formatAliasesDescription(aliases, isAvailable(), messageProvider);
+        return formatAliasesDescription(aliases, isAvailable(), messageProvider);
+    }
+
+    /**
+     * @param text
+     * @return formatted given {@code text} to be better selectable by triple click
+     */
+    private static String formatSelectable(String text)
+    {
+        return "<span style=\"float:left\">" + text + "</span>";
+    }
+
+    /**
+     * @param aliases
+     * @param isAvailable
+     * @return formatted aliases
+     */
+    public static String formatAliases(List<Alias> aliases, boolean isAvailable)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<span class=\"aliases");
+        if (!isAvailable) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        int index = 0;
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            String aliasValue = null;
+            switch (aliasType) {
+                case H323_E164:
+                    aliasValue = alias.getValue();
+                    break;
+                case ADOBE_CONNECT_URI:
+                    aliasValue = alias.getValue();
+                    aliasValue = aliasValue.replaceFirst("http(s)?\\://", "");
+                    if (isAvailable) {
+                        StringBuilder aliasValueBuilder = new StringBuilder();
+                        aliasValueBuilder.append("<a class=\"nowrap\" href=\"");
+                        aliasValueBuilder.append(alias.getValue());
+                        aliasValueBuilder.append("\" target=\"_blank\">");
+                        aliasValueBuilder.append(aliasValue);
+                        aliasValueBuilder.append("</a>");
+                        aliasValue = aliasValueBuilder.toString();
+                    }
+                    break;
+            }
+            if (aliasValue == null) {
+                continue;
+            }
+            if (index > 0) {
+                stringBuilder.append(",&nbsp;");
+            }
+            stringBuilder.append(aliasValue);
+            index++;
+        }
+        stringBuilder.append("</span>");
+        return stringBuilder.toString();
+    }
+
+    /**
+     * @param aliases
+     * @param isAvailable
+     * @param messageProvider
+     * @return formatted description of aliases
+     */
+    public static String formatAliasesDescription(List<Alias> aliases, boolean isAvailable, MessageProvider messageProvider)
+    {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("<table class=\"aliases");
+        if (!isAvailable) {
+            stringBuilder.append(" not-available");
+        }
+        stringBuilder.append("\">");
+        for (Alias alias : aliases) {
+            AliasType aliasType = alias.getType();
+            switch (aliasType) {
+                case H323_E164:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164"));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("+420" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias.H323_E164_GDS"));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable("(00420)" + alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case H323_URI:
+                case H323_IP:
+                case SIP_URI:
+                case SIP_IP:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    stringBuilder.append(formatSelectable(alias.getValue()));
+                    stringBuilder.append("</td></tr>");
+                    break;
+                case ADOBE_CONNECT_URI:
+                    stringBuilder.append("<tr><td class=\"label\">");
+                    stringBuilder.append(messageProvider.getMessage("views.room.alias." + aliasType));
+                    stringBuilder.append(":</td><td>");
+                    if (isAvailable) {
+                        stringBuilder.append("<a class=\"nowrap\" href=\"");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("\" target=\"_blank\">");
+                        stringBuilder.append(alias.getValue());
+                        stringBuilder.append("</a>");
+                    }
+                    else {
+                        stringBuilder.append(alias.getValue());
+                    }
+                    stringBuilder.append("</td></tr>");
+                    break;
+            }
+        }
+        stringBuilder.append("</table>");
+        if (!isAvailable) {
+            stringBuilder.append("<span class=\"aliases not-available\">");
+            stringBuilder.append(messageProvider.getMessage("views.room.notAvailable"));
+            stringBuilder.append("</span>");
+        }
+        return stringBuilder.toString();
     }
 
 }

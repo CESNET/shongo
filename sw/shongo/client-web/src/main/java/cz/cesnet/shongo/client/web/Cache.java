@@ -272,7 +272,7 @@ public class Cache
      * @param executable
      * @return reservation request id for given {@code reservationId}
      */
-    public String getReservationRequestIdByReservation(SecurityToken securityToken, Executable executable)
+    public String getReservationRequestIdByExecutable(SecurityToken securityToken, Executable executable)
     {
         Reservation reservation = reservationService.getReservation(securityToken, executable.getReservationId());
         String reservationRequestId = reservation.getReservationRequestId();

@@ -6,10 +6,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestState;
-import cz.cesnet.shongo.client.web.models.TechnologyModel;
-import cz.cesnet.shongo.client.web.models.UnsupportedApiException;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -132,8 +129,8 @@ public class ReservationRequestController
         cache.fetchReservationRequests(securityToken, providedReservationRequestIds);
 
         // Build response
-        DateTimeFormatter dateFormatter = ReservationRequestModel.DATE_FORMATTER.withLocale(locale);
-        DateTimeFormatter dateTimeFormatter = ReservationRequestModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateFormatter = CommonModel.DATE_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reservationRequestId = reservationRequest.getId();

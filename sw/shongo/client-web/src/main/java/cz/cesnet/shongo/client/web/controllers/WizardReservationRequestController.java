@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.*;
+import cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
-import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -32,6 +33,9 @@ public class WizardReservationRequestController extends AbstractWizardController
 {
     @Resource
     private ReservationService reservationService;
+
+    @Resource
+    private ExecutableService executableService;
 
     @Resource
     private AuthorizationService authorizationService;
@@ -89,11 +93,25 @@ public class WizardReservationRequestController extends AbstractWizardController
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
         CacheProvider cacheProvider = new CacheProvider(cache, securityToken);
+        MessageProvider messageProvider = new MessageProvider(messageSource, locale);
 
         // Get reservation request
         AbstractReservationRequest abstractReservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
-        ReservationRequestModel reservationRequest = new ReservationRequestModel(abstractReservationRequest, cacheProvider);
+
+        // Get reservation
+        Reservation reservation = null;
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            String reservationId = reservationRequest.getLastReservationId();
+            if (reservationId != null) {
+                reservation = reservationService.getReservation(cacheProvider.getSecurityToken(), reservationId);
+            }
+        }
+
+        // Create reservation request model
+        ReservationRequestDetailModel reservationRequest = new ReservationRequestDetailModel(
+                abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
 
         // Get user roles
         AclRecordListRequest request = new AclRecordListRequest();
@@ -108,17 +126,6 @@ public class WizardReservationRequestController extends AbstractWizardController
         WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST_DETAIL, "wizardReservationRequestDetail.jsp");
         wizardView.addObject("reservationRequest", reservationRequest);
         wizardView.addObject("userRoles", userRoles);
-
-        // Get reservation
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            String reservationId = ((ReservationRequest) abstractReservationRequest).getLastReservationId();
-            if (reservationId != null) {
-                Reservation reservation = reservationService.getReservation(securityToken, reservationId);
-                wizardView.addObject("reservation", ReservationRequestModel.getReservationModel(
-                        reservation, new MessageProvider(messageSource, locale)));
-            }
-        }
-
         wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
 
         return wizardView;
@@ -139,7 +146,7 @@ public class WizardReservationRequestController extends AbstractWizardController
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
         wizardView.addObject("reservationRequest", reservationRequest);
         wizardView.addObject("dependencies", dependencies);
-        if(dependencies.size() == 0) {
+        if (dependencies.size() == 0) {
             wizardView.setPreviousPage(null);
             wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId),
                     "views.button.yes").setPrimary(true);

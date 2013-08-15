@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
+import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.ExecutableState;
 
 /**
@@ -9,45 +10,38 @@ import cz.cesnet.shongo.controller.api.ExecutableState;
 */
 public enum RoomState
 {
-    NOT_STARTED(ExecutableState.NOT_STARTED.isAvailable()),
-
     /**
-     * {@link cz.cesnet.shongo.controller.api.Executable} is already started.
+     * Room is not started.
      */
-    STARTED(ExecutableState.STARTED.isAvailable()),
+    NOT_STARTED(false),
 
     /**
-     * {@link cz.cesnet.shongo.controller.api.Executable} failed to start.
+     * Room is started.
      */
-    STARTING_FAILED(ExecutableState.STARTING_FAILED.isAvailable()),
+    STARTED(true),
 
     /**
-     * {@link cz.cesnet.shongo.controller.api.Executable} has been already stopped.
+     * Room is not available for participants to join.
      */
-    STOPPED(ExecutableState.STOPPED.isAvailable()),
+    STARTED_NOT_AVAILABLE(false),
 
     /**
-     * {@link cz.cesnet.shongo.controller.api.Executable} failed to stop.
+     * Room is available for participants to join.
      */
-    STOPPING_FAILED(ExecutableState.STOPPING_FAILED.isAvailable()),
+    STARTED_AVAILABLE(true),
 
     /**
-     * Permanent room is not available for participants to join.
+     * Room has been stopped.
      */
-    NOT_AVAILABLE(false),
+    STOPPED(false),
 
     /**
-     * Permanent room is available for participants to join.
-     */
-    AVAILABLE(true),
-
-    /**
-     * Permanent room is not available for participants to join due to error.
+     * Room is not available for participants to join due to error.
      */
     FAILED(false);
 
     /**
-     * Specifies whether this state represents an available room.
+     * Specifies whether this state represents an available for participants to join.available room.
      */
     private final boolean isAvailable;
 
@@ -71,29 +65,35 @@ public enum RoomState
 
     /**
      * @param roomState
-     * @param permanentRoom
-     * @param licenseCount
+     * @param roomLicenseCount
+     * @param roomUsageState
      * @return {@link RoomState}
      */
-    public static RoomState fromRoomState(ExecutableState roomState, boolean permanentRoom, int licenseCount)
+    public static RoomState fromRoomState(ExecutableState roomState, int roomLicenseCount, ExecutableState roomUsageState)
     {
-        if (permanentRoom) {
-            switch (roomState) {
-                case STARTED:
-                case STOPPING_FAILED:
-                    if (licenseCount > 0) {
-                        return RoomState.AVAILABLE;
-                    }
-                    break;
-                case STARTING_FAILED:
-                    return RoomState.FAILED;
-                case STOPPED:
-                    return RoomState.STOPPED;
-            }
-            return NOT_AVAILABLE;
-        }
-        else {
-            return RoomState.valueOf(roomState.toString());
+        switch (roomState) {
+            case NOT_STARTED:
+                return NOT_STARTED;
+            case STARTED:
+                if (roomUsageState != null) {
+                    // Permanent room with earliest usage
+                    return roomUsageState.isAvailable() ? STARTED_AVAILABLE : STARTED_NOT_AVAILABLE;
+                }
+                else if (roomLicenseCount == 0) {
+                    // Permanent room without earliest usage
+                    return STARTED_NOT_AVAILABLE;
+                }
+                else {
+                    // Other room
+                    return STARTED;
+                }
+            case STOPPED:
+            case STOPPING_FAILED:
+                return RoomState.STOPPED;
+            case STARTING_FAILED:
+                return RoomState.FAILED;
+            default:
+                throw new TodoImplementException(roomState.toString());
         }
     }
 }
