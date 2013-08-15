@@ -2,6 +2,7 @@
 DROP VIEW specification_summary IF EXISTS;
 DROP VIEW reservation_request_summary IF EXISTS;
 DROP VIEW reservation_request_state IF EXISTS;
+DROP VIEW executable_summary IF EXISTS;
 
 /**
  * @see specification_summary in postgresql/init.sql

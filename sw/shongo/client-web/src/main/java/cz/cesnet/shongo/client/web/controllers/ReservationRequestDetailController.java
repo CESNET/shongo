@@ -6,10 +6,15 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.MessageProvider;
-import cz.cesnet.shongo.client.web.models.*;
+import cz.cesnet.shongo.client.web.models.CommonModel;
+import cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel;
+import cz.cesnet.shongo.client.web.models.ReservationRequestState;
+import cz.cesnet.shongo.client.web.models.RoomModel;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
@@ -86,8 +91,9 @@ public class ReservationRequestDetailController
                 item.put("user", user.getFullName());
                 item.put("type", historyItem.getType());
 
-                if (historyItemId.equals(reservationRequestId)) {
+                if (currentHistoryItem == null & historyItemId.equals(reservationRequestId)) {
                     currentHistoryItem = item;
+                    isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
 
                 ReservationRequestState state = ReservationRequestState.fromApi(
@@ -114,7 +120,9 @@ public class ReservationRequestDetailController
             currentHistoryItem.put("selected", true);
 
             model.addAttribute("history", history);
-            isActive = currentHistoryItem == history.get(0);
+            if (isActive) {
+                isActive = currentHistoryItem == history.get(0);
+            }
         }
         else {
             // Child reservation requests don't have history
