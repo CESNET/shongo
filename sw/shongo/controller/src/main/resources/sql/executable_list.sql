@@ -13,6 +13,10 @@ SELECT
     executable_summary.room_technologies AS room_technologies,
     executable_summary.room_license_count AS room_license_count,
     executable_summary.room_id AS room_id,
+    executable_summary.room_usage_slot_start AS room_usage_slot_start,
+    executable_summary.room_usage_slot_end AS room_usage_slot_end,
+    executable_summary.room_usage_state AS room_usage_state,
+    executable_summary.room_usage_license_count AS room_usage_license_count,
     COUNT(used_room_endpoint.id) AS room_usage_count
 FROM executable_summary
 LEFT JOIN used_room_endpoint ON executable_summary.type = 'ROOM'
@@ -34,5 +38,9 @@ GROUP BY
     executable_summary.room_name,
     executable_summary.room_technologies,
     executable_summary.room_license_count,
-    executable_summary.room_id
+    executable_summary.room_id,
+    executable_summary.room_usage_slot_start,
+    executable_summary.room_usage_slot_end,
+    executable_summary.room_usage_state,
+    executable_summary.room_usage_license_count
 ORDER BY ${order}

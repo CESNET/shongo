@@ -5,10 +5,14 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.controller.executor.Executable;
 import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
@@ -47,7 +51,16 @@ public class SchedulerMigrationTest extends AbstractControllerTest
         String requestId = service.createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runScheduler(Interval.parse("2012-01-01T12:00/2012-02-01T12:00"));
-        checkAllocated(requestId);
+        Reservation reservation = checkAllocated(requestId);
+
+        // Set the allocated room as started, because a migration is allocated only for started rooms
+        EntityManager entityManager = createEntityManager();
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(EntityIdentifier.parseId(
+                cz.cesnet.shongo.controller.executor.Executable.class, reservation.getExecutable().getId()));
+        executable.setState(Executable.State.STARTED);
+        executableManager.update(executable);
+        entityManager.close();
 
         // Modify room
         reservationRequest = (ReservationRequest) service.getReservationRequest(SECURITY_TOKEN, requestId);

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.controller.api.ExecutableState;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.RoomExecutable;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
@@ -33,8 +34,6 @@ public class RoomModel
 
     private int licenseCount;
 
-    private boolean isPermanent = false;
-
     private List<Alias> aliases;
 
     private RoomState state;
@@ -53,10 +52,9 @@ public class RoomModel
         this.aliases = roomExecutable.getAliases();
         this.licenseCount = roomExecutable.getLicenseCount();
 
-        if (this.licenseCount == 0) {
-            // Permanent room
-            this.isPermanent = true;
 
+        ExecutableState roomUsageState = null;
+        if (this.licenseCount == 0) {
             // Get license count from active usage
             ExecutableListRequest request = new ExecutableListRequest();
             request.setSecurityToken(cacheProvider.getSecurityToken());
@@ -66,32 +64,14 @@ public class RoomModel
             for (ExecutableSummary executableSummary : executableSummaries) {
                 if (executableSummary.getSlot().contains(dateTimeNow) && executableSummary.getState().isAvailable()) {
                     licenseCount = executableSummary.getRoomLicenseCount();
+                    roomUsageState = executableSummary.getState();
                     break;
                 }
             }
         }
 
-        // State
-        if (this.isPermanent) {
-            this.state = RoomState.NOT_AVAILABLE;
-            switch (roomExecutable.getState()) {
-                case STARTED:
-                case STOPPING_FAILED:
-                    if (this.licenseCount > 0) {
-                        this.state = RoomState.AVAILABLE;
-                    }
-                    break;
-                case STARTING_FAILED:
-                    this.state = RoomState.FAILED;
-                    break;
-                case STOPPED:
-                    this.state = RoomState.STOPPED;
-                    break;
-            }
-        }
-        else {
-            this.state = RoomState.valueOf(roomExecutable.getState().toString());
-        }
+        this.state = RoomState.fromRoomState(
+                roomExecutable.getState(), roomExecutable.getLicenseCount(), roomUsageState);
         this.stateReport = roomExecutable.getStateReport();
     }
 

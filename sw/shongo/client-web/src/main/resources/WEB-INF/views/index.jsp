@@ -110,7 +110,7 @@
                         <td>{{room.technology}}</td>
                         <td style="text-align: right; padding-right: 30px;">{{room.licenseCount}}</td>
                         <td>{{room.slotStart}} - {{room.slotEnd}}</td>
-                        <td class="executable-state">
+                        <td class="room-state">
                             <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}"
                                       tooltipId="roomStateTooltip-{{$index}}">
                                 <span>{{room.stateHelp}}</span>
@@ -130,7 +130,7 @@
                                     </strong>
                                     <spring:message code="views.index.dashboard.room.usage.slot"
                                                     arguments="{{usage.slotStart}},{{usage.slotEnd}}"/>
-                                    <span class="executable-state">
+                                    <span class="room-state">
                                         (<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)
                                     </span>
                                 </li>

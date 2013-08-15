@@ -400,7 +400,35 @@ table.aliases td.label {
     text-align: right;
 }
 
-/** Reservation request states */
+/** AllocationState */
+.reservation-request-allocation-state .NOT_ALLOCATED {
+    color: #b8860b;
+}
+.reservation-request-allocation-state .ALLOCATED {
+    color: green;
+}
+.reservation-request-allocation-state .ALLOCATION_FAILED {
+    color: red;
+}
+
+/** ExecutableState */
+.executable-state .NOT_STARTED {
+    color: #b8860b;
+}
+.executable-state .STARTED {
+    color: green;
+}
+.executable-state .STARTING_FAILED {
+    color: red;
+}
+.executable-state .STOPPED {
+    color: blue;
+}
+.executable-state .STOPPING_FAILED {
+    color: red;
+}
+
+/** ReservationRequestState */
 .reservation-request-state .NOT_ALLOCATED {
     color: #b8860b;
 }
@@ -419,41 +447,27 @@ table.aliases td.label {
 .reservation-request-state .MODIFICATION_FAILED {
     color: darkorange;
 }
-/** Reservation request allocation states */
-.reservation-request-allocation-state .NOT_ALLOCATED {
+
+/** RoomState */
+.room-state .NOT_STARTED {
     color: #b8860b;
 }
-.reservation-request-allocation-state .ALLOCATED {
+.room-state .STARTED {
     color: green;
 }
-.reservation-request-allocation-state .ALLOCATION_FAILED {
-    color: red;
-}
-/** Executable states */
-.executable-state .NOT_STARTED {
+.room-state .STARTED_NOT_AVAILABLE {
     color: #b8860b;
 }
-.executable-state .STARTED {
+.room-state .STARTED_AVAILABLE {
     color: green;
 }
-.executable-state .STARTING_FAILED {
-    color: red;
-}
-.executable-state .STOPPED {
+.room-state .STOPPED {
     color: blue;
 }
-.executable-state .STOPPING_FAILED {
+.room-state .FAILED {
     color: red;
 }
-.executable-state .NOT_AVAILABLE {
-    color: #b8860b;
-}
-.executable-state .AVAILABLE {
-    color: green;
-}
-.executable-state .FAILED {
-    color: red;
-}
+
 
 /* error page */
 .error pre {

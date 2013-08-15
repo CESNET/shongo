@@ -194,13 +194,17 @@ CREATE VIEW executable_summary AS
         WHEN room_endpoint.id IS NOT NULL THEN 'ROOM'
         ELSE 'OTHER'
     END AS type,
-    COALESCE(room_endpoint_earliest_usage.slot_start, executable.slot_start) AS slot_start,
-    COALESCE(room_endpoint_earliest_usage.slot_end, executable.slot_end) AS slot_end,
-    COALESCE(room_endpoint_earliest_usage.state, executable.state) AS state,
+    executable.slot_start AS slot_start,
+    executable.slot_end AS slot_end,
+    executable.state AS state,
     alias.value AS room_name,
     string_agg(DISTINCT room_configuration_technologies.technologies, ',') AS room_technologies,
-    COALESCE(room_endpoint_earliest_usage.license_count, room_configuration.license_count) AS room_license_count,
-    used_room_endpoint.room_endpoint_id AS room_id
+    room_configuration.license_count AS room_license_count,
+    used_room_endpoint.room_endpoint_id AS room_id,
+    room_endpoint_earliest_usage.slot_start AS room_usage_slot_start,
+    room_endpoint_earliest_usage.slot_end AS room_usage_slot_end,
+    room_endpoint_earliest_usage.state AS room_usage_state,
+    room_endpoint_earliest_usage.license_count AS room_usage_license_count
   FROM executable
     LEFT JOIN room_endpoint ON room_endpoint.id = executable.id
     LEFT JOIN used_room_endpoint ON used_room_endpoint.id = executable.id

@@ -83,6 +83,14 @@ public class ReservationRequestModel
         fromApi(reservationRequest, cacheProvider);
     }
 
+    public ReservationRequestDetailModel getDetail()
+    {
+        if (this instanceof ReservationRequestDetailModel) {
+            return (ReservationRequestDetailModel) this;
+        }
+        return null;
+    }
+
     public String getId()
     {
         return id;

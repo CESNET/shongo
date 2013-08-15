@@ -29,7 +29,7 @@
         </dd>
 
         <dt><spring:message code="views.room.state"/>:</dt>
-        <dd class="executable-state">
+        <dd class="room-state">
             <spring:message code="views.executable.roomState.${room.state}" var="roomStateLabel"/>
             <spring:message code="help.executable.roomState.${room.state}" var="roomStateHelp"/>
             <tag:help label="${roomStateLabel}" labelClass="${room.state}">
