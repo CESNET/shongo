@@ -95,7 +95,7 @@
                 </tr>
                 </thead>
                 <tbody ng-controller="RoomController">
-                    <tr ng-repeat-start="room in items" ng-class-odd="'odd'" ng-class-even="'even'">
+                        <tr ng-repeat-start="room in items" ng-class-odd="'odd'" ng-class-even="'even'">
                         <spring:eval var="urlRoomManagement"
                                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{room.id}}')"/>
                         <td>

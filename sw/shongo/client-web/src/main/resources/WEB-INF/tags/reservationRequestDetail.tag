@@ -135,7 +135,7 @@
             <c:if test="${reservationRequestDetail.room != null && reservationRequestDetail.room.state.available}">
                 <spring:eval var="urlRoomManagement"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservationRequestDetail.room.id)"/>
-                (<a href="${urlRoomManagement}"><spring:message code="views.list.action.manage"/></a>
+                (<a href="${urlRoomManagement}"><spring:message code="views.list.action.manage"/></a>)
             </c:if>
         </dd>
 

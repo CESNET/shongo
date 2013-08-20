@@ -145,6 +145,9 @@ td.empty, span.empty {
 .table tr.selected td {
     background-color: #DDF0FF !important;
 }
+.table tr.deprecated td {
+    background-color: #666666 !important;
+}
 .table thead a {
     color: black;
 }
