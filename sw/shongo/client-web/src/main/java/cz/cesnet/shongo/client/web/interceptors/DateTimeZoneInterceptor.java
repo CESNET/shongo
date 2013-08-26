@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.client.web.interceptors;
 
+import com.google.common.base.Strings;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
         if (dateTimeZone == null) {
             String timeZoneOffset = request.getParameter("time-zone-offset");
             String requestUrl = (String) httpSession.getAttribute(SESSION_REQUEST_URL);
-            if (timeZoneOffset != null) {
+            if (!Strings.isNullOrEmpty(timeZoneOffset)) {
                 // Set new time zone
                 dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
                 httpSession.setAttribute(SESSION_DATE_TIME_ZONE, dateTimeZone);
