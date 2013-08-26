@@ -127,7 +127,7 @@
 
     <c:if test="${reservationRequestDetail != null}">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
-        <dd class="reservation-request-state ${reservationRequest.specificationType}">
+        <dd class="reservation-request-state">
             <spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}" var="state"/>
             <tag:help label="${state}" labelClass="${reservationRequestDetail.state}">
                 <spring:message code="help.reservationRequest.state.${reservationRequestDetail.state}"/>

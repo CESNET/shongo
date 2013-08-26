@@ -28,19 +28,24 @@ public enum ReservationRequestState
     ALLOCATED_STARTED(true),
 
     /**
-     * Reservation request is allocated by the scheduler and the allocated room is not available for participants to join.
+     * Reservation request is allocated by the scheduler and the allocated room is started but not available for participants to join.
      */
-    ALLOCATED_NOT_AVAILABLE(true),
+    ALLOCATED_STARTED_NOT_AVAILABLE(true),
 
     /**
-     * Reservation request is allocated by the scheduler and the allocated room is available for participants to join.
+     * Reservation request is allocated by the scheduler and the allocated room is started and available for participants to join.
+     */
+    ALLOCATED_STARTED_AVAILABLE(true),
+
+    /**
+     * Reservation request is allocated by the scheduler and the allocated capacity is available for participants to join.
      */
     ALLOCATED_AVAILABLE(true),
 
     /**
      * Reservation request is allocated by the scheduler and the allocated executable has been started and stopped.
      */
-    ALLOCATED_STOPPED(true),
+    ALLOCATED_FINISHED(true),
 
     /**
      * Reservation request cannot be allocated by the scheduler or the starting of executable failed.
@@ -111,14 +116,14 @@ public enum ReservationRequestState
                             switch (executableState) {
                                 case STARTED:
                                     if (usageExecutableState != null && usageExecutableState.isAvailable()) {
-                                        return ALLOCATED_AVAILABLE;
+                                        return ALLOCATED_STARTED_AVAILABLE;
                                     }
                                     else {
-                                        return ALLOCATED_NOT_AVAILABLE;
+                                        return ALLOCATED_STARTED_NOT_AVAILABLE;
                                     }
                                 case STOPPED:
                                 case STOPPING_FAILED:
-                                    return ALLOCATED_STOPPED;
+                                    return ALLOCATED_FINISHED;
                                 case STARTING_FAILED:
                                     return FAILED;
                                 default:
@@ -130,7 +135,7 @@ public enum ReservationRequestState
                                     return ALLOCATED_AVAILABLE;
                                 case STOPPED:
                                 case STOPPING_FAILED:
-                                    return ALLOCATED_NOT_AVAILABLE;
+                                    return ALLOCATED_FINISHED;
                                 case STARTING_FAILED:
                                     return FAILED;
                                 default:
@@ -142,7 +147,7 @@ public enum ReservationRequestState
                                     return ALLOCATED_STARTED;
                                 case STOPPED:
                                 case STOPPING_FAILED:
-                                    return ALLOCATED_STOPPED;
+                                    return ALLOCATED_FINISHED;
                                 case STARTING_FAILED:
                                     return FAILED;
                                 default:

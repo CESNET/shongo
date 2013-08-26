@@ -445,19 +445,15 @@ table.aliases td.label {
 .reservation-request-state .ALLOCATED {
     color: green;
 }
-.reservation-request-state .ALLOCATED_STARTED {
+.reservation-request-state .ALLOCATED_STARTED,
+.reservation-request-state .ALLOCATED_STARTED_NOT_AVAILABLE,
+.reservation-request-state .ALLOCATED_STARTED_AVAILABLE {
     color: green;
-}
-.reservation-request-state .ALLOCATED_NOT_AVAILABLE {
-    color: #b8860b;
-}
-.reservation-request-state.PERMANENT_ROOM_CAPACITY .ALLOCATED_NOT_AVAILABLE {
-    color: blue;
 }
 .reservation-request-state .ALLOCATED_AVAILABLE {
     color: green;
 }
-.reservation-request-state .ALLOCATED_STOPPED {
+.reservation-request-state .ALLOCATED_FINISHED {
     color: blue;
 }
 .reservation-request-state .FAILED {
@@ -471,12 +467,8 @@ table.aliases td.label {
 .room-state .NOT_STARTED {
     color: #b8860b;
 }
-.room-state .STARTED {
-    color: green;
-}
-.room-state .STARTED_NOT_AVAILABLE {
-    color: #b8860b;
-}
+.room-state .STARTED,
+.room-state .STARTED_NOT_AVAILABLE,
 .room-state .STARTED_AVAILABLE {
     color: green;
 }
@@ -487,6 +479,27 @@ table.aliases td.label {
     color: red;
 }
 
+/* Icons for ReservationRequestState and RoomState */
+.reservation-request-state .ALLOCATED_STARTED_NOT_AVAILABLE:after,
+.reservation-request-state .ALLOCATED_STARTED_AVAILABLE:after,
+.room-state .STARTED_NOT_AVAILABLE:after,
+.room-state .STARTED_AVAILABLE:after {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 3px;
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+.reservation-request-state .ALLOCATED_STARTED_NOT_AVAILABLE:after,
+.room-state .STARTED_NOT_AVAILABLE:after{
+    background-image: url("../img/button-not-available.png");
+}
+.reservation-request-state .ALLOCATED_STARTED_AVAILABLE:after,
+.room-state .STARTED_AVAILABLE:after{
+    background-image: url("../img/button-available.png");
+}
 
 /* error page */
 .error pre {
@@ -503,5 +516,24 @@ table.aliases td.label {
 .icon-none {
     width: 14px;
     height: 14px;
+}
+
+.icon-not-available {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url("../img/button-not-available.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+}
+.icon-available {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    line-height: 14px;
+    background-image: url("../img/button-available.png");
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
 }
 
