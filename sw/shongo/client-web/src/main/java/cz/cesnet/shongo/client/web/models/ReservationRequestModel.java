@@ -4,13 +4,11 @@ import com.google.common.base.Strings;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.MessageProvider;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
@@ -20,8 +18,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.*;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import java.util.*;
 
@@ -637,39 +633,6 @@ public class ReservationRequestModel
         abstractReservationRequest.setSpecification(toSpecificationApi());
 
         return abstractReservationRequest;
-    }
-
-    /**
-     * Type of the reservation request.
-     */
-    public static enum SpecificationType
-    {
-        /**
-         * For ad-hoc room.
-         */
-        ADHOC_ROOM(true),
-
-        /**
-         * For permanent room.
-         */
-        PERMANENT_ROOM(true),
-
-        /**
-         * For permanent room capacity.
-         */
-        PERMANENT_ROOM_CAPACITY(false);
-
-        private final boolean isRoom;
-
-        private SpecificationType(boolean isRoom)
-        {
-            this.isRoom = isRoom;
-        }
-
-        public boolean isRoom()
-        {
-            return isRoom;
-        }
     }
 
     /**

@@ -3,10 +3,7 @@ package cz.cesnet.shongo.client.web.controllers;
 import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
-import cz.cesnet.shongo.client.web.models.UserRoleModel;
-import cz.cesnet.shongo.client.web.models.UserRoleValidator;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -24,7 +21,6 @@ import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * Controller for creating a new room
@@ -104,7 +100,7 @@ public class WizardCreateController extends AbstractWizardController
     public String handleCreateAdhocRoom(
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
-        reservationRequest.setSpecificationType(ReservationRequestModel.SpecificationType.ADHOC_ROOM);
+        reservationRequest.setSpecificationType(SpecificationType.ADHOC_ROOM);
         return "forward:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
     }
 
@@ -117,7 +113,7 @@ public class WizardCreateController extends AbstractWizardController
     public String handleCreatePermanentRoom(
             @ModelAttribute("reservationRequest") ReservationRequestModel reservationRequest)
     {
-        reservationRequest.setSpecificationType(ReservationRequestModel.SpecificationType.PERMANENT_ROOM);
+        reservationRequest.setSpecificationType(SpecificationType.PERMANENT_ROOM);
         return "forward:" + ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES;
     }
 

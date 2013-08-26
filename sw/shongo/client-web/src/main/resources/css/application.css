@@ -445,10 +445,19 @@ table.aliases td.label {
 .reservation-request-state .ALLOCATED {
     color: green;
 }
-.reservation-request-state .STARTED {
+.reservation-request-state .ALLOCATED_STARTED {
     color: green;
 }
-.reservation-request-state .FINISHED {
+.reservation-request-state .ALLOCATED_NOT_AVAILABLE {
+    color: #b8860b;
+}
+.reservation-request-state.PERMANENT_ROOM_CAPACITY .ALLOCATED_NOT_AVAILABLE {
+    color: blue;
+}
+.reservation-request-state .ALLOCATED_AVAILABLE {
+    color: green;
+}
+.reservation-request-state .ALLOCATED_STOPPED {
     color: blue;
 }
 .reservation-request-state .FAILED {

@@ -1,15 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.NavigationPage;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
-import cz.cesnet.shongo.client.web.interceptors.NavigationInterceptor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
+import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
@@ -61,7 +59,7 @@ public class ReservationRequestUpdateController
             method = {RequestMethod.GET})
     public String handleCreate(
             SecurityToken securityToken,
-            @PathVariable(value = "type") ReservationRequestModel.SpecificationType specificationType,
+            @PathVariable(value = "type") SpecificationType specificationType,
             @RequestParam(value = "permanentRoom", required = false) String permanentRoom,
             Model model)
     {
@@ -113,8 +111,7 @@ public class ReservationRequestUpdateController
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
         model.addAttribute("reservationRequest", reservationRequestModel);
-        if (reservationRequestModel.getSpecificationType().equals(
-                ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+        if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             model.addAttribute("permanentRooms",
                     ReservationRequestModel.getPermanentRooms(reservationService, securityToken, cache));
         }

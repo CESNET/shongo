@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
@@ -65,7 +66,9 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
 
             // Reservation request state
             state = ReservationRequestState.fromApi(allocationState, executableState,
-                    abstractReservationRequest.getType(), (reservation != null ? reservation.getId() : null));
+                    (room != null ? room.getUsageState() : null),
+                    abstractReservationRequest.getType(), getSpecificationType(),
+                    (reservation != null ? reservation.getId() : null));
         }
 
     }

@@ -4,6 +4,7 @@ DROP VIEW IF EXISTS alias_specification_summary;
 DROP VIEW IF EXISTS reservation_request_summary;
 DROP VIEW IF EXISTS reservation_request_state;
 DROP VIEW IF EXISTS reservation_request_set_earliest_child;
+DROP VIEW IF EXISTS reservation_request_usage;
 DROP VIEW IF EXISTS executable_summary;
 DROP VIEW IF EXISTS room_endpoint_earliest_usage;
 
@@ -118,6 +119,28 @@ LEFT JOIN executable ON executable.id = reservation.executable_id
 ORDER BY reservation_request.id, reservation.slot_end DESC;
 
 /**
+ * View of id and allocation/executable state for the active usage reservation request for each reservation request.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+CREATE VIEW reservation_request_usage AS
+SELECT
+    DISTINCT ON(abstract_reservation_request.id)
+    abstract_reservation_request.id AS id,
+    usage_reservation_request.id AS usage_id,
+    usage_reservation_request.slot_start AS slot_start,
+    usage_reservation_request.slot_end AS slot_end,
+    usage_reservation_request.allocation_state AS allocation_state,
+    usage_executable.state AS executable_state
+FROM abstract_reservation_request
+    LEFT JOIN abstract_reservation_request AS usage ON usage.provided_allocation_id = abstract_reservation_request.allocation_id AND usage.state = 'ACTIVE'
+    INNER JOIN reservation_request AS usage_reservation_request ON usage_reservation_request.id = usage.id
+           AND (now() at time zone 'UTC') BETWEEN usage_reservation_request.slot_start AND usage_reservation_request.slot_end
+    LEFT JOIN reservation ON reservation.allocation_id = usage.allocation_id
+    LEFT JOIN executable AS usage_executable ON usage_executable.id = reservation.executable_id
+ORDER BY abstract_reservation_request.id, usage_reservation_request.slot_end DESC, reservation.slot_end DESC;
+
+/**
  * View of time slot and state for each reservation request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -141,12 +164,14 @@ SELECT
     COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
     reservation_request_state.allocation_state AS allocation_state,
     reservation_request_state.executable_state AS executable_state,
-    reservation_request_state.last_reservation_id AS last_reservation_id
+    reservation_request_state.last_reservation_id AS last_reservation_id,
+  reservation_request_usage.executable_state AS usage_executable_state
 FROM abstract_reservation_request
 LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
-LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id;
+LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id
+LEFT JOIN reservation_request_usage ON reservation_request_usage.id = reservation_request.id OR reservation_request_usage.id = reservation_request_set_earliest_child.child_id;
 
 /**
  * View of id and time slot for the earliest usage for each room endpoint.

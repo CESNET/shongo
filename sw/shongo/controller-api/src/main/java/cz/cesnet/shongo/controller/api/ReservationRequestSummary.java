@@ -54,7 +54,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private AllocationState allocationState;
 
     /**
-     * {@link ExecutableState} of the reservation request for the earliest requested date/time slot.
+     * {@link ExecutableState} of an executable allocated for the reservation request for the earliest requested date/time slot.
      */
     private ExecutableState executableState;
 
@@ -64,9 +64,9 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Specification specification;
 
     /**
-     * Technologies.
+     * Technologies which are .
      */
-    private Set<Technology> technologies = new HashSet<Technology>();
+    private Set<Technology> specificationTechnologies = new HashSet<Technology>();
 
     /**
      * Provided reservation request identifier.
@@ -77,6 +77,12 @@ public class ReservationRequestSummary extends IdentifiedComplexType
      * Last allocated reservation id.
      */
     private String lastReservationId;
+
+    /**
+     * {@link ExecutableState} of an executable allocated for a reservation request which got provided this
+     * reservation request and whose slot is active.
+     */
+    private ExecutableState usageExecutableState;
 
     /**
      * @return {@link #type}
@@ -223,27 +229,27 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #technologies}
+     * @return {@link #specificationTechnologies}
      */
-    public Set<Technology> getTechnologies()
+    public Set<Technology> getSpecificationTechnologies()
     {
-        return technologies;
+        return specificationTechnologies;
     }
 
     /**
-     * @param technologies sets the {@link #technologies}
+     * @param specificationTechnologies sets the {@link #specificationTechnologies}
      */
-    public void setTechnologies(Set<Technology> technologies)
+    public void setSpecificationTechnologies(Set<Technology> specificationTechnologies)
     {
-        this.technologies = technologies;
+        this.specificationTechnologies = specificationTechnologies;
     }
 
     /**
-     * @param technology to be added to the {@link #technologies}
+     * @param technology to be added to the {@link #specificationTechnologies}
      */
-    public void addTechnology(Technology technology)
+    public void addSpecificationTechnology(Technology technology)
     {
-        this.technologies.add(technology);
+        this.specificationTechnologies.add(technology);
     }
 
     /**
@@ -278,6 +284,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         this.lastReservationId = reservationId;
     }
 
+    /**
+     * @return {@link #usageExecutableState}
+     */
+    public ExecutableState getUsageExecutableState()
+    {
+        return usageExecutableState;
+    }
+
+    /**
+     * @param usageExecutableState sets the {@link #usageExecutableState}
+     */
+    public void setUsageExecutableState(ExecutableState usageExecutableState)
+    {
+        this.usageExecutableState = usageExecutableState;
+    }
+
     private static final String TYPE = "type";
     private static final String DATETIME = "dateTime";
     private static final String USER_ID = "userId";
@@ -287,9 +309,10 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String ALLOCATION_STATE = "allocationState";
     private static final String EXECUTABLE_STATE = "executableState";
     private static final String SPECIFICATION = "specification";
-    private static final String TECHNOLOGIES = "technologies";
+    private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
     private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
     private static final String LAST_RESERVATION_ID = "lastReservationId";
+    private static final String USAGE_EXECUTABLE_STATE = "usageExecutableState";
 
     @Override
     public DataMap toData()
@@ -304,9 +327,10 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(EXECUTABLE_STATE, executableState);
         dataMap.set(SPECIFICATION, specification);
-        dataMap.set(TECHNOLOGIES, technologies);
+        dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
         dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
         dataMap.set(LAST_RESERVATION_ID, lastReservationId);
+        dataMap.set(USAGE_EXECUTABLE_STATE, usageExecutableState);
         return dataMap;
     }
 
@@ -323,9 +347,10 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         executableState = dataMap.getEnum(EXECUTABLE_STATE, ExecutableState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
-        technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
+        specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
         providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
         lastReservationId = dataMap.getString(LAST_RESERVATION_ID);
+        usageExecutableState = dataMap.getEnum(USAGE_EXECUTABLE_STATE, ExecutableState.class);
     }
 
     /**

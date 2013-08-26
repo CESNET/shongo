@@ -54,7 +54,7 @@
             <td class="reservation-request-state">
                 <tag:help label="{{childReservationRequest.stateMessage}}"
                           labelClass="{{childReservationRequest.state}}"
-                          tooltipId="reservationState-tooltip-{{$index}}">
+                          tooltipId="child-reservation-request-state-tooltip-{{$index}}">
                     <span>{{childReservationRequest.stateHelp}}</span>
                     <div ng-switch on="isEmpty(childReservationRequest.stateReport)">
                         <div ng-switch-when="false">

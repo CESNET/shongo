@@ -71,7 +71,7 @@ public class ReservationRequestController
             @RequestParam(value = "count", required = false) Integer count,
             @RequestParam(value = "sort", required = false, defaultValue = "DATETIME") ReservationRequestListRequest.Sort sort,
             @RequestParam(value = "sort-desc", required = false, defaultValue = "true") boolean sortDescending,
-            @RequestParam(value = "type", required = false) Set<ReservationRequestModel.SpecificationType> specificationTypes)
+            @RequestParam(value = "type", required = false) Set<SpecificationType> specificationTypes)
     {
         // List reservation requests
         ReservationRequestListRequest request = new ReservationRequestListRequest();
@@ -81,14 +81,14 @@ public class ReservationRequestController
         request.setSort(sort);
         request.setSortDescending(sortDescending);
         if (specificationTypes != null && specificationTypes.size() > 0) {
-            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.ADHOC_ROOM)) {
+            if (specificationTypes.contains(SpecificationType.ADHOC_ROOM)) {
                 request.addSpecificationClass(RoomSpecification.class);
             }
-            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.PERMANENT_ROOM)) {
+            if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM)) {
                 request.addSpecificationClass(AliasSpecification.class);
                 request.addSpecificationClass(AliasSetSpecification.class);
             }
-            if (specificationTypes.contains(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 request.addSpecificationClass(RoomSpecification.class);
                 if (specificationTypes.size() == 1) {
                     // We want only room capacities and thus the provided reservation request must be set
@@ -142,13 +142,13 @@ public class ReservationRequestController
             item.put("dateTime", dateFormatter.print(reservationRequest.getDateTime()));
             items.add(item);
 
-            ReservationRequestState state = ReservationRequestState.fromApi(
-                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
-                    reservationRequest.getType(), reservationRequest.getLastReservationId());
+            ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messageSource.getMessage("views.reservationRequest.state." + state, null, locale);
+                String stateHelp = messageSource.getMessage("help.reservationRequest.state." + state, null, locale);
                 item.put("state", state);
                 item.put("stateMessage", stateMessage);
+                item.put("stateHelp", stateHelp);
             }
 
             Set<Permission> permissions = permissionsByReservationRequestId.get(reservationRequestId);
@@ -163,18 +163,32 @@ public class ReservationRequestController
                 item.put("earliestSlotEnd", dateTimeFormatter.print(earliestSlot.getEnd()));
             }
 
-            Set<Technology> technologies = reservationRequest.getTechnologies();
-            TechnologyModel technology = TechnologyModel
-                    .find(technologies);
+            Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
+            TechnologyModel technology = TechnologyModel.find(technologies);
             ReservationRequestSummary.Specification specification = reservationRequest.getSpecification();
-            if (specification instanceof ReservationRequestSummary.RoomSpecification) {
-                ReservationRequestSummary.RoomSpecification room =
-                        (ReservationRequestSummary.RoomSpecification) specification;
-                String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
-                if (providedReservationRequestId != null) {
-                    item.put("type", messageSource.getMessage(
-                            ClientWebMessage.SPECIFICATION_PERMANENT_ROOM_CAPACITY, null, locale));
+            SpecificationType specificationType = SpecificationType.fromReservationRequestSummary(reservationRequest);
+            item.put("type", messageSource.getMessage(
+                    "views.reservationRequest.specification." + specificationType, null, locale));
+            switch (specificationType) {
+                case PERMANENT_ROOM:
+                {
+                    ReservationRequestSummary.AliasSpecification alias =
+                            (ReservationRequestSummary.AliasSpecification) specification;
+                    if (technology != null) {
+                        item.put("technology", technology.getTitle());
+                    }
+                    if (alias.getAliasType().equals(AliasType.ROOM_NAME)) {
+                        item.put("roomName", alias.getValue());
+                    }
+                    break;
+                }
+                case PERMANENT_ROOM_CAPACITY:
+                {
+                    ReservationRequestSummary.RoomSpecification room =
+                            (ReservationRequestSummary.RoomSpecification) specification;
+                    String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
                     item.put("roomReservationRequestId", providedReservationRequestId);
+                    item.put("participantCount", room.getParticipantCount());
                     ReservationRequestSummary providedReservationRequest =
                             cache.getReservationRequestSummary(securityToken, providedReservationRequestId);
                     if (providedReservationRequest != null) {
@@ -189,25 +203,18 @@ public class ReservationRequestController
                             throw new UnsupportedApiException(aliasSpecification);
                         }
                     }
+                    break;
                 }
-                else {
-                    item.put("type", messageSource.getMessage(ClientWebMessage.SPECIFICATION_ADHOC_ROOM, null, locale));
+                case ADHOC_ROOM:
+                {
+                    ReservationRequestSummary.RoomSpecification room =
+                            (ReservationRequestSummary.RoomSpecification) specification;
                     if (technology != null) {
                         item.put("technology", technology.getTitle());
                     }
+                    item.put("participantCount", room.getParticipantCount());
                     item.put("roomName", messageSource.getMessage(ClientWebMessage.ROOM_NAME_ADHOC, null, locale));
-                }
-                item.put("participantCount", room.getParticipantCount());
-            }
-            else if (specification instanceof ReservationRequestSummary.AliasSpecification) {
-                ReservationRequestSummary.AliasSpecification alias =
-                        (ReservationRequestSummary.AliasSpecification) specification;
-                item.put("type", messageSource.getMessage(ClientWebMessage.SPECIFICATION_PERMANENT_ROOM, null, locale));
-                if (technology != null) {
-                    item.put("technology", technology.getTitle());
-                }
-                if (alias.getAliasType().equals(AliasType.ROOM_NAME)) {
-                    item.put("roomName", alias.getValue());
+                    break;
                 }
             }
         }

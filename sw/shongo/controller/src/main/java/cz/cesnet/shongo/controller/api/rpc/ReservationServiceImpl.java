@@ -1019,9 +1019,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             String technologies = record[13].toString();
             if (!technologies.isEmpty()) {
                 for (String technology : technologies.split(",")) {
-                    reservationRequestSummary.addTechnology(Technology.valueOf(technology.trim()));
+                    reservationRequestSummary.addSpecificationTechnology(Technology.valueOf(technology.trim()));
                 }
             }
+        }
+        if (record[17] != null) {
+            reservationRequestSummary.setUsageExecutableState(ExecutableState.valueOf(record[17].toString().trim()));
         }
         return reservationRequestSummary;
     }

@@ -23,10 +23,11 @@
         reservation_request_summary.provided_reservation_request_id AS provided_reservation_request_id,
         reservation_request_summary.last_reservation_id AS last_reservation_id,
         specification_summary.type AS specification_type,
-        specification_summary.technologies AS technologies,
+        specification_summary.technologies AS specification_technologies,
         specification_summary.room_participant_count AS room_participant_count,
         specification_summary.alias_room_name AS alias_room_name,
-        specification_summary.resource_id AS resource_id
+        specification_summary.resource_id AS resource_id,
+        reservation_request_summary.usage_executable_state AS usage_executable_state
     FROM reservation_request_summary    
     LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id
     WHERE reservation_request_summary.allocation_id IN(
@@ -49,10 +50,11 @@ UNION ALL (
         reservation_request_summary.provided_reservation_request_id AS provided_reservation_request_id,
         reservation_request_summary.last_reservation_id AS last_reservation_id,
         specification_summary.type AS specification_type,
-        specification_summary.technologies AS technologies,
+        specification_summary.technologies AS specification_technologies,
         specification_summary.room_participant_count AS room_participant_count,
         specification_summary.alias_room_name AS alias_room_name,
-        specification_summary.resource_id AS resource_id
+        specification_summary.resource_id AS resource_id,
+        reservation_request_summary.usage_executable_state AS usage_executable_state
     FROM allocation
     LEFT JOIN reservation_request_summary ON reservation_request_summary.id = allocation.abstract_reservation_request_id
     LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id

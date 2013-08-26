@@ -127,7 +127,7 @@
 
     <c:if test="${reservationRequestDetail != null}">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
-        <dd class="reservation-request-state">
+        <dd class="reservation-request-state ${reservationRequest.specificationType}">
             <spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}" var="state"/>
             <tag:help label="${state}" labelClass="${reservationRequestDetail.state}">
                 <spring:message code="help.reservationRequest.state.${reservationRequestDetail.state}"/>
@@ -185,9 +185,16 @@
                         <c:if test="${reservationRequestDetail.room.state != null}">
                             <spring:message code="views.executable.roomState.${reservationRequestDetail.room.state}" var="roomState"/>
                             <tag:help label="${roomState}" labelClass="${reservationRequestDetail.room.state}">
-                                    <span>
-                                        <spring:message code="help.executable.roomState.${reservationRequestDetail.room.state}"/>
-                                    </span>
+                                <span>
+                                    <c:choose>
+                                        <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">
+                                            <spring:message code="help.executable.roomState.USED_ROOM.${reservationRequestDetail.room.state}"/>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <spring:message code="help.executable.roomState.${reservationRequestDetail.room.state}"/>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </span>
                                 <c:if test="${not empty reservationRequestDetail.room.stateReport}">
                                     <pre>${reservationRequestDetail.room.stateReport}</pre>
                                 </c:if>

@@ -8,6 +8,7 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="name" required="false" %>
 <%@attribute name="specificationType" required="false" %>
@@ -18,7 +19,7 @@
 <%@attribute name="detailed" required="false" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
-<c:set var="listName" value="${name != null ? ('reservationRequestList.' + name) : 'reservationRequestList'}"/>
+<c:set var="listName" value="reservation-request-list${name != null ? ('-'.concat(name)) : ''}"/>
 <c:set var="listUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST_DATA %>
 </c:set>
@@ -112,9 +113,11 @@
             </c:if>
             <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
             <td class="reservation-request-state">
-                <span class="{{reservationRequest.state}}">
-                    {{reservationRequest.stateMessage}}
-                </span>
+                <tag:help label="{{reservationRequest.stateMessage}}"
+                          labelClass="{{reservationRequest.state}}"
+                          tooltipId="${listName}-state-tooltip-{{$index}}">
+                    <span>{{reservationRequest.stateHelp}}</span>
+                </tag:help>
             </td>
             <c:if test="${detailed}">
                 <td>{{reservationRequest.user}}</td>

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
+import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.client.web.models.UserRoleModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
@@ -26,7 +27,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
-import java.util.List;
 
 /**
  * Controller for creating a new capacity for permanent room.
@@ -101,7 +101,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
             reservationRequestModel = new ReservationRequestModel();
             wizardView.addObject("reservationRequest", reservationRequestModel);
         }
-        reservationRequestModel.setSpecificationType(ReservationRequestModel.SpecificationType.PERMANENT_ROOM_CAPACITY);
+        reservationRequestModel.setSpecificationType(SpecificationType.PERMANENT_ROOM_CAPACITY);
         if (permanentRoom != null) {
             reservationRequestModel.setPermanentRoomReservationRequestId(permanentRoom);
         }

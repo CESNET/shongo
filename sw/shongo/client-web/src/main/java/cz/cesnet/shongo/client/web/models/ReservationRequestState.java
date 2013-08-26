@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.api.AllocationState;
 import cz.cesnet.shongo.controller.api.ExecutableState;
+import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 
 /**
@@ -25,12 +25,22 @@ public enum ReservationRequestState
     /**
      * Reservation request is allocated by the scheduler and the allocated executable is started.
      */
-    STARTED(true),
+    ALLOCATED_STARTED(true),
+
+    /**
+     * Reservation request is allocated by the scheduler and the allocated room is not available for participants to join.
+     */
+    ALLOCATED_NOT_AVAILABLE(true),
+
+    /**
+     * Reservation request is allocated by the scheduler and the allocated room is available for participants to join.
+     */
+    ALLOCATED_AVAILABLE(true),
 
     /**
      * Reservation request is allocated by the scheduler and the allocated executable has been started and stopped.
      */
-    FINISHED(true),
+    ALLOCATED_STOPPED(true),
 
     /**
      * Reservation request cannot be allocated by the scheduler or the starting of executable failed.
@@ -66,15 +76,26 @@ public enum ReservationRequestState
         return allocated;
     }
 
+    public static ReservationRequestState fromApi(ReservationRequestSummary reservationRequest)
+    {
+        return fromApi(reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
+                reservationRequest.getUsageExecutableState(), reservationRequest.getType(),
+                SpecificationType.fromReservationRequestSummary(reservationRequest),
+                reservationRequest.getLastReservationId());
+    }
+
     /**
      * @param allocationState
      * @param executableState
+     * @param usageExecutableState
      * @param reservationRequestType
+     * @param specificationType
      * @param lastReservationId
      * @return {@link ReservationRequestState}
      */
     public static ReservationRequestState fromApi(AllocationState allocationState, ExecutableState executableState,
-            ReservationRequestType reservationRequestType, String lastReservationId)
+            ExecutableState usageExecutableState, ReservationRequestType reservationRequestType,
+            SpecificationType specificationType, String lastReservationId)
     {
         if (allocationState == null) {
             return NOT_ALLOCATED;
@@ -85,16 +106,48 @@ public enum ReservationRequestState
                     return ALLOCATED;
                 }
                 else {
-                    switch (executableState) {
-                        case STARTED:
-                            return STARTED;
-                        case STOPPED:
-                        case STOPPING_FAILED:
-                            return FINISHED;
-                        case STARTING_FAILED:
-                            return FAILED;
-                        default:
-                            return ALLOCATED;
+                    switch (specificationType) {
+                        case PERMANENT_ROOM:
+                            switch (executableState) {
+                                case STARTED:
+                                    if (usageExecutableState != null && usageExecutableState.isAvailable()) {
+                                        return ALLOCATED_AVAILABLE;
+                                    }
+                                    else {
+                                        return ALLOCATED_NOT_AVAILABLE;
+                                    }
+                                case STOPPED:
+                                case STOPPING_FAILED:
+                                    return ALLOCATED_STOPPED;
+                                case STARTING_FAILED:
+                                    return FAILED;
+                                default:
+                                    return ALLOCATED;
+                            }
+                        case PERMANENT_ROOM_CAPACITY:
+                            switch (executableState) {
+                                case STARTED:
+                                    return ALLOCATED_AVAILABLE;
+                                case STOPPED:
+                                case STOPPING_FAILED:
+                                    return ALLOCATED_NOT_AVAILABLE;
+                                case STARTING_FAILED:
+                                    return FAILED;
+                                default:
+                                    return ALLOCATED;
+                            }
+                        case ADHOC_ROOM:
+                            switch (executableState) {
+                                case STARTED:
+                                    return ALLOCATED_STARTED;
+                                case STOPPED:
+                                case STOPPING_FAILED:
+                                    return ALLOCATED_STOPPED;
+                                case STARTING_FAILED:
+                                    return FAILED;
+                                default:
+                                    return ALLOCATED;
+                            }
                     }
                 }
             case ALLOCATION_FAILED:

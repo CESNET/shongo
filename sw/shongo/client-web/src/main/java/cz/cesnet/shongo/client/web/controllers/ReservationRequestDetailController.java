@@ -96,9 +96,7 @@ public class ReservationRequestDetailController
                     isActive = !historyItem.getType().equals(ReservationRequestType.DELETED);
                 }
 
-                ReservationRequestState state = ReservationRequestState.fromApi(
-                        historyItem.getAllocationState(), historyItem.getExecutableState(),
-                        historyItem.getType(), historyItem.getLastReservationId());
+                ReservationRequestState state = ReservationRequestState.fromApi(historyItem);
                 item.put("state", state);
                 if (state != null) {
                     // Reservation is visible only for reservation requests until first allocated reservation request
@@ -199,9 +197,7 @@ public class ReservationRequestDetailController
             child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
                     dateTimeFormatter.print(slot.getEnd()));
 
-            ReservationRequestState state = ReservationRequestState.fromApi(
-                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
-                    reservationRequest.getType(), reservationRequest.getLastReservationId());
+            ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
                 String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);
@@ -275,9 +271,7 @@ public class ReservationRequestDetailController
             item.put("purpose", reservationRequest.getPurpose());
             usages.add(item);
 
-            ReservationRequestState state = ReservationRequestState.fromApi(
-                    reservationRequest.getAllocationState(), reservationRequest.getExecutableState(),
-                    reservationRequest.getType(), reservationRequest.getLastReservationId());
+            ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
                 String stateMessage = messages.getMessage("views.reservationRequest.state." + state, null, locale);
                 String stateHelp = messages.getMessage("help.reservationRequest.state." + state, null, locale);

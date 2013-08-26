@@ -47,7 +47,7 @@ public class ReservationRequestValidator implements Validator
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "start", "validation.field.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "specificationType", "validation.field.required");
 
-        ReservationRequestModel.SpecificationType specificationType = reservationRequestModel.getSpecificationType();
+        SpecificationType specificationType = reservationRequestModel.getSpecificationType();
         if (specificationType != null) {
             switch (specificationType) {
                 case ADHOC_ROOM:

@@ -45,6 +45,8 @@ public class RoomModel
 
     private String stateReport;
 
+    private ExecutableState usageState;
+
     public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
             ExecutableService executableService)
     {
@@ -63,7 +65,6 @@ public class RoomModel
         }
         this.licenseCount = roomExecutable.getLicenseCount();
 
-        ExecutableState roomUsageState = null;
         if (this.licenseCount == 0) {
             // Get license count from active usage
             ExecutableListRequest request = new ExecutableListRequest();
@@ -75,7 +76,7 @@ public class RoomModel
                 Interval executableSummarySlot = executableSummary.getSlot();
                 if (executableSummarySlot.contains(dateTimeNow) && executableSummary.getState().isAvailable()) {
                     licenseCount = executableSummary.getRoomLicenseCount();
-                    roomUsageState = executableSummary.getState();
+                    usageState = executableSummary.getState();
                     licenseCountUntil = executableSummarySlot.getEnd();
                     break;
                 }
@@ -83,7 +84,7 @@ public class RoomModel
         }
 
         this.state = RoomState.fromRoomState(
-                roomExecutable.getState(), roomExecutable.getLicenseCount(), roomUsageState);
+                roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
         this.stateReport = roomExecutable.getStateReport();
     }
 
@@ -130,6 +131,11 @@ public class RoomModel
     public String getStateReport()
     {
         return stateReport;
+    }
+
+    public ExecutableState getUsageState()
+    {
+        return usageState;
     }
 
     public boolean isAvailable()

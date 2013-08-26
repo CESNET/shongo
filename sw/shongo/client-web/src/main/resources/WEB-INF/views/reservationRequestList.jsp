@@ -26,7 +26,7 @@
         <spring:eval var="createUrl"
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'PERMANENT_ROOM')"/>
 
-        <tag:reservationRequestList specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}" detailed="true"
+        <tag:reservationRequestList name="permanent" specificationType="PERMANENT_ROOM" detailUrl="${detailUrl}" detailed="true"
                                     createUrl="${createUrl}" modifyUrl="${modifyUrl}" deleteUrl="${deleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.permanentRooms"/>
@@ -40,7 +40,7 @@
 
         <spring:eval var="createUrl"
                      expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreate(contextPath, 'ADHOC_ROOM')"/>
-        <tag:reservationRequestList specificationType="ADHOC_ROOM" detailUrl="${detailUrl}" detailed="true"
+        <tag:reservationRequestList name="adhoc" specificationType="ADHOC_ROOM" detailUrl="${detailUrl}" detailed="true"
                                     createUrl="${createUrl}" modifyUrl="${modifyUrl}" deleteUrl="${deleteUrl}">
             <h2>
                 <spring:message code="views.reservationRequestList.adhocRooms"/>

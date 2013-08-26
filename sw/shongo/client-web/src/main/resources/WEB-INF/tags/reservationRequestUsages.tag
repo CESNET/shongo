@@ -50,7 +50,7 @@
         <tr ng-repeat="permanentRoomCapacity in items">
             <td>{{permanentRoomCapacity.slot}}</td>
             <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
-            <td class="reservation-request-state">
+            <td class="reservation-request-state PERMANENT_ROOM_CAPACITY">
                 <tag:help label="{{permanentRoomCapacity.stateMessage}}"
                           labelClass="{{permanentRoomCapacity.state}}"
                           tooltipId="reservationState-tooltip-{{$index}}">
