@@ -132,7 +132,7 @@
             <tag:help label="${state}" labelClass="${reservationRequestDetail.state}">
                 <spring:message code="help.reservationRequest.state.${reservationRequestDetail.state}"/>
             </tag:help>
-            <c:if test="${reservationRequestDetail.room != null && reservationRequestDetail.room.state.available}">
+            <c:if test="${reservationRequestDetail.room != null && reservationRequestDetail.room.state.started}">
                 <spring:eval var="urlRoomManagement"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, reservationRequestDetail.room.id)"/>
                 (<a href="${urlRoomManagement}"><spring:message code="views.list.action.manage"/></a>)

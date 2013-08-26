@@ -81,34 +81,37 @@ public class RoomController
         model.addAttribute("room", roomModel);
 
         // Runtime room
-        if (roomModel.isAvailable()) {
+        if (roomModel.isStarted()) {
             String resourceId = roomExecutable.getResourceId();
             String roomId = roomExecutable.getRoomId();
             Set<Technology> technologies = roomExecutable.getTechnologies();
 
             try {
                 Room room = resourceControlService.getRoom(securityToken, resourceId, roomId);
+                model.addAttribute("roomRuntime", room);
 
-                Collection<Map> participants = new LinkedList<Map>();
-                for (RoomUser roomUser : resourceControlService.listParticipants(securityToken, resourceId, roomId)) {
-                    UserInformation userInformation = null;
-                    String userId = roomUser.getUserId();
-                    if (userId != null) {
-                        userInformation = cache.getUserInformation(securityToken, userId);
-                    }
-                    Map<String, Object> participant = new HashMap<String, Object>();
-                    participant.put("user", userInformation);
-                    participant.put("name",
-                            (userInformation != null ? userInformation.getFullName() : roomUser.getDisplayName()));
-                    participants.add(participant);
-                }
                 Collection<Recording> recordings = null;
                 if (technologies.size() == 1 && technologies.contains(Technology.ADOBE_CONNECT)) {
                     recordings = resourceControlService.listRecordings(securityToken, resourceId, roomId);
                 }
-                model.addAttribute("roomRuntime", room);
-                model.addAttribute("roomParticipants", participants);
                 model.addAttribute("roomRecordings", recordings);
+
+                if (roomModel.isAvailable()) {
+                    Collection<Map> participants = new LinkedList<Map>();
+                    for (RoomUser roomUser : resourceControlService.listParticipants(securityToken, resourceId, roomId)) {
+                        UserInformation userInformation = null;
+                        String userId = roomUser.getUserId();
+                        if (userId != null) {
+                            userInformation = cache.getUserInformation(securityToken, userId);
+                        }
+                        Map<String, Object> participant = new HashMap<String, Object>();
+                        participant.put("user", userInformation);
+                        participant.put("name",
+                                (userInformation != null ? userInformation.getFullName() : roomUser.getDisplayName()));
+                        participants.add(participant);
+                    }
+                    model.addAttribute("roomParticipants", participants);
+                }
             }
             catch (ControllerReportSet.DeviceCommandFailedException exception) {
                 model.addAttribute("roomNotAvailable", true);

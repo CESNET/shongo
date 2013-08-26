@@ -143,6 +143,11 @@ public class RoomModel
         return state.isAvailable();
     }
 
+    public boolean isStarted()
+    {
+        return state.isStarted();
+    }
+
     public String getAliases()
     {
         return formatAliases(aliases, isAvailable());
