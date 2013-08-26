@@ -365,7 +365,7 @@ div.bordered table {
     display: inline-block;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-    border-bottom: 6px solid #ffffff;
+    border-bottom: 7px solid #ffffff;
     position: absolute;
     top: -6px;
     left: 7px;
