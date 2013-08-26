@@ -12,7 +12,13 @@
 
 <script type="text/javascript">
     angular.module('jsp:room', ['ngTooltip']);
+
+    function MoreDetailController($scope) {
+        $scope.show = false;
+    }
 </script>
+
+<h1><spring:message code="views.room.heading" arguments="${room.name}"/></h1>
 
 <div ng-app="jsp:room">
 
@@ -40,14 +46,13 @@
             </tag:help>
         </dd>
 
-        <c:if test="${roomRuntime != null}">
+        <c:if test="${room.state.available}">
             <dt><spring:message code="views.room.licenseCount"/>:</dt>
             <dd>
-                ${roomRuntime.licenseCount}
-                <c:if test="${roomRuntime.licenseCount == 0}">
-                    <spring:eval var="createPermanentRoomCapacityUrl"
-                                 expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, room.reservationRequestId)"/>
-                    (<spring:message code="views.room.licenseCount.none" arguments="${createPermanentRoomCapacityUrl}"/>)
+                ${room.licenseCount}
+                <c:if test="${room.licenseCountUntil != null}">
+                    (<spring:message code="views.room.licenseCountUntil"/>
+                    <joda:format value="${room.licenseCountUntil}" style="MM"/>)
                 </c:if>
             </dd>
         </c:if>
@@ -62,11 +67,26 @@
             </tag:help>
         </dd>
 
-        <dt><spring:message code="views.room.identifier"/>:</dt>
-        <dd>${room.id}</dd>
+        <div ng-controller="MoreDetailController">
 
-        <dt><spring:message code="views.reservationRequest"/>:</dt>
-        <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
+            <div ng-show="show">
+
+                <hr/>
+
+                <dt><spring:message code="views.room.identifier"/>:</dt>
+                <dd>${room.id}</dd>
+
+                <dt><spring:message code="views.reservationRequest"/>:</dt>
+                <dd><a href="${urlDetail}">${reservationRequestId}</a></dd>
+            </div>
+
+            <dt></dt>
+            <dd>
+                <a href="" ng-click="show = true" ng-show="!show"><spring:message code="views.button.showMoreDetail"/></a>
+                <a href="" ng-click="show = false" ng-show="show"><spring:message code="views.button.hideMoreDetail"/></a>
+            </dd>
+
+        </div>
 
     </dl>
 
@@ -171,6 +191,13 @@
 </div>
 
 <div class="pull-right">
+    <c:if test="${room.state.started && room.licenseCount == 0}">
+        <spring:eval var="createPermanentRoomCapacityUrl"
+                     expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestCreatePermanentRoomCapacity(contextPath, room.reservationRequestId)"/>
+        <a class="btn btn-primary" href="${createPermanentRoomCapacityUrl}">
+            <spring:message code="views.room.requestCapacity"/>
+        </a>
+    </c:if>
     <a class="btn" href="javascript: location.reload();">
         <spring:message code="views.button.refresh"/>
     </a>

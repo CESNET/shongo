@@ -13,35 +13,40 @@ public enum RoomState
     /**
      * Room is not started.
      */
-    NOT_STARTED(false),
+    NOT_STARTED(false, false),
 
     /**
      * Room is started.
      */
-    STARTED(true),
+    STARTED(true, true),
 
     /**
      * Room is not available for participants to join.
      */
-    STARTED_NOT_AVAILABLE(false),
+    STARTED_NOT_AVAILABLE(true, false),
 
     /**
      * Room is available for participants to join.
      */
-    STARTED_AVAILABLE(true),
+    STARTED_AVAILABLE(true, true),
 
     /**
      * Room has been stopped.
      */
-    STOPPED(false),
+    STOPPED(true, false),
 
     /**
      * Room is not available for participants to join due to error.
      */
-    FAILED(false);
+    FAILED(false, false);
 
     /**
-     * Specifies whether this state represents an available for participants to join.available room.
+     * Specifies whether this state represents an started room.
+     */
+    private final boolean isStarted;
+
+    /**
+     * Specifies whether this state represents an available for participants to join room.
      */
     private final boolean isAvailable;
 
@@ -50,9 +55,18 @@ public enum RoomState
      *
      * @param isAvailable sets the {@link #isAvailable}
      */
-    RoomState(boolean isAvailable)
+    RoomState(boolean isStarted, boolean isAvailable)
     {
+        this.isStarted = isStarted;
         this.isAvailable = isAvailable;
+    }
+
+    /**
+     * @return {@link #isStarted}
+     */
+    public boolean isStarted()
+    {
+        return isStarted;
     }
 
     /**

@@ -37,6 +37,8 @@ public class RoomModel
 
     private int licenseCount;
 
+    private DateTime licenseCountUntil;
+
     private List<Alias> aliases;
 
     private RoomState state;
@@ -70,9 +72,11 @@ public class RoomModel
             ListResponse<ExecutableSummary> executableSummaries = executableService.listExecutables(request);
             DateTime dateTimeNow = DateTime.now();
             for (ExecutableSummary executableSummary : executableSummaries) {
-                if (executableSummary.getSlot().contains(dateTimeNow) && executableSummary.getState().isAvailable()) {
+                Interval executableSummarySlot = executableSummary.getSlot();
+                if (executableSummarySlot.contains(dateTimeNow) && executableSummary.getState().isAvailable()) {
                     licenseCount = executableSummary.getRoomLicenseCount();
                     roomUsageState = executableSummary.getState();
+                    licenseCountUntil = executableSummarySlot.getEnd();
                     break;
                 }
             }
@@ -111,6 +115,11 @@ public class RoomModel
     public int getLicenseCount()
     {
         return licenseCount;
+    }
+
+    public DateTime getLicenseCountUntil()
+    {
+        return licenseCountUntil;
     }
 
     public RoomState getState()

@@ -120,24 +120,25 @@
                     <tr ng-repeat-end class="description" ng-class-odd="'odd'" ng-class-even="'even'">
                         <td ng-show="room.usageCount > 0 && room.showUsages" colspan="5" style="padding-left: 30px;">
                             <div class="spinner" ng-hide="room.usages != null"></div>
-                            <div>
-                            <spring:message code="views.index.dashboard.room.usages"/>:
-                            <ul ng-show="room.usages.length">
-                                <li ng-repeat="usage in room.usages">
-                                    <strong>
-                                        <spring:message code="views.index.dashboard.room.usage.participant"
-                                                        arguments="{{usage.licenseCount}}"/>
-                                    </strong>
-                                    <spring:message code="views.index.dashboard.room.usage.slot"
-                                                    arguments="{{usage.slotStart}},{{usage.slotEnd}}"/>
-                                    <span class="room-state">
-                                        (<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)
-                                    </span>
-                                </li>
-                            </ul>
-                            <span class="empty" ng-hide="room.usages.length">
-                                <br/>&nbsp;&nbsp;&nbsp;<spring:message code="views.list.none"/>
-                            </span>
+                            <div ng-show="room.usages != null">
+                                <spring:message code="views.index.dashboard.room.usages"/>:
+                                <ul ng-show="room.usages.length">
+                                    <li ng-repeat="usage in room.usages">
+                                        <strong>
+                                            <spring:message code="views.index.dashboard.room.usage.participant"
+                                                            arguments="{{usage.licenseCount}}"/>
+                                        </strong>
+                                        <spring:message code="views.index.dashboard.room.usage.slot"
+                                                        arguments="{{usage.slotStart}},{{usage.slotEnd}}"/>
+                                        <span class="room-state">
+                                            (<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)
+                                        </span>
+                                    </li>
+                                </ul>
+                                <span class="empty" ng-hide="room.usages.length">
+                                    <br/>&nbsp;&nbsp;&nbsp;<spring:message code="views.list.none"/>
+                                </span>
+                            </div>
                         </td>
                     </tr>
                     <tr ng-hide="items.length">

@@ -96,7 +96,6 @@ public class IndexController
         DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ExecutableSummary executableSummary : response.getItems()) {
-
             Map<String, Object> item = new HashMap<String, Object>();
             item.put("id", executableSummary.getId());
             item.put("name", executableSummary.getRoomName());
