@@ -33,7 +33,7 @@ public enum RoomState
     /**
      * Room has been stopped.
      */
-    STOPPED(true, false),
+    STOPPED(false, false),
 
     /**
      * Room is not available for participants to join due to error.
