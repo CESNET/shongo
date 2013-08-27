@@ -6,6 +6,7 @@
 <%@attribute name="labelClass" required="false"%>
 <%@attribute name="tooltipId" required="false"%>
 <%@attribute name="type" required="false"%>
+<%@attribute name="style" required="false"%>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
@@ -36,8 +37,8 @@
 
 <c:choose>
     <c:when test="${type == 'text'}"><%--
-    --%><span class="tooltip-container"><%--
-        --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}">${label}</span><%--
+    --%><span class="tooltip-container" style="${style}"><%--
+        --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}" style="${style}">${label}</span><%--
         --%><jsp:doBody var="body"/>
             <c:if test="${not empty body}"><%--
             --%><div id="${tooltipId}" class="tooltip-content"><%--

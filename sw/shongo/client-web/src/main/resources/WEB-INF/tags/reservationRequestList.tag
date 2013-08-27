@@ -120,7 +120,7 @@
                 <span ng-bind-html="html(reservationRequest.earliestSlot)"></span>
                 <span ng-show="reservationRequest.futureSlotCount">
                     <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
-                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})">
+                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})" style="vertical-align: top;">
                         <spring:message code="views.reservationRequestList.slotMoreHelp"/>
                     </tag:help>
                 </span>

@@ -313,7 +313,6 @@ div.bordered table {
 .tooltip-container {
     display: inline-block;
     line-height: 20px;
-    vertical-align: top;
 }
 .tooltip-label {
     display: inline-block;
