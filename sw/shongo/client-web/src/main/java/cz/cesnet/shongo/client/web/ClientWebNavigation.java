@@ -60,6 +60,11 @@ public enum ClientWebNavigation
         return navigationPage;
     }
 
+    public boolean isNavigationPage(NavigationPage navigationPage)
+    {
+        return navigationPage.equals(navigationPage);
+    }
+
     private static Map<String, NavigationPage> cachedNavigationNodeByUrl = new HashMap<String, NavigationPage>();
 
     public static NavigationPage findByUrl(String url)

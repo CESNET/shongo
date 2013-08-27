@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.interceptors;
 
 import cz.cesnet.shongo.client.web.Breadcrumb;
+import cz.cesnet.shongo.client.web.BreadcrumbProvider;
 import cz.cesnet.shongo.client.web.ClientWebNavigation;
 import cz.cesnet.shongo.client.web.NavigationPage;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,18 +24,32 @@ public class NavigationInterceptor extends HandlerInterceptorAdapter
     {
         if (handler instanceof HandlerMethod) {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
-            RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
-            String[] values = requestMapping.value();
-            if (values.length > 0) {
-                // Create breadcrumb if it doesn't exist (it may exist when forward is processing)
-                Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB);
-                if (breadcrumb == null) {
-                    NavigationPage navigationPage = ClientWebNavigation.findByUrl(values[0]);
-                    if (navigationPage != null) {
-                        breadcrumb = new Breadcrumb(navigationPage, request.getRequestURI());
-                        request.setAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB, breadcrumb);
-                    }
+            Object controller = handlerMethod.getBean();
+
+            // Create breadcrumb if it doesn't exist (it may exist when forward is processing)
+            Breadcrumb breadcrumb = (Breadcrumb) request.getAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB);
+            if (breadcrumb == null) {
+                // Determine navigation page by current URL
+                NavigationPage navigationPage = null;
+                RequestMapping requestMapping = handlerMethod.getMethodAnnotation(RequestMapping.class);
+                String[] values = requestMapping.value();
+                if (values.length > 0) {
+                    navigationPage = ClientWebNavigation.findByUrl(values[0]);
                 }
+
+                // Create breadcrumb
+                if (controller instanceof BreadcrumbProvider) {
+                    // Create breadcrumb by controller
+                    BreadcrumbProvider breadcrumbProvider = (BreadcrumbProvider) controller;
+                    breadcrumb = breadcrumbProvider.createBreadcrumb(navigationPage, request.getRequestURI());
+                }
+                else if (navigationPage != null) {
+                    // Create breadcrumb from navigation page
+                    breadcrumb = new Breadcrumb(navigationPage, request.getRequestURI());
+                }
+            }
+            if (breadcrumb != null) {
+                request.setAttribute(Breadcrumb.REQUEST_ATTRIBUTE_BREADCRUMB, breadcrumb);
             }
         }
         return true;

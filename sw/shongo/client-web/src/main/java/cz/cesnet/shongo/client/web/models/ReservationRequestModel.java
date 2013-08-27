@@ -7,8 +7,10 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.UserInformation;
+import cz.cesnet.shongo.client.web.BreadcrumbItem;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
+import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.Role;
@@ -633,6 +635,59 @@ public class ReservationRequestModel
         abstractReservationRequest.setSpecification(toSpecificationApi());
 
         return abstractReservationRequest;
+    }
+
+    /**
+     * @param detailUrl
+     * @param includeThis
+     * @return list of {@link BreadcrumbItem}s for this reservation request
+     */
+    public List<BreadcrumbItem> getBreadcrumbItems(String detailUrl, boolean includeThis)
+    {
+        List<BreadcrumbItem> breadcrumbItems = new LinkedList<BreadcrumbItem>();
+
+        String titleCode;
+        if (parentReservationRequestId != null) {
+            if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+                // Add breadcrumb for permanent room reservation request
+                breadcrumbItems.add(new BreadcrumbItem(
+                        ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
+                        "navigation.reservationRequest.detail"));
+
+                // Add breadcrumb for reservation request set
+                breadcrumbItems.add(new BreadcrumbItem(
+                        ClientWebUrl.format(detailUrl, parentReservationRequestId),
+                        "navigation.reservationRequest.detailCapacity"));
+            }
+            else {
+                // Add breadcrumb for reservation request set
+                breadcrumbItems.add(new BreadcrumbItem(
+                        ClientWebUrl.format(detailUrl, parentReservationRequestId),
+                        "navigation.reservationRequest.detail"));
+            }
+
+            // This reservation request is periodic event
+            titleCode = "navigation.reservationRequest.detailEvent";
+        }
+        else if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+            // Add breadcrumb for permanent room reservation request
+            breadcrumbItems.add(new BreadcrumbItem(
+                    ClientWebUrl.format(detailUrl, permanentRoomReservationRequestId),
+                    "navigation.reservationRequest.detail"));
+
+            // This reservation request is capacity
+            titleCode = "navigation.reservationRequest.detailCapacity";
+        }
+        else {
+            titleCode = "navigation.reservationRequest.detail";
+        }
+
+        if (includeThis) {
+            // Add breadcrumb for this reservation request
+            breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, id), titleCode));
+        }
+
+        return breadcrumbItems;
     }
 
     /**

@@ -10,9 +10,10 @@
 <c:set var="detailUrl">
     ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_DETAIL %>
 </c:set>
-<c:set var="backUrl">
-    ${contextPath}<%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %>
-</c:set>
+<c:if test="${empty backUrl}">
+    <c:set var="backUrl"><%= cz.cesnet.shongo.client.web.ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
+</c:if>
+<c:set var="backUrl">${contextPath}${backUrl}</c:set>
 <spring:eval var="confirmUrl"
              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getReservationRequestDeleteConfirm(contextPath, reservationRequest.id)"/>
 

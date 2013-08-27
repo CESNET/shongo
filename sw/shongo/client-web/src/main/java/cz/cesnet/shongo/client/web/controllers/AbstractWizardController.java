@@ -16,63 +16,23 @@ import java.util.*;
 public abstract class AbstractWizardController
 {
     @Resource
-    private HttpServletRequest request;
+    protected HttpServletRequest request;
 
-    protected abstract void initWizardPages(WizardView wizardView, Object currentWizardPageId);
+    protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
+    {
+    }
 
     protected WizardView getWizardView(Object wizardPageId, String wizardContent)
     {
         WizardView wizardView = new WizardView();
         initWizardPages(wizardView, wizardPageId);
-
-        // Find current, previous and next page
-        WizardPage wizardPageCurrent = null;
-        WizardPage wizardPagePrevious = null;
-        WizardPage wizardPageNext = null;
-        for (WizardPage wizardPage : wizardView.getPages()) {
-            if (wizardPageId == wizardPage.getId()) {
-                wizardPageCurrent = wizardPage;
-            }
-            else {
-                if (wizardPageCurrent == null) {
-                    wizardPagePrevious = wizardPage;
-                }
-                else {
-                    wizardPageNext = wizardPage;
-                    break;
-                }
-            }
-        }
-        wizardView.initNavigationPages(wizardPagePrevious, wizardPageNext);
-        wizardView.addObject("wizardContent", wizardContent);
-        wizardView.addObject("wizardPageCurrent", wizardPageCurrent);
-
-        // Set all pages until current page as available
-        boolean available = wizardPageCurrent != null;
-        for (WizardPage wizardPage : wizardView.getPages()) {
-            wizardPage.setAvailable(available);
-            if (wizardPageCurrent == wizardPage) {
-                available = false;
-            }
-        }
-
-        // Update page urls
-        if (wizardPageCurrent != null) {
-            Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(request.getRequestURI(), false);
-            for (WizardPage wizardPage : wizardView.getPages()) {
-                if (wizardPage.isAvailable()) {
-                    String wizardPageUrl = wizardPage.getUrl(attributes);
-                    wizardPage.setUrl(wizardPageUrl);
-                }
-            }
-        }
-
+        wizardView.init(wizardPageId, wizardContent, request.getRequestURI());
         return wizardView;
     }
 
     public static class WizardView extends ModelAndView
     {
-        private Map<Object, WizardPage> pages = new LinkedHashMap<Object, WizardPage>();
+        private LinkedHashMap<Object, WizardPage> pages = new LinkedHashMap<Object, WizardPage>();
 
         private final List<Action> actions = new LinkedList<Action>();
 
@@ -87,7 +47,57 @@ public abstract class AbstractWizardController
             addObject("wizardActions", actions);
         }
 
-        public void initNavigationPages(WizardPage wizardPagePrevious, WizardPage wizardPageNext)
+        protected void init(Object wizardPageId, String wizardContent, String requestUri)
+        {
+            // Find current, previous and next page
+            WizardPage wizardPageCurrent = null;
+            WizardPage wizardPagePrevious = null;
+            WizardPage wizardPageNext = null;
+            for (WizardPage wizardPage : getPages()) {
+                if (wizardPageId == null) {
+                    // Last page should be current page
+                    wizardPagePrevious = wizardPageCurrent;
+                    wizardPageCurrent = wizardPage;
+                }
+                else if (wizardPageId == wizardPage.getId()) {
+                    wizardPageCurrent = wizardPage;
+                }
+                else {
+                    if (wizardPageCurrent == null) {
+                        wizardPagePrevious = wizardPage;
+                    }
+                    else {
+                        wizardPageNext = wizardPage;
+                        break;
+                    }
+                }
+            }
+            initNavigationPages(wizardPagePrevious, wizardPageNext);
+            addObject("wizardContent", wizardContent);
+            addObject("wizardPageCurrent", wizardPageCurrent);
+
+            // Set all pages until current page as available
+            boolean available = wizardPageCurrent != null;
+            for (WizardPage wizardPage : getPages()) {
+                wizardPage.setAvailable(available);
+                if (wizardPageCurrent == wizardPage) {
+                    available = false;
+                }
+            }
+
+            // Update page urls
+            if (wizardPageCurrent != null) {
+                Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(requestUri, false);
+                for (WizardPage wizardPage : getPages()) {
+                    if (wizardPage.isAvailable()) {
+                        String wizardPageUrl = wizardPage.getUrl(attributes);
+                        wizardPage.setUrl(wizardPageUrl);
+                    }
+                }
+            }
+        }
+
+        private void initNavigationPages(WizardPage wizardPagePrevious, WizardPage wizardPageNext)
         {
             // Add previous action
             if (wizardPagePrevious != null) {
@@ -121,6 +131,12 @@ public abstract class AbstractWizardController
             pages.put(wizardPage.getId(), wizardPage);
         }
 
+        public void setPageId(WizardPage wizardPage, Object newPageId)
+        {
+            pages.remove(wizardPage.getId());
+            pages.put(newPageId, new WizardPage(newPageId, wizardPage.getUrl(), wizardPage.getTitleCode()));
+        }
+
         public WizardPage getCurrentPage()
         {
             return (WizardPage) getModel().get("wizardPageCurrent");
@@ -136,6 +152,11 @@ public abstract class AbstractWizardController
             Action action = new Action(url, titleCode, position);
             actions.add(action);
             return action;
+        }
+
+        public String getPreviousPageUrl()
+        {
+            return actionPrevious.getUrl();
         }
 
         public void setPreviousPage(String url)

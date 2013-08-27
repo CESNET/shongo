@@ -60,22 +60,89 @@ public class Breadcrumb implements Iterable<BreadcrumbItem>
         return navigationPage;
     }
 
+    /**
+     * @return url to previous page
+     */
+    public String getBackUrl()
+    {
+        if (items == null) {
+            buildItems();
+        }
+        if (items.size() < 2) {
+            return null;
+        }
+        return items.get(items.size() - 2).getUrl();
+    }
+
+    /**
+     * Build {@link #items}
+     */
+    private void buildItems()
+    {
+        Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl, true);
+
+        items = new LinkedList<BreadcrumbItem>();
+        NavigationPage navigationPage = this.navigationPage;
+        while (navigationPage != null) {
+            String titleCode = navigationPage.getTitleCode();
+            if (titleCode != null) {
+                String url = navigationPage.getUrl(attributes);
+                items.add(0, new BreadcrumbItem(url, titleCode));
+            }
+            navigationPage = navigationPage.getParentNavigationPage();
+        }
+    }
+
+    /**
+     * @param breadcrumbItem to be added to the {@link #items}
+     */
+    public void addItem(BreadcrumbItem breadcrumbItem)
+    {
+        if (items == null) {
+            buildItems();
+        }
+        items.add(breadcrumbItem);
+    }
+
+    /**
+     * @param breadcrumbItems to be added to the {@link #items}
+     */
+    public void addItems(List<BreadcrumbItem> breadcrumbItems)
+    {
+        if (items == null) {
+            buildItems();
+        }
+        items.addAll(breadcrumbItems);
+    }
+
+    /**
+     * @param index
+     * @param breadcrumbItems to be added to the {@link #items}
+     */
+    public void addItems(int index, List<BreadcrumbItem> breadcrumbItems)
+    {
+        if (items == null) {
+            buildItems();
+        }
+        items.addAll(index, breadcrumbItems);
+    }
+
+    /**
+     * @return size of the {@link #items}
+     */
+    public int getItemsCount()
+    {
+        if (items == null) {
+            buildItems();
+        }
+        return items.size();
+    }
+
     @Override
     public Iterator<BreadcrumbItem> iterator()
     {
         if (items == null) {
-            Map<String, String> attributes = this.navigationPage.parseUrlAttributes(requestUrl, true);
-
-            items = new LinkedList<BreadcrumbItem>();
-            NavigationPage navigationPage = this.navigationPage;
-            while (navigationPage != null) {
-                String titleCode = navigationPage.getTitleCode();
-                if (titleCode != null) {
-                    String url = navigationPage.getUrl(attributes);
-                    items.add(0, new BreadcrumbItem(url, titleCode));
-                }
-                navigationPage = navigationPage.getParentNavigationPage();
-            }
+            buildItems();
         }
         return items.iterator();
     }

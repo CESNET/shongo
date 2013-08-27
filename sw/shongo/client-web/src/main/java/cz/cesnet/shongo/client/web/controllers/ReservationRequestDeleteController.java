@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.client.web.controllers;
 
-import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
 import cz.cesnet.shongo.controller.api.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
@@ -24,10 +24,28 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class ReservationRequestDeleteController
+public class ReservationRequestDeleteController implements BreadcrumbProvider
 {
     @Resource
     private ReservationService reservationService;
+
+    /**
+     * {@link Breadcrumb} for the {@link #handleDeleteView}
+     */
+    private Breadcrumb breadcrumb;
+
+    @Override
+    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, String requestURI)
+    {
+        if (navigationPage == null) {
+            return null;
+        }
+        if (ClientWebNavigation.RESERVATION_REQUEST_DELETE.isNavigationPage(navigationPage)) {
+            breadcrumb = new Breadcrumb(navigationPage, requestURI);
+            return breadcrumb;
+        }
+        return new Breadcrumb(navigationPage, requestURI);
+    }
 
     /**
      * Handle deletion of reservation request view.
@@ -44,6 +62,17 @@ public class ReservationRequestDeleteController
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
         model.addAttribute("reservationRequest", reservationRequest);
         model.addAttribute("dependencies", dependencies);
+
+        // Initialize breadcrumb
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
+        if (breadcrumb != null) {
+            breadcrumb.addItems(breadcrumb.getItemsCount() - 1, reservationRequestModel.getBreadcrumbItems(
+                    ClientWebUrl.RESERVATION_REQUEST_DETAIL, true));
+
+            // Set back url
+            model.addAttribute("backUrl", breadcrumb.getBackUrl());
+        }
+
         return "reservationRequestDelete";
     }
 

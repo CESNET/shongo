@@ -99,4 +99,7 @@
     <a class="btn" href="javascript: location.reload();">
         <spring:message code="views.button.refresh"/>
     </a>
+    <a class="btn" href="${deleteUrl}" tabindex="1">
+        <spring:message code="views.button.delete"/>
+    </a>
 </div>

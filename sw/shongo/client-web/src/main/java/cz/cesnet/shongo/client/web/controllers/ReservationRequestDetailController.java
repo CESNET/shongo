@@ -2,10 +2,7 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.client.web.Cache;
-import cz.cesnet.shongo.client.web.CacheProvider;
-import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.MessageProvider;
+import cz.cesnet.shongo.client.web.*;
 import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
@@ -29,7 +26,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Controller
-public class ReservationRequestDetailController
+public class ReservationRequestDetailController implements BreadcrumbProvider
 {
     @Resource
     private ReservationService reservationService;
@@ -42,6 +39,24 @@ public class ReservationRequestDetailController
 
     @Resource
     private MessageSource messages;
+
+    /**
+     * {@link Breadcrumb} for the {@link #handleDetailView}
+     */
+    private Breadcrumb breadcrumb;
+
+    @Override
+    public Breadcrumb createBreadcrumb(NavigationPage navigationPage, String requestURI)
+    {
+        if (navigationPage == null) {
+            return null;
+        }
+        if (ClientWebNavigation.RESERVATION_REQUEST_DETAIL.isNavigationPage(navigationPage)) {
+            breadcrumb = new Breadcrumb(navigationPage.getParentNavigationPage(), requestURI);
+            return breadcrumb;
+        }
+        return new Breadcrumb(navigationPage, requestURI);
+    }
 
     /**
      * Handle detail of reservation request view.
@@ -139,6 +154,16 @@ public class ReservationRequestDetailController
 
         model.addAttribute("reservationRequest", reservationRequestModel);
         model.addAttribute("isActive", isActive);
+
+        // Initialize breadcrumb
+        if (breadcrumb != null) {
+            breadcrumb.addItems(reservationRequestModel.getBreadcrumbItems(
+                    ClientWebUrl.RESERVATION_REQUEST_DETAIL, true));
+
+            // Set back url
+            model.addAttribute("backUrl", breadcrumb.getBackUrl());
+        }
+
         return "reservationRequestDetail";
     }
 

@@ -49,7 +49,6 @@ public class WizardReservationRequestController extends AbstractWizardController
     private static enum Page
     {
         RESERVATION_REQUEST,
-        RESERVATION_REQUEST_DETAIL,
         RESERVATION_REQUEST_DELETE
     }
 
@@ -59,15 +58,6 @@ public class WizardReservationRequestController extends AbstractWizardController
         wizardView.addPage(WizardController.createSelectWizardPage());
         wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST, ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST,
                 "views.wizard.page.reservationRequestList"));
-
-        if (Page.RESERVATION_REQUEST_DELETE.equals(currentWizardPageId)) {
-            wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DELETE,
-                    ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDelete"));
-        }
-        else {
-            wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DETAIL,
-                    ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDetail"));
-        }
     }
 
     /**
@@ -110,7 +100,7 @@ public class WizardReservationRequestController extends AbstractWizardController
         }
 
         // Create reservation request model
-        ReservationRequestDetailModel reservationRequest = new ReservationRequestDetailModel(
+        ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
                 abstractReservationRequest, reservation, cacheProvider, messageProvider, executableService);
 
         // Get user roles
@@ -123,10 +113,11 @@ public class WizardReservationRequestController extends AbstractWizardController
             userRoles.add(new UserRoleModel(aclRecord, cacheProvider));
         }
 
-        WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST_DETAIL, "wizardReservationRequestDetail.jsp");
-        wizardView.addObject("reservationRequest", reservationRequest);
+        WizardView wizardView = getWizardViewWithDetailPages(reservationRequestModel);
+        wizardView.init(null, "wizardReservationRequestDetail.jsp", this.request.getRequestURI());
+        wizardView.addObject("reservationRequest", reservationRequestModel);
         wizardView.addObject("userRoles", userRoles);
-        wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
+        wizardView.getCurrentPage().setTitleDescription(reservationRequestModel.getDescription());
 
         return wizardView;
     }
@@ -139,22 +130,29 @@ public class WizardReservationRequestController extends AbstractWizardController
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
-        WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST_DELETE, "wizardReservationRequestDelete.jsp");
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
         List<ReservationRequestSummary> dependencies =
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
+
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
+        WizardView wizardView = getWizardViewWithDetailPages(reservationRequestModel);
+        wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DELETE,
+                ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDelete"));
+        wizardView.init(Page.RESERVATION_REQUEST_DELETE, "wizardReservationRequestDelete.jsp", request.getRequestURI());
         wizardView.addObject("reservationRequest", reservationRequest);
         wizardView.addObject("dependencies", dependencies);
+
         if (dependencies.size() == 0) {
+            String previousPageUrl = wizardView.getPreviousPageUrl();
             wizardView.setPreviousPage(null);
             wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId),
                     "views.button.yes").setPrimary(true);
-            wizardView.addAction(ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST, "views.button.no");
+            wizardView.addAction(previousPageUrl, "views.button.no");
         }
         else {
             wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId)
-                    + "?dependencies=true", "deleteAll");
+                    + "?dependencies=true", "views.button.deleteAll");
         }
         wizardView.getCurrentPage().setTitleDescription(reservationRequest.getDescription());
 
@@ -180,5 +178,18 @@ public class WizardReservationRequestController extends AbstractWizardController
         }
         reservationService.deleteReservationRequest(securityToken, reservationRequestId);
         return "redirect:" + ClientWebUrl.WIZARD_RESERVATION_REQUEST_LIST;
+    }
+
+    private WizardView getWizardViewWithDetailPages(ReservationRequestModel reservationRequestModel)
+    {
+        WizardView wizardView = new WizardView();
+        initWizardPages(wizardView, null);
+
+        List<BreadcrumbItem> breadcrumbItems = reservationRequestModel.getBreadcrumbItems(
+                ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, true);
+        for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
+            wizardView.addPage(new WizardPage(breadcrumbItem, breadcrumbItem.getUrl(), breadcrumbItem.getTitleCode()));
+        }
+        return wizardView;
     }
 }
