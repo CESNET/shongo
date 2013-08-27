@@ -3,10 +3,10 @@
   --%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:forEach var="version" items="${changelog}">
-    <strong>${version.name}</strong> (<joda:format value="${version.dateTime}" style="M-" />)
+    <strong>${version.name}</strong> (<tag:format value="${version.dateTime}" style="date"/>)
     <ul>
         <c:forEach var="change" items="${version.changes}">
             <li>${change}</li>

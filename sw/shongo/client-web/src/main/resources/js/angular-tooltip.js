@@ -1,5 +1,5 @@
 /**
- * Date/Time module.
+ * Tooltip module.
  */
 var tooltipModule = angular.module('ngTooltip', []);
 

@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -129,8 +128,7 @@ public class ReservationRequestController
         cache.fetchReservationRequests(securityToken, providedReservationRequestIds);
 
         // Build response
-        DateTimeFormatter dateFormatter = CommonModel.DATE_FORMATTER.withLocale(locale);
-        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reservationRequestId = reservationRequest.getId();
@@ -139,7 +137,7 @@ public class ReservationRequestController
             item.put("id", reservationRequestId);
             item.put("description", reservationRequest.getDescription());
             item.put("purpose", reservationRequest.getPurpose());
-            item.put("dateTime", dateFormatter.print(reservationRequest.getDateTime()));
+            item.put("dateTime", dateTimeFormatter.formatDate(reservationRequest.getDateTime()));
             items.add(item);
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
@@ -159,8 +157,7 @@ public class ReservationRequestController
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
-                item.put("earliestSlotStart", dateTimeFormatter.print(earliestSlot.getStart()));
-                item.put("earliestSlotEnd", dateTimeFormatter.print(earliestSlot.getEnd()));
+                item.put("earliestSlot", dateTimeFormatter.formatIntervalMultiLine(earliestSlot));
             }
 
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();

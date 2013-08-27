@@ -5,7 +5,6 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="reservationRequest" required="false"
@@ -97,9 +96,7 @@
     </c:choose>
     <dt>${reservationRequestSlotLabel}:</dt>
     <dd>
-        <joda:format value="${reservationRequestSlot.start}" style="MM"/>
-        <br/>
-        <joda:format value="${reservationRequestSlot.end}" style="MM"/>
+        <tag:format value="${reservationRequestSlot}" multiline="true"/>
     </dd>
 
     <c:if test="${empty reservationRequest.parentReservationRequestId && reservationRequest.specificationType != 'PERMANENT_ROOM'}">
@@ -107,7 +104,7 @@
         <dd>
             <spring:message code="views.reservationRequest.periodicity.${reservationRequest.periodicityType}"/>
             <c:if test="${reservationRequest.periodicityType != 'NONE' && reservationRequest.periodicityEnd != null}">
-                (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<joda:format value="${reservationRequest.periodicityEnd}" style="M-"/>)
+                (<spring:message code="views.reservationRequest.periodicity.until"/>&nbsp;<tag:format value="${reservationRequest.periodicityEnd}" style="date"/>)
             </c:if>
         </dd>
     </c:if>
@@ -125,7 +122,7 @@
         <spring:message code="views.reservationRequest.purpose.${reservationRequest.purpose}"/>
     </dd>
 
-    <c:if test="${reservationRequestDetail != null}">
+    <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
         <dt><spring:message code="views.reservationRequest.state"/>:</dt>
         <dd class="reservation-request-state">
             <spring:message code="views.reservationRequest.state.${reservationRequestDetail.state}" var="state"/>
@@ -153,7 +150,7 @@
 
     <c:if test="${not empty reservationRequest.dateTime}">
         <dt><spring:message code="views.reservationRequest.dateTime"/>:</dt>
-        <dd><joda:format value="${reservationRequest.dateTime}" style="MM"/></dd>
+        <dd><tag:format value="${reservationRequest.dateTime}"/></dd>
     </c:if>
 
     <c:if test="${reservationRequestDetail != null}">
@@ -206,9 +203,7 @@
                 <c:if test="${not empty reservationRequestDetailSlot}">
                     <dt>${reservationRequestDetailSlotLabel}:</dt>
                     <dd>
-                        <joda:format value="${reservationRequestDetailSlot.start}" style="MM"/>
-                        <br/>
-                        <joda:format value="${reservationRequestDetailSlot.end}" style="MM"/>
+                        <tag:format value="${reservationRequestDetailSlot}" multiline="true"/>
                     </dd>
                 </c:if>
 

@@ -9,7 +9,6 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="permanentRooms" required="false" type="java.util.Collection<cz.cesnet.shongo.controller.api.ReservationRequestSummary>" %>
@@ -53,7 +52,7 @@
             "${permanentRoom.id}": {
                 id: "${permanentRoom.id}",
                 name: "${permanentRoom.specification.value} (${technology.title})",
-                formattedSlot: "<joda:format value="${permanentRoom.earliestSlot.start}" style="M-"/> - <joda:format value="${permanentRoom.earliestSlot.end}" style="M-"/>",
+                formattedSlot: "<tag:format value="${permanentRoom.earliestSlot}" style="date"/>",
                 slot: "${permanentRoom.earliestSlot}",
                 technology: "${technology}"
             }<c:if test="${!status.last}">, </c:if></c:forEach>

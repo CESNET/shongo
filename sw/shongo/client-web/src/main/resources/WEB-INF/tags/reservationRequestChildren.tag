@@ -5,7 +5,6 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="detailUrl" required="true" %>
@@ -13,7 +12,13 @@
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
 
 <script type="text/javascript">
-    angular.provideModule('tag:reservationRequestChildren', ['ngPagination']);
+    angular.provideModule('tag:reservationRequestChildren', ['ngPagination', 'ngSanitize']);
+
+    function HtmlController($scope, $sce) {
+        $scope.html = function(html) {
+            return $sce.trustAsHtml(html);
+        };
+    }
 </script>
 
 <spring:eval var="childListUrl"
@@ -63,19 +68,19 @@
                     </div>
                 </tag:help>
             </td>
-            <td>
+            <td ng-controller="HtmlController">
                 <div ng-switch on="isEmpty(childReservationRequest.roomAliasesDescription)" style="display: inline-block;">
                     <div ng-switch-when="false">
                         <c:set var="executableAliases">
-                            <span ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
+                            <span ng-bind-html="html(childReservationRequest.roomAliases)"></span>
                         </c:set>
                         <tag:help label="${executableAliases}"
                                   tooltipId="executableAliases-tooltip-{{$index}}">
-                            <span ng-bind-html-unsafe="childReservationRequest.roomAliasesDescription"></span>
+                            <span ng-bind-html="html(childReservationRequest.roomAliasesDescription)"></span>
                         </tag:help>
                     </div>
                     <span ng-switch-when="true"
-                          ng-bind-html-unsafe="childReservationRequest.roomAliases"></span>
+                          ng-bind-html="roomAliases(childReservationRequest)"></span>
                 </div>
             </td>
             <td>

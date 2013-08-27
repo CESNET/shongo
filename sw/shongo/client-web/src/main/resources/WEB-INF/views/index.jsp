@@ -24,15 +24,7 @@
 
 <security:authorize access="isAuthenticated()">
     <script type="text/javascript">
-        var module = angular.module('jsp:indexDashboard', ['ngPagination', 'ngTooltip']);
-        module.directive('roomUsages', function() {
-            return {
-                restrict: 'A',
-                link: function(scope, element, attrs) {
-                    element.after("<tr><td>ahoj</td></tr>");
-                }
-            };
-        })
+        var module = angular.module('jsp:indexDashboard', ['ngPagination', 'ngTooltip', 'ngSanitize']);
 
         function RoomController($scope, $resource)
         {
@@ -109,7 +101,7 @@
                         </td>
                         <td>{{room.technology}}</td>
                         <td style="text-align: right; padding-right: 30px;">{{room.licenseCount}}</td>
-                        <td>{{room.slotStart}} - {{room.slotEnd}}</td>
+                        <td><span ng-bind-html="room.slot"></span></td>
                         <td class="room-state">
                             <tag:help label="{{room.stateMessage}}" labelClass="{{room.state}}"
                                       tooltipId="roomStateTooltip-{{$index}}">
@@ -129,7 +121,7 @@
                                                             arguments="{{usage.licenseCount}}"/>
                                         </strong>
                                         <spring:message code="views.index.dashboard.room.usage.slot"
-                                                        arguments="{{usage.slotStart}},{{usage.slotEnd}}"/>
+                                                        arguments="{{usage.slot}}"/>
                                         <span class="room-state">
                                             (<tag:help label="{{usage.stateMessage}}" labelClass="{{usage.state}}" tooltipId="room-{{$parent.$index}}-usageStateTooltip-{{$index}}"><span>{{usage.stateHelp}}</span></tag:help>)
                                         </span>

@@ -6,10 +6,7 @@ import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.MessageProvider;
-import cz.cesnet.shongo.client.web.models.CommonModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestDetailModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestState;
-import cz.cesnet.shongo.client.web.models.RoomModel;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
@@ -18,7 +15,6 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -187,15 +183,14 @@ public class ReservationRequestDetailController
         }
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> child = new HashMap<String, Object>();
             child.put("id", reservationRequest.getId());
 
             Interval slot = reservationRequest.getEarliestSlot();
-            child.put("slot", dateTimeFormatter.print(slot.getStart()) + " - " +
-                    dateTimeFormatter.print(slot.getEnd()));
+            child.put("slot", dateTimeFormatter.formatInterval(slot));
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
@@ -262,7 +257,7 @@ public class ReservationRequestDetailController
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
         List<Map<String, Object>> usages = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
@@ -285,8 +280,7 @@ public class ReservationRequestDetailController
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
-                item.put("slot", dateTimeFormatter.print(earliestSlot.getStart()) + " - " + dateTimeFormatter
-                        .print(earliestSlot.getEnd()));
+                item.put("slot", dateTimeFormatter.formatInterval(earliestSlot));
             }
 
             ReservationRequestSummary.RoomSpecification roomSpecification =

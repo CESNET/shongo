@@ -5,7 +5,7 @@
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
+<%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="dependencies" required="true"
              type="java.util.Collection<cz.cesnet.shongo.controller.api.ReservationRequestSummary>" %>
@@ -22,7 +22,7 @@
                     <spring:eval var="urlDetail"
                                  expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(detailUrl, dependency.id)" />
                     <a href="${urlDetail}" tabindex="2">${dependency.description}</a>
-                    (<spring:message code="views.reservationRequestDelete.dateTime"/>&nbsp;<joda:format value="${dependency.dateTime}" style="MS"/>)
+                    (<spring:message code="views.reservationRequestDelete.dateTime"/>&nbsp;<tag:format value="${dependency.dateTime}"/>)
                 </li>
             </c:forEach>
         </ul>

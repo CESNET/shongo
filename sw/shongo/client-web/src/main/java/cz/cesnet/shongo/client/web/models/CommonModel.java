@@ -1,11 +1,15 @@
 package cz.cesnet.shongo.client.web.models;
 
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.ReadablePartial;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ValidationUtils;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -15,12 +19,6 @@ import java.util.regex.Pattern;
  */
 public class CommonModel
 {
-    /**
-     * Date/time formatters.
-     */
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormat.forStyle("M-");
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forStyle("MS");
-
     /**
      * Email pattern.
      */

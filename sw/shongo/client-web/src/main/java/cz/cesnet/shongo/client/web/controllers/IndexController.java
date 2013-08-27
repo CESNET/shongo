@@ -2,18 +2,13 @@ package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
-import cz.cesnet.shongo.client.web.models.CommonModel;
-import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
-import cz.cesnet.shongo.client.web.models.RoomState;
-import cz.cesnet.shongo.client.web.models.TechnologyModel;
-import cz.cesnet.shongo.controller.api.ExecutableState;
+import cz.cesnet.shongo.client.web.models.*;
 import cz.cesnet.shongo.controller.api.ExecutableSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import org.joda.time.Interval;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -93,7 +88,7 @@ public class IndexController
         ListResponse<ExecutableSummary> response = executableService.listExecutables(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = CommonModel.DATE_TIME_FORMATTER.withLocale(locale);
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ExecutableSummary executableSummary : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
@@ -133,8 +128,7 @@ public class IndexController
             if (slot == null) {
                 slot = executableSummary.getSlot();
             }
-            item.put("slotStart", dateTimeFormatter.print(slot.getStart()));
-            item.put("slotEnd", dateTimeFormatter.print(slot.getEnd()));
+            item.put("slot", dateTimeFormatter.formatInterval(slot));
 
             Integer licenseCount = executableSummary.getRoomUsageLicenseCount();
             if (licenseCount == null) {

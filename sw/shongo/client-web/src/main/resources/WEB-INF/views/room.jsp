@@ -4,7 +4,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
@@ -29,9 +28,7 @@
 
         <dt><spring:message code="views.room.slot"/>:</dt>
         <dd>
-            <joda:format value="${room.slot.start}" style="MM"/>
-            <br/>
-            <joda:format value="${room.slot.end}" style="MM"/>
+            <tag:format value="${room.slot}" multiline="true"/>
         </dd>
 
         <dt><spring:message code="views.room.state"/>:</dt>
@@ -52,7 +49,7 @@
                 ${room.licenseCount}
                 <c:if test="${room.licenseCountUntil != null}">
                     (<spring:message code="views.room.licenseCountUntil"/>
-                    <joda:format value="${room.licenseCountUntil}" style="MM"/>)
+                    <tag:format value="${room.licenseCountUntil}"/>)
                 </c:if>
             </dd>
         </c:if>
@@ -163,10 +160,10 @@
                         </c:choose>
                     </td>
                     <td>
-                        <joda:format value="${recording.beginDate}" style="MM"/>
+                        <tag:format value="${recording.beginDate}"/>
                     </td>
                     <td>
-                        <joda:format value="${recording.duration}" pattern="HH:mm:ss"/>
+                        <tag:format value="${recording.duration}" style="time"/>
                     </td>
                     <td>
                         <c:choose>

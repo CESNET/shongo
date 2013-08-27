@@ -5,7 +5,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <c:set var="contextPath" value="${pageContext.request.contextPath}"/>
@@ -75,7 +74,7 @@
                         <tr>
                     </c:otherwise>
                 </c:choose>
-                <td><joda:format value="${historyItem.dateTime}" style="MM"/></td>
+                <td><tag:format value="${historyItem.dateTime}"/></td>
                 <td>${historyItem.user}</td>
                 <td><spring:message code="views.reservationRequest.type.${historyItem.type}"/></td>
                 <td class="reservation-request-state">

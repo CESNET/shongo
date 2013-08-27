@@ -7,7 +7,6 @@
 <%@ taglib prefix="tiles" uri="http://tiles.apache.org/tags-tiles" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="joda" uri="http://www.joda.org/joda/time/tags" %>
 <%@ taglib prefix="tag" uri="/WEB-INF/client-web.tld" %>
 
 <%@attribute name="name" required="false" %>
@@ -46,7 +45,13 @@
 </c:if>
 
 <script type="text/javascript">
-    angular.provideModule('tag:reservationRequestList', ['ngPagination', 'ngTooltip']);
+    angular.provideModule('tag:reservationRequestList', ['ngPagination', 'ngTooltip', 'ngSanitize']);
+
+    function HtmlController($scope, $sce) {
+        $scope.html = function(html) {
+            return $sce.trustAsHtml(html);
+        };
+    }
 </script>
 
 <div ng-controller="PaginationController"
@@ -99,7 +104,7 @@
             </th>
         </tr>
         </thead>
-        <tbody>
+        <tbody ng-controller="HtmlController">
         <tr ng-repeat="reservationRequest in items">
             <c:if test="${empty specificationType || specificationType.contains(',')}">
                 <td>{{reservationRequest.type}}</td>
@@ -111,7 +116,7 @@
             <c:if test="${specificationType == 'ADHOC_ROOM'}">
                 <td>{{reservationRequest.participantCount}}</td>
             </c:if>
-            <td>{{reservationRequest.earliestSlotStart}}<br/>{{reservationRequest.earliestSlotEnd}}</td>
+            <td><span ng-bind-html="html(reservationRequest.earliestSlot)"></span></td>
             <td class="reservation-request-state">
                 <tag:help label="{{reservationRequest.stateMessage}}"
                           labelClass="{{reservationRequest.state}}"
