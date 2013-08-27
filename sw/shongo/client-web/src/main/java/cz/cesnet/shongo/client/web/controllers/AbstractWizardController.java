@@ -18,10 +18,21 @@ public abstract class AbstractWizardController
     @Resource
     protected HttpServletRequest request;
 
+    /**
+     * Initialize given {@code wizardView} for given {@code currentWizardPageId}.
+     *
+     * @param wizardView
+     * @param currentWizardPageId
+     */
     protected void initWizardPages(WizardView wizardView, Object currentWizardPageId)
     {
     }
 
+    /**
+     * @param wizardPageId identifier of the page which should be set as current
+     * @param wizardContent name of view which should be used as content for the wizard page
+     * @return new {@link WizardView} object initialized by calling the {@link #initWizardPages} method
+     */
     protected WizardView getWizardView(Object wizardPageId, String wizardContent)
     {
         WizardView wizardView = new WizardView();
@@ -30,16 +41,34 @@ public abstract class AbstractWizardController
         return wizardView;
     }
 
+    /**
+     * Represents a {@link ModelAndView} for a wizard.
+     */
     public static class WizardView extends ModelAndView
     {
+        /**
+         * Linked map of {@link WizardPage}s in the top of the view.
+         */
         private LinkedHashMap<Object, WizardPage> pages = new LinkedHashMap<Object, WizardPage>();
 
+        /**
+         * List of wizard actions at the bottom of the view.
+         */
         private final List<Action> actions = new LinkedList<Action>();
 
+        /**
+         * Previous action.
+         */
         private Action actionPrevious;
 
+        /**
+         * Next action.
+         */
         private Action actionNext;
 
+        /**
+         * Constructor.
+         */
         public WizardView()
         {
             super("wizard");
@@ -47,13 +76,20 @@ public abstract class AbstractWizardController
             addObject("wizardActions", actions);
         }
 
+        /**
+         * Initialize wizard - the current page, the page content and all wizard page by request URI.
+         *
+         * @param wizardPageId
+         * @param wizardContent
+         * @param requestUri
+         */
         protected void init(Object wizardPageId, String wizardContent, String requestUri)
         {
             // Find current, previous and next page
             WizardPage wizardPageCurrent = null;
             WizardPage wizardPagePrevious = null;
             WizardPage wizardPageNext = null;
-            for (WizardPage wizardPage : getPages()) {
+            for (WizardPage wizardPage : pages.values()) {
                 if (wizardPageId == null) {
                     // Last page should be current page
                     wizardPagePrevious = wizardPageCurrent;
@@ -72,33 +108,9 @@ public abstract class AbstractWizardController
                     }
                 }
             }
-            initNavigationPages(wizardPagePrevious, wizardPageNext);
             addObject("wizardContent", wizardContent);
             addObject("wizardPageCurrent", wizardPageCurrent);
 
-            // Set all pages until current page as available
-            boolean available = wizardPageCurrent != null;
-            for (WizardPage wizardPage : getPages()) {
-                wizardPage.setAvailable(available);
-                if (wizardPageCurrent == wizardPage) {
-                    available = false;
-                }
-            }
-
-            // Update page urls
-            if (wizardPageCurrent != null) {
-                Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(requestUri, false);
-                for (WizardPage wizardPage : getPages()) {
-                    if (wizardPage.isAvailable()) {
-                        String wizardPageUrl = wizardPage.getUrl(attributes);
-                        wizardPage.setUrl(wizardPageUrl);
-                    }
-                }
-            }
-        }
-
-        private void initNavigationPages(WizardPage wizardPagePrevious, WizardPage wizardPageNext)
-        {
             // Add previous action
             if (wizardPagePrevious != null) {
                 actionPrevious = new Action(wizardPagePrevious.getUrl(), "views.button.back", ActionPosition.LEFT);
@@ -119,34 +131,60 @@ public abstract class AbstractWizardController
 
             // Update primary button
             updatePrimary();
+
+            // Set all pages until current page as available
+            boolean available = wizardPageCurrent != null;
+            for (WizardPage wizardPage : pages.values()) {
+                wizardPage.setAvailable(available);
+                if (wizardPageCurrent == wizardPage) {
+                    available = false;
+                }
+            }
+
+            // Update page urls
+            if (wizardPageCurrent != null) {
+                Map<String, String> attributes = wizardPageCurrent.parseUrlAttributes(requestUri, false);
+                for (WizardPage wizardPage : pages.values()) {
+                    if (wizardPage.isAvailable()) {
+                        String wizardPageUrl = wizardPage.getUrl(attributes);
+                        wizardPage.setUrl(wizardPageUrl);
+                    }
+                }
+            }
         }
 
-        public Collection<WizardPage> getPages()
-        {
-            return pages.values();
-        }
-
+        /**
+         * @param wizardPage to be added to the {@link #pages}
+         */
         public void addPage(WizardPage wizardPage)
         {
             pages.put(wizardPage.getId(), wizardPage);
         }
 
-        public void setPageId(WizardPage wizardPage, Object newPageId)
-        {
-            pages.remove(wizardPage.getId());
-            pages.put(newPageId, new WizardPage(newPageId, wizardPage.getUrl(), wizardPage.getTitleCode()));
-        }
-
+        /**
+         * @return active wizard page
+         */
         public WizardPage getCurrentPage()
         {
             return (WizardPage) getModel().get("wizardPageCurrent");
         }
 
+        /**
+         * @param url
+         * @param titleCode
+         * @return new {@link Action} constructed from given parameters and added to the {@link #actions}
+         */
         public Action addAction(String url, String titleCode)
         {
             return addAction(url, titleCode, ActionPosition.LEFT);
         }
 
+        /**
+         * @param url
+         * @param titleCode
+         * @param position
+         * @return new {@link Action} constructed from given parameters and added to the {@link #actions}
+         */
         public Action addAction(String url, String titleCode, ActionPosition position)
         {
             Action action = new Action(url, titleCode, position);
@@ -154,41 +192,59 @@ public abstract class AbstractWizardController
             return action;
         }
 
-        public String getPreviousPageUrl()
+        /**
+         * @param url
+         * @param titleCode
+         * @return new {@link Action} constructed from given parameters and added to the {@link #actions}
+         * at specified {@code index}
+         */
+        public Action addAction(int index, String url, String titleCode)
         {
-            return actionPrevious.getUrl();
+            return addAction(index, url, titleCode, ActionPosition.LEFT);
         }
 
-        public void setPreviousPage(String url)
+        /**
+         * @param url
+         * @param titleCode
+         * @param position
+         * @return new {@link Action} constructed from given parameters and added to the {@link #actions}
+         * at specified {@code index}
+         */
+        public Action addAction(int index, String url, String titleCode, ActionPosition position)
         {
-            actionPrevious.setUrl(url);
-            updatePrimary();
+            Action action = new Action(url, titleCode, position);
+            actions.add(index, action);
+            return action;
         }
 
-        public void setPreviousPage(String url, String title)
+        /**
+         * @return {@link #actionPrevious}
+         */
+        public Action getActionPrevious()
         {
-            setPreviousPage(url);
-            actionPrevious.setTitleCode(title);
+            return actionPrevious;
         }
 
-        public void setPreviousPage(String url, String title, boolean primary)
+        /**
+         * @return {@link #actionNext}
+         */
+        public Action getActionNext()
         {
-            setPreviousPage(url, title);
-            actionPrevious.setPrimary(primary);
+            return actionNext;
         }
 
-        public void setNextPage(String url)
+        /**
+         * @param url sets the {@link #actionNext#url}
+         */
+        public void setNextPageUrl(String url)
         {
             actionNext.setUrl(url);
             updatePrimary();
         }
 
-        public void setNextPage(String url, String title)
-        {
-            setNextPage(url);
-            actionNext.setTitleCode(title);
-        }
-
+        /**
+         * Update which action (previous/next) should be primary.
+         */
         private void updatePrimary()
         {
             boolean nextNotEmpty = actionNext.getUrl() != null;

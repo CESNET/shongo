@@ -639,10 +639,9 @@ public class ReservationRequestModel
 
     /**
      * @param detailUrl
-     * @param includeThis
      * @return list of {@link BreadcrumbItem}s for this reservation request
      */
-    public List<BreadcrumbItem> getBreadcrumbItems(String detailUrl, boolean includeThis)
+    public List<BreadcrumbItem> getBreadcrumbItems(String detailUrl)
     {
         List<BreadcrumbItem> breadcrumbItems = new LinkedList<BreadcrumbItem>();
 
@@ -682,10 +681,8 @@ public class ReservationRequestModel
             titleCode = "navigation.reservationRequest.detail";
         }
 
-        if (includeThis) {
-            // Add breadcrumb for this reservation request
-            breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, id), titleCode));
-        }
+        // Add breadcrumb for this reservation request
+        breadcrumbItems.add(new BreadcrumbItem(ClientWebUrl.format(detailUrl, id), titleCode));
 
         return breadcrumbItems;
     }

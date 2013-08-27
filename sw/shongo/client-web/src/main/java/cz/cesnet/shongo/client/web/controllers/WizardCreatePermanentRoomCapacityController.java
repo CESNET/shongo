@@ -120,7 +120,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
     {
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY, "wizardCreateAttributes.jsp");
         wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_PROCESS);
-        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
@@ -172,7 +172,7 @@ public class WizardCreatePermanentRoomCapacityController extends AbstractWizardC
         }
         reservationRequest.loadPermanentRoom(new CacheProvider(cache, securityToken));
         WizardView wizardView = getWizardView(Page.CREATE_PERMANENT_ROOM_CAPACITY_CONFIRM, "wizardCreateConfirm.jsp");
-        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
+        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_PERMANENT_ROOM_CAPACITY_CONFIRMED);
         return wizardView;
     }
 

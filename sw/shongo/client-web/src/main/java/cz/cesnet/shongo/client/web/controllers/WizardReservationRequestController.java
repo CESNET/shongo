@@ -67,7 +67,7 @@ public class WizardReservationRequestController extends AbstractWizardController
     public ModelAndView handleReservationRequestList()
     {
         WizardView wizardView = getWizardView(Page.RESERVATION_REQUEST, "wizardReservationRequestList.jsp");
-        wizardView.setNextPage(null);
+        wizardView.setNextPageUrl(null);
         return wizardView;
     }
 
@@ -144,11 +144,11 @@ public class WizardReservationRequestController extends AbstractWizardController
         wizardView.addObject("dependencies", dependencies);
 
         if (dependencies.size() == 0) {
-            String previousPageUrl = wizardView.getPreviousPageUrl();
-            wizardView.setPreviousPage(null);
-            wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId),
+            WizardView.Action actionPrevious = wizardView.getActionPrevious();
+            actionPrevious.setTitleCode("views.button.no");
+            actionPrevious.setPrimary(false);
+            wizardView.addAction(0, ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId),
                     "views.button.yes").setPrimary(true);
-            wizardView.addAction(previousPageUrl, "views.button.no");
         }
         else {
             wizardView.addAction(ClientWebUrl.getWizardReservationRequestDeleteConfirm(reservationRequestId)
@@ -186,7 +186,7 @@ public class WizardReservationRequestController extends AbstractWizardController
         initWizardPages(wizardView, null);
 
         List<BreadcrumbItem> breadcrumbItems = reservationRequestModel.getBreadcrumbItems(
-                ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, true);
+                ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL);
         for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
             wizardView.addPage(new WizardPage(breadcrumbItem, breadcrumbItem.getUrl(), breadcrumbItem.getTitleCode()));
         }

@@ -87,7 +87,7 @@ public class WizardCreateController extends AbstractWizardController
         ReservationRequestModel reservationRequest = new ReservationRequestModel();
         reservationRequest.addUserRole(securityToken.getUserInformation(), Role.OWNER);
         wizardView.addObject("reservationRequest", reservationRequest);
-        wizardView.setNextPage(null);
+        wizardView.setNextPageUrl(null);
         return wizardView;
     }
 
@@ -139,7 +139,7 @@ public class WizardCreateController extends AbstractWizardController
     {
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_ATTRIBUTES, "wizardCreateAttributes.jsp");
         wizardView.addObject("confirmUrl", ClientWebUrl.WIZARD_CREATE_ROOM_ATTRIBUTES_PROCESS);
-        wizardView.setNextPage(WizardController.SUBMIT_RESERVATION_REQUEST);
+        wizardView.setNextPageUrl(WizardController.SUBMIT_RESERVATION_REQUEST);
         wizardView.addAction(WizardController.SUBMIT_RESERVATION_REQUEST_FINISH,
                 "views.button.finish", WizardView.ActionPosition.RIGHT);
         return wizardView;
@@ -256,7 +256,7 @@ public class WizardCreateController extends AbstractWizardController
             return getCreateRoomAttributesView();
         }
         WizardView wizardView = getWizardView(Page.CREATE_ROOM_CONFIRM, "wizardCreateConfirm.jsp");
-        wizardView.setNextPage(ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED);
+        wizardView.setNextPageUrl(ClientWebUrl.WIZARD_CREATE_ROOM_CONFIRMED);
         return wizardView;
     }
 
