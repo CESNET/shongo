@@ -24,7 +24,8 @@ SELECT
     specification_summary.room_participant_count AS room_participant_count,
     specification_summary.alias_room_name AS alias_room_name,
     specification_summary.resource_id AS resource_id,
-    reservation_request_summary.usage_executable_state AS usage_executable_state
+    reservation_request_summary.usage_executable_state AS usage_executable_state,
+    reservation_request_summary.future_child_count
 FROM reservation_request_summary
 LEFT JOIN reservation_request ON reservation_request.id = reservation_request_summary.id
 LEFT JOIN specification_summary ON specification_summary.id = reservation_request_summary.specification_id

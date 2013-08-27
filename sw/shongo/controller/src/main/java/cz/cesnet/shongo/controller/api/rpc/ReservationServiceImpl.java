@@ -1026,6 +1026,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[17] != null) {
             reservationRequestSummary.setUsageExecutableState(ExecutableState.valueOf(record[17].toString().trim()));
         }
+        if (record[18] != null) {
+            reservationRequestSummary.setFutureSlotCount(((Number)record[18]).intValue());
+        }
         return reservationRequestSummary;
     }
 }

@@ -49,6 +49,11 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Interval earliestSlot;
 
     /**
+     * Number of slots in future (except the earliest date/time slot).
+     */
+    private Integer futureSlotCount;
+
+    /**
      * {@link AllocationState} of the reservation request for the earliest requested date/time slot.
      */
     private AllocationState allocationState;
@@ -181,6 +186,22 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
+     * @return {@link #futureSlotCount}
+     */
+    public Integer getFutureSlotCount()
+    {
+        return futureSlotCount;
+    }
+
+    /**
+     * @param futureSlotCount sets the {@link #futureSlotCount}
+     */
+    public void setFutureSlotCount(Integer futureSlotCount)
+    {
+        this.futureSlotCount = futureSlotCount;
+    }
+
+    /**
      * @return {@link #allocationState}
      */
     public AllocationState getAllocationState()
@@ -306,6 +327,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String PURPOSE = "purpose";
     private static final String DESCRIPTION = "description";
     private static final String EARLIEST_SLOT = "earliestSlot";
+    private static final String FUTURE_SLOT_COUNT = "futureSlotCount";
     private static final String ALLOCATION_STATE = "allocationState";
     private static final String EXECUTABLE_STATE = "executableState";
     private static final String SPECIFICATION = "specification";
@@ -324,6 +346,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(PURPOSE, purpose);
         dataMap.set(DESCRIPTION, description);
         dataMap.set(EARLIEST_SLOT, earliestSlot);
+        dataMap.set(FUTURE_SLOT_COUNT, futureSlotCount);
         dataMap.set(ALLOCATION_STATE, allocationState);
         dataMap.set(EXECUTABLE_STATE, executableState);
         dataMap.set(SPECIFICATION, specification);
@@ -344,6 +367,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         purpose = dataMap.getEnum(PURPOSE, ReservationRequestPurpose.class);
         description = dataMap.getString(DESCRIPTION);
         earliestSlot = dataMap.getInterval(EARLIEST_SLOT);
+        futureSlotCount = dataMap.getInteger(FUTURE_SLOT_COUNT);
         allocationState = dataMap.getEnum(ALLOCATION_STATE, AllocationState.class);
         executableState = dataMap.getEnum(EXECUTABLE_STATE, ExecutableState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);

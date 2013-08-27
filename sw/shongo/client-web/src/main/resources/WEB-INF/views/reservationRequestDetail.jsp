@@ -91,7 +91,7 @@
                                 <spring:message code="views.list.action.show"/>
                             </a>
                         </c:when>
-                        <c:otherwise>(<spring:message code="views.list.selected"/>)</c:otherwise>
+                        <c:when test="${historyItem.selected}">(<spring:message code="views.list.selected"/>)</c:when>
                     </c:choose>
                     <c:if test="${historyItem.isRevertible}">
                         <spring:eval var="historyItemRevertUrl"

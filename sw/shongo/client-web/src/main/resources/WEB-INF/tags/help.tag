@@ -36,7 +36,7 @@
 
 <c:choose>
     <c:when test="${type == 'text'}"><%--
-    --%><div class="tooltip-container"><%--
+    --%><span class="tooltip-container"><%--
         --%><span tooltip="${tooltipId}" class="tooltip-label dotted ${labelClass}">${label}</span><%--
         --%><jsp:doBody var="body"/>
             <c:if test="${not empty body}"><%--
@@ -44,7 +44,7 @@
                 --%><span>${body}</span><%--
             --%></div><%--
         --%></c:if><%--
-    --%></div><%--
+    --%></span><%--
 --%></c:when>
     <c:otherwise>
         <c:if test="${not empty label && empty labelElement}">

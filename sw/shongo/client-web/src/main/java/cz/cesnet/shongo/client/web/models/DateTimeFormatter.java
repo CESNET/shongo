@@ -174,13 +174,13 @@ public class DateTimeFormatter
         DateTime start = interval.getStart();
         DateTime end = interval.getEnd();
         if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
-            stringBuilder.append("<table class=\"date-time\"><tr><td>");
+            stringBuilder.append("<div class=\"date-time\"><table><tr><td>");
             stringBuilder.append(dateFormatter.print(start));
             stringBuilder.append("</td><td>");
             stringBuilder.append(timeFormatter.print(start));
             stringBuilder.append("</td></tr><tr><td></td><td>");
             stringBuilder.append(timeFormatter.print(end));
-            stringBuilder.append("</td></tr></table>");
+            stringBuilder.append("</td></tr></table></div>");
         }
         else {
             stringBuilder.append(dateTimeFormatter.print(start));

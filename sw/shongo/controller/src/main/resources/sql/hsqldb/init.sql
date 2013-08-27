@@ -62,6 +62,7 @@ SELECT
     abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
     abstract_reservation_request.allocation_id AS allocation_id,
     NULL AS child_id,
+    NULL AS future_child_count,
     reservation_request.slot_start AS slot_start,
     reservation_request.slot_end AS slot_end,
     reservation_request_state.allocation_state AS allocation_state,

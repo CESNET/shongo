@@ -63,12 +63,16 @@ img.language {
 }
 
 /* Date/times */
-table.date-time td {
+.date-time {
+    display: inline-block;
+    margin-right: 3px;
+}
+.date-time table td {
     padding: 0px;
     border-top: none;
     background-color: transparent !important;
 }
-table.date-time td:last-child {
+.date-time table td:last-child {
     padding-left: 5px;
 }
 
@@ -309,6 +313,7 @@ div.bordered table {
 .tooltip-container {
     display: inline-block;
     line-height: 20px;
+    vertical-align: top;
 }
 .tooltip-label {
     display: inline-block;

@@ -31,7 +31,7 @@
         <thead>
         <tr>
             <th width="320px"><pagination-sort column="SLOT">
-                <spring:message code="views.reservationRequest.slot"/></pagination-sort>
+                <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="ROOM_PARTICIPANT_COUNT">
                 <spring:message code="views.reservationRequest.specification.roomParticipantCount"/></pagination-sort>
@@ -47,7 +47,15 @@
         </thead>
         <tbody>
         <tr ng-repeat="permanentRoomCapacity in items">
-            <td>{{permanentRoomCapacity.slot}}</td>
+            <td>
+                {{permanentRoomCapacity.slot}}
+                <span ng-show="permanentRoomCapacity.futureSlotCount">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
+                    <tag:help label="({{permanentRoomCapacity.futureSlotCount}} ${slotMore})">
+                        <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                    </tag:help>
+                </span>
+            </td>
             <td>{{permanentRoomCapacity.roomParticipantCount}}</td>
             <td class="reservation-request-state">
                 <tag:help label="{{permanentRoomCapacity.stateMessage}}"

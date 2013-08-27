@@ -67,13 +67,18 @@ SELECT
     reservation_request_set_slots.id AS id,
     reservation_request.id AS child_id,
     reservation_request.slot_start AS slot_start,
-    reservation_request.slot_end AS slot_end
+    reservation_request.slot_end AS slot_end,
+    CASE
+        WHEN reservation_request_set_slots.future_child_count > 0 THEN reservation_request_set_slots.future_child_count - 1
+        ELSE 0
+    END AS future_child_count
 FROM (
     SELECT /* sets of reservation requests with "future minimum" and "whole maximum" slot ending */
         abstract_reservation_request.id AS id,
         abstract_reservation_request.allocation_id AS allocation_id,
         MIN(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN reservation_request.slot_end ELSE NULL END) AS slot_end_future_min,
-        MAX(reservation_request.slot_end) AS slot_end_max
+        MAX(reservation_request.slot_end) AS slot_end_max,
+        COUNT(CASE WHEN reservation_request.slot_end > (now() at time zone 'UTC') THEN 1 ELSE NULL END) AS future_child_count
     FROM reservation_request_set
     LEFT JOIN abstract_reservation_request ON abstract_reservation_request.id = reservation_request_set.id
     LEFT JOIN reservation_request ON reservation_request.parent_allocation_id = abstract_reservation_request.allocation_id
@@ -160,12 +165,13 @@ SELECT
     abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
     abstract_reservation_request.allocation_id AS allocation_id,
     reservation_request_set_earliest_child.child_id AS child_id,
+    reservation_request_set_earliest_child.future_child_count AS future_child_count,
     COALESCE(reservation_request.slot_start, reservation_request_set_earliest_child.slot_start) AS slot_start,
     COALESCE(reservation_request.slot_end, reservation_request_set_earliest_child.slot_end) AS slot_end,
     reservation_request_state.allocation_state AS allocation_state,
     reservation_request_state.executable_state AS executable_state,
     reservation_request_state.last_reservation_id AS last_reservation_id,
-  reservation_request_usage.executable_state AS usage_executable_state
+    reservation_request_usage.executable_state AS usage_executable_state
 FROM abstract_reservation_request
 LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id

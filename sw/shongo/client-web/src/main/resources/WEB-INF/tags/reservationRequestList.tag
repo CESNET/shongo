@@ -85,7 +85,7 @@
                 </th>
             </c:if>
             <th><pagination-sort column="SLOT">
-                <spring:message code="views.reservationRequest.slot"/></pagination-sort>
+                <spring:message code="views.reservationRequestList.slot"/></pagination-sort>
             </th>
             <th><pagination-sort column="STATE">
                 <spring:message code="views.reservationRequest.state"/></pagination-sort>
@@ -116,7 +116,15 @@
             <c:if test="${specificationType == 'ADHOC_ROOM'}">
                 <td>{{reservationRequest.participantCount}}</td>
             </c:if>
-            <td><span ng-bind-html="html(reservationRequest.earliestSlot)"></span></td>
+            <td>
+                <span ng-bind-html="html(reservationRequest.earliestSlot)"></span>
+                <span ng-show="reservationRequest.futureSlotCount">
+                    <spring:message code="views.reservationRequestList.slotMore" var="slotMore"/>
+                    <tag:help label="({{reservationRequest.futureSlotCount}} ${slotMore})">
+                        <spring:message code="views.reservationRequestList.slotMoreHelp"/>
+                    </tag:help>
+                </span>
+            </td>
             <td class="reservation-request-state">
                 <tag:help label="{{reservationRequest.stateMessage}}"
                           labelClass="{{reservationRequest.state}}"

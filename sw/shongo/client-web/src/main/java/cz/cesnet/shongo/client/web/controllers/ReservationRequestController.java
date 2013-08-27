@@ -159,6 +159,10 @@ public class ReservationRequestController
             if (earliestSlot != null) {
                 item.put("earliestSlot", dateTimeFormatter.formatIntervalMultiLine(earliestSlot));
             }
+            Integer futureSlotCount = reservationRequest.getFutureSlotCount();
+            if (futureSlotCount != null) {
+                item.put("futureSlotCount", futureSlotCount);
+            }
 
             Set<Technology> technologies = reservationRequest.getSpecificationTechnologies();
             TechnologyModel technology = TechnologyModel.find(technologies);

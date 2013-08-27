@@ -205,7 +205,7 @@ public class ReservationRequestDetailController
             Reservation reservation = reservationById.get(reservationId);
             if (reservation != null) {
                 // Reservation should contain allocated room
-                RoomExecutable room = (RoomExecutable) reservation.getExecutable();
+                AbstractRoomExecutable room = (AbstractRoomExecutable) reservation.getExecutable();
                 if (room != null) {
                     child.put("roomId", room.getId());
 
@@ -281,6 +281,10 @@ public class ReservationRequestDetailController
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
                 item.put("slot", dateTimeFormatter.formatInterval(earliestSlot));
+            }
+            Integer futureSlotCount = reservationRequest.getFutureSlotCount();
+            if (futureSlotCount != null) {
+                item.put("futureSlotCount", futureSlotCount);
             }
 
             ReservationRequestSummary.RoomSpecification roomSpecification =
