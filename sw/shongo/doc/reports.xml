@@ -839,6 +839,21 @@
             <user visible="true" via="api"/>
         </report>
 
+        <report>
+            <id>reservation-request-not-reusable</id>
+            <classification severity="error"/>
+            <params>
+                <param name="id" type="String"/>
+            </params>
+            <description>
+                TODO:
+            </description>
+            <message>
+                Reservation request with identifier ${id} cannot be reused.
+            </message>
+            <user visible="true"/>
+        </report>
+
     </scope>
 
     <scope name="scheduler">
@@ -1059,7 +1074,7 @@
                 TODO:
             </description>
             <message>
-                No reservation is allocated for provided ${reservationRequest} which can be used in requested time slot.
+                No reservation is allocated for reused ${reservationRequest} which can be used in requested time slot.
             </message>
             <user visible="true"/>
         </report>
@@ -1075,13 +1090,13 @@
             <id>reservation-not-available</id>
             <classification severity="error"/>
             <params>
-                <param name="providedReservationRequest" type="AbstractReservationRequest"/>
+                <param name="reusedReservationRequest" type="AbstractReservationRequest"/>
             </params>
             <description>
                 TODO:
             </description>
             <message>
-                The ${reservation} from provided ${providedReservationRequest} is not available because it is already
+                The ${reservation} from reused ${reusedReservationRequest} is not available because it is already
                 allocated for another reservation request in requested time slot.
             </message>
             <user visible="true"/>

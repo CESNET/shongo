@@ -277,7 +277,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         request.setCount(count);
         request.setSort(sort);
         request.setSortDescending(sortDescending);
-        request.setProvidedReservationRequestId(reservationRequestId);
+        request.setReusedReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         // Build response

@@ -138,7 +138,7 @@ SELECT
     usage_reservation_request.allocation_state AS allocation_state,
     usage_executable.state AS executable_state
 FROM abstract_reservation_request
-    LEFT JOIN abstract_reservation_request AS usage ON usage.provided_allocation_id = abstract_reservation_request.allocation_id AND usage.state = 'ACTIVE'
+    LEFT JOIN abstract_reservation_request AS usage ON usage.reused_allocation_id = abstract_reservation_request.allocation_id AND usage.state = 'ACTIVE'
     INNER JOIN reservation_request AS usage_reservation_request ON usage_reservation_request.id = usage.id
            AND (now() at time zone 'UTC') BETWEEN usage_reservation_request.slot_start AND usage_reservation_request.slot_end
     LEFT JOIN reservation ON reservation.allocation_id = usage.allocation_id
@@ -161,7 +161,7 @@ SELECT
     abstract_reservation_request.purpose AS purpose,
     abstract_reservation_request.state AS state,
     abstract_reservation_request.specification_id AS specification_id,
-    provided_allocation.abstract_reservation_request_id AS provided_reservation_request_id,
+    reused_allocation.abstract_reservation_request_id AS reused_reservation_request_id,
     abstract_reservation_request.modified_reservation_request_id AS modified_reservation_request_id,
     abstract_reservation_request.allocation_id AS allocation_id,
     reservation_request_set_earliest_child.child_id AS child_id,
@@ -173,7 +173,7 @@ SELECT
     reservation_request_state.last_reservation_id AS last_reservation_id,
     reservation_request_usage.executable_state AS usage_executable_state
 FROM abstract_reservation_request
-LEFT JOIN allocation AS provided_allocation ON provided_allocation.id = abstract_reservation_request.provided_allocation_id
+LEFT JOIN allocation AS reused_allocation ON reused_allocation.id = abstract_reservation_request.reused_allocation_id
 LEFT JOIN reservation_request ON reservation_request.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_set_earliest_child ON reservation_request_set_earliest_child.id = abstract_reservation_request.id
 LEFT JOIN reservation_request_state ON reservation_request_state.id = reservation_request.id OR reservation_request_state.id = reservation_request_set_earliest_child.child_id

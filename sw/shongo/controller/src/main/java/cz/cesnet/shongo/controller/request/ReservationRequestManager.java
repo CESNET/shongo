@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -165,7 +164,7 @@ public class ReservationRequestManager extends AbstractManager
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         // Check if reservations can be deleted
-        if (reservationManager.isAllocationProvided(allocation)) {
+        if (reservationManager.isAllocationReused(allocation)) {
             return false;
         }
 
@@ -177,7 +176,8 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         // Delete all child reservation requests
-        for (ReservationRequest reservationRequest : new LinkedList<ReservationRequest>(allocation.getChildReservationRequests())) {
+        for (ReservationRequest reservationRequest : new LinkedList<ReservationRequest>(
+                allocation.getChildReservationRequests())) {
             reservationRequest.setParentAllocation(null);
             hardDelete(reservationRequest, authorizationManager);
         }
@@ -333,21 +333,21 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param interval
-     * @return list of {@link ReservationRequest}s which got provided reservation request with
-     * given {@code reservationRequestId}, which are in {@link ReservationRequest.AllocationState#ALLOCATED} state and
+     * @return list of {@link ReservationRequest}s which reuse reservation request with given
+     *         {@code reservationRequestId}, which are in {@link ReservationRequest.AllocationState#ALLOCATED} state and
      *         starting in given {@code interval}
      */
     public List<ReservationRequest> listAllocationUsages(Allocation allocation, Interval interval)
     {
         List<ReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.providedAllocation = :providedAllocation"
+                        + " WHERE reservationRequest.reusedAllocation = :reusableAllocation"
                         + " AND reservationRequest.state = :activeState"
                         + " AND reservationRequest.allocationState = :allocationState"
                         + " AND reservationRequest.slotStart < :end"
                         + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
-                .setParameter("providedAllocation", allocation)
+                .setParameter("reusableAllocation", allocation)
                 .setParameter("activeState", AbstractReservationRequest.State.ACTIVE)
                 .setParameter("allocationState", ReservationRequest.AllocationState.ALLOCATED)
                 .setParameter("start", interval.getStart())

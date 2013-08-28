@@ -247,31 +247,31 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param allocation to be checked if it has a reservation provided to any {@link ReservationRequest}
-     * @return true if given {@code allocation} has a reservation provided to any {@link ReservationRequest},
+     * @param allocation to be checked if it is reused by any {@link ReservationRequest}
+     * @return true if given {@code allocation} is reused by any {@link ReservationRequest},
      *         false otherwise
      */
-    public boolean isAllocationProvided(Allocation allocation)
+    public boolean isAllocationReused(Allocation allocation)
     {
-        return getReservationRequestWithProvidedAllocation(allocation).size() > 0;
+        return getReservationRequestWithReusedAllocation(allocation).size() > 0;
     }
 
     /**
      * @param allocation for which the {@link AbstractReservationRequest}s should be returned
-     * @return collection of {@link AbstractReservationRequest}s which has provided given {@code allocation}
+     * @return collection of {@link AbstractReservationRequest}s which reuse given {@code allocation}
      */
-    public Collection<AbstractReservationRequest> getReservationRequestWithProvidedAllocation(Allocation allocation)
+    public Collection<AbstractReservationRequest> getReservationRequestWithReusedAllocation(Allocation allocation)
     {
         Set<AbstractReservationRequest> reservationRequests = new HashSet<AbstractReservationRequest>();
 
-        // Add top reservation requests by provided allocation
-        List<AbstractReservationRequest> reservationRequestsWithProvidedAllocation = entityManager.createQuery(
+        // Add top reservation requests by reused allocation
+        List<AbstractReservationRequest> reservationRequestsWithReusedAllocation = entityManager.createQuery(
                 "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.providedAllocation = :providedAllocation",
+                        + " WHERE reservationRequest.reusedAllocation = :allocation",
                 AbstractReservationRequest.class)
-                .setParameter("providedAllocation", allocation)
+                .setParameter("allocation", allocation)
                 .getResultList();
-        for (AbstractReservationRequest reservationRequest : reservationRequestsWithProvidedAllocation) {
+        for (AbstractReservationRequest reservationRequest : reservationRequestsWithReusedAllocation) {
             if (!reservationRequest.getState().equals(AbstractReservationRequest.State.ACTIVE)) {
                 continue;
             }

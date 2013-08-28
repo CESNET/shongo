@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.TodoImplementException;
-import cz.cesnet.shongo.client.web.ClientWebMessage;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 
 /**
@@ -60,7 +58,7 @@ public enum SpecificationType
         if (specification instanceof ReservationRequestSummary.RoomSpecification) {
             ReservationRequestSummary.RoomSpecification room =
                     (ReservationRequestSummary.RoomSpecification) specification;
-            if (reservationRequestSummary.getProvidedReservationRequestId() != null) {
+            if (reservationRequestSummary.getReusedReservationRequestId() != null) {
                 return PERMANENT_ROOM_CAPACITY;
             }
             else {

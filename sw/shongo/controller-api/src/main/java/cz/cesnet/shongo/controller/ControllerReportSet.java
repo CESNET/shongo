@@ -2059,6 +2059,102 @@ public class ControllerReportSet extends AbstractReportSet
         }
     }
 
+    /**
+     * Reservation request with identifier {@link #id} cannot be reused.
+     */
+    public static class ReservationRequestNotReusableReport extends Report
+    {
+        protected String id;
+
+        public ReservationRequestNotReusableReport()
+        {
+        }
+
+        public ReservationRequestNotReusableReport(String id)
+        {
+            setId(id);
+        }
+
+        public String getId()
+        {
+            return id;
+        }
+
+        public void setId(String id)
+        {
+            this.id = id;
+        }
+
+        @Override
+        public Type getType()
+        {
+            return Report.Type.ERROR;
+        }
+
+        @Override
+        protected int getVisibleFlags()
+        {
+            return VISIBLE_TO_USER;
+        }
+
+        @Override
+        public String getMessage(MessageType messageType)
+        {
+            StringBuilder message = new StringBuilder();
+            switch (messageType) {
+                default:
+                    message.append("Reservation request with identifier ");
+                    message.append((id == null ? "null" : id));
+                    message.append(" cannot be reused.");
+                    break;
+            }
+            return message.toString();
+        }
+    }
+
+    /**
+     * Exception for {@link ReservationRequestNotReusableReport}.
+     */
+    public static class ReservationRequestNotReusableException extends ReportRuntimeException
+    {
+        public ReservationRequestNotReusableException(ReservationRequestNotReusableReport report)
+        {
+            this.report = report;
+        }
+
+        public ReservationRequestNotReusableException(Throwable throwable, ReservationRequestNotReusableReport report)
+        {
+            super(throwable);
+            this.report = report;
+        }
+
+        public ReservationRequestNotReusableException(String id)
+        {
+            ReservationRequestNotReusableReport report = new ReservationRequestNotReusableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public ReservationRequestNotReusableException(Throwable throwable, String id)
+        {
+            super(throwable);
+            ReservationRequestNotReusableReport report = new ReservationRequestNotReusableReport();
+            report.setId(id);
+            this.report = report;
+        }
+
+        public String getId()
+        {
+            return getReport().getId();
+        }
+
+        @Override
+        public ReservationRequestNotReusableReport getReport()
+        {
+            return (ReservationRequestNotReusableReport) report;
+        }
+    }
+
     @Override
     protected void fillReportClasses()
     {
@@ -2077,5 +2173,6 @@ public class ControllerReportSet extends AbstractReportSet
         addReportClass(ReservationRequestAlreadyModifiedReport.class);
         addReportClass(ReservationRequestDeletedReport.class);
         addReportClass(ReservationRequestEmptyDurationReport.class);
+        addReportClass(ReservationRequestNotReusableReport.class);
     }
 }

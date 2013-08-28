@@ -2,15 +2,13 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.Temporal;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ControllerReportSet;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.DateTime;
-import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,7 +17,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SchedulerProvidedTest extends AbstractControllerTest
+public class SchedulerReusementTest extends AbstractControllerTest
 {
     @Test
     public void testTerminal() throws Exception
@@ -35,6 +33,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
         Reservation terminalReservation = checkAllocated(terminalReservationRequestId);
 
@@ -42,7 +41,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-01-01T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
-        reservationRequest.setProvidedReservationRequestId(terminalReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(terminalReservationRequestId);
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
@@ -72,6 +71,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         lectureRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         lectureRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         lectureRoomReservationRequest.setSpecification(new ResourceSpecification(lectureRoomId));
+        lectureRoomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String lectureRoomReservationRequestId = allocate(lectureRoomReservationRequest);
         Reservation lectureRoomReservation = checkAllocated(lectureRoomReservationRequestId);
 
@@ -84,7 +84,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         checkAllocationFailed(id);
 
         request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        request.setProvidedReservationRequestId(lectureRoomReservationRequestId);
+        request.setReusedReservationRequestId(lectureRoomReservationRequestId);
 
         Reservation reservation = allocateAndCheck(request);
         Assert.assertEquals(1, reservation.getChildReservationIds().size());
@@ -108,6 +108,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
@@ -115,7 +116,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(Technology.H323));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
 
         String reservationRequestId = allocate(reservationRequest);
         Reservation reservation = checkAllocated(reservationRequestId);
@@ -153,6 +154,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         Assert.assertEquals(aliasReservation.getValue(), "950000001");
@@ -163,7 +165,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        compartmentReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
 
         allocateAndCheck(compartmentReservationRequest);
         try {
@@ -175,7 +177,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
     }
 
     @Test
-    public void testUseOnlyValidProvidedReservations() throws Exception
+    public void testUseOnlyValidReusableReservations() throws Exception
     {
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -188,20 +190,21 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         terminalReservationRequest.setSlot("2012-06-22T00:00", "PT15H");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
-        Reservation terminalReservation = checkAllocated(terminalReservationRequestId);
+        checkAllocated(terminalReservationRequestId);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
-        reservationRequest.setProvidedReservationRequestId(terminalReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(terminalReservationRequestId);
 
         allocateAndCheckFailed(reservationRequest);
     }
 
     @Test
-    public void testProvidedReservationsFromSet() throws Exception
+    public void testReusedReservationsFromSet() throws Exception
     {
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -214,6 +217,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        terminalReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String terminalReservationRequestId = allocate(terminalReservationRequest);
         Reservation terminalReservation = checkAllocated(terminalReservationRequestId);
 
@@ -221,7 +225,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequestSet.addSlot("2012-01-01T14:00", "PT2H");
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(new ExistingEndpointSpecification(terminalId));
-        reservationRequestSet.setProvidedReservationRequestId(terminalReservationRequestId);
+        reservationRequestSet.setReusedReservationRequestId(terminalReservationRequestId);
 
         Reservation reservation = allocateAndCheck(reservationRequestSet);
         Assert.assertEquals(ExistingReservation.class, reservation.getClass());
@@ -230,7 +234,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
     }
 
     @Test
-    public void testProvidedRoomReservations() throws Exception
+    public void testReusedRoomReservations() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -238,7 +242,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -247,8 +251,9 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
-        Reservation roomReservation = checkAllocated(roomReservationRequestId);
+        checkAllocated(roomReservationRequestId);
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-01-01T14:00", "PT2H");
@@ -256,7 +261,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.setProvidedReservationRequestId(roomReservationRequestId);
+        compartmentReservationRequest.setReusedReservationRequestId(roomReservationRequestId);
 
         allocateAndCheck(compartmentReservationRequest);
     }
@@ -274,21 +279,22 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
-        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
+        checkAllocated(aliasReservationRequestId);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
-        firstReservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        firstReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         allocateAndCheck(firstReservationRequest);
 
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         secondReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
-        secondReservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        secondReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         allocateAndCheckFailed(secondReservationRequest);
     }
 
@@ -296,7 +302,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
      * Test allocating {@link AliasReservation} from {@link AliasProviderCapability}
      * with {@link AliasProviderCapability#RESTRICTED_TO_RESOURCE} set to {@code true}.
      * <p/>
-     * Then the allocated {@link AliasReservation} is provided to two {@link ReservationRequest} where the first
+     * Then the allocated {@link AliasReservation} is reused by two {@link ReservationRequest} where the first
      * specify different {@link AliasProviderCapability} and it fails and the second specify proper
      * {@link AliasProviderCapability} and it succeeds.
      *
@@ -327,16 +333,17 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
-        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
+        checkAllocated(aliasReservationRequestId);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         firstReservationRequest.setSpecification(
                 new RoomSpecification(10, Technology.ADOBE_CONNECT, connectServerSecondId));
-        firstReservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
-        // Should not be allocated because the provided alias is restricted to the first server
+        firstReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
+        // Should not be allocated because the reusable alias is restricted to the first server
         allocateAndCheckFailed(firstReservationRequest);
 
         ReservationRequest secondReservationRequest = new ReservationRequest();
@@ -344,7 +351,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         secondReservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT,
                 connectServerFirstId));
-        secondReservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        secondReservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         allocateAndCheck(secondReservationRequest);
     }
 
@@ -353,7 +360,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
      * {@link AliasReservation}s are reused in other reservation request (e.g., {@link RoomReservation}).
      */
     @Test
-    public void testProvidedAliasSetModifiable() throws Exception
+    public void testReusedAliasSetModifiable() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -372,6 +379,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSetSpecification(
                 new AliasType[]{AliasType.H323_E164, AliasType.SIP_URI}).withSharedExecutable());
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
@@ -380,7 +388,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
-        reservationRequest1.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest1.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequest1Id = allocate(reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
@@ -388,7 +396,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
-        reservationRequest2.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest2.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequest2Id = allocate(reservationRequest2);
 
         // Check allocated usages of alias
@@ -413,7 +421,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasReservation = checkAllocated(aliasReservationRequestId);
         Assert.assertEquals(new DateTime("2013-07-01T14:00"), aliasReservation.getSlot().getStart());
 
-        // Check allocated usages of alias to be updated by the provided reservation request modification
+        // Check allocated usages of alias to be updated by the reused reservation request modification
         reservation1 = checkAllocated(reservationRequest1Id);
         reservation2 = checkAllocated(reservationRequest2Id);
         room1 = (AbstractRoomExecutable) reservation1.getExecutable();
@@ -434,7 +442,7 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
-        reservationRequestSet.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequestSet.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequestSetId = allocate(reservationRequestSet);
         checkAllocated(reservationRequestSetId);
 
@@ -469,15 +477,16 @@ public class SchedulerProvidedTest extends AbstractControllerTest
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
         aliasReservationRequest.setSpecification(aliasSetSpecification);
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
-        Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
+        checkAllocated(aliasReservationRequestId);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
                 new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

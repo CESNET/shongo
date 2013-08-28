@@ -1052,7 +1052,7 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * No reservation is allocated for provided {@link #reservationRequest} which can be used in requested time slot.
+     * No reservation is allocated for reused {@link #reservationRequest} which can be used in requested time slot.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationRequestNotUsableReport")
@@ -1103,7 +1103,7 @@ public class SchedulerReportSet extends AbstractReportSet
             StringBuilder message = new StringBuilder();
             switch (messageType) {
                 default:
-                    message.append("No reservation is allocated for provided ");
+                    message.append("No reservation is allocated for reused ");
                     message.append((reservationRequest == null ? "null" : reservationRequest.getReportDescription(messageType)));
                     message.append(" which can be used in requested time slot.");
                     break;
@@ -1185,35 +1185,35 @@ public class SchedulerReportSet extends AbstractReportSet
     }
 
     /**
-     * The {@link #reservation} from provided {@link #providedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.
+     * The {@link #reservation} from reused {@link #reusedReservationRequest} is not available because it is already allocated for another reservation request in requested time slot.
      */
     @javax.persistence.Entity
     @javax.persistence.DiscriminatorValue("ReservationNotAvailableReport")
     public static class ReservationNotAvailableReport extends ReservationReport
     {
-        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest;
+        protected cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest;
 
         public ReservationNotAvailableReport()
         {
         }
 
-        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
+        public ReservationNotAvailableReport(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
         {
             setReservation(reservation);
-            setProvidedReservationRequest(providedReservationRequest);
+            setReusedReservationRequest(reusedReservationRequest);
         }
 
         @javax.persistence.OneToOne(fetch = javax.persistence.FetchType.LAZY)
         @javax.persistence.Access(javax.persistence.AccessType.FIELD)
-        @javax.persistence.JoinColumn(name = "providedreservationrequest_id")
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getProvidedReservationRequest()
+        @javax.persistence.JoinColumn(name = "reusedreservationrequest_id")
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
         {
-            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(providedReservationRequest);
+            return cz.cesnet.shongo.PersistentObject.getLazyImplementation(reusedReservationRequest);
         }
 
-        public void setProvidedReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
+        public void setReusedReservationRequest(cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
         {
-            this.providedReservationRequest = providedReservationRequest;
+            this.reusedReservationRequest = reusedReservationRequest;
         }
 
         @javax.persistence.Transient
@@ -1239,8 +1239,8 @@ public class SchedulerReportSet extends AbstractReportSet
                 default:
                     message.append("The ");
                     message.append((reservation == null ? "null" : reservation.getReportDescription(messageType)));
-                    message.append(" from provided ");
-                    message.append((providedReservationRequest == null ? "null" : providedReservationRequest.getReportDescription(messageType)));
+                    message.append(" from reused ");
+                    message.append((reusedReservationRequest == null ? "null" : reusedReservationRequest.getReportDescription(messageType)));
                     message.append(" is not available because it is already allocated for another reservation request in requested time slot.");
                     break;
             }
@@ -1264,26 +1264,26 @@ public class SchedulerReportSet extends AbstractReportSet
             this.report = report;
         }
 
-        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
+        public ReservationNotAvailableException(cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
         {
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
             report.setReservation(reservation);
-            report.setProvidedReservationRequest(providedReservationRequest);
+            report.setReusedReservationRequest(reusedReservationRequest);
             this.report = report;
         }
 
-        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest)
+        public ReservationNotAvailableException(Throwable throwable, cz.cesnet.shongo.controller.reservation.Reservation reservation, cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest)
         {
             super(throwable);
             ReservationNotAvailableReport report = new ReservationNotAvailableReport();
             report.setReservation(reservation);
-            report.setProvidedReservationRequest(providedReservationRequest);
+            report.setReusedReservationRequest(reusedReservationRequest);
             this.report = report;
         }
 
-        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getProvidedReservationRequest()
+        public cz.cesnet.shongo.controller.request.AbstractReservationRequest getReusedReservationRequest()
         {
-            return getReport().getProvidedReservationRequest();
+            return getReport().getReusedReservationRequest();
         }
 
         @Override

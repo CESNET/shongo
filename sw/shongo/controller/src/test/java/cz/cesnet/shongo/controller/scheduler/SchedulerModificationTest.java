@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.Interval;
@@ -259,7 +260,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testModificationWithProvidedReservation() throws Exception
+    public void testModificationWithReusedReservation() throws Exception
     {
         DeviceResource connectServer = new DeviceResource();
         connectServer.setName("connectServer");
@@ -283,6 +284,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
         aliasSetSpecification.addAlias(new AliasSpecification(AliasType.ROOM_NAME));
         aliasReservationRequest.setSpecification(aliasSetSpecification);
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         checkAllocated(aliasReservationRequestId);
 
@@ -292,7 +294,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
                 new RoomSpecification(5, Technology.ADOBE_CONNECT));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
@@ -656,7 +658,7 @@ public class SchedulerModificationTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
                 new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.addProvidedReservationId(aliasReservation1.getId());
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

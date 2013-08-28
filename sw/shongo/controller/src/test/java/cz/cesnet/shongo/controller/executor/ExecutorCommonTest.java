@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.H323RoomSetting;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.jade.Command;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
 import org.joda.time.DateTime;
@@ -252,13 +253,13 @@ public class ExecutorCommonTest extends AbstractExecutorTest
     }
 
     /**
-     * Allocate {@link RoomEndpoint} through {@link AliasReservation} and use it by {@link RoomReservation}.
-     * The preference of provided room is also tested by presence of fake connect server (which should not be used).
+     * Allocate {@link RoomEndpoint} through {@link AliasReservation} and reuse it by {@link RoomReservation}.
+     * The preference of reused room is also tested by presence of fake connect server (which should not be used).
      *
      * @throws Exception
      */
     @Test
-    public void testProvidedAlias() throws Exception
+    public void testReusedAlias() throws Exception
     {
         McuTestAgent connectServerAgent = getController().addJadeAgent("connectServer", new McuTestAgent());
 
@@ -291,6 +292,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
                 new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         Assert.assertEquals("Alias should not be allocated from the fake connect server.",
@@ -300,7 +302,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Start virtual rooms
@@ -333,7 +335,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
      * @throws Exception
      */
     @Test
-    public void testProvidedRoomStartedSeparately() throws Exception
+    public void testReusedRoomStartedSeparately() throws Exception
     {
         McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
@@ -357,6 +359,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
         String roomReservationId = checkAllocated(roomReservationRequestId).getId();
 
@@ -373,7 +376,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.setProvidedReservationRequestId(roomReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Start compartment
@@ -401,7 +404,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
      * @throws Exception
      */
     @Test
-    public void testProvidedRoomStartedAtOnce() throws Exception
+    public void testReusedRoomStartedAtOnce() throws Exception
     {
         McuTestAgent mcuAgent = getController().addJadeAgent("mcu", new McuTestAgent());
 
@@ -425,6 +428,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
+        roomReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String roomReservationRequestId = allocate(roomReservationRequest);
         String roomReservationId = checkAllocated(roomReservationRequestId).getId();
 
@@ -435,7 +439,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.setProvidedReservationRequestId(roomReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(roomReservationRequestId);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
@@ -529,7 +533,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
      * @throws Exception
      */
     @Test
-    public void testProvidedAliasUpdate() throws Exception
+    public void testReusedAliasUpdate() throws Exception
     {
         McuTestAgent connectServerAgent = getController().addJadeAgent("connectServer", new McuTestAgent());
 
@@ -565,6 +569,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
                 new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(SECURITY_TOKEN_USER1, aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         Assert.assertEquals("Alias should not be allocated from the fake connect server.",
@@ -574,7 +579,7 @@ public class ExecutorCommonTest extends AbstractExecutorTest
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
-        reservationRequest.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 

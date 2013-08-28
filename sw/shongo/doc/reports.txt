@@ -25,11 +25,11 @@
    - when a value is requested for longer duration than the maximum configured in the controller,
      value must be reserved for each alias reservation
 
- * Provided Reservation Not Available [ERROR]
-   - when provided reservation is already used by another reservation
+ * Reused Reservation Not Available [ERROR]
+   - when reusable reservation is already used by another reservation
 
- * Provided Reservation Not Usable [ERROR]
-   - the time slot of the provided reservation doesn't contain the whole
+ * Reused Reservation Not Usable [ERROR]
+   - the time slot of the reusable reservation doesn't contain the whole
      requested time slot
 
  * Resource Not Endpoint [ERROR]
@@ -46,7 +46,7 @@
 
      # (if) Resource Not Available [ERROR]
 
-     # (if) Reusing Provided Reservation [OK]
+     # (if) Reusing Reusable Reservation [OK]
 
      # [OK]
 
@@ -73,7 +73,7 @@
 
  * <Allocating Room> (technologySets : Technology[][], participantCount : int)
 
-     # (if) Reusing Provided Reservation [OK]
+     # (if) Reusing Reusable Reservation [OK]
 
      # Finding Available Resources [NEXT|ERROR]
 
@@ -158,7 +158,7 @@
               |
               +--[ERROR] No value is available
 
- * Successful Alias Reservation (reusing provided reservation):
+ * Successful Alias Reservation (reusing reusable reservation):
 
         -[OK] Allocating alias for the following specification:
           |    Technology: Any

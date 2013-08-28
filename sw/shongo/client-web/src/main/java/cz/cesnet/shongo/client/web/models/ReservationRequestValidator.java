@@ -89,7 +89,7 @@ public class ReservationRequestValidator implements Validator
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
-                availabilityCheckRequest.setProvidedReservationRequestId(reservationRequestModel.getId());
+                availabilityCheckRequest.setReusedReservationRequestId(reservationRequestModel.getId());
             }
             switch (specificationType) {
                 case PERMANENT_ROOM:
@@ -105,10 +105,11 @@ public class ReservationRequestValidator implements Validator
                     // Check if permanent room is available
                     availabilityCheckRequest.setReservationRequestId(
                             reservationRequestModel.getPermanentRoomReservationRequestId());
-                    Object isProvidedReservationAvailableAvailable =
+                    Object isReusedReservationRequestAvailableAvailable =
                             reservationService.checkAvailability(availabilityCheckRequest);
-                    if (!isProvidedReservationAvailableAvailable.equals(Boolean.TRUE)) {
-                        logger.warn("Validation of reservation availability failed, may be another problem: {}", isProvidedReservationAvailableAvailable);
+                    if (!isReusedReservationRequestAvailableAvailable.equals(Boolean.TRUE)) {
+                        logger.warn("Validation of reservation availability failed, may be another problem: {}",
+                                isReusedReservationRequestAvailableAvailable);
                         errors.rejectValue("permanentRoomReservationRequestId",
                                 "validation.field.permanentRoomNotAvailable");
                     }

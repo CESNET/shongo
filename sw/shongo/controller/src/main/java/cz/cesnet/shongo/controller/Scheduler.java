@@ -275,11 +275,11 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             schedulerContext.addAvailableReservation(allocatedReservation, AvailableReservation.Type.REALLOCATABLE);
         }
 
-        // Fill allocated reservation from provided reservation request as reusable
-        Allocation providedAllocation = reservationRequest.getProvidedAllocation();
-        if (providedAllocation != null) {
-            Reservation providedReservation = schedulerContext.getProvidedReservation(providedAllocation);
-            schedulerContext.addAvailableReservation(providedReservation, AvailableReservation.Type.REUSABLE);
+        // Fill allocated reservation from reused reservation request as reusable
+        Allocation reusedAllocation = reservationRequest.getReusedAllocation();
+        if (reusedAllocation != null) {
+            Reservation reusableReservation = schedulerContext.getReusableReservation(reusedAllocation);
+            schedulerContext.addAvailableReservation(reusableReservation, AvailableReservation.Type.REUSABLE);
         }
 
         // Get reservation task

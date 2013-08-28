@@ -93,15 +93,18 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             Interval interval = request.getSlot();
-            String providedReservationRequestId = request.getProvidedReservationRequestId();
+            String reusedReservationRequestId = request.getReusedReservationRequestId();
             SchedulerContext schedulerContext = new SchedulerContext(null, entityManager, interval);
-            if (providedReservationRequestId != null) {
+            if (reusedReservationRequestId != null) {
                 EntityIdentifier entityId = EntityIdentifier.parse(
-                        providedReservationRequestId, EntityType.RESERVATION_REQUEST);
-                cz.cesnet.shongo.controller.request.AbstractReservationRequest providedReservationRequest =
+                        reusedReservationRequestId, EntityType.RESERVATION_REQUEST);
+                cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest =
                         reservationRequestManager.get(entityId.getPersistenceId());
+                if (reusedReservationRequest.getReusement().equals(ReservationRequestReusement.NONE)) {
+                    throw new ControllerReportSet.ReservationRequestNotReusableException(reusedReservationRequestId);
+                }
                 for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
-                        providedReservationRequest.getAllocation().getReservations()) {
+                        reusedReservationRequest.getAllocation().getReservations()) {
                     if (reservation.getSlot().overlaps(interval)) {
                         schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REALLOCATABLE);
                     }
@@ -139,10 +142,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                         reservationRequestManager.get(entityId.getPersistenceId());
                 try {
-                    schedulerContext.getProvidedReservation(reservationRequest.getAllocation());
+                    schedulerContext.getReusableReservation(reservationRequest.getAllocation());
                 }
                 catch (SchedulerException exception) {
-                    // Reservation request cannot be provided in requested time slot
+                    // Reservation request cannot be reused in requested time slot
                     return exception.getReport().getMessageRecursive(Report.MessageType.USER);
                 }
             }
@@ -166,8 +169,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             userId = reservationRequestApi.getUserId();
         }
 
-        // Check permission for provided reservation request
-        checkProvidedReservationRequest(userId, reservationRequestApi.getProvidedReservationRequestId());
+        // Check permission for reused reservation request
+        checkReusedReservationRequest(userId, reservationRequestApi.getReusedReservationRequestId());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -228,13 +231,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 case DELETED:
                     throw new ControllerReportSet.ReservationRequestDeletedException(entityId.toId());
             }
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            if (!isReservationRequestModifiable(oldReservationRequest, reservationManager)) {
+            if (!isReservationRequestModifiable(oldReservationRequest)) {
                 throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
             }
 
-            // Check permission for provided reservation request
-            checkProvidedReservationRequest(userId, reservationRequestApi.getProvidedReservationRequestId());
+            // Check permission for reused reservation request
+            checkReusedReservationRequest(userId, reservationRequestApi.getReusedReservationRequestId());
 
             // Check if modified reservation request is of the same class
             AbstractReservationRequest newReservationRequest;
@@ -551,23 +553,23 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 queryFilter.addFilter(filterBuilder.toString());
             }
 
-            String providedReservationRequestId = request.getProvidedReservationRequestId();
-            if (providedReservationRequestId != null) {
-                if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
-                    // List only reservation requests which hasn't got provided any reservation request
-                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id IS NULL");
+            String reusedReservationRequestId = request.getReusedReservationRequestId();
+            if (reusedReservationRequestId != null) {
+                if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_EMPTY)) {
+                    // List only reservation requests which hasn't reused any reservation request
+                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NULL");
                 }
-                else if (providedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
-                    // List only reservation requests which got provided any reservation request
-                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id IS NOT NULL");
+                else if (reusedReservationRequestId.equals(ReservationRequestListRequest.FILTER_NOT_EMPTY)) {
+                    // List only reservation requests which reuse any reservation request
+                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id IS NOT NULL");
                 }
                 else {
-                    // List only reservation requests which got provided given reservation request
+                    // List only reservation requests which reuse given reservation request
                     Long persistenceId = EntityIdentifier.parseId(
-                            cz.cesnet.shongo.controller.request.ReservationRequest.class, providedReservationRequestId);
-                    queryFilter.addFilter("reservation_request_summary.provided_reservation_request_id = "
-                            + ":providedReservationRequestId");
-                    queryFilter.addFilterParameter("providedReservationRequestId", persistenceId);
+                            cz.cesnet.shongo.controller.request.ReservationRequest.class, reusedReservationRequestId);
+                    queryFilter.addFilter("reservation_request_summary.reused_reservation_request_id = "
+                            + ":reusedReservationRequestId");
+                    queryFilter.addFilterParameter("reusedReservationRequestId", persistenceId);
                 }
             }
 
@@ -582,8 +584,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                     case DATETIME:
                         queryOrderBy = "reservation_request_summary.created_at";
                         break;
-                    case PROVIDED_RESERVATION_REQUEST:
-                        queryOrderBy = "reservation_request_summary.provided_reservation_request_id IS NOT NULL";
+                    case REUSED_RESERVATION_REQUEST:
+                        queryOrderBy = "reservation_request_summary.reused_reservation_request_id IS NOT NULL";
                         break;
                     case ROOM_PARTICIPANT_COUNT:
                         queryOrderBy = "specification_summary.room_participant_count";
@@ -874,17 +876,17 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     /**
-     * Check whether user with given {@code userId} can provide given {@code providedReservationRequestId}.
+     * Check whether user with given {@code userId} can provide given {@code reusedReservationRequestId}.
      *
      * @param userId
-     * @param providedReservationRequestId
+     * @param reusedReservationRequestId
      * @throws ControllerReportSet.SecurityNotAuthorizedException
      *
      */
-    private void checkProvidedReservationRequest(String userId, String providedReservationRequestId)
+    private void checkReusedReservationRequest(String userId, String reusedReservationRequestId)
     {
-        if (providedReservationRequestId != null) {
-            EntityIdentifier entityId = EntityIdentifier.parse(providedReservationRequestId);
+        if (reusedReservationRequestId != null) {
+            EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
             if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
                         "provide reservation request %s", entityId);
@@ -899,8 +901,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
      * @return true when the given {@code abstractReservationRequest} can be modified, otherwise false
      */
     private boolean isReservationRequestModifiable(
-            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest,
-            ReservationManager reservationManager)
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest)
     {
         Allocation allocation = abstractReservationRequest.getAllocation();
 
@@ -916,7 +917,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         // Check child reservation requests
         for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl :
                 allocation.getChildReservationRequests()) {
-            if (isReservationRequestModifiable(reservationRequestImpl, reservationManager)) {
+            if (isReservationRequestModifiable(reservationRequestImpl)) {
                 return false;
             }
         }
@@ -946,7 +947,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
 
         // Check allocated reservations
-        if (reservationManager.isAllocationProvided(allocation)) {
+        if (reservationManager.isAllocationReused(allocation)) {
             return false;
         }
 
@@ -985,7 +986,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         if (record[9] != null) {
             reservationRequestSummary.setExecutableState(ExecutableState.valueOf(record[9].toString().trim()));
         }
-        reservationRequestSummary.setProvidedReservationRequestId(record[10] != null ? record[10].toString() : null);
+        reservationRequestSummary.setReusedReservationRequestId(record[10] != null ? record[10].toString() : null);
         if (record[11] != null) {
             reservationRequestSummary.setLastReservationId(EntityIdentifier.formatId(
                     EntityType.RESERVATION, record[11].toString()));

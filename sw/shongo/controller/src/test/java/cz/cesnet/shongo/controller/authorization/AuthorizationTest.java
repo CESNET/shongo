@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
@@ -142,7 +143,7 @@ public class AuthorizationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testProvidedReservation() throws Exception
+    public void testReusedReservationRequest() throws Exception
     {
         String user1Id = getUserId(SECURITY_TOKEN_USER1);
         String user2Id = getUserId(SECURITY_TOKEN_USER2);
@@ -158,6 +159,7 @@ public class AuthorizationTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2013-01-01T12:00", "PT4H");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
+        aliasReservationRequest.setReusement(ReservationRequestReusement.ARBITRARY);
         String aliasReservationRequestId = allocate(SECURITY_TOKEN_USER1, aliasReservationRequest);
         Reservation aliasReservation = checkAllocated(aliasReservationRequestId);
 
@@ -165,7 +167,7 @@ public class AuthorizationTest extends AbstractControllerTest
         reservationRequest1.setSlot("2013-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        reservationRequest1.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest1.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequest1Id = allocate(SECURITY_TOKEN_USER1, reservationRequest1);
         ExistingReservation reservation1 = (ExistingReservation) checkAllocated(reservationRequest1Id);
 
@@ -173,7 +175,7 @@ public class AuthorizationTest extends AbstractControllerTest
         reservationRequest2.setSlot("2013-01-01T14:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setSpecification(new AliasSpecification(AliasType.ROOM_NAME));
-        reservationRequest2.setProvidedReservationRequestId(aliasReservationRequestId);
+        reservationRequest2.setReusedReservationRequestId(aliasReservationRequestId);
         String reservationRequest2Id = allocate(SECURITY_TOKEN_USER1, reservationRequest2);
         ExistingReservation reservation2 = (ExistingReservation) checkAllocated(reservationRequest2Id);
 

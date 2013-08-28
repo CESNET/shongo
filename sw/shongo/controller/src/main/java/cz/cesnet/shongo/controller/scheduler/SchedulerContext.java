@@ -978,34 +978,34 @@ public class SchedulerContext
 
     /**
      * @param allocation
-     * @return {@link Reservation} to be provided from given {@code allocation} for {@link #requestedSlot}
+     * @return {@link Reservation} which can be reused from given {@code allocation} for {@link #requestedSlot}
      * @throws SchedulerException
      */
-    public Reservation getProvidedReservation(Allocation allocation)
+    public Reservation getReusableReservation(Allocation allocation)
             throws SchedulerException
     {
         AbstractReservationRequest reservationRequest = allocation.getReservationRequest();
 
-        // Find provided reservation
-        Reservation providedReservation = null;
+        // Find reusable reservation
+        Reservation reusableReservation = null;
         for (Reservation reservation : allocation.getReservations()) {
             if (reservation.getSlot().contains(requestedSlot)) {
-                providedReservation = reservation;
+                reusableReservation = reservation;
                 break;
             }
         }
-        if (providedReservation == null) {
+        if (reusableReservation == null) {
             throw new SchedulerReportSet.ReservationRequestNotUsableException(reservationRequest);
         }
 
-        // Check the provided reservation
+        // Check the reusable reservation
         ReservationManager reservationManager = new ReservationManager(entityManager);
         List<ExistingReservation> existingReservations =
-                reservationManager.getExistingReservations(providedReservation, requestedSlot);
+                reservationManager.getExistingReservations(reusableReservation, requestedSlot);
         applyAvailableReservations(existingReservations);
         if (existingReservations.size() > 0) {
-            throw new SchedulerReportSet.ReservationNotAvailableException(providedReservation, reservationRequest);
+            throw new SchedulerReportSet.ReservationNotAvailableException(reusableReservation, reservationRequest);
         }
-        return providedReservation;
+        return reusableReservation;
     }
 }

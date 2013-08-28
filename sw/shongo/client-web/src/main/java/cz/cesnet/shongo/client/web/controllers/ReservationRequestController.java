@@ -90,13 +90,13 @@ public class ReservationRequestController
             if (specificationTypes.contains(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
                 request.addSpecificationClass(RoomSpecification.class);
                 if (specificationTypes.size() == 1) {
-                    // We want only room capacities and thus the provided reservation request must be set
-                    request.setProvidedReservationRequestId(ReservationRequestListRequest.FILTER_NOT_EMPTY);
+                    // We want only room capacities and thus the reused reservation request must be set
+                    request.setReusedReservationRequestId(ReservationRequestListRequest.FILTER_NOT_EMPTY);
                 }
             }
             else {
-                // We don't want room capacities and thus the provided reservation request must be not set
-                request.setProvidedReservationRequestId(ReservationRequestListRequest.FILTER_EMPTY);
+                // We don't want room capacities and thus the reused reservation request must be not set
+                request.setReusedReservationRequestId(ReservationRequestListRequest.FILTER_EMPTY);
             }
         }
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
@@ -118,14 +118,14 @@ public class ReservationRequestController
             permissionsByReservationRequestId.putAll(cache.fetchPermissions(securityToken, reservationRequestIds));
         }
 
-        Set<String> providedReservationRequestIds = new HashSet<String>();
+        Set<String> reusedReservationRequestIds = new HashSet<String>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
-            String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
-            if (providedReservationRequestId != null) {
-                providedReservationRequestIds.add(providedReservationRequestId);
+            String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
+            if (reusedReservationRequestId != null) {
+                reusedReservationRequestIds.add(reusedReservationRequestId);
             }
         }
-        cache.fetchReservationRequests(securityToken, providedReservationRequestIds);
+        cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Build response
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
@@ -187,15 +187,15 @@ public class ReservationRequestController
                 {
                     ReservationRequestSummary.RoomSpecification room =
                             (ReservationRequestSummary.RoomSpecification) specification;
-                    String providedReservationRequestId = reservationRequest.getProvidedReservationRequestId();
-                    item.put("roomReservationRequestId", providedReservationRequestId);
+                    String reusedReservationRequestId = reservationRequest.getReusedReservationRequestId();
+                    item.put("roomReservationRequestId", reusedReservationRequestId);
                     item.put("participantCount", room.getParticipantCount());
-                    ReservationRequestSummary providedReservationRequest =
-                            cache.getReservationRequestSummary(securityToken, providedReservationRequestId);
-                    if (providedReservationRequest != null) {
+                    ReservationRequestSummary reusedReservationRequest =
+                            cache.getReservationRequestSummary(securityToken, reusedReservationRequestId);
+                    if (reusedReservationRequest != null) {
                         ReservationRequestSummary.AliasSpecification aliasSpecification =
                                 (ReservationRequestSummary.AliasSpecification)
-                                        providedReservationRequest.getSpecification();
+                                        reusedReservationRequest.getSpecification();
                         if (aliasSpecification != null && AliasType.ROOM_NAME
                                 .equals(aliasSpecification.getAliasType())) {
                             item.put("room", aliasSpecification.getValue());

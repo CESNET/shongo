@@ -17,7 +17,7 @@ SELECT
     reservation_request_summary.slot_end AS slot_end,
     reservation_request_summary.allocation_state AS allocation_state,
     reservation_request_summary.executable_state AS executable_state,
-    reservation_request_summary.provided_reservation_request_id AS provided_reservation_request_id,
+    reservation_request_summary.reused_reservation_request_id AS reused_reservation_request_id,
     reservation_request_summary.last_reservation_id AS last_reservation_id,
     specification_summary.type AS specification_type,
     specification_summary.technologies AS specification_technologies,

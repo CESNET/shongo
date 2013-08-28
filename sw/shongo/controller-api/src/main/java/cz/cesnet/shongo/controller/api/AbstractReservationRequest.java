@@ -3,10 +3,8 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import org.joda.time.DateTime;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Request for reservation of resources.
@@ -56,10 +54,15 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private boolean interDomain;
 
     /**
-     * Shongo-id for {@link ReservationRequest} whose allocated {@link Reservation}s are provided
+     * Shongo-id for {@link ReservationRequest} whose allocated {@link Reservation}s are reusable
      * to the {@link AbstractReservationRequest}.
      */
-    private String providedReservationRequestId;
+    private String reusedReservationRequestId;
+
+    /**
+     * {@link ReservationRequestReusement} of this {@link AbstractReservationRequest}.
+     */
+    private ReservationRequestReusement reusement;
 
     /**
      * Constructor.
@@ -198,19 +201,35 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #providedReservationRequestId}
+     * @return {@link #reusedReservationRequestId}
      */
-    public String getProvidedReservationRequestId()
+    public String getReusedReservationRequestId()
     {
-        return providedReservationRequestId;
+        return reusedReservationRequestId;
     }
 
     /**
-     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
+     * @param reusedReservationRequestId sets the {@link #reusedReservationRequestId}
      */
-    public void setProvidedReservationRequestId(String providedReservationRequestId)
+    public void setReusedReservationRequestId(String reusedReservationRequestId)
     {
-        this.providedReservationRequestId = providedReservationRequestId;
+        this.reusedReservationRequestId = reusedReservationRequestId;
+    }
+
+    /**
+     * @return {@link #reusement}
+     */
+    public ReservationRequestReusement getReusement()
+    {
+        return reusement;
+    }
+
+    /**
+     * @param reusement sets the {@link #reusement}
+     */
+    public void setReusement(ReservationRequestReusement reusement)
+    {
+        this.reusement = reusement;
     }
 
     private static final String TYPE = "type";
@@ -221,7 +240,8 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     private static final String DESCRIPTION = "description";
     private static final String SPECIFICATION = "specification";
     private static final String INTER_DOMAIN = "interDomain";
-    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
+    private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
+    private static final String REUSEMENT = "reusement";
 
     @Override
     public DataMap toData()
@@ -235,7 +255,8 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         dataMap.set(DESCRIPTION, description);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(INTER_DOMAIN, interDomain);
-        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
+        dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
+        dataMap.set(REUSEMENT, reusement);
         return dataMap;
     }
 
@@ -251,6 +272,7 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
         description = dataMap.getString(DESCRIPTION);
         specification = dataMap.getComplexTypeRequired(SPECIFICATION, Specification.class);
         interDomain = dataMap.getBool(INTER_DOMAIN);
-        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
+        reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
+        reusement = dataMap.getEnum(REUSEMENT, ReservationRequestReusement.class);
     }
 }

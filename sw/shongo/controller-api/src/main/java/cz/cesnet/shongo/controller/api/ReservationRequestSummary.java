@@ -74,9 +74,9 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private Set<Technology> specificationTechnologies = new HashSet<Technology>();
 
     /**
-     * Provided reservation request identifier.
+     * Reused reservation request identifier.
      */
-    private String providedReservationRequestId;
+    private String reusedReservationRequestId;
 
     /**
      * Last allocated reservation id.
@@ -84,7 +84,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private String lastReservationId;
 
     /**
-     * {@link ExecutableState} of an executable allocated for a reservation request which got provided this
+     * {@link ExecutableState} of an executable allocated for a reservation request which reused this
      * reservation request and whose slot is active.
      */
     private ExecutableState usageExecutableState;
@@ -274,19 +274,19 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     }
 
     /**
-     * @return {@link #providedReservationRequestId}
+     * @return {@link #reusedReservationRequestId}
      */
-    public String getProvidedReservationRequestId()
+    public String getReusedReservationRequestId()
     {
-        return providedReservationRequestId;
+        return reusedReservationRequestId;
     }
 
     /**
-     * @param providedReservationRequestId sets the {@link #providedReservationRequestId}
+     * @param reusedReservationRequestId sets the {@link #reusedReservationRequestId}
      */
-    public void setProvidedReservationRequestId(String providedReservationRequestId)
+    public void setReusedReservationRequestId(String reusedReservationRequestId)
     {
-        this.providedReservationRequestId = providedReservationRequestId;
+        this.reusedReservationRequestId = reusedReservationRequestId;
     }
 
     /**
@@ -332,7 +332,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
     private static final String EXECUTABLE_STATE = "executableState";
     private static final String SPECIFICATION = "specification";
     private static final String SPECIFICATION_TECHNOLOGIES = "specificationTechnologies";
-    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
+    private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
     private static final String LAST_RESERVATION_ID = "lastReservationId";
     private static final String USAGE_EXECUTABLE_STATE = "usageExecutableState";
 
@@ -351,7 +351,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         dataMap.set(EXECUTABLE_STATE, executableState);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(SPECIFICATION_TECHNOLOGIES, specificationTechnologies);
-        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
+        dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         dataMap.set(LAST_RESERVATION_ID, lastReservationId);
         dataMap.set(USAGE_EXECUTABLE_STATE, usageExecutableState);
         return dataMap;
@@ -372,7 +372,7 @@ public class ReservationRequestSummary extends IdentifiedComplexType
         executableState = dataMap.getEnum(EXECUTABLE_STATE, ExecutableState.class);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         specificationTechnologies = dataMap.getSet(SPECIFICATION_TECHNOLOGIES, Technology.class);
-        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
+        reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
         lastReservationId = dataMap.getString(LAST_RESERVATION_ID);
         usageExecutableState = dataMap.getEnum(USAGE_EXECUTABLE_STATE, ExecutableState.class);
     }

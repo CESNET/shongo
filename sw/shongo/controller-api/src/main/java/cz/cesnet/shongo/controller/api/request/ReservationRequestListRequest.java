@@ -23,7 +23,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
 
     private Set<Class<? extends Specification>> specificationClasses = new HashSet<Class<? extends Specification>>();
 
-    private String providedReservationRequestId;
+    private String reusedReservationRequestId;
 
     public ReservationRequestListRequest()
     {
@@ -98,21 +98,21 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         specificationClasses.add(specificationClass);
     }
 
-    public String getProvidedReservationRequestId()
+    public String getReusedReservationRequestId()
     {
-        return providedReservationRequestId;
+        return reusedReservationRequestId;
     }
 
-    public void setProvidedReservationRequestId(String providedReservationRequestId)
+    public void setReusedReservationRequestId(String reusedReservationRequestId)
     {
-        this.providedReservationRequestId = providedReservationRequestId;
+        this.reusedReservationRequestId = reusedReservationRequestId;
     }
 
     public static enum Sort
     {
         ALIAS_ROOM_NAME,
         DATETIME,
-        PROVIDED_RESERVATION_REQUEST,
+        REUSED_RESERVATION_REQUEST,
         ROOM_PARTICIPANT_COUNT,
         SLOT,
         STATE,
@@ -125,7 +125,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
     private static final String PARENT_RESERVATION_REQUEST_ID = "parentReservationRequestId";
     private static final String TECHNOLOGIES = "technologies";
     private static final String SPECIFICATION_CLASSES = "specificationClasses";
-    private static final String PROVIDED_RESERVATION_REQUEST_ID = "providedReservationRequestId";
+    private static final String REUSED_RESERVATION_REQUEST_ID = "reusedReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -135,7 +135,7 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         dataMap.set(PARENT_RESERVATION_REQUEST_ID, parentReservationRequestId);
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(SPECIFICATION_CLASSES, specificationClasses);
-        dataMap.set(PROVIDED_RESERVATION_REQUEST_ID, providedReservationRequestId);
+        dataMap.set(REUSED_RESERVATION_REQUEST_ID, reusedReservationRequestId);
         return dataMap;
     }
 
@@ -147,6 +147,6 @@ public class ReservationRequestListRequest extends SortableListRequest<Reservati
         parentReservationRequestId = dataMap.getString(PARENT_RESERVATION_REQUEST_ID);
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         specificationClasses = (Set) dataMap.getSet(SPECIFICATION_CLASSES, Class.class);
-        providedReservationRequestId = dataMap.getString(PROVIDED_RESERVATION_REQUEST_ID);
+        reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST_ID);
     }
 }

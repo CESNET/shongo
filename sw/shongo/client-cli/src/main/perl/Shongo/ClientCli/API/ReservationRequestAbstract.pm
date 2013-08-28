@@ -73,20 +73,8 @@ sub new()
         },
         'required' => 1
     });
-    $self->add_attribute('providedReservationIds', {
-        'title' => 'Provided reservations',
-        'type' => 'collection',
-        'item' => {
-            'title' => 'provided reservation',
-            'add' => sub {
-                return console_edit_value("Reservation identifier", 1, $Shongo::Common::IdPattern);
-            },
-            'format' => sub {
-                my ($providedReservationId) = @_;
-                return sprintf("identifier: %s", $providedReservationId);
-            }
-        },
-        'complex' => 0
+    $self->add_attribute('reusedReservationRequestId', {
+        'title' => 'Reused reservation request'
     });
 
     return $self;

@@ -3,17 +3,13 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.report.Report;
-import org.joda.time.Interval;
 import org.junit.Test;
-
-import javax.persistence.EntityManager;
 
 /**
  * Tests for {@link cz.cesnet.shongo.controller.scheduler.ReservationTask}
@@ -58,9 +54,8 @@ public class SchedulerReportTest extends AbstractSchedulerTest
         aliasSpecification2.setValue("2");
         AliasSpecification aliasSpecification3 = new AliasSpecification();
         aliasSpecification3.addAliasType(AliasType.H323_E164);
-        aliasSpecification3
-                .setAliasProviderCapability(deviceResource3.getCapability(AliasProviderCapability.class));
-        printProvided(Report.MessageType.DOMAIN_ADMIN, aliasSpecification1, aliasSpecification2);
+        aliasSpecification3.setAliasProviderCapability(deviceResource3.getCapability(AliasProviderCapability.class));
+        printReusable(Report.MessageType.DOMAIN_ADMIN, aliasSpecification1, aliasSpecification2);
         print(Report.MessageType.DOMAIN_ADMIN, aliasSpecification1, aliasSpecification2, aliasSpecification3);
 
         RoomSpecification roomSpecification2 = new RoomSpecification();
@@ -103,7 +98,7 @@ public class SchedulerReportTest extends AbstractSchedulerTest
         }
     }
 
-    private void printProvided(Report.MessageType messageType, ReservationTaskProvider reservationTaskProvider1,
+    private void printReusable(Report.MessageType messageType, ReservationTaskProvider reservationTaskProvider1,
             ReservationTaskProvider reservationTaskProvider2) throws SchedulerException
     {
         SchedulerContext schedulerContext = createSchedulerContext();

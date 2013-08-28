@@ -305,9 +305,9 @@ public class ReservationRequestModel
      * Load attributes from given {@code specification}.
      *
      * @param specification
-     * @param providedReservationRequestId
+     * @param reusedReservationRequestId
      */
-    public void fromSpecificationApi(Specification specification, String providedReservationRequestId)
+    public void fromSpecificationApi(Specification specification, String reusedReservationRequestId)
     {
         if (specification instanceof AliasSpecification) {
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
@@ -338,8 +338,8 @@ public class ReservationRequestModel
         }
         else if (specification instanceof RoomSpecification) {
             RoomSpecification roomSpecification = (RoomSpecification) specification;
-            if (providedReservationRequestId != null) {
-                permanentRoomReservationRequestId = providedReservationRequestId;
+            if (reusedReservationRequestId != null) {
+                permanentRoomReservationRequestId = reusedReservationRequestId;
                 specificationType = SpecificationType.PERMANENT_ROOM_CAPACITY;
             }
             else {
@@ -374,7 +374,7 @@ public class ReservationRequestModel
 
         // Specification
         Specification specification = abstractReservationRequest.getSpecification();
-        fromSpecificationApi(specification, abstractReservationRequest.getProvidedReservationRequestId());
+        fromSpecificationApi(specification, abstractReservationRequest.getReusedReservationRequestId());
 
         // Date/time slot and periodicity
         Period duration;
@@ -628,7 +628,7 @@ public class ReservationRequestModel
         abstractReservationRequest.setPurpose(purpose);
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
-            abstractReservationRequest.setProvidedReservationRequestId(permanentRoomReservationRequestId);
+            abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
         }
 
         // Create specification
@@ -754,10 +754,10 @@ public class ReservationRequestModel
     public static List<ReservationRequestSummary> getDeleteDependencies(String reservationRequestId,
             ReservationService reservationService, SecurityToken securityToken)
     {
-        // List reservation requests which got provided the reservation request to be deleted
+        // List reservation requests which reuse the reservation request to be deleted
         ReservationRequestListRequest reservationRequestListRequest = new ReservationRequestListRequest();
         reservationRequestListRequest.setSecurityToken(securityToken);
-        reservationRequestListRequest.setProvidedReservationRequestId(reservationRequestId);
+        reservationRequestListRequest.setReusedReservationRequestId(reservationRequestId);
         ListResponse<ReservationRequestSummary> reservationRequests =
                 reservationService.listReservationRequests(reservationRequestListRequest);
         return reservationRequests.getItems();
