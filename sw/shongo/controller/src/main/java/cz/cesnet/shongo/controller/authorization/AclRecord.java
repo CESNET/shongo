@@ -139,19 +139,6 @@ public class AclRecord extends PersistentObject
         this.propagationState = propagationState;
     }
 
-    /**
-     * @return {@link AclRecord} converted to {@link cz.cesnet.shongo.controller.api.AclRecord}
-     */
-    public cz.cesnet.shongo.controller.api.AclRecord toApi()
-    {
-        cz.cesnet.shongo.controller.api.AclRecord aclRecordApi = new cz.cesnet.shongo.controller.api.AclRecord();
-        aclRecordApi.setId(getId().toString());
-        aclRecordApi.setUserId(getUserId());
-        aclRecordApi.setEntityId(getEntityId().toId());
-        aclRecordApi.setRole(getRole());
-        return aclRecordApi;
-    }
-
     @PrePersist
     protected void onCreate()
     {

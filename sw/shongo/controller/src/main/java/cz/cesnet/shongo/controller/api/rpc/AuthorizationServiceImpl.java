@@ -158,12 +158,12 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            QueryFilter queryFilter = new QueryFilter("aclRecord");
-            queryFilter.addFilter("aclRecord.deleted = FALSE");
+            QueryFilter queryFilter = new QueryFilter("acl_record", true);
+            queryFilter.addFilter("acl_record.deleted = FALSE");
 
             // List only records which are requested
             if (request.getAclRecordIds().size() > 0) {
-                queryFilter.addFilter("aclRecord.id IN (:aclRecordIds)");
+                queryFilter.addFilter("acl_record.id IN (:aclRecordIds)");
                 Set<Long> aclRecordIds = new HashSet<Long>();
                 for (String aclRecordId : request.getAclRecordIds()) {
                     aclRecordIds.add(Long.valueOf(aclRecordId));
@@ -201,16 +201,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                     Long persistenceId = entityIdentifier.getPersistenceId();
                     StringBuilder entityIdFilterBuilder = new StringBuilder();
                     if (entityType != null) {
-                        entityIdFilterBuilder.append("aclRecord.entityId.entityType = ");
-                        entityIdFilterBuilder.append(EntityType.class.getCanonicalName());
-                        entityIdFilterBuilder.append(".");
+                        entityIdFilterBuilder.append("acl_record.entity_type = '");
                         entityIdFilterBuilder.append(entityType.toString());
+                        entityIdFilterBuilder.append("'");
                     }
                     if (persistenceId != null) {
                         if (entityIdFilterBuilder.length() > 0) {
                             entityIdFilterBuilder.append(" AND ");
                         }
-                        entityIdFilterBuilder.append("aclRecord.entityId.persistenceId = ");
+                        entityIdFilterBuilder.append("acl_record.entity_id = ");
                         entityIdFilterBuilder.append(persistenceId);
                     }
                     if (entityIdFilterBuilder.length() > 0) {
@@ -224,34 +223,48 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             // List only records for requested users
             if (request.getUserIds().size() > 0) {
-                queryFilter.addFilter("aclRecord.userId IN (:userIds)");
+                queryFilter.addFilter("acl_record.user_id IN (:userIds)");
                 queryFilter.addFilterParameter("userIds", request.getUserIds());
             }
 
             // List only records for requested roles
             if (request.getRoles().size() > 0) {
-                queryFilter.addFilter("aclRecord.role IN (:roles)");
+                queryFilter.addFilter("acl_record.role IN (:roles)");
                 queryFilter.addFilterParameter("roles", request.getRoles());
             }
 
             // Query
-            String query = "SELECT aclRecord FROM AclRecord aclRecord"
-                    + " WHERE " + queryFilter.toQueryWhere();
+            String query = "SELECT "
+                    + " acl_record.id,"
+                    + " acl_record.user_id,"
+                    + " acl_record.entity_type,"
+                    + " acl_record.entity_id,"
+                    + " acl_record.role,"
+                    + " COUNT(acl_record_dependency.id)"
+                    + " FROM acl_record"
+                    + " LEFT JOIN acl_record_dependency ON acl_record_dependency.child_acl_record_id = acl_record.id"
+                    + " WHERE " + queryFilter.toQueryWhere()
+                    + " GROUP BY acl_record.id, acl_record.user_id, acl_record.entity_type, "
+                    + "          acl_record.entity_id, acl_record.role";
 
             ListResponse<AclRecord> response = new ListResponse<AclRecord>();
-            List<cz.cesnet.shongo.controller.authorization.AclRecord> aclRecords = performListRequest(
-                    query, queryFilter, cz.cesnet.shongo.controller.authorization.AclRecord.class,
-                    request, response, entityManager);
+            List<Object[]> aclRecords = performNativeListRequest(query, queryFilter, request, response, entityManager);
 
             // Fill reservations to response
-            for (cz.cesnet.shongo.controller.authorization.AclRecord aclRecord : aclRecords) {
-                response.addItem(aclRecord.toApi());
+            for (Object[] aclRecord : aclRecords) {
+                AclRecord aclRecordApi = new AclRecord();
+                aclRecordApi.setId(aclRecord[0].toString());
+                aclRecordApi.setUserId(aclRecord[1].toString());
+                aclRecordApi.setEntityId(new EntityIdentifier(
+                        EntityType.valueOf(aclRecord[2].toString()), ((Number) aclRecord[3]).longValue()).toId());
+                aclRecordApi.setRole(Role.valueOf(aclRecord[4].toString()));
+                aclRecordApi.setDeletable(((Number) aclRecord[5]).intValue() == 0);
+                response.addItem(aclRecordApi);
             }
             return response;
         }
         finally {
             entityManager.close();
-
         }
     }
 

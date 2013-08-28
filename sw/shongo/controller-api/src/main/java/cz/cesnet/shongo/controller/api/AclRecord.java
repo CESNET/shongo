@@ -29,6 +29,11 @@ public class AclRecord extends IdentifiedComplexType
     private Role role;
 
     /**
+     * Specifies whether {@link AclRecord} is not referenced by another {@link AclRecord} and thus it can be deleted.
+     */
+    private boolean deletable;
+
+    /**
      * Constructor.
      */
     public AclRecord()
@@ -97,6 +102,22 @@ public class AclRecord extends IdentifiedComplexType
         this.role = role;
     }
 
+    /**
+     * @return {@link #deletable}
+     */
+    public boolean isDeletable()
+    {
+        return deletable;
+    }
+
+    /**
+     * @param deletable sets the {@link #deletable}
+     */
+    public void setDeletable(boolean deletable)
+    {
+        this.deletable = deletable;
+    }
+
     @Override
     public String toString()
     {
@@ -140,6 +161,7 @@ public class AclRecord extends IdentifiedComplexType
     private static final String USER_ID = "userId";
     private static final String ENTITY_ID = "entityId";
     private static final String ROLE = "role";
+    private static final String DELETABLE = "deletable";
 
     @Override
     public DataMap toData()
@@ -148,6 +170,7 @@ public class AclRecord extends IdentifiedComplexType
         dataMap.set(USER_ID, userId);
         dataMap.set(ENTITY_ID, entityId);
         dataMap.set(ROLE, role);
+        dataMap.set(DELETABLE, deletable);
         return dataMap;
     }
 
@@ -158,5 +181,6 @@ public class AclRecord extends IdentifiedComplexType
         userId = dataMap.getString(USER_ID);
         entityId = dataMap.getString(ENTITY_ID);
         role = dataMap.getEnum(ROLE, Role.class);
+        deletable = dataMap.getBool(DELETABLE);
     }
 }
