@@ -1,4 +1,4 @@
-0.5.3 (2013-08-08)
+0.5.3 (2013-08-28)
 
     * Reservation system web interface rewritten to Java from scratch.
 
@@ -32,6 +32,13 @@
     * Added "Refresh" button and “All” option into “Records per page” for all tables in web client.
 
     * Allowed to sort table of reservation requests by any column.
+
+    * Allowed to delete the permanent room with all it's capacities.
+
+    * Reworked states of reservation requests and rooms and added number of future periodic events to the list of
+      reservation requests.
+
+    * Propagate user roles from permanent rooms to it's capacities.
 
 0.5.2 (2013-04-25)
 
