@@ -170,7 +170,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         }
 
         // Check permission for reused reservation request
-        checkReusedReservationRequest(userId, reservationRequestApi.getReusedReservationRequestId());
+        String reusedReservationRequestId = reservationRequestApi.getReusedReservationRequestId();
+        if (reusedReservationRequestId != null) {
+            checkReusedReservationRequest(userId, reusedReservationRequestId);
+        }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -188,6 +191,14 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             reservationRequestManager.create(reservationRequest);
 
             authorizationManager.createAclRecord(userId, reservationRequest, Role.OWNER);
+
+            if (reusedReservationRequestId != null) {
+                AbstractReservationRequest reusedReservationRequest = reservationRequestManager.get(
+                        EntityIdentifier.parseId(AbstractReservationRequest.class, reusedReservationRequestId));
+                if (reusedReservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
+                    authorizationManager.createAclRecordsForChildEntity(reusedReservationRequest, reservationRequest);
+                }
+            }
 
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
@@ -236,7 +247,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
 
             // Check permission for reused reservation request
-            checkReusedReservationRequest(userId, reservationRequestApi.getReusedReservationRequestId());
+            String reusedReservationRequestId = reservationRequestApi.getReusedReservationRequestId();
+            if (reusedReservationRequestId != null) {
+                checkReusedReservationRequest(userId, reusedReservationRequestId);
+            }
 
             // Check if modified reservation request is of the same class
             AbstractReservationRequest newReservationRequest;
@@ -886,12 +900,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
      */
     private void checkReusedReservationRequest(String userId, String reusedReservationRequestId)
     {
-        if (reusedReservationRequestId != null) {
-            EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
-            if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
-                ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
-                        "provide reservation request %s", entityId);
-            }
+        EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
+        if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
+            ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
+                    "provide reservation request %s", entityId);
         }
     }
 

@@ -576,5 +576,19 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
                         add(Permission.READ);
                     }}, getAuthorizationService().listPermissions(new PermissionListRequest(
                 SECURITY_TOKEN_USER2, reservationRequest4Id)).get(reservationRequest4Id).getPermissions());
+
+        ReservationRequest reservationRequest5 = new ReservationRequest();
+        reservationRequest5.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest5.setSpecification(new RoomSpecification(1, Technology.H323));
+        reservationRequest5.setReusedReservationRequestId(reservationRequest3Id);
+        String reservationRequest5Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest5);
+
+        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated to new request",
+                new HashSet<Permission>()
+                {{
+                        add(Permission.READ);
+                    }}, getAuthorizationService().listPermissions(new PermissionListRequest(
+                SECURITY_TOKEN_USER2, reservationRequest5Id)).get(reservationRequest5Id).getPermissions());
     }
 }
