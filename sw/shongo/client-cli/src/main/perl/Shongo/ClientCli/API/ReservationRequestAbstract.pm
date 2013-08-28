@@ -76,6 +76,14 @@ sub new()
     $self->add_attribute('reusedReservationRequestId', {
         'title' => 'Reused reservation request'
     });
+    $self->add_attribute('reusement', {
+        'type' => 'enum',
+        'enum' => ordered_hash(
+            'NONE' => 'None',
+            'ARBITRARY' => 'Arbitrary',
+            'OWNED' => 'Owned'
+        )
+    });
 
     return $self;
 }

@@ -45,7 +45,10 @@ sub new()
         'complex' => 1,
         'required' => 1
     });
-    $self->add_attribute('reservationId', {'title' => 'Reservation'});
+    $self->add_attribute('reservationId', {
+        'title' => 'Reservation',
+        'editable' => 0
+    });
     $self->add_attribute('allocationState', {
         'title' =>'Current State',
         'format' => sub {

@@ -13,6 +13,7 @@ import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.controller.Permission;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestReusement;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
@@ -629,6 +630,9 @@ public class ReservationRequestModel
         abstractReservationRequest.setDescription(description);
         if (specificationType.equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             abstractReservationRequest.setReusedReservationRequestId(permanentRoomReservationRequestId);
+        }
+        if (specificationType.equals(SpecificationType.PERMANENT_ROOM)) {
+            abstractReservationRequest.setReusement(ReservationRequestReusement.OWNED);
         }
 
         // Create specification

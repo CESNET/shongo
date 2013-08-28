@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
@@ -520,6 +521,19 @@ public class AuthorizationManager extends AbstractManager
                 if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
                     createChildAclRecord(aclRecord, userId, childReservationRequest, role,
                             AclRecordDependency.Type.DELETE_DETACH);
+                }
+            }
+
+            // Reservation requests which reuse this reservation request
+            if (reservationRequest.getReusement().equals(ReservationRequestReusement.OWNED)) {
+                ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+                List<AbstractReservationRequest> reservationRequestUsages =
+                        reservationRequestManager.listReservationRequestUsages(reservationRequest);
+                for (AbstractReservationRequest reservationRequestUsage : reservationRequestUsages) {
+                    if (EntityType.RESERVATION_REQUEST.allowsRole(role)) {
+                        createChildAclRecord(aclRecord, userId, reservationRequestUsage, role,
+                                AclRecordDependency.Type.DELETE_DETACH);
+                    }
                 }
             }
 

@@ -6,24 +6,24 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.AliasSetSpecification;
-import cz.cesnet.shongo.controller.api.AliasSpecification;
-import cz.cesnet.shongo.controller.api.RoomSpecification;
-import cz.cesnet.shongo.controller.api.Specification;
-import cz.cesnet.shongo.controller.api.request.*;
+import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
+import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
+import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.AvailableReservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.scheduler.SchedulerException;
 import cz.cesnet.shongo.controller.scheduler.SpecificationCheckAvailability;
-import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.controller.util.NativeQuery;
+import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -753,7 +753,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             + "   WHERE TYPE(mainReservation) IN(:classes)"
                             + "      OR (TYPE(mainReservation) = :raw AND TYPE(childReservation) = :alias)"
                             + " )");
-                    queryFilter.addFilterParameter("alias", cz.cesnet.shongo.controller.reservation.AliasReservation.class);
+                    queryFilter.addFilterParameter("alias",
+                            cz.cesnet.shongo.controller.reservation.AliasReservation.class);
                     queryFilter.addFilterParameter("raw", cz.cesnet.shongo.controller.reservation.Reservation.class);
                 }
                 else {
@@ -984,7 +985,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                             record[8].toString().trim()).toApi());
         }
         if (record[9] != null) {
-            reservationRequestSummary.setExecutableState(ExecutableState.valueOf(record[9].toString().trim()));
+            reservationRequestSummary.setExecutableState(
+                    cz.cesnet.shongo.controller.executor.Executable.State.valueOf(
+                            record[9].toString().trim()).toApi());
         }
         reservationRequestSummary.setReusedReservationRequestId(record[10] != null ? record[10].toString() : null);
         if (record[11] != null) {
@@ -1025,10 +1028,12 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             }
         }
         if (record[17] != null) {
-            reservationRequestSummary.setUsageExecutableState(ExecutableState.valueOf(record[17].toString().trim()));
+            reservationRequestSummary.setUsageExecutableState(
+                    cz.cesnet.shongo.controller.executor.Executable.State.valueOf(
+                            record[17].toString().trim()).toApi());
         }
         if (record[18] != null) {
-            reservationRequestSummary.setFutureSlotCount(((Number)record[18]).intValue());
+            reservationRequestSummary.setFutureSlotCount(((Number) record[18]).intValue());
         }
         return reservationRequestSummary;
     }

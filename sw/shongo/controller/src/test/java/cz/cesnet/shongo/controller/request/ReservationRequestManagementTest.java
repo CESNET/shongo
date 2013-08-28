@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.Temporal;
-import cz.cesnet.shongo.controller.AbstractControllerTest;
-import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.AliasSetSpecification;
 import cz.cesnet.shongo.controller.api.CompartmentSpecification;
@@ -16,6 +14,7 @@ import cz.cesnet.shongo.controller.api.ResourceSpecification;
 import cz.cesnet.shongo.controller.api.RoomSpecification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
+import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
@@ -26,6 +25,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.not;
@@ -525,5 +525,56 @@ public class ReservationRequestManagementTest extends AbstractControllerTest
             Assert.assertTrue(exception.getMessage().contains(
                     "Specification 'RoomSpecification' cannot be checked for availability"));
         }
+    }
+
+    @Test
+    public void testReusementAclRecordPropagation() throws Exception
+    {
+        ReservationService service = getReservationService();
+
+        String user2Id = getUserId(SECURITY_TOKEN_USER2);
+
+        ReservationRequest reservationRequest1 = new ReservationRequest();
+        reservationRequest1.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest1.setSpecification(new RoomSpecification(1, Technology.H323));
+        reservationRequest1.setReusement(ReservationRequestReusement.ARBITRARY);
+        String reservationRequest1Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest1);
+
+        ReservationRequest reservationRequest2 = new ReservationRequest();
+        reservationRequest2.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest2.setSpecification(new RoomSpecification(1, Technology.H323));
+        reservationRequest2.setReusedReservationRequestId(reservationRequest1Id);
+        String reservationRequest2Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest2);
+
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest1Id, Role.READER);
+        Assert.assertEquals("For ReservationRequestReusement.ARBITRARY the AclRecords should not be propagated",
+                new HashSet<Permission>()
+                {{
+                    }}, getAuthorizationService().listPermissions(new PermissionListRequest(
+                SECURITY_TOKEN_USER2, reservationRequest2Id)).get(reservationRequest2Id).getPermissions());
+
+        ReservationRequest reservationRequest3 = new ReservationRequest();
+        reservationRequest3.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest3.setSpecification(new RoomSpecification(1, Technology.H323));
+        reservationRequest3.setReusement(ReservationRequestReusement.OWNED);
+        String reservationRequest3Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest3);
+
+        ReservationRequest reservationRequest4 = new ReservationRequest();
+        reservationRequest4.setSlot("2012-01-01T00:00", "P1D");
+        reservationRequest4.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest4.setSpecification(new RoomSpecification(1, Technology.H323));
+        reservationRequest4.setReusedReservationRequestId(reservationRequest3Id);
+        String reservationRequest4Id = service.createReservationRequest(SECURITY_TOKEN_USER1, reservationRequest4);
+
+        getAuthorizationService().createAclRecord(SECURITY_TOKEN_USER1, user2Id, reservationRequest3Id, Role.READER);
+        Assert.assertEquals("For ReservationRequestReusement.OWNED the AclRecords should be propagated",
+                new HashSet<Permission>()
+                {{
+                        add(Permission.READ);
+                    }}, getAuthorizationService().listPermissions(new PermissionListRequest(
+                SECURITY_TOKEN_USER2, reservationRequest4Id)).get(reservationRequest4Id).getPermissions());
     }
 }

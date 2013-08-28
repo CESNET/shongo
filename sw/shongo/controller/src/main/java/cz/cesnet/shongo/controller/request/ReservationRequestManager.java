@@ -332,10 +332,23 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @return list of {@link AbstractReservationRequest}s which reuse given {@code reservationRequest}
+     */
+    public List<AbstractReservationRequest> listReservationRequestUsages(AbstractReservationRequest reservationRequest)
+    {
+        List<AbstractReservationRequest> reservationRequests = entityManager.createQuery(
+                "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.reusedAllocation = :allocation",
+                AbstractReservationRequest.class)
+                .setParameter("allocation", reservationRequest.getAllocation())
+                .getResultList();
+        return reservationRequests;
+    }
+
+    /**
      * @param interval
-     * @return list of {@link ReservationRequest}s which reuse reservation request with given
-     *         {@code reservationRequestId}, which are in {@link ReservationRequest.AllocationState#ALLOCATED} state and
-     *         starting in given {@code interval}
+     * @return list of {@link ReservationRequest}s which reuse given {@code allocation}, which are in
+     *         {@link ReservationRequest.AllocationState#ALLOCATED} state and starting in given {@code interval}
      */
     public List<ReservationRequest> listAllocationUsages(Allocation allocation, Interval interval)
     {
