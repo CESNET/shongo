@@ -43,7 +43,7 @@
                     <td>${userRole.user.primaryEmail}</td>
                     <c:if test="${isWritable && deleteUrl != null}">
                         <td>
-                            <c:if test="${not empty userRole.id && userRole.isDeletable}">
+                            <c:if test="${not empty userRole.id && userRole.deletable}">
                                 <spring:eval var="aclDeleteUrl"
                                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, userRole.id)"/>
                                 <a href="${aclDeleteUrl}" tabindex="2">
@@ -87,7 +87,7 @@
                         <td>
                             <spring:eval var="aclDeleteUrl"
                                          expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).format(contextPath + deleteUrl, '{{userRole.id}}')"/>
-                            <a href="${aclDeleteUrl}" tabindex="2" ng-show="userRole.isDeletable">
+                            <a href="${aclDeleteUrl}" tabindex="2" ng-show="userRole.deletable">
                                 <spring:message code="views.list.action.delete"/>
                             </a>
                         </td>

@@ -216,6 +216,7 @@ public class WizardCreateController extends AbstractWizardController
             return getWizardView(Page.CREATE_ROOM_ROLES, "wizardCreateRoomRole.jsp");
         }
         userRole.setTemporaryId();
+        userRole.setDeletable(true);
         reservationRequest.addUserRole(userRole);
         return handleCreateRoomRoles(reservationRequest);
     }

@@ -20,6 +20,8 @@ public class UserRoleModel
 
     private Role role;
 
+    private boolean deletable = false;
+
     private CacheProvider cacheProvider;
 
     private static int lastGeneratedId = 0;
@@ -107,12 +109,23 @@ public class UserRoleModel
         this.role = role;
     }
 
+    public boolean isDeletable()
+    {
+        return deletable;
+    }
+
+    public void setDeletable(boolean deletable)
+    {
+        this.deletable = deletable;
+    }
+
     public void fromApi(AclRecord aclRecord)
     {
         setId(aclRecord.getId());
         setUserId(aclRecord.getUserId());
         setEntityId(aclRecord.getEntityId());
         setRole(aclRecord.getRole());
+        setDeletable(aclRecord.isDeletable());
     }
 
     public AclRecord toApi()

@@ -69,7 +69,7 @@ public class ReservationRequestAclController
             item.put("user", cache.getUserInformation(securityToken, aclRecord.getUserId()));
             String role = aclRecord.getRole().toString();
             item.put("role", messageSource.getMessage("views.aclRecord.role." + role, null, locale));
-            item.put("isDeletable", aclRecord.isDeletable());
+            item.put("deletable", aclRecord.isDeletable());
             items.add(item);
         }
         Map<String, Object> data = new HashMap<String, Object>();
