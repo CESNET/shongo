@@ -41,7 +41,7 @@
     <c:choose>
         <c:when test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <spring:message code="views.reservationRequestDetail.title.forRoom"
-                            arguments="${reservationRequest.permanentRoomName}"/>
+                            arguments="${reservationRequest.roomName}"/>
         </c:when>
         <c:when test="${reservationRequest.specificationType == 'ADHOC_ROOM'}">
             <spring:message code="views.reservationRequestDetail.title.forRoom.adhoc" var="adhocRoomName"/>

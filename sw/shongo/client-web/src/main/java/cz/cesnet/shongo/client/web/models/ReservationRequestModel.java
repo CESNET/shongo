@@ -25,7 +25,7 @@ import org.joda.time.*;
 import java.util.*;
 
 /**
- * TODO:
+ * Model for {@link AbstractReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -35,57 +35,79 @@ public class ReservationRequestModel
 
     private String parentReservationRequestId;
 
-    private ReservationRequestType type;
+    protected ReservationRequestType type;
 
-    private DateTime dateTime;
+    protected String description;
 
-    private String description;
+    protected DateTime dateTime;
 
-    private ReservationRequestPurpose purpose;
+    protected ReservationRequestPurpose purpose;
 
-    private TechnologyModel technology;
+    protected TechnologyModel technology;
 
-    private DateTime start;
+    protected DateTime start;
 
-    private DateTime end;
+    protected DateTime end;
 
-    private Integer durationCount;
+    protected Integer durationCount;
 
-    private DurationType durationType;
+    protected DurationType durationType;
 
-    private PeriodicityType periodicityType;
+    protected PeriodicityType periodicityType;
 
-    private LocalDate periodicityEnd;
+    protected LocalDate periodicityEnd;
 
-    private SpecificationType specificationType;
+    protected SpecificationType specificationType;
 
-    private String permanentRoomName;
+    protected String roomName;
 
-    private String permanentRoomReservationRequestId;
+    protected String permanentRoomReservationRequestId;
 
-    private ReservationRequestSummary permanentRoomReservationRequest;
+    protected ReservationRequestSummary permanentRoomReservationRequest;
 
-    private Integer roomParticipantCount;
+    protected Integer roomParticipantCount;
 
-    private String roomPin;
+    protected String roomPin;
 
-    private List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
+    protected List<UserRoleModel> userRoles = new LinkedList<UserRoleModel>();
 
+    /**
+     * Create new {@link ReservationRequestModel} from scratch.
+     */
     public ReservationRequestModel()
     {
         setStart(Temporal.roundDateTimeToMinutes(DateTime.now(), 1));
         setPeriodicityType(ReservationRequestModel.PeriodicityType.NONE);
     }
 
-    public ReservationRequestModel(AbstractReservationRequest reservationRequest, CacheProvider cacheProvider)
+    /**
+     * Create new {@link ReservationRequestModel} from existing {@code reservationRequest}.
+     *
+     * @param reservationRequest
+     */
+    public ReservationRequestModel(AbstractReservationRequest reservationRequest)
     {
-        fromApi(reservationRequest, cacheProvider);
+        fromApi(reservationRequest);
     }
 
+    /**
+     * @return this as {@link ReservationRequestDetailModel}
+     */
     public ReservationRequestDetailModel getDetail()
     {
         if (this instanceof ReservationRequestDetailModel) {
             return (ReservationRequestDetailModel) this;
+        }
+        return null;
+    }
+
+    /**
+     * @return this as {@link ReservationRequestModificationModel}
+     */
+    public ReservationRequestModificationModel getModification()
+    {
+        if (this instanceof ReservationRequestModificationModel) {
+            return (ReservationRequestModificationModel) this;
         }
         return null;
     }
@@ -220,14 +242,14 @@ public class ReservationRequestModel
         this.specificationType = specificationType;
     }
 
-    public String getPermanentRoomName()
+    public String getRoomName()
     {
-        return permanentRoomName;
+        return roomName;
     }
 
-    public void setPermanentRoomName(String permanentRoomName)
+    public void setRoomName(String roomName)
     {
-        this.permanentRoomName = permanentRoomName;
+        this.roomName = roomName;
     }
 
     public String getPermanentRoomReservationRequestId()
@@ -314,10 +336,10 @@ public class ReservationRequestModel
             AliasSpecification aliasSpecification = (AliasSpecification) specification;
             specificationType = SpecificationType.PERMANENT_ROOM;
             technology = TechnologyModel.find(aliasSpecification.getTechnologies());
-            permanentRoomName = aliasSpecification.getValue();
+            roomName = aliasSpecification.getValue();
             Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
-                          && technology != null && permanentRoomName != null)) {
+                          && technology != null && roomName != null)) {
                 throw new UnsupportedApiException("Alias specification must be for room name.");
             }
         }
@@ -330,10 +352,10 @@ public class ReservationRequestModel
             AliasSpecification roomNameSpecification = aliasSpecifications.get(0);
             specificationType = SpecificationType.PERMANENT_ROOM;
             technology = TechnologyModel.find(roomNameSpecification.getTechnologies());
-            permanentRoomName = roomNameSpecification.getValue();
+            roomName = roomNameSpecification.getValue();
             Set<AliasType> aliasTypes = roomNameSpecification.getAliasTypes();
             if (!(aliasTypes.size() == 1 && aliasTypes.contains(AliasType.ROOM_NAME)
-                          && technology != null && permanentRoomName != null)) {
+                          && technology != null && roomName != null)) {
                 throw new UnsupportedApiException("First alias specification must be for room name.");
             }
         }
@@ -354,6 +376,10 @@ public class ReservationRequestModel
                     roomPin = h323RoomSetting.getPin();
                 }
             }
+            AliasSpecification aliasSpecification = roomSpecification.getAliasSpecificationByType(AliasType.ROOM_NAME);
+            if (aliasSpecification != null) {
+                roomName = aliasSpecification.getValue();
+            }
         }
         else {
             throw new UnsupportedApiException(specification);
@@ -365,7 +391,7 @@ public class ReservationRequestModel
      *
      * @param abstractReservationRequest from which the attributes should be loaded
      */
-    public void fromApi(AbstractReservationRequest abstractReservationRequest, CacheProvider cacheProvider)
+    public void fromApi(AbstractReservationRequest abstractReservationRequest)
     {
         id = abstractReservationRequest.getId();
         type = abstractReservationRequest.getType();
@@ -456,15 +482,6 @@ public class ReservationRequestModel
                 durationType = DurationType.MINUTE;
             }
         }
-
-        // Additional specification attributes
-        switch (specificationType) {
-            case PERMANENT_ROOM_CAPACITY:
-                if (cacheProvider != null) {
-                    loadPermanentRoom(cacheProvider);
-                }
-                break;
-        }
     }
 
     /**
@@ -477,8 +494,7 @@ public class ReservationRequestModel
         if (permanentRoomReservationRequestId == null) {
             throw new UnsupportedApiException("Permanent room capacity should have permanent room set.");
         }
-        permanentRoomReservationRequest =
-                cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
+        permanentRoomReservationRequest = cacheProvider.getReservationRequestSummary(permanentRoomReservationRequestId);
     }
 
     /**
@@ -504,7 +520,7 @@ public class ReservationRequestModel
                 AliasSpecification roomNameSpecification = new AliasSpecification();
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
-                roomNameSpecification.setValue(permanentRoomName);
+                roomNameSpecification.setValue(roomName);
                 switch (technology) {
                     case H323_SIP:
                         AliasSpecification numberSpecification = new AliasSpecification();

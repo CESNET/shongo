@@ -72,7 +72,7 @@ public class ReservationRequestValidator implements Validator
                     if (start != null && end != null && !start.isBefore(end)) {
                         errors.rejectValue("end", "validation.field.invalidIntervalEnd");
                     }
-                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "permanentRoomName", "validation.field.required");
+                    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "roomName", "validation.field.required");
                     break;
                 case PERMANENT_ROOM_CAPACITY:
                     ValidationUtils.rejectIfEmptyOrWhitespace(
@@ -98,7 +98,7 @@ public class ReservationRequestValidator implements Validator
                     Object isSpecificationAvailable = reservationService.checkAvailability(availabilityCheckRequest);
                     if (!Boolean.TRUE.equals(isSpecificationAvailable)) {
                         logger.warn("Validation of room availability failed, may be another problem: {}", isSpecificationAvailable);
-                        errors.rejectValue("permanentRoomName", "validation.field.permanentRoomNameNotAvailable");
+                        errors.rejectValue("roomName", "validation.field.roomNameNotAvailable");
                     }
                     break;
                 case PERMANENT_ROOM_CAPACITY:

@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.client.web.controllers;
 
 import cz.cesnet.shongo.client.web.Cache;
+import cz.cesnet.shongo.client.web.CacheProvider;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.editors.DateTimeEditor;
 import cz.cesnet.shongo.client.web.editors.LocalDateEditor;
 import cz.cesnet.shongo.client.web.editors.PeriodEditor;
 import cz.cesnet.shongo.client.web.models.ReservationRequestModel;
+import cz.cesnet.shongo.client.web.models.ReservationRequestModificationModel;
 import cz.cesnet.shongo.client.web.models.ReservationRequestValidator;
 import cz.cesnet.shongo.client.web.models.SpecificationType;
 import cz.cesnet.shongo.controller.api.*;
@@ -109,7 +111,8 @@ public class ReservationRequestUpdateController
     {
         AbstractReservationRequest reservationRequest =
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
+        ReservationRequestModel reservationRequestModel =
+                new ReservationRequestModificationModel(reservationRequest, new CacheProvider(cache, securityToken));
         model.addAttribute("reservationRequest", reservationRequestModel);
         if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
             model.addAttribute("permanentRooms",

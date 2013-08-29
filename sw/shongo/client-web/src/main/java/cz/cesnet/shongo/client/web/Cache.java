@@ -269,13 +269,22 @@ public class Cache
 
     /**
      * @param securityToken
+     * @param reservationId
+     * @return {@link Reservation} for given {@code reservationId}
+     */
+    public Reservation getReservation(SecurityToken securityToken, String reservationId)
+    {
+        return reservationService.getReservation(securityToken, reservationId);
+    }
+
+    /**
+     * @param securityToken
      * @param executable
-     * @return reservation request id for given {@code reservationId}
+     * @return reservation request id for given {@code executable}
      */
     public String getReservationRequestIdByExecutable(SecurityToken securityToken, Executable executable)
     {
-        Reservation reservation = reservationService.getReservation(securityToken, executable.getReservationId());
-        String reservationRequestId = reservation.getReservationRequestId();
-        return reservationRequestId;
+        Reservation reservation = getReservation(securityToken, executable.getReservationId());
+        return reservation.getReservationRequestId();
     }
 }

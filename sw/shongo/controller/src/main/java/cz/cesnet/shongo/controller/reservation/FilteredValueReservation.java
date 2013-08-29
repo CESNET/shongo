@@ -39,7 +39,7 @@ public class FilteredValueReservation extends ValueReservation
     /**
      * @return {@link #value}
      */
-    @Column()
+    @Column
     public String getRequestedValue()
     {
         return requestedValue;

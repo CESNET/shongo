@@ -46,9 +46,9 @@
         <dd>${reservationRequest.technology.title}</dd>
     </c:if>
 
-    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
-        <dt><spring:message code="views.reservationRequest.specification.permanentRoomName"/>:</dt>
-        <dd>${reservationRequest.permanentRoomName}</dd>
+    <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM' || (reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName)}">
+        <dt><spring:message code="views.reservationRequest.specification.roomName"/>:</dt>
+        <dd>${reservationRequest.roomName}</dd>
     </c:if>
 
     <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM_CAPACITY'}">

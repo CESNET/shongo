@@ -2,7 +2,6 @@
   -- Reservation request form.
   --%>
 <%@ tag body-content="empty" trimDirectiveWhitespaces="true" %>
-<%@ tag import="cz.cesnet.shongo.client.web.models.ReservationRequestModel" %>
 <%@ tag import="cz.cesnet.shongo.client.web.models.TechnologyModel" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -17,6 +16,7 @@
 <%@attribute name="cancelUrl" required="false" type="java.lang.String" %>
 <%@attribute name="cancelTitle" required="false" type="java.lang.String" %>
 
+<c:set var="reservationRequestModification" value="${reservationRequest.modification}"/>
 <c:set var="tabIndex" value="1"/>
 
 <script type="text/javascript">
@@ -214,12 +214,33 @@
 
         <c:if test="${reservationRequest.specificationType == 'PERMANENT_ROOM'}">
             <div class="control-group">
-                <form:label class="control-label" path="permanentRoomName">
-                    <spring:message code="views.reservationRequest.specification.permanentRoomName"/>:
+                <form:label class="control-label" path="roomName">
+                    <spring:message code="views.reservationRequest.specification.roomName"/>:
                 </form:label>
                 <div class="controls">
-                    <form:input path="permanentRoomName" cssErrorClass="error" tabindex="${tabIndex}"/>
-                    <form:errors path="permanentRoomName" cssClass="error"/>
+                    <form:input path="roomName" cssErrorClass="error" tabindex="${tabIndex}"/>
+                    <form:errors path="roomName" cssClass="error"/>
+                </div>
+            </div>
+        </c:if>
+
+        <c:if test="${reservationRequestModification != null && reservationRequest.specificationType == 'ADHOC_ROOM' && not empty reservationRequest.roomName}">
+            <div class="control-group">
+                <form:label class="control-label" path="roomName">
+                    <spring:message code="views.reservationRequest.specification.roomName"/>:
+                </form:label>
+                <div class="controls">
+                    <label class="radio inline" for="room-name-new">
+                        <form:radiobutton id="room-name-new" path="adhocRoomRetainRoomName" value="false" tabindex="${tabIndex}"/>
+                        <spring:message code="views.reservationRequest.specification.roomName.new"/>
+                    </label>
+                    <label class="radio inline" for="room-name-retain">
+                        <form:radiobutton id="room-name-retain" path="adhocRoomRetainRoomName" value="true" tabindex="${tabIndex}"/>
+                        <spring:message code="views.reservationRequest.specification.roomName.retain"/>
+                    </label>
+                    &nbsp;
+                    <form:input path="roomName" tabindex="${tabIndex}" readonly="true"/>
+                    <tag:help><spring:message code="views.reservationRequest.specification.roomName.retainHelp"/></tag:help>
                 </div>
             </div>
         </c:if>

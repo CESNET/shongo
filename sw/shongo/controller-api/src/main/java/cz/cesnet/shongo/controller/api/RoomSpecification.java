@@ -205,6 +205,20 @@ public class RoomSpecification extends Specification
     }
 
     /**
+     * @param aliasType
+     * @return {@link AliasSpecification} which specifies given {@code aliasType}
+     */
+    public AliasSpecification getAliasSpecificationByType(AliasType aliasType)
+    {
+        for (AliasSpecification aliasSpecification : aliasSpecifications) {
+            if (aliasSpecification.getAliasTypes().contains(aliasType)) {
+                return aliasSpecification;
+            }
+        }
+        return null;
+    }
+
+    /**
      * @param aliasSpecifications sets the {@link #aliasSpecifications}
      */
     public void setAliases(List<AliasSpecification> aliasSpecifications)

@@ -64,7 +64,7 @@ public class ReservationRequestDeleteController implements BreadcrumbProvider
         model.addAttribute("dependencies", dependencies);
 
         // Initialize breadcrumb
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
         if (breadcrumb != null) {
             breadcrumb.addItems(breadcrumb.getItemsCount() - 1,
                     reservationRequestModel.getBreadcrumbItems(ClientWebUrl.RESERVATION_REQUEST_DETAIL));

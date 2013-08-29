@@ -73,7 +73,7 @@
             </c:if>
             <c:if test="${specificationType != 'ADHOC_ROOM'}">
                 <th><pagination-sort column="ALIAS_ROOM_NAME">
-                    <spring:message code="views.reservationRequest.specification.permanentRoomName"/></pagination-sort>
+                    <spring:message code="views.reservationRequest.specification.roomName"/></pagination-sort>
                 </th>
             </c:if>
             <th><pagination-sort column="TECHNOLOGY">

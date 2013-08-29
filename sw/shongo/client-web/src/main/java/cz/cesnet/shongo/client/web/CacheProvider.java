@@ -2,6 +2,7 @@ package cz.cesnet.shongo.client.web;
 
 import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 
@@ -58,6 +59,15 @@ public class CacheProvider
     public ReservationRequestSummary getReservationRequestSummary(String reservationRequestId)
     {
         return cache.getReservationRequestSummary(securityToken, reservationRequestId);
+    }
+
+    /**
+     * @param reservationId
+     * @return {@link Reservation} for given {@code executable}
+     */
+    public Reservation getReservation(String reservationId)
+    {
+        return cache.getReservation(securityToken, reservationId);
     }
 
     /**

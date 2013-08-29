@@ -135,7 +135,7 @@ public class WizardReservationRequestController extends AbstractWizardController
         List<ReservationRequestSummary> dependencies =
                 ReservationRequestModel.getDeleteDependencies(reservationRequestId, reservationService, securityToken);
 
-        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest, null);
+        ReservationRequestModel reservationRequestModel = new ReservationRequestModel(reservationRequest);
         WizardView wizardView = getWizardViewWithDetailPages(reservationRequestModel);
         wizardView.addPage(new WizardPage(Page.RESERVATION_REQUEST_DELETE,
                 ClientWebUrl.WIZARD_RESERVATION_REQUEST_DETAIL, "views.wizard.page.reservationRequestDelete"));
