@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.client.web.models;
 
-import cz.cesnet.shongo.controller.api.AllocationState;
-import cz.cesnet.shongo.controller.api.ExecutableState;
-import cz.cesnet.shongo.controller.api.ReservationRequestSummary;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.*;
 
 /**
  * Represents a reservation request state.

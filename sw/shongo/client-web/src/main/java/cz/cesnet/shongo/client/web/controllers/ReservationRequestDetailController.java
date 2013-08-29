@@ -115,7 +115,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
                         hasVisibleReservation = false;
                     }
 
-                    // First allocation failed is revertible
+                    // First not-allocated is revertible
                     if (!state.isAllocated() && historyItem.getType().equals(ReservationRequestType.MODIFIED) && history.size() == 0) {
                         item.put("isRevertible", cache.hasPermission(securityToken, historyItemId, Permission.WRITE));
                     }
@@ -140,12 +140,8 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
         // Get reservation
         Reservation reservation = null;
-        if (hasVisibleReservation && abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            String reservationId = reservationRequest.getLastReservationId();
-            if (reservationId != null) {
-                reservation = reservationService.getReservation(cacheProvider.getSecurityToken(), reservationId);
-            }
+        if (hasVisibleReservation) {
+            reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
         }
 
         // Create reservation request model
@@ -164,6 +160,64 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         }
 
         return "reservationRequestDetail";
+    }
+
+    /**
+     * Handle state for detail of reservation request view.
+     */
+    @RequestMapping(value = ClientWebUrl.RESERVATION_REQUEST_DETAIL_STATE, method = RequestMethod.GET)
+    @ResponseBody
+    public Map handleDetailState(
+            Locale locale,
+            SecurityToken securityToken,
+            @PathVariable(value = "reservationRequestId") String reservationRequestId)
+    {
+
+        AbstractReservationRequest abstractReservationRequest =
+                reservationService.getReservationRequest(securityToken, reservationRequestId);
+        Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
+
+        final MessageProvider messageProvider = new MessageProvider(messages, locale);
+        final ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(
+                abstractReservationRequest, reservation, new CacheProvider(cache, securityToken),
+                messageProvider, executableService);
+        final RoomModel roomModel = reservationRequestModel.getRoom();
+
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("state", new HashMap<String, Object>(){{
+            ReservationRequestState state = reservationRequestModel.getState();
+            put("code", state);
+            put("label", messageProvider.getMessage("views.reservationRequest.state." + state));
+            put("help", messageProvider.getMessage("help.reservationRequest.state." + state));
+        }});
+        data.put("allocationState", new HashMap<String, Object>(){{
+            AllocationState allocationState = reservationRequestModel.getAllocationState();
+            put("code", allocationState);
+            put("report", reservationRequestModel.getAllocationStateReport());
+            put("label", messageProvider.getMessage("views.reservationRequest.allocationState." + allocationState));
+            put("help", messageProvider.getMessage("help.reservationRequest.allocationState." + allocationState));
+        }});
+        if (roomModel != null) {
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG, locale);
+            data.put("roomId", roomModel.getId());
+            data.put("roomSlot", dateTimeFormatter.formatIntervalMultiLine(roomModel.getSlot()));
+            data.put("roomName", roomModel.getName());
+            data.put("roomLicenseCount", roomModel.getLicenseCount());
+            data.put("roomState", new HashMap<String, Object>(){{
+                RoomState roomState = roomModel.getState();
+                put("code", roomState);
+                put("started", roomState.isStarted());
+                put("report", roomModel.getStateReport());
+                put("label", messageProvider.getMessage("views.executable.roomState." + roomState));
+                if (reservationRequestModel.getSpecificationType().equals(SpecificationType.PERMANENT_ROOM_CAPACITY)) {
+                    put("help", messageProvider.getMessage("help.executable.roomState.USED_ROOM." + roomState));
+                }
+                else {
+                    put("help", messageProvider.getMessage("help.executable.roomState." + roomState));
+                }
+            }});
+        }
+        return data;
     }
 
     /**

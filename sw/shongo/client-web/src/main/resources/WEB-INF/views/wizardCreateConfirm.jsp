@@ -15,7 +15,7 @@
 
     <h2><spring:message code="views.wizard.confirmation.question"/></h2>
 
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="false"/>
 
     <c:if test="${reservationRequest.specificationType != 'PERMANENT_ROOM_CAPACITY'}">
         <h2><spring:message code="views.reservationRequest.userRoles"/></h2>

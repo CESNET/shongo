@@ -47,13 +47,13 @@ public class RoomModel
 
     private ExecutableState usageState;
 
-    public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
-            ExecutableService executableService)
+    public RoomModel(AbstractRoomExecutable roomExecutable, String reservationRequestId, CacheProvider cacheProvider,
+            MessageProvider messageProvider, ExecutableService executableService)
     {
         this.messageProvider = messageProvider;
 
         this.id = roomExecutable.getId();
-        this.reservationRequestId = cacheProvider.getReservationRequestIdByExecutable(roomExecutable);
+        this.reservationRequestId = reservationRequestId;
         this.slot = roomExecutable.getSlot();
         this.technology = TechnologyModel.find(roomExecutable.getTechnologies());
         this.aliases = roomExecutable.getAliases();
@@ -86,6 +86,13 @@ public class RoomModel
         this.state = RoomState.fromRoomState(
                 roomExecutable.getState(), roomExecutable.getLicenseCount(), usageState);
         this.stateReport = roomExecutable.getStateReport();
+    }
+
+    public RoomModel(AbstractRoomExecutable roomExecutable, CacheProvider cacheProvider, MessageProvider messageProvider,
+            ExecutableService executableService)
+    {
+        this(roomExecutable, cacheProvider.getReservationRequestIdByExecutable(roomExecutable),
+                cacheProvider, messageProvider, executableService);
     }
 
     public String getId()

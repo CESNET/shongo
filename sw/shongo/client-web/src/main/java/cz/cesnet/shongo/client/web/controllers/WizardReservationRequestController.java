@@ -90,14 +90,7 @@ public class WizardReservationRequestController extends AbstractWizardController
                 reservationService.getReservationRequest(securityToken, reservationRequestId);
 
         // Get reservation
-        Reservation reservation = null;
-        if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            String reservationId = reservationRequest.getLastReservationId();
-            if (reservationId != null) {
-                reservation = reservationService.getReservation(cacheProvider.getSecurityToken(), reservationId);
-            }
-        }
+        Reservation reservation = abstractReservationRequest.getLastReservation(reservationService, securityToken);
 
         // Create reservation request model
         ReservationRequestDetailModel reservationRequestModel = new ReservationRequestDetailModel(

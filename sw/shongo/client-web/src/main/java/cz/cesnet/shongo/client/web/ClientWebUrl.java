@@ -75,6 +75,8 @@ public class ClientWebUrl
             "/reservation-request/create/confirm";
     public static final String RESERVATION_REQUEST_DETAIL =
             "/reservation-request/{reservationRequestId:.+}/detail";
+    public static final String RESERVATION_REQUEST_DETAIL_STATE =
+            "/reservation-request/{reservationRequestId:.+}/detail/state";
     public static final String RESERVATION_REQUEST_DETAIL_CHILDREN =
             "/reservation-request/{reservationRequestId:.+}/detail/children";
     public static final String RESERVATION_REQUEST_DETAIL_USAGES =
@@ -126,6 +128,11 @@ public class ClientWebUrl
     public static String getReservationRequestDetail(String path, String reservationRequestId)
     {
         return path + getReservationRequestDetail(reservationRequestId);
+    }
+
+    public static String getReservationRequestDetailState(String path, String reservationRequestId)
+    {
+        return path + format(RESERVATION_REQUEST_DETAIL_STATE, reservationRequestId);
     }
 
     public static String getReservationRequestDetailChildren(String path, String reservationRequestId)

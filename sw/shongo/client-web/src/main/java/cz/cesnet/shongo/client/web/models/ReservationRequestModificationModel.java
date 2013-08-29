@@ -13,7 +13,7 @@ import cz.cesnet.shongo.controller.api.*;
  */
 public class ReservationRequestModificationModel extends ReservationRequestModel
 {
-    private Boolean adhocRoomRetainRoomName;
+    private boolean adhocRoomRetainRoomName = false;
 
     public ReservationRequestModificationModel(AbstractReservationRequest reservationRequest,
             CacheProvider cacheProvider)
@@ -24,19 +24,21 @@ public class ReservationRequestModificationModel extends ReservationRequestModel
             // Get allocated room name
             ReservationRequestSummary reservationRequestSummary =
                     cacheProvider.getReservationRequestSummary(reservationRequest.getId());
-            String reservationId = reservationRequestSummary.getLastReservationId();
-            if (reservationId != null) {
-                Reservation reservation = cacheProvider.getReservation(reservationId);
-                AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
-                Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
-                if (roomNameAlias == null) {
-                    throw new UnsupportedApiException("Room must have name.");
+            if (reservationRequestSummary != null) {
+                String reservationId = reservationRequestSummary.getLastReservationId();
+                if (reservationId != null) {
+                    Reservation reservation = cacheProvider.getReservation(reservationId);
+                    AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
+                    Alias roomNameAlias = roomExecutable.getAliasByType(AliasType.ROOM_NAME);
+                    if (roomNameAlias == null) {
+                        throw new UnsupportedApiException("Room must have name.");
+                    }
+                    roomName = roomNameAlias.getValue();
                 }
-                roomName = roomNameAlias.getValue();
             }
             if (roomName != null) {
                 // Room name should be retained
-                adhocRoomRetainRoomName = Boolean.TRUE;
+                adhocRoomRetainRoomName = true;
             }
         }
     }

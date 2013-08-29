@@ -69,7 +69,7 @@
 <div ng-app="jsp:wizardReservationRequestDetail">
 
     <%-- Detail of request --%>
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="true"/>
 
     <%-- User roles --%>
     <h2><spring:message code="views.reservationRequest.userRoles"/></h2>

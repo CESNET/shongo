@@ -43,7 +43,7 @@ public class ReservationRequestDetailModel extends ReservationRequestModel
                 AbstractRoomExecutable roomExecutable = (AbstractRoomExecutable) reservation.getExecutable();
                 if (roomExecutable != null) {
                     executableState = roomExecutable.getState();
-                    room = new RoomModel(roomExecutable, cacheProvider, messageProvider, executableService);
+                    room = new RoomModel(roomExecutable, getId(), cacheProvider, messageProvider, executableService);
                 }
             }
 

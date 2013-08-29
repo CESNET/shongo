@@ -110,7 +110,7 @@
 <div ng-app="jsp:reservationRequestDetail">
 
     <%-- Detail of request --%>
-    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}"/>
+    <tag:reservationRequestDetail reservationRequest="${reservationRequest}" detailUrl="${detailUrl}" isActive="${isActive}"/>
 
     <%-- User roles --%>
     <hr/>

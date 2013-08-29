@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.DataMap;
 import cz.cesnet.shongo.api.IdentifiedComplexType;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestReusement;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 
 /**
@@ -230,6 +231,20 @@ public abstract class AbstractReservationRequest extends IdentifiedComplexType
     public void setReusement(ReservationRequestReusement reusement)
     {
         this.reusement = reusement;
+    }
+
+    /**
+     * @param reservationService
+     * @param securityToken
+     * @return last {@link Reservation}
+     */
+    public Reservation getLastReservation(ReservationService reservationService, SecurityToken securityToken)
+    {
+        if (this instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) this;
+            return reservationRequest.getLastReservation(reservationService, securityToken);
+        }
+        return null;
     }
 
     private static final String TYPE = "type";

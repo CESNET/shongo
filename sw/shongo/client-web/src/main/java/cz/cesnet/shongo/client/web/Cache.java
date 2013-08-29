@@ -255,16 +255,29 @@ public class Cache
     {
         ReservationRequestSummary reservationRequest = reservationRequestById.get(reservationRequestId);
         if (reservationRequest == null) {
-            ReservationRequestListRequest request = new ReservationRequestListRequest();
-            request.setSecurityToken(securityToken);
-            request.addReservationRequestId(reservationRequestId);
-            ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
-            if (response.getItemCount() > 0) {
-                reservationRequest = response.getItem(0);
-                reservationRequestById.put(reservationRequest.getId(), reservationRequest);
-            }
+            reservationRequest = getReservationRequestSummaryNotCached(securityToken, reservationRequestId);
         }
         return reservationRequest;
+    }
+
+    /**
+     * @param securityToken
+     * @param reservationRequestId
+     * @return {@link ReservationRequestSummary} for given {@code reservationRequestId}
+     */
+    public synchronized ReservationRequestSummary getReservationRequestSummaryNotCached(SecurityToken securityToken,
+            String reservationRequestId)
+    {
+        ReservationRequestListRequest request = new ReservationRequestListRequest();
+        request.setSecurityToken(securityToken);
+        request.addReservationRequestId(reservationRequestId);
+        ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
+        if (response.getItemCount() > 0) {
+            ReservationRequestSummary reservationRequest = response.getItem(0);
+            reservationRequestById.put(reservationRequest.getId(), reservationRequest);
+            return reservationRequest;
+        }
+        return null;
     }
 
     /**

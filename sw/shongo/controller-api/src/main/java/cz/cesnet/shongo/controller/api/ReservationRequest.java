@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.api.DataMap;
+import cz.cesnet.shongo.controller.api.rpc.ReservationService;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -171,6 +172,20 @@ public class ReservationRequest extends AbstractReservationRequest
             return null;
         }
         return reservationIds.get(reservationIds.size() - 1);
+    }
+
+    /**
+     * @param reservationService
+     * @param securityToken
+     * @return last {@link Reservation}
+     */
+    public Reservation getLastReservation(ReservationService reservationService, SecurityToken securityToken)
+    {
+        String reservationId = getLastReservationId();
+        if (reservationId != null) {
+            return reservationService.getReservation(securityToken, reservationId);
+        }
+        return null;
     }
 
     /**
