@@ -70,7 +70,6 @@ public class UserController
             Model model)
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
-        logger.info("Loaded {}", userSettings);
         model.addAttribute("userSettings", userSettings);
         model.addAttribute("timeZones", TimeZoneModel.getTimeZones());
         return "userSettings";
@@ -89,7 +88,6 @@ public class UserController
             HttpServletResponse response,
             @ModelAttribute("userSettings") UserSettings userSettings)
     {
-        logger.info("Updating {}", userSettings);
         authorizationService.updateUserSettings(securityToken, userSettings);
         sessionStatus.setComplete();
         UserController.loadUserSettings(securityToken, authorizationService, request, response, null);
@@ -165,14 +163,14 @@ public class UserController
                 throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
             }
             Locale locale = StringUtils.parseLocaleString(userSettings.getLanguage());
-            logger.info("Setting locale {} for token {}...", locale, securityToken);
+            logger.info("Setting locale {} for user {}...", locale, securityToken.getUserId());
             localeResolver.setLocale(request, response, locale);
         }
 
         // Set time zone
         DateTimeZone dateTimeZone = userSettings.getDateTimeZone();
         if (dateTimeZone != null) {
-            logger.info("Setting timezone {} for token {}...", dateTimeZone, securityToken);
+            logger.info("Setting timezone {} for user {}...", dateTimeZone, securityToken.getUserId());
             DateTimeZoneInterceptor.setDateTimeZone(dateTimeZone, request);
         }
     }

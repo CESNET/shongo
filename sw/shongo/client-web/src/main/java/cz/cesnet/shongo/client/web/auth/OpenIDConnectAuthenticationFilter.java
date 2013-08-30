@@ -193,12 +193,11 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         logger.debug("Authenticating access token {}...", accessToken);
 
         OpenIDConnectAuthenticationToken authenticationToken = new OpenIDConnectAuthenticationToken(accessToken);
-
+        AuthenticationManager authenticationManager = this.getAuthenticationManager();
+        Authentication authentication =  authenticationManager.authenticate(authenticationToken);
         SecurityToken securityToken = authenticationToken.getSecurityToken();
         UserController.loadUserSettings(securityToken, authorizationService, request, response, localeResolver);
-
-        AuthenticationManager authenticationManager = this.getAuthenticationManager();
-        return authenticationManager.authenticate(authenticationToken);
+        return authentication;
     }
 
     /**
