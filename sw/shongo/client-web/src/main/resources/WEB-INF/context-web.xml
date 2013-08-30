@@ -54,11 +54,6 @@
         <property name="definitions" value="/WEB-INF/tiles.xml"/>
     </bean>
 
-    <!-- Resolves the locales by getting the predefined attribute from user’s session -->
-    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
-        <property name="defaultLocale" value="en"/>
-    </bean>
-
     <!-- Exception handler -->
     <bean class="cz.cesnet.shongo.client.web.ClientWebHandlerExceptionResolver"/>
 

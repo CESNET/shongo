@@ -54,4 +54,9 @@
     <bean id="permissionEvaluator" class="cz.cesnet.shongo.client.web.auth.PermissionEvaluator">
     </bean>
 
+    <!-- Resolves the locales by getting the predefined attribute from user’s session -->
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
+        <property name="defaultLocale" value="en"/>
+    </bean>
+
 </beans>

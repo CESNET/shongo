@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.editors.DateTimeZoneEditor;
+import cz.cesnet.shongo.client.web.interceptors.DateTimeZoneInterceptor;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
@@ -15,12 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -76,14 +82,17 @@ public class UserController
     @RequestMapping(
             value = ClientWebUrl.USER_SETTINGS_SAVE,
             method = {RequestMethod.POST, RequestMethod.GET})
-    public String handleCreateConfirm(
+    public String handleUserSettingsSave(
             SecurityToken securityToken,
             SessionStatus sessionStatus,
+            HttpServletRequest request,
+            HttpServletResponse response,
             @ModelAttribute("userSettings") UserSettings userSettings)
     {
         logger.info("Updating {}", userSettings);
         authorizationService.updateUserSettings(securityToken, userSettings);
         sessionStatus.setComplete();
+        UserController.loadUserSettings(securityToken, authorizationService, request, response, null);
         return "redirect:" + ClientWebUrl.HOME;
     }
 
@@ -129,5 +138,42 @@ public class UserController
             @PathVariable(value = "userId") String userId)
     {
         return cache.getUserInformation(securityToken, userId);
+    }
+
+    /**
+     * Load language and time zone from user settings.
+     *
+     * @param securityToken
+     * @param authorizationService
+     * @param request
+     * @param response
+     * @param localeResolver
+     */
+    public static void loadUserSettings(SecurityToken securityToken, AuthorizationService authorizationService,
+            HttpServletRequest request,
+            HttpServletResponse response,
+            LocaleResolver localeResolver)
+    {
+        UserSettings userSettings = authorizationService.getUserSettings(securityToken);
+
+        // Set language
+        if (userSettings.getLanguage() != null) {
+            if (localeResolver == null) {
+                localeResolver = RequestContextUtils.getLocaleResolver(request);
+            }
+            if (localeResolver == null) {
+                throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
+            }
+            Locale locale = StringUtils.parseLocaleString(userSettings.getLanguage());
+            logger.info("Setting locale {} for token {}...", locale, securityToken);
+            localeResolver.setLocale(request, response, locale);
+        }
+
+        // Set time zone
+        DateTimeZone dateTimeZone = userSettings.getDateTimeZone();
+        if (dateTimeZone != null) {
+            logger.info("Setting timezone {} for token {}...", dateTimeZone, securityToken);
+            DateTimeZoneInterceptor.setDateTimeZone(dateTimeZone, request);
+        }
     }
 }

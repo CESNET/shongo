@@ -29,22 +29,22 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception
     {
-        HttpSession httpSession = request.getSession();
-        DateTimeZone dateTimeZone = (DateTimeZone) httpSession.getAttribute(SESSION_DATE_TIME_ZONE);
+        HttpSession session = request.getSession();
+        DateTimeZone dateTimeZone = (DateTimeZone) session.getAttribute(SESSION_DATE_TIME_ZONE);
         // If timezone is not set retrieve it
         if (dateTimeZone == null) {
             String timeZoneOffset = request.getParameter("time-zone-offset");
-            String requestUrl = (String) httpSession.getAttribute(SESSION_REQUEST_URL);
+            String requestUrl = (String) session.getAttribute(SESSION_REQUEST_URL);
             if (!Strings.isNullOrEmpty(timeZoneOffset)) {
                 // Set new time zone
                 dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
-                httpSession.setAttribute(SESSION_DATE_TIME_ZONE, dateTimeZone);
+                setDateTimeZone(dateTimeZone, request);
 
-                logger.debug("Set timezone {} to session {}.", dateTimeZone, httpSession.getId());
+                logger.debug("Set timezone {} to session {}.", dateTimeZone, session.getId());
 
                 if (requestUrl != null) {
                     // Redirect to original request url
-                    httpSession.removeAttribute(SESSION_REQUEST_URL);
+                    session.removeAttribute(SESSION_REQUEST_URL);
                     response.sendRedirect(requestUrl);
                     return false;
                 }
@@ -76,7 +76,7 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
                         previousUrl.append("?");
                         previousUrl.append(queryString);
                     }
-                    httpSession.setAttribute(SESSION_REQUEST_URL, previousUrl.toString());
+                    session.setAttribute(SESSION_REQUEST_URL, previousUrl.toString());
                 }
 
                 // Render view for resolving timezone
@@ -88,6 +88,12 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
         else {
             return true;
         }
+    }
+
+    public static void setDateTimeZone(DateTimeZone dateTimeZone, HttpServletRequest request)
+    {
+        HttpSession session = request.getSession();
+        session.setAttribute(SESSION_DATE_TIME_ZONE, dateTimeZone);
     }
 }
 

@@ -3,6 +3,11 @@ package cz.cesnet.shongo.client.web.auth;
 import com.google.common.base.Strings;
 import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
+import cz.cesnet.shongo.client.web.controllers.UserController;
+import cz.cesnet.shongo.client.web.interceptors.DateTimeZoneInterceptor;
+import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.UserSettings;
+import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
 import cz.cesnet.shongo.ssl.ConfiguredSSLContext;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -12,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +26,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.ServletException;
@@ -32,6 +41,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Authentication filter for OpenID Connect.
@@ -52,14 +62,28 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
     private ClientWebConfiguration configuration;
 
     /**
+     * @see AuthorizationService
+     */
+    private AuthorizationService authorizationService;
+
+    /**
+     * @see LocaleResolver
+     */
+    private LocaleResolver localeResolver;
+
+    /**
      * Constructor.
      *
      * @param configuration sets the {@link #configuration}
+     * @param authorizationService sets the {@link #authorizationService}
      */
-    protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration)
+    protected OpenIDConnectAuthenticationFilter(ClientWebConfiguration configuration,
+            AuthorizationService authorizationService, LocaleResolver localeResolver)
     {
         super(ClientWebUrl.LOGIN);
         this.configuration = configuration;
+        this.authorizationService = authorizationService;
+        this.localeResolver = localeResolver;
     }
 
     @Override
@@ -169,6 +193,10 @@ public class OpenIDConnectAuthenticationFilter extends AbstractAuthenticationPro
         logger.debug("Authenticating access token {}...", accessToken);
 
         OpenIDConnectAuthenticationToken authenticationToken = new OpenIDConnectAuthenticationToken(accessToken);
+
+        SecurityToken securityToken = authenticationToken.getSecurityToken();
+        UserController.loadUserSettings(securityToken, authorizationService, request, response, localeResolver);
+
         AuthenticationManager authenticationManager = this.getAuthenticationManager();
         return authenticationManager.authenticate(authenticationToken);
     }

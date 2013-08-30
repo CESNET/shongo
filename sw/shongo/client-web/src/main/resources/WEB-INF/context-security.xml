@@ -62,6 +62,8 @@
     <bean id="authenticationFilter"
           class="cz.cesnet.shongo.client.web.auth.OpenIDConnectAuthenticationFilter">
         <constructor-arg ref="configuration"/>
+        <constructor-arg ref="controllerAuthorizationService"/>
+        <constructor-arg ref="localeResolver"/>
         <property name="authenticationManager" ref="authenticationManager"/>
         <property name="authenticationFailureHandler">
             <bean class="org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler">
