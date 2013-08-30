@@ -5,12 +5,12 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.scheduler.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.AvailableRoom;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import org.hibernate.exception.ConstraintViolationException;
@@ -90,12 +90,13 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String createResource(SecurityToken token, Resource resourceApi)
+    public String createResource(SecurityToken securityToken, Resource resourceApi)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         // Change user id (only root can do that)
-        if (resourceApi.getUserId() != null && authorization.isAdmin(userId)) {
+        String userId = securityToken.getUserId();
+        if (resourceApi.getUserId() != null && authorization.isAdmin(securityToken)) {
             userId = resourceApi.getUserId();
         }
 
@@ -140,9 +141,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void modifyResource(SecurityToken token, Resource resourceApi)
+    public void modifyResource(SecurityToken securityToken, Resource resourceApi)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -156,7 +157,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify resource %s", entityId);
             }
 
@@ -181,9 +182,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deleteResource(SecurityToken token, String resourceId)
+    public void deleteResource(SecurityToken securityToken, String resourceId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         EntityIdentifier entityId = EntityIdentifier.parse(resourceId, EntityType.RESOURCE);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -197,7 +198,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.resource.Resource resource =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete resource %s", entityId);
             }
 
@@ -239,16 +240,16 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
+    public Collection<ResourceSummary> listResources(SecurityToken securityToken, Map<String, Object> filter)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         try {
-            Set<Long> resourceIds =
-                    authorization.getEntitiesWithPermission(userId, EntityType.RESOURCE, Permission.READ);
+            Set<Long> resourceIds = authorization.getEntitiesWithPermission(
+                    securityToken, EntityType.RESOURCE, Permission.READ);
             String filterUserId = QueryFilter.getUserIdFromFilter(filter);
             List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(resourceIds, filterUserId);
 
@@ -282,9 +283,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Resource getResource(SecurityToken token, String resourceId)
+    public Resource getResource(SecurityToken securityToken, String resourceId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -293,7 +294,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
         try {
             cz.cesnet.shongo.controller.resource.Resource resource = resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read resource %s", entityId);
             }
 
@@ -305,9 +306,9 @@ public class ResourceServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
+    public ResourceAllocation getResourceAllocation(SecurityToken securityToken, String resourceId, Interval interval)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         if (interval == null) {
             interval = new Interval(DateMidnight.now(), Period.days(31));
@@ -321,7 +322,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.resource.Resource resourceImpl =
                     resourceManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read allocation for resource %s", entityId);
             }
 
@@ -348,7 +349,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
             Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
                     resourceManager.listResourceReservationsInInterval(entityId.getPersistenceId(), interval);
             for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
-                resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdmin(userId)));
+                resourceAllocation.addReservation(resourceReservation.toApi(authorization.isAdmin(securityToken)));
             }
 
             // Fill alias allocations
@@ -358,7 +359,7 @@ public class ResourceServiceImpl extends AbstractServiceImpl
                 List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
                         resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
                 for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
-                    resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdmin(userId)));
+                    resourceAllocation.addReservation(aliasReservation.toApi(authorization.isAdmin(securityToken)));
                 }
             }
             return resourceAllocation;

@@ -102,6 +102,10 @@ public class ClientWebUrl
 
     public static final String USER =
             "/user";
+    public static final String USER_SETTINGS =
+            "/user/settings";
+    public static final String USER_SETTINGS_SAVE =
+            "/user/settings/save";
     public static final String USER_LIST =
             "/user/list";
     public static final String USER_DETAIL =

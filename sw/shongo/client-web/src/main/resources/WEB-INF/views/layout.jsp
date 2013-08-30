@@ -20,6 +20,8 @@
 <c:set var="reservationRequestListUrl">${contextPath}<%= ClientWebUrl.RESERVATION_REQUEST_LIST %></c:set>
 <c:set var="reportUrl">${contextPath}<%= ClientWebUrl.REPORT %></c:set>
 <c:set var="changelogUrl">${contextPath}<%= ClientWebUrl.CHANGELOG %></c:set>
+<c:set var="userSettingsUrl">${contextPath}<%= ClientWebUrl.USER_SETTINGS %></c:set>
+
 <%
     UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(
             (String) request.getAttribute(RequestDispatcher.FORWARD_REQUEST_URI));
@@ -73,93 +75,102 @@
 
 <div class="content">
 
-<%-- Page navigation header --%>
-<div class="navbar navbar-static-top block">
-    <div class="navbar-inner">
-
-        <div class="main">
-            <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
-            <div class="nav-collapse collapse pull-left">
-                <ul class="nav" role="navigation">
-                    <li><a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a></li>
-                    <li><a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a></li>
-                </ul>
-            </div>
-        </div>
-
-        <ul class="nav pull-right">
-            <li>
-                <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                    <div>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </div>
-                    <span>&nbsp;<spring:message code="views.layout.menu"/></span>
-                </button>
-            </li>
-            <security:authorize access="!isAuthenticated()">
-                <li>
-                    <c:set var="urlLogin">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
-                    <a href="${urlLogin}"><spring:message code="views.layout.login"/></a>
-                </li>
-            </security:authorize>
-            <security:authorize access="isAuthenticated()">
-                <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-                        <b><security:authentication property="principal.fullName"/></b>
-                        <b class="caret"></b>
-                    </a>
-                    <ul class="dropdown-menu" role="menu">
-                        <li>
-                            <c:set var="urlLogout">${contextPath}<%= ClientWebUrl.LOGOUT %></c:set>
-                            <a class="menuitem" href="${urlLogout}"><spring:message code="views.layout.logout"/></a>
-                        </li>
+    <%-- Page navigation header --%>
+    <div class="navbar navbar-static-top block">
+        <div class="navbar-inner">
+            <%-- Left panel - application name and main links --%>
+            <div class="main">
+                <a class="brand" href="/"><spring:message code="system.name"/>&nbsp;${configuration.titleSuffix}</a>
+                <div class="nav-collapse collapse pull-left">
+                    <ul class="nav" role="navigation">
+                        <li><a href="${wizardUrl}"><spring:message code="navigation.wizard"/></a></li>
+                        <li><a href="${reservationRequestListUrl}"><spring:message code="navigation.reservationRequest"/></a></li>
                     </ul>
+                </div>
+            </div>
+
+            <%-- Right panel - user, timezone, language --%>
+            <ul class="nav pull-right">
+                <%-- Button which represents collapsed main links --%>
+                <li>
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <div>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </div>
+                        <span>&nbsp;<spring:message code="views.layout.menu"/></span>
+                    </button>
                 </li>
-            </security:authorize>
-            <li>
-                <spring:message code="views.layout.timezone" var="timezone"/>
-                <span class="navbar-text" id="timezone" title="${timezone}">${sessionScope.dateTimeZone}</span>
-            </li>
-            <li>
-                <span class="navbar-text">
-                    <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
-                    <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
-                </span>
-            </li>
 
-        </ul>
+                <%-- Login button --%>
+                <security:authorize access="!isAuthenticated()">
+                    <li>
+                        <c:set var="urlLogin">${contextPath}<%= ClientWebUrl.LOGIN %></c:set>
+                        <a href="${urlLogin}"><spring:message code="views.layout.login"/></a>
+                    </li>
+                </security:authorize>
 
-        <c:if test="${requestScope.breadcrumb != null}">
-
-            <ul class="breadcrumb">
-                <c:forEach items="${requestScope.breadcrumb.iterator()}" var="item" varStatus="status">
-                    <c:choose>
-                        <c:when test="${!status.last}">
-                            <li>
-                                <a href="${contextPath}${item.url}"><spring:message code="${item.titleCode}"/></a>
-                                <span class="divider">/</span>
+                <%-- Logged user information --%>
+                <security:authorize access="isAuthenticated()">
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <b><security:authentication property="principal.fullName"/></b>
+                            <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li ng-controller="UserSettingsController">
+                                <a class="menuitem" href="${userSettingsUrl}"><spring:message code="views.layout.settings"/></a>
                             </li>
-                        </c:when>
-                        <c:otherwise>
-                            <li class="active"><spring:message code="${item.titleCode}"/></li>
-                        </c:otherwise>
-                    </c:choose>
-                </c:forEach>
+                            <li>
+                                <c:set var="urlLogout">${contextPath}<%= ClientWebUrl.LOGOUT %>
+                                </c:set>
+                                <a class="menuitem" href="${urlLogout}"><spring:message code="views.layout.logout"/></a>
+                            </li>
+                        </ul>
+                    </li>
+                </security:authorize>
 
-                <li class="pull-right">
-                    <a href="${reportUrl}"><spring:message code="views.layout.report"/></a>
+                <%-- Timezone --%>
+                <li>
+                    <spring:message code="views.layout.timezone" var="timezone"/>
+                    <span class="navbar-text" id="timezone" title="${timezone}">${sessionScope.dateTimeZone}</span>
+                </li>
+
+                <%-- Language selection --%>
+                <li>
+                    <span class="navbar-text">
+                        <a id="language-english" href="${urlLanguage.replaceAll(":lang", "en")}"><img class="language" src="${contextPath}/img/i18n/en.png" alt="English" title="English"/></a>
+                        <a id="language-czech" href="${urlLanguage.replaceAll(":lang", "cs")}"><img class="language" src="${contextPath}/img/i18n/cz.png" alt="Česky" title="Česky"/></a>
+                    </span>
                 </li>
             </ul>
 
-        </c:if>
-
+            <%-- Breadcrumbs --%>
+            <c:if test="${requestScope.breadcrumb != null}">
+                <ul class="breadcrumb">
+                    <c:forEach items="${requestScope.breadcrumb.iterator()}" var="item" varStatus="status">
+                        <c:choose>
+                            <c:when test="${!status.last}">
+                                <li>
+                                    <a href="${contextPath}${item.url}"><spring:message code="${item.titleCode}"/></a>
+                                    <span class="divider">/</span>
+                                </li>
+                            </c:when>
+                            <c:otherwise>
+                                <li class="active"><spring:message code="${item.titleCode}"/></li>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                    <li class="pull-right">
+                        <a href="${reportUrl}"><spring:message code="views.layout.report"/></a>
+                    </li>
+                </ul>
+            </c:if>
+        </div>
     </div>
 
-</div>
-
-<%-- Page content --%>
+    <%-- Page content --%>
     <div class="block push">
         <div class="container">
             <c:choose>
@@ -174,17 +185,17 @@
         </div>
     </div>
 
-<%-- Page footer --%>
-<div class="footer block">
-    <p class="muted">
-        <a href="${changelogUrl}"><spring:message code="system.name"/>&nbsp;<spring:message
-                code="system.version"/></a>
-        &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
-        <a title="CESNET" href="http://www.cesnet.cz/">
-            <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
-        </a>
-    </p>
-</div>
+    <%-- Page footer --%>
+    <div class="footer block">
+        <p class="muted">
+            <a href="${changelogUrl}"><spring:message code="system.name"/>&nbsp;<spring:message
+                    code="system.version"/></a>
+            &copy; 2012 - 2013&nbsp;&nbsp;&nbsp;
+            <a title="CESNET" href="http://www.cesnet.cz/">
+                <img src="${contextPath}/img/cesnet.gif" alt="CESNET, z.s.p.o."/>
+            </a>
+        </p>
+    </div>
 
 </div>
 

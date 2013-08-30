@@ -259,6 +259,57 @@ public class Converter
     }
 
     /**
+     * Convert given {@link DateTimeZone} {@code value} to {@link String}.
+     *
+     * @param value
+     * @return converted {@link String} value
+     */
+    public static String convertDateTimeZoneToString(DateTimeZone value)
+    {
+        if (value == null) {
+            return null;
+        }
+        return value.toString();
+    }
+
+    /**
+     * Convert given {@code value} to {@link DateTimeZone} value.
+     *
+     * @param value
+     * @return converted {@link DateTimeZone} value
+     */
+    public static DateTimeZone convertToDateTimeZone(Object value)
+    {
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof DateTimeZone) {
+            return (DateTimeZone) value;
+        }
+        else {
+            return convertStringToDateTimeZone(value.toString());
+        }
+    }
+
+    /**
+     * Convert given {@link String} {@code value} to {@link DateTimeZone} value.
+     *
+     * @param value
+     * @return converted {@link DateTimeZone} value
+     */
+    public static DateTimeZone convertStringToDateTimeZone(String value)
+    {
+        DateTimeZone dateTimeZone;
+        try {
+            dateTimeZone = DateTimeZone.forID(value);
+        }
+        catch (Exception exception) {
+            throw new CommonReportSet.TypeIllegalValueException(DateTimeZone.class.getSimpleName(), value);
+        }
+        return dateTimeZone;
+    }
+
+    /**
      * Convert given {@link Period} {@code value} to {@link String}.
      *
      * @param value

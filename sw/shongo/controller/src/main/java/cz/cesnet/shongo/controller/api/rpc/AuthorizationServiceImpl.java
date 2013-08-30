@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.PermissionSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.request.AclRecordListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.PermissionListRequest;
@@ -25,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import java.util.*;
 
 /**
@@ -91,13 +93,13 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String createAclRecord(SecurityToken token, String userId, String entityId, Role role)
+    public String createAclRecord(SecurityToken securityToken, String userId, String entityId, Role role)
     {
-        String requesterUserId = authorization.validate(token);
+        authorization.validate(securityToken);
         authorization.checkUserExistence(userId);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         checkEntityExistence(entityIdentifier);
-        if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.WRITE)) {
+        if (!authorization.hasPermission(securityToken, entityIdentifier, Permission.WRITE)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault("create ACL for %s", entityId);
         }
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -123,15 +125,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deleteAclRecord(SecurityToken token, String aclRecordId)
+    public void deleteAclRecord(SecurityToken securityToken, String aclRecordId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         try {
             cz.cesnet.shongo.controller.authorization.AclRecord aclRecord =
                     authorizationManager.getAclRecord(Long.valueOf(aclRecordId));
-            if (!authorization.hasPermission(userId, aclRecord.getEntityId(), Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, aclRecord.getEntityId(), Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete ACL for %s", aclRecord.getEntityId());
             }
             authorizationManager.beginTransaction(authorization);
@@ -154,7 +156,8 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<AclRecord> listAclRecords(AclRecordListRequest request)
     {
-        String requesterUserId = authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
@@ -173,7 +176,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
 
             // List only records which are requested
             if (request.getEntityIds().size() > 0) {
-                boolean isAdmin = authorization.isAdmin(requesterUserId);
+                boolean isAdmin = authorization.isAdmin(securityToken);
                 StringBuilder entityIdsFilterBuilder = new StringBuilder();
                 entityIdsFilterBuilder.append("1=1");
                 for (String entityId : request.getEntityIds()) {
@@ -191,7 +194,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                             throw new TodoImplementException("List only ACL to which the requester has permission.");
                         }
                         else {
-                            if (!authorization.hasPermission(requesterUserId, entityIdentifier, Permission.READ)) {
+                            if (!authorization.hasPermission(securityToken, entityIdentifier, Permission.READ)) {
                                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("list ACL for %s", entityId);
                             }
                         }
@@ -271,12 +274,13 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     @Override
     public Map<String, PermissionSet> listPermissions(PermissionListRequest request)
     {
-        String userId = authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
         Map<String, PermissionSet> response = new HashMap<String, PermissionSet>();
         for (String entityId : request.getEntityIds()) {
             EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
             checkEntityExistence(entityIdentifier);
-            response.put(entityId, new PermissionSet(authorization.getPermissions(userId, entityIdentifier)));
+            response.put(entityId, new PermissionSet(authorization.getPermissions(securityToken, entityIdentifier)));
         }
         return response;
     }
@@ -342,9 +346,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void setEntityUser(SecurityToken token, String entityId, String newUserId)
+    public void setEntityUser(SecurityToken securityToken, String entityId, String newUserId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         authorization.checkUserExistence(newUserId);
         EntityIdentifier entityIdentifier = EntityIdentifier.parse(entityId);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -355,7 +359,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             if (entity == null) {
                 ControllerReportSetHelper.throwEntityNotFoundFault(entityIdentifier);
             }
-            if (!authorization.isAdmin(userId)) {
+            if (!authorization.isAdmin(securityToken)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("change user for %s", entityId);
             }
             authorizationManager.beginTransaction(authorization);
@@ -409,6 +413,86 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
                 entityManager.getTransaction().rollback();
             }
             entityManager.close();
+        }
+    }
+
+    @Override
+    public UserSettings getUserSettings(SecurityToken securityToken)
+    {
+        authorization.validate(securityToken);
+
+        cz.cesnet.shongo.controller.authorization.UserSessionSettings userSessionSettings =
+                authorization.getUserSessionSettings(securityToken);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            UserSettings userSettingsApi = new UserSettings();
+            userSettingsApi.setAdminMode(userSessionSettings.getAdminMode());
+
+            cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
+                    getUserSettings(securityToken.getUserId(), entityManager);
+            if (userSettings != null) {
+                userSettingsApi.setLanguage(userSettings.getLanguage());
+                userSettingsApi.setDateTimeZone(userSettings.getDateTimeZone());
+            }
+            return userSettingsApi;
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    @Override
+    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettingsApi)
+    {
+        authorization.validate(securityToken);
+
+        cz.cesnet.shongo.controller.authorization.UserSessionSettings userSessionSettings =
+                authorization.getUserSessionSettings(securityToken);
+
+        // Update adminMode settings only when it is available (i.e., it is not null)
+        if (userSessionSettings.getAdminMode() != null) {
+            userSessionSettings.setAdminMode(userSettingsApi.getAdminMode());
+            authorization.updateUserSessionSettings(userSessionSettings);
+        }
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+            cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
+                    getUserSettings(securityToken.getUserId(), entityManager);
+            if (userSettings == null) {
+                userSettings = new cz.cesnet.shongo.controller.authorization.UserSettings();
+                userSettings.setUserId(securityToken.getUserId());
+            }
+            String language = userSettingsApi.getLanguage();
+            userSettings.setLanguage((language != null && !language.trim().isEmpty()) ? language.trim() : null);
+            userSettings.setDateTimeZone(userSettingsApi.getDateTimeZone());
+            entityManager.persist(userSettings);
+            entityManager.getTransaction().commit();
+        }
+        finally {
+            entityManager.close();
+        }
+    }
+
+    /**
+     * @param userId
+     * @param entityManager
+     * @return {@link cz.cesnet.shongo.controller.authorization.UserSettings} for given {@code userId}
+     */
+    private cz.cesnet.shongo.controller.authorization.UserSettings getUserSettings(String userId,
+            EntityManager entityManager)
+    {
+        try {
+            return entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
+                    +" WHERE userSettings.userId = :userId",
+                    cz.cesnet.shongo.controller.authorization.UserSettings.class)
+                    .setParameter("userId", userId)
+                    .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
         }
     }
 }

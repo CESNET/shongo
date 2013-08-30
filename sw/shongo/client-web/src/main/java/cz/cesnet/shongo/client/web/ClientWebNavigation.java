@@ -13,6 +13,8 @@ public enum ClientWebNavigation
     // Site navigation
     HOME(null, ClientWebUrl.HOME,
             "navigation.home"),
+    USER_SETTINGS(HOME, ClientWebUrl.USER_SETTINGS,
+            "navigation.userSettings"),
     REPORT(HOME, ClientWebUrl.REPORT,
             "navigation.report"),
     CHANGELOG(HOME, ClientWebUrl.CHANGELOG,

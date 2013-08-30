@@ -20,6 +20,8 @@ public class SecurityToken implements AtomicType
      */
     private UserInformation userInformation;
 
+    private boolean admin;
+
     /**
      * Constructor.
      */
@@ -85,15 +87,15 @@ public class SecurityToken implements AtomicType
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals(Object object)
     {
-        if (this == o) {
+        if (this == object) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        SecurityToken that = (SecurityToken) o;
+        SecurityToken that = (SecurityToken) object;
         if (!accessToken.equals(that.accessToken)) {
             return false;
         }

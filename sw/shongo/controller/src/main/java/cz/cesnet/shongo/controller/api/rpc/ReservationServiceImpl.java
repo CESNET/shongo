@@ -159,20 +159,21 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String createReservationRequest(SecurityToken token,
+    public String createReservationRequest(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         // Change user id (only root can do that)
-        if (reservationRequestApi.getUserId() != null && authorization.isAdmin(userId)) {
+        String userId = securityToken.getUserId();
+        if (reservationRequestApi.getUserId() != null && authorization.isAdmin(securityToken)) {
             userId = reservationRequestApi.getUserId();
         }
 
         // Check permission for reused reservation request
         String reusedReservationRequestId = reservationRequestApi.getReusedReservationRequestId();
         if (reusedReservationRequestId != null) {
-            checkReusedReservationRequest(userId, reusedReservationRequestId);
+            checkReusedReservationRequest(securityToken, reusedReservationRequestId);
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -218,10 +219,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String modifyReservationRequest(SecurityToken token,
+    public String modifyReservationRequest(SecurityToken securityToken,
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
@@ -233,7 +234,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             // Get old reservation request and check permissions and restrictions for modification
             cz.cesnet.shongo.controller.request.AbstractReservationRequest oldReservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("modify reservation request %s", entityId);
             }
             switch (oldReservationRequest.getState()) {
@@ -246,10 +247,16 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                 throw new ControllerReportSet.ReservationRequestNotModifiableException(entityId.toId());
             }
 
+            // Change user id (only root can do that)
+            String userId = securityToken.getUserId();
+            if (reservationRequestApi.getUserId() != null && authorization.isAdmin(securityToken)) {
+                userId = reservationRequestApi.getUserId();
+            }
+
             // Check permission for reused reservation request
             String reusedReservationRequestId = reservationRequestApi.getReusedReservationRequestId();
             if (reusedReservationRequestId != null) {
-                checkReusedReservationRequest(userId, reusedReservationRequestId);
+                checkReusedReservationRequest(securityToken, reusedReservationRequestId);
             }
 
             // Check if modified reservation request is of the same class
@@ -303,9 +310,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public String revertReservationRequest(SecurityToken token, String reservationRequestId)
+    public String revertReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         if (reservationRequestId == null) {
             throw new IllegalArgumentException();
         }
@@ -336,7 +343,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         EntityIdentifier.formatId(abstractReservationRequest));
             }
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("revert reservation request %s", entityId);
             }
 
@@ -368,9 +375,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deleteReservationRequest(SecurityToken token, String reservationRequestId)
+    public void deleteReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         if (reservationRequestId == null) {
             throw new IllegalArgumentException();
         }
@@ -386,7 +393,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete reservation request %s", entityId);
             }
             switch (reservationRequest.getState()) {
@@ -401,7 +408,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
                         EntityIdentifier.formatId(reservationRequest));
             }
 
-            reservationRequest.setUpdatedBy(userId);
+            reservationRequest.setUpdatedBy(securityToken.getUserId());
             reservationRequestManager.softDelete(reservationRequest, authorizationManager);
 
             entityManager.getTransaction().commit();
@@ -419,9 +426,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void updateReservationRequest(SecurityToken token, String reservationRequestId)
+    public void updateReservationRequest(SecurityToken securityToken, String reservationRequestId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -434,7 +441,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("update reservation request %s", entityId);
             }
 
@@ -482,14 +489,15 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ReservationRequestSummary> listReservationRequests(ReservationRequestListRequest request)
     {
-        String userId = authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             QueryFilter queryFilter = new QueryFilter("reservation_request_summary", true);
 
             // List only reservation requests which is current user permitted to read
-            queryFilter.addIds(authorization, userId, EntityType.RESERVATION_REQUEST, Permission.READ);
+            queryFilter.addIds(authorization, securityToken, EntityType.RESERVATION_REQUEST, Permission.READ);
 
             // List only reservation requests which are requested
             if (request.getReservationRequestIds().size() > 0) {
@@ -651,10 +659,10 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.AbstractReservationRequest getReservationRequest(SecurityToken token,
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest getReservationRequest(SecurityToken securityToken,
             String reservationRequestId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -663,11 +671,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
                     reservationRequestManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
             }
 
-            return reservationRequest.toApi(authorization.isAdmin(userId));
+            return reservationRequest.toApi(authorization.isAdmin(securityToken));
         }
         finally {
             entityManager.close();
@@ -675,15 +683,15 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public List<ReservationRequestSummary> getReservationRequestHistory(SecurityToken token,
+    public List<ReservationRequestSummary> getReservationRequestHistory(SecurityToken securityToken,
             String reservationRequestId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         EntityIdentifier entityId = EntityIdentifier.parse(reservationRequestId, EntityType.RESERVATION_REQUEST);
         try {
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation request %s", entityId);
             }
 
@@ -708,9 +716,9 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public Reservation getReservation(SecurityToken token, String reservationId)
+    public Reservation getReservation(SecurityToken securityToken, String reservationId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -720,11 +728,11 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.reservation.Reservation reservation =
                     reservationManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read reservation %s", entityId);
             }
 
-            return reservation.toApi(authorization.isAdmin(userId));
+            return reservation.toApi(authorization.isAdmin(securityToken));
         }
         finally {
             entityManager.close();
@@ -734,7 +742,8 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<Reservation> listReservations(ReservationListRequest request)
     {
-        String userId = authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -743,7 +752,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
             QueryFilter queryFilter = new QueryFilter("reservation");
 
             // List only reservations which is current user permitted to read
-            queryFilter.addIds(authorization, userId, EntityType.RESERVATION, Permission.READ);
+            queryFilter.addIds(authorization, securityToken, EntityType.RESERVATION, Permission.READ);
 
             // List only reservations which are requested
             if (request.getReservationIds().size() > 0) {
@@ -881,7 +890,7 @@ public class ReservationServiceImpl extends AbstractServiceImpl
 
             // Fill reservations to response
             for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
-                response.addItem(reservation.toApi(authorization.isAdmin(userId)));
+                response.addItem(reservation.toApi(authorization.isAdmin(securityToken)));
             }
             return response;
         }
@@ -893,15 +902,15 @@ public class ReservationServiceImpl extends AbstractServiceImpl
     /**
      * Check whether user with given {@code userId} can provide given {@code reusedReservationRequestId}.
      *
-     * @param userId
+     * @param securityToken
      * @param reusedReservationRequestId
      * @throws ControllerReportSet.SecurityNotAuthorizedException
      *
      */
-    private void checkReusedReservationRequest(String userId, String reusedReservationRequestId)
+    private void checkReusedReservationRequest(SecurityToken securityToken, String reusedReservationRequestId)
     {
         EntityIdentifier entityId = EntityIdentifier.parse(reusedReservationRequestId);
-        if (!authorization.hasPermission(userId, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
+        if (!authorization.hasPermission(securityToken, entityId, Permission.PROVIDE_RESERVATION_REQUEST)) {
             ControllerReportSetHelper.throwSecurityNotAuthorizedFault(
                     "provide reservation request %s", entityId);
         }

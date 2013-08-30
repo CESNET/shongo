@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.api.AclRecord;
 import cz.cesnet.shongo.controller.api.PermissionSet;
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.request.*;
 
 import java.util.Map;
@@ -70,4 +71,18 @@ public interface AuthorizationService extends Service
      */
     @API
     public void setEntityUser(SecurityToken token, String entityId, String newUserId);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @return {@link UserSettings} for the requesting user
+     */
+    @API
+    public UserSettings getUserSettings(SecurityToken securityToken);
+
+    /**
+     * @param securityToken token of the user requesting the operation
+     * @param userSettings to be updated for the requesting user
+     */
+    @API
+    public void updateUserSettings(SecurityToken securityToken, UserSettings userSettings);
 }

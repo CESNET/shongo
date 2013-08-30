@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.CommonReportSet;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 import java.util.*;
 
@@ -87,6 +84,11 @@ public class DataMap
     public void set(String property, DateTime dateTime)
     {
         setNotNull(property, Converter.convertDateTimeToString(dateTime));
+    }
+
+    public void set(String property, DateTimeZone dateTimeZone)
+    {
+        setNotNull(property, Converter.convertDateTimeZoneToString(dateTimeZone));
     }
 
     public void set(String property, Period period)
@@ -200,6 +202,11 @@ public class DataMap
     public DateTime getDateTimeRequired(String property)
     {
         return Converter.convertToDateTime(getRequired(property));
+    }
+
+    public DateTimeZone getDateTimeZone(String property)
+    {
+        return Converter.convertToDateTimeZone(data.get(property));
     }
 
     public Period getPeriod(String property)

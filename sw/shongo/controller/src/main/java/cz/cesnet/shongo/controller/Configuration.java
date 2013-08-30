@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.authorization.UserSessionSettings;
 import cz.cesnet.shongo.controller.executor.Executable;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
@@ -122,6 +123,11 @@ public class Configuration extends CombinedConfiguration
      * Specifies access token which won't be verified and can be used for testing purposes.
      */
     public static final String SECURITY_ROOT_ACCESS_TOKEN = "security.root-access-token";
+
+    /**
+     * Specifies set of user-ids of administrators (they can use the {@link UserSessionSettings#adminMode}).
+     */
+    public static final String SECURITY_ADMINISTRATOR_USER_ID = "security.administrator-user-id";
 
     /**
      * SSL host verification mappings.

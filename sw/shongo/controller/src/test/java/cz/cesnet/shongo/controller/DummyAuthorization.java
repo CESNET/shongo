@@ -83,7 +83,7 @@ public class DummyAuthorization extends Authorization
      */
     public DummyAuthorization(EntityManagerFactory entityManagerFactory)
     {
-        super(new Configuration());
+        this(new Configuration());
 
         this.entityManagerFactory = entityManagerFactory;
     }
@@ -96,6 +96,8 @@ public class DummyAuthorization extends Authorization
     public DummyAuthorization(Configuration configuration)
     {
         super(configuration);
+
+        this.adminAccessTokens.add(AbstractControllerTest.SECURITY_TOKEN_ROOT.getAccessToken());
     }
 
     @Override

@@ -5,6 +5,7 @@
  */
 @TypeDefs({
         @TypeDef(name = "DateTime", typeClass = PersistentDateTime.class),
+        @TypeDef(name = "DateTimeZone", typeClass = PersistentDateTimeZone.class),
         @TypeDef(name = "Period", typeClass = PersistentPeriod.class),
         @TypeDef(name = "Interval", typeClass = PersistentInterval.class),
         @TypeDef(name = "ReadablePartial", typeClass = PersistentReadablePartial.class)

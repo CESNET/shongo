@@ -97,7 +97,15 @@ public class ServerAuthorization extends Authorization
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
+
+        // Root access token
         rootAccessToken = configuration.getString(Configuration.SECURITY_ROOT_ACCESS_TOKEN);
+        adminAccessTokens.add(rootAccessToken);
+
+        // Users with enabled adminMode
+        for (String adminUserId : configuration.getString(Configuration.SECURITY_ADMINISTRATOR_USER_ID).split(",")) {
+            adminModeEnabledUserIds.add(adminUserId.trim());
+        }
 
         // Create http client
         httpClient = ConfiguredSSLContext.getInstance().createHttpClient();
@@ -136,12 +144,12 @@ public class ServerAuthorization extends Authorization
     }
 
     @Override
-    protected String onValidate(SecurityToken securityToken)
+    protected UserInformation onValidate(SecurityToken securityToken)
     {
         // Always allow testing access token
         if (rootAccessToken != null && securityToken.getAccessToken().equals(rootAccessToken)) {
             logger.trace("Access token '{}' is valid for testing.", securityToken.getAccessToken());
-            return ROOT_USER_ID;
+            return ROOT_USER_INFORMATION;
         }
         return super.onValidate(securityToken);
     }

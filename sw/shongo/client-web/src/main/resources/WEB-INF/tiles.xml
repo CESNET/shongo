@@ -38,16 +38,16 @@
 
     <definition name="layoutAngularForm" extends="layoutAngular">
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.css"/>
+            <add-attribute value="ui-datetimepicker.css"/>
             <add-attribute value="ui-select2.css"/>
         </put-list-attribute>
         <put-list-attribute name="js" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker.min.js"/>
+            <add-attribute value="ui-datetimepicker.min.js"/>
             <add-attribute value="moment.min.js"/>
             <add-attribute value="ui-select2.min.js"/>
         </put-list-attribute>
         <put-list-attribute name="i18n" inherit="true">
-            <add-attribute value="bootstrap-datetimepicker"/>
+            <add-attribute value="ui-datetimepicker"/>
             <add-attribute value="select2"/>
         </put-list-attribute>
     </definition>
@@ -71,6 +71,11 @@
         <put-attribute name="title" value="views.controllerNotAvailable.title"/>
         <put-attribute name="heading" value=""/>
         <put-attribute name="body" value="/WEB-INF/views/controllerNotAvailable.jsp" type="template"/>
+    </definition>
+
+    <definition name="userSettings" extends="layoutAngularForm">
+        <put-attribute name="title" value="views.userSettings.title"/>
+        <put-attribute name="body" value="/WEB-INF/views/userSettings.jsp" type="template"/>
     </definition>
 
     <definition name="indexAnonymous" extends="layout">
@@ -102,7 +107,7 @@
             <add-attribute expression="T(${wizardPageCurrent.titleDescription})"/>
         </put-list-attribute>
         <put-list-attribute name="css" inherit="true">
-            <add-attribute value="wizard.css"/>
+            <add-attribute value="ui-wizard.css"/>
         </put-list-attribute>
     </definition>
     <definition name="wizardBody" template="/WEB-INF/views/wizard.jsp">

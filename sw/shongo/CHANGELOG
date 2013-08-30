@@ -40,6 +40,12 @@
 
     * Propagate user roles from permanent rooms to it's capacities.
 
+    * Added “Retain room name” option to modification of reservation request for an adhoc room.
+
+    * Automatically refresh reservation request state in detail page.
+
+    * Added user settings for language, timezone and administrator mode.
+
 0.5.2 (2013-04-25)
 
     * Added new error reporting system to controller. Domain and resource administrators are informed by email when

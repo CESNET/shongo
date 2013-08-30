@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller.api.rpc;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.api.ExecutableSummary;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -17,7 +19,9 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link ExecutableService}.
@@ -65,9 +69,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void deleteExecutable(SecurityToken token, String executableId)
+    public void deleteExecutable(SecurityToken securityToken, String executableId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -81,7 +85,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("delete executable %s", entityId);
             }
 
@@ -108,13 +112,14 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     @Override
     public ListResponse<ExecutableSummary> listExecutables(ExecutableListRequest request)
     {
-        String userId = authorization.validate(request.getSecurityToken());
+        SecurityToken securityToken = request.getSecurityToken();
+        authorization.validate(securityToken);
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             QueryFilter queryFilter = new QueryFilter("executable_summary", true);
 
             // List only reservations which is current user permitted to read
-            queryFilter.addIds(authorization, userId, EntityType.EXECUTABLE, Permission.READ);
+            queryFilter.addIds(authorization, securityToken, EntityType.EXECUTABLE, Permission.READ);
 
             // If history executables should not be included
             String filterExecutableId = "id IS NOT NULL";
@@ -236,9 +241,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
+    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken securityToken, String executableId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -248,11 +253,11 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.READ)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.READ)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("read executable %s", entityId);
             }
 
-            Executable executableApi = executable.toApi(authorization.isAdmin(userId));
+            Executable executableApi = executable.toApi(authorization.isAdmin(securityToken));
             cz.cesnet.shongo.controller.reservation.Reservation reservation =
                     executableManager.getReservation(executable);
             if (reservation != null) {
@@ -266,9 +271,9 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
     }
 
     @Override
-    public void updateExecutable(SecurityToken token, String executableId)
+    public void updateExecutable(SecurityToken securityToken, String executableId)
     {
-        String userId = authorization.validate(token);
+        authorization.validate(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
@@ -279,7 +284,7 @@ public class ExecutableServiceImpl extends AbstractServiceImpl
             cz.cesnet.shongo.controller.executor.Executable executable =
                     executableManager.get(entityId.getPersistenceId());
 
-            if (!authorization.hasPermission(userId, entityId, Permission.WRITE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.WRITE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("start executable %s", entityId);
             }
 

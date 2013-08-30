@@ -155,7 +155,7 @@ public class ReservationRequestUpdateController
      * Handle missing session attributes.
      */
     @ExceptionHandler(HttpSessionRequiredException.class)
-    public Object handleExceptions(Exception exception, HttpServletRequest request)
+    public Object handleExceptions(Exception exception)
     {
         logger.warn("Redirecting to " + ClientWebUrl.RESERVATION_REQUEST_LIST + ".", exception);
         return "redirect:" + ClientWebUrl.RESERVATION_REQUEST_LIST;

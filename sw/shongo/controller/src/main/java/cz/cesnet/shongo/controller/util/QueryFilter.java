@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Converter;
 import cz.cesnet.shongo.controller.EntityType;
 import cz.cesnet.shongo.controller.Permission;
+import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 
 import javax.persistence.Query;
@@ -130,13 +131,13 @@ public class QueryFilter
      * Add identifier filter.
      *
      * @param authorization
-     * @param userId
+     * @param securityToken
      * @param entityType
      * @param permission
      */
-    public void addIds(Authorization authorization, String userId, EntityType entityType, Permission permission)
+    public void addIds(Authorization authorization, SecurityToken securityToken, EntityType entityType, Permission permission)
     {
-        addIds(authorization.getEntitiesWithPermission(userId, entityType, permission));
+        addIds(authorization.getEntitiesWithPermission(securityToken, entityType, permission));
     }
 
     /**

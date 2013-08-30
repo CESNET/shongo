@@ -6,7 +6,6 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
-import cz.cesnet.shongo.controller.Reporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +52,21 @@ public abstract class Authorization
     private AuthorizationCache cache = new AuthorizationCache();
 
     /**
+     * Set of access-tokens which has administrator access.
+     */
+    protected Set<String> adminAccessTokens = new HashSet<String>();
+
+    /**
+     * Set of user-ids who can use the {@link UserSessionSettings#adminMode}.
+     */
+    protected Set<String> adminModeEnabledUserIds = new HashSet<String>();
+
+    /**
+     * {@link UserSessionSettings}s.
+     */
+    private Map<SecurityToken, UserSessionSettings> userSessionSettings = new HashMap<SecurityToken, UserSessionSettings>();
+
+    /**
      * Constructor.
      *
      * @param config to load authorization configuration from
@@ -94,7 +108,7 @@ public abstract class Authorization
      * @param securityToken to be validated
      * @return user-id
      */
-    public final String validate(SecurityToken securityToken)
+    public final UserInformation validate(SecurityToken securityToken)
     {
         // Check not empty
         if (securityToken == null || securityToken.getAccessToken() == null) {
@@ -173,8 +187,10 @@ public abstract class Authorization
 
     /**
      * Checks whether user with given {@code userId} exists.
+     *
      * @param userId of the user to be checked for existence
-     * @throws ControllerReportSet.UserNotExistException when the user doesn't exist
+     * @throws ControllerReportSet.UserNotExistException
+     *          when the user doesn't exist
      */
     public void checkUserExistence(String userId) throws ControllerReportSet.UserNotExistException
     {
@@ -213,28 +229,29 @@ public abstract class Authorization
     }
 
     /**
-     * @param userId
-     * @return true if the use is Shongo admin (should have all permissions),
+     * @param securityToken
+     * @return true if the user is Shongo admin (should have all permissions),
      *         false otherwise
      */
-    public final boolean isAdmin(String userId)
+    public final boolean isAdmin(SecurityToken securityToken)
     {
-        return userId.equals(Authorization.ROOT_USER_ID);
+        return adminAccessTokens.contains(securityToken.getAccessToken());
     }
 
     /**
-     * @param userId     of the user
-     * @param entityId   of the entity
-     * @param permission which the user must have for the entity
+     * @param securityToken of the user
+     * @param entityId      of the entity
+     * @param permission    which the user must have for the entity
      * @return true if the user has given {@code permission} for the entity,
      *         false otherwise
      */
-    public boolean hasPermission(String userId, EntityIdentifier entityId, Permission permission)
+    public boolean hasPermission(SecurityToken securityToken, EntityIdentifier entityId, Permission permission)
     {
-        if (isAdmin(userId)) {
+        if (isAdmin(securityToken)) {
             // Administrator has all possible permissions
             return true;
         }
+        String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
@@ -244,17 +261,18 @@ public abstract class Authorization
     }
 
     /**
-     * @param userId   of the user
-     * @param entityId of the entity
+     * @param securityToken of the user
+     * @param entityId      of the entity
      * @return set of {@link Permission}s which the user have for the entity
      */
-    public Set<Permission> getPermissions(String userId, EntityIdentifier entityId)
+    public Set<Permission> getPermissions(SecurityToken securityToken, EntityIdentifier entityId)
     {
-        if (isAdmin(userId)) {
+        if (isAdmin(securityToken)) {
             // Administrator has all possible permissions
             EntityType entityType = entityId.getEntityType();
             return entityType.getPermissions();
         }
+        String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
@@ -268,17 +286,19 @@ public abstract class Authorization
     }
 
     /**
-     * @param userId     of the user
-     * @param entityType for entities which should be returned
-     * @param permission which the user must have for the entities
+     * @param securityToken of the user
+     * @param entityType    for entities which should be returned
+     * @param permission    which the user must have for the entities
      * @return set of entity identifiers for which the user with given {@code userId} has given {@code permission}
      *         or null if the user can view all entities
      */
-    public Set<Long> getEntitiesWithPermission(String userId, EntityType entityType, Permission permission)
+    public Set<Long> getEntitiesWithPermission(SecurityToken securityToken, EntityType entityType,
+            Permission permission)
     {
-        if (isAdmin(userId)) {
+        if (isAdmin(securityToken)) {
             return null;
         }
+        String userId = securityToken.getUserId();
         AclUserState aclUserState = cache.getAclUserStateByUserId(userId);
         if (aclUserState == null) {
             aclUserState = fetchAclUserState(userId);
@@ -317,13 +337,49 @@ public abstract class Authorization
     }
 
     /**
+     * @param securityToken
+     * @return {@link UserSessionSettings} for given {@code securityToken}
+     */
+    public UserSessionSettings getUserSessionSettings(SecurityToken securityToken)
+    {
+        UserSessionSettings userSessionSettings = this.userSessionSettings.get(securityToken);
+        if (userSessionSettings == null) {
+            // Create new user session settings
+            userSessionSettings = new UserSessionSettings(securityToken);
+            String userId = securityToken.getUserId();
+            if (adminModeEnabledUserIds.contains(userId)) {
+                userSessionSettings.setAdminMode(Boolean.FALSE);
+            }
+            // Store it
+            this.userSessionSettings.put(securityToken, userSessionSettings);
+        }
+        return userSessionSettings;
+    }
+
+    /**
+     * @param userSessionSettings to be updated
+     */
+    public void updateUserSessionSettings(UserSessionSettings userSessionSettings)
+    {
+        SecurityToken securityToken = userSessionSettings.getSecurityToken();
+        Boolean adminMode = userSessionSettings.getAdminMode();
+        if (Boolean.TRUE.equals(adminMode)) {
+            adminAccessTokens.add(securityToken.getAccessToken());
+        }
+        else if (Boolean.FALSE.equals(adminMode)) {
+            adminAccessTokens.remove(securityToken.getAccessToken());
+        }
+    }
+
+    /**
      * Validate given {@code securityToken}.
      *
      * @param securityToken to be validated
      * @return user-id
-     * @throws ControllerReportSet.SecurityInvalidTokenException when the validation fails
+     * @throws ControllerReportSet.SecurityInvalidTokenException
+     *          when the validation fails
      */
-    protected String onValidate(SecurityToken securityToken) throws ControllerReportSet.SecurityInvalidTokenException
+    protected UserInformation onValidate(SecurityToken securityToken) throws ControllerReportSet.SecurityInvalidTokenException
     {
         // Validate access token by getting user info
         try {
@@ -332,7 +388,7 @@ public abstract class Authorization
                     new Object[]{securityToken.getAccessToken(), userInformation.getFullName(),
                             userInformation.getUserId()
                     });
-            return userInformation.getUserId();
+            return userInformation;
         }
         catch (Exception exception) {
             String message = String.format("Access token '%s' cannot be validated.", securityToken.getAccessToken());
@@ -401,7 +457,6 @@ public abstract class Authorization
 
     /**
      * Fetch {@link AclEntityState} for given {@code entityId}.
-     *
      *
      * @param entityId of entity for which the ACL should be fetched
      * @return fetched {@link AclEntityState} for given {@code entityId}

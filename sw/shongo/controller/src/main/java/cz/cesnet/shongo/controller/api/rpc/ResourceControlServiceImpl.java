@@ -340,18 +340,18 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     /**
-     * @param token            to be validated against given {@code deviceResourceId}
+     * @param securityToken    to be validated against given {@code deviceResourceId}
      * @param deviceResourceId
      * @return agent name
      */
-    private String validate(SecurityToken token, String deviceResourceId)
+    private String validate(SecurityToken securityToken, String deviceResourceId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            String userId = authorization.validate(token);
+            authorization.validate(securityToken);
             EntityIdentifier entityId = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             String agentName = getAgentName(entityId, entityManager);
-            if (!authorization.hasPermission(userId, entityId, Permission.CONTROL_RESOURCE)) {
+            if (!authorization.hasPermission(securityToken, entityId, Permission.CONTROL_RESOURCE)) {
                 ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control device %s", entityId);
             }
             return agentName;
@@ -362,24 +362,25 @@ public class ResourceControlServiceImpl extends AbstractServiceImpl
     }
 
     /**
-     * @param token            to be validated against given {@code deviceResourceId}
+     * @param securityToken    to be validated against given {@code deviceResourceId}
      * @param deviceResourceId
      * @return agent name
      */
-    private String validate(SecurityToken token, String deviceResourceId, String roomId)
+    private String validate(SecurityToken securityToken, String deviceResourceId, String roomId)
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            String userId = authorization.validate(token);
+            authorization.validate(securityToken);
             EntityIdentifier deviceResourceIdentifier = EntityIdentifier.parse(deviceResourceId, EntityType.RESOURCE);
             String agentName = getAgentName(deviceResourceIdentifier, entityManager);
-            if (!authorization.hasPermission(userId, deviceResourceIdentifier, Permission.CONTROL_RESOURCE)) {
+            if (!authorization.hasPermission(securityToken, deviceResourceIdentifier, Permission.CONTROL_RESOURCE)) {
                 ExecutableManager executableManager = new ExecutableManager(entityManager);
                 RoomEndpoint roomEndpoint = executableManager.getRoomEndpoint(
                         deviceResourceIdentifier.getPersistenceId(), roomId, DateTime.now());
                 if (roomEndpoint == null || !authorization.hasPermission(
-                        userId, new EntityIdentifier(roomEndpoint), Permission.READ)) {
-                    ControllerReportSetHelper.throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
+                        securityToken, new EntityIdentifier(roomEndpoint), Permission.READ)) {
+                    ControllerReportSetHelper
+                            .throwSecurityNotAuthorizedFault("control device %s", deviceResourceIdentifier);
                 }
             }
             return agentName;
