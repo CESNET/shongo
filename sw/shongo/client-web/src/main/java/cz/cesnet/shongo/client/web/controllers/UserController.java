@@ -4,13 +4,14 @@ import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.client.web.Cache;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.editors.DateTimeZoneEditor;
-import cz.cesnet.shongo.client.web.interceptors.DateTimeZoneInterceptor;
+import cz.cesnet.shongo.client.web.interceptors.TimeZoneInterceptor;
 import cz.cesnet.shongo.client.web.models.TimeZoneModel;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.UserListRequest;
 import cz.cesnet.shongo.controller.api.rpc.AuthorizationService;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +72,7 @@ public class UserController
     {
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
         model.addAttribute("userSettings", userSettings);
-        model.addAttribute("timeZones", TimeZoneModel.getTimeZones());
+        model.addAttribute("timeZones", TimeZoneModel.getTimeZones(DateTime.now()));
         return "userSettings";
     }
 
@@ -155,23 +156,25 @@ public class UserController
         UserSettings userSettings = authorizationService.getUserSettings(securityToken);
 
         // Set language
-        if (userSettings.getLanguage() != null) {
-            if (localeResolver == null) {
-                localeResolver = RequestContextUtils.getLocaleResolver(request);
-            }
-            if (localeResolver == null) {
-                throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
-            }
-            Locale locale = StringUtils.parseLocaleString(userSettings.getLanguage());
-            logger.info("Setting locale {} for user {}...", locale, securityToken.getUserId());
-            localeResolver.setLocale(request, response, locale);
+        if (localeResolver == null) {
+            localeResolver = RequestContextUtils.getLocaleResolver(request);
         }
+        if (localeResolver == null) {
+            throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
+        }
+        Locale locale;
+        if (userSettings.getLanguage() != null) {
+            locale = StringUtils.parseLocaleString(userSettings.getLanguage());
+        }
+        else {
+            locale = request.getLocale();
+        }
+        logger.info("Setting locale {} for user {}...", locale, securityToken.getUserId());
+        localeResolver.setLocale(request, response, locale);
 
         // Set time zone
         DateTimeZone dateTimeZone = userSettings.getDateTimeZone();
-        if (dateTimeZone != null) {
-            logger.info("Setting timezone {} for user {}...", dateTimeZone, securityToken.getUserId());
-            DateTimeZoneInterceptor.setDateTimeZone(dateTimeZone, request);
-        }
+        logger.info("Setting timezone {} for user {}...", dateTimeZone, securityToken.getUserId());
+        TimeZoneInterceptor.setDateTimeZone(request.getSession(), dateTimeZone);
     }
 }

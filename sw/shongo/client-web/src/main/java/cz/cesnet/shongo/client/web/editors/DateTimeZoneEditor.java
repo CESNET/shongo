@@ -23,7 +23,7 @@ public class DateTimeZoneEditor extends PropertyEditorSupport
         if (value == null) {
             return "";
         }
-        return TimeZoneModel.getDateTimeZoneId(value);
+        return value.getID();
     }
 
     @Override

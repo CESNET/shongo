@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -65,6 +66,7 @@ public class ReservationRequestController
     @ResponseBody
     public Map handleListData(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
@@ -128,7 +130,7 @@ public class ReservationRequestController
         cache.fetchReservationRequests(securityToken, reusedReservationRequestIds);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             String reservationRequestId = reservationRequest.getId();
@@ -137,7 +139,7 @@ public class ReservationRequestController
             item.put("id", reservationRequestId);
             item.put("description", reservationRequest.getDescription());
             item.put("purpose", reservationRequest.getPurpose());
-            item.put("dateTime", dateTimeFormatter.formatDate(reservationRequest.getDateTime()));
+            item.put("dateTime", formatter.formatDate(reservationRequest.getDateTime()));
             items.add(item);
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
@@ -157,7 +159,7 @@ public class ReservationRequestController
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
-                item.put("earliestSlot", dateTimeFormatter.formatIntervalMultiLine(earliestSlot));
+                item.put("earliestSlot", formatter.formatIntervalMultiLine(earliestSlot));
             }
             Integer futureSlotCount = reservationRequest.getFutureSlotCount();
             if (futureSlotCount != null) {

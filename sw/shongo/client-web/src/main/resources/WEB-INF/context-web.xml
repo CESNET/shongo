@@ -13,8 +13,10 @@
     <!-- Enables the Spring MVC @Controller programming model -->
     <mvc:annotation-driven ignoreDefaultModelOnRedirect="true">
         <mvc:argument-resolvers>
-            <!-- Enables @AccessToken custom annotation -->
+            <!-- Enables SecurityToken as method arguments -->
             <bean class="cz.cesnet.shongo.client.web.auth.OpenIDConnectHandlerMethodArgumentResolver"/>
+            <!-- Enables DateTimeZone as method arguments -->
+            <bean class="cz.cesnet.shongo.client.web.interceptors.TimeZoneHandlerMethodArgumentResolver"/>
         </mvc:argument-resolvers>
     </mvc:annotation-driven>
 
@@ -62,7 +64,7 @@
         <bean id="localeChangeInterceptor" class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor">
             <property name="paramName" value="lang"/>
         </bean>
-        <bean id="timeZoneInterceptor" class="cz.cesnet.shongo.client.web.interceptors.DateTimeZoneInterceptor"/>
+        <bean id="timeZoneInterceptor" class="cz.cesnet.shongo.client.web.interceptors.TimeZoneInterceptor"/>
         <bean id="navigationInterceptor" class="cz.cesnet.shongo.client.web.interceptors.NavigationInterceptor"/>
     </mvc:interceptors>
 

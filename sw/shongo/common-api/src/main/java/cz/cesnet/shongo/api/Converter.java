@@ -269,7 +269,7 @@ public class Converter
         if (value == null) {
             return null;
         }
-        return value.toString();
+        return value.getID();
     }
 
     /**

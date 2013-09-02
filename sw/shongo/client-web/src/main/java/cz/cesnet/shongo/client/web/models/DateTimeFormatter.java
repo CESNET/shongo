@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.client.web.models;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.ReadablePartial;
 import org.joda.time.format.DateTimeFormat;
@@ -14,6 +15,9 @@ import java.util.Locale;
  */
 public class DateTimeFormatter
 {
+    public static final Type SHORT = Type.SHORT;
+    public static final Type LONG = Type.LONG;
+
     /**
      * @param type
      * @return {@link DateTimeFormatter} of given {@code type}
@@ -26,11 +30,12 @@ public class DateTimeFormatter
     /**
      * @param type
      * @param locale
+     * @param dateTimeZone
      * @return {@link DateTimeFormatter} of given {@code type} and for given {@code locale}
      */
-    public static DateTimeFormatter getInstance(Type type, Locale locale)
+    public static DateTimeFormatter getInstance(Type type, Locale locale, DateTimeZone dateTimeZone)
     {
-        return new DateTimeFormatter(type).withLocale(locale);
+        return new DateTimeFormatter(type).with(locale, dateTimeZone);
     }
 
     /**
@@ -47,6 +52,11 @@ public class DateTimeFormatter
      * Date/time formatter.
      */
     private final org.joda.time.format.DateTimeFormatter dateTimeFormatter;
+
+    /**
+     * Timezone.
+     */
+    private final DateTimeZone dateTimeZone;
 
     /**
      * Constructor.
@@ -67,6 +77,7 @@ public class DateTimeFormatter
                 this.dateTimeFormatter = DateTimeFormat.forStyle("MM");
                 break;
         }
+        this.dateTimeZone = DateTimeZone.getDefault();
     }
 
     /**
@@ -75,20 +86,21 @@ public class DateTimeFormatter
      * @param dateTimeFormatter
      * @param locale
      */
-    private DateTimeFormatter(DateTimeFormatter dateTimeFormatter, Locale locale)
+    private DateTimeFormatter(DateTimeFormatter dateTimeFormatter, Locale locale, DateTimeZone dateTimeZone)
     {
         this.timeFormatter = dateTimeFormatter.timeFormatter.withLocale(locale);
         this.dateFormatter = dateTimeFormatter.dateFormatter.withLocale(locale);
         this.dateTimeFormatter = dateTimeFormatter.dateTimeFormatter.withLocale(locale);
+        this.dateTimeZone = (dateTimeZone != null ? dateTimeZone : DateTimeZone.getDefault());
     }
 
     /**
      * @param locale
      * @return {@link DateTimeFormatter} for given {@code locale}
      */
-    public DateTimeFormatter withLocale(Locale locale)
+    public DateTimeFormatter with(Locale locale, DateTimeZone dateTimeZone)
     {
-        return new DateTimeFormatter(this, locale);
+        return new DateTimeFormatter(this, locale, dateTimeZone);
     }
 
     /**
@@ -97,7 +109,7 @@ public class DateTimeFormatter
      */
     public String formatTime(DateTime dateTime)
     {
-        return timeFormatter.print(dateTime);
+        return timeFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
     /**
@@ -106,7 +118,7 @@ public class DateTimeFormatter
      */
     public String formatDate(DateTime dateTime)
     {
-        return dateFormatter.print(dateTime);
+        return dateFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
     /**
@@ -124,7 +136,7 @@ public class DateTimeFormatter
      */
     public String formatDateTime(DateTime dateTime)
     {
-        return dateTimeFormatter.print(dateTime);
+        return dateTimeFormatter.print(dateTime.withZone(dateTimeZone));
     }
 
     /**
@@ -134,8 +146,8 @@ public class DateTimeFormatter
     public String formatInterval(Interval interval)
     {
         StringBuilder stringBuilder = new StringBuilder();
-        DateTime start = interval.getStart();
-        DateTime end = interval.getEnd();
+        DateTime start = interval.getStart().withZone(dateTimeZone);
+        DateTime end = interval.getEnd().withZone(dateTimeZone);
         if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
             stringBuilder.append(dateFormatter.print(start));
             stringBuilder.append(" ");
@@ -158,9 +170,9 @@ public class DateTimeFormatter
     public String formatIntervalDate(Interval interval)
     {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(dateFormatter.print(interval.getStart()));
+        stringBuilder.append(dateFormatter.print(interval.getStart().withZone(dateTimeZone)));
         stringBuilder.append(" - ");
-        stringBuilder.append(dateFormatter.print(interval.getEnd()));
+        stringBuilder.append(dateFormatter.print(interval.getEnd().withZone(dateTimeZone)));
         return stringBuilder.toString();
     }
 
@@ -171,8 +183,8 @@ public class DateTimeFormatter
     public String formatIntervalMultiLine(Interval interval)
     {
         StringBuilder stringBuilder = new StringBuilder();
-        DateTime start = interval.getStart();
-        DateTime end = interval.getEnd();
+        DateTime start = interval.getStart().withZone(dateTimeZone);
+        DateTime end = interval.getEnd().withZone(dateTimeZone);
         if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
             stringBuilder.append("<div class=\"date-time\"><table><tr><td>");
             stringBuilder.append(dateFormatter.print(start));

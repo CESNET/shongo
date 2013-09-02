@@ -24,8 +24,6 @@ public class PersistentDateTimeZone extends PersistentStringType
 {
     public static final PersistentDateTimeZone INSTANCE = new PersistentDateTimeZone();
 
-    public static final DateTimeFormatter DATE_TIME_ZONE_ID_FORMATTER = DateTimeFormat.forPattern("ZZ");
-
     @Override
     public Class returnedClass()
     {
@@ -41,7 +39,7 @@ public class PersistentDateTimeZone extends PersistentStringType
     @Override
     protected String toNonNullString(Object value) throws HibernateException
     {
-        return DATE_TIME_ZONE_ID_FORMATTER.withZone((DateTimeZone) value).print(0);
+        return ((DateTimeZone) value).getID();
     }
 }
 

@@ -18,11 +18,11 @@ import javax.servlet.http.HttpSession;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
+public class TimeZoneInterceptor extends HandlerInterceptorAdapter
 {
-    private static Logger logger = LoggerFactory.getLogger(DateTimeZoneInterceptor.class);
+    private static Logger logger = LoggerFactory.getLogger(TimeZoneInterceptor.class);
 
-    private final static String SESSION_DATE_TIME_ZONE = "dateTimeZone";
+    public final static String SESSION_TIME_ZONE = "timeZone";
     private final static String SESSION_REQUEST_URL = "previousUrl";
 
     @Override
@@ -30,7 +30,7 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
             throws Exception
     {
         HttpSession session = request.getSession();
-        DateTimeZone dateTimeZone = (DateTimeZone) session.getAttribute(SESSION_DATE_TIME_ZONE);
+        DateTimeZone dateTimeZone = (DateTimeZone) session.getAttribute(SESSION_TIME_ZONE);
         // If timezone is not set retrieve it
         if (dateTimeZone == null) {
             String timeZoneOffset = request.getParameter("time-zone-offset");
@@ -38,7 +38,7 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
             if (!Strings.isNullOrEmpty(timeZoneOffset)) {
                 // Set new time zone
                 dateTimeZone = DateTimeZone.forOffsetMillis(Integer.valueOf(timeZoneOffset) * 1000);
-                setDateTimeZone(dateTimeZone, request);
+                setDateTimeZone(session, dateTimeZone);
 
                 logger.debug("Set timezone {} to session {}.", dateTimeZone, session.getId());
 
@@ -90,10 +90,14 @@ public class DateTimeZoneInterceptor extends HandlerInterceptorAdapter
         }
     }
 
-    public static void setDateTimeZone(DateTimeZone dateTimeZone, HttpServletRequest request)
+    public static DateTimeZone getDateTimeZone(HttpSession session)
     {
-        HttpSession session = request.getSession();
-        session.setAttribute(SESSION_DATE_TIME_ZONE, dateTimeZone);
+        return (DateTimeZone) session.getAttribute(SESSION_TIME_ZONE);
+    }
+
+    public static void setDateTimeZone(HttpSession session, DateTimeZone dateTimeZone)
+    {
+        session.setAttribute(SESSION_TIME_ZONE, dateTimeZone);
     }
 }
 

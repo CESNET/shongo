@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
 import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
 import cz.cesnet.shongo.controller.api.rpc.ReservationService;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
@@ -169,6 +170,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @ResponseBody
     public Map handleDetailState(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId)
     {
@@ -198,9 +200,9 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
             put("help", messageProvider.getMessage("help.reservationRequest.allocationState." + allocationState));
         }});
         if (roomModel != null) {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.LONG, locale);
+            DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.LONG, locale, timeZone);
             data.put("roomId", roomModel.getId());
-            data.put("roomSlot", dateTimeFormatter.formatIntervalMultiLine(roomModel.getSlot()));
+            data.put("roomSlot", formatter.formatIntervalMultiLine(roomModel.getSlot()));
             data.put("roomName", roomModel.getName());
             data.put("roomLicenseCount", roomModel.getLicenseCount());
             data.put("roomState", new HashMap<String, Object>(){{
@@ -227,6 +229,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @ResponseBody
     public Map handleDetailChildren(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
@@ -261,14 +264,14 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         }
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> children = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> child = new HashMap<String, Object>();
             child.put("id", reservationRequest.getId());
 
             Interval slot = reservationRequest.getEarliestSlot();
-            child.put("slot", dateTimeFormatter.formatInterval(slot));
+            child.put("slot", formatter.formatInterval(slot));
 
             ReservationRequestState state = ReservationRequestState.fromApi(reservationRequest);
             if (state != null) {
@@ -317,6 +320,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
     @ResponseBody
     public Map handleDetailUsages(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @PathVariable(value = "reservationRequestId") String reservationRequestId,
             @RequestParam(value = "start", required = false) Integer start,
@@ -335,7 +339,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
         ListResponse<ReservationRequestSummary> response = reservationService.listReservationRequests(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> usages = new LinkedList<Map<String, Object>>();
         for (ReservationRequestSummary reservationRequest : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
@@ -358,7 +362,7 @@ public class ReservationRequestDetailController implements BreadcrumbProvider
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
             if (earliestSlot != null) {
-                item.put("slot", dateTimeFormatter.formatInterval(earliestSlot));
+                item.put("slot", formatter.formatInterval(earliestSlot));
             }
             Integer futureSlotCount = reservationRequest.getFutureSlotCount();
             if (futureSlotCount != null) {

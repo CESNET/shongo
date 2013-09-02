@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
@@ -65,6 +66,7 @@ public class IndexController
     @ResponseBody
     public Map handleRoomsData(
             Locale locale,
+            DateTimeZone timeZone,
             SecurityToken securityToken,
             @RequestParam(value = "start", required = false) Integer start,
             @RequestParam(value = "count", required = false) Integer count,
@@ -88,7 +90,7 @@ public class IndexController
         ListResponse<ExecutableSummary> response = executableService.listExecutables(request);
 
         // Build response
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.getInstance(DateTimeFormatter.Type.SHORT, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.getInstance(DateTimeFormatter.SHORT, locale, timeZone);
         List<Map<String, Object>> items = new LinkedList<Map<String, Object>>();
         for (ExecutableSummary executableSummary : response.getItems()) {
             Map<String, Object> item = new HashMap<String, Object>();
@@ -128,7 +130,7 @@ public class IndexController
             if (slot == null) {
                 slot = executableSummary.getSlot();
             }
-            item.put("slot", dateTimeFormatter.formatInterval(slot));
+            item.put("slot", formatter.formatInterval(slot));
 
             Integer licenseCount = executableSummary.getRoomUsageLicenseCount();
             if (licenseCount == null) {

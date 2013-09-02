@@ -56,7 +56,7 @@
                 <form:select path="dateTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <c:forEach items="${timeZones}" var="timeZone">
-                        <form:option value="${timeZone.key}">${timeZone.key} (${timeZone.value})</form:option>
+                        <form:option value="${timeZone.key}">${timeZone.value}</form:option>
                     </c:forEach>
                 </form:select>
             </div>
