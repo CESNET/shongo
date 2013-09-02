@@ -4,6 +4,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.authorization.UserSettings;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
+import org.apache.commons.lang.LocaleUtils;
 
 import java.util.*;
 

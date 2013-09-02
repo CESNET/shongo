@@ -81,6 +81,11 @@ public class DataMap
         setNotNull(property, Converter.convertEnumToString(enumValue));
     }
 
+    public void set(String property, Locale locale)
+    {
+        setNotNull(property, Converter.convertLocaleToString(locale));
+    }
+
     public void set(String property, DateTime dateTime)
     {
         setNotNull(property, Converter.convertDateTimeToString(dateTime));
@@ -192,6 +197,11 @@ public class DataMap
     public <E extends Enum<E>> E getEnumRequired(String property, Class<E> enumClass)
     {
         return Converter.convertToEnum(getRequired(property), enumClass);
+    }
+
+    public Locale getLocale(String property)
+    {
+        return Converter.convertToLocale(data.get(property));
     }
 
     public DateTime getDateTime(String property)

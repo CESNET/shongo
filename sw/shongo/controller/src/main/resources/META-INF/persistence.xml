@@ -10,8 +10,8 @@
 
         <mapping-file>report-mappings.xml</mapping-file>
 
-        <!-- Include hibernate typedefs from joda package -->
-        <class>cz.cesnet.shongo.joda</class>
+        <!-- Include hibernate typedefs from hibernate package -->
+        <class>cz.cesnet.shongo.hibernate</class>
 
         <!-- Hibernate configuration -->
         <properties>

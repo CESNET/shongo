@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.joda;
+package cz.cesnet.shongo.hibernate;
 
 import cz.cesnet.shongo.api.Converter;
 import org.hibernate.HibernateException;

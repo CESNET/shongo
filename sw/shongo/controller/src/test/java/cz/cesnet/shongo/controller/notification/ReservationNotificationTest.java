@@ -53,6 +53,10 @@ public class ReservationNotificationTest extends AbstractControllerTest
         mcu.addAdministrator(new OtherPerson("Martin Srom", "cheater@seznam.cz"));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
+        UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
+        userSettings.setLocale(UserSettings.LOCALE_CZECH);
+        getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
+
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setDescription("Room Reservation Request");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");

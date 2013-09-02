@@ -8,6 +8,7 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import java.util.Locale;
 
 /**
  * Represent a global user settings.
@@ -23,9 +24,9 @@ public class UserSettings extends PersistentObject
     private String userId;
 
     /**
-     * Preferred language.
+     * Preferred locale.
      */
-    private String language;
+    private Locale locale;
 
     /**
      * {@link DateTimeZone} of the user.
@@ -50,20 +51,22 @@ public class UserSettings extends PersistentObject
     }
 
     /**
-     * @return {@link #language}
+     * @return {@link #locale}
      */
     @Column
-    public String getLanguage()
+    @Type(type = "Locale")
+    @Access(AccessType.FIELD)
+    public Locale getLocale()
     {
-        return language;
+        return locale;
     }
 
     /**
-     * @param language sets the {@link #language}
+     * @param locale sets the {@link #locale}
      */
-    public void setLanguage(String language)
+    public void setLocale(Locale locale)
     {
-        this.language = language;
+        this.locale = locale;
     }
 
     /**

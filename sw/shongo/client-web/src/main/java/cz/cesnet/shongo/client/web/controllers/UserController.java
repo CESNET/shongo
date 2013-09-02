@@ -163,8 +163,8 @@ public class UserController
             throw new IllegalStateException("No LocaleResolver found: not in a DispatcherServlet request?");
         }
         Locale locale;
-        if (userSettings.getLanguage() != null) {
-            locale = StringUtils.parseLocaleString(userSettings.getLanguage());
+        if (userSettings.getLocale() != null) {
+            locale = userSettings.getLocale();
         }
         else {
             locale = request.getLocale();

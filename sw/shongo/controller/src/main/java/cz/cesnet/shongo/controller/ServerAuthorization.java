@@ -103,8 +103,11 @@ public class ServerAuthorization extends Authorization
         adminAccessTokens.add(rootAccessToken);
 
         // Users with enabled adminMode
-        for (String adminUserId : configuration.getString(Configuration.SECURITY_ADMINISTRATOR_USER_ID).split(",")) {
-            adminModeEnabledUserIds.add(adminUserId.trim());
+        String userIds = configuration.getString(Configuration.SECURITY_ADMINISTRATOR_USER_ID);
+        if (userIds != null) {
+            for (String adminUserId : userIds.split(",")) {
+                adminModeEnabledUserIds.add(adminUserId.trim());
+            }
         }
 
         // Create http client

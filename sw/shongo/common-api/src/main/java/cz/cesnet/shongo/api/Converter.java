@@ -204,6 +204,60 @@ public class Converter
     }
 
     /**
+     * Convert given {@link Locale} {@code value} to {@link String}.
+     *
+     * @param value
+     * @return converted {@link String} value
+     */
+    public static String convertLocaleToString(Locale value)
+    {
+        if (value == null) {
+            return null;
+        }
+        return value.toString();
+    }
+
+    /**
+     * Convert given {@code value} to {@link Locale} value.
+     *
+     * @param value
+     * @return converted {@link Locale} value
+     */
+    public static Locale convertToLocale(Object value)
+    {
+        if (value == null) {
+            return null;
+        }
+        else if (value instanceof Locale) {
+            return (Locale) value;
+        }
+        else {
+            return convertStringToLocale(value.toString());
+        }
+    }
+
+    /**
+     * Convert given {@link String} {@code value} to {@link Locale} value.
+     *
+     * @param value
+     * @return converted {@link Locale} value
+     */
+    public static Locale convertStringToLocale(String value)
+    {
+        String[] parts = value.split("_");
+        switch (parts.length) {
+            case 1:
+                return new Locale(parts[0]);
+            case 2:
+                return new Locale(parts[0], parts[1]);
+            case 3:
+                return new Locale(parts[0], parts[1], parts[2]);
+            default:
+                throw new CommonReportSet.TypeIllegalValueException(Locale.class.getSimpleName(), value);
+        }
+    }
+
+    /**
      * Convert given {@link DateTime} {@code value} to {@link String}.
      *
      * @param value

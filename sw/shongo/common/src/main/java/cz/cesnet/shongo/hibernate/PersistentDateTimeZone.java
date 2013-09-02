@@ -1,19 +1,7 @@
-package cz.cesnet.shongo.joda;
+package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.type.TimestampType;
-import org.hibernate.usertype.UserType;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
 
 /**
  * Persist {@link org.joda.time.DateTimeZone} via hibernate.

@@ -14,10 +14,8 @@ import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
 import javax.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.persistence.NoResultException;
+import java.util.*;
 
 /**
  * {@link AbstractManager} for managing {@link AclRecord}s.
@@ -154,6 +152,34 @@ public class AuthorizationManager extends AbstractManager
                 .setParameter("entityId", entityId.getPersistenceId())
                 .setParameter("role", role)
                 .getResultList();
+    }
+
+    /**
+     * @param userId
+     * @return {@link UserSettings} for given {@code userId}
+     */
+    public UserSettings getUserSettings(String userId)
+    {
+        return getUserSettings(userId, entityManager);
+    }
+
+    /**
+     * @param userId
+     * @param entityManager
+     * @return {@link UserSettings} for given {@code userId}
+     */
+    public static UserSettings getUserSettings(String userId, EntityManager entityManager)
+    {
+        try {
+            return entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
+                    +" WHERE userSettings.userId = :userId",
+                    cz.cesnet.shongo.controller.authorization.UserSettings.class)
+                    .setParameter("userId", userId)
+                    .getSingleResult();
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
     }
 
     /**
@@ -773,6 +799,5 @@ public class AuthorizationManager extends AbstractManager
             }
             return aclRecord;
         }
-
     }
 }

@@ -36,11 +36,11 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="language">
-                <spring:message code="views.userSettings.language"/>:
+            <form:label class="control-label" path="locale">
+                <spring:message code="views.userSettings.locale"/>:
             </form:label>
             <div class="controls">
-                <form:select path="language" tabindex="${tabIndex}">
+                <form:select path="locale" tabindex="${tabIndex}">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <form:option value="en">English</form:option>
                     <form:option value="cs">Čeština</form:option>

@@ -430,9 +430,9 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             userSettingsApi.setAdminMode(userSessionSettings.getAdminMode());
 
             cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
-                    getUserSettings(securityToken.getUserId(), entityManager);
+                    AuthorizationManager.getUserSettings(securityToken.getUserId(), entityManager);
             if (userSettings != null) {
-                userSettingsApi.setLanguage(userSettings.getLanguage());
+                userSettingsApi.setLocale(userSettings.getLocale());
                 userSettingsApi.setDateTimeZone(userSettings.getDateTimeZone());
             }
             return userSettingsApi;
@@ -460,13 +460,13 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         try {
             entityManager.getTransaction().begin();
             cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
-                    getUserSettings(securityToken.getUserId(), entityManager);
+                    AuthorizationManager.getUserSettings(securityToken.getUserId(), entityManager);
             if (userSettings == null) {
                 userSettings = new cz.cesnet.shongo.controller.authorization.UserSettings();
                 userSettings.setUserId(securityToken.getUserId());
             }
-            String language = userSettingsApi.getLanguage();
-            userSettings.setLanguage((language != null && !language.trim().isEmpty()) ? language.trim() : null);
+            Locale locale = userSettingsApi.getLocale();
+            userSettings.setLocale(locale);
             userSettings.setDateTimeZone(userSettingsApi.getDateTimeZone());
             entityManager.persist(userSettings);
             entityManager.getTransaction().commit();
@@ -476,23 +476,5 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         }
     }
 
-    /**
-     * @param userId
-     * @param entityManager
-     * @return {@link cz.cesnet.shongo.controller.authorization.UserSettings} for given {@code userId}
-     */
-    private cz.cesnet.shongo.controller.authorization.UserSettings getUserSettings(String userId,
-            EntityManager entityManager)
-    {
-        try {
-            return entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
-                    +" WHERE userSettings.userId = :userId",
-                    cz.cesnet.shongo.controller.authorization.UserSettings.class)
-                    .setParameter("userId", userId)
-                    .getSingleResult();
-        }
-        catch (NoResultException exception) {
-            return null;
-        }
-    }
+
 }

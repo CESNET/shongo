@@ -1,10 +1,9 @@
-package cz.cesnet.shongo.joda;
+package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
-import org.joda.time.DateTime;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -17,11 +16,10 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTime implements UserType, Serializable
+public abstract class PersistentStringType implements UserType, Serializable
 {
-    public static final PersistentDateTime INSTANCE = new PersistentDateTime();
 
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP,};
+    private static final int[] SQL_TYPES = new int[]{Types.VARCHAR};
 
     @Override
     public int[] sqlTypes()
@@ -29,10 +27,31 @@ public class PersistentDateTime implements UserType, Serializable
         return SQL_TYPES;
     }
 
+    protected abstract Object fromNonNullString(String string) throws HibernateException;
+
     @Override
-    public Class returnedClass()
+    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
+            throws HibernateException, SQLException
     {
-        return DateTime.class;
+        String string = (String) StringType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
+        if (string == null) {
+            return null;
+        }
+        return fromNonNullString(string);
+    }
+
+    protected abstract String toNonNullString(Object value) throws HibernateException;
+
+    @Override
+    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SessionImplementor session)
+            throws HibernateException, SQLException
+    {
+        if (value == null) {
+            StringType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
+        }
+        else {
+            StringType.INSTANCE.nullSafeSet(preparedStatement, toNonNullString(value), index, session);
+        }
     }
 
     @Override
@@ -44,40 +63,13 @@ public class PersistentDateTime implements UserType, Serializable
         if (x == null || y == null) {
             return false;
         }
-        DateTime dtx = (DateTime) x;
-        DateTime dty = (DateTime) y;
-
-        return dtx.equals(dty);
+        return x.equals(y);
     }
 
     @Override
     public int hashCode(Object object) throws HibernateException
     {
         return object.hashCode();
-    }
-
-    @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
-            throws HibernateException, SQLException
-    {
-        Object timestamp = TimestampType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
-        if (timestamp == null) {
-            return null;
-        }
-        DateTime dateTime = new DateTime(timestamp);
-        return dateTime;
-    }
-
-    @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object value, int index, SessionImplementor session)
-            throws HibernateException, SQLException
-    {
-        if (value == null) {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
-        }
-        else {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, ((DateTime) value).toDate(), index, session);
-        }
     }
 
     @Override
@@ -110,4 +102,3 @@ public class PersistentDateTime implements UserType, Serializable
         return original;
     }
 }
-

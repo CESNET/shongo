@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.joda;
+package cz.cesnet.shongo.hibernate;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
