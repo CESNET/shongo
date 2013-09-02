@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.rpc.Service;
+import cz.cesnet.shongo.controller.api.UserSettings;
 import cz.cesnet.shongo.controller.api.jade.ServiceImpl;
 import cz.cesnet.shongo.controller.api.rpc.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
@@ -192,11 +193,16 @@ public class Controller
             throw new RuntimeException("Failed to load default controller configuration!", exception);
         }
 
-        // Initialize timezone
+        // Initialize default locale
+        Locale defaultLocale = UserSettings.LOCALE_ENGLISH;
+        logger.info("Configuring default locale to {}.", defaultLocale);
+        Locale.setDefault(defaultLocale);
+
+        // Initialize default timezone
         String timeZoneId = this.configuration.getString(Configuration.TIMEZONE);
         if (timeZoneId != null && !timeZoneId.isEmpty()) {
             DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
-            logger.info("Configuring timezone to {}.", dateTimeZone.getID());
+            logger.info("Configuring default timezone to {}.", dateTimeZone.getID());
             DateTimeZone.setDefault(dateTimeZone);
             TimeZone.setDefault(dateTimeZone.toTimeZone());
         }

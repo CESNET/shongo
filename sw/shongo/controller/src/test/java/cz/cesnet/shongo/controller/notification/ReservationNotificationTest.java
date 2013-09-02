@@ -7,10 +7,12 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
+import java.util.Locale;
 
 /**
  * Tests for notifying about new/modified/deleted {@link Reservation}s by emails.
@@ -55,6 +57,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
+        userSettings.setTimeZone(DateTimeZone.forID("+05:00"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -75,7 +78,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted/new/deleted
     }
 
     /**
@@ -114,7 +117,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted/new/deleted
     }
 
     /**
@@ -160,7 +163,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
+        Assert.assertEquals(2, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**
@@ -197,7 +200,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
+        Assert.assertEquals(2, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**
@@ -206,33 +209,28 @@ public class ReservationNotificationTest extends AbstractControllerTest
     private static class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
-         * Number of already sent emails
+         * Number of executed notifications.
          */
-        private int sentCount = 0;
+        private int notificationCount = 0;
 
         /**
-         * @return {@link #sentCount}
+         * @return {@link #notificationCount}
          */
-        public int getSentCount()
+        public int getNotificationCount()
         {
-            return sentCount;
+            return notificationCount;
         }
 
         @Override
         public void executeNotification(Notification notification)
         {
-            StringBuilder recipientString = new StringBuilder();
             for (PersonInformation recipient : notification.getRecipients()) {
-                if (recipientString.length() > 0) {
-                    recipientString.append(", ");
-                }
-                recipientString.append(String.format("%s (%s)", recipient.getFullName(),
-                        recipient.getPrimaryEmail()));
+                NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
+                logger.debug("Notification '{}' for {}...\n{}", new Object[]{recipientMessage.getName(),
+                        recipient, recipientMessage.getContent()
+                });
             }
-            logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
-                    recipientString.toString(), notification.getContent()
-            });
-            sentCount++;
+            notificationCount++;
         }
     }
 }

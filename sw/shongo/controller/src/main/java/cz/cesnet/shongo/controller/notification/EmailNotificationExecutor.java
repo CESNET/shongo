@@ -48,26 +48,19 @@ public class EmailNotificationExecutor extends NotificationExecutor
         if (!emailSender.isInitialized()) {
             return;
         }
-        StringBuilder text = new StringBuilder();
-        text.append(EMAIL_HEADER);
-        text.append(notification.getContent());
-
-        Map<Notification.RecipientGroup, Set<PersonInformation>> recipients =  notification.getRecipientsByGroup();
-        for (Notification.RecipientGroup recipientGroup : recipients.keySet()) {
-            Set<String> recipientEmails = new HashSet<String>();
-            for (PersonInformation recipient : recipients.get(recipientGroup)) {
-                String email = recipient.getPrimaryEmail();
-                if (email != null) {
-                    recipientEmails.add(email);
-                }
-            }
-            if (recipients.size() == 0) {
-                logger.warn("Notification '{}' doesn't have any recipients with email address.", notification.getName());
+        for (PersonInformation recipient : notification.getRecipients()) {
+            NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
+            String recipientEmail = recipient.getPrimaryEmail();
+            if (recipientEmail == null) {
+                logger.warn("Recipient '{}' for notification '{}' has empty email address.",
+                        recipient, recipientMessage.getName());
                 return;
             }
-
             try {
-                emailSender.sendEmail(recipientEmails, notification.getName(), text.toString());
+                StringBuilder recipientMessageContent = new StringBuilder();
+                recipientMessageContent.append(EMAIL_HEADER);
+                recipientMessageContent.append(recipientMessage.getContent());
+                emailSender.sendEmail(recipientEmail, recipientMessage.getName(), recipientMessageContent.toString());
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);

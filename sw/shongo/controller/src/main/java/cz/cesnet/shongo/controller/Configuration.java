@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.authorization.UserSessionSettings;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;

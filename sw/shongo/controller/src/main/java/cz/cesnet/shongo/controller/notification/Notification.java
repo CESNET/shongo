@@ -2,11 +2,12 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.api.UserInformation;
-import cz.cesnet.shongo.controller.ControllerReportSet;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.settings.UserSettings;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
 import freemarker.template.Template;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,108 +24,221 @@ public abstract class Notification
     protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
 
     /**
-     * Notification recipients. Each group should be notified separately.
+     * Single default locale.
      */
-    private Map<RecipientGroup, Set<PersonInformation>> recipientsByGroup =
-            new HashMap<RecipientGroup, Set<PersonInformation>>();
+    private static final List<Locale> DEFAULT_LOCALES = new LinkedList<Locale>(){{
+        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
+    }};
 
     /**
-     * @return {@link #recipientsByGroup}
+     * @see UserSettingsProvider
      */
-    public Map<RecipientGroup, Set<PersonInformation>> getRecipientsByGroup()
+    private UserSettingsProvider userSettingsProvider;
+
+    /**
+     * List of {@link NotificationConfiguration}s for each recipient.
+     */
+    private Map<PersonInformation, List<NotificationConfiguration>> recipientConfigurations
+            = new HashMap<PersonInformation, List<NotificationConfiguration>>();
+
+    /**
+     * {@link NotificationMessage} for each required {@link NotificationConfiguration}.
+     */
+    private Map<NotificationConfiguration, NotificationMessage> configurationMessage =
+            new HashMap<NotificationConfiguration, NotificationMessage>();
+
+    /**
+     * Constructor.
+     */
+    public Notification()
     {
-        return Collections.unmodifiableMap(recipientsByGroup);
     }
 
     /**
-     * @return all recipients from {@link #recipientsByGroup}
+     * Constructor.
+     *
+     * @param userSettingsProvider sets the {@link #userSettingsProvider}
+     */
+    public Notification(UserSettingsProvider userSettingsProvider)
+    {
+        this.userSettingsProvider = userSettingsProvider;
+    }
+
+    /**
+     * @return collection of recipients who are configured for this {@link Notification}
      */
     public Collection<PersonInformation> getRecipients()
     {
-        List<PersonInformation> recipients = new LinkedList<PersonInformation>();
-        for (Set<PersonInformation> recipientsInGroup : recipientsByGroup.values()) {
-            recipients.addAll(recipientsInGroup);
-        }
-        return recipients;
+        return recipientConfigurations.keySet();
     }
 
     /**
-     * Remove all added {@link #recipientsByGroup}.
+     * @return true whether {@link Notification} has configured at least one recipient,
+     *         false otherwise
+     */
+    public boolean hasRecipients()
+    {
+        return recipientConfigurations.size() > 0;
+    }
+
+    /**
+     * Remove all added recipients.
      */
     public void clearRecipients()
     {
-        recipientsByGroup.clear();
+        recipientConfigurations.clear();
     }
 
     /**
-     * @param recipient to be added to the {@link #recipientsByGroup}
+     * @param recipient     who should be notified by the {@link Notification}
+     * @param administrator specifies whether {@code recipient} should be notified as administrator
      */
-    public void addRecipient(RecipientGroup recipientGroup, PersonInformation recipient)
+    public void addRecipient(PersonInformation recipient, boolean administrator)
     {
-        Set<PersonInformation> recipients = recipientsByGroup.get(recipientGroup);
-        if (recipients == null) {
-            recipients = new HashSet<PersonInformation>();
-            recipientsByGroup.put(recipientGroup, recipients);
+        Locale locale = null;
+        DateTimeZone timeZone = null;
+        if (recipient instanceof UserInformation && userSettingsProvider != null) {
+            UserInformation userInformation = (UserInformation) recipient;
+            UserSettings userSettings = userSettingsProvider.getUserSettings(userInformation.getUserId());
+            if (userSettings != null) {
+                locale = userSettings.getLocale();
+                timeZone = userSettings.getTimeZone();
+            }
         }
-        recipients.add(recipient);
+        if (timeZone == null) {
+            timeZone = DateTimeZone.getDefault();
+        }
+        List<NotificationConfiguration> notificationConfigurations = new LinkedList<NotificationConfiguration>();
+        if (locale == null) {
+            for (Locale defaultLocale : getAvailableLocals()) {
+                notificationConfigurations.add(new NotificationConfiguration(defaultLocale, timeZone, administrator));
+            }
+        }
+        else {
+            notificationConfigurations.add(new NotificationConfiguration(locale, timeZone, administrator));
+        }
+        recipientConfigurations.put(recipient, notificationConfigurations);
     }
 
     /**
-     * @param recipients to be added to the {@link #recipientsByGroup}
+     * @param recipients    who should be notified by the {@link Notification}
+     * @param administrator specifies whether {@code recipients} should be notified as administrators
      */
-    public void addRecipients(RecipientGroup recipientGroup, Collection<PersonInformation> recipients)
+    public void addRecipients(Collection<PersonInformation> recipients, boolean administrator)
     {
         for (PersonInformation recipient : recipients) {
-            addRecipient(recipientGroup, recipient);
+            addRecipient(recipient, administrator);
         }
     }
 
     /**
-     * @param userId for user to be added to the {@link #recipientsByGroup}
+     * @return list of available {@link Locale}s
      */
-    public void addUserRecipient(String userId)
+    protected List<Locale> getAvailableLocals()
     {
-        try {
-            UserInformation userRecipient = Authorization.getInstance().getUserInformation(userId);
-            addRecipient(RecipientGroup.USER, userRecipient);
-        } catch (ControllerReportSet.UserNotExistException exception) {
-            logger.error("User '{}' doesn't exist.", userId);
+        return DEFAULT_LOCALES;
+    }
+
+    /**
+     * @param recipient
+     * @return {@link NotificationMessage} for given {@code recipient}
+     */
+    public NotificationMessage getRecipientMessage(PersonInformation recipient)
+    {
+        List<NotificationConfiguration> notificationConfigurations = recipientConfigurations.get(recipient);
+        if (notificationConfigurations == null || notificationConfigurations.size() == 0) {
+            throw new IllegalArgumentException("No configurations defined for recipient " + recipient + ".");
+        }
+        else if (notificationConfigurations.size() == 1) {
+            // Single message
+            return getRenderedMessage(notificationConfigurations.get(0));
+        }
+        else {
+            // Multiple messages
+            NotificationMessage notificationMessage = new NotificationMessage();
+            for (NotificationConfiguration notificationConfiguration : notificationConfigurations) {
+                NotificationMessage configurationMessage = getRenderedMessage(notificationConfiguration);
+                notificationMessage.appendMessage(configurationMessage);
+            }
+            return notificationMessage;
         }
     }
 
     /**
-     * @return string name of the {@link Notification}
-     */
-    public abstract String getName();
-
-    /**
-     * @return string content of the {@link Notification}
-     */
-    public abstract String getContent();
-
-    /**
-     * @return instance of {@link NotificationTemplateHelper} which will be added as "template" to velocity
-     */
-    public NotificationTemplateHelper getTemplateHelper()
-    {
-        return new NotificationTemplateHelper();
-    }
-
-    /**
-     * Render given {@code notificationTemplateFileName} with specified {@code parameters}.
+     * Render or return already rendered {@link NotificationMessage} for given {@code configuration}.
      *
-     * @param notificationTemplateFileName to be rendered
-     * @param parameters                   to be rendered
-     * @return rendered string
+     * @param configuration to be rendered
+     * @return rendered {@link NotificationMessage}
      */
-    public String renderTemplate(String notificationTemplateFileName, Map<String, Object> parameters)
+    private NotificationMessage getRenderedMessage(NotificationConfiguration configuration)
+    {
+        NotificationMessage notificationMessage = configurationMessage.get(configuration);
+        if (notificationMessage == null) {
+            notificationMessage = renderMessage(configuration);
+            configurationMessage.put(configuration, notificationMessage);
+        }
+        return notificationMessage;
+    }
+
+    /**
+     * @param configuration to be used in the {@link NotificationRenderContext}
+     * @return {@link NotificationRenderContext}
+     */
+    protected NotificationRenderContext createRenderContext(NotificationConfiguration configuration)
+    {
+        return new NotificationRenderContext(configuration);
+    }
+
+    /**
+     * Render {@link NotificationMessage} from given {@code messageTemplateFileName}.
+     *
+     * @param configuration
+     * @param name
+     * @param templateFileName
+     * @param templateParameters
+     * @return rendered {@link NotificationMessage}
+     */
+    protected NotificationMessage renderMessageTemplate(NotificationConfiguration configuration,
+            String name, String templateFileName, Map<String, Object> templateParameters, String messagesFileName)
+    {
+        if (templateParameters == null) {
+            templateParameters = new HashMap<String, Object>();
+        }
+        NotificationRenderContext renderContext = createRenderContext(configuration);
+        renderContext.setMessages(messagesFileName);
+        templateParameters.put("context", renderContext);
+        templateParameters.put("notification", this);
+        String content = renderTemplate(templateFileName, templateParameters);
+        return new NotificationMessage(name, content);
+    }
+
+    /**
+     * Render {@link NotificationMessage} for given {@code configuration}.
+     *
+     * @param configuration to be rendered
+     * @return rendered {@link NotificationMessage}
+     */
+    protected abstract NotificationMessage renderMessage(NotificationConfiguration configuration);
+
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName();
+    }
+
+    /**
+     * Render given {@code templateFileName} with specified {@code templateParameters}.
+     *
+     * @param templateFileName   to be rendered
+     * @param templateParameters to be rendered
+     * @return rendered template as string
+     */
+    public static String renderTemplate(String templateFileName, Map<String, Object> templateParameters)
     {
         try {
-            Template template = getConfiguration().getTemplate("notification/" + notificationTemplateFileName);
-
+            Template template = getTemplateConfiguration().getTemplate("notification/" + templateFileName);
             StringWriter stringWriter = new StringWriter();
-            parameters.put("template", getTemplateHelper());
-            template.process(parameters, stringWriter);
+            template.process(templateParameters, stringWriter);
             return stringWriter.toString();
         }
         catch (Exception exception) {
@@ -135,34 +249,18 @@ public abstract class Notification
     /**
      * Single instance of {@link Configuration}.
      */
-    private static Configuration configuration;
+    private static Configuration templateConfiguration;
 
     /**
-     * @return {@link #configuration}
+     * @return {@link #templateConfiguration}
      */
-    private static Configuration getConfiguration()
+    private static Configuration getTemplateConfiguration()
     {
-        if (configuration == null) {
-            configuration = new Configuration();
-            configuration.setObjectWrapper(new DefaultObjectWrapper());
-            configuration.setClassForTemplateLoading(Notification.class, "/");
+        if (templateConfiguration == null) {
+            templateConfiguration = new Configuration();
+            templateConfiguration.setObjectWrapper(new DefaultObjectWrapper());
+            templateConfiguration.setClassForTemplateLoading(Notification.class, "/");
         }
-        return configuration;
-    }
-
-    /**
-     * Enumeration of recipient groups. Each group is notified separately.
-     */
-    public enum RecipientGroup
-    {
-        /**
-         * Group of Shongo users.
-         */
-        USER,
-
-        /**
-         * Group of Shongo administrators.
-         */
-        ADMINISTRATOR
+        return templateConfiguration;
     }
 }

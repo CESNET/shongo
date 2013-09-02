@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 import cz.cesnet.shongo.report.Report;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -87,6 +88,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
+        UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
         try {
             // Storage for reservation notifications
             List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
@@ -97,7 +99,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             // Delete all reservations which should be deleted
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
                 notifications.add(new ReservationNotification(
-                        ReservationNotification.Type.DELETED, reservation, authorizationManager));
+                        ReservationNotification.Type.DELETED, reservation, authorizationManager, userSettingsProvider));
                 // Delete the reservation
                 reservationManager.delete(reservation, authorizationManager);
             }
@@ -240,6 +242,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
+        UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
 
         // Initialize scheduler context
         schedulerContext.setReservationRequest(reservationRequest);
@@ -348,7 +351,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
             // Create notification
             notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, oldReservation, authorizationManager));
+                    ReservationNotification.Type.DELETED, oldReservation, authorizationManager, userSettingsProvider));
 
             // Remove the old reservation from allocation
             allocation.removeReservation(oldReservation);
@@ -367,7 +370,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         // Create notification
         notifications.add(new ReservationNotification(
                 (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
-                allocatedReservation, authorizationManager));
+                allocatedReservation, authorizationManager, userSettingsProvider));
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);

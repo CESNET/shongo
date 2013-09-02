@@ -1,7 +1,7 @@
-${type.getName()} reservation by ${context.message('test')}
+${type.getName()} reservation by
 ${"  "}<#rt>
 <#if userId??>
-    ${context.formatUser(userId)}<#t>
+    ${template.formatUser(userId)}<#t>
 <#else>
     none<#t>
 </#if> <#lt>
@@ -24,15 +24,13 @@ RESERVATION:
 <#----------------------------------------------------------------------------->
 <#if reservationRequest??>
 
-  Requested at:     ${context.formatDateTime(reservationRequest.dateTime)}
+  Requested at:     ${template.formatDateTime(reservationRequest.dateTime, "Europe/Prague")}
 </#if>
 
-  Start date/time:  ${context.formatDateTime(reservation.slot.start)}
-<#if context.timeZone != "UTC">
-                    ${context.formatDateTime(reservation.slot.start, "UTC")}
-</#if>
+  Start date/time:  ${template.formatDateTime(reservation.slot, "Europe/Prague")}
+                    ${template.formatDateTime(reservation.slot, "UTC")}
 
-  Duration:         ${context.formatDuration(reservation.slot)}
+  Duration:         ${template.formatDuration(reservation.slot)}
 <#if reservationRequest?? && reservationRequest.description??>
 
   Description:      ${reservationRequest.description}

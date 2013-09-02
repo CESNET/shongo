@@ -4,7 +4,6 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.authorization.UserSettings;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
@@ -12,7 +11,7 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
-import org.apache.commons.lang.LocaleUtils;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import java.util.*;
 
@@ -23,6 +22,14 @@ import java.util.*;
  */
 public class ReservationNotification extends Notification
 {
+    /**
+     * {@link Locale}s for users which doesn't have preferred {@link Locale}.
+     */
+    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
+        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
+        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
+    }};
+
     /**
      * @see Type
      */
@@ -43,14 +50,17 @@ public class ReservationNotification extends Notification
      * @param type
      * @param reservation
      */
-    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager)
+    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager,
+            UserSettingsProvider userSettingsProvider)
     {
+        super(userSettingsProvider);
+
         this.type = type;
         this.userId = reservation.getUserId();
 
         // Add recipients
         for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
-            addUserRecipient(userId);
+            addRecipient(authorizationManager.getUserInformation(userId), false);
         }
         addRecipientByReservation(reservation);
 
@@ -91,19 +101,19 @@ public class ReservationNotification extends Notification
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             for (Person person : resourceReservation.getResource().getAdministrators()) {
-                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
+                addRecipient(person.getInformation(), true);
             }
         }
         if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
             for (Person person : roomReservation.getDeviceResource().getAdministrators()) {
-                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
+                addRecipient(person.getInformation(), true);
             }
         }
         if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             for (Person person : aliasReservation.getAliasProviderCapability().getResource().getAdministrators()) {
-                addRecipient(RecipientGroup.ADMINISTRATOR, person.getInformation());
+                addRecipient(person.getInformation(), true);
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
@@ -112,21 +122,22 @@ public class ReservationNotification extends Notification
     }
 
     @Override
-    public String getName()
+    protected List<Locale> getAvailableLocals()
     {
-        return type.getName() + " reservation " + reservation.getId();
+        return AVAILABLE_LOCALES;
     }
 
     @Override
-    public String getContent()
+    protected NotificationMessage renderMessage(NotificationConfiguration configuration)
     {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("type", type);
-        parameters.put("userId", userId);
-        parameters.put("reservation", reservation);
-        parameters.put("reservationRequest", reservationRequest);
-        parameters.put("aliasReservations", aliasReservations);
-        return renderTemplate("reservation-mail.ftl", parameters);
+        String messageName = type.getName() + " reservation " + reservation.getId();
+        Map<String, Object> messageParameters = new HashMap<String, Object>();
+        messageParameters.put("type", type);
+        messageParameters.put("userId", userId);
+        messageParameters.put("reservation", reservation);
+        messageParameters.put("reservationRequest", reservationRequest);
+        messageParameters.put("aliasReservations", aliasReservations);
+        return renderMessageTemplate(configuration, messageName, "reservation-mail.ftl", messageParameters, "notification");
     }
 
     /**

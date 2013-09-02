@@ -30,14 +30,8 @@ public class MessageNotification extends Notification
     }
 
     @Override
-    public String getName()
+    protected NotificationMessage renderMessage(NotificationConfiguration configuration)
     {
-        return name;
-    }
-
-    @Override
-    public String getContent()
-    {
-        return message;
+        return new NotificationMessage(name, message);
     }
 }

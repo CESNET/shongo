@@ -240,4 +240,10 @@ public class OtherPerson extends Person implements PersonInformation
     {
         return email;
     }
+
+    @Override
+    public String toString()
+    {
+        return getClass().getSimpleName() + " (" + getFullName() + ")";
+    }
 }

@@ -13,8 +13,8 @@ import java.util.Locale;
  */
 public class UserSettings extends AbstractComplexType
 {
-    public static final Locale LOCALE_CZECH = new Locale("cs");
     public static final Locale LOCALE_ENGLISH = new Locale("en");
+    public static final Locale LOCALE_CZECH = new Locale("cs");
 
     /**
      * User preferred language (e.g., "cs" or "en")
@@ -24,7 +24,7 @@ public class UserSettings extends AbstractComplexType
     /**
      * User time zone (e.g., "-08:00")
      */
-    private DateTimeZone dateTimeZone;
+    private DateTimeZone timeZone;
 
     /**
      * Specifies whether user should act in administrator role (for active session). {@code null} means that user isn't
@@ -49,19 +49,19 @@ public class UserSettings extends AbstractComplexType
     }
 
     /**
-     * @return {@link #dateTimeZone}
+     * @return {@link #timeZone}
      */
-    public DateTimeZone getDateTimeZone()
+    public DateTimeZone getTimeZone()
     {
-        return dateTimeZone;
+        return timeZone;
     }
 
     /**
-     * @param dateTimeZone sets the {@link #dateTimeZone}
+     * @param timeZone sets the {@link #timeZone}
      */
-    public void setDateTimeZone(DateTimeZone dateTimeZone)
+    public void setTimeZone(DateTimeZone timeZone)
     {
-        this.dateTimeZone = dateTimeZone;
+        this.timeZone = timeZone;
     }
 
     /**
@@ -83,11 +83,11 @@ public class UserSettings extends AbstractComplexType
     @Override
     public String toString()
     {
-        return String.format("UserSettings (%s, %s, %s)", locale, dateTimeZone, adminMode);
+        return String.format("UserSettings (%s, %s, %s)", locale, timeZone, adminMode);
     }
 
     private static final String LOCALE = "locale";
-    private static final String DATE_TIME_ZONE = "dateTimeZone";
+    private static final String TIME_ZONE = "timeZone";
     private static final String ADMIN_MODE = "adminMode";
 
     @Override
@@ -95,7 +95,7 @@ public class UserSettings extends AbstractComplexType
     {
         DataMap dataMap = super.toData();
         dataMap.set(LOCALE, locale);
-        dataMap.set(DATE_TIME_ZONE, dateTimeZone);
+        dataMap.set(TIME_ZONE, timeZone);
         dataMap.set(ADMIN_MODE, adminMode);
         return dataMap;
     }
@@ -105,7 +105,7 @@ public class UserSettings extends AbstractComplexType
     {
         super.fromData(dataMap);
         locale = dataMap.getLocale(LOCALE);
-        dateTimeZone = dataMap.getDateTimeZone(DATE_TIME_ZONE);
+        timeZone = dataMap.getDateTimeZone(TIME_ZONE);
         adminMode = dataMap.getBoolean(ADMIN_MODE);
     }
 }

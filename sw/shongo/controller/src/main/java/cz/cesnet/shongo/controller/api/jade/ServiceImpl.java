@@ -122,7 +122,7 @@ public class ServiceImpl implements Service
         }
 
         MessageNotification messageNotification = new MessageNotification(title, message);
-        messageNotification.addRecipients(Notification.RecipientGroup.USER, recipients);
+        messageNotification.addRecipients(recipients, false);
         notificationManager.executeNotification(messageNotification);
     }
 

@@ -12,22 +12,91 @@ import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.PeriodFormat;
 
+import java.util.ResourceBundle;
+
 /**
- * Helper containing common functions which can be used in templates (by "$template" variable).
+ * {@link Notification} context for rendering.
  */
-public class NotificationTemplateHelper
+public class NotificationRenderContext
 {
     /**
-     * @param dateTime to be formatted
+     * @see NotificationConfiguration
+     */
+    private NotificationConfiguration notificationConfiguration;
+
+    /**
+     * Messages.
+     */
+    private ResourceBundle resourceBundle;
+
+    /**
+     * Constructor.
+     *
+     * @param notificationConfiguration sets the {@link #notificationConfiguration}
+     */
+    public NotificationRenderContext(NotificationConfiguration notificationConfiguration)
+    {
+        this.notificationConfiguration = notificationConfiguration;
+    }
+
+    /**
+     * @param messagesFileName to load messages from
+     */
+    public void setMessages(String messagesFileName)
+    {
+        resourceBundle = ResourceBundle.getBundle(messagesFileName, notificationConfiguration.getLocale());
+    }
+
+    /**
+     * @return {@link #notificationConfiguration#getTimeZone()}
+     */
+    public DateTimeZone getTimeZone()
+    {
+        return notificationConfiguration.getTimeZone();
+    }
+
+    /**
+     * @param code
+     * @return message for given {@code code}
+     */
+    public String message(String code)
+    {
+        if (resourceBundle == null) {
+            return null;
+        }
+        String message = resourceBundle.getString(code);
+        return message;
+    }
+
+    /**
+     * @param timeZone to be formatted
+     * @return {@code timeZone} formatted to string
+     */
+    public String formatTimeZone(DateTimeZone timeZone, DateTime dateTime)
+    {
+        if (timeZone.equals(DateTimeZone.UTC)) {
+            return "UTC";
+        }
+        else {
+            return DateTimeFormat.forPattern("ZZ")
+                    .withZone(notificationConfiguration.getTimeZone())
+                    .print(dateTime);
+        }
+    }
+
+    /**
+     * @param dateTime   to be formatted as UTC date/time
+     * @param timeZone to be used
      * @return {@code dateTime} formatted to string
      */
-    public String formatDateTime(DateTime dateTime)
+    public String formatDateTime(DateTime dateTime, DateTimeZone timeZone)
     {
         if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
             return "(infinity)";
         }
         else {
-            return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
+            String dateTimeString = DateTimeFormat.forPattern("d.M.yyyy HH:mm").withZone(timeZone).print(dateTime);
+            return String.format("%s (%s)", dateTimeString, formatTimeZone(timeZone, dateTime));
         }
     }
 
@@ -38,33 +107,8 @@ public class NotificationTemplateHelper
      */
     public String formatDateTime(DateTime dateTime, String timeZoneId)
     {
-        String dateTimeString = "";
         DateTimeZone dateTimeZone = DateTimeZone.forID(timeZoneId);
-        if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
-            dateTimeString = "(infinity)";
-            dateTime = DateTime.now(dateTimeZone);
-        }
-        else {
-            dateTime = dateTime.withZone(dateTimeZone);
-            dateTimeString = DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
-        }
-
-        String dateTimeZoneOffset = "";
-        if (!dateTimeZone.equals(DateTimeZone.UTC)) {
-            int offset = dateTimeZone.getOffset(dateTime) / 60000;
-            dateTimeZoneOffset = String.format(")(%+03d:%02d", offset / 60, Math.abs(offset % 60));
-        }
-
-        return String.format("%s (%s%s)", dateTimeString, timeZoneId, dateTimeZoneOffset);
-    }
-
-    /**
-     * @param interval whose start to be formatted
-     * @return {@code interval} start formatted to string
-     */
-    public String formatDateTime(Interval interval)
-    {
-        return formatDateTime(interval.getStart());
+        return formatDateTime(dateTime, dateTimeZone);
     }
 
     /**
@@ -75,6 +119,15 @@ public class NotificationTemplateHelper
     public String formatDateTime(Interval interval, String timeZoneId)
     {
         return formatDateTime(interval.getStart(), timeZoneId);
+    }
+
+    /**
+     * @param dateTime to be formatted
+     * @return {@code dateTime} formatted to string
+     */
+    public String formatDateTime(DateTime dateTime)
+    {
+        return formatDateTime(dateTime, notificationConfiguration.getTimeZone());
     }
 
     /**

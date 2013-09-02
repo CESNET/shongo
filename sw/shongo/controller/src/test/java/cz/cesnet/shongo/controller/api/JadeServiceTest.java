@@ -15,6 +15,7 @@ import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
 import jade.core.AID;
@@ -90,7 +91,7 @@ public class JadeServiceTest extends AbstractControllerTest
         // Test notifyTarget
         sendLocalCommand = controllerAgent.sendCommand(testAgent.getLocalName(), new Unmute());
         Assert.assertEquals(SendLocalCommand.State.SUCCESSFUL, sendLocalCommand.getState());
-        Assert.assertEquals(1, notificationExecutor.getSentCount());
+        Assert.assertEquals(1, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -143,16 +144,16 @@ public class JadeServiceTest extends AbstractControllerTest
     private static class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
-         * Number of already sent emails
+         * Number of executed notifications.
          */
-        private int sentCount = 0;
+        private int notificationCount = 0;
 
         /**
-         * @return {@link #sentCount}
+         * @return {@link #notificationCount}
          */
-        public int getSentCount()
+        public int getNotificationCount()
         {
-            return sentCount;
+            return notificationCount;
         }
 
         @Override
@@ -166,10 +167,12 @@ public class JadeServiceTest extends AbstractControllerTest
                 recipientString.append(String.format("%s (%s)", recipient.getFullName(),
                         recipient.getPrimaryEmail()));
             }
-            logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
-                    recipientString.toString(), notification.getContent()
+            PersonInformation firstRecipient = notification.getRecipients().iterator().next();
+            NotificationMessage message = notification.getRecipientMessage(firstRecipient);
+            logger.debug("Notification '{}' for {}...\n{}", new Object[]{message.getName(),
+                    recipientString.toString(), message.getContent()
             });
-            sentCount++;
+            notificationCount++;
         }
     }
 }

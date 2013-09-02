@@ -104,20 +104,19 @@ public class NotificationManager extends Component implements Component.Authoriz
     public void executeNotification(Notification notification)
     {
         if (!enabled) {
-            logger.warn("Notification '{}' cannot be executed because notifications are disabled.",
-                    notification.getName());
+            logger.warn("Notification '{}' cannot be executed because notifications are disabled.", notification);
             return;
         }
         if (redirectTo != null) {
             logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
-                    notification.getName(),
+                    notification,
                     redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
             });
             notification.clearRecipients();
-            notification.addRecipient(Notification.RecipientGroup.ADMINISTRATOR, redirectTo);
+            notification.addRecipient(redirectTo, true);
         }
-        if (notification.getRecipientsByGroup().size() == 0) {
-            logger.warn("Notification '{}' doesn't have any recipients.", notification.getName());
+        if (!notification.hasRecipients()) {
+            logger.warn("Notification '{}' doesn't have any recipients.", notification);
             return;
         }
         // Execute notification in all executors
