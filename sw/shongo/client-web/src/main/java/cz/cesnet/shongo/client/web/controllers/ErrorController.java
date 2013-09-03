@@ -23,6 +23,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Properties;
 
 /**
@@ -75,8 +76,10 @@ public class ErrorController
      * Handle error view.
      */
     @RequestMapping("/error")
-    public ModelAndView handleError(HttpServletRequest request)
+    public ModelAndView handleError(HttpServletRequest request, HttpServletResponse response)
     {
+        response.setHeader("Content-Type", "text/html; charset=UTF-8");
+
         String requestUri = (String) request.getAttribute(RequestDispatcher.ERROR_REQUEST_URI);
         String message = (String) request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
         Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
