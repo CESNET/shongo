@@ -238,11 +238,9 @@ public class ReservationManager extends AbstractManager
         return entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " LEFT JOIN reservation.allocation allocation"
-                        + " WHERE reservation.createdBy = :createdBy"
-                        + " AND reservation.parentReservation IS NULL"
+                        + " WHERE reservation.parentReservation IS NULL"
                         + " AND (allocation IS NULL)",
                 Reservation.class)
-                .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();
     }
 

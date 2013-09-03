@@ -35,11 +35,6 @@ public class Reservation extends PersistentObject implements Reportable
     private String userId;
 
     /**
-     * @see {@link CreatedBy}.
-     */
-    private CreatedBy createdBy;
-
-    /**
      * {@link Allocation} for which the {@link Reservation} is allocated.
      */
     private Allocation allocation;
@@ -84,24 +79,6 @@ public class Reservation extends PersistentObject implements Reportable
     public void setUserId(String userId)
     {
         this.userId = userId;
-    }
-
-    /**
-     * @return {@link #createdBy}
-     */
-    @Column(nullable = false, columnDefinition = "varchar(255) default 'CONTROLLER'")
-    @Enumerated(EnumType.STRING)
-    public CreatedBy getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    /**
-     * @return {@link #createdBy}
-     */
-    public void setCreatedBy(CreatedBy createdBy)
-    {
-        this.createdBy = createdBy;
     }
 
     /**
@@ -439,15 +416,6 @@ public class Reservation extends PersistentObject implements Reportable
         return reservationType.cast(getTargetReservation());
     }
 
-    @PrePersist
-    protected void onCreate()
-    {
-        // Reservations are by default created by the controller
-        if (createdBy == null) {
-            createdBy = CreatedBy.CONTROLLER;
-        }
-    }
-
     @Override
     @Transient
     public String getReportDescription(Report.MessageType messageType)
@@ -496,26 +464,6 @@ public class Reservation extends PersistentObject implements Reportable
             api.addChildReservationId(EntityIdentifier.formatId(childReservation));
         }
         api.sortChildReservationIds();
-    }
-
-    /**
-     * Enumeration defining who created the {@link Reservation}.
-     */
-    public static enum CreatedBy
-    {
-        /**
-         * {@link Reservation} was created by a user. In fact user should never create the {@link Reservation} itself,
-         * but it is useful, e.g., for testing purposes, to create a {@link Reservation} and to ensure that it will
-         * not be deleted by the {@link Scheduler} when it delete all not-referenced {@link Reservation}s through
-         * {@link cz.cesnet.shongo.controller.reservation.ReservationManager#getReservationsForDeletion()}).
-         */
-        USER,
-
-        /**
-         * {@link Reservation} was created by the {@link Controller}'s {@link Scheduler} (default value in
-         * the most situations).
-         */
-        CONTROLLER
     }
 
     /**

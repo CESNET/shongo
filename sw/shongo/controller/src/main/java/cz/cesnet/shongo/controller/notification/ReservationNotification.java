@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Reporter;
 import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.MessageSource;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -130,14 +131,22 @@ public class ReservationNotification extends Notification
     @Override
     protected NotificationMessage renderMessage(NotificationConfiguration configuration)
     {
-        String messageName = type.getName() + " reservation " + reservation.getId();
-        Map<String, Object> messageParameters = new HashMap<String, Object>();
-        messageParameters.put("type", type);
-        messageParameters.put("userId", userId);
-        messageParameters.put("reservation", reservation);
-        messageParameters.put("reservationRequest", reservationRequest);
-        messageParameters.put("aliasReservations", aliasReservations);
-        return renderMessageTemplate(configuration, messageName, "reservation-mail.ftl", messageParameters, "notification");
+        MessageSource messageSource = new MessageSource("notification/notification", configuration.getLocale());
+
+        StringBuilder nameBuilder = new StringBuilder();
+        nameBuilder.append(messageSource.getMessage("reservation.type." + type));
+        nameBuilder.append(" ");
+        nameBuilder.append(messageSource.getMessage("reservation"));
+        nameBuilder.append(" ");
+        nameBuilder.append(reservation.getId());
+
+        RenderContext renderContext = new RenderContext(configuration, "notification/notification");
+        renderContext.addParameter("type", type);
+        renderContext.addParameter("userId", userId);
+        renderContext.addParameter("reservation", reservation);
+        renderContext.addParameter("reservationRequest", reservationRequest);
+        renderContext.addParameter("aliasReservations", aliasReservations);
+        return renderMessageTemplate(renderContext, nameBuilder.toString(), "reservation-mail.ftl");
     }
 
     /**
@@ -148,39 +157,16 @@ public class ReservationNotification extends Notification
         /**
          * {@link ReservationNotification#reservation} is new.
          */
-        NEW("New"),
+        NEW,
 
         /**
          * {@link ReservationNotification#reservation} has been modified.
          */
-        MODIFIED("Modified"),
+        MODIFIED,
 
         /**
          * {@link ReservationNotification#reservation} has been deleted.
          */
-        DELETED("Deleted");
-
-        /**
-         * Name of the {@link Type}.
-         */
-        private String name;
-
-        /**
-         * Constructor.
-         *
-         * @param name sets the {@link #name}
-         */
-        private Type(String name)
-        {
-            this.name = name;
-        }
-
-        /**
-         * @return {@link #name}
-         */
-        public String getName()
-        {
-            return name;
-        }
+        DELETED
     }
 }

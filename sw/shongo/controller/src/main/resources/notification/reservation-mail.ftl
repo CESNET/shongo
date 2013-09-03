@@ -1,4 +1,4 @@
-${type.getName()} reservation by ${context.message('test')}
+${context.message('reservation.type.' + type)} ${context.message('reservation')} by
 ${"  "}<#rt>
 <#if userId??>
     ${context.formatUser(userId)}<#t>
