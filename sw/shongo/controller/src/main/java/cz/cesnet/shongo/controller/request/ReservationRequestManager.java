@@ -110,8 +110,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        String userId = reservationRequest.getUpdatedBy();
-        if (!deleteAllocation(reservationRequest.getAllocation(), userId, authorizationManager)) {
+        Allocation allocation = reservationRequest.getAllocation();
+        if (!deleteAllocation(allocation, reservationRequest.getUpdatedBy(), authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
         }
@@ -135,15 +135,26 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param reservationRequest   to be deleted (and all it's versions)
      * @param authorizationManager to be used for deleting ACL records
+     * @return list of {@link Reservation}s which are detached from deleted {@code reservationRequest}'s {@link Allocation}
      */
-    public void hardDelete(AbstractReservationRequest reservationRequest, AuthorizationManager authorizationManager)
+    public List<Reservation> hardDelete(AbstractReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager)
     {
         PersistenceTransaction transaction = beginPersistenceTransaction();
 
-        String userId = reservationRequest.getUpdatedBy();
-        if (!deleteAllocation(reservationRequest.getAllocation(), userId, authorizationManager)) {
+        Allocation allocation = reservationRequest.getAllocation();
+        if (!deleteAllocation(allocation, reservationRequest.getUpdatedBy(), authorizationManager)) {
             ControllerReportSetHelper.throwEntityNotDeletableReferencedFault(
                     ReservationRequest.class, reservationRequest.getId());
+        }
+
+        // Detach reservations from allocation which is going to be deleted
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        List<Reservation> detachedReservations = new LinkedList<Reservation>();
+        for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
+            reservation.setAllocation(null);
+            reservationManager.update(reservation);
+            detachedReservations.add(reservation);
         }
 
         List<AbstractReservationRequest> versions = listVersions(reservationRequest);
@@ -152,6 +163,9 @@ public class ReservationRequestManager extends AbstractManager
         }
 
         transaction.commit();
+
+        // Return detached reservations
+        return detachedReservations;
     }
 
     /**
@@ -168,18 +182,22 @@ public class ReservationRequestManager extends AbstractManager
             return false;
         }
 
-        // Detach reservations from allocation and they will be deleted by scheduler
-        for (Reservation reservation : new LinkedList<Reservation>(allocation.getReservations())) {
-            reservation.setUserId(userId);
-            reservation.setAllocation(null);
-            reservationManager.update(reservation);
-        }
+        // Mark allocation for deletion
+        allocation.setState(Allocation.State.DELETED);
 
         // Delete all child reservation requests
-        for (ReservationRequest reservationRequest : new LinkedList<ReservationRequest>(
+        for (ReservationRequest childReservationRequest : new LinkedList<ReservationRequest>(
                 allocation.getChildReservationRequests())) {
-            reservationRequest.setParentAllocation(null);
-            hardDelete(reservationRequest, authorizationManager);
+            // Remove child reservation request from parent
+            childReservationRequest.setParentAllocation(null);
+
+            // Hard delete child reservation request
+            List<Reservation> detachedReservations = hardDelete(childReservationRequest, authorizationManager);
+
+            // Attach reservations to allocation marked for deletion which were detached from hard deleted request
+            for (Reservation detachedReservation : detachedReservations) {
+                allocation.addReservation(detachedReservation);
+            }
         }
 
         return true;
@@ -367,6 +385,36 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return reservationRequests;
+    }
+
+    /**
+     * @return list of {@link ReservationRequest}s which should be deleted
+     */
+    public List<ReservationRequest> getReservationRequestsForDeletion()
+    {
+        return entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " LEFT JOIN reservationRequest.parentAllocation parentAllocation"
+                        + " WHERE parentAllocation.state = :stateDeleted"
+                        + " OR parentAllocation.state = :stateWithoutChildRequests",
+                ReservationRequest.class)
+                .setParameter("stateDeleted", Allocation.State.DELETED)
+                .setParameter("stateWithoutChildRequests", Allocation.State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS)
+                .getResultList();
+    }
+
+    /**
+     * @return list of {@link Allocation}s which should be deleted
+     */
+    public List<Allocation> getAllocationsForDeletion()
+    {
+        return entityManager.createQuery(
+                "SELECT allocation FROM Allocation allocation"
+                        + " WHERE allocation.state = :stateDeleted AND allocation NOT IN ("
+                        + " SELECT reservationRequest.allocation FROM AbstractReservationRequest reservationRequest)",
+                Allocation.class)
+                .setParameter("stateDeleted", Allocation.State.DELETED)
+                .getResultList();
     }
 
     /**

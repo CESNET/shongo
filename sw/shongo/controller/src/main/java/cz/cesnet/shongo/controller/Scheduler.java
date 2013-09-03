@@ -7,7 +7,10 @@ import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.Allocation;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -100,8 +103,18 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
                 notifications.add(new ReservationNotification(
                         ReservationNotification.Type.DELETED, reservation, authorizationManager, userSettingsProvider));
-                // Delete the reservation
+                reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
+            }
+
+            // Delete all allocations which should be deleted
+            for (Allocation allocation : reservationRequestManager.getAllocationsForDeletion()) {
+                entityManager.remove(allocation);
+            }
+
+            // Delete all reservation requests which should be deleted
+            for (ReservationRequest request : reservationRequestManager.getReservationRequestsForDeletion()) {
+                reservationRequestManager.hardDelete(request, authorizationManager);
             }
 
             entityManager.getTransaction().commit();

@@ -412,7 +412,7 @@ public abstract class AbstractReservationRequest extends PersistentObject implem
 
     @PrePersist
     @PreUpdate
-    protected void onCreate()
+    protected void onUpdate()
     {
         if (createdAt == null) {
             createdAt = DateTime.now();

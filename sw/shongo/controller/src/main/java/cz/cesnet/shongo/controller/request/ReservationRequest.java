@@ -275,9 +275,9 @@ public class ReservationRequest extends AbstractReservationRequest implements Re
     }
 
     @Override
-    protected void onCreate()
+    protected void onUpdate()
     {
-        super.onCreate();
+        super.onUpdate();
 
         if (allocationState == null) {
             updateStateBySpecification();
