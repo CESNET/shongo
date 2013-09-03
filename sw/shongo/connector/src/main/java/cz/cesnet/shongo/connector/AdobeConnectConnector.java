@@ -211,8 +211,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         try {
             logger.debug("{} meeting (sco-ID: {}) session.", (state ? "Starting" : "Ending"), roomId);
             request("meeting-roommanager-endmeeting-update", endMeetingAttributes);
-        } catch (CommandException ex) {
-            logger.debug("Failed to end/start meeting. Probably just AC error, everything should be working properly.");
+        } catch (CommandException exception) {
+            logger.warn("Failed to end/start meeting. Probably just AC error, everything should be working properly.", exception);
         }
     }
 
@@ -1256,8 +1256,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
                     try {
                         checkAllRoomsCapacity();
-                    } catch (CommandException e) {
-                        logger.warn(String.format("Capacity check failed: " + e));
+                    } catch (Exception exception) {
+                        logger.warn("Capacity check failed", exception);
                     }
                 }
 
@@ -1450,7 +1450,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             throw new RuntimeException("Error initializing parser", e);
         }
         catch (RequestFailedCommandException exception) {
-            logger.debug(String.format("Command %s has failed on %s: %s", action, info.getDeviceAddress(), exception));
+            logger.warn(String.format("Command %s has failed on %s: %s", action, info.getDeviceAddress(), exception));
             throw exception;
         }
     }
