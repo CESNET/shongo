@@ -45,6 +45,16 @@ public abstract class Notification
     private UserSettingsProvider userSettingsProvider;
 
     /**
+     * Parent {@link Notification}.
+     */
+    private Notification parentNotification;
+
+    /**
+     * Child {@link Notification}.
+     */
+    private List<Notification> childNotifications = new LinkedList<Notification>();
+
+    /**
      * List of {@link NotificationConfiguration}s for each recipient.
      */
     private Map<PersonInformation, List<NotificationConfiguration>> recipientConfigurations
@@ -66,11 +76,33 @@ public abstract class Notification
     /**
      * Constructor.
      *
+     * @param parentNotification sets the {@link #parentNotification}
      * @param userSettingsProvider sets the {@link #userSettingsProvider}
      */
-    public Notification(UserSettingsProvider userSettingsProvider)
+    public Notification(Notification parentNotification, UserSettingsProvider userSettingsProvider)
     {
+        this.parentNotification = parentNotification;
         this.userSettingsProvider = userSettingsProvider;
+
+        if (parentNotification != null) {
+            parentNotification.childNotifications.add(this);
+        }
+    }
+
+    /**
+     * @return {@link #parentNotification}
+     */
+    public Notification getParentNotification()
+    {
+        return parentNotification;
+    }
+
+    /**
+     * @return {@link #childNotifications}
+     */
+    public List<Notification> getChildNotifications()
+    {
+        return Collections.unmodifiableList(childNotifications);
     }
 
     /**

@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.settings.UserSettings;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -32,6 +33,11 @@ public class AuthorizationManager extends AbstractManager
     private Transaction activeTransaction = null;
 
     /**
+     * @see UserSettingsProvider
+     */
+    private UserSettingsProvider userSettingsProvider = null;
+
+    /**
      * Constructor.
      *
      * @param entityManager sets the {@link #entityManager}
@@ -39,6 +45,17 @@ public class AuthorizationManager extends AbstractManager
     public AuthorizationManager(EntityManager entityManager)
     {
         super(entityManager);
+    }
+
+    /**
+     * @return {@link #userSettingsProvider}
+     */
+    public UserSettingsProvider getUserSettingsProvider()
+    {
+        if (userSettingsProvider == null) {
+            userSettingsProvider = new UserSettingsProvider(entityManager);
+        }
+        return userSettingsProvider;
     }
 
     /**

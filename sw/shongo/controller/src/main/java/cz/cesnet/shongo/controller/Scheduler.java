@@ -5,12 +5,11 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.request.Specification;
+import cz.cesnet.shongo.controller.notification.ReservationRequestNotification;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.*;
@@ -93,16 +92,15 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         AuthorizationManager authorizationManager = new AuthorizationManager(entityManager);
         UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
         try {
-            // Storage for reservation notifications
-            List<ReservationNotification> notifications = new LinkedList<ReservationNotification>();
+            // Set of notifications
+            NotificationSet notifications = new NotificationSet();
 
             authorizationManager.beginTransaction(authorization);
             entityManager.getTransaction().begin();
 
             // Delete all reservations which should be deleted
             for (Reservation reservation : reservationManager.getReservationsForDeletion()) {
-                notifications.add(new ReservationNotification(
-                        ReservationNotification.Type.DELETED, reservation, authorizationManager, userSettingsProvider));
+                notifications.addNotification(reservation, ReservationNotification.Type.DELETED, authorizationManager);
                 reservation.setAllocation(null);
                 reservationManager.delete(reservation, authorizationManager);
             }
@@ -218,14 +216,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             entityManager.getTransaction().commit();
             authorizationManager.commitTransaction();
 
-            // Notify about reservations
-            if (notificationManager != null && notifications.size() > 0) {
-                if (notificationManager.hasExecutors()) {
-                    logger.debug("Notifying about changes in reservations...");
-                    for (ReservationNotification reservationNotification : notifications) {
-                        notificationManager.executeNotification(reservationNotification);
-                    }
-                }
+            // Execute notifications
+            if (notificationManager != null) {
+                notifications.executeNotifications(notificationManager);
             }
         }
         catch (Exception exception) {
@@ -244,10 +237,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
      *
      * @param reservationRequest to be allocated
      * @param schedulerContext
-     * @param notifications
+     * @param notificationSet
      */
     private static void allocateReservationRequest(ReservationRequest reservationRequest,
-            SchedulerContext schedulerContext, List<ReservationNotification> notifications) throws SchedulerException
+            SchedulerContext schedulerContext, NotificationSet notificationSet) throws SchedulerException
     {
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
@@ -255,7 +248,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationManager reservationManager = new ReservationManager(entityManager);
         AuthorizationManager authorizationManager = schedulerContext.getAuthorizationManager();
-        UserSettingsProvider userSettingsProvider = new UserSettingsProvider(entityManager);
 
         // Initialize scheduler context
         schedulerContext.setReservationRequest(reservationRequest);
@@ -363,8 +355,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
             }
 
             // Create notification
-            notifications.add(new ReservationNotification(
-                    ReservationNotification.Type.DELETED, oldReservation, authorizationManager, userSettingsProvider));
+            notificationSet.addNotification(oldReservation, ReservationNotification.Type.DELETED, authorizationManager);
 
             // Remove the old reservation from allocation
             allocation.removeReservation(oldReservation);
@@ -381,13 +372,101 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         }
 
         // Create notification
-        notifications.add(new ReservationNotification(
+        notificationSet.addNotification(allocatedReservation,
                 (isNew ? ReservationNotification.Type.NEW : ReservationNotification.Type.MODIFIED),
-                allocatedReservation, authorizationManager, userSettingsProvider));
+                authorizationManager);
 
         // Update reservation request
         reservationRequest.setAllocationState(ReservationRequest.AllocationState.ALLOCATED);
         reservationRequest.setReports(reservationTask.getReports());
         reservationRequestManager.update(reservationRequest);
+    }
+
+    /**
+     * Set of {@link Notification} for execution.
+     */
+    private static class NotificationSet
+    {
+        /**
+         * List of {@link Notification}.
+         */
+        List<Notification> notifications = new LinkedList<Notification>();
+
+        /**
+         * Map of {@link ReservationRequestNotification} by {@link AbstractReservationRequest}.
+         */
+        Map<AbstractReservationRequest, ReservationRequestNotification> reservationRequestNotifications =
+                new HashMap<AbstractReservationRequest, ReservationRequestNotification>();
+
+        /**
+         * @param notification to be added to the {@link #notifications}
+         */
+        public void addNotification(Notification notification)
+        {
+            notifications.add(notification);
+        }
+
+        /**
+         * Add new {@link ReservationNotification} to the {@link #notifications}.
+         *
+         * @param reservation
+         * @param type
+         * @param authorizationManager
+         */
+        public void addNotification(Reservation reservation, ReservationNotification.Type type,
+                AuthorizationManager authorizationManager)
+        {
+            // Get reservation request notification
+            ReservationRequestNotification reservationRequestNotification = null;
+            Allocation allocation = reservation.getAllocation();
+            AbstractReservationRequest abstractReservationRequest =
+                    (allocation != null ? allocation.getReservationRequest() : null);
+            if (abstractReservationRequest != null) {
+                // Get top reservation request
+                if (abstractReservationRequest instanceof ReservationRequest) {
+                    ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                    Allocation parentAllocation = reservationRequest.getParentAllocation();
+                    if (parentAllocation != null) {
+                        AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
+                        if (parentReservationRequest != null) {
+                            abstractReservationRequest = parentReservationRequest;
+                        }
+                    }
+                }
+                // Create or reuse reservation request notification
+                reservationRequestNotification =
+                        reservationRequestNotifications.get(abstractReservationRequest);
+                if (reservationRequestNotification == null) {
+                    reservationRequestNotification = new ReservationRequestNotification(
+                            abstractReservationRequest, authorizationManager);
+                    notifications.add(reservationRequestNotification);
+                    reservationRequestNotifications.put(abstractReservationRequest, reservationRequestNotification);
+                }
+            }
+
+            // Create reservation notification
+            ReservationNotification notification = new ReservationNotification(
+                    reservationRequestNotification, type, reservation, authorizationManager);
+
+            // Add reservation notification as normal
+            addNotification(notification);
+        }
+
+        /**
+         * Execute {@link #notifications}.
+         *
+         * @param notificationManager to be used
+         */
+        public void executeNotifications(NotificationManager notificationManager)
+        {
+            if(notifications.size() > 0){
+            if (notificationManager.hasExecutors()) {
+                logger.debug("Executing notifications...");
+                for (Notification notification : notifications) {
+                    notificationManager.executeNotification(notification);
+                }
+            }
+        }
+        }
     }
 }

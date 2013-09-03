@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
-import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import java.util.*;
 
@@ -41,7 +40,6 @@ public class ReservationNotification extends Notification
      */
     String userId = null;
     cz.cesnet.shongo.controller.api.Reservation reservation = null;
-    cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
     List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
             new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
 
@@ -51,25 +49,25 @@ public class ReservationNotification extends Notification
      * @param type
      * @param reservation
      */
-    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager,
-            UserSettingsProvider userSettingsProvider)
+    public ReservationNotification(Notification parentNotification, Type type, Reservation reservation, AuthorizationManager authorizationManager)
     {
-        super(userSettingsProvider);
+        super(parentNotification, authorizationManager.getUserSettingsProvider());
 
         this.type = type;
         this.userId = reservation.getUserId();
 
-        // Add recipients
-        for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
-            addRecipient(authorizationManager.getUserInformation(userId), false);
-        }
-        addRecipientByReservation(reservation);
-
-        AbstractReservationRequest reservationRequest = reservation.getTopReservationRequest();
-        try {
-            if (reservationRequest != null) {
-                this.reservationRequest = reservationRequest.toApi(false);
+        // When parent notification doesn't exist
+        if (parentNotification == null) {
+            // Add reservation owners as recipients
+            for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
+                addRecipient(authorizationManager.getUserInformation(userId), false);
             }
+        }
+
+        // Add administrators as recipients
+        addResourceAdministratorRecipients(reservation);
+
+        try {
             this.reservation = reservation.toApi(false);
 
             if (reservation.getClass().equals(Reservation.class)) {
@@ -97,7 +95,7 @@ public class ReservationNotification extends Notification
      *
      * @param reservation
      */
-    public void addRecipientByReservation(Reservation reservation)
+    public void addResourceAdministratorRecipients(Reservation reservation)
     {
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
@@ -118,7 +116,7 @@ public class ReservationNotification extends Notification
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
-            addRecipientByReservation(childReservation);
+            addResourceAdministratorRecipients(childReservation);
         }
     }
 
@@ -144,7 +142,6 @@ public class ReservationNotification extends Notification
         renderContext.addParameter("type", type);
         renderContext.addParameter("userId", userId);
         renderContext.addParameter("reservation", reservation);
-        renderContext.addParameter("reservationRequest", reservationRequest);
         renderContext.addParameter("aliasReservations", aliasReservations);
         return renderMessageTemplate(renderContext, nameBuilder.toString(), "reservation-mail.ftl");
     }
