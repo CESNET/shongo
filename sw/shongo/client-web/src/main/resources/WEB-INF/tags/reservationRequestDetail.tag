@@ -22,7 +22,7 @@
     function DynamicStateController($scope, $resource, $sce, $timeout) {
         // Default requested slot
         $scope.requestedSlot = '<tag:format value="${reservationRequest.slot}" multiline="true"/>';
-        <c:if test="${reservationRequestDetail != null}">
+        <c:if test="${reservationRequestDetail != null && reservationRequestDetail.state != null}">
             // Default ReservationRequestState
             $scope.state = {
                 code: "${reservationRequestDetail.state}",
@@ -115,7 +115,8 @@
             };
             // Schedule first automatic refresh
             $scope.setupRefresh = function() {
-                if ($scope.allocationState.code == 'NOT_ALLOCATED' || ($scope.roomState != null && $scope.roomState.code != 'STOPPED' && $scope.roomState.code != 'FAILED')) {
+                if ($scope.allocationState != null && $scope.allocationState.code == 'NOT_ALLOCATED' ||
+                        ($scope.roomState != null && $scope.roomState.code != 'STOPPED' && $scope.roomState.code != 'FAILED')) {
                     $timeout($scope.autoRefresh, $scope.refreshTimeout * 1000);
                 }
             };
