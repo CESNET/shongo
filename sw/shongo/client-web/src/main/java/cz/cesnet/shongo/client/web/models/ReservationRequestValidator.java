@@ -89,7 +89,7 @@ public class ReservationRequestValidator implements Validator
             AvailabilityCheckRequest availabilityCheckRequest = new AvailabilityCheckRequest(securityToken);
             availabilityCheckRequest.setSlot(reservationRequestModel.getSlot());
             if (!Strings.isNullOrEmpty(reservationRequestModel.getId())) {
-                availabilityCheckRequest.setReusedReservationRequestId(reservationRequestModel.getId());
+                availabilityCheckRequest.setIgnoredReservationRequestId(reservationRequestModel.getId());
             }
             switch (specificationType) {
                 case PERMANENT_ROOM:
