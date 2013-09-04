@@ -60,10 +60,11 @@
     </bean>
 
     <!-- reCaptcha -->
-    <bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaFactory" factory-method="newReCaptcha">
-        <constructor-arg value="6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej"/>
-        <constructor-arg value="6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr"/>
-        <constructor-arg value="false"/>
+    <bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaImpl">
+        <property name="publicKey" value="6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej"/>
+        <property name="privateKey" value="6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr"/>
+        <property name="includeNoscript" value="false"/>
+        <property name="recaptchaServer" value="https://www.google.com/recaptcha/api"/>
     </bean>
 
 </beans>
