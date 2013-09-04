@@ -33,7 +33,7 @@
     <ul>
         <c:if test="${createPermanentRoomCapacityUrl != null}">
             <li>
-                <c:choose>
+                <c:choose >
                     <c:when test="${reservationRequest.allocationState == 'ALLOCATED'}">
                         <a href="${createPermanentRoomCapacityUrl}" tabindex="1">
                             <spring:message code="views.wizard.reservationRequestDetail.createPermanentRoomCapacity"/>

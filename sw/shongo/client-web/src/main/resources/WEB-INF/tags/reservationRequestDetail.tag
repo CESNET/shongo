@@ -222,16 +222,16 @@
                 {{state.help}}
             </tag:help>
             <spring:message code="views.button.refresh" var="buttonRefresh"/>
-            <c:if test="${isActive}">
-                <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
-                    <span ng-class="{'icon-refresh': !refreshing, 'icon-repeat': refreshing}"></span>
-                </a>
-            </c:if>
             <span ng-show="roomId != null && roomState.started">
                 <spring:eval var="urlRoomManagement"
                              expression="T(cz.cesnet.shongo.client.web.ClientWebUrl).getRoomManagement(contextPath, '{{roomId}}')"/>
                 (<a href="${urlRoomManagement}"><spring:message code="views.list.action.manage"/></a>)
             </span>
+            <c:if test="${isActive}">
+                <a ng-click="refresh()" class="btn" href="" title="${buttonRefresh}" ng-disabled="refreshing">
+                    <span ng-class="{'icon-refresh': !refreshing, 'icon-repeat': refreshing}"></span>
+                </a>
+            </c:if>
         </dd>
     </div>
 

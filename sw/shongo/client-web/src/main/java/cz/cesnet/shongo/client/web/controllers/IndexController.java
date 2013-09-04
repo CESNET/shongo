@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.request.ExecutableListRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.rpc.ExecutableService;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.springframework.context.MessageSource;
@@ -139,6 +140,8 @@ public class IndexController
             item.put("licenseCount", licenseCount);
 
             item.put("usageCount", executableSummary.getRoomUsageCount());
+
+            item.put("isDeprecated", slot.getEnd().isBeforeNow());
 
             items.add(item);
         }

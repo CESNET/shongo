@@ -158,6 +158,7 @@ public class ReservationRequestController
             item.put("user", user.getFullName());
 
             Interval earliestSlot = reservationRequest.getEarliestSlot();
+            item.put("isDeprecated", earliestSlot.getEnd().isBeforeNow());
             if (earliestSlot != null) {
                 item.put("earliestSlot", formatter.formatIntervalMultiLine(earliestSlot));
             }

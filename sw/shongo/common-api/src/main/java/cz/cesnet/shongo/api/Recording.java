@@ -2,6 +2,7 @@ package cz.cesnet.shongo.api;
 
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 /**
  * Represents a recording multipoint device or endpoint recording server.
@@ -43,7 +44,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * Time of the end of the recording.
      */
-    private DateTime duration;
+    private Period duration;
 
     /**
      * @return {@link #name}
@@ -144,7 +145,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * @return {@link #duration}
      */
-    public DateTime getDuration()
+    public Period getDuration()
     {
         return duration;
     }
@@ -152,7 +153,7 @@ public class Recording extends IdentifiedComplexType
     /**
      * @param duration sets the {@link #duration}
      */
-    public void setDuration(DateTime duration)
+    public void setDuration(Period duration)
     {
         this.duration = duration;
     }
@@ -189,7 +190,7 @@ public class Recording extends IdentifiedComplexType
         downloadableUrl = dataMap.getString(DOWNLOADABLEURL);
         editableUrl = dataMap.getString(EDITABLEURL);
         beginDate = dataMap.getDateTime(BEGINDATE);
-        duration = dataMap.getDateTime(DURATION);
+        duration = dataMap.getPeriod(DURATION);
     }
 
 

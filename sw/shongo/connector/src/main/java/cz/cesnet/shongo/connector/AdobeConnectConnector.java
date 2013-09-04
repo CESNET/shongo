@@ -22,6 +22,8 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,7 +214,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             logger.debug("{} meeting (sco-ID: {}) session.", (state ? "Starting" : "Ending"), roomId);
             request("meeting-roommanager-endmeeting-update", endMeetingAttributes);
         } catch (CommandException exception) {
-            logger.warn("Failed to end/start meeting. Probably just AC error, everything should be working properly.", exception);
+            logger.warn("Failed to end/start meeting. Probably just AC error, everything should be working properly.",
+                    exception);
         }
     }
 
@@ -384,9 +387,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         recording.setDescription(description == null ? "" : description);
 
         recording.setBeginDate(DateTime.parse(response.getChild("sco").getChildText("date-begin")));
-        recording.setDuration(DateTime.parse(response.getChild("sco").getChildText("date-end")).minus(
-                recording.getBeginDate().getMillis()));
-
+        //TODO: Duration
+        recording.setDuration(new Interval(DateTime.parse(response.getChild("sco").getChildText("date-end")), recording.getBeginDate()).toPeriod());
         String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
                 .getChild("sco").getChildText("url-path");
 
@@ -424,8 +426,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             recording.setDescription(desciption == null ? "" : desciption);
 
             recording.setBeginDate(DateTime.parse(resultRecording.getChildText("date-begin")));
-            recording.setDuration(DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(
-                    resultRecording.getChildText("duration")));
+            recording.setDuration(new Period(DateTimeFormat.forPattern("HH:mm:ss.SSS").parseDateTime(
+                    resultRecording.getChildText("duration")).getMillis()));
 
             String baseUrl = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort()
                     + resultRecording.getChildText("url-path");
@@ -546,27 +548,36 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         RequestAttributeList attributes = new RequestAttributeList();
         attributes.add("sco-id", roomId);
 
-        Element response = request("sco-info", attributes);
-        Element sco = response.getChild("sco");
-
         Room room = new Room();
-        room.setId(roomId);
-        room.setName(sco.getChildText("name"));
-        room.setDescription(sco.getChildText("description"));
-        if (sco.getChildText("sco-tag") != null) {
-            room.setLicenseCount(Integer.valueOf(sco.getChildText("sco-tag")));
-        } else {
-            throw new CommandException("Licence count not set for room " + roomId + ".");
+        try {
+            Element response = request("sco-info", attributes);
+
+            Element sco = response.getChild("sco");
+
+            room.setId(roomId);
+            room.setName(sco.getChildText("name"));
+            room.setDescription(sco.getChildText("description"));
+            if (sco.getChildText("sco-tag") != null) {
+                room.setLicenseCount(Integer.valueOf(sco.getChildText("sco-tag")));
+            }
+            else {
+                throw new CommandException("Licence count not set for room " + roomId + ".");
+            }
+            room.addTechnology(Technology.ADOBE_CONNECT);
+
+            List<Alias> aliasList = new ArrayList<Alias>();
+            String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() +
+                    sco.getChildText("url-path");
+            aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
+
+            room.setAliases(aliasList);
+
         }
-        room.addTechnology(Technology.ADOBE_CONNECT);
-
-        List<Alias> aliasList = new ArrayList<Alias>();
-        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() +
-                sco.getChildText("url-path");
-        aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
-
-        room.setAliases(aliasList);
-
+        catch (RequestFailedCommandException ex) {
+            if (ex.getCode().equals("no-data")) {
+                throw new CommandException("Room (sco-id: " + roomId + ") does not exist.", ex);
+            }
+        }
         return room;
     }
 

@@ -105,7 +105,7 @@
         </tr>
         </thead>
         <tbody ng-controller="HtmlController">
-        <tr ng-repeat="reservationRequest in items">
+        <tr ng-repeat="reservationRequest in items"  ng-class="{'deprecated': reservationRequest.isDeprecated}" >
             <c:if test="${empty specificationType || specificationType.contains(',')}">
                 <td>{{reservationRequest.type}}</td>
             </c:if>

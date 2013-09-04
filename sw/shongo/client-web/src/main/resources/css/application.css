@@ -159,7 +159,8 @@ td.empty, span.empty {
     background-color: #DDF0FF !important;
 }
 .table tr.deprecated td {
-    background-color: #666666 !important;
+    background-color: #DDDDDD !important;
+    border-top-color: #f8f8f8;
 }
 .table thead a {
     color: black;
