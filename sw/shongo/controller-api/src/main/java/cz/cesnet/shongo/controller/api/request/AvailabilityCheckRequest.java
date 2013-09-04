@@ -30,7 +30,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
     /**
      * Identifier of reservation request whose reservations should be ignored.
      */
-    private String reusedReservationRequestId;
+    private String ignoredReservationRequestId;
 
     /**
      * Constructor.
@@ -98,25 +98,25 @@ public class AvailabilityCheckRequest extends AbstractRequest
     }
 
     /**
-     * @return {@link #reusedReservationRequestId}
+     * @return {@link #ignoredReservationRequestId}
      */
-    public String getReusedReservationRequestId()
+    public String getIgnoredReservationRequestId()
     {
-        return reusedReservationRequestId;
+        return ignoredReservationRequestId;
     }
 
     /**
-     * @param reusedReservationRequestId sets the {@link #reusedReservationRequestId}
+     * @param ignoredReservationRequestId sets the {@link #ignoredReservationRequestId}
      */
-    public void setReusedReservationRequestId(String reusedReservationRequestId)
+    public void setIgnoredReservationRequestId(String ignoredReservationRequestId)
     {
-        this.reusedReservationRequestId = reusedReservationRequestId;
+        this.ignoredReservationRequestId = ignoredReservationRequestId;
     }
 
     private static final String SLOT = "slot";
     private static final String SPECIFICATION = "specification";
     private static final String RESERVATION_REQUEST = "reservationRequestId";
-    private static final String REUSED_RESERVATION_REQUEST = "reusedReservationRequestId";
+    private static final String IGNORED_RESERVATION_REQUEST = "ignoredReservationRequestId";
 
     @Override
     public DataMap toData()
@@ -125,7 +125,7 @@ public class AvailabilityCheckRequest extends AbstractRequest
         dataMap.set(SLOT, slot);
         dataMap.set(SPECIFICATION, specification);
         dataMap.set(RESERVATION_REQUEST, reservationRequestId);
-        dataMap.set(REUSED_RESERVATION_REQUEST, reusedReservationRequestId);
+        dataMap.set(IGNORED_RESERVATION_REQUEST, ignoredReservationRequestId);
         return dataMap;
     }
 
@@ -136,6 +136,6 @@ public class AvailabilityCheckRequest extends AbstractRequest
         slot = dataMap.getInterval(SLOT);
         specification = dataMap.getComplexType(SPECIFICATION, Specification.class);
         reservationRequestId = dataMap.getString(RESERVATION_REQUEST);
-        reusedReservationRequestId = dataMap.getString(REUSED_RESERVATION_REQUEST);
+        ignoredReservationRequestId = dataMap.getString(IGNORED_RESERVATION_REQUEST);
     }
 }

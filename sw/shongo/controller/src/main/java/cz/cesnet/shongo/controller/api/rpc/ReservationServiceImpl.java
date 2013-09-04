@@ -6,6 +6,12 @@ import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.api.ClassHelper;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AliasReservation;
+import cz.cesnet.shongo.controller.api.AliasSetSpecification;
+import cz.cesnet.shongo.controller.api.AliasSpecification;
+import cz.cesnet.shongo.controller.api.Reservation;
+import cz.cesnet.shongo.controller.api.RoomSpecification;
+import cz.cesnet.shongo.controller.api.Specification;
 import cz.cesnet.shongo.controller.api.request.AvailabilityCheckRequest;
 import cz.cesnet.shongo.controller.api.request.ListResponse;
 import cz.cesnet.shongo.controller.api.request.ReservationListRequest;
@@ -13,10 +19,9 @@ import cz.cesnet.shongo.controller.api.request.ReservationRequestListRequest;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
-import cz.cesnet.shongo.controller.request.Allocation;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.scheduler.AvailableReservation;
 import cz.cesnet.shongo.controller.scheduler.SchedulerContext;
@@ -93,20 +98,27 @@ public class ReservationServiceImpl extends AbstractServiceImpl
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         try {
             Interval interval = request.getSlot();
-            String reusedReservationRequestId = request.getReusedReservationRequestId();
+            String ignoredReservationRequestId = request.getIgnoredReservationRequestId();
             SchedulerContext schedulerContext = new SchedulerContext(null, entityManager, interval);
-            if (reusedReservationRequestId != null) {
+            if (ignoredReservationRequestId != null) {
                 EntityIdentifier entityId = EntityIdentifier.parse(
-                        reusedReservationRequestId, EntityType.RESERVATION_REQUEST);
-                cz.cesnet.shongo.controller.request.AbstractReservationRequest reusedReservationRequest =
+                        ignoredReservationRequestId, EntityType.RESERVATION_REQUEST);
+                cz.cesnet.shongo.controller.request.AbstractReservationRequest ignoredReservationRequest =
                         reservationRequestManager.get(entityId.getPersistenceId());
-                if (reusedReservationRequest.getReusement().equals(ReservationRequestReusement.NONE)) {
-                    throw new ControllerReportSet.ReservationRequestNotReusableException(reusedReservationRequestId);
-                }
                 for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
-                        reusedReservationRequest.getAllocation().getReservations()) {
+                        ignoredReservationRequest.getAllocation().getReservations()) {
                     if (reservation.getSlot().overlaps(interval)) {
                         schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REALLOCATABLE);
+                    }
+                }
+
+                for (cz.cesnet.shongo.controller.request.ReservationRequest childReservationRequest :
+                        ignoredReservationRequest.getAllocation().getChildReservationRequests()) {
+                    for (cz.cesnet.shongo.controller.reservation.Reservation reservation :
+                            childReservationRequest.getAllocation().getReservations()) {
+                        if (reservation.getSlot().overlaps(interval)) {
+                            schedulerContext.addAvailableReservation(reservation, AvailableReservation.Type.REALLOCATABLE);
+                        }
                     }
                 }
             }
