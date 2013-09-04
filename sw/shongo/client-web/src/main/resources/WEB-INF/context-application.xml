@@ -59,4 +59,11 @@
         <property name="defaultLocale" value="en"/>
     </bean>
 
+    <!-- reCaptcha -->
+    <bean id="reCaptcha" class="net.tanesha.recaptcha.ReCaptchaFactory" factory-method="newReCaptcha">
+        <constructor-arg value="6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej"/>
+        <constructor-arg value="6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr"/>
+        <constructor-arg value="false"/>
+    </bean>
+
 </beans>

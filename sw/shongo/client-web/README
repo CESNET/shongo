@@ -20,4 +20,11 @@ CONVERT KEY/CERT PAIR TO JAVE KEY STORE
 openssl pkcs12 -export -in server.crt -inkey server.key -out server.p12
 keytool -importkeystore -srckeystore server.p12 -srcstoretype PKCS12 -destkeystore server.keystore
 
+RECAPTCHA
+
+Admin URL:   https://www.google.com/recaptcha/admin/site?siteid=317126999
+Domain Name: shongo.cz                                 (This is a global key. It will work across all domains.)
+Public Key:  6LdX-eYSAAAAAMRJEuXs5zODFzMhKCd1mRvnasej  (Use this in the JavaScript code that is served to your users.)
+Private Key: 6LdX-eYSAAAAAPbnOJ4wHOJqp1YHwZX_WRnb5HIr  (Use this when communicating between your server and our server. Be sure to keep it a secret.)
+
 

@@ -5,14 +5,18 @@ import cz.cesnet.shongo.client.web.ClientWebConfiguration;
 import cz.cesnet.shongo.client.web.ClientWebUrl;
 import cz.cesnet.shongo.client.web.models.ErrorModel;
 import cz.cesnet.shongo.client.web.models.ReportModel;
+import net.tanesha.recaptcha.ReCaptcha;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.HttpSessionRequiredException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
@@ -40,6 +44,9 @@ public class ErrorController
     @Resource
     private ClientWebConfiguration configuration;
 
+    @Resource
+    private ReCaptcha reCaptcha;
+
     /**
      * Handle report problem.
      */
@@ -47,7 +54,7 @@ public class ErrorController
     public ModelAndView handleReport()
     {
         ModelAndView modelAndView = new ModelAndView("report");
-        modelAndView.addObject("report", new ReportModel());
+        modelAndView.addObject("report", new ReportModel(reCaptcha));
         return modelAndView;
     }
 
@@ -56,15 +63,18 @@ public class ErrorController
      */
     @RequestMapping(value = ClientWebUrl.REPORT_SUBMIT)
     public ModelAndView handleReportSubmit(
+            HttpServletRequest request,
+            SessionStatus sessionStatus,
             @ModelAttribute("report") ReportModel reportModel,
             BindingResult bindingResult)
     {
-        reportModel.validate(bindingResult);
+        reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
             return new ModelAndView("report");
         }
         else {
             sendReport(reportModel, null);
+            sessionStatus.setComplete();
 
             ModelAndView modelAndView = new ModelAndView("report");
             modelAndView.addObject("isSubmitted", true);
@@ -85,7 +95,7 @@ public class ErrorController
         Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Throwable throwable = (Throwable) request.getAttribute(RequestDispatcher.ERROR_EXCEPTION);
         ErrorModel errorModel = new ErrorModel(requestUri, statusCode, message, throwable, request);
-        return handleError(errorModel, configuration);
+        return handleError(errorModel, configuration, reCaptcha);
     }
 
     /**
@@ -93,11 +103,13 @@ public class ErrorController
      */
     @RequestMapping("/error/submit")
     public ModelAndView handleErrorReportSubmit(
+            HttpServletRequest request,
+            SessionStatus sessionStatus,
             @ModelAttribute("error") ErrorModel errorModel,
             @ModelAttribute("report") ReportModel reportModel,
             BindingResult bindingResult)
     {
-        reportModel.validate(bindingResult);
+        reportModel.validate(bindingResult, request);
         if (bindingResult.hasErrors()) {
             ModelAndView modelAndView = new ModelAndView("error");
             modelAndView.addObject("error", errorModel);
@@ -106,6 +118,7 @@ public class ErrorController
         }
         else {
             sendReport(reportModel, errorModel);
+            sessionStatus.setComplete();
 
             ModelAndView modelAndView = new ModelAndView("report");
             modelAndView.addObject("isSubmitted", true);
@@ -130,7 +143,7 @@ public class ErrorController
     {
         Exception exception = (Exception) request.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
         ErrorModel errorModel = new ErrorModel(request.getRequestURI(), null, "Login error", exception, request);
-        return handleError(errorModel, configuration);
+        return handleError(errorModel, configuration, reCaptcha);
     }
 
     /**
@@ -149,6 +162,16 @@ public class ErrorController
     public String handleTestError()
     {
         throw new RuntimeException("Test error");
+    }
+
+    /**
+     * Handle missing session attributes.
+     */
+    @ExceptionHandler(HttpSessionRequiredException.class)
+    public Object handleExceptions(Exception exception)
+    {
+        logger.warn("Redirecting to " + ClientWebUrl.HOME + ".", exception);
+        return "redirect:" + ClientWebUrl.HOME;
     }
 
     /**
@@ -177,11 +200,14 @@ public class ErrorController
     /**
      * Handle error.
      *
+     *
      * @param errorModel
      * @param configuration
+     * @param reCaptcha
      * @return error {@link ModelAndView}
      */
-    public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration)
+    public static ModelAndView handleError(ErrorModel errorModel, ClientWebConfiguration configuration,
+            ReCaptcha reCaptcha)
     {
         String emailSubject = errorModel.getEmailSubject();
         logger.error(emailSubject, errorModel.getThrowable());
@@ -189,7 +215,7 @@ public class ErrorController
 
         ModelAndView modelAndView = new ModelAndView("error");
         modelAndView.addObject("error", errorModel);
-        modelAndView.addObject("report", new ReportModel());
+        modelAndView.addObject("report", new ReportModel(reCaptcha));
         return modelAndView;
     }
 
