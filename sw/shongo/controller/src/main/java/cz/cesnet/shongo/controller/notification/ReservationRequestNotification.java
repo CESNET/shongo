@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,12 +23,21 @@ public class ReservationRequestNotification extends ConfigurableNotification
     /**
      * Available {@link java.util.Locale}s for {@link ReservationNotification}.
      */
-    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
-    }};
+    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>()
+    {{
+            add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
+            add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
+        }};
 
-    private cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequest = null;
+    private String id;
+
+    private String url;
+
+    private DateTime updatedAt;
+
+    private String updatedBy;
+
+    private String description;
 
     /**
      * List of {@link Notification}s which are part of the {@link ReservationNotification}.
@@ -40,22 +51,51 @@ public class ReservationRequestNotification extends ConfigurableNotification
      * @param authorizationManager
      */
     public ReservationRequestNotification(AbstractReservationRequest reservationRequest,
-            AuthorizationManager authorizationManager)
+            AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
     {
         super(authorizationManager.getUserSettingsProvider());
 
-        this.reservationRequest = reservationRequest.toApi(false);
-
         EntityIdentifier reservationRequestId = new EntityIdentifier(reservationRequest);
+        this.id = reservationRequestId.toId();
+        this.url = configuration.getReservationRequestUrl(this.id);
+        this.updatedAt = reservationRequest.getUpdatedAt();
+        this.updatedBy = reservationRequest.getUpdatedBy();
+        this.description = reservationRequest.getDescription();
+
         for (String userId : authorizationManager.getUserIdsWithRole(reservationRequestId, Role.OWNER)) {
             addRecipient(authorizationManager.getUserInformation(userId), false);
         }
     }
 
+    public String getId()
+    {
+        return id;
+    }
+
+    public String getUrl()
+    {
+        return url;
+    }
+
+    public DateTime getUpdatedAt()
+    {
+        return updatedAt;
+    }
+
+    public String getUpdatedBy()
+    {
+        return updatedBy;
+    }
+
+    public String getDescription()
+    {
+        return description;
+    }
+
     /**
      * @param notification to be added to the {@link #notifications}
      */
-    public void addNotification(ReservationNotification notification)
+    public void addNotification(Notification notification)
     {
         notifications.add(notification);
     }
@@ -67,27 +107,58 @@ public class ReservationRequestNotification extends ConfigurableNotification
     }
 
     @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+    protected ConfigurableNotification.Configuration createConfiguration(Locale locale, DateTimeZone timeZone,
+            boolean administrator)
     {
-        StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append("Changes in reservation request ");
-        nameBuilder.append(reservationRequest.getId());
+        return new Configuration(locale, timeZone, administrator);
+    }
 
-        StringBuilder contentBuilder = new StringBuilder();
+    @Override
+    protected NotificationMessage renderMessageForConfiguration(ConfigurableNotification.Configuration configuration)
+    {
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
+
+        StringBuilder titleBuilder = new StringBuilder();
+        titleBuilder.append(renderContext.message("reservationRequest"));
+        titleBuilder.append(" ");
+        titleBuilder.append(id);
+
+        NotificationMessage message = renderMessageFromTemplate(
+                renderContext, titleBuilder.toString(), "reservation-request.ftl");
         for (Notification notification : notifications) {
-            NotificationMessage notificationMessage;
+            NotificationMessage childMessage;
             if (notification instanceof ConfigurableNotification) {
                 ConfigurableNotification configurableNotification =
                         (ConfigurableNotification) notification;
-                notificationMessage = configurableNotification.renderMessageForConfiguration(configuration);
+                childMessage = configurableNotification.renderMessageForConfiguration(configuration);
             }
             else {
                 throw new TodoImplementException(notification.getClass());
             }
-            contentBuilder.append(notificationMessage.getTitle());
-            contentBuilder.append("\n");
-            contentBuilder.append(notificationMessage.getContent());
+            message.appendChildMessage(childMessage);
         }
-        return new NotificationMessage(nameBuilder.toString(), contentBuilder.toString());
+        return message;
+    }
+
+    /**
+     * {@link Configuration} for {@link ReservationRequestNotification}.
+     * <p/>
+     * We need a new class of {@link ConfigurableNotification.Configuration} because we want
+     * the child {@link ReservationNotification}s to render in a different way when they are rendered from this class
+     * (rendered content is cached by equal {@link ConfigurableNotification.Configuration}s).
+     */
+    public static class Configuration extends ConfigurableNotification.Configuration
+    {
+        /**
+         * Constructor.
+         *
+         * @param locale        sets the {@link #locale}
+         * @param timeZone      sets the {@link #timeZone}
+         * @param administrator sets the {@link #administrator}
+         */
+        public Configuration(Locale locale, DateTimeZone timeZone, boolean administrator)
+        {
+            super(locale, timeZone, administrator);
+        }
     }
 }

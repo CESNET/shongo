@@ -42,6 +42,13 @@ public abstract class ConfigurableNotification extends AbstractNotification
 
     /**
      * Constructor.
+     */
+    protected ConfigurableNotification()
+    {
+    }
+
+    /**
+     * Constructor.
      *
      * @param userSettingsProvider sets the {@link #userSettingsProvider}
      */
@@ -54,6 +61,17 @@ public abstract class ConfigurableNotification extends AbstractNotification
      * @return list of available {@link Locale}s for this {@link ConfigurableNotification}
      */
     protected abstract List<Locale> getAvailableLocals();
+
+    /**
+     * @param locale
+     * @param timeZone
+     * @param administrator
+     * @return new instance of {@link Configuration}
+     */
+    protected Configuration createConfiguration(Locale locale, DateTimeZone timeZone, boolean administrator)
+    {
+        return new Configuration(locale, timeZone, administrator);
+    }
 
     /**
      * @param recipient     who should be notified by the {@link ConfigurableNotification}
@@ -88,11 +106,11 @@ public abstract class ConfigurableNotification extends AbstractNotification
         List<Configuration> configurations = new LinkedList<Configuration>();
         if (locale == null) {
             for (Locale defaultLocale : getAvailableLocals()) {
-                configurations.add(new Configuration(defaultLocale, timeZone, administrator));
+                configurations.add(createConfiguration(defaultLocale, timeZone, administrator));
             }
         }
         else {
-            configurations.add(new Configuration(locale, timeZone, administrator));
+            configurations.add(createConfiguration(locale, timeZone, administrator));
         }
 
         // Add configurations for the recipient
@@ -189,9 +207,25 @@ public abstract class ConfigurableNotification extends AbstractNotification
          */
         public ConfiguredRenderContext(Configuration configuration, String messageSourceFileName)
         {
-            super(new MessageSource(messageSourceFileName, configuration.getLocale()));
+            super(new MessageSource("notification/" + messageSourceFileName, configuration.getLocale()));
 
             this.configuration = configuration;
+        }
+
+        /**
+         * @return {@link #configuration}
+         */
+        public Configuration getConfiguration()
+        {
+            return configuration;
+        }
+
+        /**
+         * @return {@link #configuration#isAdministator()}
+         */
+        public boolean isAdministrator()
+        {
+            return configuration.isAdministrator();
         }
 
         @Override
@@ -205,7 +239,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
      * Represents a single configuration for rendering of a {@link ConfigurableNotification}.
      * {@link ConfigurableNotification} can be rendered for one or more {@link Configuration}s for each recipient.
      */
-    public class Configuration
+    public static class Configuration
     {
         /**
          * Specifies locale (e.g., for language).

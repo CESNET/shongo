@@ -67,11 +67,12 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setSpecification(
                 new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));
         String reservationRequestId = allocate(reservationRequest);
-        checkAllocated(reservationRequestId);
 
-        if (true) {
+        /*if (true) {
             return;
-        }
+        }*/
+
+        checkAllocated(reservationRequestId);
 
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
@@ -82,7 +83,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted/new/deleted
+        // 4x admin: new, deleted, new, deleted
+        // 3x user: changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(7, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -230,8 +233,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         {
             for (PersonInformation recipient : notification.getRecipients()) {
                 NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
-                logger.debug("Notification '{}' for {}...\n{}", new Object[]{recipientMessage.getTitle(),
-                        recipient, recipientMessage.getContent()
+                logger.debug("Notification for {}...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
+                        recipient, recipientMessage.getTitle(), recipientMessage.getContent()
                 });
             }
             notificationCount++;

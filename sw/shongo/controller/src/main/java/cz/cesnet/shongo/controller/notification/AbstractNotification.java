@@ -93,7 +93,8 @@ public abstract class AbstractNotification implements Notification
      * @param fileName      message template filename
      * @return rendered {@link NotificationMessage}
      */
-    protected final NotificationMessage renderMessageFromTemplate(RenderContext renderContext, String title, String fileName)
+    protected final NotificationMessage renderMessageFromTemplate(RenderContext renderContext, String title,
+            String fileName)
     {
         Map<String, Object> templateParameters = new HashMap<String, Object>();
         templateParameters.put("context", renderContext);
@@ -200,6 +201,50 @@ public abstract class AbstractNotification implements Notification
         }
 
         /**
+         * @param width
+         * @param value
+         * @return value with given {@code width} (aligned right)
+         */
+        public String width(int width, String value)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(value);
+            for (int length = stringBuilder.length(); length < width; length++) {
+                stringBuilder.insert(0, " ");
+            }
+            return stringBuilder.toString();
+        }
+
+        /**
+         * @param width
+         * @return space with given {@code width}
+         */
+        public String width(int width)
+        {
+            return width(width, "");
+        }
+
+        /**
+         * @param size
+         * @return indent given {@code text} by given {@code size}
+         */
+        public String indent(int size, String text)
+        {
+            String indent = width(size);
+            return indent + text.replaceAll("\n", "\n" + indent);
+        }
+
+        /**
+         * @param size
+         * @return indent given {@code text} by given {@code size}
+         */
+        public String indentNextLines(int size, String text)
+        {
+            String indent = width(size);
+            return text.replaceAll("\n", "\n" + indent);
+        }
+
+        /**
          * @param code
          * @return message for given {@code code}
          */
@@ -209,6 +254,21 @@ public abstract class AbstractNotification implements Notification
                 throw new IllegalStateException("MessageSource is not set.");
             }
             return messageSource.getMessage(code);
+        }
+
+        /**
+         * @param width
+         * @param code
+         * @return message for given {@code code}
+         */
+        public String message(int width, String code)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(message(code));
+            for (int length = stringBuilder.length(); length < width; length++) {
+                stringBuilder.insert(0, " ");
+            }
+            return stringBuilder.toString();
         }
 
         /**
@@ -228,23 +288,44 @@ public abstract class AbstractNotification implements Notification
         }
 
         /**
-         * @param dateTime to be formatted as UTC date/time
+         * @param dateTime to be formatted as time
          * @param timeZone to be used
          * @return {@code dateTime} formatted to string
          */
-        public String formatDateTime(DateTime dateTime, DateTimeZone timeZone)
+        public String formatTime(DateTime dateTime, DateTimeZone timeZone)
+        {
+            return DateTimeFormat.forPattern("HH:mm").withZone(timeZone).print(dateTime);
+        }
+
+        /**
+         * @param dateTime to be formatted as date/time
+         * @param timeZone to be used
+         * @return {@code dateTime} formatted to string
+         */
+        public String formatDateTimeWithoutZone(DateTime dateTime, DateTimeZone timeZone)
         {
             if (dateTime.equals(Temporal.DATETIME_INFINITY_START) || dateTime.equals(Temporal.DATETIME_INFINITY_END)) {
                 return "(infinity)";
             }
             else {
-                String dateTimeString = DateTimeFormat.forPattern("d.M.yyyy HH:mm").withZone(timeZone).print(dateTime);
-                return String.format("%s (%s)", dateTimeString, formatTimeZone(timeZone, dateTime));
+                return DateTimeFormat.forPattern("d.M.yyyy HH:mm").withZone(timeZone).print(dateTime);
             }
         }
 
         /**
-         * @param dateTime   to be formatted as UTC date/time
+         * @param dateTime to be formatted as date/time
+         * @param timeZone to be used
+         * @return {@code dateTime} formatted to string
+         */
+        public String formatDateTime(DateTime dateTime, DateTimeZone timeZone)
+        {
+            return String.format("%s (%s)",
+                    formatDateTimeWithoutZone(dateTime, timeZone),
+                    formatTimeZone(timeZone, dateTime));
+        }
+
+        /**
+         * @param dateTime   to be formatted as date/time
          * @param timeZoneId to be used
          * @return {@code dateTime} formatted to string
          */
@@ -255,7 +336,7 @@ public abstract class AbstractNotification implements Notification
         }
 
         /**
-         * @param interval   whose start to be formatted as UTC date/time
+         * @param interval   whose start to be formatted as date/time
          * @param timeZoneId to be used
          * @return {@code interval} start formatted to string
          */
@@ -271,6 +352,49 @@ public abstract class AbstractNotification implements Notification
         public String formatDateTime(DateTime dateTime)
         {
             return formatDateTime(dateTime, getTimeZone());
+        }
+
+        /**
+         * @param interval to be formatted
+         * @param timeZone to be used
+         * @return {@code interval} formatted to string
+         */
+        public String formatInterval(Interval interval, DateTimeZone timeZone)
+        {
+            DateTime start = interval.getStart();
+            DateTime end = interval.getEnd();
+            if (start.withTimeAtStartOfDay().equals(end.withTimeAtStartOfDay())) {
+                return String.format("%s - %s (%s)",
+                        formatDateTimeWithoutZone(start, timeZone),
+                        formatTime(end, timeZone),
+                        formatTimeZone(timeZone, start));
+            }
+            else {
+                return String.format("%s - %s (%s)",
+                        formatDateTimeWithoutZone(start, timeZone),
+                        formatDateTimeWithoutZone(end, timeZone),
+                        formatTimeZone(timeZone, start));
+            }
+        }
+
+        /**
+         * @param interval   to be formatted
+         * @param timeZoneId to be used
+         * @return {@code interval} formatted to string
+         */
+        public String formatInterval(Interval interval, String timeZoneId)
+        {
+            DateTimeZone timeZone = DateTimeZone.forID(timeZoneId);
+            return formatInterval(interval, timeZone);
+        }
+
+        /**
+         * @param interval to be formatted
+         * @return {@code interval} formatted to string
+         */
+        public String formatInterval(Interval interval)
+        {
+            return formatInterval(interval, getTimeZone());
         }
 
         /**

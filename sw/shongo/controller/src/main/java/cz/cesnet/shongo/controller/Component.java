@@ -13,6 +13,19 @@ import javax.persistence.EntityManagerFactory;
 public abstract class Component
 {
     /**
+     * @see Configuration
+     */
+    private Configuration configuration;
+
+    /**
+     * @return {@link #configuration}
+     */
+    public Configuration getConfiguration()
+    {
+        return configuration;
+    }
+
+    /**
      * Initialize domain controller component.
      */
     public final void init()
@@ -27,6 +40,7 @@ public abstract class Component
      */
     public void init(Configuration configuration)
     {
+        this.configuration = configuration;
     }
 
     /**

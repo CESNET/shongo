@@ -1,14 +1,20 @@
 package cz.cesnet.shongo.controller.notification;
 
 
+import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
+import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.MessageSource;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import java.util.*;
 
@@ -27,56 +33,143 @@ public class ReservationNotification extends ConfigurableNotification
         add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
     }};
 
-    /**
-     * @see Type
-     */
     private Type type;
 
-    /**
-     * Parameters.
-     */
-    private String userId = null;
-    private cz.cesnet.shongo.controller.api.Reservation reservation = null;
-    private List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
-            new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
+    private String id;
+
+    private Set<String> owners = new HashSet<String>();
+
+    private Interval slot;
+
+    private String reservationRequestUrl;
+
+    private String reservationRequestDescription;
+
+    private DateTime reservationRequestUpdatedAt;
+
+    private String reservationRequestUpdatedBy;
+
+    private Target target;
 
     /**
      * Constructor.
      *
      * @param type
      * @param reservation
+     * @param reservationRequest
+     * @param configuration
      */
-    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager)
+    public ReservationNotification(Type type, Reservation reservation, AbstractReservationRequest reservationRequest,
+            AuthorizationManager authorizationManager, cz.cesnet.shongo.controller.Configuration configuration)
     {
         super(authorizationManager.getUserSettingsProvider());
 
+        EntityIdentifier reservationId = new EntityIdentifier(reservation);
+
         this.type = type;
-        this.userId = reservation.getUserId();
+        this.id = reservationId.toId();
+        this.slot = reservation.getSlot();
+        this.target = Target.createInstance(reservation, authorizationManager.getEntityManager());
+        this.owners.addAll(authorizationManager.getUserIdsWithRole(reservationId, Role.OWNER));
+
+        if (reservationRequest != null) {
+            String reservationRequestId = EntityIdentifier.formatId(reservationRequest);
+            this.reservationRequestUrl = configuration.getReservationRequestUrl(reservationRequestId);
+            this.reservationRequestDescription = reservationRequest.getDescription();
+            this.reservationRequestUpdatedAt = reservationRequest.getUpdatedAt();
+            this.reservationRequestUpdatedBy = reservationRequest.getUpdatedBy();
+        }
 
         // Add administrators as recipients
         addAdministratorRecipientsForReservation(reservation);
+    }
 
-        try {
-            this.reservation = reservation.toApi(false);
+    public Type getType()
+    {
+        return type;
+    }
 
-            if (reservation.getClass().equals(Reservation.class)) {
-                Collection<AliasReservation> childAliasReservations =
-                        reservation.getChildReservations(AliasReservation.class);
-                if (childAliasReservations.size() > 0) {
-                    for (AliasReservation aliasReservation : childAliasReservations) {
-                        aliasReservations.add(aliasReservation.toApi(false));
-                    }
-                }
-            }
-            else if (reservation instanceof AliasReservation) {
-                AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasReservations.add(aliasReservation.toApi(false));
-            }
+    public String getId()
+    {
+        return id;
+    }
+
+    public Set<String> getOwners()
+    {
+        return owners;
+    }
+
+    public Interval getSlot()
+    {
+        return slot;
+    }
+
+    public Target getTarget()
+    {
+        return target;
+    }
+
+    public String getReservationRequestUrl()
+    {
+        return reservationRequestUrl;
+    }
+
+    public String getReservationRequestDescription()
+    {
+        return reservationRequestDescription;
+    }
+
+    public DateTime getReservationRequestUpdatedAt()
+    {
+        return reservationRequestUpdatedAt;
+    }
+
+    public String getReservationRequestUpdatedBy()
+    {
+        return reservationRequestUpdatedBy;
+    }
+
+    @Override
+    protected List<Locale> getAvailableLocals()
+    {
+        return AVAILABLE_LOCALES;
+    }
+
+    @Override
+    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
+    {
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification");
+        renderContext.addParameter("target", target);
+
+        StringBuilder nameBuilder = new StringBuilder();
+        if (configuration.isAdministrator()) {
+            nameBuilder.append("[");
+            nameBuilder.append(target.getResourceName());
+            nameBuilder.append("] [");
+            nameBuilder.append(renderContext.message("target.type." + target.getType()));
+            nameBuilder.append("] ");
+            nameBuilder.append(renderContext.message("reservation.type." + type));
+            nameBuilder.append(" ");
+            nameBuilder.append(renderContext.message("reservation"));
+            nameBuilder.append(" ");
+            nameBuilder.append(renderContext.formatInterval(slot));
         }
-        catch (Exception exception) {
-            Reporter.reportInternalError(Reporter.NOTIFICATION,
-                    "Failed to create reservation notification", exception);
+        else {
+            nameBuilder.append(renderContext.message("reservation.type." + type));
+            nameBuilder.append(" ");
+            nameBuilder.append(renderContext.message("reservation"));
+            nameBuilder.append(" - ");
+            nameBuilder.append(renderContext.message("target.type." + target.getType()));
         }
+
+        String templateFileName;
+        if (configuration instanceof ReservationRequestNotification.Configuration) {
+            templateFileName = "reservation-request-reservation.ftl";
+        }
+        else {
+            templateFileName = "reservation.ftl";
+        }
+        return renderMessageFromTemplate(renderContext, nameBuilder.toString(), templateFileName);
     }
 
     /**
@@ -84,7 +177,7 @@ public class ReservationNotification extends ConfigurableNotification
      *
      * @param reservation
      */
-    public void addAdministratorRecipientsForReservation(Reservation reservation)
+    private void addAdministratorRecipientsForReservation(Reservation reservation)
     {
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
@@ -109,49 +202,23 @@ public class ReservationNotification extends ConfigurableNotification
         }
     }
 
-    @Override
-    protected List<Locale> getAvailableLocals()
-    {
-        return AVAILABLE_LOCALES;
-    }
-
-    @Override
-    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
-    {
-        MessageSource messageSource = new MessageSource("notification/notification", configuration.getLocale());
-
-        StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append(messageSource.getMessage("reservation.type." + type));
-        nameBuilder.append(" ");
-        nameBuilder.append(messageSource.getMessage("reservation"));
-        nameBuilder.append(" ");
-        nameBuilder.append(reservation.getId());
-
-        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification/notification");
-        renderContext.addParameter("type", type);
-        renderContext.addParameter("userId", userId);
-        renderContext.addParameter("reservation", reservation);
-        renderContext.addParameter("aliasReservations", aliasReservations);
-        return renderMessageFromTemplate(renderContext, nameBuilder.toString(), "reservation-mail.ftl");
-    }
-
     /**
      * Type of the {@link ReservationNotification}.
      */
     public static enum Type
     {
         /**
-         * {@link ReservationNotification#reservation} is new.
+         * {@link ReservationNotification} for new reservation.
          */
         NEW,
 
         /**
-         * {@link ReservationNotification#reservation} has been modified.
+         * {@link ReservationNotification} for modified reservation.
          */
         MODIFIED,
 
         /**
-         * {@link ReservationNotification#reservation} has been deleted.
+         * {@link ReservationNotification} for deleted reservation.
          */
         DELETED
     }

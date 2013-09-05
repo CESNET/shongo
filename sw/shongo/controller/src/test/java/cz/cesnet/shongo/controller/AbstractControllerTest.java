@@ -163,13 +163,13 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         preprocessor = new Preprocessor();
         preprocessor.setCache(cache);
         preprocessor.setAuthorization(authorization);
-        preprocessor.init();
+        preprocessor.init(controller.getConfiguration());
 
         scheduler = new Scheduler();
         scheduler.setCache(cache);
         scheduler.setAuthorization(authorization);
         scheduler.setNotificationManager(controller.getNotificationManager());
-        scheduler.init();
+        scheduler.init(controller.getConfiguration());
 
         controller.addRpcService(new AuthorizationServiceImpl());
         controller.addRpcService(new ResourceServiceImpl(cache));

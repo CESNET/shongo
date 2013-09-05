@@ -7,6 +7,9 @@ package cz.cesnet.shongo.controller.notification;
  */
 public class NotificationMessage
 {
+    private static final String SEPARATOR =
+            "\n\n--------------------------------------------------------------------------------\n\n";
+
     private String title;
 
     private StringBuilder content = new StringBuilder();
@@ -37,8 +40,20 @@ public class NotificationMessage
             title = configurationMessage.getTitle();
         }
         if (content.length() > 0) {
+            content.append(SEPARATOR);
+        }
+        content.append(configurationMessage.getContent());
+    }
+
+    public void appendChildMessage(NotificationMessage configurationMessage)
+    {
+        if (content.length() > 0) {
             content.append("\n\n");
         }
+        content.append(configurationMessage.getTitle());
+        content.append("\n");
+        content.append(configurationMessage.getTitle().replaceAll(".", "-"));
+        content.append("\n");
         content.append(configurationMessage.getContent());
     }
 }

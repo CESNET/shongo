@@ -30,11 +30,6 @@ import java.util.*;
 public class Reservation extends PersistentObject implements Reportable
 {
     /**
-     * User-id who created/modified/deleted reservation request for which the reservation is allocated.
-     */
-    private String userId;
-
-    /**
      * {@link Allocation} for which the {@link Reservation} is allocated.
      */
     private Allocation allocation;
@@ -63,23 +58,6 @@ public class Reservation extends PersistentObject implements Reportable
      * {@link Executable} which is allocated for execution by the {@link Reservation}.
      */
     private Executable executable;
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
 
     /**
      * @return {@link #allocation#getReservationRequest()}

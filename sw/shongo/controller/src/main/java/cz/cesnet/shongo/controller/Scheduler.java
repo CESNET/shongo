@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.notification.AllocationFailedNotification;
 import cz.cesnet.shongo.controller.notification.Notification;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.notification.ReservationRequestNotification;
@@ -71,6 +72,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     @Override
     public void init(Configuration configuration)
     {
+        this.
         checkDependency(cache, Cache.class);
         super.init(configuration);
     }
@@ -199,6 +201,12 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                         SchedulerReport report = schedulerException.getTopReport();
                         Reporter.reportAllocationFailed(reservationRequest,
                                 report.getMessageRecursive(Report.MessageType.DOMAIN_ADMIN));
+
+                        authorizationManager.beginTransaction(authorization);
+                        notifications.addNotificationWithReservationRequest(
+                                new AllocationFailedNotification(reservationRequest),
+                                reservationRequest, authorizationManager);
+                        authorizationManager.commitTransaction();
                     }
                     else {
                         // Report allocation failure internal error
@@ -303,7 +311,6 @@ public class Scheduler extends Component implements Component.AuthorizationAware
 
         // Allocate reservation
         Reservation allocatedReservation = reservationTask.perform();
-        allocatedReservation.setUserId(reservationRequest.getUpdatedBy());
 
         // Create allocated reservation
         boolean isNew = !allocatedReservation.isPersisted();
@@ -385,7 +392,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
     /**
      * Set of {@link Notification} for execution.
      */
-    private static class NotificationSet
+    private class NotificationSet
     {
         /**
          * List of {@link Notification}.
@@ -416,43 +423,55 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         public void addNotification(Reservation reservation, ReservationNotification.Type type,
                 AuthorizationManager authorizationManager)
         {
-            // Create reservation notification
-            ReservationNotification notification = new ReservationNotification(type, reservation, authorizationManager);
-
-            // Get reservation request notification
-            ReservationRequestNotification reservationRequestNotification = null;
+            // Get reservation request for reservation
             Allocation allocation = reservation.getAllocation();
             AbstractReservationRequest abstractReservationRequest =
                     (allocation != null ? allocation.getReservationRequest() : null);
+
+            // Create reservation notification
+            ReservationNotification notification = new ReservationNotification(
+                    type, reservation, abstractReservationRequest, authorizationManager, getConfiguration());
+
+            // Get reservation request notification
             if (abstractReservationRequest != null) {
-                // Get top reservation request
-                if (abstractReservationRequest instanceof ReservationRequest) {
-                    ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-                    Allocation parentAllocation = reservationRequest.getParentAllocation();
-                    if (parentAllocation != null) {
-                        AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
-                        if (parentReservationRequest != null) {
-                            abstractReservationRequest = parentReservationRequest;
-                        }
+                // Add reservation notification as normal and add it also to reservation request notification
+                addNotificationWithReservationRequest(notification, abstractReservationRequest, authorizationManager);
+            }
+            else {
+                // Add reservation notification as normal
+                addNotification(notification);
+            }
+        }
+
+        private void addNotificationWithReservationRequest(Notification notification,
+                AbstractReservationRequest abstractReservationRequest, AuthorizationManager authorizationManager)
+        {
+            addNotification(notification);
+
+            // Get top reservation request
+            if (abstractReservationRequest instanceof ReservationRequest) {
+                ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+                Allocation parentAllocation = reservationRequest.getParentAllocation();
+                if (parentAllocation != null) {
+                    AbstractReservationRequest parentReservationRequest = parentAllocation.getReservationRequest();
+                    if (parentReservationRequest != null) {
+                        abstractReservationRequest = parentReservationRequest;
                     }
                 }
-
-                // Create or reuse reservation request notification
-                reservationRequestNotification =
-                        reservationRequestNotifications.get(abstractReservationRequest);
-                if (reservationRequestNotification == null) {
-                    reservationRequestNotification = new ReservationRequestNotification(
-                            abstractReservationRequest, authorizationManager);
-                    notifications.add(reservationRequestNotification);
-                    reservationRequestNotifications.put(abstractReservationRequest, reservationRequestNotification);
-                }
-
-                // Add reservation notification to reservation request notification
-                reservationRequestNotification.addNotification(notification);
             }
 
-            // Add reservation notification as normal
-            addNotification(notification);
+            // Create or reuse reservation request notification
+            ReservationRequestNotification reservationRequestNotification =
+                    reservationRequestNotifications.get(abstractReservationRequest);
+            if (reservationRequestNotification == null) {
+                reservationRequestNotification = new ReservationRequestNotification(
+                        abstractReservationRequest, authorizationManager, getConfiguration());
+                notifications.add(reservationRequestNotification);
+                reservationRequestNotifications.put(abstractReservationRequest, reservationRequestNotification);
+            }
+
+            // Add reservation notification to reservation request notification
+            reservationRequestNotification.addNotification(notification);
         }
 
         /**

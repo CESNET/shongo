@@ -48,6 +48,14 @@ public class AuthorizationManager extends AbstractManager
     }
 
     /**
+     * @return {@link #entityManager}
+     */
+    public EntityManager getEntityManager()
+    {
+        return entityManager;
+    }
+
+    /**
      * @return {@link #userSettingsProvider}
      */
     public UserSettingsProvider getUserSettingsProvider()

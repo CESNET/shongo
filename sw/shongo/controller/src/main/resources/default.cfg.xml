@@ -50,6 +50,7 @@
             <!-- Expiration of user ACL by user-id -->
             <acl>PT5M</acl>
         </expiration>
+        <!--<administrator-user-id></administrator-user-id>-->
     </security>
 
     <!-- SSL configuration -->
@@ -93,7 +94,7 @@
     <reservation>
         <!-- Configuration of room reservations -->
         <room>
-            <!-- Maximum duration of a single resource reservation -->
+            <!-- Maximum duration of a room reservation -->
             <max-duration>P1W</max-duration>
         </room>
     </reservation>
@@ -107,6 +108,14 @@
         <!--<password></password>-->
         <subject-prefix></subject-prefix>
     </smtp>
+
+    <!-- Configuration of notifications -->
+    <notification>
+        <!--<reservation-request-url></reservation-request-url>-->
+        <reservation-request-url>
+            https://127.0.0.1:8182/reservation-request/${reservationRequestId}/detail
+        </reservation-request-url>
+    </notification>
 
     <!-- Configuration of domain administrators-->
     <administrator>
