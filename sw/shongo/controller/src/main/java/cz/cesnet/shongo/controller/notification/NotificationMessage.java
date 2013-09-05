@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.notification;
 
 /**
- * TODO:
+ * Rendered message from {@link Notification} for a single recipient.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class NotificationMessage
 {
-    private String name;
+    private String title;
 
     private StringBuilder content = new StringBuilder();
 
@@ -15,15 +15,15 @@ public class NotificationMessage
     {
     }
 
-    public NotificationMessage(String name, String content)
+    public NotificationMessage(String title, String content)
     {
-        this.name = name;
+        this.title = title;
         this.content.append(content);
     }
 
-    public String getName()
+    public String getTitle()
     {
-        return name;
+        return title;
     }
 
     public String getContent()
@@ -33,8 +33,8 @@ public class NotificationMessage
 
     public void appendMessage(NotificationMessage configurationMessage)
     {
-        if (name == null) {
-            name = configurationMessage.getName();
+        if (title == null) {
+            title = configurationMessage.getTitle();
         }
         if (content.length() > 0) {
             content.append("\n\n");

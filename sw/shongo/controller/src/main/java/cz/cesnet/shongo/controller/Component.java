@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 
 import javax.persistence.EntityManagerFactory;
 

@@ -14,7 +14,7 @@ import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.api.jade.*;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.SendLocalCommand;
@@ -139,7 +139,7 @@ public class JadeServiceTest extends AbstractControllerTest
     }
 
     /**
-     * {@link cz.cesnet.shongo.controller.notification.NotificationExecutor} for testing.
+     * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
      */
     private static class TestingNotificationExecutor extends NotificationExecutor
     {
@@ -169,7 +169,7 @@ public class JadeServiceTest extends AbstractControllerTest
             }
             PersonInformation firstRecipient = notification.getRecipients().iterator().next();
             NotificationMessage message = notification.getRecipientMessage(firstRecipient);
-            logger.debug("Notification '{}' for {}...\n{}", new Object[]{message.getName(),
+            logger.debug("Notification '{}' for {}...\n{}", new Object[]{message.getTitle(),
                     recipientString.toString(), message.getContent()
             });
             notificationCount++;

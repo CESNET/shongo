@@ -8,9 +8,8 @@ import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.Authorization;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
-import cz.cesnet.shongo.controller.notification.MessageNotification;
-import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.SimpleMessageNotification;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.TodoImplementException;
@@ -121,9 +120,9 @@ public class ServiceImpl implements Service
                 throw new TodoImplementException(targetType.toString());
         }
 
-        MessageNotification messageNotification = new MessageNotification(title, message);
-        messageNotification.addRecipients(recipients, false);
-        notificationManager.executeNotification(messageNotification);
+        SimpleMessageNotification simpleMessageNotification = new SimpleMessageNotification(title, message);
+        simpleMessageNotification.addRecipients(recipients);
+        notificationManager.executeNotification(simpleMessageNotification);
     }
 
     /**

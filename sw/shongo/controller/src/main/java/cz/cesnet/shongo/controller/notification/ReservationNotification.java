@@ -2,12 +2,9 @@ package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.controller.Reporter;
-import cz.cesnet.shongo.controller.Role;
 import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
-import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.MessageSource;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
@@ -16,14 +13,14 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import java.util.*;
 
 /**
- * {@link Notification} for a {@link Reservation}.
+ * {@link ConfigurableNotification} for a {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationNotification extends Notification
+public class ReservationNotification extends ConfigurableNotification
 {
     /**
-     * {@link Locale}s for users which doesn't have preferred {@link Locale}.
+     * Available {@link Locale}s for {@link ReservationNotification}.
      */
     public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
         add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
@@ -38,9 +35,9 @@ public class ReservationNotification extends Notification
     /**
      * Parameters.
      */
-    String userId = null;
-    cz.cesnet.shongo.controller.api.Reservation reservation = null;
-    List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
+    private String userId = null;
+    private cz.cesnet.shongo.controller.api.Reservation reservation = null;
+    private List<cz.cesnet.shongo.controller.api.AliasReservation> aliasReservations =
             new LinkedList<cz.cesnet.shongo.controller.api.AliasReservation>();
 
     /**
@@ -49,23 +46,15 @@ public class ReservationNotification extends Notification
      * @param type
      * @param reservation
      */
-    public ReservationNotification(Notification parentNotification, Type type, Reservation reservation, AuthorizationManager authorizationManager)
+    public ReservationNotification(Type type, Reservation reservation, AuthorizationManager authorizationManager)
     {
-        super(parentNotification, authorizationManager.getUserSettingsProvider());
+        super(authorizationManager.getUserSettingsProvider());
 
         this.type = type;
         this.userId = reservation.getUserId();
 
-        // When parent notification doesn't exist
-        if (parentNotification == null) {
-            // Add reservation owners as recipients
-            for (String userId : authorizationManager.getUserIdsWithRole(new EntityIdentifier(reservation), Role.OWNER)) {
-                addRecipient(authorizationManager.getUserInformation(userId), false);
-            }
-        }
-
         // Add administrators as recipients
-        addResourceAdministratorRecipients(reservation);
+        addAdministratorRecipientsForReservation(reservation);
 
         try {
             this.reservation = reservation.toApi(false);
@@ -95,7 +84,7 @@ public class ReservationNotification extends Notification
      *
      * @param reservation
      */
-    public void addResourceAdministratorRecipients(Reservation reservation)
+    public void addAdministratorRecipientsForReservation(Reservation reservation)
     {
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
@@ -116,7 +105,7 @@ public class ReservationNotification extends Notification
             }
         }
         for (Reservation childReservation : reservation.getChildReservations()) {
-            addResourceAdministratorRecipients(childReservation);
+            addAdministratorRecipientsForReservation(childReservation);
         }
     }
 
@@ -127,7 +116,7 @@ public class ReservationNotification extends Notification
     }
 
     @Override
-    protected NotificationMessage renderMessage(NotificationConfiguration configuration)
+    protected NotificationMessage renderMessageForConfiguration(Configuration configuration)
     {
         MessageSource messageSource = new MessageSource("notification/notification", configuration.getLocale());
 
@@ -138,12 +127,12 @@ public class ReservationNotification extends Notification
         nameBuilder.append(" ");
         nameBuilder.append(reservation.getId());
 
-        RenderContext renderContext = new RenderContext(configuration, "notification/notification");
+        RenderContext renderContext = new ConfiguredRenderContext(configuration, "notification/notification");
         renderContext.addParameter("type", type);
         renderContext.addParameter("userId", userId);
         renderContext.addParameter("reservation", reservation);
         renderContext.addParameter("aliasReservations", aliasReservations);
-        return renderMessageTemplate(renderContext, nameBuilder.toString(), "reservation-mail.ftl");
+        return renderMessageFromTemplate(renderContext, nameBuilder.toString(), "reservation-mail.ftl");
     }
 
     /**

@@ -1,14 +1,12 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * {@link NotificationExecutor} for sending mails.
@@ -53,14 +51,14 @@ public class EmailNotificationExecutor extends NotificationExecutor
             String recipientEmail = recipient.getPrimaryEmail();
             if (recipientEmail == null) {
                 logger.warn("Recipient '{}' for notification '{}' has empty email address.",
-                        recipient, recipientMessage.getName());
+                        recipient, recipientMessage.getTitle());
                 return;
             }
             try {
                 StringBuilder recipientMessageContent = new StringBuilder();
                 recipientMessageContent.append(EMAIL_HEADER);
                 recipientMessageContent.append(recipientMessage.getContent());
-                emailSender.sendEmail(recipientEmail, recipientMessage.getName(), recipientMessageContent.toString());
+                emailSender.sendEmail(recipientEmail, recipientMessage.getTitle(), recipientMessageContent.toString());
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);

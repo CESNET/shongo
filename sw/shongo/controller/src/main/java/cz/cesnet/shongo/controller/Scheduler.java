@@ -6,9 +6,9 @@ import cz.cesnet.shongo.controller.authorization.AuthorizationManager;
 import cz.cesnet.shongo.controller.cache.Cache;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.notification.ReservationNotification;
 import cz.cesnet.shongo.controller.notification.ReservationRequestNotification;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -416,6 +416,9 @@ public class Scheduler extends Component implements Component.AuthorizationAware
         public void addNotification(Reservation reservation, ReservationNotification.Type type,
                 AuthorizationManager authorizationManager)
         {
+            // Create reservation notification
+            ReservationNotification notification = new ReservationNotification(type, reservation, authorizationManager);
+
             // Get reservation request notification
             ReservationRequestNotification reservationRequestNotification = null;
             Allocation allocation = reservation.getAllocation();
@@ -433,6 +436,7 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                         }
                     }
                 }
+
                 // Create or reuse reservation request notification
                 reservationRequestNotification =
                         reservationRequestNotifications.get(abstractReservationRequest);
@@ -442,11 +446,10 @@ public class Scheduler extends Component implements Component.AuthorizationAware
                     notifications.add(reservationRequestNotification);
                     reservationRequestNotifications.put(abstractReservationRequest, reservationRequestNotification);
                 }
-            }
 
-            // Create reservation notification
-            ReservationNotification notification = new ReservationNotification(
-                    reservationRequestNotification, type, reservation, authorizationManager);
+                // Add reservation notification to reservation request notification
+                reservationRequestNotification.addNotification(notification);
+            }
 
             // Add reservation notification as normal
             addNotification(notification);
@@ -459,14 +462,14 @@ public class Scheduler extends Component implements Component.AuthorizationAware
          */
         public void executeNotifications(NotificationManager notificationManager)
         {
-            if(notifications.size() > 0){
-            if (notificationManager.hasExecutors()) {
-                logger.debug("Executing notifications...");
-                for (Notification notification : notifications) {
-                    notificationManager.executeNotification(notification);
+            if (notifications.size() > 0) {
+                if (notificationManager.hasExecutors()) {
+                    logger.debug("Executing notifications...");
+                    for (Notification notification : notifications) {
+                        notificationManager.executeNotification(notification);
+                    }
                 }
             }
-        }
         }
     }
 }
