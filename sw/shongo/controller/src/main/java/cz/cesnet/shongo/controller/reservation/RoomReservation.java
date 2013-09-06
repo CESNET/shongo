@@ -66,7 +66,7 @@ public class RoomReservation extends Reservation implements EndpointProvider
     /**
      * @return {@link #roomConfiguration}
      */
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL)
     public RoomConfiguration getRoomConfiguration()
     {
         return roomConfiguration;
@@ -112,5 +112,18 @@ public class RoomReservation extends Reservation implements EndpointProvider
         roomReservationApi.setResourceName(deviceResource.getName());
         roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
         super.toApi(api, admin);
+    }
+
+    @PreRemove
+    private void onDelete()
+    {
+        Executable executable = getExecutable();
+        if (executable instanceof RoomEndpoint) {
+            RoomEndpoint roomEndpoint = (RoomEndpoint) executable;
+            RoomConfiguration roomEndpointConfiguration = roomEndpoint.getRoomConfiguration();
+            if (roomConfiguration == roomEndpointConfiguration) {
+                roomConfiguration = null;
+            }
+        }
     }
 }

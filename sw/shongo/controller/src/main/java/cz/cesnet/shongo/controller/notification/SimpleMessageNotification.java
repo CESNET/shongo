@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.PersonInformation;
+
 /**
  * {@link Notification} for simple message.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class MessageNotification extends Notification
+public class SimpleMessageNotification extends AbstractNotification
 {
     /**
      * Message title.
@@ -23,21 +25,15 @@ public class MessageNotification extends Notification
      * @param name    sets the {@link #name}
      * @param message sets the {@link #message}
      */
-    public MessageNotification(String name, String message)
+    public SimpleMessageNotification(String name, String message)
     {
         this.name = name;
         this.message = message;
     }
 
     @Override
-    public String getName()
+    protected NotificationMessage renderMessageForRecipient(PersonInformation recipient)
     {
-        return name;
-    }
-
-    @Override
-    public String getContent()
-    {
-        return message;
+        return new NotificationMessage(name, message);
     }
 }

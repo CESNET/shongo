@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.common.UserPerson;
+import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +58,12 @@ public abstract class Authorization
     protected Set<String> adminAccessTokens = new HashSet<String>();
 
     /**
-     * Set of user-ids who can use the {@link UserSessionSettings#adminMode}.
+     * Set of user-ids who can use the {@link cz.cesnet.shongo.controller.settings.UserSessionSettings#adminMode}.
      */
     protected Set<String> adminModeEnabledUserIds = new HashSet<String>();
 
     /**
-     * {@link UserSessionSettings}s.
+     * {@link cz.cesnet.shongo.controller.settings.UserSessionSettings}s.
      */
     private Map<SecurityToken, UserSessionSettings> userSessionSettings = new HashMap<SecurityToken, UserSessionSettings>();
 

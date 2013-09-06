@@ -7,6 +7,8 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.notification.manager.NotificationExecutor;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,6 +57,7 @@ public class ReservationNotificationTest extends AbstractControllerTest
 
         UserSettings userSettings = getAuthorizationService().getUserSettings(SECURITY_TOKEN);
         userSettings.setLocale(UserSettings.LOCALE_CZECH);
+        userSettings.setTimeZone(DateTimeZone.forID("+05:00"));
         getAuthorizationService().updateUserSettings(SECURITY_TOKEN, userSettings);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -62,20 +65,28 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
-                new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(4000, new Technology[]{Technology.H323, Technology.SIP}));
         String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
+
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
+                reservationRequestId);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(3);
+        reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(5);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(6);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN_ROOT, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
+        // 4x admin: new, deleted, new, deleted
+        // 4x user: changes(failed), changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(8, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -114,7 +125,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getSentCount()); // new/deleted/new/deleted
+        // 4x admin: new, deleted, new, deleted
+        // 3x user: changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(7, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -160,7 +173,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
+        // 2x admin: new, deleted
+        // 2x user: changes (new), changes (deleted)
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**
@@ -197,42 +212,39 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getSentCount()); // new/deleted
+        // 2x admin: new, deleted
+        // 2x user: changes (new), changes (deleted)
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**
-     * {@link NotificationExecutor} for testing.
+     * {@link cz.cesnet.shongo.controller.notification.manager.NotificationExecutor} for testing.
      */
     private static class TestingNotificationExecutor extends NotificationExecutor
     {
         /**
-         * Number of already sent emails
+         * Number of executed notifications.
          */
-        private int sentCount = 0;
+        private int notificationCount = 0;
 
         /**
-         * @return {@link #sentCount}
+         * @return {@link #notificationCount}
          */
-        public int getSentCount()
+        public int getNotificationCount()
         {
-            return sentCount;
+            return notificationCount;
         }
 
         @Override
         public void executeNotification(Notification notification)
         {
-            StringBuilder recipientString = new StringBuilder();
             for (PersonInformation recipient : notification.getRecipients()) {
-                if (recipientString.length() > 0) {
-                    recipientString.append(", ");
-                }
-                recipientString.append(String.format("%s (%s)", recipient.getFullName(),
-                        recipient.getPrimaryEmail()));
+                NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
+                logger.debug("Notification for {}...\nSUBJECT:\n{}\n\nCONTENT:\n{}", new Object[]{
+                        recipient, recipientMessage.getTitle(), recipientMessage.getContent()
+                });
             }
-            logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
-                    recipientString.toString(), notification.getContent()
-            });
-            sentCount++;
+            notificationCount++;
         }
     }
 }

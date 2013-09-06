@@ -229,20 +229,20 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * Delete {@link Reservation}s which aren't allocated for any {@link ReservationRequest}.
-     *
-     * @return list of deleted {@link Reservation}
+     * @return list of {@link Reservation}s which should be deleted
      */
     public List<Reservation> getReservationsForDeletion()
     {
         return entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " LEFT JOIN reservation.allocation allocation"
-                        + " WHERE reservation.createdBy = :createdBy"
-                        + " AND reservation.parentReservation IS NULL"
-                        + " AND (allocation IS NULL)",
+                        + " WHERE reservation.parentReservation IS NULL"
+                        + " AND (allocation IS NULL OR"
+                        + "      allocation.state = :stateDeleted OR"
+                        + "      allocation.state = :stateWithoutReservations)",
                 Reservation.class)
-                .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
+                .setParameter("stateDeleted", Allocation.State.DELETED)
+                .setParameter("stateWithoutReservations", Allocation.State.ACTIVE_WITHOUT_RESERVATIONS)
                 .getResultList();
     }
 

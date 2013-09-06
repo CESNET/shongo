@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.authorization;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.UserInformation;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
@@ -12,6 +13,8 @@ import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.settings.UserSettings;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -30,6 +33,11 @@ public class AuthorizationManager extends AbstractManager
     private Transaction activeTransaction = null;
 
     /**
+     * @see UserSettingsProvider
+     */
+    private UserSettingsProvider userSettingsProvider = null;
+
+    /**
      * Constructor.
      *
      * @param entityManager sets the {@link #entityManager}
@@ -37,6 +45,25 @@ public class AuthorizationManager extends AbstractManager
     public AuthorizationManager(EntityManager entityManager)
     {
         super(entityManager);
+    }
+
+    /**
+     * @return {@link #entityManager}
+     */
+    public EntityManager getEntityManager()
+    {
+        return entityManager;
+    }
+
+    /**
+     * @return {@link #userSettingsProvider}
+     */
+    public UserSettingsProvider getUserSettingsProvider()
+    {
+        if (userSettingsProvider == null) {
+            userSettingsProvider = new UserSettingsProvider(entityManager);
+        }
+        return userSettingsProvider;
     }
 
     /**
@@ -156,30 +183,14 @@ public class AuthorizationManager extends AbstractManager
 
     /**
      * @param userId
-     * @return {@link UserSettings} for given {@code userId}
+     * @return {@link UserInformation} for given {@code userId}
      */
-    public UserSettings getUserSettings(String userId)
+    public UserInformation getUserInformation(String userId)
     {
-        return getUserSettings(userId, entityManager);
-    }
-
-    /**
-     * @param userId
-     * @param entityManager
-     * @return {@link UserSettings} for given {@code userId}
-     */
-    public static UserSettings getUserSettings(String userId, EntityManager entityManager)
-    {
-        try {
-            return entityManager.createQuery("SELECT userSettings FROM UserSettings userSettings"
-                    +" WHERE userSettings.userId = :userId",
-                    cz.cesnet.shongo.controller.authorization.UserSettings.class)
-                    .setParameter("userId", userId)
-                    .getSingleResult();
+        if (activeTransaction == null) {
+            throw new IllegalStateException("No transaction is active.");
         }
-        catch (NoResultException exception) {
-            return null;
-        }
+        return activeTransaction.authorization.getUserInformation(userId);
     }
 
     /**

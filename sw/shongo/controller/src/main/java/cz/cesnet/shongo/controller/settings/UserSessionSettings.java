@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.authorization;
+package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
 

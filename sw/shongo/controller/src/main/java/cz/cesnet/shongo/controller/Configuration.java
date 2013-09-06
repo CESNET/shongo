@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.authorization.UserSessionSettings;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.settings.UserSessionSettings;
 import org.apache.commons.configuration.CombinedConfiguration;
 import org.apache.commons.configuration.tree.NodeCombiner;
 import org.apache.commons.configuration.tree.UnionCombiner;
@@ -140,6 +140,11 @@ public class Configuration extends CombinedConfiguration
     public static final String ADMINISTRATOR_EMAIL = "administrator.email";
 
     /**
+     * Primary url of a reservation requests with "${reservationRequestId}" variable which can be used in notifications.
+     */
+    public static final String NOTIFICATION_RESERVATION_REQUEST_URL = "notification.reservation-request-url";
+
+    /**
      * Constructor.
      */
     public Configuration()
@@ -172,5 +177,18 @@ public class Configuration extends CombinedConfiguration
             return null;
         }
         return Period.parse(value);
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return {@link #NOTIFICATION_RESERVATION_REQUEST_URL} for given {@code reservationRequestId}
+     */
+    public String getReservationRequestUrl(String reservationRequestId)
+    {
+        String reservationRequestUrl = getString(NOTIFICATION_RESERVATION_REQUEST_URL);
+        if (reservationRequestUrl == null || reservationRequestUrl.isEmpty()) {
+            return null;
+        }
+        return reservationRequestUrl.replace("${reservationRequestId}", reservationRequestId);
     }
 }

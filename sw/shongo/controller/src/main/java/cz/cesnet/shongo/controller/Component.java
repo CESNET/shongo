@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.authorization.Authorization;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
+import cz.cesnet.shongo.controller.notification.manager.NotificationManager;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -12,6 +12,19 @@ import javax.persistence.EntityManagerFactory;
  */
 public abstract class Component
 {
+    /**
+     * @see Configuration
+     */
+    private Configuration configuration;
+
+    /**
+     * @return {@link #configuration}
+     */
+    public Configuration getConfiguration()
+    {
+        return configuration;
+    }
+
     /**
      * Initialize domain controller component.
      */
@@ -27,6 +40,7 @@ public abstract class Component
      */
     public void init(Configuration configuration)
     {
+        this.configuration = configuration;
     }
 
     /**

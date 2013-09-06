@@ -49,11 +49,11 @@
         </div>
 
         <div class="control-group">
-            <form:label class="control-label" path="dateTimeZone">
-                <spring:message code="views.userSettings.dateTimeZone"/>:
+            <form:label class="control-label" path="timeZone">
+                <spring:message code="views.userSettings.timeZone"/>:
             </form:label>
             <div class="controls">
-                <form:select path="dateTimeZone" cssStyle="width: 500px;" tabindex="${tabIndex}">
+                <form:select path="timeZone" cssStyle="width: 500px;" tabindex="${tabIndex}">
                     <form:option value=""><spring:message code="views.userSettings.default"/></form:option>
                     <c:forEach items="${timeZones}" var="timeZone">
                         <form:option value="${timeZone.key}">${timeZone.value}</form:option>

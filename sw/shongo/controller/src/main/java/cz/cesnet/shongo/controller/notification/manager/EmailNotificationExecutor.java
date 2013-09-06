@@ -1,14 +1,12 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.EmailSender;
 import cz.cesnet.shongo.controller.Reporter;
+import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.NotificationMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * {@link NotificationExecutor} for sending mails.
@@ -48,26 +46,19 @@ public class EmailNotificationExecutor extends NotificationExecutor
         if (!emailSender.isInitialized()) {
             return;
         }
-        StringBuilder text = new StringBuilder();
-        text.append(EMAIL_HEADER);
-        text.append(notification.getContent());
-
-        Map<Notification.RecipientGroup, Set<PersonInformation>> recipients =  notification.getRecipientsByGroup();
-        for (Notification.RecipientGroup recipientGroup : recipients.keySet()) {
-            Set<String> recipientEmails = new HashSet<String>();
-            for (PersonInformation recipient : recipients.get(recipientGroup)) {
-                String email = recipient.getPrimaryEmail();
-                if (email != null) {
-                    recipientEmails.add(email);
-                }
-            }
-            if (recipients.size() == 0) {
-                logger.warn("Notification '{}' doesn't have any recipients with email address.", notification.getName());
+        for (PersonInformation recipient : notification.getRecipients()) {
+            NotificationMessage recipientMessage = notification.getRecipientMessage(recipient);
+            String recipientEmail = recipient.getPrimaryEmail();
+            if (recipientEmail == null) {
+                logger.warn("Recipient '{}' for notification '{}' has empty email address.",
+                        recipient, recipientMessage.getTitle());
                 return;
             }
-
             try {
-                emailSender.sendEmail(recipientEmails, notification.getName(), text.toString());
+                StringBuilder recipientMessageContent = new StringBuilder();
+                recipientMessageContent.append(EMAIL_HEADER);
+                recipientMessageContent.append(recipientMessage.getContent());
+                emailSender.sendEmail(recipientEmail, recipientMessage.getTitle(), recipientMessageContent.toString());
             }
             catch (Exception exception) {
                 Reporter.reportInternalError(Reporter.NOTIFICATION, "Failed to send email", exception);

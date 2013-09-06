@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.authorization;
+package cz.cesnet.shongo.controller.settings;
 
 import cz.cesnet.shongo.PersistentObject;
 import org.hibernate.annotations.Type;
@@ -31,7 +31,7 @@ public class UserSettings extends PersistentObject
     /**
      * {@link DateTimeZone} of the user.
      */
-    private DateTimeZone dateTimeZone;
+    private DateTimeZone timeZone;
 
     /**
      * @return {@link #userId}
@@ -70,21 +70,21 @@ public class UserSettings extends PersistentObject
     }
 
     /**
-     * @return {@link #dateTimeZone}
+     * @return {@link #timeZone}
      */
     @Column
     @Type(type = "DateTimeZone")
     @Access(AccessType.FIELD)
-    public DateTimeZone getDateTimeZone()
+    public DateTimeZone getTimeZone()
     {
-        return dateTimeZone;
+        return timeZone;
     }
 
     /**
-     * @param dateTimeZone sets the {@link #dateTimeZone}
+     * @param timeZone sets the {@link #timeZone}
      */
-    public void setDateTimeZone(DateTimeZone dateTimeZone)
+    public void setTimeZone(DateTimeZone timeZone)
     {
-        this.dateTimeZone = dateTimeZone;
+        this.timeZone = timeZone;
     }
 }

@@ -521,10 +521,12 @@ public class ReservationRequestModel
                 roomNameSpecification.addTechnologies(technology.getTechnologies());
                 roomNameSpecification.addAliasType(AliasType.ROOM_NAME);
                 roomNameSpecification.setValue(roomName);
+                roomNameSpecification.setPermanentRoom(true);
                 switch (technology) {
                     case H323_SIP:
                         AliasSpecification numberSpecification = new AliasSpecification();
                         numberSpecification.addAliasType(AliasType.H323_E164);
+                        numberSpecification.setPermanentRoom(true);
                         AliasSetSpecification aliasSetSpecification = new AliasSetSpecification();
                         aliasSetSpecification.setSharedExecutable(true);
                         aliasSetSpecification.addAlias(roomNameSpecification);

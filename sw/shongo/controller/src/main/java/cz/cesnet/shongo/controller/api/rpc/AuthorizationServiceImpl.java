@@ -20,13 +20,13 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.Allocation;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.settings.UserSettingsProvider;
 import cz.cesnet.shongo.controller.util.QueryFilter;
 import cz.cesnet.shongo.util.StringHelper;
 import org.apache.commons.lang.StringUtils;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.NoResultException;
 import java.util.*;
 
 /**
@@ -421,7 +421,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
-        cz.cesnet.shongo.controller.authorization.UserSessionSettings userSessionSettings =
+        cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
                 authorization.getUserSessionSettings(securityToken);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -429,11 +429,11 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
             UserSettings userSettingsApi = new UserSettings();
             userSettingsApi.setAdminMode(userSessionSettings.getAdminMode());
 
-            cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
-                    AuthorizationManager.getUserSettings(securityToken.getUserId(), entityManager);
+            cz.cesnet.shongo.controller.settings.UserSettings userSettings =
+                    UserSettingsProvider.getUserSettings(securityToken.getUserId(), entityManager);
             if (userSettings != null) {
                 userSettingsApi.setLocale(userSettings.getLocale());
-                userSettingsApi.setDateTimeZone(userSettings.getDateTimeZone());
+                userSettingsApi.setTimeZone(userSettings.getTimeZone());
             }
             return userSettingsApi;
         }
@@ -447,7 +447,7 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
     {
         authorization.validate(securityToken);
 
-        cz.cesnet.shongo.controller.authorization.UserSessionSettings userSessionSettings =
+        cz.cesnet.shongo.controller.settings.UserSessionSettings userSessionSettings =
                 authorization.getUserSessionSettings(securityToken);
 
         // Update adminMode settings only when it is available (i.e., it is not null)
@@ -459,15 +459,15 @@ public class AuthorizationServiceImpl extends AbstractServiceImpl
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.authorization.UserSettings userSettings =
-                    AuthorizationManager.getUserSettings(securityToken.getUserId(), entityManager);
+            cz.cesnet.shongo.controller.settings.UserSettings userSettings =
+                    UserSettingsProvider.getUserSettings(securityToken.getUserId(), entityManager);
             if (userSettings == null) {
-                userSettings = new cz.cesnet.shongo.controller.authorization.UserSettings();
+                userSettings = new cz.cesnet.shongo.controller.settings.UserSettings();
                 userSettings.setUserId(securityToken.getUserId());
             }
             Locale locale = userSettingsApi.getLocale();
             userSettings.setLocale(locale);
-            userSettings.setDateTimeZone(userSettingsApi.getDateTimeZone());
+            userSettings.setTimeZone(userSettingsApi.getTimeZone());
             entityManager.persist(userSettings);
             entityManager.getTransaction().commit();
         }

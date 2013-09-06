@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -173,7 +172,7 @@ public class UserController
         localeResolver.setLocale(request, response, locale);
 
         // Set time zone
-        DateTimeZone dateTimeZone = userSettings.getDateTimeZone();
+        DateTimeZone dateTimeZone = userSettings.getTimeZone();
         logger.info("Setting timezone {} for user {}...", dateTimeZone, securityToken.getUserId());
         TimeZoneInterceptor.setDateTimeZone(request.getSession(), dateTimeZone);
     }

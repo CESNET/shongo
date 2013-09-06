@@ -117,7 +117,7 @@ public class DummyAuthorization extends Authorization
         if (userInformation != null) {
             return userInformation;
         }
-        throw new TodoImplementException();
+        throw new TodoImplementException(userId);
     }
 
     @Override

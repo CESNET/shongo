@@ -1,9 +1,10 @@
-package cz.cesnet.shongo.controller.notification;
+package cz.cesnet.shongo.controller.notification.manager;
 
 import cz.cesnet.shongo.PersonInformation;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.authorization.Authorization;
+import cz.cesnet.shongo.controller.notification.ConfigurableNotification;
+import cz.cesnet.shongo.controller.notification.Notification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,14 +16,9 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotificationManager extends Component implements Component.AuthorizationAware
+public class NotificationManager extends Component
 {
     private static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
-    /**
-     * @see cz.cesnet.shongo.controller.authorization.Authorization
-     */
-    private Authorization authorization;
 
     /**
      * List of {@link NotificationExecutor}s for executing {@link Notification}s.
@@ -57,23 +53,8 @@ public class NotificationManager extends Component implements Component.Authoriz
     }
 
     @Override
-    public void setAuthorization(Authorization authorization)
-    {
-        this.authorization = authorization;
-    }
-
-    /**
-     * @return {@link Authorization}
-     */
-    public Authorization getAuthorization()
-    {
-        return authorization;
-    }
-
-    @Override
     public void init(Configuration configuration)
     {
-        checkDependency(authorization, Authorization.class);
         super.init(configuration);
 
         // Initialize all executors
@@ -104,20 +85,25 @@ public class NotificationManager extends Component implements Component.Authoriz
     public void executeNotification(Notification notification)
     {
         if (!enabled) {
-            logger.warn("Notification '{}' cannot be executed because notifications are disabled.",
-                    notification.getName());
+            logger.warn("Notification '{}' cannot be executed because notifications are disabled.", notification);
             return;
         }
         if (redirectTo != null) {
             logger.warn("Notification '{}' is redirected to (name: {}, organization: {}, email: {}).", new Object[]{
-                    notification.getName(),
+                    notification,
                     redirectTo.getFullName(), redirectTo.getRootOrganization(), redirectTo.getPrimaryEmail()
             });
             notification.clearRecipients();
-            notification.addRecipient(Notification.RecipientGroup.ADMINISTRATOR, redirectTo);
+            if (notification instanceof ConfigurableNotification) {
+                ConfigurableNotification configurableNotification = (ConfigurableNotification) notification;
+                configurableNotification.addRecipient(redirectTo, true);
+            }
+            else {
+                notification.addRecipient(redirectTo);
+            }
         }
-        if (notification.getRecipientsByGroup().size() == 0) {
-            logger.warn("Notification '{}' doesn't have any recipients.", notification.getName());
+        if (!notification.hasRecipients()) {
+            logger.warn("Notification '{}' doesn't have any recipients.", notification);
             return;
         }
         // Execute notification in all executors

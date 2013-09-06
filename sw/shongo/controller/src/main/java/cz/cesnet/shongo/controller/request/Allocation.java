@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.CommonReportSet;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.ControllerReportSetHelper;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -16,10 +15,10 @@ import java.util.List;
 
 /**
  * Represents child {@link ReservationRequest}s and allocated reservations for the {@link #reservationRequest}.
- *
+ * <p/>
  * The {@link Allocation} instance is shared by original {@link AbstractReservationRequest} and all it's modified
  * {@link AbstractReservationRequest}s.
- *
+ * <p/>
  * {@link Reservation}s must not intersect in theirs time slots.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -27,6 +26,11 @@ import java.util.List;
 @Entity
 public class Allocation extends PersistentObject
 {
+    /**
+     * @see State
+     */
+    private State state;
+
     /**
      * Latest {@link AbstractReservationRequest} for which the {@link Allocation} exists.
      */
@@ -41,6 +45,24 @@ public class Allocation extends PersistentObject
      * Collection of {@link Reservation}s which are allocated for this {@link Allocation}.
      */
     private List<Reservation> reservations = new LinkedList<Reservation>();
+
+    /**
+     * @return {@link #state}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
 
     /**
      * @return {@link #reservationRequest}
@@ -73,7 +95,8 @@ public class Allocation extends PersistentObject
     /**
      * @param id of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given {@code id}
-     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotFoundException when the {@link ReservationRequest} doesn't exist
+     * @throws cz.cesnet.shongo.CommonReportSet.EntityNotFoundException
+     *          when the {@link ReservationRequest} doesn't exist
      */
     @Transient
     private ReservationRequest getChildReservationRequestById(Long id) throws CommonReportSet.EntityNotFoundException
@@ -145,7 +168,7 @@ public class Allocation extends PersistentObject
     public void addReservation(Reservation reservation)
     {
         // Manage bidirectional association
-        if (reservations.contains(reservation) == false) {
+        if (!reservations.contains(reservation)) {
             // Check if reservation doesn't collide with any old one
             Interval reservationSlot = reservation.getSlot();
             for (Reservation oldReservation : reservations) {
@@ -176,10 +199,42 @@ public class Allocation extends PersistentObject
 
     @PrePersist
     @PreUpdate
-    public void validate()
+    public void onUpdate()
     {
         if (reservationRequest == null) {
             throw new RuntimeException("A reservation request is not set for the allocation.");
         }
+        if (state != State.DELETED) {
+            if (reservationRequest instanceof ReservationRequest) {
+                state = State.ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS;
+            }
+            else if (reservationRequest instanceof ReservationRequestSet) {
+                state = State.ACTIVE_WITHOUT_RESERVATIONS;
+            }
+            else {
+                state = null;
+            }
+        }
+    }
+
+    /**
+     * State of allocation.
+     */
+    public static enum State
+    {
+        /**
+         * {@link Allocation} should not contain any {@link #childReservationRequests} (they should be deleted).
+         */
+        ACTIVE_WITHOUT_CHILD_RESERVATION_REQUESTS,
+
+        /**
+         * {@link Allocation} should not contain any {@link #reservations} (they should be deleted).
+         */
+        ACTIVE_WITHOUT_RESERVATIONS,
+
+        /**
+         * {@link Allocation}, all {@link #reservations} and all {@link #childReservationRequests} should be deleted.
+         */
+        DELETED
     }
 }

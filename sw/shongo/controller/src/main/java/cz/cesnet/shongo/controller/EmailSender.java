@@ -9,6 +9,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -85,6 +87,21 @@ public class EmailSender
     /**
      * Send email.
      *
+     * @param recipient
+     * @param subject
+     * @param content
+     * @throws MessagingException
+     */
+    public void sendEmail(String recipient, String subject, String content) throws MessagingException
+    {
+        List<String> recipients = new LinkedList<String>();
+        recipients.add(recipient);
+        sendEmail(recipients, subject, content);
+    }
+
+    /**
+     * Send email.
+     *
      * @param recipients
      * @param subject
      * @param content
@@ -97,7 +114,7 @@ public class EmailSender
         }
 
         MimeBodyPart textPart = new MimeBodyPart();
-        textPart.setContent(content.toString(), "text/plain; charset=utf-8");
+        textPart.setContent(content, "text/plain; charset=utf-8");
 
         StringBuilder html = new StringBuilder();
         html.append("<html><body><pre>");

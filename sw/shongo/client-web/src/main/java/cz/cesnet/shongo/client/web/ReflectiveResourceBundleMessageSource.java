@@ -29,7 +29,7 @@ public class ReflectiveResourceBundleMessageSource extends ReloadableResourceBun
     /**
      * Regex pattern for variables in message bundles.
      */
-    private Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([\\w\\.\\-]+)\\}");
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{([\\w\\.\\-]+)\\}");
 
     /**
      * Cached merged properties for not reloadable message source.
@@ -117,8 +117,7 @@ public class ReflectiveResourceBundleMessageSource extends ReloadableResourceBun
             while (matcher.find()) {
                 String subCode = matcher.group(1);
                 String subMessage = getProperty(subCode);
-                matcher.appendReplacement(stringBuffer,
-                        (subMessage != null ? subMessage : ("\\${" + subCode + "}")));
+                matcher.appendReplacement(stringBuffer, (subMessage != null ? subMessage : ("\\${" + subCode + "}")));
             }
             matcher.appendTail(stringBuffer);
             String evaluatedMessage = stringBuffer.toString();
