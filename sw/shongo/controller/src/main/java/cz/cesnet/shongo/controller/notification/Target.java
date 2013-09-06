@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -18,7 +19,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * TODO:
+ * Represents an target in {@link Notification}s which is requested by a reservation request (e.g., it's specification )
+ * or which is allocated by a reservation.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -42,7 +44,7 @@ public abstract class Target
     public String getType()
     {
         if (type == null) {
-            type = getClass().getSimpleName().toLowerCase();
+            type = getTypeName();
         }
         return type;
     }
@@ -61,6 +63,11 @@ public abstract class Target
     {
         resourceId = EntityIdentifier.formatId(resource);
         resourceName = resource.getName();
+    }
+
+    protected String getTypeName()
+    {
+        return getClass().getSimpleName().toLowerCase();
     }
 
     public static class Resource extends Target
@@ -97,30 +104,85 @@ public abstract class Target
         private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
-        public Alias(AliasSpecification specification)
+        public Alias(RoomEndpoint roomEndpoint)
         {
+            permanentRoom = true;
+            for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
+                aliases.add(alias);
+                technologies.add(alias.getTechnology());
+            }
+        }
+
+        public Alias(AliasSpecification aliasSpecification)
+        {
+            initFrom(aliasSpecification);
         }
 
         public Alias(AliasSetSpecification specification)
         {
+            for (AliasSpecification aliasSpecification : specification.getAliasSpecifications()) {
+                initFrom(aliasSpecification);
+            }
         }
 
-        public Alias(AliasReservation reservation)
+        public Alias(AliasReservation aliasReservation)
         {
-            super(reservation.getAliasProviderCapability().getResource());
+            super(aliasReservation.getAliasProviderCapability().getResource());
 
-            for (cz.cesnet.shongo.controller.resource.Alias alias : reservation.getAliases()) {
-                aliases.add(alias);
-            }
+            initFrom(aliasReservation);
         }
 
         public Alias(List<AliasReservation> aliasReservations)
         {
+            for (AliasReservation aliasReservation : aliasReservations) {
+                initFrom(aliasReservation);
+            }
+        }
+
+        private void initFrom(AliasSpecification aliasSpecification)
+        {
+            Set<AliasType> aliasTypes = aliasSpecification.getAliasTypes();
+            if (aliasTypes.size() == 1) {
+                cz.cesnet.shongo.controller.resource.Alias alias = new cz.cesnet.shongo.controller.resource.Alias();
+                alias.setType(aliasTypes.iterator().next());
+                alias.setValue(aliasSpecification.getValue());
+                aliases.add(alias);
+            }
+            technologies.addAll(aliasSpecification.getTechnologies());
+            if (aliasSpecification.isPermanentRoom()) {
+                permanentRoom = true;
+            }
+        }
+
+        private void initFrom(AliasReservation aliasReservation)
+        {
+            if (aliasReservation.getExecutable() instanceof RoomEndpoint) {
+                permanentRoom = true;
+            }
+
+            for (cz.cesnet.shongo.controller.resource.Alias alias : aliasReservation.getAliases()) {
+                aliases.add(alias);
+                technologies.add(alias.getTechnology());
+            }
+        }
+
+        public boolean isPermanentRoom()
+        {
+            return permanentRoom;
         }
 
         public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
         {
             return aliases;
+        }
+
+        @Override
+        protected String getTypeName()
+        {
+            if (isPermanentRoom()) {
+                return "roomPermanent";
+            }
+            return super.getTypeName();
         }
     }
 
@@ -139,9 +201,14 @@ public abstract class Target
         private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
                 new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
-        public Room(RoomSpecification specification)
+        public Room(RoomSpecification roomSpecification)
         {
-            licenseCount = specification.getParticipantCount();
+            licenseCount = roomSpecification.getParticipantCount();
+            for (AliasSpecification aliasSpecification : roomSpecification.getAliasSpecifications()) {
+                if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
+                    name = aliasSpecification.getValue();
+                }
+            }
         }
 
         public Room(RoomReservation reservation, EntityManager entityManager)
@@ -169,6 +236,10 @@ public abstract class Target
                         aliases.add(alias);
                     }
                 }
+                if (roomEndpoint instanceof UsedRoomEndpoint) {
+                    UsedRoomEndpoint usedRoomEndpoint = (UsedRoomEndpoint) roomEndpoint;
+                    alias = new Alias(usedRoomEndpoint.getRoomEndpoint());
+                }
             }
         }
 
@@ -190,6 +261,15 @@ public abstract class Target
         public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
         {
             return aliases;
+        }
+
+        @Override
+        protected String getTypeName()
+        {
+            if (alias != null) {
+                return "roomCapacity";
+            }
+            return super.getTypeName();
         }
     }
 
