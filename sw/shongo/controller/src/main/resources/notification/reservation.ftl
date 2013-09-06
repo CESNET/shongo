@@ -22,6 +22,7 @@ ${context.message(indent, "target.type")}: ${context.message("target.type." + ta
 <#---->
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
+${context.message(indent, "target.room.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if context.administrator>
 ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
@@ -32,7 +33,7 @@ ${context.message(indent, "reservation.slot")}: ${context.formatInterval(notific
 <#if context.timeZone != "UTC">
 ${context.width(indent)}  ${context.formatInterval(notification.slot, "UTC")}
 </#if>
-${context.message(indent, "reservation.owners")}: <#list notification.owners as owner>${context.formatUser(owner)}</#list>
+${context.message(indent, "reservation.owners")}: <#list notification.owners as owner>${context.formatUser(owner)}<#if owner_has_next>, </#if></#list>
 <#if notification.reservationRequestUrl??>
 ${context.message(indent, "reservationRequest.url")}: ${notification.reservationRequestUrl}
 <#elseif notification.reservationRequestId??>

@@ -13,6 +13,7 @@ ${context.message(indent, "target.type")}: ${context.message("target.type." + ta
 <#---->
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
+${context.message(indent, "target.room.technologies")}: <#list target.technologies as technology>${technology.getName()}<#if technology_has_next>, </#if></#list>
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if target.name??>
 ${context.message(indent, "target.room.name")}: ${target.name}

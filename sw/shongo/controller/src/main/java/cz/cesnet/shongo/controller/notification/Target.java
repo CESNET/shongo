@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.notification;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -209,6 +210,7 @@ public abstract class Target
 
         public Room(RoomSpecification roomSpecification)
         {
+            technologies.addAll(roomSpecification.getTechnologies());
             licenseCount = roomSpecification.getParticipantCount();
             for (AliasSpecification aliasSpecification : roomSpecification.getAliasSpecifications()) {
                 if (aliasSpecification.getAliasTypes().contains(AliasType.ROOM_NAME)) {
@@ -222,7 +224,9 @@ public abstract class Target
             super(reservation.getDeviceResource());
 
             RoomProviderCapability roomProviderCapability = reservation.getRoomProviderCapability();
-            licenseCount = reservation.getRoomConfiguration().getLicenseCount();
+            RoomConfiguration roomConfiguration = reservation.getRoomConfiguration();
+            technologies.addAll(roomConfiguration.getTechnologies());
+            licenseCount = roomConfiguration.getLicenseCount();
             availableLicenseCount = roomProviderCapability.getLicenseCount();
 
             ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -262,6 +266,11 @@ public abstract class Target
         public int getAvailableLicenseCount()
         {
             return availableLicenseCount;
+        }
+
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
         }
 
         public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
