@@ -2,19 +2,17 @@
   -- Template for rendering {@link Target}
   -->
 <#-- Value -->
+${context.message(indent, "target.type")}: ${context.message("target.type." + target.type)}
 <#if target.class.simpleName == "Value">
-${context.message(indent, "target.type")}: ${context.message("target.type.value")}
 <#---->
 <#-- Alias -->
 <#elseif target.class.simpleName == "Alias">
-${context.message(indent, "target.type")}: ${context.message("target.type.alias")}
 <#if target.aliases?has_content>
 <@formatAliases aliases=target.aliases/>
 </#if>
 <#---->
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
-${context.message(indent, "target.type")}: ${context.message("target.type.room")}
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if target.name??>
 ${context.message(indent, "target.room.name")}: ${target.name}

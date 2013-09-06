@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.request.*;
@@ -156,7 +157,12 @@ public abstract class Target
 
         private void initFrom(AliasReservation aliasReservation)
         {
-            if (aliasReservation.getExecutable() instanceof RoomEndpoint) {
+            Executable executable = aliasReservation.getExecutable();
+            if (executable instanceof RoomEndpoint) {
+                if (executable instanceof ResourceRoomEndpoint) {
+                    ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) executable;
+                    setResource(resourceRoomEndpoint.getResource());
+                }
                 permanentRoom = true;
             }
 

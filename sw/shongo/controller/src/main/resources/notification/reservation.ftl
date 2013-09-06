@@ -10,20 +10,18 @@ ${context.message(indent, "target.resourceId")}: ${target.resourceName} (${targe
 </#if>
 </#if>
 <#---->
+${context.message(indent, "target.type")}: ${context.message("target.type." + target.type)}
 <#-- Value -->
 <#if target.class.simpleName == "Value">
-${context.message(indent, "target.type")}: ${context.message("target.type.value")}
 <#---->
 <#-- Alias -->
 <#elseif target.class.simpleName == "Alias">
-${context.message(indent, "target.type")}: ${context.message("target.type.alias")}
 <#list target.aliases?sort_by(['type']) as alias>
 <@formatAlias alias=alias/><#t>
 </#list>
 <#---->
 <#-- Room -->
 <#elseif target.class.simpleName == "Room">
-${context.message(indent, "target.type")}: ${context.message("target.type.room")}
 ${context.message(indent, "target.room.licenseCount")}: ${target.licenseCount}
 <#if context.administrator>
 ${context.message(indent, "target.room.availableLicenseCount")}: ${target.availableLicenseCount}
