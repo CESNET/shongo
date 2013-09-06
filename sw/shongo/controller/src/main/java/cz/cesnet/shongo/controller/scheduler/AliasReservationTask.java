@@ -51,6 +51,12 @@ public class AliasReservationTask extends ReservationTask
     private List<AliasProviderCapability> aliasProviderCapabilities = new ArrayList<AliasProviderCapability>();
 
     /**
+     * Specifies whether the {@link AliasReservation} should represent a permanent room
+     * (should get allocated {@link ResourceRoomEndpoint}).
+     */
+    private boolean permanentRoom = false;
+
+    /**
      * Constructor.
      *
      * @param schedulerContext sets the {@link #schedulerContext}
@@ -118,6 +124,14 @@ public class AliasReservationTask extends ReservationTask
         this.aliasProviderCapabilities.add(aliasProviderCapability);
     }
 
+    /**
+     * @param permanentRoom sets the {@link #permanentRoom}
+     */
+    public void setPermanentRoom(boolean permanentRoom)
+    {
+        this.permanentRoom = permanentRoom;
+    }
+
     @Override
     protected SchedulerReport createMainReport()
     {
@@ -157,6 +171,9 @@ public class AliasReservationTask extends ReservationTask
                 continue;
             }
             if (aliasTypes.size() > 0 && !aliasProviderCapability.providesAliasType(aliasTypes)) {
+                continue;
+            }
+            if (permanentRoom && !aliasProviderCapability.isPermanentRoom()) {
                 continue;
             }
 

@@ -60,7 +60,10 @@ public abstract class ConfigurableNotification extends AbstractNotification
     /**
      * @return list of available {@link Locale}s for this {@link ConfigurableNotification}
      */
-    protected abstract List<Locale> getAvailableLocals();
+    protected List<Locale> getAvailableLocals()
+    {
+        return NotificationMessage.AVAILABLE_LOCALES;
+    }
 
     /**
      * @param locale
@@ -160,7 +163,7 @@ public abstract class ConfigurableNotification extends AbstractNotification
             NotificationMessage notificationMessage = new NotificationMessage();
             for (Configuration configuration : configurations) {
                 NotificationMessage configurationMessage = getRenderedMessageForConfiguration(configuration);
-                notificationMessage.appendMessage(configurationMessage);
+                notificationMessage.appendMessage(configurationMessage, configuration);
             }
             return notificationMessage;
         }

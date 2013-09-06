@@ -38,6 +38,11 @@ public class AliasSpecification extends Specification
     private String resourceId;
 
     /**
+     * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link RoomExecutable}).
+     */
+    private boolean permanentRoom = false;
+
+    /**
      * Constructor.
      */
     public AliasSpecification()
@@ -202,10 +207,27 @@ public class AliasSpecification extends Specification
         this.resourceId = resourceId;
     }
 
+    /**
+     * @return {@link #permanentRoom}
+     */
+    public boolean isPermanentRoom()
+    {
+        return permanentRoom;
+    }
+
+    /**
+     * @param permanentRoom sets the {@link #permanentRoom}
+     */
+    public void setPermanentRoom(boolean permanentRoom)
+    {
+        this.permanentRoom = permanentRoom;
+    }
+
     public static final String ALIAS_TYPES = "aliasTypes";
     public static final String TECHNOLOGIES = "technologies";
     public static final String VALUE = "value";
     public static final String RESOURCE_ID = "resourceId";
+    public static final String PERMANENT_ROOM = "permanentRoom";
 
     @Override
     public DataMap toData()
@@ -215,6 +237,7 @@ public class AliasSpecification extends Specification
         dataMap.set(TECHNOLOGIES, technologies);
         dataMap.set(VALUE, value);
         dataMap.set(RESOURCE_ID, resourceId);
+        dataMap.set(PERMANENT_ROOM, permanentRoom);
         return dataMap;
     }
 
@@ -226,5 +249,6 @@ public class AliasSpecification extends Specification
         technologies = dataMap.getSet(TECHNOLOGIES, Technology.class);
         value = dataMap.getString(VALUE);
         resourceId = dataMap.getString(RESOURCE_ID);
+        permanentRoom = dataMap.getBool(PERMANENT_ROOM);
     }
 }

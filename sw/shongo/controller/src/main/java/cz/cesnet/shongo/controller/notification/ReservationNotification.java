@@ -25,14 +25,6 @@ import java.util.*;
  */
 public class ReservationNotification extends ConfigurableNotification
 {
-    /**
-     * Available {@link Locale}s for {@link ReservationNotification}.
-     */
-    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
-    }};
-
     private Type type;
 
     private String id;
@@ -40,6 +32,8 @@ public class ReservationNotification extends ConfigurableNotification
     private Set<String> owners = new HashSet<String>();
 
     private Interval slot;
+
+    private String reservationRequestId;
 
     private String reservationRequestUrl;
 
@@ -73,8 +67,8 @@ public class ReservationNotification extends ConfigurableNotification
         this.owners.addAll(authorizationManager.getUserIdsWithRole(reservationId, Role.OWNER));
 
         if (reservationRequest != null) {
-            String reservationRequestId = EntityIdentifier.formatId(reservationRequest);
-            this.reservationRequestUrl = configuration.getReservationRequestUrl(reservationRequestId);
+            this.reservationRequestId = EntityIdentifier.formatId(reservationRequest);
+            this.reservationRequestUrl = configuration.getReservationRequestUrl(this.reservationRequestId);
             this.reservationRequestDescription = reservationRequest.getDescription();
             this.reservationRequestUpdatedAt = reservationRequest.getUpdatedAt();
             this.reservationRequestUpdatedBy = reservationRequest.getUpdatedBy();
@@ -109,6 +103,11 @@ public class ReservationNotification extends ConfigurableNotification
         return target;
     }
 
+    public String getReservationRequestId()
+    {
+        return reservationRequestId;
+    }
+
     public String getReservationRequestUrl()
     {
         return reservationRequestUrl;
@@ -127,12 +126,6 @@ public class ReservationNotification extends ConfigurableNotification
     public String getReservationRequestUpdatedBy()
     {
         return reservationRequestUpdatedBy;
-    }
-
-    @Override
-    protected List<Locale> getAvailableLocals()
-    {
-        return AVAILABLE_LOCALES;
     }
 
     @Override

@@ -11,7 +11,10 @@ import org.joda.time.Interval;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Tests for {@link AbstractReservationRequest} of {@link ReservationRequestPurpose#MAINTENANCE} type.

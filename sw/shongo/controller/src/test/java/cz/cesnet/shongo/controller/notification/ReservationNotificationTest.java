@@ -65,18 +65,19 @@ public class ReservationNotificationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(
-                new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(4000, new Technology[]{Technology.H323, Technology.SIP}));
         String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
 
-        /*if (true) {
-            return;
-        }*/
-
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
+                reservationRequestId);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(3);
+        reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 reservationRequestId);
-        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(5);
+        ((RoomSpecification) reservationRequest.getSpecification()).setParticipantCount(6);
         reservationRequestId = allocate(reservationRequest);
         checkAllocated(reservationRequestId);
 
@@ -84,8 +85,8 @@ public class ReservationNotificationTest extends AbstractControllerTest
         runScheduler();
 
         // 4x admin: new, deleted, new, deleted
-        // 3x user: changes (new), changes (deleted, new), changes (deleted)
-        Assert.assertEquals(7, notificationExecutor.getNotificationCount());
+        // 4x user: changes(failed), changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(8, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -124,7 +125,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted/new/deleted
+        // 4x admin: new, deleted, new, deleted
+        // 3x user: changes (new), changes (deleted, new), changes (deleted)
+        Assert.assertEquals(7, notificationExecutor.getNotificationCount());
     }
 
     /**
@@ -170,7 +173,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getNotificationCount()); // new/deleted
+        // 2x admin: new, deleted
+        // 2x user: changes (new), changes (deleted)
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**
@@ -207,7 +212,9 @@ public class ReservationNotificationTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
         runScheduler();
 
-        Assert.assertEquals(2, notificationExecutor.getNotificationCount()); // new/deleted
+        // 2x admin: new, deleted
+        // 2x user: changes (new), changes (deleted)
+        Assert.assertEquals(4, notificationExecutor.getNotificationCount()); // new/deleted
     }
 
     /**

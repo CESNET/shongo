@@ -20,15 +20,6 @@ import java.util.Locale;
  */
 public class ReservationRequestNotification extends ConfigurableNotification
 {
-    /**
-     * Available {@link java.util.Locale}s for {@link ReservationNotification}.
-     */
-    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>()
-    {{
-            add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
-            add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
-        }};
-
     private String id;
 
     private String url;
@@ -98,12 +89,6 @@ public class ReservationRequestNotification extends ConfigurableNotification
     public void addNotification(Notification notification)
     {
         notifications.add(notification);
-    }
-
-    @Override
-    protected List<Locale> getAvailableLocals()
-    {
-        return AVAILABLE_LOCALES;
     }
 
     @Override

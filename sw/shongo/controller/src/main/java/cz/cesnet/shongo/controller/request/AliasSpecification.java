@@ -5,6 +5,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.api.Synchronization;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.ValueReservation;
@@ -48,6 +49,11 @@ public class AliasSpecification extends Specification
      * {@link AliasProviderCapability} from which the {@link Alias} should be allocated.
      */
     private AliasProviderCapability aliasProviderCapability;
+
+    /**
+     * Specifies whether the {@link Alias} should represent a permanent room (should get allocated {@link ResourceRoomEndpoint}).
+     */
+    private boolean permanentRoom;
 
     /**
      * Constructor.
@@ -216,6 +222,23 @@ public class AliasSpecification extends Specification
         this.aliasProviderCapability = aliasProviderCapability;
     }
 
+    /**
+     * @return {@link #permanentRoom}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isPermanentRoom()
+    {
+        return permanentRoom;
+    }
+
+    /**
+     * @param permanentRoom sets the {@link #permanentRoom}
+     */
+    public void setPermanentRoom(boolean permanentRoom)
+    {
+        this.permanentRoom = permanentRoom;
+    }
+
     @Override
     public void updateTechnologies()
     {
@@ -239,12 +262,14 @@ public class AliasSpecification extends Specification
         modified |= !ObjectHelper.isSame(getAliasTechnologies(), aliasSpecification.getAliasTechnologies())
                 || !ObjectHelper.isSame(getAliasTypes(), aliasSpecification.getAliasTypes())
                 || !ObjectHelper.isSame(getValue(), aliasSpecification.getValue())
-                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
+                || !ObjectHelper.isSame(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability())
+                || !ObjectHelper.isSame(isPermanentRoom(), aliasSpecification.isPermanentRoom());
 
         setAliasTechnologies(aliasSpecification.getAliasTechnologies());
         setAliasTypes(aliasSpecification.getAliasTypes());
         setValue(aliasSpecification.getValue());
         setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
+        setPermanentRoom(aliasSpecification.isPermanentRoom());
 
         return modified;
     }
@@ -257,6 +282,7 @@ public class AliasSpecification extends Specification
         aliasSpecification.setAliasTypes(getAliasTypes());
         aliasSpecification.setValue(getValue());
         aliasSpecification.setAliasProviderCapability(getAliasProviderCapability());
+        aliasSpecification.setPermanentRoom(isPermanentRoom());
         aliasSpecification.updateTechnologies();
         return aliasSpecification;
     }
@@ -275,6 +301,7 @@ public class AliasSpecification extends Specification
         if (aliasProviderCapability != null) {
             aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
         }
+        aliasReservationTask.setPermanentRoom(isPermanentRoom());
         return aliasReservationTask;
     }
 
@@ -379,6 +406,7 @@ public class AliasSpecification extends Specification
             aliasSpecificationApi.setResourceId(
                     EntityIdentifier.formatId(getAliasProviderCapability().getResource()));
         }
+        aliasSpecificationApi.setPermanentRoom(isPermanentRoom());
         super.toApi(specificationApi);
     }
 
@@ -405,6 +433,7 @@ public class AliasSpecification extends Specification
             }
             setAliasProviderCapability(aliasProviderCapability);
         }
+        setPermanentRoom(aliasSpecificationApi.isPermanentRoom());
 
         Synchronization.synchronizeCollection(aliasTechnologies, aliasSpecificationApi.getTechnologies());
         Synchronization.synchronizeCollection(aliasTypes, aliasSpecificationApi.getAliasTypes());

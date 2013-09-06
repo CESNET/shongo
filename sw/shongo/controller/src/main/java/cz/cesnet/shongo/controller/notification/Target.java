@@ -1,13 +1,15 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.TodoImplementException;
 import cz.cesnet.shongo.controller.common.EntityIdentifier;
+import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.*;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import org.hibernate.engine.internal.StatefulPersistenceContext;
 
 import javax.persistence.EntityManager;
 import java.util.HashSet;
@@ -20,14 +22,29 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Target
+public abstract class Target
 {
+    private String type;
+
     protected String resourceId;
 
     protected String resourceName;
 
     private Target()
     {
+    }
+
+    private Target(cz.cesnet.shongo.controller.resource.Resource resource)
+    {
+        setResource(resource);
+    }
+
+    public String getType()
+    {
+        if (type == null) {
+            type = getClass().getSimpleName().toLowerCase();
+        }
+        return type;
     }
 
     public String getResourceId()
@@ -40,15 +57,18 @@ public class Target
         return resourceName;
     }
 
-    protected void setResource(Resource resource)
+    protected void setResource(cz.cesnet.shongo.controller.resource.Resource resource)
     {
         resourceId = EntityIdentifier.formatId(resource);
         resourceName = resource.getName();
     }
 
-    public String getType()
+    public static class Resource extends Target
     {
-        return getClass().getSimpleName().toLowerCase();
+        private Resource(ResourceReservation resourceReservation)
+        {
+            setResource(resourceReservation.getResource());
+        }
     }
 
     public static class Value extends Target
@@ -62,7 +82,8 @@ public class Target
 
         public Value(ValueReservation reservation)
         {
-            setResource(reservation.getValueProvider().getCapabilityResource());
+            super(reservation.getValueProvider().getCapabilityResource());
+
             values.add(reservation.getValue());
         }
     }
@@ -73,26 +94,33 @@ public class Target
 
         private Set<Technology> technologies = new HashSet<Technology>();
 
-        private List<Alias> aliases = new LinkedList<Alias>();
+        private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
+                new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
         public Alias(AliasSpecification specification)
         {
-            //To change body of created methods use File | Settings | File Templates.
         }
 
         public Alias(AliasSetSpecification specification)
         {
-            //To change body of created methods use File | Settings | File Templates.
         }
 
         public Alias(AliasReservation reservation)
         {
-            //To change body of created methods use File | Settings | File Templates.
+            super(reservation.getAliasProviderCapability().getResource());
+
+            for (cz.cesnet.shongo.controller.resource.Alias alias : reservation.getAliases()) {
+                aliases.add(alias);
+            }
         }
 
         public Alias(List<AliasReservation> aliasReservations)
         {
-            //To change body of created methods use File | Settings | File Templates.
+        }
+
+        public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
+        {
+            return aliases;
         }
     }
 
@@ -102,11 +130,14 @@ public class Target
 
         private Set<Technology> technologies = new HashSet<Technology>();
 
+        private String name;
+
         private int licenseCount;
 
         private int availableLicenseCount;
 
-        private List<Alias> aliases = new LinkedList<Alias>();
+        private List<cz.cesnet.shongo.controller.resource.Alias> aliases =
+                new LinkedList<cz.cesnet.shongo.controller.resource.Alias>();
 
         public Room(RoomSpecification specification)
         {
@@ -115,7 +146,7 @@ public class Target
 
         public Room(RoomReservation reservation, EntityManager entityManager)
         {
-            setResource(reservation.getDeviceResource());
+            super(reservation.getDeviceResource());
 
             RoomProviderCapability roomProviderCapability = reservation.getRoomProviderCapability();
             licenseCount = reservation.getRoomConfiguration().getLicenseCount();
@@ -127,6 +158,23 @@ public class Target
             for (RoomReservation roomReservation : roomReservations) {
                 availableLicenseCount -= roomReservation.getRoomConfiguration().getLicenseCount();
             }
+
+            RoomEndpoint roomEndpoint = (RoomEndpoint) reservation.getExecutable();
+            if (roomEndpoint != null) {
+                for (cz.cesnet.shongo.controller.resource.Alias alias : roomEndpoint.getAliases()) {
+                    if (alias.getType().equals(AliasType.ROOM_NAME)) {
+                        name = alias.getValue();
+                    }
+                    else {
+                        aliases.add(alias);
+                    }
+                }
+            }
+        }
+
+        public String getName()
+        {
+            return name;
         }
 
         public int getLicenseCount()
@@ -137,6 +185,35 @@ public class Target
         public int getAvailableLicenseCount()
         {
             return availableLicenseCount;
+        }
+
+        public List<cz.cesnet.shongo.controller.resource.Alias> getAliases()
+        {
+            return aliases;
+        }
+    }
+
+    public static class Other extends Target
+    {
+        private String description;
+
+        public Other(Specification specification)
+        {
+            description = specification.getClass().getSimpleName();
+        }
+
+        public Other(Reservation reservation)
+        {
+            description = reservation.getClass().getSimpleName();
+            Executable executable = reservation.getExecutable();
+            if (executable != null) {
+                description += " (" + executable.getClass().getSimpleName() + ")";
+            }
+        }
+
+        public String getDescription()
+        {
+            return description;
         }
     }
 
@@ -155,7 +232,7 @@ public class Target
             return new Room((RoomSpecification) specification);
         }
         else {
-            throw new TodoImplementException(specification.getClass());
+            return new Other(specification);
         }
     }
 
@@ -169,6 +246,9 @@ public class Target
         }
         else if (reservation instanceof RoomReservation) {
             return new Room((RoomReservation) reservation, entityManager);
+        }
+        else if (reservation instanceof ResourceReservation) {
+            return new Resource((ResourceReservation) reservation);
         }
         else {
             List<Reservation> childReservations = reservation.getChildReservations();
@@ -193,7 +273,7 @@ public class Target
                 return new Alias(childAliasReservations);
             }
             else {
-                throw new TodoImplementException(reservation.getClass());
+                return new Other(reservation);
             }
         }
     }

@@ -21,14 +21,6 @@ import java.util.Locale;
  */
 public class AllocationFailedNotification extends ConfigurableNotification
 {
-    /**
-     * Available {@link java.util.Locale}s for {@link cz.cesnet.shongo.controller.notification.ReservationNotification}.
-     */
-    public static List<Locale> AVAILABLE_LOCALES = new LinkedList<Locale>(){{
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_ENGLISH);
-        add(cz.cesnet.shongo.controller.api.UserSettings.LOCALE_CZECH);
-    }};
-
     private Interval requestedSlot;
 
     private Target target;
@@ -62,12 +54,6 @@ public class AllocationFailedNotification extends ConfigurableNotification
     public String getReason()
     {
         return reason;
-    }
-
-    @Override
-    protected List<Locale> getAvailableLocals()
-    {
-        return AVAILABLE_LOCALES;
     }
 
     @Override
